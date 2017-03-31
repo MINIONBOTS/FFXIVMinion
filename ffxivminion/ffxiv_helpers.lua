@@ -1354,7 +1354,7 @@ function GetNearestFromList(strList,pos,radius)
 				table.insert(filteredList,e)
 			else
 				local epos = e.pos
-				local dist = PDistance3D(pos.x,pos.y,pos.z,epos.x,epos.y,epos.z)
+				local dist = Distance2D(pos.x,pos.z,epos.x,epos.z)
 				
 				if (dist <= radius) then
 					table.insert(filteredList,e)
@@ -1363,7 +1363,7 @@ function GetNearestFromList(strList,pos,radius)
 		end
 		
 		if (table.valid(filteredList)) then
-			table.sort(filteredList,function(a,b) return a.distance < b.distance end)
+			table.sort(filteredList,function(a,b) return a.distance2d < b.distance2d end)
 			
 			local i,e = next(filteredList)
 			if (i and e) then

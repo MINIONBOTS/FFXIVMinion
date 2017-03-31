@@ -49,12 +49,12 @@ ml_navigation.NewPathDistanceThresholds = {
 ml_navigation.PathDeviationDistances = { 		
 	["3dwalk"] = 3,		
 	["2dwalk"] = 2,
-	["3dmount"] = 3,
-	["2dmount"] = 2,
-	["3dfly"] = 3,
-	["2dfly"] = 2,
-	["3dflysc"] = 3,
-	["2dflysc"] = 2,
+	["3dmount"] = 5,
+	["2dmount"] = 4,
+	["3dfly"] = 10,
+	["2dfly"] = 8,
+	["3dflysc"] = 10,
+	["2dflysc"] = 8,
 }
 
 ml_navigation.receivedInstructions = {}
@@ -698,6 +698,7 @@ end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
 function Player:Stop()
+	ml_navigation.ResetRenderPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
 	ffnav.currentGoal = {}
@@ -780,6 +781,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 				
 					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
+					local nextnextnode = ml_navigation.path[ml_navigation.pathindex + 1]
 					
 					ml_navigation.GUI.pathHops = table.size(ml_navigation.path)
 					ml_navigation.GUI.currentIndex = ml_navigation.pathindex			
@@ -967,6 +969,8 @@ function ml_navigation.Navigate(event, ticks )
 						end	
 		-- Cube Navigation
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
+						--d("[Navigation]: Flying navigation.")
+						
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
 						if (hit) then
@@ -985,23 +989,30 @@ function ml_navigation.Navigate(event, ticks )
 							
 							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
 							if (not string.contains(nextnode.type,"CUBE") ) then
-								d("[Navigation] - Landing...")
-								--Player:Move(FFXIV.MOVEMENT.DOWN)
-								--SendTextCommand("/mount")
-								if (IsFlying()) then
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
-									Player:SetPitch(1.377) 
-									if (not Player:IsMoving()) then
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
-										ffnav.Await(3000, function () return Player:IsMoving() end)
+								d("[Navigation]: Next node is not a flying node.")
+								
+								if (not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) then
+									d("[Navigation]: Next next node is also not a flying node.")
+									d("[Navigation] - Landing...")
+								
+									--Player:Move(FFXIV.MOVEMENT.DOWN)
+									--SendTextCommand("/mount")
+									if (IsFlying()) then								
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
+										Player:SetPitch(1.377) 
+										if (not Player:IsMoving()) then
+											Player:Move(FFXIV.MOVEMENT.FORWARD)
+											ffnav.Await(3000, function () return Player:IsMoving() end)
+											return false
+										end
+										ffnav.Await(5000, function () return not IsFlying() end)
 										return false
 									end
-									ffnav.Await(5000, function () return not IsFlying() end)
-									return false
 								end
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1		
-						else						
+						else			
+							--d("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
 							-- Face next node
 							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
@@ -1025,6 +1036,8 @@ function ml_navigation.Navigate(event, ticks )
 						end
 		-- Normal Navigation
 					else
+						--d("[Navigation]: Normal navigation..")
+						
 						if (string.contains(nextnode.type,"CUBE")) then
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
@@ -1063,6 +1076,8 @@ function ml_navigation.Navigate(event, ticks )
 						end
 
 -- TODO: ADD UNSTUCK HERE !!
+
+						--d("[Navigation]: Navigate to node.")
 						ml_navigation:NavigateToNode(ppos,nextnode)
 										
 					end
@@ -1161,7 +1176,7 @@ end
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
 	if ( ml_navigation.pathindex > 1 ) then
 		local treshold = deviationthreshold or ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
-		if ( not Player:IsJumping() ) then
+		if ( not Player:IsJumping()) then
 			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
 			if (IsFlying()) then
 				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > treshold) then			

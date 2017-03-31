@@ -273,23 +273,26 @@ function e_movetonode:execute()
 		local gpos = gatherable.pos
 		local eh = ConvertHeading(gpos.h)
 		local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
-		local adjustedPos = GetPosFromDistanceHeading(gpos, 1.5, nodeFront)
+		local adjustedPos = GetPosFromDistanceHeading(gpos, 2.5, nodeFront)
 		
 		gd("[MoveToNode]: Original position x = "..tostring(gpos.x)..",y = "..tostring(gpos.y)..",z ="..tostring(gpos.z),2)
 		gd("[MoveToNode]: Adjusted position x = "..tostring(adjustedPos.x)..",y = "..tostring(adjustedPos.y)..",z ="..tostring(adjustedPos.z),2)
 		
 		local pos;
 		if (table.valid(adjustedPos)) then
-			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos,false)
+			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos)
+			pos.x = pos.x + 0.02
+			d("[MoveToNode]: Using frontal positional, nearest to mesh.")
 		end
 		
 		if (not table.valid(pos)) then
-			pos = NavigationManager:GetClosestPointOnMesh(gpos,false)
+			pos = NavigationManager:GetClosestPointOnMesh(gpos)
+			d("[MoveToNode]: Using nearest to mesh as position.")
 		end
 
 		local ppos = Player.pos
 		if (table.valid(pos)) then
-			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
+			d("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
 			
 			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
@@ -2888,7 +2891,7 @@ end
 c_gatherislocked = inheritsFrom( ml_cause )
 e_gatherislocked = inheritsFrom( ml_effect )
 function c_gatherislocked:evaluate()
-	return MIsLocked() and not IsFlying()
+	return (MIsLocked() and not IsFlying()) or IsControlOpen("Gathering")
 end
 function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
