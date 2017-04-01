@@ -428,8 +428,7 @@ function e_precraftbuff:execute()
 		local manual = activityItem
 		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
-			local castid = action.id
-			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
+			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
 			return
 		end
 	end

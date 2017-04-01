@@ -122,8 +122,6 @@ function c_findnode:evaluate()
 			basePos = marker:GetPosition()
 		end
 		
-		d("finding node with whitelist value ["..whitelist.."]")
-		
 		if (table.valid(basePos)) then
 			local myPos = Player.pos
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
@@ -1617,7 +1615,7 @@ function e_nodeprebuff:execute()
 		local manual = GetItem(activityitemid)
 		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
-			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
+			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
 			return
 		end
 	end
@@ -2331,11 +2329,11 @@ function c_gathernexttask:evaluate()
 					local diff = (quarter - eMinute)
 					if (diff <= 5 and diff > 0) then
 						expirationDelay = (diff * 2.92) * 1000
-						d("[Gather]: Setting expiration delay of ["..tostring(expirationDelay).."] ms")
+						gd("[Gather]: Setting expiration delay of ["..tostring(expirationDelay).."] ms")
 						break
 					end	
 				end
-				d("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
+				gd("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
 				c_gathernexttask.subsetExpiration = Now() + expirationDelay
 			end
 			
