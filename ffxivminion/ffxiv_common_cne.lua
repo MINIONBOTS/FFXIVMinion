@@ -1819,7 +1819,7 @@ function c_stance:evaluate()
 			local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
 			if (stanceAction) then
 				local acStance = ActionList:Get(6,stanceAction)		
-				if (acStance and acStance:IsReady(Player.id)) then
+				if (acStance and not acStance.isoncd and acStance.usable) then
 					acStance:Cast(Player.id)
 					return true
 				end
@@ -2667,15 +2667,15 @@ function c_recommendequip:evaluate()
 	end	
 	
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
-		d("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
+		ml_debug("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
 		return false
 	end
 	
 	if (gBotMode == GetString("questMode")) then
-		d("[RecommendEquip]: Checking quest version ["..tostring(gQuestAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
+		ml_debug("[RecommendEquip]: Checking quest version ["..tostring(gQuestAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
 		return (gQuestAutoEquip or gForceAutoEquip)
 	else
-		d("[RecommendEquip]: Checking non-quest version ["..tostring(gAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
+		ml_debug("[RecommendEquip]: Checking non-quest version ["..tostring(gAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
 		return (gAutoEquip or gForceAutoEquip)
 	end
 	
@@ -2685,12 +2685,12 @@ function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then
 		ActionList:Get(10,2):Cast()
 		ml_global_information.Await(500, 2000, function () return IsControlOpen("Character") end)
-		d("[RecommendEquip]: Opened character panel.")
+		ml_debug("[RecommendEquip]: Opened character panel.")
 	else
 		if (not IsControlOpen("RecommendEquip")) then
 			UseControlAction("Character","OpenRecommendEquip")
 			ml_global_information.Await(500, 2000, function () return IsControlOpen("RecommendEquip") end)
-			d("[RecommendEquip]: Open Recommended Equipment panel.")
+			ml_debug("[RecommendEquip]: Open Recommended Equipment panel.")
 		else
 			if (UseControlAction("RecommendEquip","Equip")) then
 				ml_global_information.yield = { 
@@ -2701,7 +2701,7 @@ function e_recommendequip:execute()
 						ml_global_information.lastEquip = Now()
 					end
 				}
-				d("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
+				ml_debug("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
 			end
 		end
 	end

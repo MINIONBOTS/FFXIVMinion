@@ -351,80 +351,125 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 	
-    if (fate and fate.status == 2 and fate.completion < 100) then
-		if (fate.type == 1) then
-			el = MEntityList("alive,attackable,onmesh")
-			if (table.valid(el)) then
-				local bestTarget = nil
-				local highestHP = 0
-				
-				for i,e in pairs(el) do
-					if (e.fateid == fate.id or e.fateid > 10000) then
-						if (not bestTarget or (bestTarget and e.hp.max > highestHP)) then
-							bestTarget = e
-							highestHP = e.hp.max
-						end
-					end
-				end
-				
-				if (bestTarget) then
-					if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
-						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
-						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
-						if (table.valid(el)) then
-							local nearestQuick = nil
-							local nearestQuickDistance = 500
-							
-							for i,e in pairs(el) do
-								local epos = e.pos
-								local ehp = e.hp
-								local mhp = Player.hp
-								local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
-								if (dist <= fate.radius and 
-									(ehp.max <= (mhp.max * 2) or (ehp.current < (mhp.max * 2)))) 
-								then
-									if (not nearestQuick or (nearestQuick and dist < nearestQuickDistance)) then
-										nearestQuick,nearestQuickDistance = e,dist
-									end
-								end
+	if (fate) then
+		local maxLevel = fate.maxlevel
+		local overMaxLevel = (Player.level > maxLevel)
+		
+		if (fate.status == 2 and fate.completion < 100) then
+			if (fate.type == 1) then
+				el = MEntityList("alive,attackable,onmesh")
+				if (table.valid(el)) then
+					local bestTarget = nil
+					local highestHP = 0
+					
+					for i,e in pairs(el) do
+						if (e.fateid == fate.id or e.fateid > 10000) then
+							if (not bestTarget or (bestTarget and e.hp.max > highestHP)) then
+								bestTarget = e
+								highestHP = e.hp.max
 							end
-							
-							if (nearestQuick) then
-								return nearestQuick
-							end						
-						end	
+						end
 					end
 					
-				
-					return bestTarget
+					if (bestTarget) then
+						if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
+							-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
+							el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
+							if (table.valid(el)) then
+								local nearestQuick = nil
+								local nearestQuickDistance = 500
+								
+								for i,e in pairs(el) do
+									local epos = e.pos
+									local ehp = e.hp
+									local mhp = Player.hp
+									local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+									if (dist <= fate.radius and 
+										(ehp.max <= (mhp.max * 2) or (ehp.current < (mhp.max * 2)))) 
+									then
+										if (not nearestQuick or (nearestQuick and dist < nearestQuickDistance)) then
+											nearestQuick,nearestQuickDistance = e,dist
+										end
+									end
+								end
+								
+								if (nearestQuick) then
+									return nearestQuick
+								end						
+							end	
+						end
+						
+					
+						return bestTarget
+					end
 				end
 			end
-		end
-		
-		local nearest,nearestDistance = nil,0
-		el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange))
-        if (table.valid(el)) then
-            for i,e in pairs(el) do
-				if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
-					local epos = e.pos
-					local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
-					if (fatedist <= fate.radius) then
-						local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
-						if (not nearest or dist3d < nearestDistance) then
-							nearest, nearestDistance = e, dist3d
+			
+			local nearest,nearestDistance = nil,0
+			el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance=10")
+			if (table.valid(el)) then
+				for i,e in pairs(el) do
+					if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
+						local epos = e.pos
+						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+						if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10)) or e.fateid == 0) then
+							local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
+							if (not nearest or dist3d < nearestDistance) then
+								nearest, nearestDistance = e, dist3d
+							end
 						end
 					end
 				end
-            end
-			if (nearest) then
-				return nearest
-			end
-        end	
+				if (nearest) then
+					return nearest
+				end
+			end	
 
-		nearest,nearestDistance = nil,0
-		local companion = GetCompanionEntity()
-		if (companion) then
-			el = MEntityList("alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+			nearest,nearestDistance = nil,0
+			local companion = GetCompanionEntity()
+			if (companion) then
+				el = MEntityList("alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+				if (table.valid(el)) then
+					for i,e in pairs(el) do
+						if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
+							local epos = e.pos
+							local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+							if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10)) or e.fateid == 0) then
+								local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
+								if (not nearest or dist3d < nearestDistance) then
+									nearest, nearestDistance = e, dist3d
+								end
+							end
+						end
+					end
+					if (nearest) then
+						return nearest
+					end
+				end	
+			end
+			
+			local nearest,nearestDistance = nil,0
+			el = MEntityList("alive,attackable,aggro,onmesh,maxdistance=10")
+			if (table.valid(el)) then
+				for i,e in pairs(el) do
+					if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
+						local epos = e.pos
+						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+						if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10)) or e.fateid == 0) then
+							local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
+							if (not nearest or dist3d < nearestDistance) then
+								nearest, nearestDistance = e, dist3d
+							end
+						end
+					end
+				end
+				if (nearest) then
+					return nearest
+				end
+			end	
+			
+			nearest,nearestDistance = nil,0
+			el = MEntityList("alive,attackable,onmesh")
 			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					if (e.fateid == fate.id or e.fateid > 10000) then
@@ -443,27 +488,7 @@ function GetNearestFateAttackable()
 				end
 			end	
 		end
-		
-		nearest,nearestDistance = nil,0
-		el = MEntityList("alive,attackable,onmesh")
-        if (table.valid(el)) then
-            for i,e in pairs(el) do
-				if (e.fateid == fate.id or e.fateid > 10000) then
-					local epos = e.pos
-					local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
-					if (fatedist <= fate.radius) then
-						local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
-						if (not nearest or dist3d < nearestDistance) then
-							nearest, nearestDistance = e, dist3d
-						end
-					end
-				end
-            end
-			if (nearest) then
-				return nearest
-			end
-        end	
-    end
+	end
     
     return nil
 end
@@ -2304,6 +2329,7 @@ function GetClosestFate(pos,pathcheck)
 	
 	local fateList = GetApprovedFates()
 	if (table.valid(fateList)) then	
+		--[[
 		if (pathcheck and not gTeleportHack) then
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
@@ -2314,6 +2340,7 @@ function GetClosestFate(pos,pathcheck)
 				end
 			end
 		end
+		--]]
 		
 		--d("Found some approved fates.")
         local nearestFate = nil
@@ -2325,9 +2352,11 @@ function GetClosestFate(pos,pathcheck)
 		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
 		
 		if (table.valid(fateWhitelist:GetList())) then
+			d("[GetClosestFate]: Player has a whitelist setup, need to follow it.")
 			for k, fate in pairs(fateList) do
-				local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+				local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
 				if (fateWhitelist:Find(id,"id") ~= nil and status == 2) then
+					d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is whitelisted and active.")
 					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z)
 					if (distance) then
 						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
@@ -2341,23 +2370,27 @@ function GetClosestFate(pos,pathcheck)
 			local validFates = {}
 			--Add fates that are high priority or chains first.
 			for k, fate in pairs(fateList) do
-				local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+				local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
 				if (fateBlacklist:Find(id,"id") == nil) then
 					if (fate.status == 2) then	
 						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
 							table.insert(validFates,fate)
 						end
 					end
+				else
+					d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
 				end
 			end
 			
 			if (not table.valid(validFates)) then
 				for k, fate in pairs(fateList) do
-					local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
 					if (fateBlacklist:Find(id,"id") == nil) then
 						if (fate.status == 2) then	
 							table.insert(validFates,fate)
 						end
+					else
+						d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
 					end
 				end
 			end
@@ -2365,9 +2398,9 @@ function GetClosestFate(pos,pathcheck)
 			if (table.valid(validFates)) then
 				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
-					local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
-					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or 0
-					if (distance ~= 0) then
+					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
+					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or -1
+					if (distance ~= -1) then
 						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 							nearestFate = fate
 							nearestDistance = distance

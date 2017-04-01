@@ -114,7 +114,7 @@ function c_betterfatesearch:evaluate()
 			return false
 		end
 		
-		local closestFate = GetClosestFate(myPos,true)
+		local closestFate = GetClosestFate(myPos)
 		if (table.valid(closestFate) and thisFate.id ~= closestFate.id) then
 			if (closestFate.status == 2) then
 				if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or 
