@@ -223,14 +223,16 @@ function e_startcraft:execute()
 					if (useHQ) then
 						for i = 1,6 do
 							local ingredient = mats[i]
-							local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
-							if (hqAmount > 0) then
-								if (ingredient.inventoryhq >= hqAmount) then
-									Crafting:SetCraftingMats(i-1,hqAmount)
-								else
-									d("Stop crafting item, not enough HQ.")
-									e_craftlimit:execute()
-									return false
+							if (ingredient) then
+								local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+								if (hqAmount > 0) then
+									if (ingredient.inventoryhq >= hqAmount) then
+										Crafting:SetCraftingMats(i-1,hqAmount)
+									else
+										d("Stop crafting item, not enough HQ.")
+										e_craftlimit:execute()
+										return false
+									end
 								end
 							end
 						end
