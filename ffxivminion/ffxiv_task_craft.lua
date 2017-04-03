@@ -386,7 +386,7 @@ function c_precraftbuff:evaluate()
 				e_precraftbuff.requiresLogClose = true
 				return true
 			end
-		end		
+		end	
 	end
 
 	return false
@@ -1030,6 +1030,8 @@ function ffxiv_craft.SaveProfile(strName)
 	else
 		persistence.store(ffxiv_craft.profilePath..gCraftProfile..".lua",info)
 	end
+	
+	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
 end
 
 function ffxiv_craft.CreateNewProfile()
