@@ -435,7 +435,7 @@ function ml_navigation.ParseInstructions(data)
 							Player:Move(FFXIV.MOVEMENT.FORWARD)
 							ml_global_information.AwaitDo(100, 120000, 
 								function ()
-									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+									if (not Player:IsMoving()) then
 										return true
 									end
 									local myPos = Player.pos
@@ -444,19 +444,17 @@ function ml_navigation.ParseInstructions(data)
 								end,
 								function ()
 									local myPos = Player.pos
-									Player:SetFacing(pos.x,pos.y,pos.z)
-									--local distNext = ml_navigation.Distance2DT(myPos,pos)
-									local distNext = Distance2DT(myPos,pos)
-									local pitch = math.atan2((myPos.y - pos.y), distNext)
-									
-									if (GetPitch() ~= pitch) then
-										Player:SetPitch(pitch)
-									end
+									Player:SetFacing(pos.x,pos.y,pos.z,true)
+
+									local currentPitch = math.round(Player.flying.pitch,3)
+									local minVector = math.normalize(math.vectorize(myPos,pos))
+									local pitch = math.asin(-1 * minVector.y)
+									Player:SetPitch(pitch)
 								end,
 								function ()
-									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0) then
+									if (Player:IsMoving()) then
 										Player:Stop()
-										ml_global_information.Await(1000, function () return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) end)
+										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
 									end
 								end
 							)
@@ -476,7 +474,7 @@ function ml_navigation.ParseInstructions(data)
 							Player:Move(FFXIV.MOVEMENT.FORWARD)
 							ml_global_information.AwaitDo(100, 120000, 
 								function ()
-									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+									if (not Player:IsMoving()) then
 										return true
 									end
 									local myPos = Player.pos
@@ -485,13 +483,12 @@ function ml_navigation.ParseInstructions(data)
 								end,
 								function ()
 									local myPos = Player.pos
-									SmartTurn(pos)
-									--local distNext = ml_navigation.Distance3DT(myPos,pos)
-									local distNext = Distance2DT(myPos,pos)
-									local pitch = math.atan2((myPos.y - pos.y), distNext)
-									if (GetPitch() ~= pitch) then
-										Player:SetPitch(pitch)
-									end
+									Player:SetFacing(pos.x,pos.y,pos.z,true)
+									
+									local currentPitch = math.round(Player.flying.pitch,3)
+									local minVector = math.normalize(math.vectorize(myPos,pos))
+									local pitch = math.asin(-1 * minVector.y)
+									Player:SetPitch(pitch)
 								end
 							)
 							return true
@@ -1586,19 +1583,4 @@ function ffnav.IsEntityClose(entity)
 		end
 	end
 	return false
-end
-function ffnav.IsWalking()
-	return Player:IsMoving()
-end
-function ffnav.IsRiding()
-	return Player:IsMoving()
-end
-function ffnav.IsFlying()
-	return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0)
-end
-function ffnav.FindNearestCubePoint()
-
-end
-function ffnav.FindNearestMeshPoint()
-
 end
