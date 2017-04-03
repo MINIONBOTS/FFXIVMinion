@@ -184,7 +184,6 @@ c_precastbuff.itemid = 0
 c_precastbuff.requirestop = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
-	
 	if (MIsLoading() or MIsCasting() or IsFlying()) then
 		return false
 	end
@@ -802,7 +801,7 @@ function c_patience:evaluate()
 	--Reset tempvar.
 	c_patience.action = 0
 	
-	if (Player.gp.percent < 99) then
+	if (Player.gp.percent < 99 or HasBuff(Player,764)) then
 		return false
 	end
 	
@@ -858,7 +857,9 @@ function c_patience:evaluate()
 				end
 				return true
 			end
-		elseif (usePatience) then
+		end
+		
+		if (usePatience) then
 			local patience = SkillMgr.GetAction(4102,1)
 			if (patience and patience:IsReady(Player.id)) then	
 				if (ffxiv_fish.NeedsCordialCheck()) then
@@ -1452,7 +1453,7 @@ function c_fishnexttask:evaluate()
 				if (type(oncomplete) == "function") then
 					oncomplete()
 				elseif (type(oncomplete) == "string") then
-					assert(loadstring("return " .. condition))()
+					assert(loadstring("return " .. oncomplete))()
 				end
 			end
 		end
@@ -2233,8 +2234,8 @@ function ffxiv_task_fish:Init()
     self:add( ke_flee, self.overwatch_elements)
 	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )
-    self:add( ke_inventoryFull, self.overwatch_elements)
-  
+    self:add( ke_inventoryFull, self.overwatch_elements)  
+	
     --init Process() cnes
 	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
     --self:add( ke_autoEquip, self.process_elements)
@@ -2265,7 +2266,7 @@ function ffxiv_task_fish:Init()
     
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
- 
+	
 	
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
 	self:add(ke_syncadjust, self.process_elements)
