@@ -187,7 +187,7 @@ function ffxiv_task_assist:UIInit()
 	FFXIV_Assist_Priorities = { GetString("dps"), GetString("healer") }
 	FFXIV_Assist_PriorityIndex = GetKeyByValue(FFXIV_Assist_Priority,FFXIV_Assist_Priorities)
 	
-	self.GUI.main_tabs = GUI_CreateTabs("status,settings",true)
+	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
 end
 
 ffxiv_task_assist.GUI = {
@@ -203,29 +203,21 @@ function ffxiv_task_assist:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
+		
+	if (GUI:Button("Show Filters",200,20)) then
+		SkillMgr.ShowFilterWindow()
+	end
+	
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(5),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(8),true)
 		GUI:PushItemWidth(120)					
 		
 		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
 		GUI_Capture(GUI:Checkbox("Face Target",gAssistTrackTarget),"gAssistTrackTarget");
-		
-		if (GUI:Button("Show Filters",0,20)) then
-			SkillMgr.ShowFilterWindow()
-		end
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
-	
-	if (tabs.tabs[2].isselected) then
-		GUI:BeginChild("##header-settings",0,GUI_GetFrameHeight(6),true)
-		GUI:PushItemWidth(120)					
 		
 		GUI_Combo(GetString("assistMode"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
 		GUI_Combo(GetString("assistPriority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)		

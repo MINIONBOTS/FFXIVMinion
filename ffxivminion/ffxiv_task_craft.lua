@@ -327,7 +327,7 @@ function c_precraftbuff:evaluate()
 					local foodStack = foodDetails.buffstackid
 					
 					local food, action = GetItem(foodID)
-					if (food and food:IsReady(Player.id) and action and MissingBuffX(Player,48,foodStack,60)) then
+					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
 						cd("[PreCraftBuff]: Need to eat, using override food choice.",3)
 						e_precraftbuff.activity = "eat"
 						e_precraftbuff.id = foodID
@@ -344,7 +344,7 @@ function c_precraftbuff:evaluate()
 						local foodStack = foodDetails.buffstackid
 						
 						local food, action = GetItem(foodID)
-						if (food and food:IsReady(Player.id) and action and MissingBuffX(Player,48,foodStack,60)) then
+						if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
 							cd("[PreCraftBuff]: Need to eat, using order specific food.",3)
 							e_precraftbuff.activity = "eat"
 							e_precraftbuff.id = foodID
@@ -358,7 +358,7 @@ function c_precraftbuff:evaluate()
 			if (gFood ~= "None") then
 				local foodID = ml_global_information.foods[gFood]
 				local food, action = GetItem(foodID)
-				if (food and food:IsReady(Player.id) and action and MissingBuff(Player,48,60)) then
+				if (food and action and not action.isoncd and MissingBuff(Player,48,60)) then
 					cd("[PreCraftBuff]: Need to eat.",3)
 					e_precraftbuff.activity = "eat"
 					e_precraftbuff.id = foodID
@@ -917,8 +917,6 @@ function ffxiv_task_craft:Draw()
 	
 	if (tabs.tabs[1].isselected) then
 		GUI:PushItemWidth(120)					
-		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Craft Debug",gCraftDebug),"gCraftDebug")
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gCraftDebugLevelIndex", "gCraftDebugLevel", debugLevels)
@@ -1087,7 +1085,7 @@ function ffxiv_craft.DeleteOrder(key)
 	local orders = ffxiv_craft.orders
 	if (orders and orders[key]) then
 		if (TableSize(orders) > 1) then
-			orders[key] = nil
+			ffxiv_craft.orders[key] = nil
 		else
 			ffxiv_craft.orders = {}
 		end

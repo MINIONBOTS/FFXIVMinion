@@ -1296,34 +1296,34 @@ function CanUseExpManual()
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"45")) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,45)) then
 			if (Player.level >= 15 and Player.level < 35) then
 				local manual1, action = GetItem(4632)
-				if (manual1 and action and manual1:IsReady(Player.id)) then
+				if (manual1 and action and not action.isoncd) then
 					return true, manual1
 				end
 			end
 			
 			if (Player.level >= 35 and Player.level < 50) then
 				local manual2, action = GetItem(4634)
-				if (manual2 and action and manual2:IsReady(Player.id)) then
+				if (manual2 and action and not action.isoncd) then
 					return true, manual2
 				end
 				
 				local manual1, action = GetItem(4632)
-				if (manual1 and action and manual1:IsReady(Player.id)) then
+				if (manual1 and action and not action.isoncd) then
 					return true, manual1
 				end
 			end
 
 			if (Player.level >= 50 and CanAccessMap(397)) then
 				local commercial, action = GetItem(12667)
-				if (commercial and action and commercial:IsReady(Player.id)) then
+				if (commercial and action and not action.isoncd) then
 					return true, commercial
 				end
 				
 				local manual2, action = GetItem(4634)
-				if (manual2 and action and manual2:IsReady(Player.id)) then
+				if (manual2 and action and not action.isoncd) then
 					return true, manual2
 				end
 			end
@@ -2059,6 +2059,7 @@ function c_gathernexttask:evaluate()
 	
 	local evaluate = false
 	local invalid = false
+	local completed = false
 	local tempinvalid = false
 	
 	local profileData = ffxiv_gather.profileData
@@ -2070,6 +2071,25 @@ function c_gathernexttask:evaluate()
 		invalid = true
 	else
 		gd("[GatherNextTask]: We have a current task, check if it should be completed.",3)
+					
+		if (currentTask.complete) then
+			local conditions = shallowcopy(currentTask.complete)
+			for condition,value in pairs(conditions) do
+				local f = assert(loadstring("return " .. condition))()
+				if (f ~= nil) then
+					if (f == value) then
+						invalid = true
+						completed = true
+					end
+					conditions[condition] = nil
+				end
+				if (invalid) then
+					gd("[GatherNextTask]: Complete condition has been satisfied, invalidate.",3)
+					break
+				end
+			end
+		end
+		
 		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
 			gd("[GatherNextTask]: Task is interruptable, set the flag.",3)
 			evaluate = true
@@ -2183,21 +2203,15 @@ function c_gathernexttask:evaluate()
 				invalid = true
 			end
 		end
-			
-		if (currentTask.complete) then
-			local conditions = shallowcopy(currentTask.complete)
-			for condition,value in pairs(conditions) do
-				local f = assert(loadstring("return " .. condition))()
-				if (f ~= nil) then
-					if (f == value) then
-						invalid = true
-					end
-					conditions[condition] = nil
-				end
-				if (invalid) then
-					gd("[GatherNextTask]: Complete condition has been satisfied, invalidate.",3)
-					break
-				end
+	end
+	
+	if (completed) then
+		if (currentTask.oncomplete) then
+			local oncomplete = currentTask.oncomplete
+			if (type(oncomplete) == "function") then
+				oncomplete()
+			elseif (type(oncomplete) == "string") then
+				assert(loadstring("return " .. condition))()
 			end
 		end
 	end
@@ -3023,7 +3037,7 @@ function ffxiv_task_gather:UIInit()
 	
 	gGatherCollect = ffxivminion.GetSetting("gGatherCollect",{})
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("status,settings",true)
+	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
 end
 
 function ffxiv_task_gather:Draw()
@@ -3040,23 +3054,14 @@ function ffxiv_task_gather:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(120)					
 		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
 		
 		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
-	
-	if (tabs.tabs[2].isselected) then
-		GUI:BeginChild("##header-settings",0,60,true)
-		GUI:PushItemWidth(120)		
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()

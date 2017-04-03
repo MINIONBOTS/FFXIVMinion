@@ -439,8 +439,8 @@ function ml_navigation.ParseInstructions(data)
 										return true
 									end
 									local myPos = Player.pos
-									d("3D:"..tostring(ml_navigation.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
-									return (ml_navigation.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+									d("3D:"..tostring(Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
 									local myPos = Player.pos
@@ -456,7 +456,7 @@ function ml_navigation.ParseInstructions(data)
 								function ()
 									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0) then
 										Player:Stop()
-										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+										ml_global_information.Await(1000, function () return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) end)
 									end
 								end
 							)
@@ -480,8 +480,8 @@ function ml_navigation.ParseInstructions(data)
 										return true
 									end
 									local myPos = Player.pos
-									d("3D:"..tostring(ml_navigation.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
-									return (ml_navigation.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+									d("3D:"..tostring(Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
 									local myPos = Player.pos

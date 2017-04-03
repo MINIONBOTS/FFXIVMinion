@@ -1257,6 +1257,7 @@ function c_fishnexttask:evaluate()
 		
 		local evaluate = false
 		local invalid = false
+		local completed = false
 		local tempinvalid = false
 		local currentTask = ffxiv_fish.currentTask
 		local currentTaskIndex = ffxiv_fish.currentTaskIndex
@@ -1265,6 +1266,23 @@ function c_fishnexttask:evaluate()
 			fd("No current task, set invalid flag.")
 			invalid = true
 		else
+			if (currentTask.complete) then
+				local conditions = shallowcopy(currentTask.complete)
+				for condition,value in pairs(conditions) do
+					local f = assert(loadstring("return " .. condition))()
+					if (f ~= nil) then
+						if (f == value) then
+							invalid = true
+							completed = true
+						end
+						conditions[condition] = nil
+					end
+					if (invalid) then
+						break
+					end
+				end
+			end
+			
 			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
 				fd("Task marked interruptable or low priority.")
 				evaluate = true
@@ -1426,20 +1444,15 @@ function c_fishnexttask:evaluate()
 					end
 				end
 			end
-			
-			if (currentTask.complete) then
-				local conditions = shallowcopy(currentTask.complete)
-				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
-					if (f ~= nil) then
-						if (f == value) then
-							invalid = true
-						end
-						conditions[condition] = nil
-					end
-					if (invalid) then
-						break
-					end
+		end
+		
+		if (completed) then
+			if (currentTask.oncomplete) then
+				local oncomplete = currentTask.oncomplete
+				if (type(oncomplete) == "function") then
+					oncomplete()
+				elseif (type(oncomplete) == "string") then
+					assert(loadstring("return " .. condition))()
 				end
 			end
 		end
@@ -2335,7 +2348,7 @@ function ffxiv_task_fish:UIInit()
 	
 	gFishCollect = ffxivminion.GetSetting("gFishCollect",{})
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("status,settings",true)
+	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
 end
 
 function ffxiv_task_fish:Draw()
@@ -2351,50 +2364,14 @@ function ffxiv_task_fish:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(120)					
-		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
+
 		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
 		
 		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
-	
-	if (tabs.tabs[2].isselected) then
-		GUI:BeginChild("##header-settings",0,60,true)
-		GUI:PushItemWidth(120)				
-		
-		--[[
-		if (GUI:Button("Add Collectable",20,100)) then
-			local newCollectable = GetString("none")
-			table.insert(gFishCollect,newCollectable)
-		end
-		
-		if (table.valid(gFishCollect)) then
-			for i,collectable in pairsByKeys(gFishCollect) do
-				local doSave = false
-				local currentIndex = GetKeyByValue(collectable,gFishCollectablesList)
-				local selectedIndex = GUI:Combo("Collectable##"..tostring(i), currentIndex, gFishCollectablesList )
-				if (selectedIndex ~= currentIndex) then
-					gFishCollect[i] = gFishCollectablesList[selectedIndex]
-					doSave  
-				end
-				GUI:SameLine()
-				if (GUI:SmallButton(" - ##"..tostring(i))) then
-					gFishCollect[i] = nil
-					Settings.FFXIVMINION.gFishCollect = gFishCollect
-				end
-				if (doSave) then
-					Settings.FFXIVMINION.gFishCollect = gFishCollect
-				end
-			end
-		end
-		--]]
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()

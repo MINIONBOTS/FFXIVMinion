@@ -101,7 +101,7 @@ function ffxiv_task_minigames:UIInit()
 	gMGRestTime = ffxivminion.GetSetting("gMGRestTime",1)
 	gMGGameDelay = ffxivminion.GetSetting("gMGGameDelay",1000)
 	
-	self.GUI.main_tabs = GUI_CreateTabs(GetString("status")..",Games,Safety",false)
+	self.GUI.main_tabs = GUI_CreateTabs("Games,Safety",false)
 end
 
 ffxiv_task_minigames.GUI = {
@@ -121,17 +121,7 @@ function ffxiv_task_minigames:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(5),true)
-		GUI:PushItemWidth(120)	
-
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
-	
-	if (tabs.tabs[2].isselected) then
-		GUI:BeginChild("##header-games",0,GUI_GetFrameHeight(6),true)
+		GUI:BeginChild("##header-games",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(120)				
 
 		GUI_Capture(GUI:Checkbox("Cuff-a-Cur",gMGOptionPunch),"gMGOptionPunch", 
@@ -157,7 +147,7 @@ function ffxiv_task_minigames:Draw()
 		GUI:EndChild()
 	end
 	
-	if (tabs.tabs[3].isselected) then
+	if (tabs.tabs[2].isselected) then
 		GUI:BeginChild("##header-safety",0,GUI_GetFrameHeight(6),true)
 		GUI:PushItemWidth(120)		
 

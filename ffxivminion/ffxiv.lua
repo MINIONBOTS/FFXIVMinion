@@ -1149,6 +1149,11 @@ function ml_global_information.DrawMainFull()
 						end
 					end
 					
+					if (FFXIV_Common_BotRunning) then
+						GUI:SameLine(0,25)
+						GUI:TextColored(.1,1,.2,1,"*** RUNNING ***")
+					end
+					
 					GUI:SameLine(contentwidth-20);
 					GUI:Image(ml_global_information.GetMainIcon(),14,14)
 					if (GUI:IsItemHovered()) then

@@ -194,7 +194,6 @@ function ffxiv_task_party:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 		GUI:PushItemWidth(200)					
 		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:InputText(GetString("PartyLeader"),gPartyLeaderName),"gPartyLeaderName");
 		GUI_Capture(GUI:Checkbox(GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
 		GUI_Capture(GUI:Checkbox("Sync to Fates",gPartyGrindFateSync),"gPartyGrindFateSync")

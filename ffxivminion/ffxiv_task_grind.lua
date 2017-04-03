@@ -754,7 +754,7 @@ function ffxiv_task_grind:UIInit()
 	gFateRandomDelayMax = ffxivminion.GetSetting("gFateRandomDelayMax",0)
 	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("Status,Settings,Hunting,Tweaks",true)
+	self.GUI.main_tabs = GUI_CreateTabs("Settings,Hunting,Tweaks",true)
 end
 
 function ffxiv_task_grind:Draw()
@@ -763,16 +763,6 @@ function ffxiv_task_grind:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(1),true)
-		GUI:PushItemWidth(120)					
-		
-		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
-	
-	if (tabs.tabs[2].isselected) then
 		GUI:BeginChild("##header-settings",0,GUI_GetFrameHeight(12),true)
 		GUI:PushItemWidth(80)	
 
@@ -806,7 +796,7 @@ function ffxiv_task_grind:Draw()
 		GUI:EndChild()
 	end
 	
-	if (tabs.tabs[3].isselected) then
+	if (tabs.tabs[2].isselected) then
 		GUI:BeginChild("##header-hunting",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(100)	
 		
@@ -820,7 +810,7 @@ function ffxiv_task_grind:Draw()
 		GUI:EndChild()
 	end
 	
-	if (tabs.tabs[4].isselected) then
+	if (tabs.tabs[3].isselected) then
 		GUI:BeginChild("##header-tweaks",0,GUI_GetFrameHeight(12),true)
 		GUI:PushItemWidth(100)	
 		

@@ -79,6 +79,7 @@ function e_gotopostest:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_gotopostest.pos 
 	newTask.range = 1
+	newTask.noFly = gTestNoFly
 	newTask.remainMounted = true
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -174,6 +175,7 @@ function ffxiv_task_test:UIInit()
 	gTestMapX = ffxivminion.GetSetting("gTestMapX","")
 	gTestMapY = ffxivminion.GetSetting("gTestMapY","")
 	gTestMapZ = ffxivminion.GetSetting("gTestMapZ","")
+	gTestNoFly = ffxivminion.GetSetting("gTestNoFly",false)
 end
 
 ffxiv_task_test.GUI = {
@@ -191,8 +193,6 @@ function ffxiv_task_test:Draw()
 	
 	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(6),true)
 	GUI:PushItemWidth(120)					
-	
-	GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 	GUI_Capture(GUI:InputText("Map ID",gTestMapID),"gTestMapID");
 	GUI_Capture(GUI:InputText("X",gTestMapX),"gTestMapX");
 	GUI_Capture(GUI:InputText("Y",gTestMapY),"gTestMapY");
@@ -200,6 +200,7 @@ function ffxiv_task_test:Draw()
 	if (GUI:Button("Get Current Pos",200,20)) then
 		ffxiv_task_test.GetCurrentPosition()
 	end
+	GUI_Capture(GUI:Checkbox("No Fly",gTestNoFly),"gTestNoFly")
 	
 	GUI:PopItemWidth()
 	GUI:EndChild()
