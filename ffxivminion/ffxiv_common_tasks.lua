@@ -449,7 +449,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.started = Now()
 	newinst.contentid = 0
 	newinst.interact = 0
-    newinst.lastInteract = 0
+	
 	newinst.lastDismountCheck = 0
 	newinst.lastInteractableSearch = 0
 	newinst.pos = false
@@ -662,7 +662,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	
 		if (not IsFlying()) then
-			--if (myTarget and TimeSince(self.lastInteract) > 500) then
 			if (myTarget and myTarget.id == interactable.id) then
 
 				if (table.valid(interactable)) then			
@@ -780,7 +779,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 									end
 								)
 								self.blockExecution = true
-								self.lastInteract = Now()
 								return true
 							--end
 						end
@@ -1054,8 +1052,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (IsControlOpen("SelectYesno")) then
-		--d("select yesno, pressyesno")
-		UseControlAction("SelectYesno","Yes")
+		PressYesNo(true)
 		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
 		return
 	end
@@ -1884,7 +1881,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
+	if (c_flee:evaluate()) then
 		d("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
@@ -1997,13 +1994,10 @@ end
 c_detectyesno = inheritsFrom( ml_cause )
 e_detectyesno = inheritsFrom( ml_effect )
 function c_detectyesno:evaluate()
-	if (IsControlOpen("_NotificationParty")) then
-		return false
-	end
 	return IsControlOpen("SelectYesno")
 end
 function e_detectyesno:execute()
-	UseControlAction("SelectYesno","Yes")
+	PressYesNo(true)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -2022,7 +2016,6 @@ function ffxiv_nav_interact.Create()
 	
 	newinst.contentid = 0
 	newinst.interact = 0
-    newinst.lastInteract = 0
 	newinst.lastInteractableSearch = 0
 	newinst.lastDismountCheck = 0
 	newinst.delayTimer = 0
@@ -2183,7 +2176,6 @@ function ffxiv_nav_interact:task_complete_eval()
 					if (ydiff < 3.5 or interactable.los) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
-						self.lastInteract = Now()
 					end
 				end
 			end
@@ -2406,7 +2398,6 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.started = Now()
 	newinst.contentid = 0
 	newinst.interact = 0
-    newinst.lastInteract = 0
 	newinst.lastDismountCheck = 0
 	newinst.lastInteractableSearch = 0
 	newinst.pos = false
@@ -2647,7 +2638,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	end
 
 	if (not IsFlying()) then
-		--if (myTarget and TimeSince(self.lastInteract) > 500) then
 		if (myTarget and myTarget.id == interactable.id) then
 
 			if (table.valid(interactable)) then			
@@ -2701,7 +2691,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							end
 						)
 						self.blockExecution = true
-						self.lastInteract = Now()
 						return true
 					else
 						--d("dist2d:"..tostring(dist2d))

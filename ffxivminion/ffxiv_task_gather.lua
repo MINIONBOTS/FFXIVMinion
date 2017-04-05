@@ -215,15 +215,39 @@ function c_movetonode:evaluate()
 			else
 				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
-				local task = ffxiv_gather.currentTask
+				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
+				
+				local task = ffxiv_gather.currentTask
 				local marker = ml_global_information.currentMarker
 				if (table.valid(task)) then
 					minimumGP = IsNull(task.mingp,0)
 					noGPitem = IsNull(task.nogpitem,"")
+					useCordials = IsNull(task.usecordials,useCordials)
 				elseif (table.valid(marker)) then
 					minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 				end
+				
+				if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+					minimumGP = GUI_Get(minimumGP)
+				end
+				if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+					useCordials = GUI_Get(useCordials)
+				end
+				
+					--[[
+				if (useCordials) then
+					local canUse,cordialItem = CanUseCordial()
+					if (canUse and table.valid(cordialItem)) then
+						d("[NodePreBuff]: Need to use a cordial.")
+						e_nodeprebuff.activity = "usecordial"
+						e_nodeprebuff.itemid = cordialItem.hqid
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = true
+						return true
+					end					
+				end
+		--]]
 				
 				if (Player.gp.current >= minimumGP) then
 					gd("[MoveToNode]: We have enough GP, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
@@ -268,28 +292,8 @@ function e_movetonode:execute()
     ml_task_hub:CurrentTask().idleTimer = 0
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (table.valid(gatherable)) then
-		local gpos = gatherable.pos
-		local eh = ConvertHeading(gpos.h)
-		local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
-		local adjustedPos = GetPosFromDistanceHeading(gpos, 2.5, nodeFront)
+		local pos = gatherable.meshpos
 		
-		gd("[MoveToNode]: Original position x = "..tostring(gpos.x)..",y = "..tostring(gpos.y)..",z ="..tostring(gpos.z),2)
-		gd("[MoveToNode]: Adjusted position x = "..tostring(adjustedPos.x)..",y = "..tostring(adjustedPos.y)..",z ="..tostring(adjustedPos.z),2)
-		
-		local pos;
-		if (table.valid(adjustedPos)) then
-			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos)
-			if (table.valid(pos)) then
-				pos.x = pos.x + 0.02
-				d("[MoveToNode]: Using frontal positional, nearest to mesh.")
-			end
-		end
-		
-		if (not table.valid(pos)) then
-			pos = NavigationManager:GetClosestPointOnMesh(gpos)
-			d("[MoveToNode]: Using nearest to mesh as position.")
-		end
-
 		local ppos = Player.pos
 		if (table.valid(pos)) then
 			d("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
@@ -1221,9 +1225,18 @@ function CanUseCordial()
 	end
 	
 	if (useCordials) then
-		local cordialQuick = GetItem(1016911) or GetItem(16911)
-		local cordialNormal = GetItem(1006141) or GetItem(6141)
-		local cordialHigh = GetItem(1012669) or GetItem(12669)
+		local cordialQuick, cordialQuickAction = GetItem(1016911)
+		if (not cordialQuick) then
+			cordialQuick, cordialQuickAction = GetItem(16911)
+		end
+		local cordialNormal, cordialNormalAction = GetItem(1006141)
+		if (not cordialNormal) then
+			cordialNormal, cordialNormalAction = GetItem(6141)
+		end
+		local cordialHigh, cordialHighAction = GetItem(1012669)
+		if (not cordialHigh) then
+			cordialHigh, cordialHighAction = GetItem(12669)
+		end
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		
@@ -1241,11 +1254,11 @@ function CanUseCordial()
 			end
 		end
 		
-		if (gpDeficit >= 400 and cordialHigh and cordialHigh:IsReady(Player.id)) then
+		if (gpDeficit >= 400 and cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 			return true, cordialHigh
-		elseif (gpDeficit >= 300 and cordialNormal and cordialNormal:IsReady(Player.id)) then
+		elseif (gpDeficit >= 300 and cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
 			return true, cordialNormal
-		elseif (gpDeficit >= 150 and cordialQuick and cordialQuick:IsReady(Player.id)) then
+		elseif (gpDeficit >= 150 and cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
 			return true, cordialQuick
 		end	
 	else
@@ -1436,7 +1449,7 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and 
-		not MIsLocked()) 
+		not MIsLocked() and not IsFlying()) 
 	then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
         if (gatherable and gatherable.cangather) then
@@ -2211,7 +2224,7 @@ function c_gathernexttask:evaluate()
 			if (type(oncomplete) == "function") then
 				oncomplete()
 			elseif (type(oncomplete) == "string") then
-				assert(loadstring("return " .. condition))()
+				assert(loadstring("return " .. oncomplete))()
 			end
 		end
 	end

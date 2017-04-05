@@ -253,7 +253,7 @@ function c_assistyesno:evaluate()
 	return IsControlOpen("SelectYesno")
 end
 function e_assistyesno:execute()
-	UseControlAction("SelectYesno","Yes")
+	PressYesNo(true)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 

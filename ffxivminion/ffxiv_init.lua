@@ -653,6 +653,25 @@ function ml_global_information.LoadBehaviorFiles()
  end
 RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles)
 
+function PressYesNo(answer)
+	local answer = IsNull(answer,true)
+	if (answer == true) then
+		answer = "Yes"
+	elseif (answer == false)then
+		answer = "No"
+	end
+	
+	if (IsControlOpen("SelectYesno")) then
+		if (IsControlOpen("_NotificationParty")) then
+			return UseControlAction("SelectYesno","No")
+		else
+			return UseControlAction("SelectYesno",answer)
+		end
+	end
+	
+	return false
+end
+
 function DrawFateListUI(self)
 	local vars = self.GUI.vars
 	
@@ -669,14 +688,17 @@ function DrawFateListUI(self)
 		
 		local entries = self.entries
 		if (table.valid(entries)) then
+			local myMap = Player.localmapid
 			for i, entry in pairs(entries) do
-				GUI:Text(entry.mapid); GUI:NextColumn();
-				GUI:Text(entry.name); GUI:NextColumn();
-				GUI:Text(entry.id); GUI:NextColumn();
-				if (GUI:Button(GetString("Delete").."##"..tostring(i))) then
-					self:DeleteEntry(i); 
+				if (entry.mapid == myMap) then
+					GUI:Text(entry.mapid); GUI:NextColumn();
+					GUI:Text(entry.name); GUI:NextColumn();
+					GUI:Text(entry.id); GUI:NextColumn();
+					if (GUI:Button(GetString("Delete").."##"..tostring(i))) then
+						self:DeleteEntry(i); 
+					end
+					GUI:NextColumn();
 				end
-				GUI:NextColumn();
 			end
 		end
 		

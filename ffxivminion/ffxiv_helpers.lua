@@ -32,8 +32,19 @@ function FilterByProximity(entities,center,radius,sortfield)
 end
 
 function GetNearestGrindAttackable()
-	local huntString = GetWhitelistIDString()
-	local excludeString = IsNull(GetBlacklistIDString(),"")
+	local excludeString = ""
+	local huntString = ""
+	
+	local monsterBlacklist = ml_list_mgr.GetList("Mob Blacklist")
+	local monsterHuntlist = ml_list_mgr.GetList("Mob Whitelist")
+	
+	if (monsterBlacklist) then
+		excludeString = monsterBlacklist:GetList("string","id",";")
+	end
+	if (monsterHuntlist) then
+		huntString = monsterHuntlist:GetList("string","id",";")
+	end
+	
 	local block = 0
 	local el = nil
 	local nearestGrind = nil
@@ -1253,61 +1264,6 @@ function GetPVPTarget()
 	end
 	
 	ml_error("Bad, we shouldn't have gotten to this point!")
-end
-function GetNearestGrindAggro()
-	taskName = ml_task_hub:ThisTask().name
-	
-	if (not IsNullString(excludeString)) then
-		if (taskName == "LT_GRIND") then
-			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
-		else
-			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
-		end
-	else
-		if (taskName == "LT_GRIND") then
-			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
-		else
-			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
-		end
-	end
-	
-	if ( el ) then
-		local i,e = next(el)
-		if (i~=nil and e~=nil) then
-			--d("Grind returned, using block:"..tostring(block))
-			return e
-		end
-	end
-	
-	local party = EntityList.myparty
-	if ( party ) then
-		for i, member in pairs(party) do
-			if (member.id and member.id ~= 0) then
-				if (not IsNullString(excludeString)) then
-					if (taskName == "LT_GRIND") then
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
-					else
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
-					end
-				else
-					if (taskName == "LT_GRIND") then
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
-					else
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
-					end
-				end
-				
-				if ( el ) then
-					local i,e = next(el)
-					if (i~=nil and e~=nil) then
-						return e
-					end
-				end
-			end
-		end
-	end
-    
-    return nil
 end
 function GetNearestAggro()
 	taskName = ml_task_hub:ThisTask().name

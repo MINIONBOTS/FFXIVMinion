@@ -9,8 +9,6 @@ ml_navigation.NavPointReachedDistances = {
 	["2dmount"] = 0.6,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
-	["3dflysc"] = 5,
-	["2dflysc"] = 3,	
 }
 -- Distance required basic task goals. A little softer than nav points.
 ml_navigation.PointReachedDistances = { 	
@@ -19,9 +17,7 @@ ml_navigation.PointReachedDistances = {
 	["3dmount"] = 5,
 	["2dmount"] = 1,
 	["3dfly"] = 5,
-	["2dfly"] = 1.5,
-	["3dflysc"] = 5,
-	["2dflysc"] = 3,	
+	["2dfly"] = 1.5,	
 }
 -- Distance to the next node in the path, in case it is an OffMeshConnection, at which the ml_navigation.pathindex is iterated 
 ml_navigation.OMCReachedDistances = { 			
@@ -31,8 +27,6 @@ ml_navigation.OMCReachedDistances = {
 	["2dmount"] = 0.6,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
-	["3dflysc"] = 5,
-	["2dflysc"] = 3,
 } 
 -- We have a path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
 ml_navigation.NewPathDistanceThresholds = { 	
@@ -42,8 +36,6 @@ ml_navigation.NewPathDistanceThresholds = {
 	["2dmount"] = 0.6,
 	["3dfly"] = 3.0,
 	["2dfly"] = 1.0,
-	["3dflysc"] = 5.0,
-	["2dflysc"] = 3.0,
 }
 -- The max. distance the playerposition can be away from the current path. (The Point-Line distance between player and the last & next pathnode)
 ml_navigation.PathDeviationDistances = { 		
@@ -53,8 +45,6 @@ ml_navigation.PathDeviationDistances = {
 	["2dmount"] = 4,
 	["3dfly"] = 10,
 	["2dfly"] = 8,
-	["3dflysc"] = 10,
-	["2dflysc"] = 8,
 }
 
 ml_navigation.receivedInstructions = {}
@@ -511,6 +501,7 @@ function ml_navigation.GetMovementType()
 	end
 end
 
+-- 
 function ml_navigation.GetMovementThresholds()
 	if ( not Player.ismounted ) then 
 		return ml_navigation.PointReachedDistances["2dwalk"],ml_navigation.PointReachedDistances["3dwalk"]
@@ -631,9 +622,6 @@ function ml_navigation:IsDestinationClose(ppos,goal)
 	end
 	return false
 end
-
---table.print(NavigationManager:GetPath(Player.pos.x,Player.pos.y,Player.pos.z,Player:GetTarget().pos.x,Player:GetTarget().pos.y,Player:GetTarget().pos.z))
---Player:MoveTo(Player:GetTarget().pos.x,Player:GetTarget().pos.y,Player:GetTarget().pos.z)
 
 -- Often  used function to determine if the next node in the path is reached
 function ml_navigation:IsGoalClose(ppos,node)
@@ -772,7 +760,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (IsControlOpen("SelectYesno")) then
-						UseControlAction("SelectYesno","Yes")
+						PressYesNo(true)
 						ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
 						return
 					end
@@ -1245,7 +1233,6 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_startheight = nil	
 end
 
-
 ffnav = {}
 ffnav.yield = {}
 ffnav.process = {}
@@ -1481,8 +1468,9 @@ function ffnav.Ascend()
 		evaluator = function ()
 			local ppos = Player.pos
 			if (IsFlying()) then
+				-- Need to really expand this so that it doesn't die in between cube and recast.
 				local meshpos = NavigationManager:GetClosestPointOnMesh(ppos)
-				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 5) then
+				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 3) then
 					Player:StopMovement()
 					ffnav.Await(1000, function () return (not Player:IsMoving(FFXIV.MOVEMENT.UP)) end)
 					return true
@@ -1510,77 +1498,4 @@ function ffnav.Ascend()
 		end,
 		followall = function () Player:Stop() end
 	}
-end
-
-
-
---*******************************************
---*******************************************
--- NOT USED STUFF BELOW !?!?! , I 'll leave it here in  case you need some CLUTTER :P
---*******************************************
---*******************************************
-
--- THIS CANNOT WORK, using a single raycast from the bottom of the feet ..what about the rest of the body and it's actual fat ass ?
--- Look for a new index to fast forward to that isn't the next one to make flying behave a bit less awkwardly.
-function ffnav.CanFastForward()
-	if (table.valid(ffnav.currentPath)) then
-		local currentNode = ffnav.currentPath[ffnav.currentPathIndex]
-		local nextNode = ffnav.currentPath[ffnav.currentPathIndex+1]
-		
-		if (currentNode and nextNode) then
-			local currentdist,currentdist2d = ffnav.GetNodeDistance(Player.pos,{currentNode.x, currentNode.y, currentNode.z})
-			local interdist,interdist2d = ffnav.GetNodeDistance({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})
-			local nextdist,nextdist2d = ffnav.GetNodeDistance(Player.pos,{nextNode.x, nextNode.y, nextNode.z})
-			
-			if (ffnav.IsPathClear({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})) then
-				if (currentDist < 10 and currentDist2d < 8 and interdist < 10 and interdist2d < 8) then
-					d("okay to fastforward to next node")
-					return true
-				end
-			end
-		end
-	end
-	return false
-end
-function ffnav.IsPathClear(pos1,pos2)
-	local hit, hitx, hity, hitz = RayCast(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) 
-	return (hit == nil)
-end
-function Player:MoveToEntity(entityid)
-	if (ffnav.currentPathEntity ~= entityid) then
-		local entity = EntityList:Get(entityid)
-		if (table.valid(entity)) then
-			if (not ffnav.IsEntityClose(entity)) then
-				return ffnav.MoveToEntity(entity.id)
-			end
-		end
-	end
-	return false
-end
--- Creates / Updates the current Path, this usually gets spam-called by the bot
-function ffnav.MoveToEntity(entityid)		
-	local ppos = Player.pos
-	local pathSize = ffnav.GetPath(ppos.x,ppos.y,ppos.z,x,y,z)
-	return pathSize
-end
-function ffnav.IsEntityClose(entity)
-	if (table.valid(entity)) then
-		local goaldist2d = entity.distance2d
-		if (not Player.ismounted) then
-			if (goaldist2d <= ffnav.nodedist["2dwalk"]) then
-				return true
-			end
-		else
-			if (Player.flying.isflying) then
-				if (goaldist2d <= ffnav.nodedist["2dfly"]) then
-					return true
-				end
-			else
-				if (goaldist2d <= ffnav.nodedist["2dmount"]) then
-					return true
-				end
-			end
-		end
-	end
-	return false
 end

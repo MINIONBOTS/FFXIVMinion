@@ -2684,17 +2684,17 @@ end
 function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then
 		ActionList:Get(10,2):Cast()
-		ml_global_information.Await(500, 2000, function () return IsControlOpen("Character") end)
+		ml_global_information.Await(1000, 2000, function () return IsControlOpen("Character") end)
 		ml_debug("[RecommendEquip]: Opened character panel.")
 	else
 		if (not IsControlOpen("RecommendEquip")) then
 			UseControlAction("Character","OpenRecommendEquip")
-			ml_global_information.Await(500, 2000, function () return IsControlOpen("RecommendEquip") end)
+			ml_global_information.Await(1500, 3000, function () return IsControlOpen("RecommendEquip") end)
 			ml_debug("[RecommendEquip]: Open Recommended Equipment panel.")
 		else
 			if (UseControlAction("RecommendEquip","Equip")) then
 				ml_global_information.yield = { 
-					mintimer = 500,
+					mintimer = 1000,
 					maxtimer = 2000, 
 					followall = function () 
 						ActionList:Get(10,2):Cast()
@@ -2920,11 +2920,7 @@ function c_mapyesno:evaluate()
 	return IsControlOpen("SelectYesno")
 end
 function e_mapyesno:execute()
-	if (IsControlOpen("_NotificationParty")) then
-		UseControlAction("SelectYesno","No")
-	else
-		UseControlAction("SelectYesno","Yes")
-	end
+	PressYesNo(true)
 	SetThisTaskProperty("preserveSubtasks",true)
 end
 
@@ -2970,7 +2966,7 @@ e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
 function c_buy:evaluate()	
 	if (IsControlOpen("SelectYesno")) then
-		UseControlAction("SelectYesno","Yes")
+		PressYesNo(true)
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
 		return true
 	end

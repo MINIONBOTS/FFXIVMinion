@@ -663,7 +663,8 @@ function ffxivminion.HandleInit()
 	fateBlacklist.DefaultDraw = DrawFateListUI
 	local fateWhitelist = ml_list_mgr.AddList("FATE Whitelist")
 	fateBlacklist.DefaultDraw = DrawFateListUI
-	local monsterBlacklist = ml_list_mgr.AddList(GetString("monsters"))
+	local monsterBlacklist = ml_list_mgr.AddList("Mob Blacklist")
+	local monsterWhitelist = ml_list_mgr.AddList("Mob Whitelist")
 	
 	--[[
 	spotList.GUI.vars = { temptimer = 0, temptext = "", mapid = 0, name = "", pos = { x = 0, y = 0, z = 0} }
@@ -1106,8 +1107,8 @@ function ffxivminion.ClearAddons()
 			if(ffxivminion.declineTimer == 0) then
 				ffxivminion.declineTimer = Now() + math.random(3000,5000)
 			elseif(Now() > ffxivminion.declineTimer) then
-				if(not ffxivminion.inviteDeclined) then
-					UseControlAction("SelectYesno","Yes")
+				if (not ffxivminion.inviteDeclined) then
+					UseControlAction("SelectYesno","No")
 					ffxivminion.inviteDeclined = true
 					ffxivminion.declineTimer = 0
 				end
