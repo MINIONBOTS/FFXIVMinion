@@ -325,30 +325,30 @@ function e_movetonode:execute()
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
-					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
-					if (p) then
+					--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
+					--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					--if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
-						alternateTask.pos = p
+						alternateTask.pos = pos
 						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = 3
 						alternateTask.remainMounted = true
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 						gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
-					end
+					--end
 				end
 				gd("Need to use cordial, manual, or wait for GP. ",2)
 				return
 			end
 			
 			if (gTeleportHack and dist3d > 8) then
-				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-				local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
-				if (p and p.distance ~= 0 and p.distance <= 6) then
-					newTask.pos = p
+				--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
+				--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+				--if (p and p.distance ~= 0 and p.distance <= 6) then
+					--newTask.pos = p
 					newTask.useTeleport = true
-				end
+				--end
 			end
 			
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
