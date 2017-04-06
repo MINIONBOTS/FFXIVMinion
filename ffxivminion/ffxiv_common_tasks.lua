@@ -1062,7 +1062,6 @@ function ffxiv_task_teleport:task_complete_eval()
 		return false
 	end
 	
-	--[[
 	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
 		local homepoint = GetHomepoint()
 		if (homepoint ~= self.mapID) then
@@ -1070,10 +1069,9 @@ function ffxiv_task_teleport:task_complete_eval()
 			return false
 		end
 	end
-	--]]
 	
 	if (self.setEvac) then
-		ml_mesh_mgr.SetEvacPoint()
+		ml_marker_mgr.AddEvacPoint()
 	end
 	
 	--d("complete teleport")

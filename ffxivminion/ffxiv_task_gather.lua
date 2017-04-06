@@ -50,8 +50,13 @@ end
 function gd(var,level)
 	local level = tonumber(level) or 3
 
-	if ( gGatherDebug ) then
-		if ( level <= tonumber(gGatherDebugLevel)) then
+	local requiredLevel = gGatherDebugLevel
+	if (gBotMode == GetString("questMode") and gQuestDebug) then
+		requiredLevel = gQuestDebugLevel
+	end
+	
+	if ( gGatherDebug or (gQuestDebug and gBotMode == GetString("questMode"))) then
+		if ( level <= tonumber(requiredLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
 			elseif (type(var) == "number" or type(var) == "boolean") then
@@ -61,6 +66,77 @@ function gd(var,level)
 			end
 		end
 	end
+end
+
+function ffxiv_gather.RandomizePosition(pos, x, y, z)
+	local pos = pos or {}
+	local x = x or 0
+	local y = y or 0
+	local z = z or 0
+	local h = h or 0
+	local newPos = {}
+	
+	if (table.valid(pos)) then
+		for i = 1,10 do
+			newPos.x = (pos.x - x) + (math.random() * x * 2)
+			newPos.y = (pos.y - y) + (math.random() * y * 2)
+			newPos.z = (pos.z - z) + (math.random() * z * 2)
+			if (pos.h) then
+				newPos.h = pos.h
+			end
+			
+			if (table.valid(newPos)) then
+				local randPosition = NavigationManager:GetClosestPointOnMesh(newPos)
+				if (randPosition) then
+					pos = randPosition
+					break
+				end
+			end
+		end
+	end
+
+	return pos
+end
+	
+function ffxiv_gather.GetCurrentTaskPos()
+	local pos = {}
+	
+	if (table.valid(ffxiv_gather.currentTask)) then
+		local task = ffxiv_gather.currentTask
+		if (task.maxPositions > 0) then
+			local currentPosition = task.currentPosition
+			if (table.valid(currentPosition)) then
+				pos = currentPosition
+			else
+				local taskMultiPos = task.multipos
+				if (table.valid(taskMultiPos)) then
+					if (table.valid(taskMultiPos[task.currentPositionIndex])) then
+						pos = taskMultiPos[task.currentPositionIndex]
+						if (task.mapid == Player.localmapid) then
+							currentPosition = ffxiv_gather.RandomizePosition(pos, 5.0, 5.0, 5.0)
+							ffxiv_gather.currentTask.currentPosition = currentPosition
+							pos = currentPosition
+						end
+					else
+						for i,choice in pairs(taskMultiPos) do
+							if (table.valid(choice)) then
+								ffxiv_gather.currentTask.currentPositionIndex = i
+								pos = choice
+								break
+							end
+						end
+					end
+				end
+			end
+		else
+			local taskPos = task.pos
+			if (table.valid(taskPos)) then
+				pos = taskPos
+			end
+		end
+	end
+
+	return pos
 end
 
 c_findnode = inheritsFrom( ml_cause )
@@ -103,7 +179,7 @@ function c_findnode:evaluate()
 			radius = IsNull(task.radius,150)
 			nodemaxlevel = IsNull(task.nodemaxlevel,60)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
-			basePos = task.pos
+			basePos = ffxiv_gather.GetCurrentTaskPos()
 			
 			if (task.unspoiled and task.unspoiled == false) then
 				blacklist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
@@ -377,7 +453,7 @@ function c_returntobase:evaluate()
 		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
-			basePos = task.pos
+			basePos = ffxiv_gather.GetCurrentTaskPos()
 			if (task.mapid ~= Player.localmapid) then
 				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
@@ -1121,15 +1197,17 @@ end
 
 function CanUseCordialSoon()
 	local minimumGP = 0
-	local useCordials = (gGatherUseCordials )
+	local useCordials = false
 	
 	local profile, task;
 	if (IsFisher(Player.job)) then
 		profile = ffxiv_fish.profileData
 		task = ffxiv_fish.currentTask
+		useCordials = gFishUseCordials
 	elseif (IsGatherer(Player.job)) then
 		profile = ffxiv_gather.profileData
 		task = ffxiv_gather.currentTask
+		useCordials = gGatherUseCordials
 	end
 	
 	local marker = ml_global_information.currentMarker
@@ -1187,6 +1265,15 @@ function CanUseCordialSoon()
 		elseif (gpDeficit >= 150 and cordialQuick and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
 			return true, cordialQuick
 		end	
+		
+		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
+		if (usedPatience) then
+			if (cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+				return true, cordialNormal
+			elseif (cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+				return true, cordialHigh
+			end
+		end
 	else
 		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
 	end
@@ -1196,15 +1283,17 @@ end
 
 function CanUseCordial()
 	local minimumGP = 0
-	local useCordials = (gGatherUseCordials)
+	local useCordials = false
 	
 	local profile, task;
 	if (IsFisher(Player.job)) then
 		profile = ffxiv_fish.profileData
 		task = ffxiv_fish.currentTask
+		useCordials = gFishUseCordials
 	elseif (IsGatherer(Player.job)) then
 		profile = ffxiv_gather.profileData
 		task = ffxiv_gather.currentTask
+		useCordials = gGatherUseCordials
 	end
 	
 	local marker = ml_global_information.currentMarker
@@ -1261,6 +1350,15 @@ function CanUseCordial()
 		elseif (gpDeficit >= 150 and cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
 			return true, cordialQuick
 		end	
+		
+		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
+		if (usedPatience) then
+			if (cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+				return true, cordialNormal
+			elseif (cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+				return true, cordialHigh
+			end
+		end
 	else
 		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
 	end
@@ -2224,7 +2322,7 @@ function c_gathernexttask:evaluate()
 			if (type(oncomplete) == "function") then
 				oncomplete()
 			elseif (type(oncomplete) == "string") then
-				assert(loadstring("return " .. oncomplete))()
+				assert(loadstring(oncomplete))()
 			end
 		end
 	end
@@ -2578,6 +2676,16 @@ function e_gathernexttask:execute()
 	ffxiv_gather.currentTask.taskStarted = 0
 	ffxiv_gather.currentTask.taskFailed = 0
 	ffxiv_gather.currentTask.touchCompleted = false
+
+	ffxiv_gather.currentTask.currentPositionIndex = 0
+	ffxiv_gather.currentTask.currentPosition = {}
+	ffxiv_gather.currentTask.maxPositions = 0
+	if (table.valid(ffxiv_gather.currentTask.multipos)) then
+		ffxiv_gather.currentTask.maxPositions = table.size(ffxiv_gather.currentTask.multipos)
+		ffxiv_gather.currentTask.currentPositionIndex = math.random(1,ffxiv_gather.currentTask.maxPositions)
+		gd("[GatherNextTask] Position selected "..ffxiv_gather.currentTask.currentPositionIndex.." of "..ffxiv_gather.currentTask.maxPositions)
+	end
+
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 
@@ -2602,12 +2710,12 @@ function e_gathernextprofilemap:execute()
 	local task = ffxiv_gather.currentTask
 
 	local mapID = task.mapid
-	local taskPos = task.pos
+	local taskPos = ffxiv_gather.GetCurrentTaskPos()
 	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)
 	if (table.valid(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
-		newTask.pos = task.pos
+		newTask.pos = taskPos
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
 		if (mapID and taskPos) then
@@ -2687,7 +2795,7 @@ function c_gatherstealth:evaluate()
 			local marker = ml_global_information.currentMarker
 			if (table.valid(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
-				destPos = task.pos
+				destPos = ffxiv_gather.GetCurrentTaskPos()
 			elseif (table.valid(marker)) then
 				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
 				destPos = marker:GetPosition()
@@ -3040,17 +3148,19 @@ function ffxiv_task_gather:UIInit()
 	gGatherDebugLevel = ffxivminion.GetSetting("gGatherDebugLevel",1)
 	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
-	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
-	gGatherCollectablesList = { GetString("none") }
-	if (ValidString(uistring)) then
-		for collectable in StringSplit(uistring,",") do
-			table.insert(gGatherCollectablesList,collectable)
-		end
-	end
+	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	--gGatherCollectablesList = { GetString("none") }
+	--if (ValidString(uistring)) then
+		--for collectable in StringSplit(uistring,",") do
+			--table.insert(gGatherCollectablesList,collectable)
+		--end
+	--end
 	
-	gGatherCollect = ffxivminion.GetSetting("gGatherCollect",{})
+	gGatherUseCordials = ffxivminion.GetSetting("gGatherUseCordials",true)
+	gGatherCollectablePresets = ffxivminion.GetSetting("gGatherCollectablePresets",{})	
+	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
+	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
 end
 
 function ffxiv_task_gather:Draw()
@@ -3067,7 +3177,7 @@ function ffxiv_task_gather:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 		GUI:PushItemWidth(120)					
 		
 		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
@@ -3075,9 +3185,49 @@ function ffxiv_task_gather:Draw()
 		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
 		
 		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
+		GUI_Capture(GUI:Checkbox("Use Cordials",gGatherUseCordials),"gGatherUseCordials");
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
+	end
+	
+	if (tabs.tabs[2].isselected) then
+		if (GUI:Button("Add Collectable",150,20)) then
+			local newCollectable = { name = "", value = 0 }
+			table.insert(gGatherCollectablePresets,newCollectable)
+			GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
+		end
+		
+		if (table.valid(gGatherCollectablePresets)) then
+			for i,collectable in pairsByKeys(gGatherCollectablePresets) do
+				GUI:AlignFirstTextHeightToWidgets()
+				GUI:PushItemWidth(200)
+				local newName = GUI:InputText("##Gather-collectablepair-name"..tostring(i),collectable.name)
+				if (newName ~= collectable.name) then
+					gGatherCollectablePresets[i].name = newName
+					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
+				end
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(40)
+				GUI:SameLine()
+				local newValue = GUI:InputInt("##Gather-collectablepair-value"..tostring(i),collectable.value,0,0)
+				if (newValue ~= collectable.value) then
+					gGatherCollectablePresets[i].value = newValue
+					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
+				end
+				GUI:PopItemWidth()
+				GUI:SameLine()
+				
+				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+				if (GUI:ImageButton("##Gather-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
+					gGatherCollectablePresets[i] = nil
+					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
+				end
+				GUI:PopStyleColor(2)
+			end
+		end
 	end
 end
 

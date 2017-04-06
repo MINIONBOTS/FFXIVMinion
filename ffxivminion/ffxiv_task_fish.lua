@@ -9,21 +9,26 @@ ffxiv_fish.profileData = {}
 ffxiv_fish.currentTask = {}
 ffxiv_fish.currentTaskIndex = 0
 ffxiv_fish.collectibles = {
-	{ name = AceLib.API.Items.GetNameByID(12713,47), id = "Icepick", minimum = 106 },
-	{ name = AceLib.API.Items.GetNameByID(12724,47), id = "Glacier Core", minimum = 310 },
-	{ name = AceLib.API.Items.GetNameByID(12721,47), id = "Whilom Catfish", minimum = 459 },
-	{ name = AceLib.API.Items.GetNameByID(12726,47), id = "Sorcerer Fish", minimum = 646 },
-	{ name = AceLib.API.Items.GetNameByID(12739,47), id = "Bubble Eye", minimum = 162 },
-	{ name = AceLib.API.Items.GetNameByID(12742,47), id = "Dravanian Squeaker", minimum = 158 },
-	{ name = AceLib.API.Items.GetNameByID(12767,47), id = "Warmwater Bichir", minimum = 683 },
-	{ name = AceLib.API.Items.GetNameByID(12768,47), id = "Noontide Oscar", minimum = 258 },
-	{ name = AceLib.API.Items.GetNameByID(12792,47), id = "Weston Bowfin", minimum = 376 },
-	{ name = AceLib.API.Items.GetNameByID(12804,47), id = "Illuminati Perch", minimum = 826 },
-	{ name = AceLib.API.Items.GetNameByID(12774,47), id = "Tiny Axolotl", minimum = 320 },
-	{ name = AceLib.API.Items.GetNameByID(12828,47), id = "Thunderbolt Eel", minimum = 813 },
-	{ name = AceLib.API.Items.GetNameByID(12837,47), id = "Capelin", minimum = 89 },
-	{ name = AceLib.API.Items.GetNameByID(12830,47), id = "Loosetongue", minimum = 2441 },
-	{ name = AceLib.API.Items.GetNameByID(12825,47), id = "Stupendemys", minimum = 1526 },
+    { name = AceLib.API.Items.GetNameByID(14211,47), id = "Amber Salamander", minimum = 900 },
+    { name = AceLib.API.Items.GetNameByID(12827,47), id = "Barreleye", minimum = 923 },
+    { name = AceLib.API.Items.GetNameByID(12739,47), id = "Bubble Eye", minimum = 162 },
+    { name = AceLib.API.Items.GetNameByID(12837,47), id = "Capelin", minimum = 89 },
+    { name = AceLib.API.Items.GetNameByID(13729,47), id = "Dravanian Smelt", minimum = 83 },
+    { name = AceLib.API.Items.GetNameByID(12742,47), id = "Dravanian Squeaker", minimum = 158 },
+    { name = AceLib.API.Items.GetNameByID(12724,47), id = "Glacier Core", minimum = 310 },
+    { name = AceLib.API.Items.GetNameByID(12713,47), id = "Icepick", minimum = 106 },
+    { name = AceLib.API.Items.GetNameByID(12804,47), id = "Illuminati Perch", minimum = 826 },
+    { name = AceLib.API.Items.GetNameByID(12830,47), id = "Loosetongue", minimum = 2441 },
+    { name = AceLib.API.Items.GetNameByID(12814,47), id = "Moogle Spirit", minimum = 1062 },
+    { name = AceLib.API.Items.GetNameByID(12768,47), id = "Noontide Oscar", minimum = 258 },
+    { name = AceLib.API.Items.GetNameByID(12726,47), id = "Sorcerer Fish", minimum = 646 },
+    { name = AceLib.API.Items.GetNameByID(12825,47), id = "Stupendemys", minimum = 1526 },
+    { name = AceLib.API.Items.GetNameByID(12828,47), id = "Thunderbolt Eel", minimum = 813 },
+    { name = AceLib.API.Items.GetNameByID(12774,47), id = "Tiny Axolotl", minimum = 320 },
+    { name = AceLib.API.Items.GetNameByID(12834,47), id = "Vampiric Tapestry", minimum = 1308 },
+    { name = AceLib.API.Items.GetNameByID(12767,47), id = "Warmwater Bichir", minimum = 683 },
+    { name = AceLib.API.Items.GetNameByID(12792,47), id = "Weston Bowfin", minimum = 376 },
+    { name = AceLib.API.Items.GetNameByID(12721,47), id = "Whilom Catfish", minimum = 459 },
 }
 
 ffxiv_fish.GUI = {
@@ -195,6 +200,18 @@ function c_precastbuff:evaluate()
 		
 	local fs = tonumber(Player:GetFishingState())
 	if (fs == 0 or fs == 4) then
+		if (Player.job ~= FFXIV.JOBS.FISHER) then
+			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
+				c_precastbuff.activity = "switchclass"
+				c_precastbuff.requirestop = true
+				c_precastbuff.requiredismount = false
+				return true
+			else
+				d("Cannot swap yet, but we have no choice, wait a second")
+				c_precastbuff.activity = "switchclasslegacy"
+				return true
+			end
+		end
 
 		if (ShouldEat()) then
 			c_precastbuff.activity = "eat"
@@ -203,7 +220,7 @@ function c_precastbuff:evaluate()
 			return true
 		end
 		
-		local useCordials = (gGatherUseCordials)
+		local useCordials = (gFishUseCordials)
 		local useFood = 0
 		local needsStealth = false
 		
@@ -243,28 +260,28 @@ function c_precastbuff:evaluate()
 			end
 		end
 		
-		local canUse,manualItem = CanUseExpManual()
-		if (canUse and table.valid(manualItem)) then
-			d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
-			e_nodeprebuff.activity = "usemanual"
-			e_nodeprebuff.itemid = manualItem.hqid
-			e_nodeprebuff.requirestop = true
-			e_nodeprebuff.requiredismount = true
-			return true
-		end
-		
-		if (useCordials) then
-			local canUse,cordialItem = CanUseCordial()
-			if (canUse and table.valid(cordialItem)) then
-				if (not ffxiv_fish.NeedsPatienceCheck() or HasBuffs(Player,"764")) then
+		if (not ffxiv_fish.NeedsPatienceCheck() or (HasBuff(Player,764) and Player:GetFishingState() == 0)) then
+			local canUse,manualItem = CanUseExpManual()
+			if (canUse and table.valid(manualItem)) then
+				d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
+				e_nodeprebuff.activity = "usemanual"
+				e_nodeprebuff.itemid = manualItem.hqid
+				e_nodeprebuff.requirestop = true
+				e_nodeprebuff.requiredismount = true
+				return true
+			end
+			
+			if (useCordials) then
+				local canUse,cordialItem = CanUseCordial()
+				if (canUse and table.valid(cordialItem)) then
 					d("[NodePreBuff]: Need to use a cordial.")
 					c_precastbuff.activity = "usecordial"
 					c_precastbuff.itemid = cordialItem.hqid
 					c_precastbuff.requirestop = true
 					c_precastbuff.requiredismount = true
 					return true
-				end
-			end					
+				end					
+			end
 		end
 	end
 	
@@ -287,6 +304,14 @@ function e_precastbuff:execute()
 	if (requiredismount and Player.ismounted) then
 		Dismount()
 		ml_global_information.Await(2500, function () return (not Player.ismounted) end)
+		return
+	end
+	
+	if (activity == "switchclass") then
+		local newTask = ffxiv_misc_switchclass.Create()
+		newTask.class = FFXIV.JOBS.FISHER
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+		ml_task_hub:ThisTask().preserveSubtasks = true
 		return
 	end
 	
@@ -622,7 +647,7 @@ function e_bite:execute()
 			if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
 				precisionHook:Cast()
 				return
-			elseif (status == 37 and powerfulHook and powerfulHook:IsReady(Player.id)) then
+			elseif ((status == 37 or status == 38) and powerfulHook and powerfulHook:IsReady(Player.id)) then
 				powerfulHook:Cast()
 				return
 			end
@@ -801,7 +826,7 @@ function c_patience:evaluate()
 	--Reset tempvar.
 	c_patience.action = 0
 	
-	if (Player.gp.percent < 99 or HasBuff(Player,764)) then
+	if ((Player.gp.percent < 99 and not ffxiv_fish.NeedsCordialCheck()) or HasBuff(Player,764)) then
 		return false
 	end
 	
@@ -841,19 +866,17 @@ function c_patience:evaluate()
 		if (usePatience2) then
 			local patience2 = SkillMgr.GetAction(4106,1)
 			if (patience2 and patience2:IsReady(Player.id)) then	
-				if (ffxiv_fish.NeedsCordialCheck()) then
-					if (Player:GetFishingState() ~= 0) then
-						local finishcast = SkillMgr.GetAction(299,1)
-						if (finishcast and finishcast.isready) then
-							finishcast:Cast()
-						end
-						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
-						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
-						return false
+				if (ffxiv_fish.NeedsCordialCheck() and Player:GetFishingState() ~= 0) then
+					local finishcast = SkillMgr.GetAction(299,1)
+					if (finishcast and finishcast.isready) then
+						finishcast:Cast()
 					end
-				end
-				if (patience2:Cast()) then
-					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4106,1).isoncd) end)
+					qd("[QuestFishComplete]: Quitting out of fishing state.",2)
+					ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
+				else
+					if (patience2:Cast()) then
+						ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+					end
 				end
 				return true
 			end
@@ -862,19 +885,17 @@ function c_patience:evaluate()
 		if (usePatience) then
 			local patience = SkillMgr.GetAction(4102,1)
 			if (patience and patience:IsReady(Player.id)) then	
-				if (ffxiv_fish.NeedsCordialCheck()) then
-					if (Player:GetFishingState() ~= 0) then
-						local finishcast = SkillMgr.GetAction(299,1)
-						if (finishcast and finishcast.isready) then
-							finishcast:Cast()
-						end
-						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
-						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
-						return false
+				if (ffxiv_fish.NeedsCordialCheck() and Player:GetFishingState() ~= 0) then
+					local finishcast = SkillMgr.GetAction(299,1)
+					if (finishcast and finishcast.isready) then
+						finishcast:Cast()
 					end
-				end
-				if (patience:Cast()) then
-					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4102,1).isoncd) end)
+					qd("[QuestFishComplete]: Quitting out of fishing state.",2)
+					ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
+				else
+					if (patience:Cast()) then
+						ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+					end
 				end
 				return true
 			end
@@ -1453,7 +1474,7 @@ function c_fishnexttask:evaluate()
 				if (type(oncomplete) == "function") then
 					oncomplete()
 				elseif (type(oncomplete) == "string") then
-					assert(loadstring("return " .. oncomplete))()
+					assert(loadstring(oncomplete))()
 				end
 			end
 		end
@@ -1893,7 +1914,7 @@ function e_fishnoactivity:execute()
 end
 
 function ffxiv_fish.NeedsCordialCheck()
-	local useCordials = (gGatherUseCordials)
+	local useCordials = (gFishUseCordials)
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
 		useCordials = IsNull(task.usecordials,useCordials)
@@ -2243,11 +2264,11 @@ function ffxiv_task_fish:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)
 	
+	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 230 )
+    self:add(ke_setbait, self.process_elements)
+	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
-	
-	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 190 )
-    self:add(ke_setbait, self.process_elements)
 	
 	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
     self:add( ke_nextTask, self.process_elements)
@@ -2267,6 +2288,8 @@ function ffxiv_task_fish:Init()
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
 	
+	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 190 )
+    self:add(ke_setbait, self.process_elements)
 	
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
 	self:add(ke_syncadjust, self.process_elements)
@@ -2339,17 +2362,19 @@ function ffxiv_task_fish:UIInit()
 	gFishDebugLevel = ffxivminion.GetSetting("gFishDebugLevel",1)
 	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels)
 	
-	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
-	gFishCollectablesList = { GetString("none") }
-	if (ValidString(uistring)) then
-		for collectable in StringSplit(uistring,",") do
-			table.insert(gFishCollectablesList,collectable)
-		end
-	end
+	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	--gFishCollectablesList = { GetString("none") }
+	--if (ValidString(uistring)) then
+		--for collectable in StringSplit(uistring,",") do
+			--table.insert(gFishCollectablesList,collectable)
+		--end
+	--end
 	
-	gFishCollect = ffxivminion.GetSetting("gFishCollect",{})
+	gFishUseCordials = ffxivminion.GetSetting("gFishUseCordials",true)
+	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})	
+	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
+	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
 end
 
 function ffxiv_task_fish:Draw()
@@ -2365,7 +2390,7 @@ function ffxiv_task_fish:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 		GUI:PushItemWidth(120)					
 
 		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
@@ -2373,9 +2398,62 @@ function ffxiv_task_fish:Draw()
 		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
 		
 		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
+		GUI_Capture(GUI:Checkbox("Use Cordials",gFishUseCordials),"gFishUseCordials");
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
+	end
+	
+	if (tabs.tabs[2].isselected) then
+		if (GUI:Button("Use Known Defaults",150,20)) then
+			GUI_Set("gFishCollectablePresets",{})
+			for k,v in pairs(ffxiv_fish.collectibles) do
+				local newCollectable = { name = v.name, value = v.minimum }
+				table.insert(gFishCollectablePresets,newCollectable)
+			end
+			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
+		end
+		
+		GUI:Spacing()
+		GUI:Separator()
+		GUI:Spacing()
+		
+		if (GUI:Button("Add Collectable",150,20)) then
+			local newCollectable = { name = "", value = 0 }
+			table.insert(gFishCollectablePresets,newCollectable)
+			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
+		end
+		
+		if (table.valid(gFishCollectablePresets)) then
+			for i,collectable in pairsByKeys(gFishCollectablePresets) do
+				GUI:AlignFirstTextHeightToWidgets()
+				GUI:PushItemWidth(200)
+				local newName = GUI:InputText("##Fish-collectablepair-name"..tostring(i),collectable.name)
+				if (newName ~= collectable.name) then
+					gFishCollectablePresets[i].name = newName
+					GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
+				end
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(40)
+				GUI:SameLine()
+				local newValue = GUI:InputInt("##Fish-collectablepair-value"..tostring(i),collectable.value,0,0)
+				if (newValue ~= collectable.value) then
+					gFishCollectablePresets[i].value = newValue
+					GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
+				end
+				GUI:PopItemWidth()
+				GUI:SameLine()
+				
+				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+				if (GUI:ImageButton("##Fish-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
+					gFishCollectablePresets[i] = nil
+					GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
+				end
+				GUI:PopStyleColor(2)
+			end
+		end
 	end
 end
 function ffxiv_fish.GetLockout(profile,task)

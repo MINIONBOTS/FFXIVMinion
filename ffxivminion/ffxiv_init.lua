@@ -88,6 +88,7 @@ ml_global_information.mainTask = nil;
 ml_global_information.drawMode = 1
 ml_global_information.lastEquip = 0
 ml_global_information.lastSkipTalk = 0
+ml_global_information.buyBlacklist = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -425,15 +426,6 @@ function ml_global_information.Init()
 					ml_global_information.meshTranslations[meshname] = GetMapName(mapid)
 				end
 			end
-			
-			--[[
-			ml_mesh_mgr.SetEvacPoint = function ()
-				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
-					ml_marker_mgr.markerList["evacPoint"] = Player.pos
-					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
-				end
-			end
-			--]]
 			
 			ml_mesh_mgr.GetString = function (meshname)
 				local returnstring = meshname

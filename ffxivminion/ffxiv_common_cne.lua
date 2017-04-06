@@ -2964,7 +2964,7 @@ end
 c_buy = inheritsFrom( ml_cause )
 e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
-function c_buy:evaluate()	
+function c_buy:evaluate()
 	if (IsControlOpen("SelectYesno")) then
 		PressYesNo(true)
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
@@ -2994,17 +2994,6 @@ function c_buy:evaluate()
 			d("Buying item ID ["..tostring(itemid).."].")
 			local itemCount = ItemCount(itemid)
 			Inventory:BuyShopItem(itemid,buyamount)
-			ml_global_information.AwaitSuccessFail(2000, 
-				function () return ItemCount(itemid) > itemCount end,
-				function () c_buy.failedAttempts = 0 end, 
-				function () 
-					c_buy.failedAttempts = c_buy.failedAttempts + 1 
-					if (c_buy.failedAttempts >= 3) then
-						ml_global_information.buyBlacklist[itemid] = true
-					end
-					d("Failed buy item id ["..tostring(itemid).."], blacklisting item for this session.")
-				end
-			)
 		end
 	end
 	
@@ -3019,7 +3008,7 @@ e_moveandinteract = inheritsFrom( ml_effect )
 c_moveandinteract.entityid = 0
 function c_moveandinteract:evaluate()
 	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
-		IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) 
+		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen()) 
 	then
 		return false
 	end
@@ -3035,7 +3024,6 @@ function e_moveandinteract:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = ml_task_hub:CurrentTask().id
 	newTask.pos = ml_task_hub:CurrentTask().pos
-	newTask.use3d = true
 	
 	if (gTeleportHack) then
 		newTask.useTeleport = true
