@@ -457,7 +457,7 @@ c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
 	if (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) then
-		local info = Player:GetYesNoItemInfo()
+		local info = GetControlData("SelectYesNoCountItem")
 		if (table.valid(info)) then
 			local validCollectible = false
 			
