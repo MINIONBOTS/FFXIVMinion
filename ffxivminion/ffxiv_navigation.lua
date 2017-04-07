@@ -501,7 +501,6 @@ function ml_navigation.GetMovementType()
 	end
 end
 
--- 
 function ml_navigation.GetMovementThresholds()
 	if ( not Player.ismounted ) then 
 		return ml_navigation.PointReachedDistances["2dwalk"],ml_navigation.PointReachedDistances["3dwalk"]
@@ -513,7 +512,7 @@ function ml_navigation.GetMovementThresholds()
 end
 		
 ml_navigation.CanRun = function() 
-	return GetGameState() == FFXIV.GAMESTATE.INGAME and (not MIsLocked() or IsFlying()) 
+	return GetGameState() == FFXIV.GAMESTATE.INGAME
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
@@ -932,11 +931,14 @@ function ml_navigation.Navigate(event, ticks )
 								if (not target or (target and target.id ~= interactid)) then
 									d("Setting target for interaction : "..interactnpc.name)
 									Player:SetTarget(interactid)
+									ml_navigation.omc_traveltimer = ticks + 1500
 									ffnav.Await(1500, function () return (Player:GetTarget() and Player:GetTarget().id == interactid) end)
 								else
 									local npcpos = interactnpc.pos
 									Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
 									Player:Interact(interactnpc.id)
+									d("Interacting with target : "..interactnpc.name)
+									ml_navigation.omc_traveltimer = ticks + 2000
 									ffnav.Await(2000, function () return (MIsLoading() or IsControlOpen("SelectYesno") or table.valid(GetConversationList())) end)
 								end
 							end

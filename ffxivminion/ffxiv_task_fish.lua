@@ -1028,6 +1028,8 @@ function c_setbait:evaluate()
 			end
 		elseif (table.valid(marker)) then
 			baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
+		else
+			return false
 		end
 		
 		fd("baitChoice ["..tostring(baitChoice).."].",3)
@@ -1493,7 +1495,7 @@ function c_fishnexttask:evaluate()
 				else
 					validTasks = deepcopy(profileData.tasks,true)
 				
-					for i,data in pairs(validTasks) do
+					for i,data in pairsByKeys(validTasks) do
 						local valid = true
 						if (data.minlevel and Player.level < data.minlevel) then
 							valid = false

@@ -311,7 +311,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	
 	if (c_skiptalk:evaluate()) then
 		e_skiptalk:execute()
-		return false
+		--return false
 	end
 
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then

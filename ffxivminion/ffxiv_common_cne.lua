@@ -2984,17 +2984,22 @@ function c_buy:evaluate()
 	end
 	
 	if (itemid) then
-		if (ml_global_information.buyBlacklist[itemid] == nil) then
-		
-			local buyamount = ml_task_hub:CurrentTask().buyamount or 1
-			if (buyamount > 99) then
-				buyamount = 99
-			end
-			
-			d("Buying item ID ["..tostring(itemid).."].")
-			local itemCount = ItemCount(itemid)
-			Inventory:BuyShopItem(itemid,buyamount)
+		local buyamount = ml_task_hub:CurrentTask().buyamount or 1
+		if (buyamount > 99) then
+			buyamount = 99
 		end
+		
+		d("Buying item ID ["..tostring(itemid).."].")
+		local itemCount = ItemCount(itemid)
+		Inventory:BuyShopItem(itemid,buyamount)
+		ml_global_information.AwaitSuccess(2000, 
+			function () 
+				if (IsControlOpen("SelectYesno")) then
+					PressYesNo(true)
+					return true		
+				end
+			end
+		)
 	end
 	
 	return false
@@ -3073,7 +3078,9 @@ function c_skiptalk:evaluate()
 	if (gSkipTalk and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly)) then
 		if IsControlOpen("Talk") then
 			UseControlAction("Talk","Click")
-			return true
+			if (not IsControlOpen("SelectIconString") and not IsControlOpen("SelectString") and not IsControlOpen("Request")) then
+				return true
+			end
 		end
 	end
 
