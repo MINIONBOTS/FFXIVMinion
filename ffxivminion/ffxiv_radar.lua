@@ -10,7 +10,6 @@ ffxiv_radar.GUI = {
 	open = false,
 	visible = true,
 }
-
 -- Check and load Custom List + Preset data.
 local ColourAlpha = 0.8 -- Alpha value for transparent colours.
 local lastupdate = 0
@@ -240,6 +239,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String Format:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,HP" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Show Names:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Marker Shapes:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Enable Click Through:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Radar Scale (%%):") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end
@@ -256,6 +256,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 						ffxiv_radar.CustomStringEnabled, changed = GUI:Checkbox("##CustomStringEnabled",ffxiv_radar.CustomStringEnabled) if (changed) then Settings.ffxiv_radar.CustomStringEnabled = ffxiv_radar.CustomStringEnabled end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
 						GUI:PushItemWidth(Size) ffxiv_radar.CustomString, changed = GUI:InputText("##CustomString", ffxiv_radar.CustomString) if (changed) then Settings.ffxiv_radar.CustomString = ffxiv_radar.CustomString end  if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,HP" ) end GUI:PopItemWidth()
 						ffxiv_radar.MiniRadarNames, changed = GUI:Checkbox("##MiniRadarNames", ffxiv_radar.MiniRadarNames) if (changed) then Settings.ffxiv_radar.MiniRadarNames = ffxiv_radar.MiniRadarNames end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
+						ffxiv_radar.Shape, changed = GUI:RadioButton("Circle##Shape", ffxiv_radar.Shape,1) GUI:SameLine() if (changed) then Settings.ffxiv_radar.Shape = ffxiv_radar.Shape end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar to a Cricle." ) end
+						ffxiv_radar.Shape, changed = GUI:RadioButton("Square##Shape", ffxiv_radar.Shape,2) if (changed) then Settings.ffxiv_radar.Shape = ffxiv_radar.Shape end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar to a Square." ) end
 						ffxiv_radar.ClickThrough, changed = GUI:Checkbox("##ClickThrough", ffxiv_radar.ClickThrough) if (changed) then Settings.ffxiv_radar.ClickThrough = ffxiv_radar.ClickThrough end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
 						GUI:PushItemWidth(Size) ffxiv_radar.RadarSize, changed = GUI:SliderInt("##RadarSize", ffxiv_radar.RadarSize,20,1000) if (changed) then Settings.ffxiv_radar.RadarSize = ffxiv_radar.RadarSize end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end GUI:PopItemWidth()
 						GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance2D, changed = GUI:SliderInt("##RadarDistance2D", ffxiv_radar.RadarDistance2D,0,300) if (changed) then Settings.ffxiv_radar.RadarDistance2D = ffxiv_radar.RadarDistance2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
@@ -314,7 +316,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 							Scale = (0.9-round((eDistance/250),3))
 							if Scale < 0.5 then Scale = (0.5*(ffxiv_radar.TextScale/100)) else Scale = (Scale*(ffxiv_radar.TextScale/100)) end
 							GUI:SetWindowFontScale(Scale)
-							local screenPos = RenderManager:WorldToScreen(e.pos)
+							local RoundedPos = { x = math.round(e.pos.x,2), y = math.round(e.pos.y,2), z = math.round(e.pos.z,2) }
+							local screenPos = RenderManager:WorldToScreen(RoundedPos)
 							if (table.valid(screenPos)) then
 								local EntityString = ""
 								if ffxiv_radar.CustomStringEnabled then
@@ -432,23 +435,43 @@ function ffxiv_radar.DrawCall(event, ticks )
 					GUI:AddLine(WindowPosx+4, WindowPosy+(WindowSizey/2), WindowPosx+WindowSizex-4, WindowPosy+(WindowSizey/2), Colours.Transparent.red.colourval, 2.0) -- X Axis Line (Transparent)
 					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-4), Colours.Transparent.lightgrey.colourval, 200) -- 2D Radar Outline (Transparent).
 					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-5), Colours.Transparent.lightgrey.colourval, 201) -- 2D Radar Outline (Transparent).
+					
+					local MouseX,MouseY = GUI:GetMousePos()
+					--d("Mouse:"..MouseX..":"..MouseY)
+					
+					
 					if ValidTable(RadarTable) then -- Check Radar table is valid and write to screen.
 						for i,e in pairs(RadarTable) do
+							local MouseOver = false
 							local eColour = e.Colour
 							local ePOS = e.pos
 							local edistance2d = e.distance2d
 							-- Limit render distance slider.
-							local EntityPosX = (((ePOS.x-PlayerPOS.x)/ffxiv_radar.RadarDistance2D)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
-							local EntityPosY = (((ePOS.z-PlayerPOS.z)/ffxiv_radar.RadarDistance2D)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
+							local EntityPosX = math.round(((ePOS.x-PlayerPOS.x)/ffxiv_radar.RadarDistance2D)*(WindowSizex/2),0) + CenterX -- Entity X POS within GUI
+							local EntityPosY = math.round(((ePOS.z-PlayerPOS.z)/ffxiv_radar.RadarDistance2D)*(WindowSizey/2),0) + CenterY -- Entity Y POS within GUI
 							if edistance2d > (ffxiv_radar.RadarDistance2D) then 
 							
 							EntityPosX = (((ePOS.x-PlayerPOS.x)/edistance2d)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
 							EntityPosY = (((ePOS.z-PlayerPOS.z)/edistance2d)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
 							end
-							GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.radar) -- Filled Point Marker (Transparent).
-							GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.colourval) -- Point Marker Outline (Transparent).
+							local PointCalculation = math.sqrt(math.pow(MouseX-EntityPosX,2) + math.pow(MouseY-EntityPosY,2))
+							--if PointCalculation < (4*(ffxiv_radar.TextScale/100)) then d("YESSS") end
+							--d(EntityPosX..":"..EntityPosY)
+							if ffxiv_radar.Shape == 1 then
+								GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.radar) -- Filled Point Marker (Transparent).
+								GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.colourval) -- Point Marker Outline (Transparent).
+								if PointCalculation <= (4*(ffxiv_radar.TextScale/100)) then MouseOver = true end
+							elseif ffxiv_radar.Shape == 2 then
+								local RectScale = math.round((4*(ffxiv_radar.TextScale/100)),0)
+								local Rectx1,Recty1,Rectx2,Recty2,Rectx3,Recty3,Rectx4,Recty4 = EntityPosX-RectScale, EntityPosY-RectScale, EntityPosX+RectScale, EntityPosY-RectScale, EntityPosX-RectScale, EntityPosY+RectScale, EntityPosX+RectScale, EntityPosY+RectScale
+								local Pos1Dist,Pos2Dist,Pos3Dist,Pos4Dist = math.sqrt(math.pow(MouseX-Rectx1,2) + math.pow(MouseY-Recty1,2)), math.sqrt(math.pow(MouseX-Rectx2,2) + math.pow(MouseY-Recty2,2)), math.sqrt(math.pow(MouseX-Rectx3,2) + math.pow(MouseY-Recty3,2)), math.sqrt(math.pow(Rectx1-Rectx4,2) + math.pow(MouseY-Recty4,2))
+								local RectHypot = math.sqrt(math.pow(Rectx1-Rectx4,2) + math.pow(Recty1-Recty4,2))
+								GUI:AddRectFilled(EntityPosX-RectScale, EntityPosY-RectScale, EntityPosX+RectScale, EntityPosY+RectScale, eColour.radar)
+								GUI:AddRect(EntityPosX-RectScale, EntityPosY-RectScale, EntityPosX+RectScale, EntityPosY+RectScale, eColour.colourval)
+								if Pos1Dist <= RectHypot and Pos2Dist <= RectHypot and Pos3Dist <= RectHypot and Pos4Dist <= RectHypot then MouseOver = true end
+							end
 							-- Name Toggle.
-							if ffxiv_radar.MiniRadarNames then
+							if ffxiv_radar.MiniRadarNames or (ffxiv_radar.Shape and MouseOver) or (not ffxiv_radar.Shape and MouseOver) then
 								GUI:SetWindowFontScale((0.8*(ffxiv_radar.TextScale/100)))
 								GUI:AddText(EntityPosX+(8*(ffxiv_radar.TextScale/100)), EntityPosY-(5*(ffxiv_radar.TextScale/100)), eColour.colourval, e.name) -- Entity name (Transparent).
 								GUI:SetWindowFontScale(1)
@@ -700,6 +723,7 @@ function ffxiv_radar.Settings()
 	ffxiv_radar.EnableRadarDistance3D = Settings.ffxiv_radar.EnableRadarDistance3D or false
 	ffxiv_radar.RadarDistance3D = Settings.ffxiv_radar.RadarDistance3D or 100
 	ffxiv_radar.MiniRadarNames = Settings.ffxiv_radar.MiniRadarNames or false
+	ffxiv_radar.Shape = Settings.ffxiv_radar.Shape or 1
 	ffxiv_radar.ClickThrough = Settings.ffxiv_radar.ClickThrough or false
 	ffxiv_radar.RadarSize = Settings.ffxiv_radar.RadarSize or 100
 	ffxiv_radar.RadarDistance2D = Settings.ffxiv_radar.RadarDistance2D or 100
