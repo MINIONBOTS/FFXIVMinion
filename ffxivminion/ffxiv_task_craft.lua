@@ -12,6 +12,7 @@ ffxiv_craft.ordersVisible = false
 ffxiv_craft.orderSelectorVisible = false
 ffxiv_craft.dictionaries = {}
 ffxiv_craft.dictionariesDisplay = {}
+ffxiv_craft.lastCraft = {}
 
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
@@ -437,7 +438,15 @@ end
 c_craft = inheritsFrom( ml_cause )
 e_craft = inheritsFrom( ml_effect )
 function c_craft:evaluate()
-	if ( ffxiv_craft.IsCrafting() or IsControlOpen("Synthesis")) then		
+	if ( ffxiv_craft.IsCrafting() or IsControlOpen("Synthesis")) then	
+		
+		if (IsControlOpen("Synthesis")) then
+			local synthData = GetControlData("Synthesis")
+			if (synthData) then
+				ffxiv_craft.lastCraft = { id = synthData.itemid, name = synthData.name }
+			end
+		end	
+		
 		return true	
 	end
     return false
@@ -461,37 +470,36 @@ function c_collectibleaddoncraft:evaluate()
 		if (table.valid(info)) then
 			local validCollectible = false
 			
-			local variables = {}
-			for i=8,15 do
-				local var = _G["gCraftCollectibleName"..tostring(i)]
-				local valuevar = _G["gCraftCollectibleValue"..tostring(i-7)]
-				
-				if (var and valuevar and var ~= "") then
-					local recipeid,itemid = AceLib.API.Items.GetRecipeIDByName(var,i)
-					if (itemid) then
-						d("Setting variables[" .. i .. "] to use value-pair ["..tostring(var)..","..tostring(valuevar).."]")
-						variables[i] = { ["id"] = itemid, ["value"] = tonumber(valuevar) }
-					else
-						d("Could not find recipe ID for value-pair ["..tostring(var)..","..tostring(i).."]")
-					end
-				end
-			end
+			local job = Player.job
+			local lastCraft = ffxiv_craft.lastCraft --= { id = synthData.itemid, name = synthData.name }
 			
-			if (table.valid(variables)) then
-				for job,collectible in pairs(variables) do
-					if (string.contains(tostring(info.itemid),tostring(collectible.id))) then
-						if (info.collectability >= collectible.value) then
-							validCollectible = true
+			if (table.valid(lastCraft) and table.valid(gCraftCollectablePresets)) then
+				for i,collectable in pairsByKeys(gCraftCollectablePresets) do
+					if (string.valid(collectable.name) and type(collectable.value) == "number") then
+						local foundMatch = false
+						if (lastCraft.name == collectable.name) then
+							foundMatch = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							local itemid = AceLib.API.Items.GetIDByName(collectable.name)
+							if (itemid and itemid == lastCraft.id ) then
+								foundMatch = true
+							end
 						end
-					else
-						d("ItemID ["..tostring(info.itemid).."] does not match collectible ID.")
+						
+						if (foundMatch) then
+							if (info.collectability >= tonumber(collectable.value)) then
+								validCollectible = true
+							else
+								gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+							end
+						end
+					end
+					
+					if (validCollectible) then
+						break
 					end
 				end
-			else
-				d("No collectible value pairs are set up.")
-			end
+			end	
 			
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
@@ -941,6 +949,7 @@ function ffxiv_task_craft:Draw()
 		end
 		
 		if (table.valid(gCraftCollectablePresets)) then
+			GUI:Text("Item Name"); GUI:SameLine(210); GUI:Text("Min Value")
 			for i,collectable in pairsByKeys(gCraftCollectablePresets) do
 				GUI:AlignFirstTextHeightToWidgets()
 				GUI:PushItemWidth(200)
@@ -949,13 +958,19 @@ function ffxiv_task_craft:Draw()
 					gCraftCollectablePresets[i].name = newName
 					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 				end
+				if (GUI:IsItemHovered()) then
+					GUI:SetTooltip("Case-sensitive item name for the item to become a collectable.")
+				end
 				GUI:PopItemWidth()
-				GUI:PushItemWidth(40)
+				GUI:PushItemWidth(70)
 				GUI:SameLine()
 				local newValue = GUI:InputInt("##craft-collectablepair-value"..tostring(i),collectable.value,0,0)
 				if (newValue ~= collectable.value) then
 					gCraftCollectablePresets[i].value = newValue
 					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
+				end
+				if (GUI:IsItemHovered()) then
+					GUI:SetTooltip("Minimum collectable value at which the item will be accepted as a collectable.")
 				end
 				GUI:PopItemWidth()
 				GUI:SameLine()

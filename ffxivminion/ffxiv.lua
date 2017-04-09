@@ -290,6 +290,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if (Player) then
 				if (ml_global_information.queueLoader == true) then
 					ml_global_information.Player_Aetherytes = GetAetheryteList(true)
+					Hacks:Disable3DRendering(gDisableDrawing)
 					ml_global_information.queueLoader = false
 				end
 			end

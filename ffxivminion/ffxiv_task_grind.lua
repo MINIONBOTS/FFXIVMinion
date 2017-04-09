@@ -8,7 +8,6 @@ ffxiv_grind.profileData = {}
 ffxiv_grind.currentTask = {}
 ffxiv_grind.currentTaskIndex = 0
 
-
 ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.addon_process_elements = {}
 ffxiv_task_grind.addon_overwatch_elements = {}
@@ -60,8 +59,13 @@ function ffxiv_task_grind.Create()
     newinst.currentMarker = false
 	newinst.filterLevel = true
 	newinst.correctMap = Player.localmapid
+	newinst.correctMapFunction = nil -- Use this to trigger an always updating map.
+	
+	if (gGrindAutoLevel and gBotMode == GetString("grindMode")) then
+		newinst.correctMapFunction = "GetBestGrindMap"
+	end
+	
 	newinst.suppressRestTimer = 0
-	newinst.safeLevel = false
 	ffxiv_task_grind.inFate = false
 	ml_global_information.currentMarker = false
     
@@ -151,6 +155,56 @@ function e_nextgrindmarker:execute()
     ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("NOTcontentIDEquals"))
     ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+end
+
+c_nextgrindarea = inheritsFrom( ml_cause )
+e_nextgrindarea = inheritsFrom( ml_effect )
+function c_nextgrindarea:evaluate()	
+	if (Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
+		return false
+	end
+	
+	if (FFXIV_Common_BotRunning and gBotMode == GetString("grindMode")) then
+		if (gGrindAutoLevel) then
+			if (ml_task_hub:ThisTask().correctMapFunction == nil) then
+				ml_task_hub:ThisTask().correctMapFunction = "GetBestGrindMap"
+			end
+		else
+			if (ml_task_hub:ThisTask().correctMapFunction ~= nil) then
+				ml_task_hub:ThisTask().correctMapFunction = nil
+			end
+		end
+	end
+	
+	local autoMapFunction = ml_task_hub:ThisTask().correctMapFunction
+	if (autoMapFunction and type(autoMapFunction) == "function") then
+		local correctMap = autoMapFunction()
+		if (correctMap and type(correctMap) == "number" and correctMap ~= Player.localmapid and CanAccessMap(correctMap)) then			
+			ml_task_hub:ThisTask().correctMap = correctMap
+			return true
+		end
+	elseif (autoMapFunction and type(autoMapFunction) == "string") then
+		local correctMapFunction = findfunction(autoMapFunction)
+		if (correctMapFunction and type(correctMapFunction) == "function") then
+			local correctMap = correctMapFunction()
+			if (correctMap and type(correctMap) == "number" and correctMap ~= Player.localmapid and CanAccessMap(correctMap)) then			
+				ml_task_hub:ThisTask().correctMap = correctMap
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_nextgrindarea:execute()
+	if (Player:IsMoving()) then
+		Player:Stop()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+	end
+	
+	local task = ffxiv_task_movetomap.Create()
+	task.destMapID = ml_task_hub:ThisTask().correctMap
+	ml_task_hub:Add(task, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
 c_grindisloading = inheritsFrom( ml_cause )
@@ -575,6 +629,9 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 150 )
     self:add(ke_flee, self.overwatch_elements)
 	
+	local ke_luminous = ml_element:create( "NextArea", c_nextgrindarea, e_nextgrindarea, 50 )
+    self:add(ke_luminous, self.overwatch_elements)
+	
 	local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 40 )
     self:add(ke_luminous, self.overwatch_elements)
 	
@@ -722,6 +779,7 @@ function ffxiv_task_grind:UIInit()
 	gGrindAtmaMode = ffxivminion.GetSetting("gGrindAtmaMode",false)
 	gGrindLuminousMode = ffxivminion.GetSetting("gGrindLuminousMode",false)
 	gGrindDoHuntlog = ffxivminion.GetSetting("gGrindDoHuntlog",true)
+	gGrindAutoLevel = ffxivminion.GetSetting("gGrindAutoLevel",false)
 	
 	gClaimFirst = ffxivminion.GetSetting("gClaimFirst",false)
 	gClaimRange = ffxivminion.GetSetting("gClaimRange",20)
@@ -763,15 +821,43 @@ function ffxiv_task_grind:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-settings",0,GUI_GetFrameHeight(12),true)
+		GUI:BeginChild("##header-settings",0,GUI_GetFrameHeight(13),true)
 		GUI:PushItemWidth(80)	
-
+		
+		GUI_Capture(GUI:Checkbox(GetString("Auto-Level Mode"),gGrindAutoLevel),"gGrindAutoLevel")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Automatically switch maps to continue leveling in an optimal area.")
+		end
+		GUI:SameLine(0,10)
+		if (GUI:Button("Modify Auto-Grind")) then
+			ffxivminion.GUI.autogrind.open = true
+			ffxivminion.GUI.autogrind.error_text = ""
+		end
+		
 		GUI_Capture(GUI:Checkbox(GetString("doHuntingLog"),gGrindDoHuntlog),"gGrindDoHuntlog");
-		GUI_Capture(GUI:Checkbox(GetString("doAtma"),gGrindAtmaMode),"gGrindAtmaMode", function () GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) end)
-		GUI_Capture(GUI:Checkbox("Do Luminous",gGrindLuminousMode),"gGrindLuminousMode", function () GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true) end);
+		GUI_Capture(GUI:Checkbox(GetString("doAtma"),gGrindAtmaMode),"gGrindAtmaMode", 
+			function () 
+				if (gGrindAtmaMode) then
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+				end
+			end
+		)
+		GUI_Capture(GUI:Checkbox("Do Luminous",gGrindLuminousMode),"gGrindLuminousMode", 
+			function ()
+				if (gGrindLuminousMode) then
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+				end
+			end
+		);
 		
 		GUI_Capture(GUI:Checkbox(GetString("doFates"),gGrindDoFates),"gGrindDoFates"); GUI:SameLine(0,10)
-		GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", function () GUI_Set("gGrindDoFates",true) end);
+		GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", 
+			function () 
+				if (gGrindFatesOnly) then 
+					GUI_Set("gGrindDoFates",true) 
+				end
+			end
+		);
 		
 		GUI_Capture(GUI:Checkbox("Kill Non-Fate Aggro",gFateKillAggro),"gFateKillAggro");
 		GUI_Capture(GUI:Checkbox(GetString("restInFates"),gRestInFates),"gRestInFates");

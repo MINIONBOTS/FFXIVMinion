@@ -684,6 +684,73 @@ function SkillMgr.ModuleInit()
 	gSMFilter4Index = 1
 	gSMFilter5Index = 1
 	
+	
+	--[[
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
+	
+	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
+	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
+	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
+	--]]
+	
 	for i = 1,5 do
 		if (type(_G["gAssistFilter"..tostring(i)]) ~= "boolean") then
 			_G["gAssistFilter"..tostring(i)] = toboolean(_G["gAssistFilter"..tostring(i)])
@@ -2590,7 +2657,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					
 					if (skill.trg == "Ground Target") then
 					
-						local s = SkillMgr.GetAction(skill.id,1)
+						local s = SkillMgr.GetAction(skill.id,11)
 						local entity = MGetEntity(TID)
 						
 						if (entity) then
@@ -2604,7 +2671,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 					else
-						local s = SkillMgr.GetAction(skill.id,1)
+						local s = SkillMgr.GetAction(skill.id,11)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						if (s:Cast(TID)) then
 							if (SkillMgr.SkillProfile[prio]) then
@@ -5621,40 +5688,102 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
+	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-playerhp-header",true,true)) then
+		GUI:Columns(2,"#battle-playerhp-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Text(GetString("playerHPGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
+		GUI:Text(GetString("playerHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
+		GUI:Text(GetString("underAttack")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttack",SKM_PUnderAttack),"SKM_PUnderAttack"); GUI:NextColumn();
+		GUI:Text(GetString("underAttackMelee")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttackMelee",SKM_PUnderAttackMelee),"SKM_PUnderAttackMelee"); GUI:NextColumn();
+		GUI:Text(GetString("playerPowerGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowL",SKM_PPowL,0,0),"SKM_PPowL"); GUI:NextColumn();
+		GUI:Text(GetString("playerPowerLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowB",SKM_PPowB,0,0),"SKM_PPowB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPMPPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPL",SKM_PMPPL,0,0),"SKM_PMPPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPMPPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPB",SKM_PMPPB,0,0),"SKM_PMPPB"); GUI:NextColumn();
+		GUI:Text(GetString("Result MP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPRGT",SKM_PMPRGT,0,0),"SKM_PMPRGT"); GUI:NextColumn();
+		GUI:Text(GetString("Result MP %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPRGT",SKM_PMPPRGT,0,0),"SKM_PMPPRGT"); GUI:NextColumn();
+		GUI:Text(GetString("Result MP >= Cost of [ID]")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PMPRSGT",SKM_PMPRSGT),"SKM_PMPRSGT"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPL",SKM_PTPL,0,0),"SKM_PTPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPB",SKM_PTPB,0,0),"SKM_PTPB"); GUI:NextColumn();
+		
+		GUI:Columns(1)
+	end
 	
-	--[[	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
+	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-party-header",true,true)) then
+		GUI:Columns(2,"#battle-party-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Text(GetString("skmPTCount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTCount",SKM_PTCount,0,0),"SKM_PTCount"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPL",SKM_PTMPL,0,0),"SKM_PTMPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPB",SKM_PTMPB,0,0),"SKM_PTMPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPL",SKM_PTTPL,0,0),"SKM_PTTPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPB",SKM_PTTPB,0,0),"SKM_PTTPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTBuff",SKM_PTBuff),"SKM_PTBuff"); GUI:NextColumn();
+		GUI:Text(GetString("Known Debuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PTKBuff",SKM_PTKBuff),"SKM_PTKBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTNBuff",SKM_PTNBuff),"SKM_PTNBuff"); GUI:NextColumn();
+		GUI:Columns(1)
+	end
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPLT"),"SKM_PHPB",GetString("playerHPMPTP"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttack"),"SKM_PUnderAttack",GetString("playerHPMPTP"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttackMelee"),"SKM_PUnderAttackMelee",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerGT"),"SKM_PPowL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPB"),"SKM_PMPPB",GetString("playerHPMPTP"))
+	if (GUI:CollapsingHeader(GetString("target"),"battle-target-header",true,true)) then
+		GUI:Columns(2,"#battle-target-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP >=","SKM_PMPRGT",GetString("playerHPMPTP"))
-	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP <=","SKM_PMPRLT",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % >=","SKM_PMPPRGT",GetString("playerHPMPTP"))
-	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % <=","SKM_PMPPRLT",GetString("playerHPMPTP"))
-	GUI_NewField(SkillMgr.editwindow.name,"Result MP >= Cost of [ID]","SKM_PMPRSGT",GetString("playerHPMPTP"))
-	--GUI_NewField(SkillMgr.editwindow.name,"Result MP <= Cost of [ID]","SKM_PMPRSLT",GetString("playerHPMPTP"))
+	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header",true,true)) then
+		GUI:Columns(2,"#battle-casting-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPL"),"SKM_PTPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPB"),"SKM_PTPB",GetString("playerHPMPTP"))	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTCount"),"SKM_PTCount",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPL"),"SKM_PTHPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPB"),"SKM_PTHPB",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPL"),"SKM_PTMPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPB"),"SKM_PTMPB",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPL"),"SKM_PTTPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPB"),"SKM_PTTPB",GetString("party"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",GetString("party"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Known Debuffs","SKM_PTKBuff",GetString("party"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PTNBuff",GetString("party"))
+	if (GUI:CollapsingHeader(GetString("healPriority"),"battle-healPriority-header",true,true)) then
+		GUI:Columns(2,"#battle-healPriority-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
 	
+	if (GUI:CollapsingHeader(GetString("aoe"),"battle-aoe-header",true,true)) then
+		GUI:Columns(2,"#battle-aoe-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader(GetString("playerBuffs"),"battle-playerbuffs-header",true,true)) then
+		GUI:Columns(2,"#battle-playerbuffs-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader(GetString("targetBuffs"),"battle-targetbuffs-header",true,true)) then
+		GUI:Columns(2,"#battle-targetbuffs-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader(GetString("Pet Buffs"),"battle-petbuffs-header",true,true)) then
+		GUI:Columns(2,"#battle-petbuffs-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader(GetString("advancedSettings"),"battle-advanced-header",true,true)) then
+		GUI:Columns(2,"#battle-advanced-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	
+	--[[		
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
@@ -5712,10 +5841,8 @@ function SkillMgr.DrawBattleEditor()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
 	
-	--GUI_NewButton(SkillMgr.editwindow.name,"Build Buffs","SMToggleBuffs","Buffs")
 	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
 	
-	--GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
 	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
 	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))

@@ -1258,19 +1258,19 @@ function CanUseCordialSoon()
 			end
 		end
 		
-		if (gpDeficit >= 400 and cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+		if (gpDeficit >= 400 and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 			return true, cordialHigh
-		elseif (gpDeficit >= 300 and cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+		elseif (gpDeficit >= 300 and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 			return true, cordialNormal
-		elseif (gpDeficit >= 150 and cordialQuick and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+		elseif (gpDeficit >= 150 and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
 			return true, cordialQuick
 		end	
 		
 		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 				return true, cordialNormal
-			elseif (cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+			elseif (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 				return true, cordialHigh
 			end
 		end
@@ -1351,7 +1351,7 @@ function CanUseCordial()
 			return true, cordialQuick
 		end	
 		
-		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
+		local usedPatience = (IsFisher(Player.job) and MissingBuff(Player,764) and ffxiv_fish.NeedsPatienceCheck() and gpDeficit > 200)
 		if (usedPatience) then
 			if (cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 				return true, cordialNormal
@@ -2023,116 +2023,49 @@ function c_collectibleaddongather:evaluate()
 		if (table.valid(info)) then
 			local validCollectible = false
 			
-			if (gMinerCollectibleName and gMinerCollectibleName ~= "" 
-				and tonumber(gMinerCollectibleValue) and tonumber(gMinerCollectibleValue) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" 
-				and tonumber(gMinerCollectibleValue2) and tonumber(gMinerCollectibleValue2) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gMinerCollectibleValue2)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" 
-				and tonumber(gMinerCollectibleValue3) and tonumber(gMinerCollectibleValue3) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gMinerCollectibleValue3)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" 
-				and tonumber(gBotanistCollectibleValue) and tonumber(gBotanistCollectibleValue) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gBotanistCollectibleValue)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" 
-				and tonumber(gBotanistCollectibleValue2) and tonumber(gBotanistCollectibleValue2) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gBotanistCollectibleValue2)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" 
-				and tonumber(gBotanistCollectibleValue3) and tonumber(gBotanistCollectibleValue3) > 0) 
-			then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
-				if (itemid) then
-					if (string.contains(tostring(info.itemid),tostring(itemid))) then
-						if (info.collectability >= tonumber(gBotanistCollectibleValue3)) then
-							validCollectible = true
-						else
-							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
-						end
-					end	
-				end
-			end
-			
-			local task = ffxiv_gather.currentTask
-			if (table.valid(task)) then
-				local collectables = task.collectables
-				if (table.valid(collectables)) then
-					for identifier,minvalue in pairs(collectables) do
-						local itemid;
-						if (type(identifier) == "string") then
-							itemid = AceLib.API.Items.GetIDByName(identifier)
-						else
-							itemid = identifier
-						end
-						
+			if (table.valid(gGatherCollectablePresets)) then
+				for i,collectable in pairsByKeys(gGatherCollectablePresets) do
+					if (string.valid(collectable.name) and type(collectable.value) == "number") then
+						local itemid = AceLib.API.Items.GetIDByName(collectable.name)
 						if (itemid) then
 							if (string.contains(tostring(info.itemid),tostring(itemid))) then
-								if (info.collectability >= tonumber(minvalue)) then
+								if (info.collectability >= tonumber(collectable.value)) then
 									validCollectible = true
 								else
 									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 								end
 							end	
+						end
+					end
+					
+					if (validCollectible) then
+						break
+					end
+				end
+			end
+			
+			if (not validCollectible) then
+				local task = ffxiv_gather.currentTask
+				if (table.valid(task)) then
+					local collectables = task.collectables
+					if (table.valid(collectables)) then
+						for identifier,minvalue in pairs(collectables) do
+							local itemid;
+							if (type(identifier) == "string") then
+								itemid = AceLib.API.Items.GetIDByName(identifier)
+							else
+								itemid = identifier
+							end
+							
+							if (itemid) then
+								if (string.contains(tostring(info.itemid),tostring(itemid))) then
+									if (info.collectability >= tonumber(minvalue)) then
+										validCollectible = true
+									else
+										gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+									end
+								end	
+							end
 						end
 					end
 				end
@@ -3199,29 +3132,35 @@ function ffxiv_task_gather:Draw()
 		end
 		
 		if (table.valid(gGatherCollectablePresets)) then
+			GUI:Text("Item Name"); GUI:SameLine(210); GUI:Text("Min Value")
 			for i,collectable in pairsByKeys(gGatherCollectablePresets) do
 				GUI:AlignFirstTextHeightToWidgets()
 				GUI:PushItemWidth(200)
-				local newName = GUI:InputText("##Gather-collectablepair-name"..tostring(i),collectable.name)
+				local newName = GUI:InputText("##gather-collectablepair-name"..tostring(i),collectable.name)
 				if (newName ~= collectable.name) then
 					gGatherCollectablePresets[i].name = newName
 					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 				end
+				if (GUI:IsItemHovered()) then
+					GUI:SetTooltip("Case-sensitive item name for the item to become a collectable.")
+				end
 				GUI:PopItemWidth()
 				GUI:PushItemWidth(40)
 				GUI:SameLine()
-				local newValue = GUI:InputInt("##Gather-collectablepair-value"..tostring(i),collectable.value,0,0)
+				local newValue = GUI:InputInt("##gather-collectablepair-value"..tostring(i),collectable.value,0,0)
 				if (newValue ~= collectable.value) then
 					gGatherCollectablePresets[i].value = newValue
 					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 				end
+				if (GUI:IsItemHovered()) then
+					GUI:SetTooltip("Minimum collectable value at which the item will be accepted as a collectable.")
+				end
 				GUI:PopItemWidth()
 				GUI:SameLine()
-				
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-				if (GUI:ImageButton("##Gather-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
+				if (GUI:ImageButton("##gather-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
 					gGatherCollectablePresets[i] = nil
 					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 				end

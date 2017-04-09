@@ -2694,8 +2694,8 @@ function e_recommendequip:execute()
 		else
 			if (UseControlAction("RecommendEquip","Equip")) then
 				ml_global_information.yield = { 
-					mintimer = 1000,
-					maxtimer = 2000, 
+					mintimer = 0,
+					maxtimer = Now() + 1000,
 					followall = function () 
 						ActionList:Get(10,2):Cast()
 						ml_global_information.lastEquip = Now()
