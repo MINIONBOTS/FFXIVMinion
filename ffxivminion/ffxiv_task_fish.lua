@@ -919,7 +919,7 @@ function c_collectibleaddonfish:evaluate()
 			end
 			
 			if (not validCollectible) then
-				local task = ffxiv_gather.currentTask
+				local task = ffxiv_fish.currentTask
 				if (table.valid(task)) then
 					local collectables = task.collectables
 					if (table.valid(collectables)) then
