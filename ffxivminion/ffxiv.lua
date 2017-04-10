@@ -305,6 +305,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		else
 			if (ml_global_information.queueLoader == false) then
+				Hacks:Disable3DRendering(false)
 				ml_global_information.queueLoader = true
 			end
 		end

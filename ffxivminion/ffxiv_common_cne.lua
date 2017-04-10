@@ -3088,4 +3088,5 @@ function c_skiptalk:evaluate()
 end
 function e_skiptalk:execute()
 	ml_global_information.Await(250)
+	SetThisTaskProperty("preserveSubtasks",true)
 end
