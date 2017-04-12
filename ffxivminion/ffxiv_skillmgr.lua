@@ -212,139 +212,139 @@ SkillMgr.Variables = {
 	SKM_ON = { default = true, cast = "boolean", profile = "used", section = "main"},
 	SKM_Prio = { default = 0, cast = "number", profile = "prio", section = "main"},
 	
-	SKM_STYPE = { default = "Action", cast = "string", profile = "stype", section = "fighting"},
-	SKM_CHARGE = { default = false, cast = "boolean", profile = "charge", section = "fighting" },
-	SKM_DOBUFF = { default = false, cast = "boolean", profile = "dobuff", section = "fighting" },
-	SKM_REMOVESBUFF = { default = false, cast = "boolean", profile = "removebuff", section = "fighting" },
-	SKM_DOPREV = { default = false, cast = "boolean", profile = "doprev", section = "fighting"  },
-	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting", useData = "level" },
-	SKM_LevelMax = { default = 0, cast = "number", profile = "levelmax", section = "fighting"   },
-	SKM_Combat = { default = "In Combat", cast = "string", profile = "combat", section = "fighting"  },
-	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
-	SKM_OnlySolo = { default = false, cast = "boolean", profile = "onlysolo", section = "fighting"  },
-	SKM_OnlyParty = { default = false, cast = "boolean", profile = "onlyparty", section = "fighting"  },
-	SKM_PartySizeLT = { default = 0, cast = "number", profile = "partysizelt", section = "fighting"  },
-	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting"  },
-	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting"  },
-	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
-	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", section = "fighting"  },
-	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", section = "fighting"  },
-	SKM_ComboSkill = { default = "Auto", cast = "string", profile = "comboskill", section = "fighting"  },
+	SKM_STYPE = { default = "Action", cast = "string", profile = "stype", section = "fighting", group = ""},
+	SKM_CHARGE = { default = false, cast = "boolean", profile = "charge", section = "fighting", group = "" },
+	SKM_DOBUFF = { default = false, cast = "boolean", profile = "dobuff", section = "fighting", group = "" },
+	SKM_REMOVESBUFF = { default = false, cast = "boolean", profile = "removebuff", section = "fighting", group = "" },
+	SKM_DOPREV = { default = false, cast = "boolean", profile = "doprev", section = "fighting", group = ""  },
+	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting", group = "", useData = "level" },
+	SKM_LevelMax = { default = 0, cast = "number", profile = "levelmax", section = "fighting", group = ""   },
+	SKM_Combat = { default = "In Combat", cast = "string", profile = "combat", section = "fighting", group = ""  },
+	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting", group = "" },
+	SKM_OnlySolo = { default = false, cast = "boolean", profile = "onlysolo", section = "fighting", group = ""  },
+	SKM_OnlyParty = { default = false, cast = "boolean", profile = "onlyparty", section = "fighting", group = ""  },
+	SKM_PartySizeLT = { default = 0, cast = "number", profile = "partysizelt", section = "fighting", group = ""  },
+	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting", group = ""  },
+	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting", group = ""  },
+	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting", group = ""  },
+	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", section = "fighting", group = ""  },
+	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", section = "fighting", group = ""  },
+	SKM_ComboSkill = { default = "Auto", cast = "string", profile = "comboskill", section = "fighting", group = ""  },
 	--SKM_MPLock = { default = false, cast = "boolean", profile = "mplock", section = "fighting" },
 	--SKM_MPLocked = { default = false, cast = "boolean", profile = "mplocked", section = "fighting" },
 	--SKM_MPLockPer = { default = 0, cast = "number", profile = "mplockper", section = "fighting" },
-	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting"  },
-	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
-	SKM_TRGSELF = { default = false, cast = "boolean", profile = "trgself", section = "fighting" },
-	SKM_NPC = { default = false, cast = "boolean", profile = "npc", section = "fighting"  },
-	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
-	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", section = "fighting"  },
-	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting"  },
-	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting"  },
-	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
-	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", section = "fighting"  },
-	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", section = "fighting"  },
-	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"  },
-	SKM_MaxR = { default = 24, cast = "number", profile = "maxRange", section = "fighting", useData = "range" },
-	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting"   },
-	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting"   },
-	SKM_PUnderAttack = { default = false, cast = "boolean", profile = "punderattack", section = "fighting"  },
-	SKM_PUnderAttackMelee = { default = false, cast = "boolean", profile = "punderattackmelee", section = "fighting"  },
-	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting"   },
-	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting"   },
-	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
-	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting"   },
+	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting", group = ""  },
+	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting", group = ""  },
+	SKM_TRGSELF = { default = false, cast = "boolean", profile = "trgself", section = "fighting", group = "" },
+	SKM_NPC = { default = false, cast = "boolean", profile = "npc", section = "fighting", group = ""  },
+	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting", group = "" },
+	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", section = "fighting", group = ""  },
+	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting", group = ""  },
+	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting", group = ""  },
+	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting", group = ""  },
+	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", section = "fighting", group = ""  },
+	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", section = "fighting", group = ""  },
+	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting", group = ""  },
+	SKM_MaxR = { default = 24, cast = "number", profile = "maxRange", section = "fighting", group = "", useData = "range" },
+	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting", group = ""   },
+	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting", group = ""   },
+	SKM_PUnderAttack = { default = false, cast = "boolean", profile = "punderattack", section = "fighting", group = ""  },
+	SKM_PUnderAttackMelee = { default = false, cast = "boolean", profile = "punderattackmelee", section = "fighting", group = ""  },
+	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting", group = ""   },
+	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting", group = ""   },
+	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting", group = ""   },
+	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting", group = ""   },
 	
-	SKM_PMPRGT = { default = 0, cast = "number", profile = "pmprgt", section = "fighting"   },
-	SKM_PMPRLT = { default = 0, cast = "number", profile = "pmprlt", section = "fighting"   },
-	SKM_PMPPRGT = { default = 0, cast = "number", profile = "pmpprgt", section = "fighting"   },
-	SKM_PMPPRLT = { default = 0, cast = "number", profile = "pmpprlt", section = "fighting"   },
-	SKM_PMPRSGT = { default = "", cast = "string", profile = "pmprsgt", section = "fighting"   },
-	SKM_PMPRSLT = { default = "", cast = "string", profile = "pmprslt", section = "fighting"   },
+	SKM_PMPRGT = { default = 0, cast = "number", profile = "pmprgt", section = "fighting", group = ""  },
+	SKM_PMPRLT = { default = 0, cast = "number", profile = "pmprlt", section = "fighting", group = ""   },
+	SKM_PMPPRGT = { default = 0, cast = "number", profile = "pmpprgt", section = "fighting", group = ""   },
+	SKM_PMPPRLT = { default = 0, cast = "number", profile = "pmpprlt", section = "fighting", group = ""   },
+	SKM_PMPRSGT = { default = "", cast = "string", profile = "pmprsgt", section = "fighting", group = ""   },
+	SKM_PMPRSLT = { default = "", cast = "string", profile = "pmprslt", section = "fighting", group = ""   },
 	
-	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting"  },
-	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"  },
-	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"  },
-	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"  },
-	SKM_THPADV = { default = 0, cast = "number", profile = "thpadv", section = "fighting"  },
-	SKM_TTPL = { default = 0, cast = "number", profile = "ttpl", section = "fighting"  },
-	SKM_TMPL = { default = 0, cast = "number", profile = "tmpl", section = "fighting"  },
-	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
-	SKM_PTHPL = { default = 0, cast = "number", profile = "pthpl", section = "fighting"   },
-	SKM_PTHPB = { default = 0, cast = "number", profile = "pthpb", section = "fighting"   },
-	SKM_PTMPL = { default = 0, cast = "number", profile = "ptmpl", section = "fighting"   },
-	SKM_PTMPB = { default = 0, cast = "number", profile = "ptmpb", section = "fighting"   },
-	SKM_PTTPL = { default = 0, cast = "number", profile = "pttpl", section = "fighting"   },
-	SKM_PTTPB = { default = 0, cast = "number", profile = "pttpb", section = "fighting"   },
-	SKM_PTBuff = { default = "", cast = "string", profile = "ptbuff", section = "fighting"  },
-	SKM_PTKBuff = { default = false, cast = "boolean", profile = "ptkbuff", section = "fighting"  },
-	SKM_PTNBuff = { default = "", cast = "string", profile = "ptnbuff", section = "fighting"  },
-	SKM_THPCL = { default = 0, cast = "number", profile = "thpcl", section = "fighting"   },
-	SKM_THPCB = { default = 0, cast = "number", profile = "thpcb", section = "fighting"   },
-	SKM_TCONTIDS = { default = "", cast = "string", profile = "tcontids", section = "fighting"  },
-	SKM_TNCONTIDS = { default = "", cast = "string", profile = "tncontids", section = "fighting"  },
-	SKM_TCASTID = { default = "", cast = "string", profile = "tcastids", section = "fighting"  },
-	SKM_TCASTTM = { default = false, cast = "boolean", profile = "tcastonme", section = "fighting"  },
-	SKM_TCASTTIME = { default = "0.0", cast = "string", profile = "tcasttime", section = "fighting"  },
-	SKM_TECount = { default = 0, cast = "number", profile = "tecount", section = "fighting"   },
-	SKM_TECount2 = { default = 0, cast = "number", profile = "tecount2", section = "fighting"   },
+	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting", group = ""  },
+	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting", group = ""  },
+	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting", group = ""  },
+	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting", group = ""  },
+	SKM_THPADV = { default = 0, cast = "number", profile = "thpadv", section = "fighting", group = ""  },
+	SKM_TTPL = { default = 0, cast = "number", profile = "ttpl", section = "fighting", group = ""  },
+	SKM_TMPL = { default = 0, cast = "number", profile = "tmpl", section = "fighting", group = ""  },
+	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting", group = ""   },
+	SKM_PTHPL = { default = 0, cast = "number", profile = "pthpl", section = "fighting", group = ""   },
+	SKM_PTHPB = { default = 0, cast = "number", profile = "pthpb", section = "fighting", group = ""   },
+	SKM_PTMPL = { default = 0, cast = "number", profile = "ptmpl", section = "fighting", group = ""   },
+	SKM_PTMPB = { default = 0, cast = "number", profile = "ptmpb", section = "fighting", group = ""   },
+	SKM_PTTPL = { default = 0, cast = "number", profile = "pttpl", section = "fighting" , group = ""  },
+	SKM_PTTPB = { default = 0, cast = "number", profile = "pttpb", section = "fighting", group = ""   },
+	SKM_PTBuff = { default = "", cast = "string", profile = "ptbuff", section = "fighting", group = ""  },
+	SKM_PTKBuff = { default = false, cast = "boolean", profile = "ptkbuff", section = "fighting", group = ""  },
+	SKM_PTNBuff = { default = "", cast = "string", profile = "ptnbuff", section = "fighting", group = ""  },
+	SKM_THPCL = { default = 0, cast = "number", profile = "thpcl", section = "fighting", group = ""   },
+	SKM_THPCB = { default = 0, cast = "number", profile = "thpcb", section = "fighting", group = ""   },
+	SKM_TCONTIDS = { default = "", cast = "string", profile = "tcontids", section = "fighting", group = ""  },
+	SKM_TNCONTIDS = { default = "", cast = "string", profile = "tncontids", section = "fighting", group = ""  },
+	SKM_TCASTID = { default = "", cast = "string", profile = "tcastids", section = "fighting", group = ""  },
+	SKM_TCASTTM = { default = false, cast = "boolean", profile = "tcastonme", section = "fighting", group = ""  },
+	SKM_TCASTTIME = { default = "0.0", cast = "string", profile = "tcasttime", section = "fighting", group = ""  },
+	SKM_TECount = { default = 0, cast = "number", profile = "tecount", section = "fighting", group = ""   },
+	SKM_TECount2 = { default = 0, cast = "number", profile = "tecount2", section = "fighting", group = ""   },
 	
-	SKM_EnmityAOE = { default = false, cast = "boolean", profile = "enmityaoe", section = "fighting"   },
-	SKM_FrontalConeAOE = { default = false, cast = "boolean", profile = "frontalconeaoe", section = "fighting"   },
-	SKM_TankedOnly = { default = false, cast = "boolean", profile = "tankedonlyaoe", section = "fighting"   },
-	SKM_TEHPAvgGT = { default = 0, cast = "number", profile = "tehpavggt", section = "fighting"   },
+	SKM_EnmityAOE = { default = false, cast = "boolean", profile = "enmityaoe", section = "fighting", group = ""   },
+	SKM_FrontalConeAOE = { default = false, cast = "boolean", profile = "frontalconeaoe", section = "fighting", group = ""   },
+	SKM_TankedOnly = { default = false, cast = "boolean", profile = "tankedonlyaoe", section = "fighting", group = ""   },
+	SKM_TEHPAvgGT = { default = 0, cast = "number", profile = "tehpavggt", section = "fighting", group = ""   },
 	
-	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting" , useData = "radius" },
-	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", section = "fighting"  },
-	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", section = "fighting"  },
-	SKM_TACount = { default = 0, cast = "number", profile = "tacount", section = "fighting"   },
-	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting", useData = "radius" },
-	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", section = "fighting"   },
-	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting"  },
-	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
-	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting"  },
-	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
+	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting", group = "" , useData = "radius" },
+	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", section = "fighting", group = ""  },
+	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", section = "fighting", group = ""  },
+	SKM_TACount = { default = 0, cast = "number", profile = "tacount", section = "fighting", group = ""   },
+	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting", group = "", useData = "radius" },
+	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", section = "fighting", group = ""   },
+	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting", group = ""  },
+	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting", group = "" },
+	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting", group = ""  },
+	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting", group = ""   },
 	
-	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", section = "fighting"  },
-	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting"  },
-	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", section = "fighting"   },
-	SKM_TNBuffOwner = { default = "Player", cast = "string", profile = "tnbuffowner", section = "fighting"  },
-	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting"  },
-	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
+	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", section = "fighting", group = ""  },
+	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting", group = ""  },
+	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", section = "fighting", group = ""   },
+	SKM_TNBuffOwner = { default = "Player", cast = "string", profile = "tnbuffowner", section = "fighting", group = ""  },
+	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting", group = ""  },
+	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting", group = ""   },
 	
-	SKM_PetBuff = { default = "", cast = "string", profile = "petbuff", section = "fighting"  },
-	SKM_PetBuffDura = { default = 0, cast = "number", profile = "petbuffdura", section = "fighting" },
-	SKM_PetNBuff = { default = "", cast = "string", profile = "petnbuff", section = "fighting"  },
-	SKM_PetNBuffDura = { default = 0, cast = "number", profile = "petnbuffdura", section = "fighting"   },
+	SKM_PetBuff = { default = "", cast = "string", profile = "petbuff", section = "fighting", group = ""  },
+	SKM_PetBuffDura = { default = 0, cast = "number", profile = "petbuffdura", section = "fighting", group = "" },
+	SKM_PetNBuff = { default = "", cast = "string", profile = "petnbuff", section = "fighting", group = ""  },
+	SKM_PetNBuffDura = { default = 0, cast = "number", profile = "petnbuffdura", section = "fighting", group = ""   },
 	
-	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting"  },
-	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
-	SKM_PCSkillID = { default = "", cast = "string", profile = "pcskill", section = "fighting"  },
-	SKM_NPCSkillID = { default = "", cast = "string", profile = "npcskill", section = "fighting"  },
-	SKM_PGSkillID = { default = "", cast = "string", profile = "pgskill", section = "fighting"  },
-	SKM_NPGSkillID = { default = "", cast = "string", profile = "npgskill", section = "fighting"  },
+	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting", group = ""  },
+	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting", group = ""  },
+	SKM_PCSkillID = { default = "", cast = "string", profile = "pcskill", section = "fighting", group = ""  },
+	SKM_NPCSkillID = { default = "", cast = "string", profile = "npcskill", section = "fighting", group = ""  },
+	SKM_PGSkillID = { default = "", cast = "string", profile = "pgskill", section = "fighting", group = ""  },
+	SKM_NPGSkillID = { default = "", cast = "string", profile = "npgskill", section = "fighting", group = ""  },
 	--SKM_NSkillID = { default = "", cast = "string", profile = "nskill", section = "fighting"  },
 	--SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
 	
-	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
-	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", section = "fighting"   },
-	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting" },
-	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", section = "fighting" },
-	SKM_OffGCDTime = { default = 1.5, cast = "number", profile = "gcdtime", section = "fighting" },
-	SKM_OffGCDTimeLT = { default = 2.5, cast = "number", profile = "gcdtimelt", section = "fighting" },
+	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting", group = ""   },
+	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", section = "fighting", group = ""   },
+	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting", group = "" },
+	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", section = "fighting", group = "" },
+	SKM_OffGCDTime = { default = 1.5, cast = "number", profile = "gcdtime", section = "fighting", group = "" },
+	SKM_OffGCDTimeLT = { default = 2.5, cast = "number", profile = "gcdtimelt", section = "fighting", group = "" },
 	
-	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
-	SKM_SKOFFCD = { default = "", cast = "string", profile = "skoffcd", section = "fighting" },
-	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting" },
-	SKM_SKNOFFCD = { default = "", cast = "string", profile = "sknoffcd", section = "fighting" },
-	SKM_SKNCDTIMEMIN = { default = "", cast = "string", profile = "skncdtimemin", section = "fighting" },
-	SKM_SKNCDTIMEMAX = { default = "", cast = "string", profile = "skncdtimemax", section = "fighting" },
-	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
-	SKM_NCURRENTACTION = { default = "", cast = "string", profile = "ncurrentaction", section = "fighting" },
+	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting", group = "" },
+	SKM_SKOFFCD = { default = "", cast = "string", profile = "skoffcd", section = "fighting", group = "" },
+	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting", group = "" },
+	SKM_SKNOFFCD = { default = "", cast = "string", profile = "sknoffcd", section = "fighting", group = "" },
+	SKM_SKNCDTIMEMIN = { default = 0, cast = "number", profile = "skncdtimemin", section = "fighting", group = "" },
+	SKM_SKNCDTIMEMAX = { default = 0, cast = "number", profile = "skncdtimemax", section = "fighting", group = "" },
+	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting", group = ""},
+	SKM_NCURRENTACTION = { default = "", cast = "string", profile = "ncurrentaction", section = "fighting", group = "" },
 	
-	SKM_CHAINSTART = { default = false, cast = "boolean", profile = "chainstart", section = "fighting" },
-	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting" },
-	SKM_CHAINEND = { default = false, cast = "boolean", profile = "chainend", section = "fighting" },
+	SKM_CHAINSTART = { default = false, cast = "boolean", profile = "chainstart", section = "fighting", group = "" },
+	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting", group = "" },
+	SKM_CHAINEND = { default = false, cast = "boolean", profile = "chainend", section = "fighting", group = "" },
 	
 	-- Macro Vars.
 	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", section = "fighting" },
@@ -504,12 +504,10 @@ SkillMgr.Variables = {
 	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
 	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", section = "fighting" },
 	--]]
-	
 	SKM_IgnoreMoving = { default = false, cast = "boolean", profile = "ignoremoving", section = "fighting" },
 	
 	SKM_SingleUseCraft = { default = true, cast = "boolean", profile = "singleuseonly", section = "crafting"},
 	SKM_ConsecutiveUseCraft = { default = false, cast = "boolean", profile = "consecutiveuseonly", section = "crafting"},
-	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
 	SKM_CPMIN = { default = 0, cast = "number", profile = "cpmin", section = "crafting"},
@@ -684,72 +682,39 @@ function SkillMgr.ModuleInit()
 	gSMFilter4Index = 1
 	gSMFilter5Index = 1
 	
+	gSMHealPriorities = { "Self","Tank","Party","Any","None" }
+	gSMHealPriority1 = 1
+	gSMHealPriority2 = 1
+	gSMHealPriority3 = 1
+	gSMHealPriority4 = 1
 	
-	--[[
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
+	gSMBuffOwners = { "Player","Any" }
+	gSMBuffOwner = 1
+	gSMBuffOwnerN = 1
 	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
+	gSMOffGCDSettings = { "Auto","True","False" }
+	gSMOffGCDSetting = 1
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	gSMTargets = { "Target","Ground Target","Player,Cast Target","Party","PartyS","Low TP","Low MP","Pet","Ally","Tank","Tankable Target","Tanked Target","Heal Priority","Dead Ally","Dead Party" }
+	gSMTarget = 1
 	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
+	gSMTargetTypes = { "Any","Tank","DPS","Caster","Healer" }
+	gSMTargetType = 1
 	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
+	gSMPlayerTargets = { "Any","Enemy","Player" }
+	gSMPlayerTarget = 1
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
+	gSMPlayerGroundTargetPositions = { "Direct","Behind","Near" }
+	gSMPlayerGroundTargetPosition = 1
 	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
+	gSMPlayerPositions = { "None","Front","Flanking","Behind" }
+	gSMPlayerPosition = 1
 	
-	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
+	gSMAOECenters = { "Auto","Self","Target" }
+	gSMAOECenter = 1
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
-	--]]
+	gSMAOELevels = { "0","2","4","6","Any" }
+	gSMAOELevel = 1
 	
 	for i = 1,5 do
 		if (type(_G["gAssistFilter"..tostring(i)]) ~= "boolean") then
@@ -5617,66 +5582,94 @@ function SkillMgr.DrawMacroEditor()
 	--]]
 end
 
+function SkillMgr.DrawLineItem(options)
+	local control = options.control
+	local name = options.name
+	local var = options.variable
+	local indexvar = options.indexvar
+	local tablevar = options.tablevar
+	local width = options.width
+	
+	local width = IsNull(width,0)
+	GUI:AlignFirstTextHeightToWidgets()
+	GUI:Text(GetString(name)); GUI:SameLine(); GUI:InvisibleButton("##"..tostring(var),5,20);
+	GUI:NextColumn();
+	
+	if (width ~= 0) then
+		GUI:PushItemWidth(width)
+	end
+
+	if (control == "combobox") then
+		SKM_Combo("##"..var,indexvar,var,tablevar)
+	elseif (control == "float") then
+		SkillMgr.CaptureElement(GUI:InputFloat("##"..var,_G[var],0,0,precision),var)
+	elseif (control == "int") then
+		SkillMgr.CaptureElement(GUI:InputInt("##"..var,_G[var],0,0),var)
+	elseif (control == "text") then
+		SkillMgr.CaptureElement(GUI:InputText("##"..var,_G[var]),var)
+	elseif (control == "checkbox") then
+		
+	end
+	
+	if (width ~= 0) then
+		GUI:PopItemWidth()
+	end
+	GUI:NextColumn();
+end
+
 function SkillMgr.DrawBattleEditor()
 	
 	if (GUI:CollapsingHeader("Basic","battle-basic-header",true,true)) then
 		GUI:Columns(2,"#battle-basic-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
+		--GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
+		SkillMgr.DrawLineItem{control = "combobox", name = "Combat Status", variable = "SKM_Combat", indexvar = "gSMBattleStatusIndex", tablevar = gSMBattleStatuses, width = 200}
+		
 		GUI:Text(GetString("skmCHARGE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHARGE",SKM_CHARGE),"SKM_CHARGE"); GUI:NextColumn();
 		GUI:Text(GetString("appliesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_DOBUFF",SKM_DOBUFF),"SKM_DOBUFF"); GUI:NextColumn();
 		GUI:Text(GetString("removesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_REMOVESBUFF",SKM_REMOVESBUFF),"SKM_REMOVESBUFF"); GUI:NextColumn();
 		
-		GUI:Text(GetString("skmLevelMin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_LevelMin",SKM_LevelMin,0,0),"SKM_LevelMin"); GUI:NextColumn();
-		GUI:Text(GetString("skmLevelMax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_LevelMax",SKM_LevelMax,0,0),"SKM_LevelMax"); GUI:NextColumn();
-		
-		GUI:Text(GetString("minRange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MinR",SKM_MinR,0,0),"SKM_MinR"); GUI:NextColumn();
-		GUI:Text(GetString("maxRange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MaxR",SKM_MaxR,0,0),"SKM_MaxR"); GUI:NextColumn();
+		SkillMgr.DrawLineItem{control = "int", name = "skmLevelMin", variable = "SKM_LevelMin", width = 50}
+		SkillMgr.DrawLineItem{control = "int", name = "skmLevelMax", variable = "SKM_LevelMax", width = 50}
+		SkillMgr.DrawLineItem{control = "int", name = "minRange", variable = "SKM_MinR", width = 50}
+		SkillMgr.DrawLineItem{control = "int", name = "maxRange", variable = "SKM_MaxR", width = 50}
 		
 		GUI:Text(GetString("prevComboSkill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PCSkillID",SKM_PCSkillID),"SKM_PCSkillID"); GUI:NextColumn();
 		GUI:Text(GetString("prevComboSkillNot")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPCSkillID",SKM_NPCSkillID),"SKM_NPCSkillID"); GUI:NextColumn();
-		
 		GUI:Text(GetString("Previous GCD Skill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PGSkillID",SKM_PGSkillID),"SKM_PGSkillID"); GUI:NextColumn();
 		GUI:Text(GetString("Previous GCD Skill NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPGSkillID",SKM_NPGSkillID),"SKM_NPGSkillID"); GUI:NextColumn();
-		
 		GUI:Text(GetString("Previous Skill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillID",SKM_PSkillID),"SKM_PSkillID"); GUI:NextColumn();
 		GUI:Text(GetString("Previous Skill NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPSkillID",SKM_NPSkillID),"SKM_NPSkillID"); GUI:NextColumn();
-		
 		GUI:Text(GetString("Current Action NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NCURRENTACTION",SKM_NCURRENTACTION),"SKM_NCURRENTACTION"); GUI:NextColumn();
-		
 		GUI:Text(GetString("filter1")); GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
 		GUI:Text(GetString("filter2")); GUI:NextColumn(); SKM_Combo("##SKM_FilterTwo","gSMFilter2Index","SKM_FilterTwo",gSMFilterStatuses); GUI:NextColumn();
 		GUI:Text(GetString("filter3")); GUI:NextColumn(); SKM_Combo("##SKM_FilterThree","gSMFilter3Index","SKM_FilterThree",gSMFilterStatuses); GUI:NextColumn();
 		GUI:Text(GetString("filter4")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFour","gSMFilter4Index","SKM_FilterFour",gSMFilterStatuses); GUI:NextColumn();
 		GUI:Text(GetString("filter5")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFive","gSMFilter5Index","SKM_FilterFive",gSMFilterStatuses); GUI:NextColumn();
-		
 		GUI:Text(GetString("onlySolo")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlySolo",SKM_OnlySolo),"SKM_OnlySolo"); GUI:NextColumn();
 		GUI:Text(GetString("onlyParty")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlyParty",SKM_OnlyParty),"SKM_OnlyParty"); GUI:NextColumn();
-		
 		GUI:Text(GetString("Party Size <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PartySizeLT",SKM_PartySizeLT,0,0),"SKM_PartySizeLT"); GUI:NextColumn();
 		GUI:Text(GetString("secsSinceLastCast")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassed",SKM_SecsPassed),"SKM_SecsPassed"); GUI:NextColumn();
 		GUI:Text(GetString("Secs Passed Unique")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassedUnique",SKM_SecsPassedUnique),"SKM_SecsPassedUnique"); GUI:NextColumn();
-		
-		--GUI:Text(GetString("skillChecks")); GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader("Chain","battle-chain-header",true,true)) then
 		GUI:Columns(2,"#battle-chain-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:Text(GetString("Chain Name")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINNAME",SKM_CHAINNAME),"SKM_CHAINNAME"); GUI:NextColumn();
-		GUI:Text(GetString("Chain Start")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINSTART",SKM_CHAINSTART),"SKM_CHAINSTART"); GUI:NextColumn();
-		GUI:Text(GetString("Chain End")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINEND",SKM_CHAINEND),"SKM_CHAINEND"); GUI:NextColumn();
+		GUI:Text(GetString("Chain Start")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINSTART",SKM_CHAINSTART),"SKM_CHAINSTART"); GUI:NextColumn();
+		GUI:Text(GetString("Chain End")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINEND",SKM_CHAINEND),"SKM_CHAINEND"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader("Other Skill Checks","battle-otherskills-header",true,true)) then
 		GUI:Columns(2,"#battle-otherskills-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:Text(GetString("Is Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKREADY",SKM_SKREADY),"SKM_SKREADY"); GUI:NextColumn();
 		GUI:Text(GetString("CD Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKOFFCD",SKM_SKOFFCD),"SKM_SKOFFCD"); GUI:NextColumn();
@@ -5690,7 +5683,7 @@ function SkillMgr.DrawBattleEditor()
 	
 	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-playerhp-header",true,true)) then
 		GUI:Columns(2,"#battle-playerhp-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:Text(GetString("playerHPGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
 		GUI:Text(GetString("playerHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
@@ -5711,8 +5704,9 @@ function SkillMgr.DrawBattleEditor()
 	
 	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-party-header",true,true)) then
 		GUI:Columns(2,"#battle-party-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
+		GUI:PushItemWidth(100)
 		GUI:Text(GetString("skmPTCount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTCount",SKM_PTCount,0,0),"SKM_PTCount"); GUI:NextColumn();
 		GUI:Text(GetString("skmPTHPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
 		GUI:Text(GetString("skmPTHPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
@@ -5728,130 +5722,137 @@ function SkillMgr.DrawBattleEditor()
 	
 	if (GUI:CollapsingHeader(GetString("target"),"battle-target-header",true,true)) then
 		GUI:Columns(2,"#battle-target-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("skmTRG")); GUI:NextColumn(); SKM_Combo("##SKM_TRG","gSMTarget","SKM_TRG",gSMTargets); GUI:NextColumn();
+		GUI:Text(GetString("skmTRGTYPE")); GUI:NextColumn(); SKM_Combo("##SKM_TRGTYPE","gSMTargetType","SKM_TRGTYPE",gSMTargetTypes); GUI:NextColumn();
+		GUI:Text(GetString("Include Self")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TRGSELF",SKM_TRGSELF),"SKM_TRGSELF"); GUI:NextColumn();
+		GUI:Text(GetString("skmNPC")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_NPC",SKM_NPC),"SKM_NPC"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTRG")); GUI:NextColumn(); SKM_Combo("##SKM_PTRG","gSMPlayerTarget","SKM_PTRG",gSMPlayerTargets); GUI:NextColumn();
+		GUI:Text(GetString("skmPGTRG")); GUI:NextColumn(); SKM_Combo("##SKM_PGTRG","gSMPlayerGroundTargetPosition","SKM_PGTRG",gSMPlayerGroundTargetPositions); GUI:NextColumn();
+		GUI:Text(GetString("skmPPos")); GUI:NextColumn(); SKM_Combo("##SKM_PPos","gSMPlayerPosition","SKM_PPos",gSMPlayerPositions); GUI:NextColumn();
+		
+		GUI:Text(GetString("targetHPGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPL",SKM_THPL,0,0),"SKM_THPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPB",SKM_THPB,0,0),"SKM_THPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCL",SKM_THPCL,0,0),"SKM_THPCL"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCB",SKM_THPCB,0,0),"SKM_THPCB"); GUI:NextColumn();
+		
+		GUI:Text(GetString("hpAdvantage")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_THPADV",SKM_THPADV,0,0,2),"SKM_THPADV"); GUI:NextColumn();
+		GUI:Text(GetString("targetTPLE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetMPLE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
+		GUI:Text(GetString("skmTNCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
+
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header",true,true)) then
 		GUI:Columns(2,"#battle-casting-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
-		
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		GUI:Text(GetString("skmTCASTID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTM")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TCASTTM",SKM_TCASTTM),"SKM_TCASTTM"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTIME")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTTIME",SKM_TCASTTIME),"SKM_TCASTTIME"); GUI:NextColumn();		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("healPriority"),"battle-healPriority-header",true,true)) then
 		GUI:Columns(2,"#battle-healPriority-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("skmHPRIOHP")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HPRIOHP",SKM_HPRIOHP,0,0),"SKM_HPRIOHP"); GUI:NextColumn();		
+		GUI:Text(GetString("skmHPRIO1")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO1","gSMHealPriority1","SKM_HPRIO1",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO2")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO2","gSMHealPriority2","SKM_HPRIO2",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO3")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO3","gSMHealPriority3","SKM_HPRIO3",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO4")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO4","gSMHealPriority4","SKM_HPRIO4",gSMHealPriorities); GUI:NextColumn();
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("aoe"),"battle-aoe-header",true,true)) then
 		GUI:Columns(2,"#battle-aoe-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("enmityAOE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EnmityAOE",SKM_EnmityAOE),"SKM_EnmityAOE"); GUI:NextColumn();
+		GUI:Text(GetString("frontalCone")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_FrontalConeAOE",SKM_FrontalConeAOE),"SKM_FrontalConeAOE"); GUI:NextColumn();
+		GUI:Text(GetString("tankedTargetsOnly")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TankedOnly",SKM_TankedOnly),"SKM_TankedOnly"); GUI:NextColumn();
+		GUI:Text(GetString("Average HP % >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TEHPAvgGT",SKM_TEHPAvgGT,0,0),"SKM_TEHPAvgGT"); GUI:NextColumn();
+		GUI:Text(GetString("skmTECount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount",SKM_TECount,0,0),"SKM_TECount"); GUI:NextColumn();
+		GUI:Text(GetString("skmTECount2")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount2",SKM_TECount2,0,0),"SKM_TECount2"); GUI:NextColumn();
+		GUI:Text(GetString("skmTERange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TERange",SKM_TERange,0,0),"SKM_TERange"); GUI:NextColumn();
+		GUI:Text(GetString("aoeCenter")); GUI:NextColumn(); SKM_Combo("##SKM_TECenter","gSMAOECenter","SKM_TECenter",gSMAOECenters); GUI:NextColumn();
+		GUI:Text(GetString("skmTELevel")); GUI:NextColumn(); SKM_Combo("##SKM_TELevel","gSMAOELevel","SKM_TELevel",gSMAOELevels); GUI:NextColumn();
+		GUI:Text(GetString("skmTACount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TACount",SKM_TACount,0,0),"SKM_TACount"); GUI:NextColumn();
+		GUI:Text(GetString("skmTARange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TARange",SKM_TARange,0,0),"SKM_TARange"); GUI:NextColumn();
+		GUI:Text(GetString("alliesNearHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TAHPL",SKM_TAHPL,0,0),"SKM_TAHPL"); GUI:NextColumn();
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("playerBuffs"),"battle-playerbuffs-header",true,true)) then
 		GUI:Columns(2,"#battle-playerbuffs-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuff",SKM_PBuff),"SKM_PBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuffDura",SKM_PBuffDura),"SKM_PBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuff",SKM_PNBuff),"SKM_PNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuffDura",SKM_PNBuffDura),"SKM_PNBuffDura"); GUI:NextColumn();
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("targetBuffs"),"battle-targetbuffs-header",true,true)) then
 		GUI:Columns(2,"#battle-targetbuffs-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TBuffOwner","gSMBuffOwner","SKM_TBuffOwner",gSMBuffOwners); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuff",SKM_TBuff),"SKM_TBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuffDura",SKM_TBuffDura),"SKM_TBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TNBuffOwner","gSMBuffOwnerN","SKM_TNBuffOwner",gSMBuffOwners); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuff",SKM_TNBuff),"SKM_TNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuffDura",SKM_TNBuffDura),"SKM_TNBuffDura"); GUI:NextColumn();	
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("Pet Buffs"),"battle-petbuffs-header",true,true)) then
 		GUI:Columns(2,"#battle-petbuffs-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuff",SKM_PetBuff),"SKM_PetBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuffDura",SKM_PetBuffDura),"SKM_PetBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuff",SKM_PetNBuff),"SKM_PetNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuffDura",SKM_PetNBuffDura),"SKM_PetNBuffDura"); GUI:NextColumn();
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
 	if (GUI:CollapsingHeader(GetString("advancedSettings"),"battle-advanced-header",true,true)) then
 		GUI:Columns(2,"#battle-advanced-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		GUI:PushItemWidth(100)
+		GUI:Text(GetString("offGCDSkill")); GUI:NextColumn(); SKM_Combo("##SKM_OffGCD","gSMOffGCDSetting","SKM_OffGCD",gSMOffGCDSettings); GUI:NextColumn();
+		GUI:Text(GetString("Off GCD Time >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTime",SKM_OffGCDTime,0,0,2),"SKM_OffGCDTime"); GUI:NextColumn();	
+		GUI:Text(GetString("Off GCD Time <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTimeLT",SKM_OffGCDTimeLT,0,0,2),"SKM_OffGCDTimeLT"); GUI:NextColumn();	
+		GUI:Text(GetString("Ignore Moving")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_IgnoreMoving",SKM_IgnoreMoving),"SKM_IgnoreMoving"); GUI:NextColumn();
+		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
 	end
 	
-	
 	--[[		
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
-	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
-	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
-	
 	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
-	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
-	
-    GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
-	
-    GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
-    GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	--]]
 end
 

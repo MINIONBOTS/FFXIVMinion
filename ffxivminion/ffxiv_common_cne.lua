@@ -3079,14 +3079,14 @@ function c_skiptalk:evaluate()
 		if IsControlOpen("Talk") then
 			UseControlAction("Talk","Click")
 			if (not IsControlOpen("SelectIconString") and not IsControlOpen("SelectString") and not IsControlOpen("Request")) then
-				return true
+				ml_global_information.Await(250)
 			end
+			return true
 		end
 	end
 
 	return false
 end
 function e_skiptalk:execute()
-	ml_global_information.Await(250)
 	SetThisTaskProperty("preserveSubtasks",true)
 end
