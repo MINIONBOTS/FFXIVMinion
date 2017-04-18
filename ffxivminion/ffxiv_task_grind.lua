@@ -160,7 +160,7 @@ end
 c_nextgrindarea = inheritsFrom( ml_cause )
 e_nextgrindarea = inheritsFrom( ml_effect )
 function c_nextgrindarea:evaluate()	
-	if (Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
+	if (Player.incombat or ffxiv_task_grind.inFate or MIsLoading() and not ml_task_hub:ThisTask().doingHuntlog) then
 		return false
 	end
 	
