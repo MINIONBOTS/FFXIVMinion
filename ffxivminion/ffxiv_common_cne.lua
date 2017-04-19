@@ -386,6 +386,7 @@ function e_nextatma:execute()
 	if (ActionIsReady(7,5)) then
 		Player:Teleport(atma.tele)
 		ml_task_hub:ThisTask().correctMap = atma.map
+		ml_task_hub:ThisTask().correctMapFunction = nil
 		
 		local newTask = ffxiv_task_teleport.Create()
 		--d("Changing to new location for "..tostring(atma.name).." atma.")
@@ -430,6 +431,7 @@ end
 function e_nextluminous:execute()
 	local crystal = e_nextluminous.crystal
 	ml_task_hub:ThisTask().correctMap = crystal.map
+	ml_task_hub:ThisTask().correctMapFunction = nil
 	
 	if (Player:IsMoving()) then
 		Player:Stop()
@@ -1239,7 +1241,10 @@ function c_walktopos:evaluate()
 		
 		if (table.valid(gotoPos)) then
 			if (e_walktopos.lastCode == -2 and TimeSince(e_walktopos.lastFail) < 1000) then
-				local meshpos = NavigationManager:GetClosestPointOnMesh(gotoPos)
+				
+				--FindClosestMesh(pos)
+			
+				local meshpos = FindClosestMesh(gotoPos)
 				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
 					gotoPos = meshpos
 					if (table.valid(ml_task_hub:CurrentTask().pos)) then
@@ -1974,7 +1979,7 @@ function c_flee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p = NavigationManager:GetClosestPointOnMesh(newPos)
+				local p = FindClosestMesh(newPos)
 				if (p) then
 					e_flee.fleePos = p
 					return true
@@ -2406,7 +2411,7 @@ function c_teleporttopos:evaluate()
 			properPos = ml_task_hub:CurrentTask().pos
 		else
 			properPos = ml_task_hub:CurrentTask().pos
-			local p = NavigationManager:GetClosestPointOnMesh(properPos)
+			local p = FindClosestMesh(properPos)
 			if (p and p.distance ~= 0) then
 				properPos = p
 			end

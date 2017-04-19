@@ -6104,8 +6104,17 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[2].isselected) then
 				GUI_Capture(GUI:InputText(GetString("name"),gSkillManagerNewProfile),"gSkillManagerNewProfile");
 				if ( GUI:Button("Create Profile")) then
+					SkillMgr.SkillProfile = {}
 					SkillMgr.WriteToFile(gSkillManagerNewProfile)
 					SkillMgr.UpdateProfiles()
+					gSkillProfile = gSkillManagerNewProfile
+					gSkillProfileIndex = GetKeyByValue(gSkillProfile,SkillMgr.profiles)
+					local uuid = GetUUID()
+					Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
+					SkillMgr.UseProfile(gSkillProfile)
+					
+					
+					
 					GUI_SwitchTab(tabs,1)
 				end
 			end

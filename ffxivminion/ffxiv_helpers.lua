@@ -2514,8 +2514,8 @@ function GetPathDistance(pos1,pos2)
 	
 	local dist = nil
 	
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
+	local p1 = FindClosestMesh(pos1) or pos1
+	local p2 = FindClosestMesh(pos2) or pos2
 	
 	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 	if (table.valid(path)) then
@@ -2556,8 +2556,8 @@ function HasNavPath(pos1,pos2,previousDistance)
 			end
 		end--]]
 		
-		local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-		local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+		local p1 = FindClosestMesh(pos1)
+		local p2 = FindClosestMesh(pos2)
 		
 		if (p1 and p2) then
 			if (TimeSince(ml_global_information.lastPathGet) > 2000 or ml_global_information.lastPathGet == Now()) then
@@ -2587,8 +2587,8 @@ function HasNavPath(pos1,pos2,previousDistance)
 	return false
 end
 function GetNavPath(pos1,pos2)
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	local p1 = FindClosestMesh(pos1)
+	local p2 = FindClosestMesh(pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
@@ -5659,4 +5659,35 @@ function In(var,...)
 	end
 	
 	return false
+end
+function FindClosestMesh(pos,distance)
+	local minDist = IsNull(distance,1)
+	local p = NavigationManager:GetClosestPointOnMesh(pos)
+	if (table.valid(p) and p.distance <= minDist) then
+		return p
+	end
+	
+	local y1 = pos.y
+	local y2 = pos.y
+				
+	for i = y2, y2+10, 0.5 do
+		local trypos = {x = pos.x, y = i, z = pos.z}
+		local p = NavigationManager:GetClosestPointOnMesh(trypos)
+		if (table.valid(p)) then
+			if (p.distance <= minDist) then	
+				return p
+			end
+		end
+	end
+	
+	for i = y1, y1-10, -0.5 do
+		local trypos = {x = pos.x, y = i, z = pos.z}
+		local p = NavigationManager:GetClosestPointOnMesh(trypos)
+		if (table.valid(p) and p.distance <= minDist) then	
+			if (p.distance <= minDist) then	
+				return p
+			end
+		end
+	end
+	return nil
 end
