@@ -261,6 +261,12 @@ function c_precastbuff:evaluate()
 			end
 		end
 		
+		if (fs == 4) then
+			if (c_mooch:evaluate()) then
+				return false
+			end
+		end
+		
 		local canUse,manualItem = CanUseExpManual()
 		if (canUse and table.valid(manualItem)) then
 			d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
@@ -1139,7 +1145,9 @@ function e_setbait:execute()
 						newTask["buyamount"] = buyamount
 						
 						 ml_task_hub:CurrentTask():AddSubTask(newTask)
-						--ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+						d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(nearestPurchase.id).."]")
+						d("Nearest Pos:")
+						table.print(nearestPurchase.pos)
 						return
 					end
 				end
@@ -1271,18 +1279,35 @@ function c_fishnexttask:evaluate()
 		else
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
+				local complete = true
+				
 				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
-					if (f ~= nil) then
-						if (f == value) then
-							invalid = true
-							completed = true
+					local f;
+					if (type(condition) == "string") then
+						f = assert(loadstring("return " .. condition))
+						if (f ~= nil) then
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[f] = value
+						else
+							-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil							
 						end
-						conditions[condition] = nil
+					elseif (type(condition) == "function") then
+						f = condition
 					end
-					if (invalid) then
+					
+					if (f() ~= value) then
+						complete = false
+					end
+					conditions[condition] = nil
+					if (not complete) then
 						break
 					end
+				end
+				
+				if (complete) then
+					invalid = true
+					completed = true
 				end
 			end
 			
@@ -1475,6 +1500,7 @@ function c_fishnexttask:evaluate()
 					validTasks = deepcopy(profileData.tasks,true)
 				
 					for i,data in pairsByKeys(validTasks) do
+						local thisIndex = i
 						local valid = true
 						if (data.minlevel and Player.level < data.minlevel) then
 							valid = false
@@ -1595,7 +1621,61 @@ function c_fishnexttask:evaluate()
 						if (valid) then
 							if (data.condition) then
 								local conditions = deepcopy(data.condition,true)
-								valid = TestConditions(conditions)
+								local testKey,testVal = next(conditions)
+								if (tonumber(testKey) ~= nil) then
+									for i,conditionset in pairsByKeys(conditions) do
+										for condition,value in pairs(conditionset) do
+											local f;
+											if (type(condition) == "string") then
+												f = assert(loadstring("return " .. condition))
+												if (f ~= nil) then
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][f] = value
+												else
+													-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil							
+												end
+											elseif (type(condition) == "function") then
+												f = condition
+											end
+											if (f() ~= value) then
+												valid = false
+											end
+											conditions[i][condition] = nil
+											if (not valid) then
+												break
+											end
+										end
+										conditions[i] = nil
+										if (not valid) then
+											break
+										end
+									end
+								else
+									for condition,value in pairs(conditions) do
+										local f;
+										if (type(condition) == "string") then
+											f = assert(loadstring("return " .. condition))
+											if (f ~= nil) then
+												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil
+												ffxiv_fish.profileData.tasks[thisIndex].condition[f] = value
+											else
+												-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil							
+											end
+										elseif (type(condition) == "function") then
+											f = condition
+										end
+										
+										if (f() ~= value) then
+											valid = false
+										end
+										conditions[condition] = nil
+										if (not valid) then
+											break
+										end
+									end
+								end
 							end
 						end
 						
@@ -2356,6 +2436,12 @@ function ffxiv_task_fish:UIInit()
 	
 	self.GUI = {}
 	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	self.GUI.profile = {
+		open = false,
+		visible = true,
+		name = "Fish - Profile Management",
+		main_tabs = GUI_CreateTabs("Manage,Add,Edit",true),
+	}
 end
 
 function ffxiv_task_fish:Draw()

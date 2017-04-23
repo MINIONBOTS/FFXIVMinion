@@ -86,7 +86,7 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 			end
 			
 			if (table.valid(newPos)) then
-				local randPosition = NavigationManager:GetClosestPointOnMesh(newPos)
+				local randPosition = FindClosestMesh(newPos)
 				if (randPosition) then
 					pos = randPosition
 					break
@@ -402,7 +402,7 @@ function e_movetonode:execute()
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
 					--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					--local p = FindClosestMesh(telePos,false)
 					--if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
@@ -420,7 +420,7 @@ function e_movetonode:execute()
 			
 			if (gTeleportHack and dist3d > 8) then
 				--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-				--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+				--local p = FindClosestMesh(telePos,false)
 				--if (p and p.distance ~= 0 and p.distance <= 6) then
 					--newTask.pos = p
 					newTask.useTeleport = true
@@ -462,7 +462,7 @@ function c_returntobase:evaluate()
 			basePos = marker:GetPosition()
 		end
 		
-		local p = NavigationManager:GetClosestPointOnMesh(basePos)
+		local p = FindClosestMesh(basePos)
 		if (p) then
 			basePos = p
 		end
@@ -496,7 +496,7 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
-	local p = NavigationManager:GetClosestPointOnMesh(pos)
+	local p = FindClosestMesh(pos)
 	if (p) then
 		pos = p
 	end
@@ -1373,14 +1373,14 @@ function CanUseExpManual()
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,46)) then
-			if (Player.level >= 15 and Player.level < 35) then
+			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4633)
 				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 			
-			if (Player.level >= 35 and Player.level < 50) then
+			if (Player.level >= 25 and Player.level < 45) then
 				local manual2, action = GetItem(4635)
 				if (manual2 and action and manual2:IsReady(Player.id)) then
 					return true, manual2
@@ -1392,7 +1392,7 @@ function CanUseExpManual()
 				end
 			end
 
-			if (Player.level >= 50 and CanAccessMap(397)) then
+			if (Player.level >= 45) then
 				local commercial, action = GetItem(12668)
 				if (commercial and action and commercial:IsReady(Player.id)) then
 					--d("Can use commercial manual.")
@@ -1404,18 +1404,23 @@ function CanUseExpManual()
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
+				
+				local manual1, action = GetItem(4633)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
+					return true, manual1
+				end
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,45)) then
-			if (Player.level >= 15 and Player.level < 35) then
+			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4632)
 				if (manual1 and action and not action.isoncd) then
 					return true, manual1
 				end
 			end
 			
-			if (Player.level >= 35 and Player.level < 50) then
+			if (Player.level >= 25 and Player.level < 45) then
 				local manual2, action = GetItem(4634)
 				if (manual2 and action and not action.isoncd) then
 					return true, manual2
@@ -1427,7 +1432,7 @@ function CanUseExpManual()
 				end
 			end
 
-			if (Player.level >= 50 and CanAccessMap(397)) then
+			if (Player.level >= 45) then
 				local commercial, action = GetItem(12667)
 				if (commercial and action and not action.isoncd) then
 					return true, commercial
@@ -1436,6 +1441,11 @@ function CanUseExpManual()
 				local manual2, action = GetItem(4634)
 				if (manual2 and action and not action.isoncd) then
 					return true, manual2
+				end
+				
+				local manual1, action = GetItem(4632)
+				if (manual1 and action and not action.isoncd) then
+					return true, manual1
 				end
 			end
 		end
@@ -1824,7 +1834,7 @@ function c_gatherflee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p = NavigationManager:GetClosestPointOnMesh(newPos)
+				local p = FindClosestMesh(newPos)
 				if (p) then
 					e_gatherflee.fleePos = p
 					return true
@@ -3094,6 +3104,12 @@ function ffxiv_task_gather:UIInit()
 	
 	self.GUI = {}
 	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	self.GUI.profile = {
+		open = false,
+		visible = true,
+		name = "Gather - Profile Management",
+		main_tabs = GUI_CreateTabs("Manage,Add,Edit",true),
+	}
 end
 
 function ffxiv_task_gather:Draw()
