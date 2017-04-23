@@ -453,7 +453,6 @@ c_craft = inheritsFrom( ml_cause )
 e_craft = inheritsFrom( ml_effect )
 function c_craft:evaluate()
 	if ( ffxiv_craft.IsCrafting() or IsControlOpen("Synthesis")) then	
-		
 		if (IsControlOpen("Synthesis")) then
 			local synthData = GetControlData("Synthesis")
 			if (synthData) then
@@ -608,7 +607,7 @@ function e_selectcraft:execute()
 					newTask.useQuick = order.usequick
 					newTask.useHQ = order.usehq
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
-					newTask.skillProfile = order.profile
+					newTask.skillProfile = order.skillprofile
 					newTask.requiredFood = order.requiredfood
 					
 					for i = 1,6 do

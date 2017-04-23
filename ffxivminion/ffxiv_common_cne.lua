@@ -2752,33 +2752,6 @@ function e_selectconvindex:execute()
 	end	
 end
 
-c_returntomap = inheritsFrom( ml_cause )
-e_returntomap = inheritsFrom( ml_effect )
-e_returntomap.mapID = 0
-function c_returntomap:evaluate()
-	if ((MIsLocked() and not IsFlying()) or MIsLoading() or not Player.alive) then
-		return false
-	end
-	
-	if (ml_task_hub:ThisTask().correctMap and (ml_task_hub:ThisTask().correctMap ~= Player.localmapid)) then
-		local mapID = ml_task_hub:ThisTask().correctMap
-		if (CanAccessMap(mapID)) then
-			e_returntomap.mapID = mapID
-			return true
-		else
-			d("can't access map ["..tostring(mapID).."]")
-		end
-	end
-	
-	return false
-end
-function e_returntomap:execute()
-	local task = ffxiv_task_movetomap.Create()
-	task.setHomepoint = true
-	task.destMapID = e_returntomap.mapID
-	ml_task_hub:Add(task, IMMEDIATE_GOAL, TP_IMMEDIATE)
-end
-
 c_inventoryfull = inheritsFrom( ml_cause )
 e_inventoryfull = inheritsFrom( ml_effect )
 function c_inventoryfull:evaluate()
