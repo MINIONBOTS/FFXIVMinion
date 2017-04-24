@@ -499,9 +499,15 @@ function ffxiv_task_huntlog:task_complete_eval()
 	if (self.adHoc) then
 		local bestTarget = AceLib.API.Huntlog.GetBestTarget()
 		if (not table.valid(bestTarget)) then
+			d("no best target, task complete")
 			return true
 		else
 			if (not deepcompare(bestTarget,self.huntParams,true)) then
+				d("best target did not equal huntparams")
+				d("-----------------------")
+				table.print(bestTarget)
+				d("-----------------------")
+				table.print(self.huntParams)
 				return true
 			end
 		end

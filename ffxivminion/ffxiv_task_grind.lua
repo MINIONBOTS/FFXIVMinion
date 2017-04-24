@@ -160,7 +160,7 @@ end
 c_nextgrindarea = inheritsFrom( ml_cause )
 e_nextgrindarea = inheritsFrom( ml_effect )
 function c_nextgrindarea:evaluate()	
-	if ((MIsLocked() and not IsFlying()) or not Player.alive or Player.incombat or ffxiv_task_grind.inFate or MIsLoading() and not ml_task_hub:ThisTask().doingHuntlog) then
+	if ((MIsLocked() and not IsFlying()) or not Player.alive or Player.incombat or ffxiv_task_grind.inFate or MIsLoading() or ml_task_hub:ThisTask().doingHuntlog) then
 		return false
 	end
 	
@@ -635,15 +635,6 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 150 )
     self:add(ke_flee, self.overwatch_elements)
 	
-	local ke_luminous = ml_element:create( "NextArea", c_nextgrindarea, e_nextgrindarea, 210 )
-    self:add(ke_luminous, self.process_elements)
-	
-	local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 200 )
-    self:add(ke_luminous, self.process_elements)
-	
-	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 190 )
-    self:add(ke_atma, self.process_elements)
-	
 	local ke_isLocked = ml_element:create( "IsLocked", c_grindislocked, e_grindislocked, 180 )
     self:add( ke_isLocked, self.process_elements)
 
@@ -665,7 +656,16 @@ function ffxiv_task_grind:Init()
 	local ke_addHuntlog = ml_element:create( "AddHuntlog", c_grind_addhuntlogtask, e_grind_addhuntlogtask, 80 )
     self:add(ke_addHuntlog, self.process_elements)
 	
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 70 )
+	local ke_luminous = ml_element:create( "NextArea", c_nextgrindarea, e_nextgrindarea, 75 )
+    self:add(ke_luminous, self.process_elements)
+	
+	local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 70 )
+    self:add(ke_luminous, self.process_elements)
+	
+	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 65 )
+    self:add(ke_atma, self.process_elements)
+	
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 60 )
     self:add(ke_addFate, self.process_elements)
     
     local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 50 )
