@@ -2519,7 +2519,7 @@ function ffxiv_task_fish:Init()
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
 	
-	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 190 )
+	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 90 )
     self:add(ke_setbait, self.process_elements)
 	
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
