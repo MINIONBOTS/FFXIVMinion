@@ -380,8 +380,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 		--]]
 		
-		local et = AceLib.API.Weather.GetDateTime() 
-		FFXIV_Common_EorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
+		--local et = AceLib.API.Weather.GetDateTime() 
+		local et = GetEorzeaTime()
+		FFXIV_Common_EorzeaTime = tostring(et.bell)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		if (SkillMgr) then
 			ffxivminion.CheckClass()
@@ -1565,6 +1566,9 @@ function ml_global_information.DrawLoginHandler()
 				GUI_Set("FFXIV_Login_Server",1)
 				GUI_Set("FFXIV_Login_ServerName","")
 				if ( string.valid(uuid) ) then
+					if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
+						Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+					end
 					Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
 				end
 				

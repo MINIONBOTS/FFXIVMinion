@@ -339,7 +339,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						
 						local selection = options[math.random(1,TableSize(options))]
 						if (table.valid(selection)) then
-							local p = NavigationManager:GetClosestPointOnMesh(selection)
+							local p = FindClosestMesh(selection)
 							if (table.valid(p)) then
 								newPos = p
 							end
@@ -353,7 +353,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			if (not table.valid(newPos)) then
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
 				if (table.valid(randomPoint)) then
-					local p = NavigationManager:GetClosestPointOnMesh(randomPoint)
+					local p = FindClosestMesh(randomPoint)
 					if (table.valid(p)) then
 						newPos = p
 					end
@@ -361,7 +361,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			end
 			
 			if (not table.valid(newPos)) then
-				local p = NavigationManager:GetClosestPointOnMesh(self.pos)
+				local p = FindClosestMesh(self.pos)
 				if (table.valid(p)) then
 					newPos = p
 				end
@@ -566,56 +566,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local myTarget = MGetTarget()
 	local ppos = Player.pos
 	
-	if (not self.posVisited) then
-		local dist2d,dist3d = math.distance2d(ppos,self.pos), math.distance3d(ppos,self.pos)
-		
-		if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
-			local requiresDismount = false
-			if (dist3d < self.dismountDistance) then
-				local isflying = IsFlying()
-				if (not isflying or (isflying and not Player:IsMoving())) then
-					Dismount()
-				end
-			end
-			self.lastDismountCheck = Now()
-		end
-		
-		local movementSpeed = IsNull(Player:GetSpeed()["Backward"],0)
-		if ((((movementSpeed <= 6 and dist2d < 1) or (movementSpeed > 6 and dist2d < 2)) and dist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,self.pos)) then
-			self.posVisited = true
-		end
-		
-		if (dist2d < 5 and dist3d < 8) then
-			local closestMeshPos = NavigationManager:GetClosestPointOnMesh(self.pos)
-			if (closestMeshPos and closestMeshPos.distance < 10) then
-				d("Move position to nearest mesh position.")
-				self.pos = closestMeshPos
-			end
-		end
-		
-		return false
-	end
-	
-	if (IsDismounting()) then
-		return false
-	end
-	
-	if (self.interact ~= 0) then
-		local interact = EntityList:Get(tonumber(self.interact))
-		if (not interact or not interact.targetable) then
-			return true
-		end
-	else
-		local epos = self.pos
-		local dist = Distance3DT(ppos,epos)
-		if (dist <= 2) then
-			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-			if (not table.valid(interacts)) then
-				return true
-			end
-		end			
-	end
-	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.contentid ~= 0) then
@@ -632,17 +582,72 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	if (self.interact ~= 0) then
 		interactable = EntityList:Get(self.interact)
-	else
+	end
+	
+	if (not self.posVisited) then
+		d("pos not yet visited")
+		local dist2d,dist3d = math.distance2d(ppos,self.pos), math.distance3d(ppos,self.pos)
+		
+		if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
+			local requiresDismount = false
+			if (dist3d < self.dismountDistance) then
+				local isflying = IsFlying()
+				if (not isflying or (isflying and not Player:IsMoving())) then
+					Dismount()
+				end
+			end
+			self.lastDismountCheck = Now()
+		end
+		
+		if (interactable and interactable.los2 and interactable.meshpos and interactable.meshpos.distance < 2) then
+			self.posVisited = true
+		end
+
+		local movementSpeed = IsNull(Player:GetSpeed()["Backward"],0)
+		if ((((movementSpeed <= 6 and dist2d < 1) or (movementSpeed > 6 and dist2d < 2)) and dist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,self.pos)) then
+			self.posVisited = true
+			d("pos has been visited, block 1")
+		end
+		
+		if (dist2d < 5 and dist3d < 8) then
+			local closestMeshPos = FindClosestMesh(self.pos)
+			if (closestMeshPos and closestMeshPos.distance < 10) then
+				d("Move position to nearest mesh position.")
+				self.pos = closestMeshPos
+			else
+				d("no closest meshpos was found")
+			end
+		end
+		
 		return false
 	end
 	
-	local ipos = interactable.pos
-	local dist3d = interactable.distance
-	local dist2d = interactable.distance2d
-	local ydiff = math.abs(ipos.y - ppos.y)
-	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+	if (IsDismounting()) then
+		return false
+	end
 	
-	if (self.posVisited) then
+	if (self.interact ~= 0) then
+		if (not interactable or not interactable.targetable) then
+			return true
+		end
+	else
+		local epos = self.pos
+		local dist = Distance3DT(ppos,epos)
+		if (dist <= 2) then
+			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
+			if (not table.valid(interacts)) then
+				return true
+			end
+		end			
+	end
+	
+	if (interactable and self.posVisited) then
+		local ipos = interactable.pos
+		local dist3d = interactable.distance
+		local dist2d = interactable.distance2d
+		local ydiff = math.abs(ipos.y - ppos.y)
+		local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+		
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			if (interactable and interactable.targetable and dist3d < 15) then
 				Player:SetTarget(interactable.id)
@@ -651,7 +656,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						self.pos = shallowcopy(ipos)
 					end
 				else
-					local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+					local p = FindClosestMesh(ipos,false)
 					if (table.valid(p)) then
 						if (not deepcompare(self.pos,p,true)) then
 							self.pos = shallowcopy(p)
@@ -660,7 +665,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				end
 			end
 		end
-	
+		
 		if (not IsFlying()) then
 			if (myTarget and myTarget.id == interactable.id) then
 
@@ -680,43 +685,49 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 							end
 							
+							local doAwait = true
+							if (Player.ismounted) then
+								doAwait = false
+							end
+							
 							Player:Interact(interactable.id)
-
 							d("[MoveToInteract]: Interacting with target.")
 							
-							local iid = interactable.id
-							local currentDist = dist2d
 							
-							ml_global_information.AwaitSuccessFail(250, 1500,
-								function ()
-									return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsDismounting() or Player.castinginfo.channelingid ~= 0) 
-								end, 
-								function ()
-									if (Player.castinginfo.channelingid ~= 0) then
-										d("[MoveToInteract]: Initiating await until interaction is complete.")
-										ml_global_information.Await(15000, function () 
-											return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) 
+							if (doAwait) then
+								local iid = interactable.id
+								local currentDist = dist2d
+								
+								ml_global_information.AwaitSuccessFail(250, 1500,
+									function ()
+										return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsDismounting() or Player.castinginfo.channelingid ~= 0) 
+									end, 
+									function ()
+										if (Player.castinginfo.channelingid ~= 0) then
+											d("[MoveToInteract]: Initiating await until interaction is complete.")
+											ml_global_information.Await(15000, function () 
+												return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) 
+												end
+											)
+										end
+									end,
+									function ()
+										d("[MoveToInteract]: Interact failed, attempting to move closer.")
+										Player:SetFacing(ipos.x, ipos.y, ipos.z)
+										if (not Player:IsMoving()) then
+											Player:Move(FFXIV.MOVEMENT.FORWARD)
+										end
+										ml_global_information.Await(1000, 3000, 
+											function () 
+												local entity = EntityList:Get(iid)
+												return (not entity or entity.distance2d < (currentDist - .5))
 											end
+											, function () Player:Stop() end 
 										)
 									end
-								end,
-								function ()
-									d("[MoveToInteract]: Interact failed, attempting to move closer.")
-									Player:SetFacing(ipos.x, ipos.y, ipos.z)
-									if (not Player:IsMoving()) then
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
-									end
-									ml_global_information.Await(1000, 3000, 
-										function () 
-											local entity = EntityList:Get(iid)
-											return (not entity or entity.distance2d < (currentDist - .5))
-										end
-										, function () Player:Stop() end 
-									)
-								end
-							)
-							self.blockExecution = true
-							self.lastInteract = Now()
+								)
+								self.blockExecution = true
+							end
 							return true
 						end
 					end
@@ -1702,7 +1713,7 @@ function ffxiv_task_grindCombat:Process()
 				d("InCombatRange : "..tostring(InCombatRange(target.id))..",los:"..tostring(target.los)..",los2:"..tostring(target.los2))
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
-					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					local p = FindClosestMesh(telePos,false)
 					if (table.valid(p)) then
 						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
@@ -1762,7 +1773,7 @@ function ffxiv_task_grindCombat:Process()
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
-						local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+						local p = FindClosestMesh(telePos,false)
 						if (table.valid(p)) then
 							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 							self.teleportThrottle = Now() + 1500
@@ -2117,7 +2128,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		end	
 		
 		if (dist2d < 5 and dist3d < 5 and not Player:IsMoving() and not c_walktopos:evaluate()) then
-			local closestMeshPos = NavigationManager:GetClosestPointOnMesh(self.pos)
+			local closestMeshPos = FindClosestMesh(self.pos)
 			if (closestMeshPos and closestMeshPos.distance < 10) then
 				self.pos = closestMeshPos
 			end
@@ -2154,7 +2165,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		if (interactable and interactable.targetable and interactable.distance < 10) then
 			Player:SetTarget(interactable.id)
 			local ipos = shallowcopy(interactable.pos)
-			local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			local p = FindClosestMesh(ipos,false)
 			if (table.valid(p)) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
@@ -2559,7 +2570,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		end	
 		
 		if (dist2d < 5 and dist3d < 5 and not Player:IsMoving() and not c_walktopos:evaluate()) then
-			local closestMeshPos = NavigationManager:GetClosestPointOnMesh(self.pos)
+			local closestMeshPos = FindClosestMesh(self.pos)
 			if (closestMeshPos and closestMeshPos.distance < 10) then
 				self.pos = closestMeshPos
 			end
@@ -2625,7 +2636,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					self.pos = shallowcopy(ipos)
 				end
 			else
-				local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				local p = FindClosestMesh(ipos,false)
 				if (table.valid(p)) then
 					if (not deepcompare(self.pos,p,true)) then
 						self.pos = shallowcopy(p)
