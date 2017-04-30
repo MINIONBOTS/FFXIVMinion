@@ -2326,7 +2326,7 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Check the non-cached subset of tasks.",3)
 				validTasks = deepcopy(profileData.tasks,true)
 				for i,data in pairs(validTasks) do
-				
+					local thisIndex = i
 					local valid = true
 
 					if (data.enabled and data.enabled ~= "1") then
