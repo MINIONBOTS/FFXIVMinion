@@ -1107,7 +1107,7 @@ function c_setbait:evaluate()
 	end
 	
 	local fs = tonumber(Player:GetFishingState())
-     if ((fs == 0 and (not MIsLocked() or IsFlying())) or fs == 4) then
+    if ((fs == 0 and (not MIsLocked() or IsFlying())) or fs == 4) then
 		local baitChoice = ""
 		
 		local task = ffxiv_fish.currentTask
@@ -2401,8 +2401,8 @@ function ffxiv_task_fish:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)
 	
-	--local ke_buybait = ml_element:create( "BuyBait", c_buybait, e_buybait, 230 )
-    --self:add(ke_buybait, self.process_elements)
+	local ke_buybait = ml_element:create( "BuyBait", c_buybait, e_buybait, 230 )
+    self:add(ke_buybait, self.process_elements)
 	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
