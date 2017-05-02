@@ -964,7 +964,7 @@ function ml_navigation.Navigate(event, ticks )
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
 						if (hit) then
-							d("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+							ml_debug("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
 						end
 						
 						-- Check if we left our path
@@ -1021,7 +1021,7 @@ function ml_navigation.Navigate(event, ticks )
 							-- Move
 							if (not Player:IsMoving()) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)	
-								ml_global_information.Await(2000, function () return Player:IsMoving() end)
+								ffnav.Await(2000, function () return Player:IsMoving() end)
 							end
 						end
 		-- Normal Navigation
@@ -1145,7 +1145,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 		
 		if (not Player:IsMoving() and not MIsLocked()) then
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
-			ml_global_information.Await(2000, function () return Player:IsMoving() end)
+			ffnav.Await(2000, function () return Player:IsMoving() end)
 		end
 	end
 end

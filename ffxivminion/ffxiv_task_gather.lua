@@ -212,13 +212,13 @@ function c_findnode:evaluate()
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
-					d("Using whitelist filter ["..filter.."].",3)
+					--d("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
-					d("Using blacklist filter ["..filter.."].",3)
+					--d("Using blacklist filter ["..filter.."].",3)
 				else
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
-					d("Using filter ["..filter.."].",3)
+					--d("Using filter ["..filter.."].",3)
 				end
 				
 				local gatherable = nil
@@ -284,8 +284,11 @@ function c_movetonode:evaluate()
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
+			
 			local gpos = gatherable.pos
-			if (gatherable.distance > 3.3 or IsFlying()) then
+			local reachable = IsEntityReachable(gatherable,3)
+			
+			if (not reachable or IsFlying()) then
 				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
@@ -402,7 +405,7 @@ function e_movetonode:execute()
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
 					--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					--local p = FindClosestMesh(telePos,false)
+					--local p = FindClosestMesh(telePos)
 					--if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
@@ -420,7 +423,7 @@ function e_movetonode:execute()
 			
 			if (gTeleportHack and dist3d > 8) then
 				--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-				--local p = FindClosestMesh(telePos,false)
+				--local p = FindClosestMesh(telePos)
 				--if (p and p.distance ~= 0 and p.distance <= 6) then
 					--newTask.pos = p
 					newTask.useTeleport = true

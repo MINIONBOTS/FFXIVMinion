@@ -1343,6 +1343,13 @@ function c_avoidaggressives:evaluate()
 	
 	local needsUpdate = false
 	
+	local interactable;
+	if (ml_task_hub:CurrentTask().interact ~= 0) then
+		interactable = EntityList:Get(ml_task_hub:CurrentTask().interact)
+	end
+	
+	local cpos = ml_task_hub:CurrentTask().pos
+	
 	local aggressives = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=50")
 	if (table.valid(aggressives)) then
 		local avoidanceAreas = ml_global_information.avoidanceAreas
@@ -1365,10 +1372,30 @@ function c_avoidaggressives:evaluate()
 			end
 			
 			if (not hasEntry) then
-				d("Setting avoidance area for ["..tostring(entity.name).."].")
 				local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 10, expiration = Now() + 15000, source = "c_avoidaggressives" }
-				table.insert(avoidanceAreas,newArea)
-				needsUpdate = true
+				
+				local canAdd = true
+				if (interactable) then
+					local intDist = math.distance2d(interactable.pos,newArea)
+					if (intDist <= newArea.r) then
+						d("Could not add avoidance area, too close to interactable.")
+						canAdd = false
+					end
+				end
+				
+				if (table.valid(cpos)) then
+					local intDist = math.distance2d(cpos,newArea)
+					if (intDist <= newArea.r) then
+						d("Could not add avoidance area, too close to destination.")
+						canAdd = false
+					end
+				end
+				
+				if (canAdd) then
+					d("Setting avoidance area for ["..tostring(entity.name).."].")
+					table.insert(avoidanceAreas,newArea)
+					needsUpdate = true
+				end
 			end
 		end		
 	else
