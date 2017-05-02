@@ -582,8 +582,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		interactable = EntityList:Get(self.interact)
 	end
 	
-	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and interactable.meshpos and interactable.meshpos.distance < 15) then
+		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end
 	end
