@@ -1562,6 +1562,54 @@ function SkillMgr.WriteToFile(strFile)
 	persistence.store(filename,info)
 end
 
+-- For converting old messed up 32-bit crafting profiles to 64-bit.
+function SkillMgr.LegacyConversion()
+	--durabmin, durabmax, qualitymaxper, qualityminper, cpmax, cpmin, stepmin, stepmax, progrmax, progrmin, craftmax, craftmin, controlmax, controlmin, qualitymax, qualitymin, 
+	
+	local skills = SkillMgr.SkillProfile
+	if (table.valid(skills)) then
+		for prio,skill in pairsByKeys(skills) do
+			
+			local swap = skill.durabmin
+			skill.durabmin = skill.durabmax
+			skill.durabmax = swap
+			
+			local swap = skill.qualityminper
+			skill.qualityminper = skill.qualitymaxper
+			skill.qualitymaxper = swap
+			
+			local swap = skill.cpmin
+			skill.cpmin = skill.cpmax
+			skill.cpmax = swap
+			
+			local swap = skill.stepmin
+			skill.stepmin = skill.stepmax
+			skill.stepmax = swap
+			
+			local swap = skill.progrmin
+			skill.progrmin = skill.progrmax
+			skill.progrmax = swap
+			
+			local swap = skill.craftmin
+			skill.craftmin = skill.craftmax
+			skill.craftmax = swap
+			
+			local swap = skill.controlmin
+			skill.controlmin = skill.controlmax
+			skill.controlmax = swap
+			
+			local swap = skill.qualitymin
+			skill.qualitymin = skill.qualitymax
+			skill.qualitymax = swap
+			
+			skill.singleuseonly = false
+			skill.consecutiveuseonly = false			
+		end
+	end
+	
+	SkillMgr.WriteToFile(gSkillProfile)
+end
+
 --[[
 function SkillMgr.AceOnly()
 	local startingProfiles = SkillMgr.StartingProfiles
@@ -4782,7 +4830,7 @@ function SkillMgr.AddDefaultConditions()
 			SkillMgr.DebugOutput(skill.prio, "[Resultant MP]:"..tostring((pmp.current - realskilldata.cost)).." is < "..tostring(skill.pmprgt))
 			return true
 		elseif (IsNull(tonumber(skill.pmprsgt),0) > 0) then -- or tonumber(skill.pmprslt) > 0) then
-			local otherskilldata = SkillMgr.GetAction(1,tonumber(skill.pmprsgt))
+			local otherskilldata = SkillMgr.GetAction(tonumber(skill.pmprsgt),1)
 			if (otherskilldata) then
 				local otherskillcost = otherskilldata.cost
 				if ((tonumber(skill.pmprsgt) > 0 and (pmp.current - realskilldata.cost) < otherskillcost)) then

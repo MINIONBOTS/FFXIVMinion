@@ -514,6 +514,7 @@ end
 ml_navigation.CanRun = function() 
 	return GetGameState() == FFXIV.GAMESTATE.INGAME
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
+
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
 ml_navigation.avoidanceareasize = 2
@@ -737,11 +738,11 @@ function ml_navigation.Navigate(event, ticks )
 				lastAction = "",
 			}
 			
-			-- Normal Navigation Mode
+			-- Normal Navigation Mode			
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
 				
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
-					
+				
 					if (ml_navigation.IsPathInvalid()) then 
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
@@ -792,18 +793,20 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.omc_traveldist = math.distance3d(ppos,nextnode)
 							
 						else	-- We are still pursuing the same omc, check if we are getting closer over time
-							local timepassed = ticks - ml_navigation.omc_traveltimer
-							if ( timepassed < 3000) then 
-								local dist = math.distance3d(ppos,nextnode)
-								if ( timepassed > 2000 and ml_navigation.omc_traveldist > dist) then
-									ml_navigation.omc_traveldist = dist
-									ml_navigation.omc_traveltimer = ticks
+							if (not MIsLocked()) then
+								local timepassed = ticks - ml_navigation.omc_traveltimer
+								if ( timepassed < 3000) then 
+									local dist = math.distance3d(ppos,nextnode)
+									if ( timepassed > 2000 and ml_navigation.omc_traveldist > dist) then
+										ml_navigation.omc_traveldist = dist
+										ml_navigation.omc_traveltimer = ticks
+									end
+								else
+									d("[Navigation] - Not getting closer to OMC END node. We are most likely stuck.")
+									ml_navigation.StopMovement()
+									return
 								end
-							else
-								d("[Navigation] - Not getting closer to OMC END node. We are most likely stuck.")
-								ml_navigation.StopMovement()
-								return
-							end								
+							end
 						end
 							
 						-- Max Timer Check in case something unexpected happened
@@ -999,7 +1002,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1		
 						else			
-							--d("[Navigation]: Moving to next node")
+							ml_debug("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
 							-- Face next node
 							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
@@ -1034,7 +1037,7 @@ function ml_navigation.Navigate(event, ticks )
 								hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+1,ppos.z, ppos.x,ppos.y+5,ppos.z) -- bottom to top  /raycast works often only into one direction of geometry
 							end
 							if (hit) then
-								d("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+								ml_debug("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
 							end
 							if (not IsFlying() and (not hit or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5))) then	-- it will start flying if we have enough space above our head, if not, it keels wwalking on the poly mesh towards the next cube node in the air until it has space to fly
 								if (not Player.ismounted) then
@@ -1140,7 +1143,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 		end
 		
-		if (not Player:IsMoving()) then
+		if (not Player:IsMoving() and not MIsLocked()) then
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
 			ml_global_information.Await(2000, function () return Player:IsMoving() end)
 		end

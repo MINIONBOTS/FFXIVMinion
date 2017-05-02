@@ -4373,7 +4373,6 @@ function GetFirstFreeSlot(hqid,inventories)
 	
 	return nil,nil
 end	
-
 function ItemCount(hqid,inventoriesArg,includehqArg)
 	local hqid = tonumber(hqid) or 0
 	local inventories = {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
@@ -5663,8 +5662,10 @@ end
 function FindClosestMesh(pos,distance)
 	local minDist = IsNull(distance,1)
 	local p = NavigationManager:GetClosestPointOnMesh(pos)
-	if (table.valid(p) and p.distance <= minDist) then
-		return p
+	if (table.valid(p)) then
+		if (p.distance <= minDist) then
+			return p
+		end
 	end
 	
 	local y1 = pos.y
@@ -5690,4 +5691,21 @@ function FindClosestMesh(pos,distance)
 		end
 	end
 	return nil
+end
+function IsEntityReachable(entityid,range)
+	local entityid = IsNull(entityid,0)
+	local range = IsNull(range,2)
+	local entity;
+	if (type(entityid) == "number" and entityid ~= 0) then
+		entity = EntityList:Get(entityid)
+	elseif (type(entityid) == "table") then
+		entity = entityid
+	end
+	
+	if (table.valid(entity)) then
+		if (entity and entity.los2 and entity.meshpos and entity.meshpos.distance <= range) then
+			return true
+		end
+	end
+	return false
 end
