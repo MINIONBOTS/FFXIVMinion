@@ -2911,7 +2911,7 @@ function IsMounted()
 	return (Player.ismounted)
 end
 function IsDismounting()
-	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
+	return (Player.ismounted or Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
 	local jump = ActionList:Get(5,2)

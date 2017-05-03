@@ -779,7 +779,7 @@ function ml_navigation.Navigate(event, ticks )
 					
 		-- OffMeshConnection Navigation
 					if (nextnode.type == "OMC_END") then
-						
+					
 						ml_navigation.GUI.lastAction = "Ending OMC"
 						
 						if ( nextnode.id == nil ) then ml_error("[Navigation] - No OffMeshConnection ID received!") return end
@@ -891,7 +891,7 @@ function ml_navigation.Navigate(event, ticks )
 							
 							if (MIsLoading()) then
 								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
-								ml_navigation:ResetOMCHandler()
+								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								return
 							end
 							

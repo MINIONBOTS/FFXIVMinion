@@ -3095,3 +3095,111 @@ end
 function e_skiptalk:execute()
 	SetThisTaskProperty("preserveSubtasks",true)
 end
+
+
+c_dointeract = inheritsFrom( ml_cause )
+e_dointeract = inheritsFrom( ml_effect )
+c_dointeract.blockExecution = false
+function c_dointeract:evaluate()
+	local myTarget = MGetTarget()
+	local ppos = Player.pos
+	
+	-- Scan for our wanted contentid to get as much data as we can, for better decisions.
+	local interactable = nil
+	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
+		if (ml_task_hub:CurrentTask().contentid ~= 0) then
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
+			if (table.valid(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					ml_task_hub:CurrentTask().interact = interact.id
+				end
+			end
+			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
+		end
+	end
+	
+	-- Get the actual entity, to work with.
+	if (ml_task_hub:CurrentTask().interact ~= 0) then
+		interactable = EntityList:Get(ml_task_hub:CurrentTask().interact)
+	end
+	
+	-- Set our target, if we are within a reasonable range.
+	if (interactable and interactable.targetable and interactable.meshpos and interactable.meshpos.distance < 15) then
+		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+			Player:SetTarget(interactable.id)
+		end
+	end
+	
+	-- Sometimes we want to indirectly navigate the player, and reach a certain position before we even consider interacting with the entity.
+	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
+	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
+	if (not ml_task_hub:CurrentTask().posVisited) then
+		
+		if (interactable and interactable.meshpos) then
+			-- If the interactable meshpos and the task pos is the same, we'll disregard it, since it won't change the outcome.
+			local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.meshpos)
+			if (npcdist3d < 1) then
+				ml_task_hub:CurrentTask().posVisited = true
+			end
+			
+			-- If we are very close to the NPC and have los, we'll break out of this, to go ahead and attempt the interaction.
+			if (interactable.los2 and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
+				ml_task_hub:CurrentTask().posVisited = true
+			end
+		end
+		
+		local movementSpeed = IsNull(Player:GetSpeed()["Forward"],0)
+		if ((((movementSpeed <= 6 and posdist2d < 1) or (movementSpeed > 6 and posdist2d < 2)) and posdist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,ml_task_hub:CurrentTask().pos)) then
+			ml_task_hub:CurrentTask().posVisited = true
+		end
+		
+		return false
+	end
+	
+	if (interactable and ml_task_hub:CurrentTask().posVisited) then
+		local ipos = interactable.pos
+		local ydiff = math.abs(ipos.y - ppos.y)
+		local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1
+
+		if (not IsFlying()) then
+			if (myTarget and myTarget.id == interactable.id) then
+				if (table.valid(interactable)) then			
+					if (interactable.type == 5) then
+						if (IsEntityReachable(interactable,4) and ydiff <= 4.95) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							Player:Interact(interactable.id)
+							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
+							return false
+						end
+					else
+						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or (radius * 3)
+
+						if (interactable and IsEntityReachable(interactable,range) and ydiff <= 4.95) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							
+							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
+							if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
+								d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
+								Player:Stop()
+								return true
+							end
+							
+							if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+								d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
+								return false
+							end
+							
+							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+							Player:Interact(interactable.id)
+							return false
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+function e_dointeract:execute()
+end
