@@ -2087,11 +2087,12 @@ function ffxiv_misc_shopping:Init()
 	local ke_positionLocked = ml_element:create( "PositionLocked", c_positionlocked, e_positionlocked, 80 )
     self:add( ke_positionLocked, self.process_elements)
 	
-	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
-    self:add( ke_interact, self.process_elements)	
+	local ke_interact = ml_element:create( "Interact", c_moveandinteract, e_moveandinteract, 10 )
+    self:add( ke_interact, self.process_elements)
 	
-	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-	self:add( ke_walkToPos, self.process_elements)
+	--Overwatch
+	--local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 25 )
+    --self:add( ke_flee, self.overwatch_elements)
 
 	self:AddTaskCheckCEs()
 end
