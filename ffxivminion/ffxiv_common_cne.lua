@@ -3125,12 +3125,9 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Set our target, if we are within a reasonable range.
-	if (interactable and interactable.targetable and interactable.meshpos) then
-		ml_task_hub:CurrentTask().pos = interactable.meshpos
-		if (interactable.meshpos.distance < 15) then
-			if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-				Player:SetTarget(interactable.id)
-			end
+	if (interactable and interactable.targetable and interactable.meshpos and interactable.meshpos.distance < 15) then
+		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+			Player:SetTarget(interactable.id)
 		end
 	end
 	
