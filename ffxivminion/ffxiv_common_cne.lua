@@ -924,7 +924,6 @@ function c_teleporttomap:evaluate()
                                                     Player.localmapid,
                                                     destMapID	)
 		if (table.valid(pos)) then
-			d("path is valid")
 			local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			if (table.valid(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
@@ -977,7 +976,7 @@ function c_teleporttomap:evaluate()
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,destMapID)
 					if (table.valid(backupPos)) then
 						d("using block 3")
 						e_teleporttomap.aeth = aetheryte
@@ -1243,14 +1242,16 @@ function c_walktopos:evaluate()
 			if (e_walktopos.lastCode == -2 and TimeSince(e_walktopos.lastFail) < 1000) then
 				
 				--FindClosestMesh(pos)
-			
-				local meshpos = FindClosestMesh(gotoPos)
-				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-					gotoPos = meshpos
-					if (table.valid(ml_task_hub:CurrentTask().pos)) then
-						ml_task_hub:CurrentTask().pos = gotoPos
-					elseif (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-						ml_task_hub:CurrentTask().gatePos = gotoPos
+				
+				if (ml_task_hub:CurrentTask().contentid == nil) then
+					local meshpos = FindClosestMesh(gotoPos)
+					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
+						gotoPos = meshpos
+						if (table.valid(ml_task_hub:CurrentTask().pos)) then
+							ml_task_hub:CurrentTask().pos = gotoPos
+						elseif (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+							ml_task_hub:CurrentTask().gatePos = gotoPos
+						end
 					end
 				end
 			end
@@ -3125,9 +3126,12 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Set our target, if we are within a reasonable range.
-	if (interactable and interactable.targetable and interactable.meshpos and interactable.meshpos.distance < 15) then
-		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-			Player:SetTarget(interactable.id)
+	if (interactable and interactable.targetable and interactable.meshpos) then
+		ml_task_hub:CurrentTask().pos = interactable.meshpos
+		if (interactable.meshpos.distance < 15) then
+			if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+				Player:SetTarget(interactable.id)
+			end
 		end
 	end
 	
@@ -3144,7 +3148,7 @@ function c_dointeract:evaluate()
 			end
 			
 			-- If we are very close to the NPC and have los, we'll break out of this, to go ahead and attempt the interaction.
-			if (interactable.los2 and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
+			if ((interactable.los2 or interactable.gatherable) and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
 				ml_task_hub:CurrentTask().posVisited = true
 			end
 		end
