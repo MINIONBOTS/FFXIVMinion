@@ -371,7 +371,7 @@ function e_movetonode:execute()
     ml_task_hub:CurrentTask().idleTimer = 0
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (table.valid(gatherable)) then
-		local pos = gatherable.meshpos
+		local pos = gatherable.pos
 		
 		local ppos = Player.pos
 		if (table.valid(pos)) then

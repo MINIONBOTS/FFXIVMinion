@@ -669,21 +669,39 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		NavigationManager:UseCubes(false)
 	end
 	
+	local newGoal = { x = x, y = y, z = z }
+	if (table.valid(ffnav.currentGoal)) then
+		local newGoalDist = math.distance3d(ffnav.currentGoal, newGoal)
+		if (newGoalDist < 1 and TimeSince(ffnav.lastPathTime) < 5000) then
+			return 1
+		end
+	end
+	
 	ffnav.alteredGoal = {}
-	ffnav.currentGoal = { x = x, y = y, z = z }
+	ffnav.currentGoal = newGoal
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
+	local ppos = Player.pos
+	d("[NAVIGATION]: Move To ["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
+	ffnav.lastPathTime = Now()
 	if (ret > 0) then
-		local goal = ml_navigation.path[table.size(ml_navigation.path)-1]
-		ffnav.alteredGoal = goal
+		local pathGoal = ml_navigation.path[table.size(ml_navigation.path)-1]
+		local pathGoalDist = math.distance3d(ffnav.currentGoal, pathGoal)
+		if (pathGoalDist > 5) then
+			d("Added actual goal to path.")
+			table.insert(ml_navigation.path,newGoal)
+		else
+			d("Actual goal to path goal dist is ["..tostring(pathGoalDist).."]")
+		end
+		ffnav.alteredGoal = ml_navigation.path[table.size(ml_navigation.path)-1]
 	end
 	return ret
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
 function Player:Stop()
-	ml_navigation.ResetRenderPath()
+	--ml_navigation.ResetRenderPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
 	ffnav.currentGoal = {}
@@ -1246,6 +1264,7 @@ ffnav.currentGoal = {}
 ffnav.currentParams = {}
 ffnav.lastGoalReachedFrom = {}
 ffnav.lastGoalReached = {}
+ffnav.lastPathTime = 0
 
 function ffnav.IsProcessing()
 	if (ffnav.IsYielding()) then

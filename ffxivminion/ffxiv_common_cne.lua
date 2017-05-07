@@ -1247,15 +1247,17 @@ function c_walktopos:evaluate()
 					end
 				end
 			else
-				local interactable = nil
-				if (ml_task_hub:CurrentTask().contentid ~= 0) then
-					local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
-					if (table.valid(interacts)) then
-						local i,interactable = next(interacts)
-						if (i and interactable) then
-							-- Set our target, if we are within a reasonable range.
-							if (interactable and interactable.meshpos) then
-								ml_task_hub:CurrentTask().pos = interactable.meshpos
+				if (not IsFlying()) then
+					local interactable = nil
+					if (ml_task_hub:CurrentTask().contentid ~= 0) then
+						local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
+						if (table.valid(interacts)) then
+							local i,interactable = next(interacts)
+							if (i and interactable) then
+								-- Set our target, if we are within a reasonable range.
+								if (interactable and interactable.meshpos) then
+									ml_task_hub:CurrentTask().pos = interactable.meshpos
+								end
 							end
 						end
 					end
@@ -1265,7 +1267,7 @@ function c_walktopos:evaluate()
 			local range2d, range3d = ml_navigation.GetMovementThresholds()
 			local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
 			
-			if (dist2d > range2d or dist3d > range3d) then
+			if (dist2d > range2d or dist3d > range3d or IsFlying()) then
 				c_walktopos.pos = gotoPos
 				return true
 			end
@@ -3132,7 +3134,7 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Set our target, if we are within a reasonable range.
-	if (interactable and interactable.targetable and interactable.meshpos) then
+	if (interactable and interactable.targetable and interactable.meshpos and not IsFlying()) then
 		ml_task_hub:CurrentTask().pos = interactable.meshpos
 		if (interactable.meshpos.distance < 15) then
 			if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
@@ -3145,11 +3147,16 @@ function c_dointeract:evaluate()
 	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
 	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
 	if (not ml_task_hub:CurrentTask().posVisited) then
+	
+		local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.pos)
+		if (npcdist3d < 1) then
+			ml_task_hub:CurrentTask().posVisited = true
+		end
 		
 		if (interactable and interactable.meshpos) then
 			-- If the interactable meshpos and the task pos is the same, we'll disregard it, since it won't change the outcome.
-			local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.meshpos)
-			if (npcdist3d < 1) then
+			local npcmeshdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.meshpos)
+			if (npcmeshdist3d < 1) then
 				ml_task_hub:CurrentTask().posVisited = true
 			end
 			
@@ -3167,7 +3174,7 @@ function c_dointeract:evaluate()
 		return false
 	end
 	
-	if (interactable and ml_task_hub:CurrentTask().posVisited) then
+	if (interactable and ml_task_hub:CurrentTask().posVisited and not IsFlying()) then
 		local ipos = interactable.pos
 		local ydiff = math.abs(ipos.y - ppos.y)
 		local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1
@@ -3213,10 +3220,12 @@ function c_dointeract:evaluate()
 								return false
 							end
 							
-							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-								return true
+							if (not interactable.gatherable) then
+								if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+									Player:Stop()
+									ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+									return true
+								end
 							end
 							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
