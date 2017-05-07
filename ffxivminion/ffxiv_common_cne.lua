@@ -1239,18 +1239,24 @@ function c_walktopos:evaluate()
 		end
 		
 		if (table.valid(gotoPos)) then
-			if (e_walktopos.lastCode == -2 and TimeSince(e_walktopos.lastFail) < 1000) then
-				
-				--FindClosestMesh(pos)
-				
-				if (ml_task_hub:CurrentTask().contentid == nil) then
-					local meshpos = FindClosestMesh(gotoPos)
-					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-						gotoPos = meshpos
-						if (table.valid(ml_task_hub:CurrentTask().pos)) then
-							ml_task_hub:CurrentTask().pos = gotoPos
-						elseif (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-							ml_task_hub:CurrentTask().gatePos = gotoPos
+			if (ml_task_hub:CurrentTask().contentid == nil) then
+				local meshpos = FindClosestMesh(gotoPos)
+				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
+					if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+						ml_task_hub:CurrentTask().gatePos = meshpos
+					end
+				end
+			else
+				local interactable = nil
+				if (ml_task_hub:CurrentTask().contentid ~= 0) then
+					local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
+					if (table.valid(interacts)) then
+						local i,interactable = next(interacts)
+						if (i and interactable) then
+							-- Set our target, if we are within a reasonable range.
+							if (interactable and interactable.meshpos) then
+								ml_task_hub:CurrentTask().pos = interactable.meshpos
+							end
 						end
 					end
 				end
@@ -3097,10 +3103,10 @@ function e_skiptalk:execute()
 	SetThisTaskProperty("preserveSubtasks",true)
 end
 
-
 c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false
+c_dointeract.lastInteract = 0
 function c_dointeract:evaluate()
 	local myTarget = MGetTarget()
 	local ppos = Player.pos
@@ -3172,8 +3178,21 @@ function c_dointeract:evaluate()
 					if (interactable.type == 5) then
 						if (IsEntityReachable(interactable,4) and ydiff <= 4.95) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-							Player:Interact(interactable.id)
+
+							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+								return true
+							end
+							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
+							Player:Interact(interactable.id)
+							if (TimeSince(c_dointeract.lastInteract) > 2000) then
+								ml_global_information.Await(1000)
+								return true
+							end
+							
+							c_dointeract.lastInteract = Now()
 							return false
 						end
 					else
@@ -3194,8 +3213,20 @@ function c_dointeract:evaluate()
 								return false
 							end
 							
+							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+								return true
+							end
+							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
+							if (TimeSince(c_dointeract.lastInteract) > 2000) then
+								ml_global_information.Await(1000)
+								return true
+							end
+							
+							c_dointeract.lastInteract = Now()
 							return false
 						end
 					end
