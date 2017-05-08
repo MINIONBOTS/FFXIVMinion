@@ -3147,10 +3147,12 @@ function c_dointeract:evaluate()
 	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
 	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
 	if (not ml_task_hub:CurrentTask().posVisited) then
-	
-		local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.pos)
-		if (npcdist3d < 1) then
-			ml_task_hub:CurrentTask().posVisited = true
+		
+		if (interactable) then
+			local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.pos)
+			if (npcdist3d < 1) then
+				ml_task_hub:CurrentTask().posVisited = true
+			end
 		end
 		
 		if (interactable and interactable.meshpos) then
