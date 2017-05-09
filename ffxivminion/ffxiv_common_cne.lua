@@ -3147,7 +3147,6 @@ function c_dointeract:evaluate()
 	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
 	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
 	if (not ml_task_hub:CurrentTask().posVisited) then
-		
 		if (interactable) then
 			local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.pos)
 			if (npcdist3d < 1) then
@@ -3178,14 +3177,21 @@ function c_dointeract:evaluate()
 	
 	if (interactable and ml_task_hub:CurrentTask().posVisited and not IsFlying()) then
 		local ipos = interactable.pos
-		local ydiff = math.abs(ipos.y - ppos.y)
-		local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1
+		local ydiff = (ipos.y - ppos.y)
+		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
+		
+		-- general rules so far:
+		-- aetherytes (radius 2): distance2d of slightly less than 8
+		-- npcs (radius 0.5) (type3): distance2d of 6
+		-- gatherables (radius 0.5) (all so far) distance2d of 2.5
+		-- npcs (radius 2) (type 7): distance2d of 2.1
+		-- npcs (radius 0.5) (type 7): distance2d of 3.5
 
 		if (not IsFlying()) then
 			if (myTarget and myTarget.id == interactable.id) then
-				if (table.valid(interactable)) then			
+				if (table.valid(interactable) and ydiff <= 4.95 and ydiff >= -1.3) then			
 					if (interactable.type == 5) then
-						if (IsEntityReachable(interactable,4) and ydiff <= 4.95) then
+						if (interactable.distance2d <= 7) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
 							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
@@ -3205,9 +3211,16 @@ function c_dointeract:evaluate()
 							return false
 						end
 					else
-						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or (radius * 3)
-
-						if (interactable and IsEntityReachable(interactable,range) and ydiff <= 4.95) then
+						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or radius
+						if (interactable.gatherable) then
+							range = 2.5
+						elseif (interactable.type == 3) then
+							range = 5.5
+						end
+						
+						--d("range:"..tostring(range)..",2d:"..tostring(interactable.distance2d)..",reachable:"..tostring(IsEntityReachable(interactable,range + 1)))
+						
+						if (interactable and IsEntityReachable(interactable,range + 1) and interactable.distance2d <= range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
@@ -3222,22 +3235,8 @@ function c_dointeract:evaluate()
 								return false
 							end
 							
-							if (not interactable.gatherable) then
-								if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
-									Player:Stop()
-									ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-									return true
-								end
-							end
-							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
-							if (TimeSince(c_dointeract.lastInteract) > 2000) then
-								ml_global_information.Await(1000)
-								return true
-							end
-							
-							c_dointeract.lastInteract = Now()
 							return false
 						end
 					end
