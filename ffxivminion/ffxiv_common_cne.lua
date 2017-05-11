@@ -3134,12 +3134,20 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Set our target, if we are within a reasonable range.
-	if (interactable and interactable.targetable and interactable.meshpos and not IsFlying()) then
-		ml_task_hub:CurrentTask().pos = interactable.meshpos
-		if (interactable.meshpos.distance < 15) then
-			if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-				Player:SetTarget(interactable.id)
+	
+	if (interactable and interactable.targetable) then
+		if (ml_task_hub:CurrentTask().useTargetPos) then
+			ml_task_hub:CurrentTask().pos = interactable.pos
+		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
+			if ( interactable.meshpos and not IsFlying()) then
+				ml_task_hub:CurrentTask().pos = interactable.meshpos
 			end
+		end
+	end
+	
+	if (interactable and interactable.targetable) then
+		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+			Player:SetTarget(interactable.id)
 		end
 	end
 	
@@ -3220,7 +3228,7 @@ function c_dointeract:evaluate()
 						
 						--d("range:"..tostring(range)..",2d:"..tostring(interactable.distance2d)..",reachable:"..tostring(IsEntityReachable(interactable,range + 1)))
 						
-						if (interactable and IsEntityReachable(interactable,range + 1) and interactable.distance2d <= range) then
+						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d <= range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.

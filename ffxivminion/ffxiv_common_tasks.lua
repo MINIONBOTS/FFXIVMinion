@@ -568,46 +568,14 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local ppos = Player.pos
 	
 	local interactable = nil
-	--[[
-	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
-		if (self.contentid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
-			if (table.valid(interacts)) then
-				local i,interact = next(interacts)
-				if (i and interact) then
-					self.interact = interact.id
-				end
-			end
-			self.lastInteractableSearch = Now()
-		end
-	end
-	--]]
-	
 	if (self.interact ~= 0) then
 		interactable = EntityList:Get(self.interact)
 	end
 	
-	--[[
-	if (interactable and interactable.targetable and interactable.meshpos and interactable.meshpos.distance < 15) then
-		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-			Player:SetTarget(interactable.id)
-		end
-	end
-	
-	local posdist2d,posdist3d = math.distance2d(ppos,self.pos), math.distance3d(ppos,self.pos)
-	if (not self.posVisited) then
-		if (interactable and interactable.los2 and interactable.meshpos and interactable.meshpos.distance <= IsNull(self.interactRange,2.5)) then
-			self.posVisited = true
-		end
-		
-		local movementSpeed = IsNull(Player:GetSpeed()["Forward"],0)
-		if ((((movementSpeed <= 6 and posdist2d < 1) or (movementSpeed > 6 and posdist2d < 2)) and posdist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,self.pos)) then
-			self.posVisited = true
-		end
-		
-		return false
-	end
-	--]]
+	--if (interactable and interactable.meshpos) then
+		--d("[NAVIGATION]: Task Pos ["..tostring(ml_task_hub:CurrentTask().pos.x)..","..tostring(ml_task_hub:CurrentTask().pos.y)..","..tostring(ml_task_hub:CurrentTask().pos.z).."]")
+		--d("[NAVIGATION]: Interactable Pos ["..tostring(interactable.pos.x)..","..tostring(interactable.pos.y)..","..tostring(interactable.pos.z).."]")
+	--end
 	
 	if (self.interact ~= 0) then
 		if (not interactable or not interactable.targetable) then
@@ -623,52 +591,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			end
 		end			
 	end
-	
-	--[[
-	if (interactable and self.posVisited) then
-		local ipos = interactable.pos
-		local dist3d = interactable.distance
-		local dist2d = interactable.distance2d
-		local ydiff = math.abs(ipos.y - ppos.y)
-		local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-
-		if (not IsFlying()) then
-			if (myTarget and myTarget.id == interactable.id) then
-				if (table.valid(interactable)) then			
-					if (interactable.type == 5) then
-						if (IsEntityReachable(interactable,4) and ydiff <= 4.95) then
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-							Player:Interact(interactable.id)
-							d("[MoveToInteract]: Interacting with aetheryte target.")
-							return false
-						end
-					else
-						local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1
-						local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3)
-
-						if (interactable and IsEntityReachable(interactable,range) and ydiff <= 4.95) then
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-							
-							if (IsNull(self.minGP,0) > Player.gp.current) then
-								d("[MoveToInteract]: Waiting on GP before attempting node.")
-								return false
-							end
-							
-							if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-								d("[MoveToInteract]: Don't attempt a special node if we gained aggro.")
-								return false
-							end
-							
-							d("[MoveToInteract]: Interacting with target type ["..tostring(interactable.type).."].")
-							Player:Interact(interactable.id)
-							return false
-						end
-					end
-				end
-			end
-		end
-	end
-	--]]
 	
 	return false
 end

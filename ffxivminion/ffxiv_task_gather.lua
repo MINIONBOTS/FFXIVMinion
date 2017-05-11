@@ -737,6 +737,31 @@ function e_gather:execute()
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
 	
+		if (type(gatherMaps) == "string" and GUI_Get(gatherMaps) ~= nil) then
+			gatherMaps = GUI_Get(gatherMaps)
+		end
+		if (type(gatherRares) == "string" and GUI_Get(gatherRares) ~= nil) then
+			gatherRares = GUI_Get(gatherRares)
+		end
+		if (type(gatherSuperRares) == "string" and GUI_Get(gatherSuperRares) ~= nil) then
+			gatherSuperRares = GUI_Get(gatherSuperRares)
+		end
+		if (type(gatherChocoFood) == "string" and GUI_Get(gatherChocoFood) ~= nil) then
+			gatherChocoFood = GUI_Get(gatherChocoFood)
+		end
+		if (type(item1) == "string" and GUI_Get(item1) ~= nil) then
+			item1 = GUI_Get(item1)
+		end
+		if (type(item2) == "string" and GUI_Get(item2) ~= nil) then
+			item2 = GUI_Get(item2)
+		end
+		if (type(item3) == "string" and GUI_Get(item3) ~= nil) then
+			item3 = GUI_Get(item3)
+		end
+		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+			minimumGP = GUI_Get(minimumGP)
+		end
+	
         if (touchOnly) then
             local gatheringControl = GetControl("Gathering")
             if (gatheringControl and gatheringControl:IsOpen()) then
@@ -2356,7 +2381,6 @@ function c_gathernexttask:evaluate()
 						end
 					end
 					
-					--[[
 					if (valid) then
 						if (data.condition) then
 							local conditions = deepcopy(data.condition,true)
@@ -2364,9 +2388,13 @@ function c_gathernexttask:evaluate()
 							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
 						end
 					end
-					--]]
+					
+					--7303
+					--d(ffxiv_gather.profileData.tasks[7303].condition[1]())
 					
 					-- Pre-compile all condition checks so we only have to loadstring one time.
+					
+					--[[
 					if (valid) then
 						if (data.condition) then
 							local conditions = deepcopy(data.condition,true)
@@ -2427,6 +2455,7 @@ function c_gathernexttask:evaluate()
 							end
 						end
 					end
+					--]]
 					
 					if (valid) then
 						local weather = AceLib.API.Weather.Get(data.mapid)
