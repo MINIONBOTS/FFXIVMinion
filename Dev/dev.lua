@@ -293,6 +293,8 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Duty List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
+					GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
+					GUI:BulletText("GetQueueStatus") GUI:SameLine(200) GUI:InputText("##devDLx2",tostring(Duty:GetQueueStatus()))
 					local dList = Duty:GetDutyList()
 					if (table.valid(dList)) then
 						for id, e in pairs(dList) do
@@ -375,7 +377,7 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Fishing")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(150)
-					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:FishingState()))
+					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:GetFishingState()))
 					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))
 					if (not dev.fishbait) then dev.fishbait = 0 end
 					GUI:BulletText("Bait itemID") GUI:SameLine(200) dev.fishbait = GUI:InputText("##devfi2",dev.fishbait) 
@@ -424,19 +426,23 @@ function dev.DrawCall(event, ticks )
 --End GATHERING
 
 			if ( GUI:TreeNode("Gathering - Collectable")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME and IsControlOpen("GatheringMasterpiece")) then 
-					GUI:PushItemWidth(200)
-					local e = GetControlData("GatheringMasterpiece")
-					if (table.valid(e)) then
-						GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devgac0",tostring(string.format( "%X",e.ptr)))
-						GUI:BulletText(".rarity") GUI:SameLine(200) GUI:InputText("##devga1",tostring(e.rarity))
-						GUI:BulletText(".raritymax") GUI:SameLine(200) GUI:InputText("##devga2",tostring(e.raritymax))
-						GUI:BulletText(".wear") GUI:SameLine(200) GUI:InputText("##devga3",tostring(e.wear))
-						GUI:BulletText(".wearmax") GUI:SameLine(200) GUI:InputText("##devga4",tostring(e.wearmax))
-						GUI:BulletText(".chance") GUI:SameLine(200) GUI:InputText("##devga5",tostring(e.chance))
-						GUI:BulletText(".chancehq") GUI:SameLine(200) GUI:InputText("##devga6",tostring(e.chancehq))
-					end				
-					GUI:PopItemWidth()
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					if ( IsControlOpen("GatheringMasterpiece") ) then
+						GUI:PushItemWidth(200)
+						local e = GetControlData("GatheringMasterpiece")
+						if (table.valid(e)) then
+							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devgac0",tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText(".rarity") GUI:SameLine(200) GUI:InputText("##devga1",tostring(e.rarity))
+							GUI:BulletText(".raritymax") GUI:SameLine(200) GUI:InputText("##devga2",tostring(e.raritymax))
+							GUI:BulletText(".wear") GUI:SameLine(200) GUI:InputText("##devga3",tostring(e.wear))
+							GUI:BulletText(".wearmax") GUI:SameLine(200) GUI:InputText("##devga4",tostring(e.wearmax))
+							GUI:BulletText(".chance") GUI:SameLine(200) GUI:InputText("##devga5",tostring(e.chance))
+							GUI:BulletText(".chancehq") GUI:SameLine(200) GUI:InputText("##devga6",tostring(e.chancehq))
+						end				
+						GUI:PopItemWidth()
+					else
+						GUI:Text("GatheringMasterpiece not open..")
+					end
 				else
 					GUI:Text("Not Ingame...")
 				end
@@ -714,7 +720,7 @@ function dev.DrawCall(event, ticks )
 
 				if ( GUI:TreeNode("Renderobject List")) then
 			
-				-- RenderManager:AddObject( tablewith vertices here ) , returns the renderobject which is a lua metatable. it has a .id which should be used everytime afterwards if the object is being accessed:
+				-- RenderManager:AddObject( tablewith vertices here ) , returns the renderobject which is a lua metatable. it has an .id which should be used everytime afterwards if the object is being accessed:
 				-- RenderManager:GetObject(id)  - use this always before you actually access a renderobject of yours, because the object could have been deleted at any time in c++ due to other code erasing it
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(100)
