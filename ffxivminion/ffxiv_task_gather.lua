@@ -86,7 +86,7 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 			end
 			
 			if (table.valid(newPos)) then
-				local randPosition = NavigationManager:GetClosestPointOnMesh(newPos)
+				local randPosition = FindClosestMesh(newPos)
 				if (randPosition) then
 					pos = randPosition
 					break
@@ -212,13 +212,13 @@ function c_findnode:evaluate()
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
-					d("Using whitelist filter ["..filter.."].",3)
+					--d("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
-					d("Using blacklist filter ["..filter.."].",3)
+					--d("Using blacklist filter ["..filter.."].",3)
 				else
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
-					d("Using filter ["..filter.."].",3)
+					--d("Using filter ["..filter.."].",3)
 				end
 				
 				local gatherable = nil
@@ -284,12 +284,14 @@ function c_movetonode:evaluate()
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
+			
 			local gpos = gatherable.pos
-			if (gatherable.distance > 3.3 or IsFlying()) then
-				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+			local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
+			if (not reachable or IsFlying()) then
+				gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
-				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
@@ -368,7 +370,7 @@ function e_movetonode:execute()
     ml_task_hub:CurrentTask().idleTimer = 0
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (table.valid(gatherable)) then
-		local pos = gatherable.meshpos
+		local pos = gatherable.pos
 		
 		local ppos = Player.pos
 		if (table.valid(pos)) then
@@ -402,7 +404,7 @@ function e_movetonode:execute()
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
 					--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					--local p = FindClosestMesh(telePos)
 					--if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
@@ -420,7 +422,7 @@ function e_movetonode:execute()
 			
 			if (gTeleportHack and dist3d > 8) then
 				--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-				--local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+				--local p = FindClosestMesh(telePos)
 				--if (p and p.distance ~= 0 and p.distance <= 6) then
 					--newTask.pos = p
 					newTask.useTeleport = true
@@ -462,7 +464,7 @@ function c_returntobase:evaluate()
 			basePos = marker:GetPosition()
 		end
 		
-		local p = NavigationManager:GetClosestPointOnMesh(basePos)
+		local p = FindClosestMesh(basePos)
 		if (p) then
 			basePos = p
 		end
@@ -496,7 +498,7 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
-	local p = NavigationManager:GetClosestPointOnMesh(pos)
+	local p = FindClosestMesh(pos)
 	if (p) then
 		pos = p
 	end
@@ -732,6 +734,34 @@ function e_gather:execute()
 			gatherChocoFood = IsNull(marker:GetFieldValue(GetUSString("gatherChocoFood")),"0")
 			item1 = IsNull(marker:GetFieldValue(GetUSString("selectItem1")),"")
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
+		end
+	
+		if (type(gatherGardening) == "string" and GUI_Get(gatherGardening) ~= nil) then
+			gatherGardening = GUI_Get(gatherGardening)
+		end
+		if (type(gatherMaps) == "string" and GUI_Get(gatherMaps) ~= nil) then
+			gatherMaps = GUI_Get(gatherMaps)
+		end
+		if (type(gatherRares) == "string" and GUI_Get(gatherRares) ~= nil) then
+			gatherRares = GUI_Get(gatherRares)
+		end
+		if (type(gatherSuperRares) == "string" and GUI_Get(gatherSuperRares) ~= nil) then
+			gatherSuperRares = GUI_Get(gatherSuperRares)
+		end
+		if (type(gatherChocoFood) == "string" and GUI_Get(gatherChocoFood) ~= nil) then
+			gatherChocoFood = GUI_Get(gatherChocoFood)
+		end
+		if (type(item1) == "string" and GUI_Get(item1) ~= nil) then
+			item1 = GUI_Get(item1)
+		end
+		if (type(item2) == "string" and GUI_Get(item2) ~= nil) then
+			item2 = GUI_Get(item2)
+		end
+		if (type(item3) == "string" and GUI_Get(item3) ~= nil) then
+			item3 = GUI_Get(item3)
+		end
+		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+			minimumGP = GUI_Get(minimumGP)
 		end
 	
         if (touchOnly) then
@@ -1353,9 +1383,9 @@ function CanUseCordial()
 		
 		local usedPatience = (IsFisher(Player.job) and MissingBuff(Player,764) and ffxiv_fish.NeedsPatienceCheck() and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 				return true, cordialNormal
-			elseif (cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+			elseif (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 				return true, cordialHigh
 			end
 		end
@@ -1373,14 +1403,14 @@ function CanUseExpManual()
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,46)) then
-			if (Player.level >= 15 and Player.level < 35) then
+			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4633)
 				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 			
-			if (Player.level >= 35 and Player.level < 50) then
+			if (Player.level >= 25 and Player.level < 45) then
 				local manual2, action = GetItem(4635)
 				if (manual2 and action and manual2:IsReady(Player.id)) then
 					return true, manual2
@@ -1392,7 +1422,7 @@ function CanUseExpManual()
 				end
 			end
 
-			if (Player.level >= 50 and CanAccessMap(397)) then
+			if (Player.level >= 45) then
 				local commercial, action = GetItem(12668)
 				if (commercial and action and commercial:IsReady(Player.id)) then
 					--d("Can use commercial manual.")
@@ -1404,18 +1434,23 @@ function CanUseExpManual()
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
+				
+				local manual1, action = GetItem(4633)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
+					return true, manual1
+				end
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,45)) then
-			if (Player.level >= 15 and Player.level < 35) then
+			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4632)
 				if (manual1 and action and not action.isoncd) then
 					return true, manual1
 				end
 			end
 			
-			if (Player.level >= 35 and Player.level < 50) then
+			if (Player.level >= 25 and Player.level < 45) then
 				local manual2, action = GetItem(4634)
 				if (manual2 and action and not action.isoncd) then
 					return true, manual2
@@ -1427,7 +1462,7 @@ function CanUseExpManual()
 				end
 			end
 
-			if (Player.level >= 50 and CanAccessMap(397)) then
+			if (Player.level >= 45) then
 				local commercial, action = GetItem(12667)
 				if (commercial and action and not action.isoncd) then
 					return true, commercial
@@ -1436,6 +1471,11 @@ function CanUseExpManual()
 				local manual2, action = GetItem(4634)
 				if (manual2 and action and not action.isoncd) then
 					return true, manual2
+				end
+				
+				local manual1, action = GetItem(4632)
+				if (manual1 and action and not action.isoncd) then
+					return true, manual1
 				end
 			end
 		end
@@ -1824,7 +1864,7 @@ function c_gatherflee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p = NavigationManager:GetClosestPointOnMesh(newPos)
+				local p = FindClosestMesh(newPos)
 				if (p) then
 					e_gatherflee.fleePos = p
 					return true
@@ -2115,7 +2155,8 @@ function c_gathernexttask:evaluate()
 		invalid = true
 	else
 		gd("[GatherNextTask]: We have a current task, check if it should be completed.",3)
-					
+		
+		--[[
 		if (currentTask.complete) then
 			local conditions = shallowcopy(currentTask.complete)
 			for condition,value in pairs(conditions) do
@@ -2131,6 +2172,42 @@ function c_gathernexttask:evaluate()
 					gd("[GatherNextTask]: Complete condition has been satisfied, invalidate.",3)
 					break
 				end
+			end
+		end
+		--]]
+		
+		-- Pre-compile all the complete checks so we only have to loadstring once.
+		if (currentTask.complete) then
+			local conditions = shallowcopy(currentTask.complete)
+			local complete = true
+			
+			for condition,value in pairs(conditions) do
+				local f;
+				if (type(condition) == "string") then
+					f = assert(loadstring("return " .. condition))
+					if (f ~= nil) then
+						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[condition] = nil
+						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[f] = value
+					else
+						-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[condition] = nil							
+					end
+				elseif (type(condition) == "function") then
+					f = condition
+				end
+				
+				if (f() ~= value) then
+					complete = false
+				end
+				conditions[condition] = nil
+				if (not complete) then
+					break
+				end
+			end
+			
+			if (complete) then
+				invalid = true
+				completed = true
 			end
 		end
 		
@@ -2220,8 +2297,10 @@ function c_gathernexttask:evaluate()
 				end
 			end
 			if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-				local eTime = AceLib.API.Weather.GetDateTime() 
-				local eHour = eTime.hour
+				--local eTime = AceLib.API.Weather.GetDateTime() 
+				--local eHour = eTime.hour
+				local eTime = GetEorzeaTime()
+				local eHour = eTime.bell
 				
 				local validHour = false
 				local i = currentTask.eorzeaminhour
@@ -2277,7 +2356,7 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Check the non-cached subset of tasks.",3)
 				validTasks = deepcopy(profileData.tasks,true)
 				for i,data in pairs(validTasks) do
-				
+					local thisIndex = i
 					local valid = true
 
 					if (data.enabled and data.enabled ~= "1") then
@@ -2311,6 +2390,74 @@ function c_gathernexttask:evaluate()
 							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
 						end
 					end
+					
+					--7303
+					--d(ffxiv_gather.profileData.tasks[7303].condition[1]())
+					
+					-- Pre-compile all condition checks so we only have to loadstring one time.
+					
+					--[[
+					if (valid) then
+						if (data.condition) then
+							local conditions = deepcopy(data.condition,true)
+							local testKey,testVal = next(conditions)
+							if (tonumber(testKey) ~= nil) then
+								for i,conditionset in pairsByKeys(conditions) do
+									for condition,value in pairs(conditionset) do
+										local f;
+										if (type(condition) == "string") then
+											f = assert(loadstring("return " .. condition))
+											if (f ~= nil) then
+												ffxiv_gather.profileData.tasks[thisIndex].condition[i][condition] = nil
+												ffxiv_gather.profileData.tasks[thisIndex].condition[i][f] = value
+											else
+												-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+												ffxiv_gather.profileData.tasks[thisIndex].condition[i][condition] = nil							
+											end
+										elseif (type(condition) == "function") then
+											f = condition
+										end
+										if (f() ~= value) then
+											valid = false
+										end
+										conditions[i][condition] = nil
+										if (not valid) then
+											break
+										end
+									end
+									conditions[i] = nil
+									if (not valid) then
+										break
+									end
+								end
+							else
+								for condition,value in pairs(conditions) do
+									local f;
+									if (type(condition) == "string") then
+										f = assert(loadstring("return " .. condition))
+										if (f ~= nil) then
+											ffxiv_gather.profileData.tasks[thisIndex].condition[condition] = nil
+											ffxiv_gather.profileData.tasks[thisIndex].condition[f] = value
+										else
+											-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+											ffxiv_gather.profileData.tasks[thisIndex].condition[condition] = nil							
+										end
+									elseif (type(condition) == "function") then
+										f = condition
+									end
+									
+									if (f() ~= value) then
+										valid = false
+									end
+									conditions[condition] = nil
+									if (not valid) then
+										break
+									end
+								end
+							end
+						end
+					end
+					--]]
 					
 					if (valid) then
 						local weather = AceLib.API.Weather.Get(data.mapid)
@@ -2349,8 +2496,10 @@ function c_gathernexttask:evaluate()
 					
 					if (valid) then
 						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-							local eTime = AceLib.API.Weather.GetDateTime() 
-							local eHour = eTime.hour
+							--local eTime = AceLib.API.Weather.GetDateTime() 
+							--local eHour = eTime.hour
+							local eTime = GetEorzeaTime()
+							local eHour = eTime.bell
 							
 							local validHour = false
 							local i = data.eorzeaminhour
@@ -2379,7 +2528,7 @@ function c_gathernexttask:evaluate()
 				end
 				
 				c_gathernexttask.subset = validTasks
-				local eTime = AceLib.API.Weather.GetDateTime() 
+				local eTime = GetEorzeaTime()
 				local eMinute = eTime.minute
 				local quarters = { [5] = true, [10] = true, [15] = true, [20] = true, [25] = true, [30] = true, [35] = true, [40] = true, [45] = true, [50] = true, [55] = true, [60] = true }
 				local expirationDelay = 0
@@ -3094,6 +3243,12 @@ function ffxiv_task_gather:UIInit()
 	
 	self.GUI = {}
 	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	self.GUI.profile = {
+		open = false,
+		visible = true,
+		name = "Gather - Profile Management",
+		main_tabs = GUI_CreateTabs("Manage,Add,Edit",true),
+	}
 end
 
 function ffxiv_task_gather:Draw()
@@ -3286,3 +3441,311 @@ end
 function ffxiv_gather.ResetLastGather()
 	Settings.FFXIVMINION.gLastGather = {}
 end
+
+function ffxiv_gather.Draw( event, ticks ) 
+	if (ffxiv_task_gather.GUI.profile.open) then
+		GUI:SetNextWindowSize(500,200,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
+		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
+		
+		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+		
+		ffxiv_task_gather.GUI.profile.visible, ffxiv_task_gather.GUI.profile.open = GUI:Begin(ffxiv_task_gather.GUI.profile.name, ffxiv_task_gather.GUI.profile.open)
+		if ( ffxiv_task_gather.GUI.profile.visible ) then 
+		
+			GUI_DrawTabs(ffxiv_task_gather.GUI.profile.main_tabs)
+			local tabs = ffxiv_task_gather.GUI.profile.main_tabs
+			
+			if (tabs.tabs[1].isselected) then
+				local width, height = GUI:GetWindowSize()		
+				local cwidth, cheight = GUI:GetContentRegionAvail()
+				
+				local tasks = ffxiv_gather.profileData
+				if (table.valid(tasks) and not orders.protected) then
+					
+					GUI:Separator();
+					GUI:Columns(5, "#gather-manage-orders", true)
+					GUI:SetColumnOffset(1, 125); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 300); GUI:SetColumnOffset(4, 400); GUI:SetColumnOffset(5, 500);				
+					GUI:Text("ID"); GUI:NextColumn();
+					GUI:Text("Alias"); GUI:NextColumn();
+					GUI:Text("Skip"); GUI:NextColumn();
+					GUI:Text("Edit"); GUI:NextColumn();
+					GUI:Text("Remove"); GUI:NextColumn();
+					GUI:Separator();
+				
+					for id,task in pairsByKeys(tasks) do
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(id); 
+						--if (GUI:IsItemHovered()) then
+							--GUI:BeginTooltip()
+							--ffxiv_gather.InspectRecipe(id)
+							--GUI:EndTooltip()
+						--end						
+						GUI:NextColumn()
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(IsNull(task.alias,"")); GUI:NextColumn()
+						
+						if (task.skip == nil) then
+							tasks[id].skip = false
+							ffxiv_gather.SaveProfile()
+						end
+						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),task.skip)
+						if (changed) then
+							tasks[id].skip = newVal
+						end
+						GUI:NextColumn()
+						
+						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+						
+						if (GUI:ImageButton("##gather-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
+							gGatherOrderEditID = id
+							gGatherOrderEditAmount = order["amount"]
+							gGatherOrderEditRequireHQ = order["requirehq"]
+							gGatherOrderEditCountHQ = order["counthq"]
+							gGatherOrderEditQuick = order["usequick"]
+							gGatherOrderEditHQ = order["usehq"]
+							gGatherOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("None"))
+							gGatherOrderEditFood = IsNull(order["requiredfood"],GetString("None"))
+							
+							for i = 1,6 do
+								if (not order["hq"..tostring(i)]) then
+									_G["gGatherOrderEditHQIngredient"..tostring(i)] = 0
+									_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"] = false
+									ffxiv_gather.UpdateOrderElement()
+								else
+									_G["gGatherOrderEditHQIngredient"..tostring(i)] = order["hq"..tostring(i)]
+									_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"] = order["hq"..tostring(i).."max"]
+								end
+							end
+							
+							GUI_SwitchTab(ffxiv_task_gather.GUI.profile.main_tabs,3)
+						end
+						GUI:NextColumn()
+						if (GUI:ImageButton("##gather-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
+							ffxiv_gather.DeleteOrder(id)
+						end
+						GUI:NextColumn()
+						GUI:PopStyleColor(2)
+					end
+					
+					GUI:Columns(1)
+				end
+			end
+			
+			if (tabs.tabs[2].isselected) then	
+				GUI:PushItemWidth(50)
+				GUI_Combo("Class", "gGatherOrderSelectIndex", "gGatherOrderSelect", gGathers)
+				GUI:PopItemWidth()
+				
+				for k = 10,60,10 do
+					local dictionary, dictionaryDisplay = ffxiv_gather.GetDictionary(k)
+					if (dictionary and dictionaryDisplay) then
+						GUI:PushItemWidth(300)
+						local selectionChanged = GUI_Combo(tostring(k-9).."-"..tostring(k), "gGatherDictionarySelectIndex"..tostring(k), "gGatherDictionarySelect"..tostring(k), dictionaryDisplay)
+						if (selectionChanged) then
+							local thisRecipe = dictionary[_G["gGatherDictionarySelectIndex"..tostring(k)]]
+							if (thisRecipe) then
+								gGatherOrderAddID = thisRecipe.recipeid
+								gGatherOrderAddAmount = 1
+								gGatherOrderAddRequireHQ = false
+								gGatherOrderAddCountHQ = false
+								gGatherOrderAddQuick = false
+								gGatherOrderAddHQ = false
+								gGatherOrderAddSkillProfileIndex = 1
+								gGatherOrderAddSkillProfile = GetString("None")
+								gGatherOrderAddFoodIndex = 1
+								gGatherOrderAddFood = GetString("None")
+							end
+							for j = 10,60,10 do
+								if (j ~= k) then
+									_G["gGatherDictionarySelectIndex"..tostring(j)] = 1
+									_G["gGatherDictionarySelect"..tostring(j)] = GetString("None")		
+								end
+							end
+						end
+						GUI:PopItemWidth()
+					else
+						GUI:Text("Could not find display dictionary for ["..gGatherOrderSelect.."] with attempt level ["..tostring(k).."]")
+					end					
+				end
+				
+				if (gGatherOrderAddID ~= 0) then
+					
+					GUI:Separator()
+				
+					GUI:PushItemWidth(50)
+					GUI_Capture(GUI:InputInt("Amount to gather",gGatherOrderAddAmount,0,0),"gGatherOrderAddAmount")
+					GUI:PopItemWidth()
+					GUI_Capture(GUI:Checkbox("Require HQ",gGatherOrderAddRequireHQ),"gGatherOrderAddRequireHQ")
+					GUI_Capture(GUI:Checkbox("Count HQ",gGatherOrderAddCountHQ),"gGatherOrderAddCountHQ")
+					GUI_Capture(GUI:Checkbox("Use QuickSynth",gGatherOrderAddQuick),"gGatherOrderAddQuick")
+					if (not gGatherOrderAddQuick) then
+						GUI:PushItemWidth(200)
+						GUI_Combo(GetString("skillProfile"), "gGatherOrderAddSkillProfileIndex", "gGatherOrderAddSkillProfile", SkillMgr.profiles)
+						GUI:PopItemWidth()
+					end
+					GUI_Capture(GUI:Checkbox("Use HQ Items",gGatherOrderAddHQ),"gGatherOrderAddHQ")
+					if (gGatherOrderAddHQ) then						
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gGatherOrderAddID)
+						if (recipeDetails) then
+							
+							GUI:Columns(4, "#gather-add-hq", true)
+							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 350); GUI:SetColumnOffset(3, 475); GUI:SetColumnOffset(4, 600);
+							GUI:AlignFirstTextHeightToWidgets()
+							
+							GUI:Text("Ingredient"); GUI:NextColumn();
+							GUI:Text("Required"); GUI:NextColumn();
+							GUI:Text("Choose HQ Amount"); GUI:NextColumn();
+							GUI:Text("Use All HQ"); GUI:NextColumn();
+							
+							GUI:Separator();
+							
+							for i = 1,6 do
+								local ing = recipeDetails["ingredient"..tostring(i)]
+								if (ing and ing ~= 0) then
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy(); GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(tostring(recipeDetails["iamount"..tostring(i)])); GUI:Dummy(); GUI:NextColumn();
+									
+									GUI:PushItemWidth(50)
+									local newVal, changed = GUI:InputInt("##HQ Amount"..tostring(i),_G["gGatherOrderAddHQIngredient"..tostring(i)],0,0)
+									if (changed and not GUI:IsItemActive()) then
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										if (newVal == recipeDetails["iamount"..tostring(i)]) then
+											_G["gGatherOrderAddHQIngredient"..tostring(i).."Max"] = true
+										else
+											_G["gGatherOrderAddHQIngredient"..tostring(i).."Max"] = false
+										end
+										_G["gGatherOrderAddHQIngredient"..tostring(i)] = newVal
+										ffxiv_gather.UpdateOrderElement()
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
+									
+									local newVal, changed = GUI:Checkbox("##Max-"..tostring(i),_G["gGatherOrderAddHQIngredient"..tostring(i).."Max"])
+									if (changed) then
+										if (newVal == false) then
+											if (_G["gGatherOrderAddHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then
+												_G["gGatherOrderAddHQIngredient"..tostring(i)] = 0
+											end
+										elseif (newVal == true) then
+											_G["gGatherOrderAddHQIngredient"..tostring(i)] = recipeDetails["iamount"..tostring(i)]
+										end
+										_G["gGatherOrderAddHQIngredient"..tostring(i).."Max"] = newVal
+										ffxiv_gather.UpdateOrderElement()
+									end
+									GUI:NextColumn();
+								end
+							end
+							
+							GUI:Columns(1)
+						else
+							GUI:Text("Could not find recipe details.")
+						end					
+					end
+					
+					GUI:Spacing()
+					GUI:Separator()
+					GUI:Spacing()
+					
+					if (GUI:Button("Add to Profile",200,20)) then
+						ffxiv_gather.AddToProfile()
+					end
+				end
+			end
+			
+			if (tabs.tabs[3].isselected) then
+				if (ffxiv_gather.orders[gGatherOrderEditID] ~= nil) then
+					local orders = ffxiv_gather.orders[gGatherOrderEditID]
+					GUI:PushItemWidth(50)
+					GUI_Capture(GUI:InputInt("Amount to gather",gGatherOrderEditAmount,0,0),"gGatherOrderEditAmount", function () ffxiv_gather.UpdateOrderElement()  end)
+					GUI:PopItemWidth()
+					GUI_Capture(GUI:Checkbox("Require HQ",gGatherOrderEditRequireHQ),"gGatherOrderEditRequireHQ", function () ffxiv_gather.UpdateOrderElement() end)
+					GUI_Capture(GUI:Checkbox("Count HQ",gGatherOrderEditCountHQ),"gGatherOrderEditCountHQ", function () ffxiv_gather.UpdateOrderElement() end)
+					GUI_Capture(GUI:Checkbox("Use QuickSynth",gGatherOrderEditQuick),"gGatherOrderEditQuick", function () ffxiv_gather.UpdateOrderElement() end)
+					if (not gGatherOrderEditQuick) then
+						GUI:PushItemWidth(200)
+						local skillsChanged = GUI_Combo(GetString("skillProfile"), "gGatherOrderEditSkillProfileIndex", "gGatherOrderEditSkillProfile", SkillMgr.profiles)
+						if (skillsChanged) then
+							ffxiv_gather.UpdateOrderElement()
+						end
+						GUI:PopItemWidth()
+					end
+					
+					GUI_Capture(GUI:Checkbox("Use HQ Items",gGatherOrderEditHQ),"gGatherOrderEditHQ", function () ffxiv_gather.UpdateOrderElement() end)
+					if (gGatherOrderEditHQ) then
+						GUI:Separator()
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gGatherOrderEditID)
+						if (recipeDetails) then
+							
+							GUI:Columns(4, "#gather-edit-hq", true)
+							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 350); GUI:SetColumnOffset(3, 475); GUI:SetColumnOffset(4, 600);
+							GUI:AlignFirstTextHeightToWidgets()
+							
+							GUI:Text("Ingredient"); GUI:NextColumn();
+							GUI:Text("Required"); GUI:NextColumn();
+							GUI:Text("Choose HQ Amount"); GUI:NextColumn();
+							GUI:Text("Use All HQ"); GUI:NextColumn();
+							GUI:Separator();
+							
+							for i = 1,6 do
+								local ing = recipeDetails["ingredient"..tostring(i)]
+								if (ing and ing ~= 0) then
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy();GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["iamount"..tostring(i)]); GUI:Dummy();GUI:NextColumn();
+									GUI:PushItemWidth(50)
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:InputInt("##HQ Amount-"..tostring(i),_G["gGatherOrderEditHQIngredient"..tostring(i)],0,0)
+									if (changed and not GUI:IsItemActive()) then
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										if (newVal == recipeDetails["iamount"..tostring(i)]) then
+											_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"] = true
+										else
+											_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"] = false
+										end
+										_G["gGatherOrderEditHQIngredient"..tostring(i)] = newVal
+										ffxiv_gather.UpdateOrderElement()
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:Checkbox("##Max-"..tostring(i),_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"])
+									if (changed) then
+										if (newVal == false) then
+											if (_G["gGatherOrderEditHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then
+												_G["gGatherOrderEditHQIngredient"..tostring(i)] = 0
+											end
+										elseif (newVal == true) then
+											_G["gGatherOrderEditHQIngredient"..tostring(i)] = recipeDetails["iamount"..tostring(i)]
+										end
+										_G["gGatherOrderEditHQIngredient"..tostring(i).."Max"] = newVal
+										ffxiv_gather.UpdateOrderElement()
+									end
+									GUI:NextColumn();
+								end
+							end
+							
+							GUI:Columns(1)
+						else
+							GUI:Text("Could not find recipe details.")
+						end					
+					end
+				end
+			end
+		end
+		GUI:End()
+	end
+end
+
+--RegisterEventHandler("Gameloop.Draw", ffxiv_gather.Draw)

@@ -2514,8 +2514,8 @@ function GetPathDistance(pos1,pos2)
 	
 	local dist = nil
 	
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
+	local p1 = FindClosestMesh(pos1) or pos1
+	local p2 = FindClosestMesh(pos2) or pos2
 	
 	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 	if (table.valid(path)) then
@@ -2556,8 +2556,8 @@ function HasNavPath(pos1,pos2,previousDistance)
 			end
 		end--]]
 		
-		local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-		local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+		local p1 = FindClosestMesh(pos1)
+		local p2 = FindClosestMesh(pos2)
 		
 		if (p1 and p2) then
 			if (TimeSince(ml_global_information.lastPathGet) > 2000 or ml_global_information.lastPathGet == Now()) then
@@ -2587,8 +2587,8 @@ function HasNavPath(pos1,pos2,previousDistance)
 	return false
 end
 function GetNavPath(pos1,pos2)
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	local p1 = FindClosestMesh(pos1)
+	local p2 = FindClosestMesh(pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
@@ -2911,7 +2911,7 @@ function IsMounted()
 	return (Player.ismounted)
 end
 function IsDismounting()
-	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
+	return (Player.ismounted or Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
 	local jump = ActionList:Get(5,2)
@@ -4373,7 +4373,6 @@ function GetFirstFreeSlot(hqid,inventories)
 	
 	return nil,nil
 end	
-
 function ItemCount(hqid,inventoriesArg,includehqArg)
 	local hqid = tonumber(hqid) or 0
 	local inventories = {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
@@ -5658,5 +5657,55 @@ function In(var,...)
 		end
 	end
 	
+	return false
+end
+function FindClosestMesh(pos,distance)
+	local minDist = IsNull(distance,1)
+	local p = NavigationManager:GetClosestPointOnMesh(pos)
+	if (table.valid(p)) then
+		if (p.distance <= minDist) then
+			return p
+		end
+	end
+	
+	local y1 = pos.y
+	local y2 = pos.y
+				
+	for i = y2, y2+10, 0.5 do
+		local trypos = {x = pos.x, y = i, z = pos.z}
+		local p = NavigationManager:GetClosestPointOnMesh(trypos)
+		if (table.valid(p)) then
+			if (p.distance <= minDist) then	
+				return p
+			end
+		end
+	end
+	
+	for i = y1, y1-10, -0.5 do
+		local trypos = {x = pos.x, y = i, z = pos.z}
+		local p = NavigationManager:GetClosestPointOnMesh(trypos)
+		if (table.valid(p) and p.distance <= minDist) then	
+			if (p.distance <= minDist) then	
+				return p
+			end
+		end
+	end
+	return nil
+end
+function IsEntityReachable(entityid,range)
+	local entityid = IsNull(entityid,0)
+	local range = IsNull(range,2)
+	local entity;
+	if (type(entityid) == "number" and entityid ~= 0) then
+		entity = EntityList:Get(entityid)
+	elseif (type(entityid) == "table") then
+		entity = entityid
+	end
+	
+	if (table.valid(entity)) then
+		if (entity and (not entity.meshpos or (entity.meshpos and entity.meshpos.distance <= range))) then
+			return true
+		end
+	end
 	return false
 end

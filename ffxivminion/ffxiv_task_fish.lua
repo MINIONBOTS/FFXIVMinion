@@ -190,7 +190,6 @@ c_precastbuff.requirestop = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
 	if (MIsLoading() or MIsCasting() or IsFlying()) then
-		d("can't buff, stuck")
 		return false
 	end
 	
@@ -261,20 +260,26 @@ function c_precastbuff:evaluate()
 			end
 		end
 		
+		if (fs == 4) then
+			if (c_mooch:evaluate()) then
+				return false
+			end
+		end
+		
 		local canUse,manualItem = CanUseExpManual()
 		if (canUse and table.valid(manualItem)) then
-			d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
-			e_nodeprebuff.activity = "usemanual"
-			e_nodeprebuff.itemid = manualItem.hqid
-			e_nodeprebuff.requirestop = true
-			e_nodeprebuff.requiredismount = true
+			d("[PreCastBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
+			c_precastbuff.activity = "usemanual"
+			c_precastbuff.itemid = manualItem.hqid
+			c_precastbuff.requirestop = true
+			c_precastbuff.requiredismount = true
 			return true
 		end
 		
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
-				d("[NodePreBuff]: Need to use a cordial.")
+				d("[PreCastBuff]: Need to use a cordial.")
 				c_precastbuff.activity = "usecordial"
 				c_precastbuff.itemid = cordialItem.hqid
 				c_precastbuff.requirestop = true
@@ -316,7 +321,7 @@ function e_precastbuff:execute()
 	
 	if (activity == "usemanual") then
 		local manual, action = GetItem(activityitemid)
-		if (manual and action and manual:IsReady(Player.id)) then
+		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
 			return
@@ -338,7 +343,7 @@ function e_precastbuff:execute()
 	
 	if (activity == "usecordial") then
 		local cordial, action = GetItem(activityitemid)
-		if (cordial and cordial:IsReady(Player.id)) then
+		if (cordial and action and cordial:IsReady(Player.id)) then
 			cordial:Cast(Player.id)
 			local castid = action.id
 			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
@@ -981,6 +986,117 @@ function e_resetidle:execute()
 	ffxiv_fish.biteDetected = 0
 end
 
+c_buybait = inheritsFrom( ml_cause )
+e_buybait = inheritsFrom( ml_effect )
+e_buybait.rebuy = {}
+function c_buybait:evaluate()
+	if (Player.ismounted) then
+		return false
+	end
+	
+	e_buybait.rebuy = {}
+	
+	local fs = tonumber(Player:GetFishingState())
+    if ((fs == 0 and (not MIsLocked() or IsFlying())) or fs == 4) then
+		local baitChoice = ""
+		local rebuy = {}
+		
+		local task = ffxiv_fish.currentTask
+		if (table.valid(task) and table.valid(task.rebuy)) then
+			local baitVar = IsNull(task.baitvar,"")
+			if (baitVar ~= "") then
+				if (_G[baitVar] ~= nil) then
+					baitChoice = _G[baitVar]
+				end
+			else
+				baitChoice = IsNull(task.baitname,"")
+			end
+			rebuy = IsNull(task.rebuy,{})
+		else
+			return false
+		end
+		
+		local foundSuitable = false
+		local baitIDs = {}
+		if (baitChoice ~= "") then
+			for bait in StringSplit(baitChoice,",") do
+				if (tonumber(bait) ~= nil) then
+					baitIDs[#baitIDs+1] = tonumber(bait)
+					local item = GetItem(tonumber(bait),{0,1,2,3})
+					if (item) then
+						foundSuitable = true
+						break
+					end
+				else
+					local thisID = AceLib.API.Items.GetIDByName(bait)
+					if (thisID) then
+						baitIDs[#baitIDs+1] = thisID
+						local item = GetItem(thisID,{0,1,2,3})
+						if (item) then
+							foundSuitable = true
+							break
+						end
+					end
+				end
+			end
+		end
+		
+		if (not foundSuitable) then
+			fd("Need to go buy something.",2)
+			
+			if (table.valid(rebuy)) then
+				local rebuyids = {}
+				for k,v in pairs(rebuy) do
+					if (type(k) == "string") then
+						local thisID = AceLib.API.Items.GetIDByName(k)
+						if (thisID) then
+							rebuyids[thisID] = v
+						end
+					else
+						rebuyids[k] = v
+					end
+				end
+				
+				if (table.valid(rebuyids)) then
+					e_buybait.rebuy = rebuyids
+					return true
+				end
+			end
+		end
+	end
+        
+    return false
+end
+function e_buybait:execute()
+	if (ffxiv_fish.IsFishing()) then
+		ffxiv_fish.StopFishing()
+		return
+	end
+	
+	local rebuyids = e_buybait.rebuy
+	if (table.valid(rebuyids)) then
+		for itemid,buyamount in pairsByKeys(rebuyids) do
+			local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
+			if (nearestPurchase) then
+				local newTask = ffxiv_misc_shopping.Create()
+				
+				newTask["itemid"] = itemid
+				newTask["pos"] = nearestPurchase.pos
+				newTask["mapid"] = nearestPurchase.mapid
+				newTask["id"] = nearestPurchase.id
+				newTask["conversationIndex"] = nearestPurchase.index
+				newTask["buyamount"] = buyamount
+				
+				 ml_task_hub:CurrentTask():AddSubTask(newTask)
+				d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(nearestPurchase.id).."]")
+				d("Nearest Pos:")
+				table.print(nearestPurchase.pos)
+				return true
+			end
+		end
+	end
+end
+
 c_setbait = inheritsFrom( ml_cause )
 e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
@@ -991,7 +1107,7 @@ function c_setbait:evaluate()
 	end
 	
 	local fs = tonumber(Player:GetFishingState())
-    if (fs == 0 or fs == 4) then
+    if ((fs == 0 and (not MIsLocked() or IsFlying())) or fs == 4) then
 		local baitChoice = ""
 		
 		local task = ffxiv_fish.currentTask
@@ -1011,45 +1127,49 @@ function c_setbait:evaluate()
 			return false
 		end
 		
-		fd("baitChoice ["..tostring(baitChoice).."].",3)
-		local currentBait = IsNull(Player:GetBait(),0)
-		if (currentBait == 0) then
-			fd("No bait is equipped, need to try to find something.",2)
-			return true
-		else
-			local baitFound = false
-			if (ItemCount(currentBait) > 0) then
-				fd("Current bait equipped is ["..tostring(currentBait).."].",3)
-				
-				if (baitChoice ~= "") then
-					for bait in StringSplit(baitChoice,",") do
-						if (tonumber(bait) ~= nil) then
-							if (currentBait == tonumber(bait)) then
-								baitFound = true
-							end
-						else
-							fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
-							local thisID = AceLib.API.Items.GetIDByName(bait)
-							if (thisID) then
-								if (currentBait == thisID) then
-									fd("Found the equipped bait, and it is the one we want, and we have at least 1, processing will cease.",3)
+		if (HasBaits(baitChoice)) then
+			fd("baitChoice ["..tostring(baitChoice).."].",3)
+			local currentBait = IsNull(Player:GetBait(),0)
+			if (currentBait == 0) then
+				fd("No bait is equipped, need to try to find something.",2)
+				return true
+			else
+				local baitFound = false
+				if (ItemCount(currentBait) > 0) then
+					fd("Current bait equipped is ["..tostring(currentBait).."].",3)
+					
+					if (baitChoice ~= "") then
+						for bait in StringSplit(baitChoice,",") do
+							if (tonumber(bait) ~= nil) then
+								if (currentBait == tonumber(bait)) then
 									baitFound = true
+								end
+							else
+								fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
+								local thisID = AceLib.API.Items.GetIDByName(bait)
+								if (thisID) then
+									if (currentBait == thisID) then
+										fd("Found the equipped bait, and it is the one we want, and we have at least 1, processing will cease.",3)
+										baitFound = true
+									end
 								end
 							end
 						end
+					else
+						fd("No bait choices selected, processing will cease.",3)
+						return false
 					end
 				else
-					fd("No bait choices selected, processing will cease.",3)
-					return false
+					fd("Current bait equipped is ["..tostring(currentBait).."], but we appear to have used it all, force a re-select.",3)
 				end
-			else
-				fd("Current bait equipped is ["..tostring(currentBait).."], but we appear to have used it all, force a re-select.",3)
+				
+				if (not baitFound) then
+					fd("Bait is equipped, but it's not the one we want, need to pick something different.",2)
+					return true
+				end
 			end
-			
-			if (not baitFound) then
-				fd("Bait is equipped, but it's not the one we want, need to pick something different.",2)
-				return true
-			end
+		else
+			d("Problem encountered with fishing task.  Need more bait, but have not set the task up with rebuy ids.")
 		end
 	end
         
@@ -1058,7 +1178,6 @@ end
 function e_setbait:execute()
 	local baitVar = ""
 	local baitChoice = ""
-	local rebuy = {}
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_global_information.currentMarker
@@ -1071,7 +1190,6 @@ function e_setbait:execute()
 		else
 			baitChoice = IsNull(task.baitname,"")
 		end
-		rebuy = IsNull(task.rebuy,{})
 	elseif (table.valid(marker)) then
 		baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
 	end
@@ -1101,52 +1219,6 @@ function e_setbait:execute()
 				end
 			end
 		end
-	end
-	
-	if (not foundSuitable) then
-		fd("Could not find any suitable baits.",2)
-		--fd("TODO: Add the shit to buy more bait here...",2)
-		
-		if (ffxiv_fish.IsFishing()) then
-			ffxiv_fish.StopFishing()
-			return
-		end
-		
-		if (table.valid(rebuy)) then
-			local rebuyids = {}
-			for k,v in pairs(rebuy) do
-				if (type(k) == "string") then
-					local thisID = AceLib.API.Items.GetIDByName(k)
-					if (thisID) then
-						rebuyids[thisID] = v
-					end
-				else
-					rebuyids[k] = v
-				end
-			end
-			
-			if (table.valid(rebuyids)) then
-				for itemid,buyamount in pairsByKeys(rebuyids) do
-					local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
-					if (nearestPurchase) then
-						local newTask = ffxiv_misc_shopping.Create()
-						
-						newTask["itemid"] = itemid
-						newTask["pos"] = nearestPurchase.pos
-						newTask["mapid"] = nearestPurchase.mapid
-						newTask["id"] = nearestPurchase.id
-						newTask["conversationIndex"] = nearestPurchase.index
-						newTask["buyamount"] = buyamount
-						
-						 ml_task_hub:CurrentTask():AddSubTask(newTask)
-						--ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-						return
-					end
-				end
-			end
-		end
-
-		ffxiv_fish.attemptedCasts = 3
 	end
 end
 
@@ -1269,20 +1341,38 @@ function c_fishnexttask:evaluate()
 			fd("No current task, set invalid flag.")
 			invalid = true
 		else
+			-- Pre-compile all the complete checks so we only have to loadstring once.
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
+				local complete = true
+				
 				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
-					if (f ~= nil) then
-						if (f == value) then
-							invalid = true
-							completed = true
+					local f;
+					if (type(condition) == "string") then
+						f = assert(loadstring("return " .. condition))
+						if (f ~= nil) then
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[f] = value
+						else
+							-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil							
 						end
-						conditions[condition] = nil
+					elseif (type(condition) == "function") then
+						f = condition
 					end
-					if (invalid) then
+					
+					if (f() ~= value) then
+						complete = false
+					end
+					conditions[condition] = nil
+					if (not complete) then
 						break
 					end
+				end
+				
+				if (complete) then
+					invalid = true
+					completed = true
 				end
 			end
 			
@@ -1416,8 +1506,12 @@ function c_fishnexttask:evaluate()
 					end
 				end
 				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-					local eTime = AceLib.API.Weather.GetDateTime() 
-					local eHour = eTime.hour
+					--local eTime = AceLib.API.Weather.GetDateTime() 
+					--local eHour = eTime.hour
+					
+					local eTime = GetEorzeaTime()
+					local eHour = eTime.bell
+					
 					
 					--d("Need to figure out if we're between the valid hours.")
 					--d("MinHour ["..tostring(currentTask.eorzeaminhour).."]")
@@ -1475,6 +1569,7 @@ function c_fishnexttask:evaluate()
 					validTasks = deepcopy(profileData.tasks,true)
 				
 					for i,data in pairsByKeys(validTasks) do
+						local thisIndex = i
 						local valid = true
 						if (data.minlevel and Player.level < data.minlevel) then
 							valid = false
@@ -1572,8 +1667,11 @@ function c_fishnexttask:evaluate()
 						
 						if (valid) then
 							if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-								local eTime = AceLib.API.Weather.GetDateTime() 
-								local eHour = eTime.hour
+								--local eTime = AceLib.API.Weather.GetDateTime() 
+								--local eHour = eTime.hour
+								
+								local eTime = GetEorzeaTime()
+								local eHour = eTime.bell
 								
 								local validHour = false
 								local i = data.eorzeaminhour
@@ -1592,10 +1690,65 @@ function c_fishnexttask:evaluate()
 							end
 						end
 						
+						-- Pre-compile all condition checks so we only have to loadstring one time.
 						if (valid) then
 							if (data.condition) then
 								local conditions = deepcopy(data.condition,true)
-								valid = TestConditions(conditions)
+								local testKey,testVal = next(conditions)
+								if (tonumber(testKey) ~= nil) then
+									for i,conditionset in pairsByKeys(conditions) do
+										for condition,value in pairs(conditionset) do
+											local f;
+											if (type(condition) == "string") then
+												f = assert(loadstring("return " .. condition))
+												if (f ~= nil) then
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][f] = value
+												else
+													-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil							
+												end
+											elseif (type(condition) == "function") then
+												f = condition
+											end
+											if (f() ~= value) then
+												valid = false
+											end
+											conditions[i][condition] = nil
+											if (not valid) then
+												break
+											end
+										end
+										conditions[i] = nil
+										if (not valid) then
+											break
+										end
+									end
+								else
+									for condition,value in pairs(conditions) do
+										local f;
+										if (type(condition) == "string") then
+											f = assert(loadstring("return " .. condition))
+											if (f ~= nil) then
+												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil
+												ffxiv_fish.profileData.tasks[thisIndex].condition[f] = value
+											else
+												-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
+												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil							
+											end
+										elseif (type(condition) == "function") then
+											f = condition
+										end
+										
+										if (f() ~= value) then
+											valid = false
+										end
+										conditions[condition] = nil
+										if (not valid) then
+											break
+										end
+									end
+								end
 							end
 						end
 						
@@ -1605,8 +1758,11 @@ function c_fishnexttask:evaluate()
 					end
 				
 					c_fishnexttask.subset = validTasks
-					local eTime = AceLib.API.Weather.GetDateTime() 
+					--local eTime = AceLib.API.Weather.GetDateTime() 
+		
+					local eTime = GetEorzeaTime()
 					local eMinute = eTime.minute
+					
 					local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
 					local expirationDelay = 0
 					for quarter,_ in pairs(quarters) do
@@ -2245,8 +2401,8 @@ function ffxiv_task_fish:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)
 	
-	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 230 )
-    self:add(ke_setbait, self.process_elements)
+	local ke_buybait = ml_element:create( "BuyBait", c_buybait, e_buybait, 230 )
+    self:add(ke_buybait, self.process_elements)
 	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
@@ -2269,7 +2425,7 @@ function ffxiv_task_fish:Init()
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
 	
-	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 190 )
+	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 90 )
     self:add(ke_setbait, self.process_elements)
 	
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
@@ -2356,6 +2512,12 @@ function ffxiv_task_fish:UIInit()
 	
 	self.GUI = {}
 	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	self.GUI.profile = {
+		open = false,
+		visible = true,
+		name = "Fish - Profile Management",
+		main_tabs = GUI_CreateTabs("Manage,Add,Edit",true),
+	}
 end
 
 function ffxiv_task_fish:Draw()

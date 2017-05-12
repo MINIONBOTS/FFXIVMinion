@@ -24,6 +24,10 @@ function dev.Init()
 end
 RegisterEventHandler("Module.Initalize",dev.Init)
 
+function dev.ChatTest()
+	SendTextCommand("/say "..tostring(os.time(os.date('*t'))))
+end
+
 function dev.DrawCall(event, ticks )
 	
 	if ( dev.GUI.open  ) then 
@@ -516,49 +520,49 @@ function dev.DrawCall(event, ticks )
 																GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
 																GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
 															end
-															if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast())) end 
-															if ( tar ) then
-																GUI:SameLine(200)
-																if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end
-															end
 															GUI:TreePop()
 														end
 													else
 														GUI:BulletText("No Action Available")
 													end
 													
-													
-													if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
-													
-													if ( item:CanCast(5, 5) ) then -- Can Cast check of Actiontype "General" , Action "desynthesis" on the item
-														GUI:SameLine(200)
-														if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
-													end
+													if (GUI:Button("Cast()##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast())) end 
+													GUI:SameLine(0,20)
+													if (GUI:Button("Cast(Player)##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast(Player.id))) end 
+													GUI:SameLine(0,20)
+													local tar = Player:GetTarget() or Player
+													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end 
 													
 													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
-													if ( item:CanCast(5, 21) ) then -- Can Cast check of Actiontype "General" , Action "purify" on the item
-														GUI:SameLine(200)
-														if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
-													end
+													GUI:SameLine(0,20)
+													if (GUI:Button("Discard()##"..tostring(slot),100,15) ) then d("Discard Result: "..tostring(item:Discard())) end
 													
+													if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
+													GUI:SameLine(0,20)
+													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
+													GUI:SameLine(0,20)
 													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
-													GUI:SameLine(200)
-													if ( item:CanCast(5, 14) ) then -- Can Cast check of Actiontype "General" , Action "materialize" on the item
-														GUI:SameLine(200)
-														if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then d("Convert Result: "..tostring(item:Convert())) end
+													
+													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then 
+														if ( item:CanCast(5, 5) ) then -- Can Cast check of Actiontype "General" , Action "desynthesis" on the item
+															d("Salvage Result: "..tostring(item:Salvage())) 
+														end
+													end
+													GUI:SameLine(0,20)
+													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then 
+														if ( item:CanCast(5, 21) ) then -- Can Cast check of Actiontype "General" , Action "purify" on the item
+															d("Purify Result: "..tostring(item:Purify())) 
+														end
+													end
+													GUI:SameLine(0,20)
+													if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then 
+														if ( item:CanCast(5, 14) ) then -- Can Cast check of Actiontype "General" , Action "materialize" on the item
+															d("Convert Result: "..tostring(item:Convert())) 
+														end
 													end
 													
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
-													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
-													
-													if (GUI:Button("Discard()##"..tostring(slot),100,15) ) then d("Discard Result: "..tostring(item:Discard())) end
-													
-													
-													
-													
-													
-																										
-													
+
 													GUI:Separator()
 													GUI:TreePop()
 												end

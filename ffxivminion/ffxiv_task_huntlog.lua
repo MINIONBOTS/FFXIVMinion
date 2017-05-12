@@ -189,6 +189,8 @@ function c_grind_addhuntlogtask:evaluate()
 	return false
 end
 function e_grind_addhuntlogtask:execute()
+	ml_task_hub:CurrentTask().doingHuntlog = true
+
 	local newTask = ffxiv_task_huntlog.Create()
 	newTask.huntParams = c_grind_addhuntlogtask.target
 	newTask.adHoc = true
@@ -497,9 +499,15 @@ function ffxiv_task_huntlog:task_complete_eval()
 	if (self.adHoc) then
 		local bestTarget = AceLib.API.Huntlog.GetBestTarget()
 		if (not table.valid(bestTarget)) then
+			d("no best target, task complete")
 			return true
 		else
 			if (not deepcompare(bestTarget,self.huntParams,true)) then
+				d("best target did not equal huntparams")
+				d("-----------------------")
+				table.print(bestTarget)
+				d("-----------------------")
+				table.print(self.huntParams)
 				return true
 			end
 		end
@@ -509,6 +517,12 @@ function ffxiv_task_huntlog:task_complete_eval()
 end
 function ffxiv_task_huntlog:task_complete_execute()
     self.completed = true
+	
+	if (self.adHoc) then
+		if (ml_task_hub:CurrentTask():ParentTask() and ml_task_hub:CurrentTask():ParentTask().name == "LT_GRIND") then
+			ml_task_hub:CurrentTask():ParentTask().doingHuntlog = true
+		end
+	end
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate)
