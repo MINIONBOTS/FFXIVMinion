@@ -288,10 +288,10 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			if (not reachable or IsFlying()) then
-				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
-				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
@@ -736,6 +736,9 @@ function e_gather:execute()
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
 	
+		if (type(gatherGardening) == "string" and GUI_Get(gatherGardening) ~= nil) then
+			gatherGardening = GUI_Get(gatherGardening)
+		end
 		if (type(gatherMaps) == "string" and GUI_Get(gatherMaps) ~= nil) then
 			gatherMaps = GUI_Get(gatherMaps)
 		end
