@@ -3154,7 +3154,7 @@ function c_dointeract:evaluate()
 			end
 			
 			-- If we are very close to the NPC and have los, we'll break out of this, to go ahead and attempt the interaction.
-			if ((interactable.los2 or interactable.gatherable) and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
+			if ((interactable.los2 or interactable.cangather) and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
 				ml_task_hub:CurrentTask().posVisited = true
 			end
 		end
@@ -3184,7 +3184,7 @@ function c_dointeract:evaluate()
 			if (myTarget and myTarget.id == interactable.id) then
 				if (table.valid(interactable) and ydiff <= 4.95 and ydiff >= -1.3) then			
 					if (interactable.type == 5) then
-						if (interactable.distance2d <= 7) then
+						if (interactable.distance2d > 0 and interactable.distance2d <= 7) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
 							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
@@ -3205,15 +3205,13 @@ function c_dointeract:evaluate()
 						end
 					else
 						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or radius
-						if (interactable.gatherable) then
+						if (interactable.cangather) then
 							range = 2.5
 						elseif (interactable.type == 3) then
 							range = 5.5
 						end
 						
-						--d("range:"..tostring(range)..",2d:"..tostring(interactable.distance2d)..",reachable:"..tostring(IsEntityReachable(interactable,range + 1)))
-						
-						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d <= range) then
+						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d > 0 and interactable.distance2d < range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.

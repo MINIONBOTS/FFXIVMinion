@@ -286,8 +286,7 @@ function c_movetonode:evaluate()
         if (gatherable and gatherable.cangather) then
 			
 			local gpos = gatherable.pos
-			local reachable = IsEntityReachable(gatherable,3)
-			
+			local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			if (not reachable or IsFlying()) then
 				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
