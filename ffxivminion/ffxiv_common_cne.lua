@@ -3153,6 +3153,8 @@ function c_dointeract:evaluate()
 	
 	-- Sometimes we want to indirectly navigate the player, and reach a certain position before we even consider interacting with the entity.
 	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
+	-- Reworking questing to use some newer methods, shouldn't need this.
+	--[[
 	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
 	if (not ml_task_hub:CurrentTask().posVisited) then
 		if (interactable) then
@@ -3182,8 +3184,9 @@ function c_dointeract:evaluate()
 		
 		return false
 	end
+	--]]
 	
-	if (interactable and ml_task_hub:CurrentTask().posVisited and not IsFlying()) then
+	if (interactable and not IsFlying()) then
 		local ipos = interactable.pos
 		local ydiff = (ipos.y - ppos.y)
 		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
