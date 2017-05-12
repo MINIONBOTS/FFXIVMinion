@@ -1239,28 +1239,10 @@ function c_walktopos:evaluate()
 		end
 		
 		if (table.valid(gotoPos)) then
-			if (ml_task_hub:CurrentTask().contentid == nil) then
+			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
 				local meshpos = FindClosestMesh(gotoPos)
 				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-					if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-						ml_task_hub:CurrentTask().gatePos = meshpos
-					end
-				end
-			else
-				if (not IsFlying()) then
-					local interactable = nil
-					if (ml_task_hub:CurrentTask().contentid ~= 0) then
-						local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
-						if (table.valid(interacts)) then
-							local i,interactable = next(interacts)
-							if (i and interactable) then
-								-- Set our target, if we are within a reasonable range.
-								if (interactable and interactable.meshpos) then
-									ml_task_hub:CurrentTask().pos = interactable.meshpos
-								end
-							end
-						end
-					end
+					ml_task_hub:CurrentTask().gatePos = meshpos
 				end
 			end
 			
