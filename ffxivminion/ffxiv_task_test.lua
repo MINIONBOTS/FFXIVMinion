@@ -108,7 +108,6 @@ function e_gotonpctest:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = 71
 	newTask.pos = c_gotonpctest.pos
-	newTask.use3d = true
 	--newTask.interactRange = 1
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)

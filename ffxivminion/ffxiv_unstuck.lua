@@ -49,7 +49,7 @@ function c_stuck:evaluate()
 		return false
 	end	
 	
-	ffxiv_unstuck.diffTotal = PDistance3D(currentPos.x,currentPos.y,currentPos.z,lastPos.x,lastPos.y,lastPos.z)	
+	ffxiv_unstuck.diffTotal = Distance3D(currentPos.x,currentPos.y,currentPos.z,lastPos.x,lastPos.y,lastPos.z)	
 	if ffxiv_unstuck.IsStuck() then
 		--d("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.",nil,3)
 		ffxiv_unstuck.State.STUCK.ticks = ffxiv_unstuck.State.STUCK.ticks + 1
@@ -211,7 +211,6 @@ function ffxiv_unstuck.IsOffMesh()
 	if (IsFlying() or MIsLocked()) then
 		return false
 	end
-	
 	if (not FFXIV_Common_NavMesh or FFXIV_Common_NavMesh == "" or FFXIV_Common_NavMesh == GetString("none") or MIsLoading()) then
 		return false
 	end

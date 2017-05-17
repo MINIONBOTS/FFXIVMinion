@@ -34,12 +34,10 @@ function ffxiv_task_movetopos.Create()
     newinst.remainMounted = false
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
-	newinst.use3d = true
 	newinst.customSearch = ""
 	newinst.customSearchCompletes = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
-	newinst.dismountTimer = 0
-	newinst.dismountDistance = 15
+	newinst.dismountDistance = 10
 	newinst.failTimer = 0
 	
 	newinst.startMap = Player.localmapid
@@ -154,15 +152,9 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
 		local requiredRange = (self.range + self.gatherRange)
 		
-		if (not IsFlying()) then
-			if (not self.remainMounted and self.dismountDistance > 0 and dist3d <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
-				Dismount()
-				self.dismountTimer = Now() + 500
-			end
-		end
-		
 		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
+		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
 		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= (requiredRange + 2) or dist3d <= range3d)) then
 			return true
@@ -230,7 +222,6 @@ function ffxiv_task_movetofate.Create()
 	newinst.lastRandomize = 0
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
-	newinst.use3d = true
 	newinst.dismountTimer = 0
 	newinst.dismountDistance = 15
 	newinst.failTimer = 0
@@ -386,12 +377,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 				local myPos = Player.pos
 				local gotoPos = self.pos
 				
-				local distance = 0.0
-				if (self.use3d) then
-					distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-				else
-					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-				end 
+				local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 				
 				if (distance <= (self.range)) then
 					return true
@@ -450,32 +436,20 @@ function ffxiv_task_movetointeract.Create()
 	newinst.contentid = 0
 	newinst.interact = 0
 	
-	newinst.lastDismountCheck = 0
-	newinst.lastInteractableSearch = 0
 	newinst.pos = false
-	newinst.posVisited = false
-	newinst.adjustedPos = false
 	newinst.range = nil
 	newinst.areaChanged = false
-	newinst.addedMoveElement = false
-	newinst.use3d = true
 	newinst.useTeleport = true
-	newinst.dataUnpacked = false
 	newinst.failTimer = 0
-	newinst.forceLOS = false
 	newinst.interactRange = nil
 	newinst.dismountDistance = 5
 	newinst.killParent = false
-	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid
-	newinst.moveWait = 0
 	newinst.conversationstring = ""
 	newinst.conversationstrings = ""
 	newinst.conversationindex = -1
 	newinst.blockExecution = false
-	
 	newinst.detectedMovement = false
-	
 	newinst.stealthFunction = nil
 	
 	gSkipTalk = true
@@ -488,8 +462,8 @@ function ffxiv_task_movetointeract.Create()
 end
 
 function ffxiv_task_movetointeract:Init()
-	--local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
-    --self:add( ke_stuck, self.overwatch_elements)
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
+    self:add( ke_stuck, self.overwatch_elements)
 	
 	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 140 )
     self:add( ke_useAethernet, self.process_elements)
@@ -809,7 +783,6 @@ function e_sethomepoint:execute()
     local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = e_sethomepoint.aethid
 	newTask.pos = e_sethomepoint.aethpos
-	newTask.use3d = true
 	
 	if (gTeleportHack) then
 		newTask.useTeleport = true
@@ -1017,7 +990,6 @@ function ffxiv_task_useitem.Create()
 	newinst.itemid = 0
 	newinst.targetid = 0
 	newinst.pos = {}
-	newinst.posVisited = false
 	newinst.timer = 0
 	newinst.useTime = 0
 	newinst.startingCount = 0
@@ -1815,25 +1787,18 @@ function ffxiv_nav_interact.Create()
 	
 	newinst.contentid = 0
 	newinst.interact = 0
-	newinst.lastInteractableSearch = 0
-	newinst.lastDismountCheck = 0
 	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
 	newinst.conversationstrings = ""
 	newinst.pos = false
-	newinst.posVisited = false
 	newinst.range = 1.5
 	newinst.areaChanged = false
-	newinst.addedMoveElement = false
 	newinst.removedMoveElement = false
-	newinst.use3d = true
 	newinst.useTeleport = true
 	newinst.failTimer = 0
-	newinst.forceLOS = false
 	newinst.interactRange = nil
 	newinst.dismountDistance = 15
 	newinst.killParent = false
-	newinst.interactDelay = 500
 	newinst.abort = nil
 	
 	gSkipTalk = true
@@ -1939,7 +1904,6 @@ function ffxiv_misc_shopping.Create()
 	newinst.id = 0
 	newinst.mapid = 0
 	newinst.pos = {}
-	newinst.posVisited = false
 	
     return newinst
 end
@@ -2108,25 +2072,13 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.started = Now()
 	newinst.contentid = 0
 	newinst.interact = 0
-	newinst.lastDismountCheck = 0
-	newinst.lastInteractableSearch = 0
 	newinst.pos = false
-	newinst.posVisited = false
-	newinst.adjustedPos = false
-	newinst.range = 1.5
 	newinst.areaChanged = false
-	newinst.addedMoveElement = false
-	newinst.use3d = true
 	newinst.useTeleport = true
-	newinst.dataUnpacked = false
 	newinst.failTimer = 0
-	newinst.forceLOS = false
 	newinst.interactRange = 4
-	newinst.dismountDistance = 5
 	newinst.killParent = false
-	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid
-	newinst.moveWait = 0
 	newinst.conversationstring = ""
 	newinst.conversationstrings = ""
 	newinst.conversationindex = -1

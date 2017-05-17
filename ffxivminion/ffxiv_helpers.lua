@@ -2307,68 +2307,85 @@ function GetClosestFate(pos,pathcheck)
 		local fateBlacklist = ml_list_mgr.GetList("FATE Blacklist")
 		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
 		
-		if (table.valid(fateWhitelist:GetList())) then
-			d("[GetClosestFate]: Player has a whitelist setup, need to follow it.")
-			for k, fate in pairs(fateList) do
-				local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-				if (fateWhitelist:Find(id,"id") ~= nil and status == 2) then
-					d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is whitelisted and active.")
-					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z)
-					if (distance) then
-						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-							nearestFate = fate
-							nearestDistance = distance
-						end
-					end
-				end
-			end
-		else
-			local validFates = {}
-			--Add fates that are high priority or chains first.
-			for k, fate in pairs(fateList) do
-				local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-				if (fateBlacklist:Find(id,"id") == nil) then
-					if (fate.status == 2) then	
-						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
-							table.insert(validFates,fate)
-						end
-					end
-				else
-					d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
-				end
-			end
-			
-			if (not table.valid(validFates)) then
+		local recheck = true
+		local noPaths = {}
+		
+		while (recheck) do
+			recheck = false
+			if (table.valid(fateWhitelist:GetList())) then
+				d("[GetClosestFate]: Player has a whitelist setup, need to follow it.")
 				for k, fate in pairs(fateList) do
 					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-					if (fateBlacklist:Find(id,"id") == nil) then
+					if (fateWhitelist:Find(id,"id") ~= nil and status == 2 and not noPaths[fate.id]) then
+						d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is whitelisted and active.")
+						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z)
+						if (distance) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+								nearestFate = fate
+								nearestDistance = distance
+							end
+						end
+					end
+				end
+			else
+				local validFates = {}
+				--Add fates that are high priority or chains first.
+				for k, fate in pairs(fateList) do
+					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
+					if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
 						if (fate.status == 2) then	
-							table.insert(validFates,fate)
+							if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
+								table.insert(validFates,fate)
+							end
 						end
 					else
 						d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
 					end
 				end
-			end
-			
-			if (table.valid(validFates)) then
-				--d("Found some valid fates, figuring out which one is closest.")
-				for k, fate in pairs(validFates) do
-					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or -1
-					if (distance ~= -1) then
-						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-							nearestFate = fate
-							nearestDistance = distance
+				
+				if (not table.valid(validFates)) then
+					for k, fate in pairs(fateList) do
+						local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
+						if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
+							if (fate.status == 2) then	
+								table.insert(validFates,fate)
+							end
+						else
+							d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
+						end
+					end
+				end
+				
+				if (table.valid(validFates)) then
+					--d("Found some valid fates, figuring out which one is closest.")
+					for k, fate in pairs(validFates) do
+						local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
+						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or -1
+						--d("distance for ["..tostring(fate.name).."] is ["..tostring(distance).."]")
+						if (distance ~= -1) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+								nearestFate = fate
+								nearestDistance = distance
+							end
 						end
 					end
 				end
 			end
+			
+			if (nearestFate) then
+				local pathSize = ml_navigation:GetPath(myPos.x,myPos.y,myPos.z,nearestFate.x,nearestFate.y,nearestFate.z)
+				if (pathSize <= 0) then
+					if (table.size(validFates) > 1) then
+						recheck = true
+						noPaths[nearestFate.id] = true
+					end
+					nearestFate = nil
+				end
+			end
 		end
     
-        if (nearestFate ~= nil) then
-			local fate = nearestFate
-			d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
+        if (nearestFate) then
+			d("Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
             return nearestFate
         end
     end
@@ -5660,7 +5677,7 @@ function In(var,...)
 	return false
 end
 function FindClosestMesh(pos,distance)
-	local minDist = IsNull(distance,1)
+	local minDist = IsNull(distance,10)
 	local p = NavigationManager:GetClosestPointOnMesh(pos)
 	if (table.valid(p)) then
 		if (p.distance <= minDist) then
@@ -5708,4 +5725,37 @@ function IsEntityReachable(entityid,range)
 		end
 	end
 	return false
+end
+function GetInteractableEntity(contentids,types)
+	local contentids = IsNull(tostring(contentids),"")
+	local types = IsNull(types,{0,2,3,5,7})
+	
+	if (string.valid(contentids)) then
+		local interacts = EntityList("targetable,contentid="..contentids..",maxdistance=30")
+		if (table.valid(interacts)) then
+			local validInteracts = {}
+			for i,entity in pairs(interacts) do
+				for _,typeid in pairs(types) do
+					if (typeid == entity.type) then
+						validInteracts[i] = entity
+					end
+				end
+			end
+			
+			if (table.valid(validInteracts)) then
+				local ppos = Player.pos
+				local nearest, nearestDistance = nil, math.huge
+				for i, interact in pairs(validInteracts) do
+					local dist = math.distance2d(ppos,interact.pos)
+					if (not nearest or (nearest and dist < nearestDistance)) then
+						d("setting nearest to ["..interact.name.."]")
+						nearest, nearestDistance = interact, dist
+					end
+				end
+				
+				return nearest
+			end
+		end
+	end
+	return nil
 end

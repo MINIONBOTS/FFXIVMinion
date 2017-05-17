@@ -278,7 +278,6 @@ end
 function e_movegamevendorarea:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_movegamevendorarea.pos
-	newTask.use3d = true
 
 	if (gTeleport == true) then
 		newTask.useTeleport = true
@@ -333,7 +332,6 @@ function e_movegamevendor:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = c_movegamevendor.id
 	newTask.pos = c_movegamevendor.pos
-	newTask.use3d = true
 	newTask.interactRange = 3.7
 	
 	if (gTeleport == true) then
@@ -363,11 +361,10 @@ function e_restbreak:execute()
 	
 	local newPos = NavigationManager:GetRandomPointOnCircle(restPosition.x,restPosition.y,restPosition.z,restPosition.minrad,restPosition.maxrad)
 	if (ValidTable(newPos)) then
-		local p = NavigationManager:GetClosestPointOnMesh(newPos)
+		local p = FindClosestMesh(newPos)
 		if (p) then
 			local newTask = ffxiv_task_movetopos.Create()
 			newTask.pos = p
-			newTask.use3d = true
 			
 			if (gTeleport == true) then
 				newTask.useTeleport = true

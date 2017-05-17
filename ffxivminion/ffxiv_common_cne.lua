@@ -298,9 +298,22 @@ function c_add_fate:evaluate()
     return false
 end
 function e_add_fate:execute()
-    local newTask = ffxiv_task_fate.Create()
+	local fate = c_add_fate.fate
+	local ppos = Player.pos
+	local fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
+	
+	local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z,fatePos.x,fatePos.y,fatePos.z)
+	if (pathSize <= 0) then
+		--fatePos = FindClosestMesh(fatePos,20)
+		--local newPath = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z,fatePos.x,fatePos.y,fatePos.z)
+		--if (pathSize <= 0) then
+			--d("Cannot do fate ["..fate.name.."] because we cannot build a path to it.")
+		--end
+	end
+	
+	local newTask = ffxiv_task_fate.Create()
     newTask.fateid = c_add_fate.fate.id
-	newTask.fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
+	newTask.fatePos = fatePos
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -863,7 +876,6 @@ function e_movetogate:execute()
 	end
 	
 	local newTask = ffxiv_task_movetopos.Create()
-	newTask.use3d = false
 	newTask.pos = pos
 	local newPos = { x = pos.x, y = pos.y, z = pos.z }
 	local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
@@ -1221,7 +1233,6 @@ function c_walktopos:evaluate()
 		IsMounting() or
 		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
 		IsShopWindowOpen() or
-		(Now() < IsNull(ml_task_hub:CurrentTask().moveWait,0)) or 
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
 		return false
@@ -1606,6 +1617,24 @@ function c_mount:evaluate()
 		return false
 	end
 	
+	local myPos = Player.pos
+	local gotoPos = ml_task_hub:CurrentTask().pos
+	if (table.valid(gotoPos)) then
+		local dist3d = math.distance3d(myPos, gotoPos)
+		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
+		if (not ml_task_hub:CurrentTask().remainMounted and dismountDistance > 0 and dist3d <= dismountDistance) then
+			if (ml_task_hub:CurrentTask().dismountTimer == nil) then
+				ml_task_hub:CurrentTask().dismountTimer = 0
+			end
+			if (not IsFlying() and Player.ismounted and not IsDismounting() and Now() > ml_task_hub:CurrentTask().dismountTimer) then
+				Dismount()
+				ml_task_hub:CurrentTask().dismountTimer = Now() + 500
+				return true
+			end
+			return false
+		end
+	end
+	
 	if (IsMounting()) then
 		return true
 	end
@@ -1626,8 +1655,6 @@ function c_mount:evaluate()
 	e_mount.id = 0
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
-		local myPos = Player.pos
-		local gotoPos = ml_task_hub:CurrentTask().pos
 		local lastPos = e_mount.lastPathPos
 
 		-- If we change our gotoPos or have never measured it, reset the watch.
@@ -3097,14 +3124,14 @@ function c_dointeract:evaluate()
 	
 	-- Scan for our wanted contentid to get as much data as we can, for better decisions.
 	local interactable = nil
+	if (ml_task_hub:CurrentTask().lastInteractableSearch == nil) then
+		ml_task_hub:CurrentTask().lastInteractableSearch = 0
+	end
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
 		if (ml_task_hub:CurrentTask().contentid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(ml_task_hub:CurrentTask().contentid)..",maxdistance=30")
-			if (table.valid(interacts)) then
-				local i,interact = next(interacts)
-				if (i and interact) then
-					ml_task_hub:CurrentTask().interact = interact.id
-				end
+			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
+			if (nearestInteract) then
+				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			end
 			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
 		end
@@ -3117,12 +3144,23 @@ function c_dointeract:evaluate()
 	
 	-- Set our target, if we are within a reasonable range.
 	
-	if (interactable and interactable.targetable) then
+	if (interactable) then
 		if (ml_task_hub:CurrentTask().useTargetPos) then
 			ml_task_hub:CurrentTask().pos = interactable.pos
 		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
 			if ( interactable.meshpos and not IsFlying()) then
-				ml_task_hub:CurrentTask().pos = interactable.meshpos
+				if (not ml_task_hub:CurrentTask().pathChecked) then
+					local meshpos = interactable.meshpos
+					local x,y,z = meshpos.x,meshpos.y,meshpos.z
+					local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z, x,y,z)
+					if (pathSize > 0) then
+						ml_task_hub:CurrentTask().pos = interactable.meshpos
+						d("found a size ["..tostring(pathSize).."] to the mesh position")
+					else
+						d("path to mesh position only returned ["..tostring(pathSize).."]")
+					end
+					ml_task_hub:CurrentTask().pathChecked = true
+				end
 			end
 		end
 	end
@@ -3132,41 +3170,6 @@ function c_dointeract:evaluate()
 			Player:SetTarget(interactable.id)
 		end
 	end
-	
-	-- Sometimes we want to indirectly navigate the player, and reach a certain position before we even consider interacting with the entity.
-	-- This is necessary for certain quests where the NPC might be oddly positioned and usually when the mesh forces us to use some creativity.
-	-- Reworking questing to use some newer methods, shouldn't need this.
-	--[[
-	local posdist2d,posdist3d = math.distance2d(ppos,ml_task_hub:CurrentTask().pos), math.distance3d(ppos,ml_task_hub:CurrentTask().pos)
-	if (not ml_task_hub:CurrentTask().posVisited) then
-		if (interactable) then
-			local npcdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.pos)
-			if (npcdist3d < 1) then
-				ml_task_hub:CurrentTask().posVisited = true
-			end
-		end
-		
-		if (interactable and interactable.meshpos) then
-			-- If the interactable meshpos and the task pos is the same, we'll disregard it, since it won't change the outcome.
-			local npcmeshdist3d = math.distance3d(ml_task_hub:CurrentTask().pos, interactable.meshpos)
-			if (npcmeshdist3d < 1) then
-				ml_task_hub:CurrentTask().posVisited = true
-			end
-			
-			-- If we are very close to the NPC and have los, we'll break out of this, to go ahead and attempt the interaction.
-			if ((interactable.los2 or interactable.cangather) and interactable.meshpos.distance <= IsNull(ml_task_hub:CurrentTask().interactRange,2.5)) then
-				ml_task_hub:CurrentTask().posVisited = true
-			end
-		end
-		
-		local movementSpeed = IsNull(Player:GetSpeed()["Forward"],0)
-		if ((((movementSpeed <= 6 and posdist2d < 1) or (movementSpeed > 6 and posdist2d < 2)) and posdist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,ml_task_hub:CurrentTask().pos)) then
-			ml_task_hub:CurrentTask().posVisited = true
-		end
-		
-		return false
-	end
-	--]]
 	
 	if (interactable and not IsFlying()) then
 		local ipos = interactable.pos
@@ -3182,7 +3185,7 @@ function c_dointeract:evaluate()
 
 		if (not IsFlying()) then
 			if (myTarget and myTarget.id == interactable.id) then
-				if (table.valid(interactable) and ydiff <= 4.95 and ydiff >= -1.3) then			
+				if (table.valid(interactable) and ((ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
 					if (interactable.type == 5) then
 						if (interactable.distance2d > 0 and interactable.distance2d <= 7) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
