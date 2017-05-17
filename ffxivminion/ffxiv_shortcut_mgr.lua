@@ -77,7 +77,7 @@ sck.hotkeys = {
 						if (table.valid(p)) then
 							d("1: found meshpos")
 							table.print(p)
-							Hacks:TeleportToXYZ(p.x,p.y,p.z)
+							Hacks:TeleportToXYZ(p.x,p.y,p.z,true)
 							return true
 						end
 					end
@@ -88,7 +88,7 @@ sck.hotkeys = {
 						if (table.valid(p)) then	
 							d("2: found meshpos")
 							table.print(p)
-							Hacks:TeleportToXYZ(p.x,p.y,p.z)
+							Hacks:TeleportToXYZ(p.x,p.y,p.z,true)
 							return true
 						end
 					end

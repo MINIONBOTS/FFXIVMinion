@@ -888,7 +888,7 @@ function ml_navigation.Navigate(event, ticks )
 							-- OMC Teleport
 							ml_navigation.GUI.lastAction = "Teleport OMC"
 							
-							Hacks:TeleportToXYZ(nextnode.x,nextnode.y,nextnode.z)
+							Hacks:TeleportToXYZ(nextnode.x,nextnode.y,nextnode.z,true)
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							
 						elseif ( omc.type == 4 ) then
@@ -1230,7 +1230,7 @@ function ml_navigation:EnsurePosition()
 		local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,ml_navigation.ensureposition)
 						
 		if ( dist > 0.5 and ml_navigation.omcteleportallowed ) then
-			Hacks:TeleportToXYZ(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z)
+			Hacks:TeleportToXYZ(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z,true)
 		end
 		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = ml_navigation.ensureposition.x-ppos.x, y = 0, z = ml_navigation.ensureposition.z-ppos.z})
 		if ( anglediff > 5 ) then 

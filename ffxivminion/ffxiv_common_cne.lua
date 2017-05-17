@@ -1121,7 +1121,7 @@ function e_followleader:execute()
 		
 		if (gTeleportHack) then
 			if (distance > 100) then
-				Hacks:TeleportToXYZ(leaderPos.x,leaderPos.y,leaderPos.z)
+				Hacks:TeleportToXYZ(leaderPos.x,leaderPos.y,leaderPos.z,true)
 			end
 		end
 		
@@ -1612,7 +1612,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or Player.incombat or IsFlying() or IsTransporting()) 
+		or IsShopWindowOpen() or IsFlying() or IsTransporting()) 
 	then
 		return false
 	end
@@ -1633,6 +1633,10 @@ function c_mount:evaluate()
 			end
 			return false
 		end
+	end
+	
+	if (Player.ismounted or Player.incombat) then
+		return false
 	end
 	
 	if (IsMounting()) then
@@ -2472,7 +2476,7 @@ function e_teleporttopos:execute()
         local gotoPos = c_teleporttopos.pos
 		Player:Stop()
 		
-        Hacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+        Hacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),true)
 		ml_global_information.queueSync = {timer = Now() + 150, pos = gotoPos}
 		e_teleporttopos.teleCooldown = Now() + 1000
     else

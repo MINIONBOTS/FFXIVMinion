@@ -1477,7 +1477,7 @@ function ffxiv_task_grindCombat:Process()
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p = FindClosestMesh(telePos)
 					if (table.valid(p)) then
-						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z),true)
 						self.teleportThrottle = Now() + 1500
 					end
 				else
@@ -1537,7 +1537,7 @@ function ffxiv_task_grindCombat:Process()
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 						local p = FindClosestMesh(telePos)
 						if (table.valid(p)) then
-							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z),true)
 							self.teleportThrottle = Now() + 1500
 						end
 					else

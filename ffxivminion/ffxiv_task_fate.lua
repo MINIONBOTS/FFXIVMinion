@@ -188,7 +188,7 @@ function c_teletofate:evaluate()
 					end
 				end
 	
-				local dest = NavigationManager:GetClosestPointOnMesh(fatePos,false)
+				local dest = FindClosestMesh(fatePos)
 				if (dest and dest.distance ~= 0 and dest.distance < 10) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.radius = fate.radius
@@ -205,11 +205,11 @@ end
 function e_teletofate:execute()
 	local dest = c_teletofate.pos
 	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,c_teletofate.radius,(c_teletofate.radius + 15))
-	local newdest = NavigationManager:GetClosestPointOnMesh(newPos,false)
+	local newdest = FindClosestMesh(newPos)
 	
 	Player:Stop()
 	if (newdest) then
-		Hacks:TeleportToXYZ(newdest.x,newdest.y,newdest.z)
+		Hacks:TeleportToXYZ(newdest.x,newdest.y,newdest.z,true)
 	end
 	c_teletofate.lastTele = Now() + 10000
 	ffxiv_task_grind.inFate = true
