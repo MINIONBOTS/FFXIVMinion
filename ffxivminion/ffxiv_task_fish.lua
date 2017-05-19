@@ -56,8 +56,6 @@ function ffxiv_task_fish.Create()
     --ffxiv_task_fish members
     newinst.castTimer = 0
     newinst.markerTime = 0
-    newinst.currentMarker = false
-	ml_global_information.currentMarker = false
 	ml_global_information.lastEquip = 0
 	
 	newinst.filterLevel = true
@@ -225,14 +223,14 @@ function c_precastbuff:evaluate()
 		local needsStealth = false
 		
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			needsStealth = IsNull(task.usestealth,false)
 			minimumGP = IsNull(task.mingp,0)
 			useCordials = IsNull(task.usecordials,useCordials)
 			useFood = IsNull(task.food,0)
 		elseif (table.valid(marker)) then
-			needsStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
+			needsStealth = (marker.usestealth )
 		else
 			return false
 		end
@@ -360,12 +358,12 @@ function c_mooch:evaluate()
 	end
 	
 	local useMooch = false
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
 		useMooch = IsNull(task.usemooch,false)
 	elseif (table.valid(marker)) then
-		useMooch = (marker:GetFieldValue(GetUSString("useMooch")) )
+		useMooch = IsNull(marker.usemooch,false)
 	else
 		return false
 	end
@@ -386,7 +384,7 @@ function c_mooch:evaluate()
 						moochables = task.moochables
 					end
 				elseif (table.valid(marker)) then
-					moochables = marker:GetFieldValue(GetUSString("moochableFish")) or ""
+					moochables = IsNull(marker.moochables,"")
 				end
 				
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
@@ -434,17 +432,17 @@ function c_release:evaluate()
 				local blacklistHQ = ""
 				
 				local task = ffxiv_fish.currentTask
-				local marker = ml_global_information.currentMarker
+				local marker = ml_marker_mgr.currentMarker
 				if (table.valid(task)) then
 					whitelist = IsNull(task.whitelist,"")
 					whitelistHQ = IsNull(task.whitelisthq,"")
 					blacklist = IsNull(task.blacklist,"")
 					blacklistHQ = IsNull(task.blacklisthq,"")
 				elseif (table.valid(marker)) then
-					whitelist = IsNull(marker:GetFieldValue(GetUSString("whitelistFish")),"")
-					whitelistHQ = IsNull(marker:GetFieldValue(GetUSString("whitelistFishHQ")),"")
-					blacklist = IsNull(marker:GetFieldValue(GetUSString("blacklistFish")),"")
-					blacklistHQ = IsNull(marker:GetFieldValue(GetUSString("blacklistFishHQ")),"")
+					whitelist = IsNull(marker.whitelist,"")
+					whitelistHQ = IsNull(marker.whitelistHQ,"")
+					blacklist = IsNull(marker.blacklist,"")
+					blacklistHQ = IsNull(marker.blacklistHQ,"")
 				end
 					
 				local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
@@ -610,7 +608,7 @@ e_finishcast = inheritsFrom( ml_effect )
 function c_finishcast:evaluate()
 	local needsStop = false
 	
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (not table.valid(task) or not table.valid(marker)) then
 		needsStop = true
@@ -674,12 +672,13 @@ function c_chum:evaluate()
 		local useChum = false
 		local useEyes = false
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			useChum = IsNull(task.usechum,false)
 			useEyes = IsNull(task.usefisheyes,false)
 		elseif (table.valid(marker)) then
-			useChum = (marker:GetFieldValue(GetUSString("useChum")) )
+			useChum = IsNull(marker.usechum,false )
+			useEyes = IsNull(marker.usefisheyes,false)
 		end
 		
 		if (type(useChum) == "string" and GUI_Get(useChum) ~= nil) then
@@ -715,22 +714,25 @@ function c_fisheyes:evaluate()
 		
 		local useBuff = false
 		local task = ffxiv_fish.currentTask
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
+			useBuff = IsNull(task.usefisheyes,false)
+		elseif (table.valid(marker)) then
+			useBuff = IsNull(marker.usefisheyes,false)
+		end
+
+		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
+			useBuff = GUI_Get(useBuff)
+		end
+				
+		if (useBuff) then
 			local fisheyes = SkillMgr.GetAction(4105,1)
 			if (fisheyes and fisheyes:IsReady(Player.id)) then
-				useBuff = IsNull(task.usefisheyes,false)
-				
-				if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
-					useBuff = GUI_Get(useBuff)
-				end
-				
-				if (useBuff) then
-					if (MissingBuffs(Player,"762")) then
-						if (fisheyes:Cast()) then
-							ml_global_information.Await(3000, function () return (HasBuffs(Player,"762")) end)
-						end
-						return true
+				if (MissingBuffs(Player,"762")) then
+					if (fisheyes:Cast()) then
+						ml_global_information.Await(3000, function () return (HasBuffs(Player,"762")) end)
 					end
+					return true
 				end
 			end
 		end
@@ -749,7 +751,7 @@ function c_snagging:evaluate()
 		
 		local useBuff = false
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			local snagging = SkillMgr.GetAction(4100,1)
 			if (snagging and snagging:IsReady(Player.id)) then
@@ -790,7 +792,7 @@ function c_usecollect:evaluate()
 		
 		local useBuff = false
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			
 			local collect = SkillMgr.GetAction(4101,1)
@@ -841,7 +843,7 @@ function c_patience:evaluate()
 		local usePatience2 = false
 		
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			local patienceVar = IsNull(task.patiencevar,"")
 			if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
@@ -856,8 +858,8 @@ function c_patience:evaluate()
 				usePatience2 = IsNull(task.usepatience2,false)
 			end
 		elseif (table.valid(marker)) then
-			usePatience = (IsNull(marker:GetFieldValue(GetUSString("usePatience")),"0") )
-			usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") )
+			usePatience = IsNull(marker.usepatience,false)
+			usePatience2 = IsNull(marker.usepatience2,false)
 		end
 		
 		if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
@@ -1111,7 +1113,7 @@ function c_setbait:evaluate()
 		local baitChoice = ""
 		
 		local task = ffxiv_fish.currentTask
-		local marker = ml_global_information.currentMarker
+		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			local baitVar = IsNull(task.baitvar,"")
 			if (baitVar ~= "") then
@@ -1122,7 +1124,7 @@ function c_setbait:evaluate()
 				baitChoice = IsNull(task.baitname,"")
 			end
 		elseif (table.valid(marker)) then
-			baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
+			baitChoice = IsNull(marker.baitname,"")
 		else
 			return false
 		end
@@ -1180,7 +1182,7 @@ function e_setbait:execute()
 	local baitChoice = ""
 	
 	local task = ffxiv_fish.currentTask
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		baitVar = IsNull(task.baitvar,"")
 		if (baitVar ~= "") then
@@ -1191,7 +1193,7 @@ function e_setbait:execute()
 			baitChoice = IsNull(task.baitname,"")
 		end
 	elseif (table.valid(marker)) then
-		baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
+		baitChoice = marker.baitname or ""
 	end
 
 	local foundSuitable = false
@@ -1229,65 +1231,52 @@ function c_nextfishingmarker:evaluate()
 		return false
 	end
 	
-	if (gMarkerMgrMode == GetString("singleMarker")) then
-		ml_task_hub:ThisTask().filterLevel = false
-	else
-		ml_task_hub:ThisTask().filterLevel = true
+	e_nextfishingmarker.marker = nil
+	
+	local filter = ""
+	if (gMarkerMgrMode ~= GetString("singleMarker")) then
+		filter = "minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
 	end
 	
-    if ( ml_global_information.currentMarker ~= nil and ml_global_information.currentMarker ~= 0 ) then
-        local marker = nil
-        
-        -- first check to see if we have no initiailized marker
-        if (ml_global_information.currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
-			
-			if (marker == nil) then
-				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), false)
-			end	
+	local currentMarker = ml_marker_mgr.currentMarker
+	local marker = nil
+	
+	if (ml_marker_mgr.currentMarker == nil) then
+		marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
+	end
+	
+	-- check if we've attempted a lot of casts with no bites
+	if (marker == nil) then
+		if (ffxiv_fish.attemptedCasts > 2) then
+			marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
 		end
-		
-		-- check if we've attempted a lot of casts with no bites
-		if (marker == nil) then
-            if (ffxiv_fish.attemptedCasts > 2) then
-				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
-				
-				if (marker == nil) then
-					marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), false)
-				end
+	end
+	
+	-- next check to see if our level is out of range
+	if (marker == nil) then
+		if (currentMarker) then
+			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
+				marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
 			end
-        end
-        
-        -- next check to see if our level is out of range
-        if (marker == nil) then
-            if (table.valid(ml_task_hub:ThisTask().currentMarker)) then
-                if 	(ml_task_hub:ThisTask().filterLevel) and
-					(Player.level < ml_global_information.currentMarker:GetMinLevel() or 
-                    Player.level > ml_global_information.currentMarker:GetMaxLevel()) 
-                then
-                    marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
-                end
-            end
-        end
-        
-        -- last check if our time has run out
-        if (marker == nil) then
-			if (table.valid(ml_global_information.currentMarker)) then
-				local expireTime = ml_task_hub:ThisTask().markerTime
-				if (Now() > expireTime) then
-					ml_debug("Getting Next Marker, TIME IS UP!")
-					marker = ml_marker_mgr.GetNextMarker(ml_global_information.currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
-				else
-					return false
-				end
+		end
+	end
+	
+	-- last check if our time has run out
+	if (marker == nil) then
+		if (currentMarker and currentMarker.duration > 0) then
+			if (currentMarker:GetTimeRemaining() <= 0) then
+				ml_debug("Getting Next Marker, TIME IS UP!")
+				marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
+			else
+				return false
 			end
-        end
-        
-        if (table.valid(marker)) then
-            e_nextfishingmarker.marker = marker
-            return true
-        end
-    end
+		end
+	end
+	
+	if (marker ~= nil) then
+		e_nextfishingmarker.marker = marker
+		return true
+	end
     
     return false
 end
@@ -1301,13 +1290,11 @@ function e_nextfishingmarker:execute()
 		return
 	end
 							
-	ml_global_information.currentMarker = e_nextfishingmarker.marker
-    ml_task_hub:ThisTask().currentMarker = e_nextfishingmarker.marker
-    ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
-	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
-    ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
-    ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+	ml_marker_mgr.currentMarker = e_nextfishingmarker.marker
+	ml_marker_mgr.currentMarker:StartTimer()
+    ml_global_information.MarkerMinLevel = ml_marker_mgr.currentMarker.minlevel
+    ml_global_information.MarkerMaxLevel = ml_marker_mgr.currentMarker.maxlevel
+	gStatusMarkerName = ml_marker_mgr.currentMarker.name
 	ml_task_hub:CurrentTask().requiresAdjustment = true
 	ffxiv_fish.attemptedCasts = 0
 end
@@ -1900,7 +1887,7 @@ function e_fishnexttask:execute()
 		gQuestStepType = "fish - ["..tostring(taskName).."]"
 	end
 	
-	ml_global_information.currentMarker = false
+	ml_marker_mgr.currentMarker = nil
 	gStatusMarkerName = ""
 	
 	ffxiv_fish.currentTask.taskStarted = 0
@@ -2038,7 +2025,7 @@ end
 c_fishnoactivity = inheritsFrom( ml_cause )
 e_fishnoactivity = inheritsFrom( ml_effect )
 function c_fishnoactivity:evaluate()
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (not table.valid(task) and not table.valid(marker)) then
 		ml_global_information.Await(1000)
@@ -2075,7 +2062,7 @@ function ffxiv_fish.NeedsPatienceCheck()
 	local usePatience2 = false
 	
 	local task = ffxiv_fish.currentTask
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		local patienceVar = IsNull(task.patiencevar,"")
 		if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
@@ -2090,8 +2077,8 @@ function ffxiv_fish.NeedsPatienceCheck()
 			usePatience2 = IsNull(task.usepatience2,false)
 		end
 	elseif (table.valid(marker)) then
-		usePatience = (IsNull(marker:GetFieldValue(GetUSString("usePatience")),"0") )
-		usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") )
+		usePatience = IsNull(marker.usepatience,false)
+		usePatience2 = IsNull(marker.usepatience2,false)
 	end
 	
 	if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
@@ -2111,11 +2098,11 @@ function ffxiv_fish.NeedsStealth()
 
 	local useStealth = false
 	local task = ffxiv_fish.currentTask
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		useStealth = IsNull(task.usestealth,false)
 	elseif (table.valid(marker)) then
-		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
+		useStealth = IsNull(marker.usestealth,false)
 	end
 	
 	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
@@ -2129,13 +2116,11 @@ function ffxiv_fish.NeedsStealth()
 			local myPos = Player.pos
 			local destPos = ml_task_hub:CurrentTask().pos
 			local task = ffxiv_fish.currentTask
-			local marker = ml_global_information.currentMarker
+			local marker = ml_marker_mgr.currentMarker
 			if (table.valid(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
-				--destPos = task.pos
 			elseif (table.valid(marker)) then
-				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
-				--destPos = marker:GetPosition()
+				dangerousArea = IsNull(marker.dangerousarea,false)
 			end
 			
 			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
@@ -2206,11 +2191,11 @@ function c_fishstealth:evaluate()
 
 	local useStealth = false
 	local task = ffxiv_fish.currentTask
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		useStealth = IsNull(task.usestealth,false)
 	elseif (table.valid(marker)) then
-		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
+		useStealth = (marker.usestealth )
 	end
 	
 	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
@@ -2233,12 +2218,12 @@ function c_fishstealth:evaluate()
 			local destPos = {}
 			local myPos = Player.pos
 			local task = ffxiv_fish.currentTask
-			local marker = ml_global_information.currentMarker
+			local marker = ml_marker_mgr.currentMarker
 			if (table.valid(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
 				destPos = GetCurrentTaskPos()
 			elseif (table.valid(marker)) then
-				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
+				dangerousArea = marker.dangerousarea
 				destPos = marker:GetPosition()
 			end
 		
@@ -2314,13 +2299,13 @@ function c_syncadjust:evaluate()
 end
 function e_syncadjust:execute()
 	local heading;
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
 		local taskPos = GetCurrentTaskPos()
 		heading = taskPos.h
 	elseif (table.valid(marker)) then
-		local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+		local pos = ml_marker_mgr.currentMarker:GetPosition()
 		if (pos) then
 			heading = pos.h
 		end
@@ -2402,13 +2387,14 @@ function ffxiv_task_fish:Init()
     self:add( ke_recommendEquip, self.process_elements)
 	
 	local ke_buybait = ml_element:create( "BuyBait", c_buybait, e_buybait, 230 )
-    self:add(ke_buybait, self.process_elements)
+	self:add(ke_buybait, self.process_elements)
 	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
 	
 	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
     self:add( ke_nextTask, self.process_elements)
+	
 	
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 175 )
     self:add( ke_nextMarker, self.process_elements)

@@ -2111,20 +2111,17 @@ function e_dead:execute()
 	if (ml_task_hub:ThisTask().name == "LT_GRIND") then
 		ml_task_hub:ThisTask().targetid = 0
 		ml_task_hub:ThisTask().markerTime = 0
-		ml_task_hub:ThisTask().currentMarker = false
-		ml_global_information.currentMarker = false
+		ml_marker_mgr.currentMarker = nil
 		ffxiv_task_grind.inFate = false
 	elseif (ml_task_hub:ThisTask().name == "LT_GATHER") then
 		ml_task_hub:ThisTask().gatherid = 0
 		ml_task_hub:ThisTask().markerTime = 0
-		ml_task_hub:ThisTask().currentMarker = false
-		ml_global_information.currentMarker = false
+		ml_marker_mgr.currentMarker = nil
 		ml_task_hub:ThisTask().failedSearches = 0 
 	elseif (ml_task_hub:ThisTask().name == "LT_FISH") then
 		ml_task_hub:ThisTask().castTimer = 0
 		ml_task_hub:ThisTask().markerTime = 0
-		ml_task_hub:ThisTask().currentMarker = false
-		ml_global_information.currentMarker = false
+		ml_marker_mgr.currentMarker = nil
 		ml_task_hub:ThisTask().networkLatency = 0
 		ml_task_hub:ThisTask().requiresAdjustment = false
 		ml_task_hub:ThisTask().snapshot = GetSnapshot()
@@ -2187,62 +2184,60 @@ function c_returntomarker:evaluate()
     
 	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
 	-- making this will most likely break the behavior on some badly made meshes 
-    if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
+	local currentMarker = ml_marker_mgr.currentMarker
+	local markerType = currentMarker.type
+	if (markerType == GetString("unspoiledMarker") and not ffxiv_task_gather.IsIdleLocation()) then
+		return false
+	end
+
+	local myPos = Player.pos
+	local pos = currentMarker.pos
+	local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 	
-		local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
-		if (markerType == GetString("unspoiledMarker") and not ffxiv_task_gather.IsIdleLocation()) then
+	if (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY") then
+		local target = ml_task_hub:CurrentTask().targetFunction()
+		if (distance > 200 or (target == nil and distance > 10)) then
+			return true
+		end
+	end
+	
+	if (gBotMode == GetString("pvpMode")) then
+		if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
+			if (distance > 25) then
+				return true
+			end
+		else
 			return false
 		end
+	end	
 	
-        local myPos = Player.pos
-        local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-        local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
-		
-		if (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY") then
-			local target = ml_task_hub:CurrentTask().targetFunction()
-			if (distance > 200 or (target == nil and distance > 10)) then
+	if (gBotMode == GetString("huntMode")) then
+		if (distance > 15) then
+			return true
+		end
+	end		
+	
+	if (gBotMode == GetString("gatherMode")) then
+		local gatherid = ml_task_hub:CurrentTask().gatherid or 0
+		if (gatherid == 0 and distance > 25) then
+			d("No gatherable currently, return to the marker.")
+			return true
+		end
+		if (gMarkerMgrMode ~= GetString("markerTeam")) then
+			local radius = 150
+			local maxradius = currentMarker.maxradius
+			if (tonumber(maxradius) and tonumber(maxradius) > 0) then
+				radius = tonumber(maxradius)
+			end
+			if (distance > radius) then
 				return true
 			end
 		end
-		
-		if (gBotMode == GetString("pvpMode")) then
-			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
-				if (distance > 25) then
-					return true
-				end
-			else
-				return false
-			end
-		end	
-		
-		if (gBotMode == GetString("huntMode")) then
-			if (distance > 15) then
-				return true
-			end
-		end		
-		
-		if (gBotMode == GetString("gatherMode")) then
-			local gatherid = ml_task_hub:CurrentTask().gatherid or 0
-			if (gatherid == 0 and distance > 25) then
-				d("No gatherable currently, return to the marker.")
-				return true
-			end
-			if (gMarkerMgrMode ~= GetString("markerTeam")) then
-				local radius = 150
-				local maxradius = ml_global_information.currentMarker:GetFieldValue(GetUSString("maxRadius"))
-				if (tonumber(maxradius) and tonumber(maxradius) > 0) then
-					radius = tonumber(maxradius)
-				end
-				if (distance > radius) then
-					return true
-				end
-			end
-		end
-		
-        if (gBotMode == GetString("fishMode") and distance > 3) then
-            return true
-        end
-    end
+	end
+	
+	if (gBotMode == GetString("fishMode") and distance > 3) then
+		return true
+	end
     
     return false
 end
@@ -2259,8 +2254,8 @@ function e_returntomarker:execute()
 	end
 	
     local newTask = ffxiv_task_movetopos.Create()
-    local markerPos = ml_global_information.currentMarker:GetPosition()
-    local markerType = ml_global_information.currentMarker:GetType()
+    local markerPos = ml_marker_mgr.currentMarker.pos
+    local markerType = ml_marker_mgr.currentMarker.type
     newTask.pos = markerPos
     newTask.range = math.random(3,5)
 	if (markerType == GetString("huntMarker") or
@@ -2286,31 +2281,6 @@ function e_returntomarker:execute()
 	elseif (markerType == GetString("fishingMarker")) then
 		newTask.stealthFunction = ffxiv_fish.NeedsStealth
 	end
-	
-	--[[
-	newTask.abortFunction = function()
-		if (gBotMode == GetString("grindMode")) then
-			local newTarget = GetNearestGrind()
-			if (table.valid(newTarget)) then
-				return true
-			end
-			
-			if (gGather ) then
-				local node = eso_gather_manager.ClosestNode(true)
-				if (table.valid(node)) then
-					return true
-				end
-			end
-		end
-		if (gBotMode == GetString("gatherMode")) then
-			local node = eso_gather_manager.ClosestNode(true)
-			if (table.valid(node)) then
-				return true
-			end
-		end
-		return false
-	end
-	--]]
 	
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -3179,6 +3149,11 @@ function c_dointeract:evaluate()
 		local ipos = interactable.pos
 		local ydiff = (ipos.y - ppos.y)
 		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
+		local defaults = {
+			[0] = 2.5,
+			[3] = 5.5,
+			[7] = 2.1,
+		}
 		
 		-- general rules so far:
 		-- aetherytes (radius 2): distance2d of slightly less than 8
@@ -3189,7 +3164,7 @@ function c_dointeract:evaluate()
 
 		if (not IsFlying()) then
 			if (myTarget and myTarget.id == interactable.id) then
-				if (table.valid(interactable) and ((ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
+				if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
 					if (interactable.type == 5) then
 						if (interactable.distance2d > 0 and interactable.distance2d <= 7) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
@@ -3211,11 +3186,12 @@ function c_dointeract:evaluate()
 							return false
 						end
 					else
-						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or radius
+						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or defaults[interactable.type] or radius
+						if (not ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange3d and range > ml_task_hub:CurrentTask().interactRange3d) then
+							range = ml_task_hub:CurrentTask().interactRange3d
+						end
 						if (interactable.cangather) then
 							range = 2.5
-						elseif (interactable.type == 3) then
-							range = 5.5
 						end
 						
 						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d > 0 and interactable.distance2d < range) then

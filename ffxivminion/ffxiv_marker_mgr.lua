@@ -11,9 +11,9 @@ end
 function ffxiv_marker_mgr.BasicDraw(marker)
 	local vars = marker.GUI.vars
 	local fields = marker.fields
+	local changed, dowrite = false, false
 
 	GUI:PushItemWidth(200)
-	local changed, dowrite = false, false
 	GUI:Text("Name");
 	marker.fields.name, changed = GUI:InputText("##name", marker.fields.name); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
@@ -56,6 +56,7 @@ end
 function ffxiv_marker_mgr.GrindDraw(marker)
 	local vars = marker.GUI.vars
 	local fields = marker.fields
+	local changed, dowrite = false, false
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Grind Time");
@@ -133,6 +134,7 @@ end
 function ffxiv_marker_mgr.GatherDraw(marker)
 	local vars = marker.GUI.vars
 	local fields = marker.fields
+	local changed, dowrite = false, false
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Gather Time");
@@ -148,17 +150,20 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	
 	GUI:PushItemWidth(200)
 	GUI:Text("Gather Items");
+	GUI:Text("Item 1"); GUI:SameLine(0,5); 
 	marker.fields.item1, changed = GUI:InputText("##item1",marker.fields.item1); if (changed) then dowrite = true end
+	GUI:Text("Item 2"); GUI:SameLine(0,5); 
 	marker.fields.item2, changed = GUI:InputText("##item2",marker.fields.item2); if (changed) then dowrite = true end
+	GUI:Text("Item 3"); GUI:SameLine(0,5); 
 	marker.fields.item3, changed = GUI:InputText("##item3",marker.fields.item3); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
 	GUI:PushItemWidth(75)
+	marker.fields.usecordials, changed = GUI:Checkbox("Use Cordials",marker.fields.usecordials); if (changed) then dowrite = true end
 	marker.fields.gardening, changed = GUI:Checkbox("Gardening Items",marker.fields.gardening); if (changed) then dowrite = true end
 	marker.fields.chocofood, changed = GUI:Checkbox("Chocobo Food",marker.fields.chocofood); if (changed) then dowrite = true end
 	marker.fields.rares, changed = GUI:Checkbox("Gardening Items",marker.fields.rares); if (changed) then dowrite = true end
 	marker.fields.specialrares, changed = GUI:Checkbox("Gardening Items",marker.fields.specialrares); if (changed) then dowrite = true end
-	
 	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 	GUI:SameLine(0,10)
 	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
@@ -225,6 +230,9 @@ function ffxiv_marker_mgr.BuildGather()
 		usestealth = true,
 		dangerousarea = false,
 		skillprofile = GetString("None"),
+		mingp = 0,
+		usecordials = false,
+		nogpitem = "",
 	}
 	
 	local draw = function (self)
@@ -245,18 +253,19 @@ end
 function ffxiv_marker_mgr.FishingDraw(marker)
 	local vars = marker.GUI.vars
 	local fields = marker.fields
+	local changed, dowrite = false, false
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Fish Time");
-	marker.fields.duration, changed = GUI:InputText("##duration",marker.fields.duration); if (changed) then dowrite = true end
+	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
 	GUI:PushItemWidth(75)
 	marker.fields.usemooch, changed = GUI:Checkbox("Use Mooch",marker.fields.usemooch); if (changed) then dowrite = true end
 	marker.fields.usepatience, changed = GUI:Checkbox("Use Patience I",marker.fields.usepatience); if (changed) then dowrite = true end
 	marker.fields.usepatience2, changed = GUI:Checkbox("Use Patience II",marker.fields.usepatience2); if (changed) then dowrite = true end
+	marker.fields.usefisheyes, changed = GUI:Checkbox("Use Fish Eyes",marker.fields.usefisheyes); if (changed) then dowrite = true end
 	marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
-	
 	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 	GUI:SameLine(0,10)
 	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
@@ -267,11 +276,15 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	marker.fields.moochables, changed = GUI:InputText("##moochables",marker.fields.moochables); if (changed) then dowrite = true end
 	
 	GUI:Text("Whitelist Fish");
+	GUI:Text("NQ"); GUI:SameLine(0,5); 
 	marker.fields.whitelist, changed = GUI:InputText("##whitelist",marker.fields.whitelist); if (changed) then dowrite = true end
+	GUI:Text("HQ"); GUI:SameLine(0,5);
 	marker.fields.whitelistHQ, changed = GUI:InputText("##whitelistHQ",marker.fields.whitelistHQ); if (changed) then dowrite = true end
 	
 	GUI:Text("Blacklist Fish");
+	GUI:Text("NQ"); GUI:SameLine(0,5); 
 	marker.fields.blacklist, changed = GUI:InputText("##blacklist",marker.fields.blacklist); if (changed) then dowrite = true end
+	GUI:Text("HQ"); GUI:SameLine(0,5);
 	marker.fields.blacklistHQ, changed = GUI:InputText("##blacklistHQ",marker.fields.blacklistHQ); if (changed) then dowrite = true end
 
 	GUI:PopItemWidth()
@@ -287,6 +300,7 @@ function ffxiv_marker_mgr.BuildFishing()
 		maxlevel = 60,
 		maxradius = 100,
 		bait = "",
+		usefisheyes = false,
 		usemooch = true,
 		usepatience = false,
 		usepatience2 = false,

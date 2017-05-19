@@ -51,7 +51,6 @@ ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
 ml_global_information.BlacklistContentID = ""
 ml_global_information.WhitelistContentID = ""
-ml_global_information.currentMarker = false
 ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.syncTimer = 0
