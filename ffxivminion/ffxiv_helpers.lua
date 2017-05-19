@@ -57,30 +57,19 @@ function GetNearestGrindAttackable()
 	end
 	
 	local minLevel, maxLevel, basePos, radius = 1, 60, Player.pos, 150
-	local maxLevel = ml_global_information.MarkerMaxLevel
 	
 	local task = ffxiv_grind.currentTask
-	local marker = ml_global_information.currentMarker
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		maxLevel = IsNull(task.mobmaxlevel,60)
-		minLevel = IsNull(task.mobminlevel,1)
-		radius = IsNull(task.radius,150)
+		maxLevel = IsNull(task.mincontentlevel,1)
+		minLevel = IsNull(task.maxcontentlevel,60)
+		radius = IsNull(task.maxradius,150)
 		basePos = task.pos
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
-		minLevel = ml_global_information.MarkerMinLevel 
-		maxLevel = ml_global_information.MarkerMaxLevel
-		radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
-		if (radius == 0) then radius = 150 end
-		basePos = marker:GetPosition()
-	end
-	
-	local basePos;
-	if (table.valid(marker)) then
-		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
-		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
-			radius = tonumber(maxradius)
-		end
-		basePos = marker:GetPosition()
+		minLevel = IsNull(marker.mincontentlevel,1)
+		maxLevel = IsNull(marker.maxcontentlevel,60)
+		radius = IsNull(marker.maxradius,150)
+		basePos = marker.pos
 	end
 	
 	if (radius > 0 and table.valid(basePos)) then
@@ -1359,41 +1348,34 @@ function GetNearestGatherable(marker)
     local el = nil
     local whitelist = ""
     local blacklist = ""
-	local minlevel = 1
-	local maxlevel = 60
+	local mincontentlevel = 1
+	local maxcontentlevel = 60
 	local radius = 0
 	local markerPos = nil
 	
 	if (table.valid(marker)) then
 		if (gMarkerMgrMode ~= GetString("singleMarker")) then	
-			local mincontentlevel = marker:GetFieldValue(GetUSString("minContentLevel"))
-			if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
-				minlevel = tonumber(mincontentlevel)
-			end
-			
-			local maxcontentlevel = marker:GetFieldValue(GetUSString("maxContentLevel"))
-			if (tonumber(maxcontentlevel) and tonumber(maxcontentlevel) > 0) then
-				maxlevel = tonumber(maxcontentlevel)
-			end
+			mincontentlevel = IsNull(marker.mincontentlevel,0)
+			maxcontentlevel = IsNull(marker.maxcontentlevel,0)
 		end
 		
-		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
+		local maxradius = marker.maxradius
 		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 			radius = tonumber(maxradius)
 		end
 		
 		markerPos = marker:GetPosition()
-		whitelist = tostring(marker:GetFieldValue(GetUSString("contentIDEquals")))
-		blacklist = tostring(marker:GetFieldValue(GetUSString("NOTcontentIDEquals")))
+		whitelist = tostring(marker.whitelist)
+		blacklist = tostring(marker.blacklist)
 	end
     
 	if (radius == 0 or radius > 200 or not table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
 		else
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel))
 		end
 		
 		if ( table.valid(el) ) then
@@ -1404,11 +1386,11 @@ function GetNearestGatherable(marker)
 		end
 	elseif (table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
 		else
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel))
 		end
 		
 		local gatherables = {}
@@ -5728,7 +5710,7 @@ function IsEntityReachable(entityid,range)
 end
 function GetInteractableEntity(contentids,types)
 	local contentids = IsNull(tostring(contentids),"")
-	local types = IsNull(types,{0,2,3,5,7})
+	local types = IsNull(types,{0,2,3,5,6,7})
 	
 	if (string.valid(contentids)) then
 		local interacts = EntityList("targetable,contentid="..contentids..",maxdistance=30")
