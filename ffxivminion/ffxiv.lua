@@ -1668,6 +1668,7 @@ function ml_global_information.DrawAutoGrindEditor()
 							GetBestGrindMap = f
 							ffxivminion.GUI.autogrind.modified = false
 							ffxivminion.GUI.autogrind.error_text = ""
+							Settings.FFXIVMINION.gAutoGrindCode = gAutoGrindCode
 						else
 							local errormsg = "Compilation error in auto-grind code:"
 							local f,e = loadstring(gAutoGrindCode)

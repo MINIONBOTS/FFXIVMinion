@@ -60,7 +60,7 @@ function ffxiv_marker_mgr.GrindDraw(marker)
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Grind Time");
-	marker.fields.duration, changed = GUI:InputText("##duration",marker.fields.duration); if (changed) then dowrite = true end
+	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 
 	GUI:PushItemWidth(75)
@@ -138,7 +138,7 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Gather Time");
-	marker.fields.duration, changed = GUI:InputText("##duration",marker.fields.duration); if (changed) then dowrite = true end
+	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 
 	GUI:PushItemWidth(75)
@@ -227,7 +227,7 @@ function ffxiv_marker_mgr.BuildGather()
 		rares = true,
 		specialrares = true,
 		favoritem = 0,
-		usestealth = true,
+		usestealth = false,
 		dangerousarea = false,
 		skillprofile = GetString("None"),
 		mingp = 0,

@@ -67,7 +67,7 @@ function ffxiv_task_grind.Create()
 	
 	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
-	ml_global_information.currentMarker = false
+	ml_marker_mgr.currentMarker = nil
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
@@ -91,70 +91,54 @@ function c_nextgrindmarker:evaluate()
         return false
     end
 	
-	if (gMarkerMgrMode == GetString("singleMarker")) then
-		ml_task_hub:ThisTask().filterLevel = false
-	else
-		ml_task_hub:ThisTask().filterLevel = true
+	local filter = "mapid="..tostring(Player.localmapid)
+	if (gMarkerMgrMode ~= GetString("singleMarker")) then
+		filter = filter..",minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
 	end
-    
-    if ( ml_task_hub:ThisTask().currentMarker ~= nil and ml_task_hub:ThisTask().currentMarker ~= 0 ) then
-        local marker = nil
-        
-        -- first check to see if we have no initiailized marker
-        if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
-			
-			if (marker == nil) then
-				ml_task_hub:ThisTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
-			end	
-		end
-        
-        --Check level range, this section only executes if marker is in list mode.
-		if (gMarkerMgrMode ~= GetString("singleMarker")) then
-			if (marker == nil) then
-				if (table.valid(ml_task_hub:ThisTask().currentMarker) and Player:GetSyncLevel() == 0) then
-					if 	(ml_task_hub:ThisTask().filterLevel) and
-						(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
-						Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
-					then
-						marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
-					end
-				end
-			end
-			
-			-- last check if our time has run out
-			if (marker == nil) then
-				if (table.valid(ml_task_hub:ThisTask().currentMarker)) then
-					local expireTime = ml_task_hub:ThisTask().markerTime
-					if (Now() > expireTime) then
-						ml_debug("Getting Next Marker, TIME IS UP!")
-						marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
-					else
-						return false
-					end
-				end
+	
+	local currentMarker = ml_marker_mgr.currentMarker
+	local marker = nil
+	
+	if (ml_marker_mgr.currentMarker == nil) then
+		marker = ml_marker_mgr.GetNextMarker("Grind",filter)
+	end
+	
+	-- next check to see if our level is out of range
+	if (marker == nil) then
+		if (currentMarker) then
+			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
+				marker = ml_marker_mgr.GetNextMarker("Grind", filter)
 			end
 		end
-        
-        if (table.valid(marker)) then
-            e_nextgrindmarker.marker = marker
-            return true
-        end
-    end
+	end
+	
+	-- last check if our time has run out
+	if (marker == nil) then
+		if (currentMarker and currentMarker.duration > 0) then
+			if (currentMarker:GetTimeRemaining() <= 0) then
+				ml_debug("Getting Next Marker, TIME IS UP!")
+				marker = ml_marker_mgr.GetNextMarker("Grind", filter)
+			else
+				return false
+			end
+		end
+	end
+	
+	if (marker ~= nil) then
+		e_nextgrindmarker.marker = marker
+		return true
+	end
     
     return false
 end
 function e_nextgrindmarker:execute()
-	ml_global_information.currentMarker = e_nextgrindmarker.marker
-    ml_task_hub:ThisTask().currentMarker = e_nextgrindmarker.marker
-    ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
-	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
-    ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
-    ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-    ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("NOTcontentIDEquals"))
-    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
-	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+	ml_marker_mgr.currentMarker = e_nextgrindmarker.marker
+	ml_marker_mgr.currentMarker:StartTimer()
+    ml_global_information.MarkerMinLevel = ml_marker_mgr.currentMarker.minlevel
+    ml_global_information.MarkerMaxLevel = ml_marker_mgr.currentMarker.maxlevel
+	ml_global_information.BlacklistContentID = ml_marker_mgr.currentmarker.blacklist
+    ml_global_information.WhitelistContentID = ml_marker_mgr.currentmarker.whitelist
+	gStatusMarkerName = ml_marker_mgr.currentMarker.name
 end
 
 c_nextgrindarea = inheritsFrom( ml_cause )
@@ -207,6 +191,8 @@ function e_nextgrindarea:execute()
 		Player:Stop()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 	end
+	
+	d("next grind area, current task is :"..tostring(ml_task_hub:CurrentTask().name))
 	
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = ml_task_hub:ThisTask().correctMap
@@ -605,16 +591,11 @@ function e_grindnexttask:execute()
 		gQuestStepType = "grind - ["..tostring(taskName).."]"
 	end
 	
-	ml_global_information.currentMarker = false
+	ml_marker_mgr.currentMarker = nil
 	gStatusMarkerName = ""
-	
-	
-    ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
-    ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
 	
     ml_global_information.BlacklistContentID = ffxiv_grind.currentTask.blacklist
     ml_global_information.WhitelistContentID = ffxiv_grind.currentTask.whitelist
-	
 	
 	ml_task_hub:CurrentTask().targetid = 0
 	ml_global_information.targetid = 0

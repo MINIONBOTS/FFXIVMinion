@@ -1233,9 +1233,9 @@ function c_nextfishingmarker:evaluate()
 	
 	e_nextfishingmarker.marker = nil
 	
-	local filter = ""
+	local filter = "mapid="..tostring(Player.localmapid)
 	if (gMarkerMgrMode ~= GetString("singleMarker")) then
-		filter = "minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
+		filter = filter..",minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
 	end
 	
 	local currentMarker = ml_marker_mgr.currentMarker
