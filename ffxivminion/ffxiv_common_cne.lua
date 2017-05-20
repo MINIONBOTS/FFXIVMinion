@@ -463,7 +463,7 @@ e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 function c_avoid:evaluate()	
-	if (not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent) then
+	if (not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
 	
@@ -2178,7 +2178,7 @@ function c_returntomarker:evaluate()
         return false
     end
 	
-	if (table.valid(ffxiv_fish.currentTask)) then
+	if (table.valid(ffxiv_fish.currentTask) or not ml_marker_mgr.currentMarker) then
 		return false
 	end
     
