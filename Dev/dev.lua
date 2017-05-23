@@ -888,6 +888,17 @@ function dev.DrawCall(event, ticks )
 							end
 							GUI:TreePop()
 						end
+						
+						if ( GUI:TreeNode("Eorzea Time")) then
+							local ezt = GetEorzeaTime()
+							GUI:BulletText(".bell") GUI:SameLine(200) GUI:InputText("##devezt",tostring(ezt.bell))
+							GUI:BulletText(".minute") GUI:SameLine(200) GUI:InputText("##devezt2",tostring(ezt.minute))
+							GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
+							GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
+							GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
+							GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
+							GUI:TreePop()
+						end
 					end
 					
 					local t = Player:GetTarget()
