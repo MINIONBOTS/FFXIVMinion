@@ -56,7 +56,7 @@ function GetNearestGrindAttackable()
 		excludeString = excludeString..";541"
 	end
 	
-	local minLevel, maxLevel, basePos, radius = 1, 60, Player.pos, 150
+	local minLevel, maxLevel, basePos, radius, blacklist, whitelist = 1, 60, Player.pos, 150, "", ""
 	
 	local task = ffxiv_grind.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -65,11 +65,30 @@ function GetNearestGrindAttackable()
 		minLevel = IsNull(task.maxcontentlevel,60)
 		radius = IsNull(task.maxradius,150)
 		basePos = task.pos
+		blacklist = IsNull(task.blacklist,"")
+		whitelist = IsNull(task.whitelist,"")
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
 		minLevel = IsNull(marker.mincontentlevel,1)
 		maxLevel = IsNull(marker.maxcontentlevel,60)
 		radius = IsNull(marker.maxradius,150)
 		basePos = marker.pos
+		blacklist = IsNull(marker.blacklist,"")
+		whitelist = IsNull(marker.whitelist,"")
+	end
+	
+	if (whitelist ~= "") then
+		if (huntString ~= "") then
+			huntString = huntString..";"..whitelist
+		else
+			huntString = whitelist
+		end
+	end
+	if (blacklist ~= "") then
+		if (excludeString ~= "") then
+			excludeString = excludeString..";"..blacklist
+		else
+			excludeString = blacklist
+		end
 	end
 	
 	if (radius > 0 and table.valid(basePos)) then

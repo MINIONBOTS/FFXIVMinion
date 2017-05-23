@@ -13,10 +13,6 @@ sck.hotkeys = {
 		event = function () ml_global_information.ToggleRun() end
 	},
 	{
-		label = "Reload", mod1 = "SCK_Reload_Mod1", mod2 = "SCK_Reload_Mod2", key = "SCK_Reload_Key", mouse = "SCK_Reload_Mouse",
-		event = function () Reload() end
-	},
-	{
 		label = "Unload Bot", mod1 = "SCK_Unload_Mod1", mod2 = "SCK_Unload_Mod2", key = "SCK_Unload_Key", mouse = "SCK_Unload_Mouse",
 		event = function () Unload() end
 	},
@@ -132,6 +128,15 @@ sck.hotkeys = {
 		end
 	},
 }
+
+for i,shortcut in pairsByKeys(sck.hotkeys) do
+	ml_input_mgr.registerFunction({
+		name = shortcut.label,
+		func = shortcut.event,
+		toggle = true,
+		--icon = (string)path to icon. - Optional
+	})
+end
 
 function sck.ModuleInit() 	
 	for _,hotkey in pairsByKeys(sck.hotkeys) do
@@ -385,5 +390,5 @@ sck.Clicks = {
 
 sck.ClicksDisplay,sck.ClicksMap = sck.CreateDisplayMap(sck.Clicks)
 
-RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
-RegisterEventHandler("Module.Initalize",sck.ModuleInit)
+--RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
+--RegisterEventHandler("Module.Initalize",sck.ModuleInit)

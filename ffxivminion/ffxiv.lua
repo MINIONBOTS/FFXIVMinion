@@ -63,18 +63,14 @@ ffxivminion.AutoGrindDefault = [[
 		return 137 --eastern la noscea
 	elseif (level >= 40 and level < 45) then
 		return 155 --coerthas
-	elseif (level >= 45 and level < 50) then
+	elseif ((level >= 45 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
 		return 138
 	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
 		return 397
-	elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
+	elseif (level >= 55 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
 		return 398
-	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
-		return 397
-	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
-		return 398
-	else
-		return 138
+	elseif (level >= 58 and (QuestCompleted(1609) and CanAccessMap(478) and CanAccessMap(399))) then
+		return 399
 	end
 ]]
 
