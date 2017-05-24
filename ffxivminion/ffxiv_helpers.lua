@@ -4882,13 +4882,13 @@ function GetForelandsSection(pos)
             x = {x = 757, z = -714.5},
         },
         [2] = {
-            a = {x = 640, y < 10, z = -647},
-            b = {x = 160, y < 10, z = -647},
-            c = {x = 160, y < 10, z = -555},
-            d = {x = 640, y < 10, z = -555},
-            x = {x = 400, y < 10, z = -601},
+            a = {x = 640, z = -647},
+            b = {x = 160, z = -647},
+            c = {x = 160, z = -555},
+            d = {x = 640, z = -555},
+            x = {x = 400, ymax = 10, z = -601},
         },
-		[3] = {
+        [3] = {
             a = {x = 98, z = -555},
             b = {x = 98, z = 500},
             c = {x = 865, z = 500},
@@ -4910,6 +4910,7 @@ function GetForelandsSection(pos)
             x = {x = 34.5, z = -368},
         },
     }
+	
 	local sec = 2
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
