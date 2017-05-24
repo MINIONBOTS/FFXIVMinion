@@ -3777,10 +3777,24 @@ function GetAetheryteByMapID(mapid, p)
 				end				
 			},
 		},
-		[398] = {name = "Dravanian Forelands",
-			[1] = { name = "Tailfeather", aethid = 76, x = 533, z = 35 },
-			[2] = { name = "Anyx", aethid = 77, x = -300, z = 30 },
-		},
+		[398] = {name = "The Dravanian Forelands",
+            [1] = { name = "Tailfeather", aethid = 76, x = 531.49, z = 20.57, 
+                best = function ()  
+                    if (GetForelandsSection(Player.pos) == 2 and GetForelandsSection(pos) == 1) then
+                        return true
+                    end
+                    return false
+                end                
+            },
+            [2] = { name = "Anyx Trine", aethid = 77, x = -301.09, z = 38.07,
+                best = function ()  
+                    if (GetForelandsSection(Player.pos) == 1 and GetForelandsSection(pos) == 2) then
+                        return true
+                    end
+                    return false
+                end                
+            },
+        },
 		[400] = {name = "Churning Mists",
 			[1] = { name = "Moghome", aethid = 78, x = 256, z = 599 },
 			[2] = { name = "Zenith", aethid = 79, x = -583, z = 316 },
@@ -4858,6 +4872,58 @@ function CanAccessMap(mapid)
 	return false
 end
 
+function GetForelandsSection(pos)
+    local sections = {
+        [1] = {
+            a = {x = 640, z = -874},
+            b = {x = 640, z = -555},
+            c = {x = 865, z = -555},
+            d = {x = 865, z = -874},
+            x = {x = 757, z = -714.5},
+        },
+        [2] = {
+            a = {x = 640, y < 10, z = -647},
+            b = {x = 160, y < 10, z = -647},
+            c = {x = 160, y < 10, z = -555},
+            d = {x = 640, y < 10, z = -555},
+            x = {x = 400, y < 10, z = -601},
+        },
+		[3] = {
+            a = {x = 98, z = -555},
+            b = {x = 98, z = 500},
+            c = {x = 865, z = 500},
+            d = {x = 865, z = -555},
+            x = {x = 481.5, z = -27.5},
+        },
+        [4] = {
+            a = {x = 33, z = -208},
+            b = {x = 98, z = -208},
+            c = {x = 98, z = -109},
+            d = {x = 33, z = -109},
+            x = {x = 65.5, z = -158.5},
+        },
+        [5] = {
+            a = {x = 98, z = -246},
+            b = {x = -29, z = -246},
+            c = {x = -29, z = -490},
+            d = {x = 98, z = -490},
+            x = {x = 34.5, z = -368},
+        },
+    }
+	local sec = 2
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+
+    return sec
+end
+
 function GetHinterlandsSection(pos)
 	local sections = {
 		[1] = {
@@ -5248,6 +5314,65 @@ function Transport146(pos1,pos2)
 				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
 				newTask.contentid = 1004609
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+
+	return false			
+end
+
+function Transport398(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetForelandsSection(pos1) ~= GetForelandsSection(pos2)) then
+			if (GilCount() > 1000) then
+				if (GetForelandsSection(Player.pos) == 2) then
+					if (CanUseAetheryte(76) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(76)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 76
+									newTask.mapID = 398
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				else
+					if (CanUseAetheryte(77) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(77)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 77
+									newTask.mapID = 398
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
 			end
 		end
 	end

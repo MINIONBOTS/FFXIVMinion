@@ -390,5 +390,5 @@ sck.Clicks = {
 
 sck.ClicksDisplay,sck.ClicksMap = sck.CreateDisplayMap(sck.Clicks)
 
---RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
---RegisterEventHandler("Module.Initalize",sck.ModuleInit)
+RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
+RegisterEventHandler("Module.Initalize",sck.ModuleInit)

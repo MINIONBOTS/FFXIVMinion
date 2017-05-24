@@ -739,8 +739,8 @@ function ffxiv_task_teleport.Create()
 end
 
 function ffxiv_task_teleport:Init() 
-	--local ke_setHomepoint = ml_element:create( "SetHomepoint", c_sethomepoint, e_sethomepoint, 50 )
-	--self:add( ke_setHomepoint, self.process_elements)
+	local ke_setHomepoint = ml_element:create( "SetHomepoint", c_sethomepoint, e_sethomepoint, 50 )
+	self:add( ke_setHomepoint, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
