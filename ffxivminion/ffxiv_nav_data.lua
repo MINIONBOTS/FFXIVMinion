@@ -1,4 +1,5 @@
-ffxiv_nav_data = {
+ffxiv_map_nav = {}
+ffxiv_map_nav.data = {
 	[144] = 
 	{
 		[130] = {
@@ -999,5 +1000,19 @@ ffxiv_aetheryte_data = {
 		{id = 250, aethid = 55, x = 40.9, y = 5.4, z = -14.9}
 	},
 }
-ml_mesh_mgr.navData = ffxiv_nav_data
-ml_mesh_mgr.SetupNavNodes()
+
+function ffxiv_map_nav.SetupNavNodes()
+	ml_nav_manager.nodes = {}
+    for id, neighbors in pairs(ffxiv_map_nav.data) do
+		local node = ml_node:Create()
+		if (ValidTable(node)) then
+			node.id = id
+			for nid, posTable in pairs(neighbors) do
+				node:AddNeighbor(nid, posTable)
+			end
+			ml_nav_manager.AddNode(node)
+		end
+	end
+end
+
+ffxiv_map_nav.SetupNavNodes()

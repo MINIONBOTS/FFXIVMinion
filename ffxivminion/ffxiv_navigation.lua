@@ -1265,6 +1265,7 @@ ffnav.currentParams = {}
 ffnav.lastGoalReachedFrom = {}
 ffnav.lastGoalReached = {}
 ffnav.lastPathTime = 0
+ffnav.ascendTime = 0
 
 function ffnav.IsProcessing()
 	if (ffnav.IsYielding()) then
@@ -1492,16 +1493,20 @@ function ffnav.Ascend()
 		evaluator = function ()
 			local ppos = Player.pos
 			if (IsFlying()) then
-				-- Need to really expand this so that it doesn't die in between cube and recast.
-				local meshpos = NavigationManager:GetClosestPointOnMesh(ppos)
-				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 3) then
+				local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-5,ppos.z) 
+				if (not hit or (os.clock() - ffnav.ascendTime) > 3 ) then
 					Player:StopMovement()
 					ffnav.Await(1000, function () return (not Player:IsMoving(FFXIV.MOVEMENT.UP)) end)
 					return true
 				else
 					if (not Player:IsMoving(FFXIV.MOVEMENT.UP)) then
 						Player:Move(FFXIV.MOVEMENT.UP) 
-						ffnav.Await(150, 5000, function () return Player:IsMoving(FFXIV.MOVEMENT.UP) end)
+						ffnav.Await(150, 5000, 
+							function () 
+								ffnav.ascendTime = os.clock()
+								return Player:IsMoving(FFXIV.MOVEMENT.UP) 
+							end
+						)
 						return false
 					end
 				end

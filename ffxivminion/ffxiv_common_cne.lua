@@ -425,7 +425,7 @@ function c_nextluminous:evaluate()
 	for i, crystal in pairs(crystals) do
 		if (crystal.map == Player.localmapid) then
 			local count = ItemCount(crystal.item)
-			if (count < 3) then
+			if (count < 1) then
 				return false
 			end
 		end
@@ -433,7 +433,7 @@ function c_nextluminous:evaluate()
 	
 	for i, crystal in pairs(crystals) do
 		local count = ItemCount(crystal.item)
-		if (count < 3) then
+		if (count < 1) then
 			e_nextluminous.crystal = crystal
 			return true
 		end
@@ -989,6 +989,7 @@ function c_teleporttomap:evaluate()
 				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,destMapID)
+					--table.print(ml_nav_manager.GetNextPathPos({x = 66.53, y = 207.82, z = -26.03},478,399))
 					if (table.valid(backupPos)) then
 						d("using block 3")
 						e_teleporttomap.aeth = aetheryte
