@@ -311,6 +311,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		e_skiptalk:execute()
 		--return false
 	end
+	if (c_skipcutscene:evaluate()) then
+		e_skipcutscene:execute()
+		--return false
+	end
 
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
 		return false

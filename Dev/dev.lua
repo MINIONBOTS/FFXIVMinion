@@ -848,6 +848,13 @@ function dev.DrawCall(event, ticks )
 
 
 			if ( GUI:TreeNode("UI Permissions")) then
+				local totalUI = 0
+				for i=0,165 do
+					if (GetUIPermission(i) == 1) then
+						totalUI = totalUI + i
+					end
+				end
+				GUI:Text("UI Elements ["..tostring(totalUI).."]")
 				for i=0,165 do
 					GUI:Text("UI Element "..i.." = "..tostring(GetUIPermission(i)))
 				end

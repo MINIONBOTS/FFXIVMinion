@@ -3089,6 +3089,37 @@ function e_skiptalk:execute()
 	SetThisTaskProperty("preserveSubtasks",true)
 end
 
+c_skipcutscene = inheritsFrom( ml_cause )
+e_skipcutscene = inheritsFrom( ml_effect )
+function c_skipcutscene:evaluate()
+	if (gSkipCutscene and FFXIV_Common_BotRunning) then
+		local totalUI = 0
+		for i=0,165 do
+			if (GetUIPermission(i) == 1) then
+				totalUI = totalUI + i
+			end
+		end
+		
+		if (totalUI == 5701 and not IsControlOpen("NowLoading")) then
+			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
+				local convoList = GetConversationList()
+				if (table.valid(convoList)) then
+					SelectConversationIndex(1)
+				end
+			else
+				KeyDown(27)
+				ml_global_information.Await(250,function () KeyUp(27) end)
+			end
+			return true
+		end
+	end
+
+	return false
+end
+function e_skipcutscene:execute()
+	SetThisTaskProperty("preserveSubtasks",true)
+end
+
 c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false

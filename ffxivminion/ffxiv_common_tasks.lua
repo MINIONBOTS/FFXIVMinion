@@ -1652,7 +1652,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (c_flee:evaluate()) then
+	if (not self.noFlee and c_flee:evaluate()) then
 		d("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
