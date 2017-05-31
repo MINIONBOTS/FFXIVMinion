@@ -60,6 +60,7 @@ function GetNearestGrindAttackable()
 	
 	local task = ffxiv_grind.currentTask
 	local marker = ml_marker_mgr.currentMarker
+	
 	if (table.valid(task)) then
 		maxLevel = IsNull(task.mincontentlevel,1)
 		minLevel = IsNull(task.maxcontentlevel,60)
@@ -91,256 +92,160 @@ function GetNearestGrindAttackable()
 		end
 	end
 	
-	if (radius > 0 and table.valid(basePos)) then
-		--d("Checking marker with radius section.")
-		if (gClaimFirst	) then		
-			if (not IsNullString(huntString)) then
-				el = MEntityList("nearest,contentid="..huntString..",notincombat,targeting=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
-				
-				if (table.valid(el)) then
-					local i,e = next(el)
-					if (i and e and e.distance <= tonumber(gClaimRange)) then
-						return e
-					end
-				end
-				
-				el = MEntityList("nearest,contentid="..huntString..",notincombat,targeting="..tostring(Player.id)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-				if (table.valid(el)) then
-					local i,e = next(el)
-					if (i and e and e.distance <= tonumber(gClaimRange)) then
-						return e
-					end
-				end
-			end
-		end	
-		
-		--Prioritize the lowest health with aggro on player, non-fate mobs.
-		el = MEntityList("nearest,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40")
-		if (table.valid(el)) then
-			local i,e = next(el)
-			if (table.valid(e)) then
-				return e
-			end
+	local huntTable = {}
+	local excludeTable = {}
+	if (huntString ~= "") then
+		for contentid in StringSplit(huntString,";") do
+			huntTable[tonumber(contentid)] = true
 		end
-		
-		--Prioritize the lowest health with aggro on player, non-fate mobs.
-		el = MEntityList("nearest,alive,attackable,onmesh,claimedbyid="..tostring(Player.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		if (table.valid(el)) then
-			local i,e = next(el)
-			if (table.valid(e)) then
-				return e
-			end
+	end
+	if (excludeString ~= "") then
+		for contentid in StringSplit(excludeString,";") do
+			excludeTable[tonumber(contentid)] = true
 		end
-				
+	end
+	
+	local selfaggro = {}
+	local immediateaggro = {}
+	local partyaggro = {}
+	local notincombat = {}
+	local lowhp = {}
+	local claimrange = {}
+	local memberids = {}
+	local filtered = {}
+
+	local attackables = EntityList("alive,attackable,fateid=0")
+	if (table.valid(attackables)) then
+	
+		local pid = Player.id
 		local party = EntityList.myparty
-		if ( party ) then
-			for i, member in pairs(party) do
-				if (member.id and member.id ~= 0 and member.mapid == Player.mapid) then
-					el = MEntityList("alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
-					
-					if (table.valid(el)) then
-						local filtered = FilterByProximity(el,basePos,radius,"distance")
-						if (table.valid(filtered)) then
-							for i,e in pairs(filtered) do
-								if (table.valid(e)) then
-									return e
-								end
-							end
-						end
-					end
-				end
-			end
-		end	
-		
-		if (table.valid(Player.pet)) then
-			el = MEntityList("alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
-			
-			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,basePos,radius,"distance")
-				if (table.valid(filtered)) then
-					for i,e in pairs(filtered) do
-						if (table.valid(e)) then
-							return e
-						end
-					end
-				end
+		if (party) then
+			for i,e in pairs(party) do
+				memberids[e.id] = true
 			end
 		end
-		
+		memberids[pid] = true
+		local pet = Player.pet
 		local companion = GetCompanionEntity()
-		if (companion) then
-			el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
-			if (table.valid(el)) then
-				local i,e = next(el)
-				if (i and e) then
-					return target
-				end
-			end
-		end
 		
-		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
-		if (not IsNullString(huntString)) then
-			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
-			
-			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,basePos,radius,"distance")
-				if (table.valid(filtered)) then
-					for i,e in pairs(filtered) do
-						if (table.valid(e)) then
-							if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
-								return e
+		for i,e in pairs(attackables) do
+			local entity = EntityList:Get(e.id)
+			if (entity) then
+				local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.targetid, entity.targetid, entity.incombat
+				local cached = { id = eid, hpp = hpp, pos = epos, distance2d = distance2d, contentid = contentid, aggro = aggro, claimedbyid = claimedbyid, targetid = targetid, incombat = incombat }
+				
+				-- Filter out entities by distance
+				if (table.valid(basePos) and radius > 0) then
+					local dist2d = math.distance2d(entity.pos,basePos)
+					if (dist2d > radius) then
+						attackables[i] = nil
+					end
+				end
+				
+				-- Filter out white/blacklists
+				if (table.valid(huntTable)) then
+					if (not huntTable[contentid]) then
+						attackables[i] = nil
+					end
+				elseif (table.valid(excludeTable)) then
+					if (excludeTable[contentid]) then
+						attackables[i] = nil
+					end
+				end
+				
+				if (attackables[i]) then
+					filtered[eid] = cached
+				
+					if (not incombat) then
+						notincombat[eid] = cached
+						if (gClaimFirst) then
+							if (distance2d <= gClaimRange) then
+								claimrange[eid] = cached
 							end
 						end
 					end
-				end
-			end
-		end
-		
-		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
-		if (IsNullString(huntString)) then
-			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
-			
-			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,basePos,radius,"distance")
-				if (table.valid(filtered)) then
-					for i,e in pairs(filtered) do
-						if (table.valid(e)) then
-							return e
-						end
+					if (hpp < 50) then
+						lowhp[eid] = cached
 					end
-				end
-			end
-		
-			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,basePos,radius,"distance")
-				if (table.valid(filtered)) then
-					for i,e in pairs(filtered) do
-						if (table.valid(e)) then
-							return e
-						end
-					end
-				end
-			end
-		end
-	else
-		--d("Checking marker without radius section.")
-		block = 1
-		if (gClaimFirst	) then		
-			if (not IsNullString(huntString)) then
-				local el = MEntityList("nearest,contentid="..huntString..",notincombat,alive,attackable,onmesh,exclude_contentid="..excludeString)
-				if ( el ) then
-					local i,e = next(el)
-					if (table.valid(e)) then
-						if ((e.targetid == 0 or e.targetid == Player.id) and
-							e.distance <= tonumber(gClaimRange)) then
-							--d("Grind returned, using block:"..tostring(block))
-							return e
-						end
-					end
-				end
-			end
-		end	
-		
-		--Prioritize the lowest health with aggro on player, non-fate mobs.
-		block = 2		
-		el = MEntityList("nearest,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40")
-		if (table.valid(el)) then
-			local i,e = next(el)
-			if (table.valid(e)) then
-				return e
-			end
-		end
-		
-		--Prioritize the lowest health with aggro on player, non-fate mobs.
-		el = MEntityList("nearest,alive,attackable,onmesh,claimedbyid="..tostring(Player.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		if (table.valid(el)) then
-			local i,e = next(el)
-			if (table.valid(e)) then
-				return e
-			end
-		end
-
-		--ml_debug("Grind failed check #1")
-
-		--Lowest health with aggro on anybody in player's party, non-fate mobs.
-		--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
-		block = 3
-		local party = EntityList.myparty
-		if ( party ) then
-			for i, member in pairs(party) do
-				if (member.id and member.id ~= 0) then
-					el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					
-					if ( el ) then
-						local i,e = next(el)
-						if (table.valid(e)) then
-							--d("Grind returned, using block:"..tostring(block))
-							return e
-						end
+					if (aggro or claimedbyid == pid or targetid == Player.id) then
+						selfaggro[eid] = cached
+					elseif ((pet and (claimedbyid == pet.id or targetid == pet.id)) or (companion and (claimedbyid == companion.id or targetid == companion.id))) then
+						immediateaggro[eid] = cached
+					elseif (memberids[claimedbyid] or memberids[targetid]) then
+						partyaggro[eid] = cached					
 					end
-				end
-			end
-		end
-		
-		block = 4
-		if (table.valid(Player.pet)) then
-			el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
-			
-			if ( el ) then
-				local i,e = next(el)
-				if (table.valid(e)) then
-					--d("Grind returned, using block:"..tostring(block))
-					return e
-				end
-			end
-		end
-		
-		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
-		block = 5
-		if (not IsNullString(huntString)) then
-			--d("Checking whitelist section.")
-			el = MEntityList("nearest,contentid="..huntString..",fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
-			
-			if ( el ) then
-				local i,e = next(el)
-				if (table.valid(e)) then
-					if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
-						--d("Grind returned, using block:"..tostring(block))
-						return e
-					end
-				end
-			end
-		end
-		
-		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
-		if (IsNullString(huntString)) then
-			--d("Checking non-whitelist section.")
-			el = MEntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			
-			block = 6
-			if ( el ) then
-				local i,e = next(el)
-				if (table.valid(e)) then
-					--d("Grind returned, using block:"..tostring(block))
-					return e
-				end
-			end
-		
-			el = MEntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			
-			block = 7
-			if ( el ) then
-				local i,e = next(el)
-				if (table.valid(e)) then
-					--d("Grind returned, using block:"..tostring(block))
-					return e
 				end
 			end
 		end
 	end
 	
-    --d("GetNearestGrindAttackable() failed with no entity found matching params")
+	if (table.valid(filtered)) then
+		-- Check if we have something we can claim (for hunting near us)
+		if (table.valid(claimrange)) then
+			local nearest, nearestDistance = nil, 1000
+			for i,e in pairs(filtered) do
+				if (claimrange[i]) then
+					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+						nearest, nearestDistance = e, e.distance2d
+					end
+				end
+			end
+			
+			if (nearest) then
+				d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
+				return attackables[nearest.id]
+			end
+		end
+		
+		-- Check for aggro
+		if (table.valid(selfaggro) or table.valid(immediateaggro) or table.valid(partyaggro)) then
+			local lowest, lowestHP = nil, 100
+			local nearest, nearestDistance = nil, 1000
+			
+			if (table.valid(lowhp)) then
+				for i,e in pairs(lowhp) do
+					if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
+						if (not lowest or (lowest and e.hpp < lowestHP)) then
+							lowest, lowestHP = e, e.hpp
+						end
+					end
+				end
+			end
+			
+			if (lowest) then
+				d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
+				return attackables[lowest.id]
+			end
+			
+			for i,e in pairs(filtered) do
+				if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
+					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+						nearest, nearestDistance = e, e.distance2d
+					end
+				end
+			end
+			
+			if (nearest) then
+				d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
+				return attackables[nearest.id]
+			end
+		end
+		
+		-- Last check, nearest non-filtered mob.
+		local nearest, nearestDistance = nil, 1000
+		for i,e in pairs(filtered) do
+			if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+				nearest, nearestDistance = e, e.distance2d
+			end
+		end
+			
+		if (nearest) then
+			d("[GetNearestGrindAttackable]: Returning nearest grindable mob.")
+			return attackables[nearest.id]
+		end
+	end
+	
     return nil
 end
 

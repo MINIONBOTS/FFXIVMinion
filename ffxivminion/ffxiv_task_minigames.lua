@@ -332,7 +332,9 @@ function e_movegamevendor:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = c_movegamevendor.id
 	newTask.pos = c_movegamevendor.pos
-	newTask.interactRange = 3.7
+	newTask.interactRange = 3
+	newTask.interactRange3d = 3.95
+	newTask.useTargetPos = true
 	
 	if (gTeleport == true) then
 		newTask.useTeleport = true

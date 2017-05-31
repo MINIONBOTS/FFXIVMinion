@@ -1401,11 +1401,6 @@ function ffxiv_task_grindCombat:Process()
 		--d("Executed a CNE.")
 		return false
 	end
-	
-	if (TimeSince(self.delayTime) < self.delayTimer) then
-		--d("task is delayed.")
-		return false
-	end
 		
 	local target = EntityList:Get(self.targetid)
 	if (table.valid(target)) then

@@ -85,8 +85,7 @@ function c_nextgrindmarker:evaluate()
 	end
 
     if ((gBotMode == GetString("partyMode") and not IsPartyLeader()) or
-		(gGrindDoFates and gGrindFatesOnly) or
-		(not ml_marker_mgr.markersLoaded)) 
+		(gGrindDoFates and gGrindFatesOnly))
 	then
         return false
     end
@@ -136,8 +135,8 @@ function e_nextgrindmarker:execute()
 	ml_marker_mgr.currentMarker:StartTimer()
     ml_global_information.MarkerMinLevel = ml_marker_mgr.currentMarker.minlevel
     ml_global_information.MarkerMaxLevel = ml_marker_mgr.currentMarker.maxlevel
-	ml_global_information.BlacklistContentID = ml_marker_mgr.currentmarker.blacklist
-    ml_global_information.WhitelistContentID = ml_marker_mgr.currentmarker.whitelist
+	ml_global_information.BlacklistContentID = ml_marker_mgr.currentMarker.blacklist
+    ml_global_information.WhitelistContentID = ml_marker_mgr.currentMarker.whitelist
 	gStatusMarkerName = ml_marker_mgr.currentMarker.name
 end
 
