@@ -548,6 +548,7 @@ function ffxivminion.SetMainVars()
 	gMountNameIndex = 1
 	gMountNames = {GetString("none")}
 	gMountName = ffxivminion.GetSetting("gMountName",GetString("none"))
+	gMountAvailableOnly = ffxivminion.GetSetting("gMountAvailableOnly",true)
 	ffxivminion.FillMountOptions()
 	
 	gUseMount = ffxivminion.GetSetting("gUseMount",true)
@@ -567,6 +568,7 @@ function ffxivminion.SetMainVars()
 	gFoodIndex = 1
 	gFoods = {GetString("none")}
 	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific",true)
+	gFoodAvailableOnly = ffxivminion.GetSetting("gFoodAvailableOnly",true)
 	ffxivminion.FillFoodOptions()
 	
 	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
@@ -1001,9 +1003,11 @@ function ffxivminion.FillMountOptions()
 	if (mounts) then
 		for k,v in pairs(mounts) do
 			if (ValidString(v.name)) then
-				table.insert(gMountNames,v.name)
-				if (v.name == gMountName) then
-					gMountNameIndex = table.size(gMountNames)
+				if (not gMountAvailableOnly or v:IsReady()) then
+					table.insert(gMountNames,v.name)
+					if (v.name == gMountName) then
+						gMountNameIndex = table.size(gMountNames)
+					end
 				end
 			end
 		end
@@ -1346,14 +1350,20 @@ function ml_global_information.DrawSettings()
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 16, 16)) then
+					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillMountOptions()
 					end
+					GUI:SameLine(0,5)
+					GUI_Capture(GUI:Checkbox("Show Available Mounts Only",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
+					end
+					
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods)
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 16, 16)) then
+					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillFoodOptions()
 					end
 					GUI:SameLine(0,5)
