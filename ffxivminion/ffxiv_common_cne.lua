@@ -3091,8 +3091,9 @@ end
 
 c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
+c_skipcutscene.lastSkip = 0
 function c_skipcutscene:evaluate()
-	if (gSkipCutscene and FFXIV_Common_BotRunning) then
+	if (gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
 		local totalUI = 0
 		for i=0,165 do
 			if (GetUIPermission(i) == 1) then
@@ -3117,6 +3118,7 @@ function c_skipcutscene:evaluate()
 	return false
 end
 function e_skipcutscene:execute()
+	c_skipcutscene.lastSkip = Now()
 	SetThisTaskProperty("preserveSubtasks",true)
 end
 

@@ -2022,6 +2022,16 @@ function e_fishnextprofilepos:execute()
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
+c_fishisloading = inheritsFrom( ml_cause )
+e_fishisloading = inheritsFrom( ml_effect )
+function c_fishisloading:evaluate()
+	local navmeshstate = NavigationManager:GetNavMeshState()
+	return MIsLoading() or In(navmeshstate,GLOBAL.MESHSTATE.MESHLOADING,GLOBAL.MESHSTATE.MESHSAVING,GLOBAL.MESHSTATE.MESHBUILDING)
+end
+function e_fishisloading:execute()
+	ml_debug("Character is loading, prevent other actions and idle.")
+end
+
 c_fishnoactivity = inheritsFrom( ml_cause )
 e_fishnoactivity = inheritsFrom( ml_effect )
 function c_fishnoactivity:evaluate()
@@ -2382,6 +2392,8 @@ function ffxiv_task_fish:Init()
     --init Process() cnes
 	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
     --self:add( ke_autoEquip, self.process_elements)
+	local ke_isLoading = ml_element:create( "IsLoading", c_fishisloading, e_fishisloading, 260 )
+    self:add( ke_isLoading, self.process_elements)
 	
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)

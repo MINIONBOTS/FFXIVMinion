@@ -201,7 +201,8 @@ end
 c_grindisloading = inheritsFrom( ml_cause )
 e_grindisloading = inheritsFrom( ml_effect )
 function c_grindisloading:evaluate()
-	return MIsLoading()
+	local navmeshstate = NavigationManager:GetNavMeshState()
+	return MIsLoading() or In(navmeshstate,GLOBAL.MESHSTATE.MESHLOADING,GLOBAL.MESHSTATE.MESHSAVING,GLOBAL.MESHSTATE.MESHBUILDING)
 end
 function e_grindisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")

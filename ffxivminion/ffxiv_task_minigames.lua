@@ -312,13 +312,8 @@ function c_movegamevendor:evaluate()
 	local vendors = EntityList("shortestpath,contentid="..tostring(vendorID))
 	if (ValidTable(vendors)) then
 		local i,entity = next(vendors)
-		if (entity and entity.targetable) then
-			
-			local ppos = Player.pos
-			local epos = entity.pos
-			local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
-			
-			if (dist3d >= 3.7) then
+		if (entity and entity.targetable and entity.meshpos) then
+			if (entity.meshpos.distance >= 1) then
 				c_movegamevendor.id = entity.contentid
 				c_movegamevendor.pos = entity.pos
 				return true
@@ -332,7 +327,7 @@ function e_movegamevendor:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = c_movegamevendor.id
 	newTask.pos = c_movegamevendor.pos
-	newTask.interactRange = 3
+	newTask.interactRange = 2.5
 	newTask.interactRange3d = 3.95
 	newTask.useTargetPos = true
 	
