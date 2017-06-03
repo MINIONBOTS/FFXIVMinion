@@ -203,10 +203,8 @@ function c_findnode:evaluate()
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
 			if (distance <= radius) then
 			
-				if (table.valid(ffxiv_gather.currentTask)) then
-					if (ffxiv_gather.currentTask.taskStarted == 0) then
-						ffxiv_gather.currentTask.taskStarted = Now()
-					end
+				if (ml_task_hub:CurrentTask().taskStarted == 0) then
+					ml_task_hub:CurrentTask().taskStarted = Now()
 				end
 			
 				local filter = ""
@@ -236,10 +234,9 @@ function c_findnode:evaluate()
 				end
 				
 				if (table.valid(gatherable)) then
-					if (table.valid(ffxiv_gather.currentTask)) then
-						if (ffxiv_gather.currentTask.taskFailed ~= 0) then
-							ffxiv_gather.currentTask.taskFailed = 0
-						end
+				
+					if (ml_task_hub:CurrentTask().taskFailed ~= 0) then
+						ml_task_hub:CurrentTask().taskFailed = 0
 					end
 				
 					gd("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].",3)
@@ -258,10 +255,8 @@ function c_findnode:evaluate()
 	ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
 	
 	if (ml_task_hub:CurrentTask().failedSearches > 1) then
-		if (table.valid(ffxiv_gather.currentTask)) then
-			if (ffxiv_gather.currentTask.taskFailed == 0) then
-				ffxiv_gather.currentTask.taskFailed = Now()
-			end
+		if (ml_task_hub:CurrentTask().taskFailed == 0) then
+			ml_task_hub:CurrentTask().taskFailed = Now()
 		end
 	end
 	
@@ -484,10 +479,9 @@ function e_returntobase:execute()
 	
 	local task = ffxiv_gather.currentTask
 	ml_task_hub:CurrentTask().failedSearches = 0
+	ml_task_hub:CurrentTask().taskFailed = 0
+	
 	if (table.valid(task)) then
-		if (task.taskFailed ~= 0) then
-			task.taskFailed = 0
-		end
 		if (task.range and tonumber(task.range)) then
 			range = tonumber(task.range)
 		end
@@ -550,6 +544,14 @@ function c_nextgathermarker:evaluate()
 		end
 	end
 
+	if (marker == nil) then
+		if (IsNull(currentMarker.timeout,0) > 0) then
+			if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > currentMarker.timeout) then
+				marker = ml_marker_mgr.GetNextMarker(markerType, filter)
+			end
+		end
+	end
+	
 	-- next check to see if our level is out of range
 	if (marker == nil) then
 		if (currentMarker) then
@@ -590,6 +592,7 @@ function e_nextgathermarker:execute()
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_global_information.gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
+	ml_task_hub:CurrentTask().taskFailed = 0
 end
 
 function DoGathering(item)
@@ -1496,7 +1499,7 @@ function c_nodeprebuff:evaluate()
 	local task = ffxiv_gather.currentTask
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		if (IsNull(task.skillprofile,"") ~= "") then
+		if (IsNull(task.skillprofile,"") ~= "" and IsNull(task.skillprofile,"") ~= GetString("None")) then
 			skillProfile = task.skillprofile
 		end
 		minimumGP = IsNull(task.mingp,0)
@@ -1505,7 +1508,7 @@ function c_nodeprebuff:evaluate()
 		useFavor = IsNull(task.favor,0)
 		useFood = IsNull(task.food,0)
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
-		if (IsNull(marker.skillprofile,"") ~= "") then
+		if (IsNull(marker.skillprofile,"") ~= "" and IsNull(marker.skillprofile,"") ~= GetString("None")) then
 			skillProfile = marker.skillprofile
 		end
 		minimumGP = IsNull(marker.mingp,0)
@@ -2244,23 +2247,23 @@ function c_gathernexttask:evaluate()
 			
 		if (not invalid) then
 			if (IsNull(currentTask.maxtime,0) > 0) then
-				if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
+				if (ml_task_hub:CurrentTask().taskStarted > 0 and TimeSince(ml_task_hub:CurrentTask().taskStarted) > currentTask.maxtime) then
 					gd("[GatherNextTask]: Task has been ongoing for too long, invalidate.",3)
 					invalid = true
 				else
-					if (currentTask.taskStarted ~= 0) then
-						gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].",3)
+					if (ml_task_hub:CurrentTask().taskStarted ~= 0) then
+						gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(ml_task_hub:CurrentTask().taskStarted)).."].",3)
 					end
 				end
 			end
 			if (IsNull(currentTask.timeout,0) > 0) then
-				if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
+				if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > currentTask.timeout) then
 					tempinvalid = true
 					invalid = true
 					gd("[GatherNextTask]: Task has been idle too long, invalidate.",3)
 				else
-					if (currentTask.taskFailed ~= 0) then
-						gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(currentTask.taskFailed)).."].",3)
+					if (ml_task_hub:CurrentTask().taskFailed ~= 0) then
+						gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(ml_task_hub:CurrentTask().taskFailed)).."].",3)
 					end
 				end
 			end
@@ -2721,8 +2724,9 @@ function e_gathernexttask:execute()
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_global_information.gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
-	ffxiv_gather.currentTask.taskStarted = 0
-	ffxiv_gather.currentTask.taskFailed = 0
+	ml_task_hub:CurrentTask().taskFailed = 0
+	ml_task_hub:CurrentTask().taskStarted = 0
+	
 	ffxiv_gather.currentTask.touchCompleted = false
 
 	ffxiv_gather.currentTask.currentPositionIndex = 0

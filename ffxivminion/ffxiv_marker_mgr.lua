@@ -134,11 +134,16 @@ end
 function ffxiv_marker_mgr.GatherDraw(marker)
 	local vars = marker.GUI.vars
 	local fields = marker.fields
-	local changed, dowrite = false, false
+	local changed, dowrite, newindex = false, false, nil
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Gather Time");
 	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
+	GUI:Text("Node Search Timeout");
+	marker.fields.timeout, changed = GUI:InputInt("##duration",marker.fields.timeout,0,0); if (changed) then dowrite = true end
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Set a timeout for when to failover to the next marker in a list if no gathering nodes are found.")
+	end
 	GUI:PopItemWidth()
 
 	GUI:PushItemWidth(75)
@@ -147,6 +152,12 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	GUI:Text(" - "); GUI:SameLine(0,10)
 	marker.fields.maxcontentlevel, changed = GUI:InputText("##maxcontentlevel",marker.fields.maxcontentlevel); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
+	
+	local oldindex = GetKeyByValue(marker.fields.skillprofile, SkillMgr.profiles)
+	newindex, changed = GUI:Combo("Skill Profile", oldindex, SkillMgr.profiles)
+	if (changed) then
+		marker.fields.skillprofile = SkillMgr.profiles[newindex]
+	end
 	
 	GUI:PushItemWidth(200)
 	GUI:Text("Gather Items");
@@ -233,6 +244,7 @@ function ffxiv_marker_mgr.BuildGather()
 		mingp = 0,
 		usecordials = false,
 		nogpitem = "",
+		timeout = 0,
 	}
 	
 	local draw = function (self)
