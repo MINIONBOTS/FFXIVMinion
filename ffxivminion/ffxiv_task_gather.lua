@@ -1496,14 +1496,18 @@ function c_nodeprebuff:evaluate()
 	local task = ffxiv_gather.currentTask
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		skillProfile = IsNull(task.skillprofile,"")
+		if (IsNull(task.skillprofile,"") ~= "") then
+			skillProfile = task.skillprofile
+		end
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
 		useFavor = IsNull(task.favor,0)
 		useFood = IsNull(task.food,0)
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
-		skillProfile = IsNull(marker.skillprofile,"")
+		if (IsNull(marker.skillprofile,"") ~= "") then
+			skillProfile = marker.skillprofile
+		end
 		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 		--taskType = IsNull(marker.type,"")

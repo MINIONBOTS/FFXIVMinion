@@ -860,7 +860,7 @@ function ffxiv_task_teleport:task_fail_eval()
 		return true
 	end
 	
-	if (MIsLoading() or MIsCasting() or MIsLocked()) then
+	if (MIsLoading() or MIsCasting() or (MIsLocked() and not MIsFlying())) then
 		self.lastActivity = Now()
 		return false
 	end
