@@ -1241,37 +1241,37 @@ function c_nextfishingmarker:evaluate()
 	local currentMarker = ml_marker_mgr.currentMarker
 	local marker = nil
 	
-	if (ml_marker_mgr.currentMarker == nil) then
+	if (currentMarker == nil) then
 		marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
-	end
-	
-	-- check if we've attempted a lot of casts with no bites
-	if (marker == nil) then
-		if (ffxiv_fish.attemptedCasts > 2) then
-			marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
+	else
+		-- check if we've attempted a lot of casts with no bites
+		if (marker == nil) then
+			if (ffxiv_fish.attemptedCasts > 2) then
+				marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
+			end
 		end
-	end
-	
-	-- next check to see if our level is out of range
-	if (marker == nil) then
-		if (currentMarker) then
+		
+		-- next check to see if our level is out of range
+		if (marker == nil) then
 			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
 				marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
 			end
 		end
-	end
-	
-	-- last check if our time has run out
-	if (marker == nil) then
-		if (currentMarker and currentMarker.duration > 0) then
-			if (currentMarker:GetTimeRemaining() <= 0) then
-				ml_debug("Getting Next Marker, TIME IS UP!")
-				marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
-			else
-				return false
+		
+		-- last check if our time has run out
+		if (marker == nil) then
+			if (currentMarker.duration > 0) then
+				if (currentMarker:GetTimeRemaining() <= 0) then
+					ml_debug("Getting Next Marker, TIME IS UP!")
+					marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
+				else
+					return false
+				end
 			end
 		end
 	end
+	
+	
 	
 	if (marker ~= nil) then
 		e_nextfishingmarker.marker = marker

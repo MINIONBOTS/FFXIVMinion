@@ -98,27 +98,25 @@ function c_nextgrindmarker:evaluate()
 	local currentMarker = ml_marker_mgr.currentMarker
 	local marker = nil
 	
-	if (ml_marker_mgr.currentMarker == nil) then
+	if (currentMarker == nil) then
 		marker = ml_marker_mgr.GetNextMarker("Grind",filter)
-	end
-	
-	-- next check to see if our level is out of range
-	if (marker == nil) then
-		if (currentMarker) then
+	else
+		-- next check to see if our level is out of range
+		if (marker == nil) then
 			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
 				marker = ml_marker_mgr.GetNextMarker("Grind", filter)
 			end
 		end
-	end
-	
-	-- last check if our time has run out
-	if (marker == nil) then
-		if (currentMarker and currentMarker.duration > 0) then
-			if (currentMarker:GetTimeRemaining() <= 0) then
-				ml_debug("Getting Next Marker, TIME IS UP!")
-				marker = ml_marker_mgr.GetNextMarker("Grind", filter)
-			else
-				return false
+		
+		-- last check if our time has run out
+		if (marker == nil) then
+			if (currentMarker.duration > 0) then
+				if (currentMarker:GetTimeRemaining() <= 0) then
+					ml_debug("Getting Next Marker, TIME IS UP!")
+					marker = ml_marker_mgr.GetNextMarker("Grind", filter)
+				else
+					return false
+				end
 			end
 		end
 	end
@@ -226,7 +224,7 @@ c_grindnexttask.blockOnly = false
 c_grindnexttask.subset = {}
 c_grindnexttask.subsetExpiration = 0
 function c_grindnexttask:evaluate()
-	if (not Player.alive or not table.valid(ffxiv_grind.profileData) or IsControlOpen("Grinding")) then
+	if (not Player.alive or not table.valid(ffxiv_grind.profileData)) then
 		return false
 	end
 	

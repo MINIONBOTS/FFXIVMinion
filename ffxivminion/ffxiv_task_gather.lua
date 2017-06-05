@@ -532,7 +532,7 @@ function c_nextgathermarker:evaluate()
 		markerType = "Mining"
 	end
 	
-	if (ml_marker_mgr.currentMarker == nil) then
+	if (currentMarker == nil) then
 		marker = ml_marker_mgr.GetNextMarker(markerType,filter)
 	end
 	
@@ -543,32 +543,32 @@ function c_nextgathermarker:evaluate()
 			marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 		end
 	end
-
-	if (marker == nil) then
-		if (IsNull(currentMarker.timeout,0) > 0) then
-			if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > currentMarker.timeout) then
-				marker = ml_marker_mgr.GetNextMarker(markerType, filter)
+	
+	if (currentMarker) then
+		if (marker == nil) then
+			if (IsNull(currentMarker.timeout,0) > 0) then
+				if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > currentMarker.timeout) then
+					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
+				end
 			end
 		end
-	end
-	
-	-- next check to see if our level is out of range
-	if (marker == nil) then
-		if (currentMarker) then
+		
+		-- next check to see if our level is out of range
+		if (marker == nil) then
 			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
 				marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 			end
 		end
-	end
-	
-	-- last check if our time has run out
-	if (marker == nil) then
-		if (currentMarker and currentMarker.duration > 0) then
-			if (currentMarker:GetTimeRemaining() <= 0) then
-				ml_debug("Getting Next Marker, TIME IS UP!")
-				marker = ml_marker_mgr.GetNextMarker(markerType, filter)
-			else
-				return false
+		
+		-- last check if our time has run out
+		if (marker == nil) then
+			if (currentMarker.duration > 0) then
+				if (currentMarker:GetTimeRemaining() <= 0) then
+					ml_debug("Getting Next Marker, TIME IS UP!")
+					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
+				else
+					return false
+				end
 			end
 		end
 	end
