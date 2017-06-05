@@ -2426,7 +2426,7 @@ function SkillMgr.IsCasting(entity, actionIDs , minCasttime , targetid)
 	end
 	if ( targetid ~= nil and ci.channeltargetid ~= targetid ) then return false end
 	
-	if (actionIDs ~= "") then
+	if (IsNull(actionIDs,"") ~= "") then
 		for _orids in StringSplit(actionIDs,",") do
 			if (tonumber(_orids) == ci.channelingid) then
 				return true
@@ -3017,7 +3017,7 @@ function SkillMgr.Craft()
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet whistle stack requirements.")
 						castable = false
 					end
-					if (skill.whstack ~= "") then
+					if (IsNull(skill.whstack ~= "") then
 						local valid = false
 						for stacknum in StringSplit(skill.whstack,",") do
 							if (tonumber(stacknum) == SkillMgr.currentWhistleStack) then
@@ -3378,7 +3378,7 @@ function SkillMgr.DebugOutput( prio, message )
 	if (gSkillManagerDebug ) then
 		if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
 			d("[SkillManager] : " .. message)
-		else
+		elseif (IsNull(gSkillManagerDebugPriorities,"") ~= "") then
 			local priorityChecks = {}
 			for priority in StringSplit(gSkillManagerDebugPriorities,",") do
 				priorityChecks[tonumber(priority)] = true
@@ -4210,7 +4210,7 @@ function SkillMgr.AddDefaultConditions()
 	
 		if (not skill.chainstart) then
 			if (SkillMgr.currentChain ~= "") then
-				if (skill.chainname ~= "") then
+				if (skill.chainname ~= "" and string.valid(skill.chainname)) then
 					local found = false
 					for chain in StringSplit(skill.chainname,",") do
 						if (chain == SkillMgr.currentChain) then
