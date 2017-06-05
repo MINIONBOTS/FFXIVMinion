@@ -3017,7 +3017,7 @@ function SkillMgr.Craft()
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet whistle stack requirements.")
 						castable = false
 					end
-					if (IsNull(skill.whstack ~= "") then
+					if (IsNull(skill.whstack ~= "")) then
 						local valid = false
 						for stacknum in StringSplit(skill.whstack,",") do
 							if (tonumber(stacknum) == SkillMgr.currentWhistleStack) then
