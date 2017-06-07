@@ -140,7 +140,7 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	GUI:Text("Gather Time");
 	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
 	GUI:Text("Node Search Timeout");
-	marker.fields.timeout, changed = GUI:InputInt("##duration",marker.fields.timeout,0,0); if (changed) then dowrite = true end
+	marker.fields.timeout, changed = GUI:InputInt("##timeout",marker.fields.timeout,0,0); if (changed) then dowrite = true end
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("Set a timeout for when to failover to the next marker in a list if no gathering nodes are found.")
 	end
@@ -173,8 +173,8 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	marker.fields.usecordials, changed = GUI:Checkbox("Use Cordials",marker.fields.usecordials); if (changed) then dowrite = true end
 	marker.fields.gardening, changed = GUI:Checkbox("Gardening Items",marker.fields.gardening); if (changed) then dowrite = true end
 	marker.fields.chocofood, changed = GUI:Checkbox("Chocobo Food",marker.fields.chocofood); if (changed) then dowrite = true end
-	marker.fields.rares, changed = GUI:Checkbox("Gardening Items",marker.fields.rares); if (changed) then dowrite = true end
-	marker.fields.specialrares, changed = GUI:Checkbox("Gardening Items",marker.fields.specialrares); if (changed) then dowrite = true end
+	marker.fields.rares, changed = GUI:Checkbox("Rare Items",marker.fields.rares); if (changed) then dowrite = true end
+	marker.fields.specialrares, changed = GUI:Checkbox("Special Rare Items",marker.fields.specialrares); if (changed) then dowrite = true end
 	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 	GUI:SameLine(0,10)
 	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
@@ -272,6 +272,9 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
+	GUI:Text("Bait Choice(s)");
+	marker.fields.baitname, changed = GUI:InputText("##baitname",marker.fields.baitname); if (changed) then dowrite = true end
+	
 	GUI:PushItemWidth(75)
 	marker.fields.usemooch, changed = GUI:Checkbox("Use Mooch",marker.fields.usemooch); if (changed) then dowrite = true end
 	marker.fields.usepatience, changed = GUI:Checkbox("Use Patience I",marker.fields.usepatience); if (changed) then dowrite = true end
@@ -311,7 +314,7 @@ function ffxiv_marker_mgr.BuildFishing()
 		minlevel = 1,
 		maxlevel = 60,
 		maxradius = 100,
-		bait = "",
+		baitname = "",
 		usefisheyes = false,
 		usemooch = true,
 		usepatience = false,
