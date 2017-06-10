@@ -3219,6 +3219,10 @@ function ffxiv_task_gather:Init()
 end
 
 function ffxiv_task_gather.SetModeOptions()
+	ffxiv_gather.profileData = {}
+	if (table.valid(ffxiv_gather.profiles)) then
+		ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
+	end
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing

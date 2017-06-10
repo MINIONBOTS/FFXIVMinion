@@ -704,6 +704,10 @@ function ffxiv_task_grind:Process()
 end
 
 function ffxiv_task_grind.SetModeOptions()
+	ffxiv_grind.profileData = {}
+	if (table.valid(ffxiv_grind.profiles)) then
+		ffxiv_grind.profileData = ffxiv_grind.profiles[gGrindProfile]
+	end
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 	gGrindDoHuntlog = Settings.FFXIVMINION.gGrindDoHuntlog

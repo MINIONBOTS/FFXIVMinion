@@ -2463,6 +2463,10 @@ function ffxiv_task_fish:Init()
 end
 
 function ffxiv_task_fish.SetModeOptions()
+	ffxiv_fish.profileData = {}
+	if (table.valid(ffxiv_fish.profiles)) then
+		ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
+	end
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
