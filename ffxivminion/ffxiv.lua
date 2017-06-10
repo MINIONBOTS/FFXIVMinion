@@ -667,7 +667,7 @@ function ffxivminion.HandleInit()
     local fateBlacklist = ml_list_mgr.AddList("FATE Blacklist")
 	fateBlacklist.DefaultDraw = DrawFateListUI
 	local fateWhitelist = ml_list_mgr.AddList("FATE Whitelist")
-	fateBlacklist.DefaultDraw = DrawFateListUI
+	fateWhitelist.DefaultDraw = DrawFateListUI
 	local monsterBlacklist = ml_list_mgr.AddList("Mob Blacklist")
 	local monsterWhitelist = ml_list_mgr.AddList("Mob Whitelist")
 	

@@ -977,6 +977,7 @@ function e_gather:execute()
 			end
 			if (tonumber(nogpitem) ~= nil) then
 				nogpitemslot = tonumber(nogpitem)
+				nogpitemid = tonumber(nogpitem)
 				ffxiv_gather.currentTask.nogpgather = true
 				noGPGather = true
 				d("[Gather]: Using slot for No GP item - ["..tostring(nogpitemslot).."].")
@@ -990,7 +991,10 @@ function e_gather:execute()
 			else
 				d("[Gather]: Setting itemid1 to ["..tostring(itemid1).."]")
 			end
-		end		
+		end
+		if (type(item1) == "number") then
+			itemid1 = item1
+		end
 		if (tonumber(item1) ~= nil) then
 			itemslot1 = tonumber(item1)
 			d("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].")
@@ -1004,6 +1008,9 @@ function e_gather:execute()
 				d("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]")
 			end
 		end
+		if (type(item1) == "number") then
+			itemid2 = item2
+		end
 		if (tonumber(item2) ~= nil) then
 			itemslot2 = tonumber(item2)
 			d("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].")
@@ -1016,6 +1023,9 @@ function e_gather:execute()
 			else
 				d("[Gather]: Setting itemid3 to ["..tostring(itemid3).."]")
 			end
+		end
+		if (type(item3) == "number") then
+			itemid3 = item3
 		end
 		if (tonumber(item3) ~= nil) then
 			itemslot3 = tonumber(item3)
@@ -1071,7 +1081,6 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid3 ~= 0) then
 				if (item.id == itemid3) then
-
 					return DoGathering(item)
 				end
 			end
@@ -1155,9 +1164,24 @@ function ffxiv_gather.CheckBuffs(item)
 			for identifier,minvalue in pairs(collectables) do
 				local itemid;
 				if (type(identifier) == "string") then
+					
+					if (GUI_Get(identifier) ~= nil) then
+						local var = identifier
+						identifier = GUI_Get(var)
+						d("Converted identifier var ["..var.."] to ["..identifier.."]")
+					end
+				
 					itemid = AceLib.API.Items.GetIDByName(identifier)
 				else
 					itemid = identifier
+				end
+				
+				if (type(minvalue) == "string") then
+					if (GUI_Get(minvalue) ~= nil) then
+						local var = minvalue
+						minvalue = GUI_Get(minvalue)
+						d("Converted value var ["..var.."] to ["..minvalue.."]")
+					end
 				end
 		
 				if (itemid) then
@@ -1940,9 +1964,24 @@ function e_collectiblegame:execute()
 				for identifier,minvalue in pairs(collectables) do
 					local itemid;
 					if (type(identifier) == "string") then
+						
+						if (GUI_Get(identifier) ~= nil) then
+							local var = identifier
+							identifier = GUI_Get(var)
+							d("Converted identifier var ["..var.."] to ["..identifier.."]")
+						end
+					
 						itemid = AceLib.API.Items.GetIDByName(identifier)
 					else
 						itemid = identifier
+					end
+					
+					if (type(minvalue) == "string") then
+						if (GUI_Get(minvalue) ~= nil) then
+							local var = minvalue
+							minvalue = GUI_Get(minvalue)
+							d("Converted value var ["..var.."] to ["..minvalue.."]")
+						end
 					end
 			
 					if (itemid) then
@@ -2063,9 +2102,23 @@ function c_collectibleaddongather:evaluate()
 						for identifier,minvalue in pairs(collectables) do
 							local itemid;
 							if (type(identifier) == "string") then
+								if (GUI_Get(identifier) ~= nil) then
+									local var = identifier
+									identifier = GUI_Get(var)
+									d("Converted identifier var ["..var.."] to ["..identifier.."]")
+								end
+					
 								itemid = AceLib.API.Items.GetIDByName(identifier)
 							else
 								itemid = identifier
+							end
+							
+							if (type(minvalue) == "string") then
+								if (GUI_Get(minvalue) ~= nil) then
+									local var = minvalue
+									minvalue = GUI_Get(minvalue)
+									d("Converted value var ["..var.."] to ["..minvalue.."]")
+								end
 							end
 							
 							if (itemid) then

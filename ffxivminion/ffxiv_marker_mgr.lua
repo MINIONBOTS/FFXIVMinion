@@ -65,9 +65,9 @@ function ffxiv_marker_mgr.GrindDraw(marker)
 
 	GUI:PushItemWidth(75)
 	GUI:Text("Monster Level");
-	marker.fields.mincontentlevel, changed = GUI:InputText("##mincontentlevel",marker.fields.mincontentlevel); GUI:SameLine(0,10); if (changed) then dowrite = true end
+	marker.fields.mincontentlevel, changed = GUI:InputInt("##mincontentlevel",marker.fields.mincontentlevel,0,0); GUI:SameLine(0,10); if (changed) then dowrite = true end
 	GUI:Text(" - "); GUI:SameLine(0,10)
-	marker.fields.maxcontentlevel, changed = GUI:InputText("##maxcontentlevel",marker.fields.maxcontentlevel); if (changed) then dowrite = true end
+	marker.fields.maxcontentlevel, changed = GUI:InputInt("##maxcontentlevel",marker.fields.maxcontentlevel,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
 	GUI:PushItemWidth(200)
@@ -148,9 +148,9 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 
 	GUI:PushItemWidth(75)
 	GUI:Text("Node Level");
-	marker.fields.mincontentlevel, changed = GUI:InputText("##mincontentlevel",marker.fields.mincontentlevel); GUI:SameLine(0,10); if (changed) then dowrite = true end
+	marker.fields.mincontentlevel, changed = GUI:InputInt("##mincontentlevel",marker.fields.mincontentlevel,0,0); GUI:SameLine(0,10); if (changed) then dowrite = true end
 	GUI:Text(" - "); GUI:SameLine(0,10)
-	marker.fields.maxcontentlevel, changed = GUI:InputText("##maxcontentlevel",marker.fields.maxcontentlevel); if (changed) then dowrite = true end
+	marker.fields.maxcontentlevel, changed = GUI:InputInt("##maxcontentlevel",marker.fields.maxcontentlevel,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
 	local oldindex = GetKeyByValue(marker.fields.skillprofile, SkillMgr.profiles)

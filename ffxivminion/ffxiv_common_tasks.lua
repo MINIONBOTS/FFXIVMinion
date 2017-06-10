@@ -2049,6 +2049,16 @@ function ffxiv_misc_switchclass:task_complete_execute()
 	gForceAutoEquip = false
 	self.completed = true
 end
+function ffxiv_misc_switchclass:task_fail_eval()
+	if (Player.incombat or not Player.alive) then
+		return true
+	end
+	
+	return false
+end
+function ffxiv_misc_switchclass:task_fail_execute()
+	self.valid = true
+end
 
 -- Use Aethernet
 ffxiv_task_moveaethernet = inheritsFrom(ml_task)
