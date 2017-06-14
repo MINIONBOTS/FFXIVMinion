@@ -1272,32 +1272,45 @@ function c_walktopos:evaluate()
     return false
 end
 function e_walktopos:execute()
-	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying()
-		local hasStealth = HasBuff(Player.id,47)
-		if (not hasStealth and needsStealth) then
-			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-				local newTask = ffxiv_task_stealth.Create()
-				newTask.addingStealth = true
-				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-				e_walktopos.lastStealth = Now()
-				c_walktopos.lastPos = nil
-				--d("adding stealth.")
-				return
+
+	-- this stealth poop would need to go into the navigation itself...so it does not stupidly stealth before the bot goes to a cube path
+	if (not IsFlying() and not ffnav.isascending and not ffnav.IsProcessing() and table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil ) then
+		local canstealth = true
+		for i, node in pairs(ml_navigation.path) do
+			if (node.type == "CUBE") then
+				canstealth = false
+				break
 			end
-		elseif (hasStealth and not needsStealth) then
-			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-				local newTask = ffxiv_task_stealth.Create()
-				newTask.droppingStealth = true
-				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-				e_walktopos.lastStealth = Now()
-				--d("dropping stealth.")
-				c_walktopos.lastPos = nil
-				return
+		end
+		if ( canstealth ) then
+			if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+				local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying()
+				local hasStealth = HasBuff(Player.id,47)
+				if (not hasStealth and needsStealth) then
+					if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+						local newTask = ffxiv_task_stealth.Create()
+						newTask.addingStealth = true
+						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+						e_walktopos.lastStealth = Now()
+						c_walktopos.lastPos = nil
+						--d("adding stealth.")
+						return
+					end
+				elseif (hasStealth and not needsStealth) then
+					if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+						local newTask = ffxiv_task_stealth.Create()
+						newTask.droppingStealth = true
+						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+						e_walktopos.lastStealth = Now()
+						--d("dropping stealth.")
+						c_walktopos.lastPos = nil
+						return
+					end
+				end
 			end
 		end
 	end
-
+	
 	if (table.valid(c_walktopos.pos)) then
 		local gotoPos = c_walktopos.pos
 		local myPos = Player.pos

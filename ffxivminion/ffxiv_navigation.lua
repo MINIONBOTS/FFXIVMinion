@@ -1538,7 +1538,7 @@ function ffnav.Ascend()
 			end
 		end, 
 		failure = function ()
-			local fail = Player.incombat or not Player.ismounted
+			local fail = Player.incombat and not Player.ismounted
 			if ( fail ) then
 				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.
 			end
@@ -2739,7 +2739,7 @@ function ml_navigation.IsPathInvalid()
 				if (node.type == "CUBE") then
 					return true
 				end
-			end		
+			end
 		end		
 	end
 	return false
@@ -3083,7 +3083,7 @@ function ffnav.Ascend()
 			end
 		end, 
 		failure = function ()
-			local fail = Player.incombat or not Player.ismounted
+			local fail = Player.incombat and not Player.ismounted
 			if ( fail ) then
 				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.
 			end
