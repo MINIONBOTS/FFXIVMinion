@@ -1252,15 +1252,11 @@ function c_walktopos:evaluate()
 		
 		if (table.valid(gotoPos)) then
 
-			if ( NavigationManager.CubeRenderDistance == nil ) then		-- silly but for now *working* backward compatibility so the 32bit bots still use these checks, while 64bit with the new nav should not use the code below, it will cause chaos in other silly behavior of the game, like whne the bot should walk to a gather node that is slightly outside the mesh but totally withing interact range.
-				if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-					local meshpos = FindClosestMesh(gotoPos)
-					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-						ml_task_hub:CurrentTask().gatePos = meshpos
-					end
+			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+				local meshpos = FindClosestMesh(gotoPos)
+				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
+					ml_task_hub:CurrentTask().gatePos = meshpos
 				end
-			else
-				-- 64bit new nav stuff should not use nor need this anymore. IF something fooks up, please tell me and we'll fix it proper in c++, position wise...should (if at all) affect only fates afaik..
 			end
 			
 			local range2d, range3d = ml_navigation.GetMovementThresholds()
