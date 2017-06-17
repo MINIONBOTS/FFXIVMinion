@@ -867,7 +867,10 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
 			[FFXIV.JOBS.MACHINIST]		= ffxiv_combat_machinist,
 			[FFXIV.JOBS.DARKKNIGHT]	= ffxiv_combat_darkknight,
-			[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,		
+			[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,	
+			[FFXIV.JOBS.REDMAGE]	= ffxiv_combat_redmage,
+			[FFXIV.JOBS.SAMURAI]	= ffxiv_combat_samurai,	
+			
 			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
 			[FFXIV.JOBS.MINER] 		= ffxiv_gather_miner,

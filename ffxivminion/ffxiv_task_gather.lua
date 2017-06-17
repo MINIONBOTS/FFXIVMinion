@@ -390,6 +390,13 @@ function e_movetonode:execute()
 				noGPitem = IsNull(marker.nogpitem,"")
 			end
 			
+			if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+				minimumGP = GUI_Get(minimumGP)
+			end
+			if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+				useCordials = GUI_Get(useCordials)
+			end
+			
 			if (Player.gp.current < minimumGP and noGPitem ~= "") then
 				newTask.minGP = 0
 			else
