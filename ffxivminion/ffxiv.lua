@@ -210,7 +210,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 						ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
 					end
 				else
-					if (UseControlAction("TitleDataCenter","Proceed",0) or seControlAction("TitleDCWorldMap","Proceed",0)) then
+					if (UseControlAction("TitleDataCenter","Proceed",0) or UseControlAction("TitleDCWorldMap","Proceed",0)) then
 						ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
 						login.datacenterSelected = false
 					end
