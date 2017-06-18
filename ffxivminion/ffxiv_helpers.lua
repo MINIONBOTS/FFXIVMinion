@@ -5708,7 +5708,7 @@ function In(var,...)
 	
 	local args = {...}
 	for i=1, #args do
-		if (args[i] == var) then
+		if (args[i] == var or tonumber(args[i]) == tonumber(var)) then
 			return true
 		end
 	end

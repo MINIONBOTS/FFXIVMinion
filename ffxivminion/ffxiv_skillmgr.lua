@@ -120,6 +120,35 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.MACHINIST] = 2866,
 	[FFXIV.JOBS.ASTROLOGIAN] = 3596,
 	[FFXIV.JOBS.DARKKNIGHT] = 3617,
+	[FFXIV.JOBS.SAMURAI] = 7477,
+	[FFXIV.JOBS.REDMAGE] = 7503,
+}
+
+SkillMgr.GCDSkillsPVP = {
+	[FFXIV.JOBS.GLADIATOR] = 8718,
+	[FFXIV.JOBS.PALADIN] = 8718,
+    [FFXIV.JOBS.MARAUDER] = 8758,
+	[FFXIV.JOBS.WARRIOR] = 8758,
+	[FFXIV.JOBS.PUGILIST] = 8780,
+	[FFXIV.JOBS.MONK] = 8780,
+	[FFXIV.JOBS.LANCER] = 8791,
+	[FFXIV.JOBS.DRAGOON] = 8791,
+	[FFXIV.JOBS.ARCHER] = 8834,
+	[FFXIV.JOBS.BARD] = 8834,
+	[FFXIV.JOBS.CONJURER] = 8895,
+	[FFXIV.JOBS.WHITEMAGE] = 8895,
+	[FFXIV.JOBS.THAUMATURGE] = 8858,
+	[FFXIV.JOBS.BLACKMAGE] = 8858,
+	[FFXIV.JOBS.ARCANIST] = 8904,
+	[FFXIV.JOBS.SUMMONER] = 8872,
+	[FFXIV.JOBS.SCHOLAR] = 8904,
+	[FFXIV.JOBS.ROGUE] = 8807,
+	[FFXIV.JOBS.NINJA] = 8807,
+	[FFXIV.JOBS.MACHINIST] = 8845,
+	[FFXIV.JOBS.ASTROLOGIAN] = 8912,
+	[FFXIV.JOBS.DARKKNIGHT] = 8769,
+	[FFXIV.JOBS.SAMURAI] = 8821,
+	[FFXIV.JOBS.REDMAGE] = 8882,
 }
 
 SkillMgr.StartingProfiles = {
@@ -2554,10 +2583,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	
 	--This call is here to refresh the action list in case new skills are equipped.
 	if (SkillMgr.SkillProfile) then
-	
+		
 		local testSkill = SkillMgr.GetAction(SkillMgr.GCDSkills[Player.job],1)
+		local testSkillPVP = SkillMgr.GetAction(SkillMgr.GCDSkillsPVP[Player.job],1)
 		if (testSkill) then
 			SkillMgr.gcdTime = testSkill.recasttime
+		elseif (testSkillPVP) then
+			SkillMgr.gcdTime = testSkillPVP.recasttime
 		end
 	
 		-- Start Main Loop
@@ -3291,16 +3323,15 @@ function SkillMgr.GCDTimeLT(mintime)
 	local mintime = tonumber(mintime) or 2.5
 	local castable = false
 	local actionID = SkillMgr.GCDSkills[Player.job]
+	local actionIDPVP = SkillMgr.GCDSkillsPVP[Player.job]
 	
 	if (actionID) then
-		local action = SkillMgr.GetAction(actionID,1)
+		local action = SkillMgr.GetAction(actionID,1) or SkillMgr.GetAction(actionIDPVP,1)
 		if (action) then
 			if (action.cdmax - action.cd) < mintime then
 				return true
 			end
 		end
-	else
-		return false
 	end
 	
 	return false
@@ -3312,8 +3343,10 @@ function SkillMgr.IsGCDReady(maxtime)
 	local timediff = 0
 	
 	local actionID = SkillMgr.GCDSkills[Player.job]
+	local actionIDPVP = SkillMgr.GCDSkillsPVP[Player.job]
+	
 	if (actionID) then
-		local action = SkillMgr.GetAction(actionID,1)
+		local action = SkillMgr.GetAction(actionID,1) or SkillMgr.GetAction(actionIDPVP,1)
 		if (action) then
 			timediff = (action.cdmax - action.cd)
 			if (action.cdmax - action.cd) < maxtime then
