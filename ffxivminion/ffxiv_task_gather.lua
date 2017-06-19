@@ -167,7 +167,7 @@ function c_findnode:evaluate()
 		local whitelist = ""
 		local radius = 150
 		local nodeminlevel = 1
-		local nodemaxlevel = 60
+		local nodemaxlevel = 70
 		local basePos = {}
 		local blacklist = ""
 		local includesHighPrio = true;
@@ -177,7 +177,7 @@ function c_findnode:evaluate()
 		if (table.valid(task)) then
 			whitelist = IsNull(task.whitelist,"")
 			radius = IsNull(task.radius,150)
-			nodemaxlevel = IsNull(task.nodemaxlevel,60)
+			nodemaxlevel = IsNull(task.nodemaxlevel,70)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			basePos = ffxiv_gather.GetCurrentTaskPos()
 			
@@ -193,8 +193,8 @@ function c_findnode:evaluate()
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker.mincontentlevel,1)
 			if (nodeminlevel == 0) then nodeminlevel = 1 end
-			nodemaxlevel = IsNull(marker.maxcontentlevel,60)
-			if (nodemaxlevel == 0) then nodemaxlevel = 60 end
+			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
+			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
 			basePos = marker:GetPosition()
 		end
 		
@@ -949,7 +949,7 @@ function e_gather:execute()
 		d("Checking unknown item section.")
 		
 			-- Gather unknown items to unlock them.
-		if (Player.level < 60) then
+		if (Player.level < 70) then
 			for i,item in pairs(list) do
 				if (toboolean(item.isunknown)) then
 					return DoGathering(item)
@@ -1397,7 +1397,7 @@ function CanUseExpManual()
 	end
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,46)) then
+		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,46)) then
 			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4633)
 				if (manual1 and action and manual1:IsReady(Player.id)) then
@@ -1435,9 +1435,34 @@ function CanUseExpManual()
 					return true, manual1
 				end
 			end
+			
+			if (Player.level >= 60) then
+				local squadron, action = GetItem(14949)
+				if (squadron and action and squadron:IsReady(Player.id)) then
+					--d("Can use squadron manual.")
+					return true, squadron
+				end
+				
+				local commercial, action = GetItem(12668)
+				if (commercial and action and commercial:IsReady(Player.id)) then
+					--d("Can use commercial manual.")
+					return true, commercial
+				end
+				
+				local manual2, action = GetItem(4635)
+				if (manual2 and action and manual2:IsReady(Player.id)) then
+					--d("Can use level 2 manual.")
+					return true, manual2
+				end
+				
+				local manual1, action = GetItem(4633)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
+					return true, manual1
+				end
+			end
 		end
 	elseif (IsCrafter(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,45)) then
+		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,45)) then
 			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4632)
 				if (manual1 and action and not action.isoncd) then
@@ -1458,6 +1483,29 @@ function CanUseExpManual()
 			end
 
 			if (Player.level >= 45) then
+				local commercial, action = GetItem(12667)
+				if (commercial and action and not action.isoncd) then
+					return true, commercial
+				end
+				
+				local manual2, action = GetItem(4634)
+				if (manual2 and action and not action.isoncd) then
+					return true, manual2
+				end
+				
+				local manual1, action = GetItem(4632)
+				if (manual1 and action and not action.isoncd) then
+					return true, manual1
+				end
+			end
+			
+			if (Player.level >= 60) then
+				local squadron, action = GetItem(14950)
+				if (squadron and action and squadron:IsReady(Player.id)) then
+					--d("Can use squadron manual.")
+					return true, squadron
+				end
+				
 				local commercial, action = GetItem(12667)
 				if (commercial and action and not action.isoncd) then
 					return true, commercial

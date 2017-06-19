@@ -112,7 +112,7 @@ end
 function ffxiv_marker_mgr.BuildGrind()	
 	local fields = {
 		minlevel = 1,
-		maxlevel = 60,
+		maxlevel = 70,
 		maxradius = 100,
 		mincontentlevel = 0,
 		maxcontentlevel = 0,
@@ -222,10 +222,10 @@ end
 function ffxiv_marker_mgr.BuildGather()
 	local fields = {
 		minlevel = 1,
-		maxlevel = 60,
+		maxlevel = 70,
 		maxradius = 100,
 		mincontentlevel = 1,
-		maxcontentlevel = 60,
+		maxcontentlevel = 70,
 		maxradius = 0,
 		item1 = "",
 		item2 = "",
@@ -312,7 +312,7 @@ end
 function ffxiv_marker_mgr.BuildFishing()
 	local fields = {
 		minlevel = 1,
-		maxlevel = 60,
+		maxlevel = 70,
 		maxradius = 100,
 		baitname = "",
 		usefisheyes = false,
