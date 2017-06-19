@@ -5763,8 +5763,8 @@ function SkillMgr.DrawBattleEditor()
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlySolo")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlySolo",SKM_OnlySolo),"SKM_OnlySolo"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlyParty")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlyParty",SKM_OnlyParty),"SKM_OnlyParty"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Party Size <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PartySizeLT",SKM_PartySizeLT,0,0),"SKM_PartySizeLT"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("secsSinceLastCast")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassed",SKM_SecsPassed),"SKM_SecsPassed"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Secs Passed Unique")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassedUnique",SKM_SecsPassedUnique),"SKM_SecsPassedUnique"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("secsSinceLastCast")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassed",SKM_SecsPassed,0,0,3),"SKM_SecsPassed"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Secs Passed Unique")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassedUnique",SKM_SecsPassedUnique,0,0,3),"SKM_SecsPassedUnique"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5912,9 +5912,9 @@ function SkillMgr.DrawBattleEditor()
 		
 		GUI:PushItemWidth(100)
 		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuff",SKM_PBuff),"SKM_PBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuffDura",SKM_PBuffDura),"SKM_PBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PBuffDura",SKM_PBuffDura,0,0),"SKM_PBuffDura"); GUI:NextColumn();
 		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuff",SKM_PNBuff),"SKM_PNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuffDura",SKM_PNBuffDura),"SKM_PNBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PNBuffDura",SKM_PNBuffDura,0,0),"SKM_PNBuffDura"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -5927,10 +5927,10 @@ function SkillMgr.DrawBattleEditor()
 		GUI:PushItemWidth(100)
 		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TBuffOwner","gSMBuffOwner","SKM_TBuffOwner",gSMBuffOwners); GUI:NextColumn();
 		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuff",SKM_TBuff),"SKM_TBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuffDura",SKM_TBuffDura),"SKM_TBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TBuffDura",SKM_TBuffDura,0,0),"SKM_TBuffDura"); GUI:NextColumn();
 		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TNBuffOwner","gSMBuffOwnerN","SKM_TNBuffOwner",gSMBuffOwners); GUI:NextColumn();
 		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuff",SKM_TNBuff),"SKM_TNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuffDura",SKM_TNBuffDura),"SKM_TNBuffDura"); GUI:NextColumn();	
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TNBuffDura",SKM_TNBuffDura,0,0),"SKM_TNBuffDura"); GUI:NextColumn();	
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -5942,9 +5942,9 @@ function SkillMgr.DrawBattleEditor()
 		
 		GUI:PushItemWidth(100)
 		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuff",SKM_PetBuff),"SKM_PetBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuffDura",SKM_PetBuffDura),"SKM_PetBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetBuffDura",SKM_PetBuffDura,0,0),"SKM_PetBuffDura"); GUI:NextColumn();
 		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuff",SKM_PetNBuff),"SKM_PetNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuffDura",SKM_PetNBuffDura),"SKM_PetNBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetNBuffDura",SKM_PetNBuffDura,0,0),"SKM_PetNBuffDura"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6088,7 +6088,7 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
 				if (GUI:CollapsingHeader("Valid Classes","classes-header",true,false)) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
