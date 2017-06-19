@@ -1192,7 +1192,9 @@ function c_updatewalkpos:evaluate()
 		if (table.valid(el)) then
 			local i,entity = next(el)
 			if (i and entity) then
-				Player:SetTarget(entity.id)
+				if ( entity.distance < 50 ) then
+					Player:SetTarget(entity.id)
+				end
 				local newPos = entity.pos
 				if (not PosIsEqual(entity.pos,ml_task_hub:CurrentTask().pos)) then
 					e_updatewalkpos.pos = entity.pos
@@ -3187,7 +3189,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.targetable) then
+	if (interactable and interactable.targetable and interactable.distance < 50) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end

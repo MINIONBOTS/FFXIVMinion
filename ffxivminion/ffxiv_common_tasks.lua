@@ -1710,7 +1710,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 		local target = MGetTarget()
 		if (not target or (target and target.id ~= self.interact)) then
 			local interact = EntityList:Get(tonumber(self.interact))
-			if (interact and interact.targetable) then
+			if (interact and interact.targetable and interact.distance < 50) then
 				Player:SetTarget(self.interact)
 				d("Setting target for interact.")
 			end		

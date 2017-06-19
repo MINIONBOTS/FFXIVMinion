@@ -304,6 +304,8 @@ function dev.DrawCall(event, ticks )
 					if (table.valid(dList)) then
 						for id, e in pairs(dList) do
 							if ( GUI:TreeNode(e.name) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devDL0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".ptr2") GUI:SameLine(200) GUI:InputText("##devDL7"..tostring(id),tostring(string.format( "%X",e.ptr2)))
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
 								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
 								GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
@@ -648,9 +650,9 @@ function dev.DrawCall(event, ticks )
 					
 					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.flying.isflying))
 					GUI:BulletText("CanFlyInZone") GUI:SameLine(200) GUI:InputText("##devmov12",tostring(Player.flying.canflyinzone))
-					GUI:BulletText(" Pitch") GUI:SameLine(200) GUI:InputText("##devmov13",tostring(Player.flying.pitch))
+					GUI:BulletText("Pitch") GUI:SameLine(200) GUI:InputText("##devmov13",tostring(Player.flying.pitch))
 					if (not dev.pitch) then dev.pitch = 0 end
-					GUI:BulletText("SetPitch") GUI:SameLine(200) dev.pitch = GUI:InputText("##devmov10",dev.pitch)
+					GUI:BulletText("SetPitch") GUI:SameLine(200) dev.pitch = GUI:InputFloat("##devmov10",dev.pitch,0,0,2)
 					GUI:SameLine()					
 					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
 									
@@ -701,6 +703,14 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devql0"..tostring(id),tostring(e.id))
 								GUI:BulletText(".step") GUI:SameLine(200) GUI:InputText("##devql1"..tostring(id),tostring(e.step))
 								GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##devql2"..tostring(id),tostring(e.completed))
+								GUI:BulletText(".I8A") GUI:SameLine(200) GUI:InputText("##devql3"..tostring(id),tostring(e.I8A))
+								GUI:BulletText(".I8B") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(e.I8B))
+								GUI:BulletText(".I8C") GUI:SameLine(200) GUI:InputText("##devql5"..tostring(id),tostring(e.I8C))
+								GUI:BulletText(".I8D") GUI:SameLine(200) GUI:InputText("##devql6"..tostring(id),tostring(e.I8D))
+								GUI:BulletText(".I8E") GUI:SameLine(200) GUI:InputText("##devql7"..tostring(id),tostring(e.I8E))
+								GUI:BulletText(".I8F") GUI:SameLine(200) GUI:InputText("##devql8"..tostring(id),tostring(e.I8F))
+								GUI:BulletText(".I8AH") GUI:SameLine(200) GUI:InputText("##devql9"..tostring(id),tostring(e.I8AH))
+								
 								GUI:TreePop()
 							end
 						end
