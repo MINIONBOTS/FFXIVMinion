@@ -1295,11 +1295,11 @@ function GetNearestGatherable(marker)
     
 	if (radius == 0 or radius > 200 or not table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
+			el = MEntityList("shortestpath,onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("shortestpath,onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
 		else
-			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel))
+			el = MEntityList("shortestpath,onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel))
 		end
 		
 		if ( table.valid(el) ) then
@@ -1310,11 +1310,11 @@ function GetNearestGatherable(marker)
 		end
 	elseif (table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
 		else
-			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel))
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel))
 		end
 		
 		local gatherables = {}
@@ -1348,7 +1348,7 @@ function GetNearestUnspoiled(class)
 	--Mature Tree = 7
 	--Vegetation = 8
 	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
-    local el = MEntityList("nearest,onmesh,gatherable,contentid="..tostring(contentID))
+    local el = MEntityList("nearest,onmesh,gatherable,targetable,contentid="..tostring(contentID))
     
     if ( el ) then
         local i,e = next(el)

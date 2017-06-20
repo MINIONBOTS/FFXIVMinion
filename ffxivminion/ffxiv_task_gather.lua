@@ -209,13 +209,13 @@ function c_findnode:evaluate()
 			
 				local filter = ""
 				if (whitelist ~= "") then
-					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
+					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
 					--d("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
-					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
+					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
 					--d("Using blacklist filter ["..filter.."].",3)
 				else
-					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
+					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
 					--d("Using filter ["..filter.."].",3)
 				end
 				
@@ -500,8 +500,6 @@ function e_returntobase:execute()
 		pos = p
 	end
 	
-	
-	--ffxiv_task_test.RenderPoint(pos,1,5,5)
 	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
