@@ -24,7 +24,7 @@ ffxivminion.loginservers = {
 	[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
 	[5] = { "None","Adamantoise","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Siren","Zalera","Balmung","Sargatanas" },
 	[6] = {	"None","Behemoth","Brynhildr","Diabolos","Exodus","Famfrit","Lamia","Leviathan","Malboro","Twintania","Ultros","Excalibur","Hyperion" },
-	[7] = {	"None","Cerberus","Lich","Moogle","Odin","Phoenix","Shiva","Zodiark","Ragnarok" },
+	[7] = {	"None","Cerberus","Lich","Moogle","Odin","Phoenix","Shiva","Zodiark","Ragnarok","Omega" },
 }
 
 ffxivminion.AutoGrindDefault = [[
