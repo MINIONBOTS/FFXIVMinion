@@ -677,6 +677,11 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		NavigationManager:UseCubes(false)
 	end
 	
+	if (x == nil or y==nil or z==nil ) then -- yes this happens regularly inside fates, because some of the puzzle code calls moveto nil/nil/nil
+		d("[NAVIGATION]: Invalid Move To Position :["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
+		return 0
+	end
+	
 	local newGoal = { x = x, y = y, z = z }
 	
 	--[[
