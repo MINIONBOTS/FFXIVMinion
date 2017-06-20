@@ -2206,7 +2206,7 @@ function GetClosestFate(pos,pathcheck)
 		
 		--d("Found some approved fates.")
         local nearestFate = nil
-        local nearestDistance = 9999
+        local nearestDistance = 99999
         local level = Player.level
 		local myPos = Player.pos
 		
@@ -2286,6 +2286,7 @@ function GetClosestFate(pos,pathcheck)
 						noPaths[nearestFate.id] = true
 					end
 					nearestFate = nil
+					nearestDistance = 99999
 				end
 			end
 		end
