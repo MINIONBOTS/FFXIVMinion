@@ -152,7 +152,7 @@ function c_findnode:evaluate()
 	else
 		local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 		if (table.valid(gatherable)) then
-			if (not gatherable.cangather) then
+			if (not gatherable.cangather or not gatherable.targetable) then
 				needsUpdate = true
 			end
 		elseif (gatherable == nil) then
@@ -278,7 +278,7 @@ function c_movetonode:evaluate()
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-        if (gatherable and gatherable.cangather) then
+        if (gatherable and gatherable.cangather and gatherable.targetable) then
 			
 			local gpos = gatherable.pos
 			local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
@@ -643,7 +643,7 @@ function e_gather:execute()
 	end
 	
 	local thisNode = MGetEntity(ml_global_information.gatherid)
-	if (not table.valid(thisNode) or not thisNode.cangather) then
+	if (not table.valid(thisNode) or not thisNode.cangather or not thisNode.targetable) then
 		return
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
@@ -1638,7 +1638,7 @@ function c_nodeprebuff:evaluate()
 		not MIsLocked() and not IsFlying()) 
 	then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-        if (gatherable and gatherable.cangather) then
+        if (gatherable and gatherable.cangather and gatherable.targetable) then
 			if (gatherable.distance <= 15) then
 				if (useCordials) then
 					local canUse,cordialItem = CanUseCordial()
