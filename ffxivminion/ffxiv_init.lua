@@ -355,6 +355,15 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(463, "Matoyas Cave")
 		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire") 
 		
+		ml_mesh_mgr.SetDefaultMesh(612, "The Fringes")
+		ml_mesh_mgr.SetDefaultMesh(613, "The Ruby Sea")
+		ml_mesh_mgr.SetDefaultMesh(614, "Yanxia")
+		ml_mesh_mgr.SetDefaultMesh(620, "The Peaks")
+		ml_mesh_mgr.SetDefaultMesh(621, "The Lochs")
+		ml_mesh_mgr.SetDefaultMesh(622, "The Azim Steppe")
+		ml_mesh_mgr.SetDefaultMesh(628, "Kugane")		
+		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgrs Reach")		
+		
 		-- Dungeons
 		ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon]Aery")
 		ml_mesh_mgr.SetDefaultMesh(167, "[Dungeon]AmdaporKeep")
