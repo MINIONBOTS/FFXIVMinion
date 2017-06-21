@@ -252,13 +252,15 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 				end
 			end
 		else
-			if (IsControlOpen("SelectYesno")) then
-				if (UseControlAction("SelectYesno","Yes",0)) then
-					ml_global_information.Await(500, 5000, function () return not IsControlOpen("_CharaSelectListMenu") end)
-				end
-			else
-				if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
-					ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
+			if (not IsControlOpen("SelectOk")) then
+				if (IsControlOpen("SelectYesno")) then
+					if (UseControlAction("SelectYesno","Yes",0)) then
+						ml_global_information.Await(500, 5000, function () return (not IsControlOpen("_CharaSelectListMenu") or IsControlOpen("SelectOk")) end)
+					end
+				else
+					if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
+						ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
+					end
 				end
 			end
 		end
