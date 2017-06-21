@@ -225,7 +225,7 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 end
 
 function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ml_global_information.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
@@ -245,7 +245,7 @@ function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
 end
 
 function ml_global_information.AwaitThen(param1, param2, param3, param4)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		if (param4 ~= nil and type(param4) == "function") then
 			ml_global_information.yield = {
 				mintimer = IIF(param1 ~= 0,Now() + param1,0),
@@ -361,7 +361,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(620, "The Peaks")
 		ml_mesh_mgr.SetDefaultMesh(621, "The Lochs")
 		ml_mesh_mgr.SetDefaultMesh(622, "The Azim Steppe")
-		ml_mesh_mgr.SetDefaultMesh(628, "Kugane")		
+		ml_mesh_mgr.SetDefaultMesh(628, "Kugane")
 		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgrs Reach")		
 		
 		-- Dungeons
