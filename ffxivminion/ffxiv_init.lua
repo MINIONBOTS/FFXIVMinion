@@ -361,8 +361,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(620, "The Peaks")
 		ml_mesh_mgr.SetDefaultMesh(621, "The Lochs")
 		ml_mesh_mgr.SetDefaultMesh(622, "The Azim Steppe")
-		ml_mesh_mgr.SetDefaultMesh(628, "Kugane")
-		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgrs Reach")		
+		ml_mesh_mgr.SetDefaultMesh(628, "Kugane")		
+		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgrs Reach")	
+		ml_mesh_mgr.SetDefaultMesh(639, "Ruby Bazaar Offices")		
+		ml_mesh_mgr.SetDefaultMesh(680, "ImOnABoatAgain")
+		
 		
 		-- Dungeons
 		ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon]Aery")
