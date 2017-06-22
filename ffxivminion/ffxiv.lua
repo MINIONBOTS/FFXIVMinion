@@ -194,7 +194,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 			-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
 			if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap") ) then		
 				if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
-					ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
+					ml_global_information.Await(1000, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
 				end
 			else
 				if (not login.datacenterSelected) then
@@ -202,7 +202,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 						d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
 						if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2)) or UseControlAction("TitleDCWorldMap","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
 							login.datacenterSelected = true
-							ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
+							ml_global_information.Await(1000, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
 						end
 					else
 						--d("login paused:Attempt to issue notice")
@@ -255,11 +255,11 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 			if (not IsControlOpen("SelectOk")) then
 				if (IsControlOpen("SelectYesno")) then
 					if (UseControlAction("SelectYesno","Yes",0)) then
-						ml_global_information.Await(500, 5000, function () return (not IsControlOpen("_CharaSelectListMenu") or IsControlOpen("SelectOk")) end)
+						ml_global_information.Await(1000, 5000, function () return (not IsControlOpen("_CharaSelectListMenu") or IsControlOpen("SelectOk")) end)
 					end
 				else
 					if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
-						ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
+						ml_global_information.Await(1000, 5000, function () return IsControlOpen("SelectYesno") end)
 					end
 				end
 			end
