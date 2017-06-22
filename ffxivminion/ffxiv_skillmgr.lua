@@ -589,6 +589,7 @@ SkillMgr.Variables = {
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
 	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
 	SKM_CollRarityLT = { default = 0, cast = "number", profile = "collraritylt", section = "gathering"},
+	SKM_CollRarityGT = { default = 0, cast = "number", profile = "collraritygt", section = "gathering"},
 	SKM_CollWearLT = { default = 0, cast = "number", profile = "collwearlt", section = "gathering"},
 	SKM_CollWearGT = { default = 0, cast = "number", profile = "collweargt", section = "gathering"},
 	SKM_CollWearEQ = { default = 0, cast = "number", profile = "collweareq", section = "gathering"},
@@ -2787,6 +2788,17 @@ SkillMgr.MatchingCraftSkills = {
 	["Satisfaction"]  	={[8] = 100169, [9] = 100170, [10] = 100171, [11] = 100172, [12] = 100173, [13] = 100174, [14] = 100175, [15] = 100176 },
 	["Heart"]  			={[8] = 100179, [9] = 100180, [10] = 100181, [11] = 100182, [12] = 100183, [13] = 100184, [14] = 100185, [15] = 100186 },
 	["Whistle Work"]  	={[8] = 100187, [9] = 100188, [10] = 100189, [11] = 100190, [12] = 100191, [13] = 100192, [14] = 100193, [15] = 100194 },
+	["Hasty Touch II"]  	={[8] = 100195, [9] = 100196, [10] = 100197, [11] = 100199, [12] = 100200, [13] = 100198, [14] = 100201, [15] = 100202 },
+	["Careful Synthesis III"]  	={[8] = 100203, [9] = 100204, [10] = 100205, [11] = 100207, [12] = 100208, [13] = 100206, [14] = 100209, [15] = 100210 },
+	["Rapid Synthesis II"]  	={[8] = 100211, [9] = 100212, [10] = 100213, [11] = 100215, [12] = 100216, [13] = 100214, [14] = 100217, [15] = 100218 },
+	["Patient Touch"]  	={[8] = 100219, [9] = 100220, [10] = 100221, [11] = 100222, [12] = 100223, [13] = 100224, [14] = 100225, [15] = 100226 },
+	["Prudent Touch"]  	={[8] = 100227, [9] = 100228, [10] = 100229, [11] = 100231, [12] = 100232, [13] = 100230, [14] = 100233, [15] = 100234 },
+	["Focused Synthesis"]  	={[8] = 100235, [9] = 100236, [10] = 100237, [11] = 100239, [12] = 100240, [13] = 100238, [14] = 100241, [15] = 100242 },
+	["Focused Touch"]  	={[8] = 100243, [9] = 100244, [10] = 100245, [11] = 100247, [12] = 100248, [13] = 100246, [14] = 100249, [15] = 100249 },
+	["Initial Preparations"]  	={[8] = 100251, [9] = 100252, [10] = 100253, [11] = 100255, [12] = 100256, [13] = 100254, [14] = 100257, [15] = 100258 },
+	["Specialty: Reinforce"]  	={[8] = 100259, [9] = 100260, [10] = 100261, [11] = 100263, [12] = 100264, [13] = 100262, [14] = 100265, [15] = 100266 },
+	["Specialty: Refurbish"]  	={[8] = 100267, [9] = 100268, [10] = 100269, [11] = 100271, [12] = 100272, [13] = 100270, [14] = 100273, [15] = 100274 },
+	["Specialty: Reflect"]  	={[8] = 100275, [9] = 100276, [10] = 100277, [11] = 100279, [12] = 100280, [13] = 100278, [14] = 100281, [15] = 100282 },
 	
 	["Steady Hand"] = 	{[8] = 244, [9] = 245, [10] = 246, [11] = 247, [12] = 249, [13] = 248, [14] = 250, [15] = 251 },
 	["Inner Quiet"] = 	{[8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259 },
@@ -3205,16 +3217,28 @@ function SkillMgr.Gather(item)
 						end
 					end
 					
-					if ((tonumber(skill.gpmin) > 0 and Player.gp.current > tonumber(skill.gpmin)) or
-						(tonumber(skill.gpmax) > 0 and Player.gp.current < tonumber(skill.gpmax)) or
-						(tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) or
-						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax)) or
-						(skill.hasitem ~= "" and not NodeHasItem(skill.hasitem)) or
-						(skill.isunspoiled  and not IsUnspoiled(node.contentid)))
-					then 
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed one ore more conditional checks.")
+					if (tonumber(skill.gpmin) > 0 and Player.gp.current < tonumber(skill.gpmin)) then 
+						SkillMgr.DebugOutput(prio, "[Player GP]"..tostring(Player.gp.current).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] minGP."..tonumber(skill.gpmin).."")
 						castable = false 
 					end
+					if 	(tonumber(skill.gpmax) > 0 and Player.gp.current > tonumber(skill.gpmax)) then 
+						SkillMgr.DebugOutput(prio, "["..Player.gp.current.."] GP."..tostring(Player.gp.current).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] maxGP."..tonumber(skill.gpmax).."")
+						castable = false 
+					end
+					if (tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) 	then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] gatherattempts."..tonumber(skill.gatherattempts).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattempts."..tonumber(node.gatherattempts).."")
+						castable = false 
+					end
+					if 
+						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax))	then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] gatherattemptsmax."..tonumber(skill.gatherattemptsmax).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattemptsmax."..tonumber(node.gatherattemptsmax).."")
+						castable = false 
+					end
+					
 					
 					--Previous gathering skill check
 					if (not IsNullString(skill.pskillg)) then
@@ -3229,6 +3253,10 @@ function SkillMgr.Gather(item)
 						if (table.valid(info)) then
 							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
+								castable = false
+							end
+							if (tonumber(skill.collraritygt) > 0 and info.rarity < tonumber(skill.collraritygt)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity min check.")
 								castable = false
 							end
 							if (tonumber(skill.collwearlt) > 0 and info.wear > tonumber(skill.collwearlt)) then
@@ -6056,6 +6084,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Is Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_IsItem",SKM_IsItem),"SKM_IsItem"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Rarity <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollRarityLT",SKM_CollRarityLT,0,0),"SKM_CollRarityLT"); GUI:NextColumn();	
+		GUI:Text(GetString("Rarity >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollRarityGT",SKM_CollRarityGT,0,0),"SKM_CollRarityGT"); GUI:NextColumn();	
 		GUI:Text(GetString("Wear >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearGT",SKM_CollWearGT,0,0),"SKM_CollWearGT"); GUI:NextColumn();
 		GUI:Text(GetString("Wear <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
 		GUI:Text(GetString("Wear =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearEQ",SKM_CollWearEQ,0,0),"SKM_CollWearEQ"); GUI:NextColumn();
@@ -6065,7 +6094,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Time Since Last Cast(s) >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_GSecsPassed",SKM_GSecsPassed,0,0,2),"SKM_GSecsPassed"); GUI:NextColumn();
 		GUI:Text(GetString("Has Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	
 		GUI:Text(GetString("Missing Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPNBuff",SKM_GPNBuff),"SKM_GPNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PSkillIDG",SKM_PSkillIDG,0,0),"SKM_PSkillIDG"); GUI:NextColumn();		
+		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillIDG",SKM_PSkillIDG),"SKM_PSkillIDG"); GUI:NextColumn();
 		GUI:Columns(1)
 	end
 end

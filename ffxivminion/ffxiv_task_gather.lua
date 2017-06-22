@@ -1163,8 +1163,12 @@ function ffxiv_gather.CheckBuffs(item)
 	end
 		
 	local task = ffxiv_gather.currentTask
+	local collectCost = 0
+		
 	if (table.valid(task)) then
 		local collectables = task.collectables
+		collectCost = IsNull(task.collectGP,0)
+		
 		if (table.valid(collectables)) then
 			for identifier,minvalue in pairs(collectables) do
 				local itemid;
@@ -1197,8 +1201,7 @@ function ffxiv_gather.CheckBuffs(item)
 	end
 	
 	local hasCollect = HasBuffs(Player,"805")
-	local isCollectable = (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
-	
+	local isCollectable = (Player.gp.current >= collectCost) and (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
 	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 		local collect = ActionList:Get(1,ffxiv_gather.collectors[Player.job])
 		if (collect and collect:IsReady(Player.id)) then
@@ -2125,7 +2128,6 @@ function c_collectibleaddongather:evaluate()
 		local info = GetControlData("SelectYesNoCountItem")
 		if (table.valid(info)) then
 			local validCollectible = false
-			
 			if (table.valid(gGatherCollectablePresets)) then
 				for i,collectable in pairsByKeys(gGatherCollectablePresets) do
 					if (string.valid(collectable.name) and type(collectable.value) == "number") then

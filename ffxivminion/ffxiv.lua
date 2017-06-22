@@ -222,8 +222,9 @@ end
 
 function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
-	if (not login.loginPaused) then
+	if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 		--d("checking charselect")
+		
 		if (not login.serverSelected) then
 			if (IsControlOpen("CharaSelect")) then
 				if (not IsControlOpen("_CharaSelectWorldServer")) then
@@ -252,15 +253,13 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 				end
 			end
 		else
-			if (not IsControlOpen("SelectOk")) then
-				if (IsControlOpen("SelectYesno")) then
-					if (UseControlAction("SelectYesno","Yes",0)) then
-						ml_global_information.Await(500, 5000, function () return (not IsControlOpen("_CharaSelectListMenu") or IsControlOpen("SelectOk")) end)
-					end
-				else
-					if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
-						ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
-					end
+			if (IsControlOpen("SelectYesno")) then
+				if (UseControlAction("SelectYesno","Yes",0)) then
+					ml_global_information.Await(500, 5000, function () return (not IsControlOpen("_CharaSelectListMenu") or IsControlOpen("SelectOk")) end)
+				end
+			else
+				if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
+					ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
 				end
 			end
 		end
