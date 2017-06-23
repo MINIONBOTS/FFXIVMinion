@@ -699,7 +699,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	d("[NAVIGATION]: Move To ["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
+	d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	ffnav.lastPathTime = Now()
 	
@@ -2251,7 +2251,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	d("[NAVIGATION]: Move To ["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
+	d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	ffnav.lastPathTime = Now()
 	if (ret > 0) then

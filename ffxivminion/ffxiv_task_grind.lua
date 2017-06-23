@@ -818,15 +818,15 @@ function ffxiv_task_grind:Draw()
 		
 		GUI_Capture(GUI:Checkbox(GetString("Auto-Level Mode"),gGrindAutoLevel),"gGrindAutoLevel")
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Automatically switch maps to continue leveling in an optimal area.")
+			GUI:SetTooltip(GetString("Automatically switch maps to continue leveling in an optimal area."))
 		end
 		GUI:SameLine(0,10)
-		if (GUI:Button("Modify Auto-Grind")) then
+		if (GUI:Button(GetString("Modify Auto-Grind"))) then
 			ffxivminion.GUI.autogrind.open = true
 			ffxivminion.GUI.autogrind.error_text = ""
 		end
 		
-		GUI_Capture(GUI:Checkbox(GetString("doHuntingLog"),gGrindDoHuntlog),"gGrindDoHuntlog");
+		GUI_Capture(GUI:Checkbox(GetString("doHuntingLog"),gGrindDoHuntlog),"gGrindDoHuntlog"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, FFXIVMinion will complete your class hunting log while grinding.")) end
 		GUI_Capture(GUI:Checkbox(GetString("doAtma"),gGrindAtmaMode),"gGrindAtmaMode", 
 			function () 
 				if (gGrindAtmaMode) then
@@ -834,6 +834,8 @@ function ffxiv_task_grind:Draw()
 				end
 			end
 		)
+		
+		
 		GUI_Capture(GUI:Checkbox("Do Luminous",gGrindLuminousMode),"gGrindLuminousMode", 
 			function ()
 				if (gGrindLuminousMode) then
@@ -842,14 +844,19 @@ function ffxiv_task_grind:Draw()
 			end
 		);
 		
-		GUI_Capture(GUI:Checkbox(GetString("doFates"),gGrindDoFates),"gGrindDoFates"); GUI:SameLine(0,10)
-		GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", 
-			function () 
-				if (gGrindFatesOnly) then 
-					GUI_Set("gGrindDoFates",true) 
+		local res = GUI_Capture(GUI:Checkbox(GetString("doFates"),gGrindDoFates),"gGrindDoFates")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will complete FATEs in addition to mob-grinding.")) end
+		if( res ) then 
+			GUI:SameLine(0,10)
+			GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", 
+				function () 
+					if (gGrindFatesOnly) then 
+						GUI_Set("gGrindDoFates",true) 
+					end
 				end
-			end
-		);
+			)
+			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will idle between FATEs, and will not perform mob-grinding.")) end
+		end
 		
 		GUI_Capture(GUI:Checkbox("Kill Non-Fate Aggro",gFateKillAggro),"gFateKillAggro");
 		GUI_Capture(GUI:Checkbox(GetString("restInFates"),gRestInFates),"gRestInFates");

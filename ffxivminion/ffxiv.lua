@@ -19,12 +19,12 @@ ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal",
 
 ffxivminion.loginservers = {
 	[1] = { "None" },
-	[2] = {	"None","Atomos","Carbuncle","Garuda","Kujata","Omega","Ramuh","Tonberry","Typhon","Unicorn","Aegis","Gungnir" },
-	[3] = { "None","Alexander","Bahamut","Fenrir","Ifrit","Tiamat","Ultima","Valefor","Yojimbo","Zeromus","Durandal","Ridill" },
+	[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
+	[3] = { "None","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
 	[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
-	[5] = { "None","Adamantoise","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Siren","Zalera","Balmung","Sargatanas" },
-	[6] = {	"None","Behemoth","Brynhildr","Diabolos","Exodus","Famfrit","Lamia","Leviathan","Malboro","Twintania","Ultros","Excalibur","Hyperion" },
-	[7] = {	"None","Cerberus","Lich","Moogle","Odin","Phoenix","Shiva","Zodiark","Ragnarok","Omega" },
+	[5] = { "None","Adamantoise","Balmung","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Sargatanas","Siren","Zalera" },
+	[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
+	[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
 }
 
 ffxivminion.AutoGrindDefault = [[
