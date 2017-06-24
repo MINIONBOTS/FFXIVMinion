@@ -785,7 +785,7 @@ function ml_navigation.Navigate(event, ticks )
 				
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
 				
-					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal) and ffnav.currentGoal.x ~= nil) then  -- ffnav.currentGoal was nil nil nil once ... idk how or why...
+					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal)) then
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
 						Player:Stop()	-- calling stop first and then creating a new path would be the more logical order eh ;)
@@ -2330,7 +2330,7 @@ function ml_navigation.Navigate(event, ticks )
 				
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
 				
-					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal) and ffnav.currentGoal.x ~= nil) then  -- ffnav.currentGoal was nil nil nil once ... idk how or why...
+					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal)) then  -- ffnav.currentGoal was nil nil nil once ... idk how or why...
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
 						NavigationManager:UseCubes(false)
