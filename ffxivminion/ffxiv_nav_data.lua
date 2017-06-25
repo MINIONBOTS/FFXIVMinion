@@ -1083,11 +1083,20 @@ ffxiv_aetheryte_data = {
 	[612] = {
 		{id = 612, aethid = 98, x = -629.11, y = 132.89, z = -509.15}
 	},
+	[613] = {
+		{id = 613, aethid = 106, x = 90.50, y = 3.03, z = -587.47},
+		{id = 613, aethid = 105, x = 365.97, y = -117.95, z = -263.31, 
+			requires = function () return QuestCompleted(2482) end,
+		},
+	},
 	[620] = {
 		{id = 620, aethid = 100, x = 114.58, y = 120.10, z = -747.07}
 	},
 	[622] = {
-		{id = 622, aethid = 109, x = 555.07, y = -19.51, z = 346.61}
+		{id = 622, aethid = 109, x = 555.07, y = -19.51, z = 346.61},
+		{id = 622, aethid = 110, x = 71.34, y = 114.90, z = 36.01, 
+			requires = function () return QuestCompleted(2507) end,
+		},
 	},
 	[628] = {
 		{id = 628, aethid = 111, x = 45.89, y = 4.20, z = -40.59}
