@@ -1275,6 +1275,7 @@ function c_walktopos:evaluate()
 end
 function e_walktopos:execute()
 
+	local needsStealth = ml_global_information.needsStealth
 	-- this stealth poop would need to go into the navigation itself...so it does not stupidly stealth before the bot goes to a cube path
 	if (not IsFlying() and not ffnav.isascending and not ffnav.IsProcessing() and table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil ) then
 		local canstealth = true
@@ -1286,6 +1287,7 @@ function e_walktopos:execute()
 		end
 		if ( canstealth ) then
 			if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+
 				local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying()
 				local hasStealth = HasBuff(Player.id,47)
 				if (not hasStealth and needsStealth) then
@@ -1373,47 +1375,54 @@ function c_avoidaggressives:evaluate()
 	if (table.valid(aggressives)) then
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		for i,entity in pairs(aggressives) do
-		
-			local hasEntry = false
-			for i,area in pairs(avoidanceAreas) do
-				if (area.id == entity.id) then
-					local movedDist = PDistance3D(entity.pos.x,entity.pos.y,entity.pos.z,area.x,area.y,area.z)
-					if (area.expiration < Now()) then
-						d("Removed avoidance area for ["..tostring(entity.name).."] because it has expired.")
-						avoidanceAreas[i] = nil
-					elseif (movedDist > 4) then
-						d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
-						avoidanceAreas[i] = nil
-					else
-						hasEntry = true
-					end
-				end
-			end
-			
-			if (not hasEntry) then
-				local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 10, expiration = Now() + 15000, source = "c_avoidaggressives" }
-				
-				local canAdd = true
-				if (interactable) then
-					local intDist = math.distance2d(interactable.pos,newArea)
-					if (intDist <= newArea.r) then
-						d("Could not add avoidance area, too close to interactable.")
-						canAdd = false
+			if (entity.distance2d < 15 or entity.los2 or entity.los) then
+				local hasEntry = false
+				for i,area in pairs(avoidanceAreas) do
+					if (area.id == entity.id) then
+						local movedDist = PDistance3D(entity.pos.x,entity.pos.y,entity.pos.z,area.x,area.y,area.z)
+						if (area.expiration < Now()) then
+							d("Removed avoidance area for ["..tostring(entity.name).."] because it has expired.")
+							avoidanceAreas[i] = nil
+						elseif (movedDist > 4) then
+							d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
+							avoidanceAreas[i] = nil
+						else
+							hasEntry = true
+						end
 					end
 				end
 				
-				if (table.valid(cpos)) then
-					local intDist = math.distance2d(cpos,newArea)
-					if (intDist <= newArea.r) then
-						d("Could not add avoidance area, too close to destination.")
-						canAdd = false
+				if (not hasEntry) then
+					local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 10, expiration = Now() + 15000, source = "c_avoidaggressives" }
+					
+					local canAdd = true
+					if (interactable) then
+						local intDist = math.distance2d(interactable.pos,newArea)
+						if (intDist <= newArea.r) then
+							if (intDist < 3) then
+								d("Could not add avoidance area, too close to interactable.")
+								canAdd = false
+							else
+								newArea.r = intDist - 1
+							end
+						end
 					end
-				end
-				
-				if (canAdd) then
-					d("Setting avoidance area for ["..tostring(entity.name).."].")
-					table.insert(avoidanceAreas,newArea)
-					needsUpdate = true
+					
+					--[[
+					if (table.valid(cpos)) then
+						local intDist = math.distance2d(cpos,newArea)
+						if (intDist <= newArea.r) then
+							d("Could not add avoidance area, too close to destination.")
+							canAdd = false
+						end
+					end
+					--]]
+					
+					if (canAdd) then
+						d("Setting avoidance area for ["..tostring(entity.name).."].")
+						table.insert(avoidanceAreas,newArea)
+						needsUpdate = true
+					end
 				end
 			end
 		end		
@@ -1439,9 +1448,9 @@ function c_avoidaggressives:evaluate()
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		if (table.valid(avoidanceAreas)) then
 			--d("Setting avoidance areas.")
-			--NavigationManager:SetAvoidanceAreas(avoidanceAreas)
+			NavigationManager:SetAvoidanceAreas(avoidanceAreas)
 		else
-			--NavigationManager:ClearAvoidanceAreas()
+			NavigationManager:ClearAvoidanceAreas()
 		end
 		c_avoidaggressives.lastSet = { mapid = Player.localmapid, x = ppos.x, y = ppos.y, z = ppos.z }
 	end
@@ -2311,7 +2320,7 @@ c_stealthupdate.timer = 0
 function c_stealthupdate:evaluate()	
 	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
 	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
-		
+	
 		local fs = tonumber(Player:GetFishingState())
 		if (IsControlOpen("Gathering") or fs ~= 0) then
 			return false
@@ -3189,7 +3198,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.targetable and interactable.distance < 50) then
+	if (interactable and interactable.targetable) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end

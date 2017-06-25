@@ -500,12 +500,13 @@ function e_returntobase:execute()
 		pos = p
 	end
 	
-	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.useTeleport = (gTeleportHack)
 	newTask.range = range
-	newTask.alwaysMount = true
+	if (CanFlyInZone()) then
+		newTask.alwaysMount = true
+	end
 	newTask.remainMounted = true
 	newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
