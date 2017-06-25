@@ -884,7 +884,8 @@ function dev.DrawCall(event, ticks )
 					if ( p ) then 
 						GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
 						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
+						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+						
 						
 						if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
 						
@@ -903,6 +904,13 @@ function dev.DrawCall(event, ticks )
 							if (table.valid(stat)) then
 								for key, value in pairs(stat) do
 									GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
+								end
+							end
+							
+							for i = 0, 100 do
+								local s = Player:GetStats(i)
+								if(s)then
+									GUI:BulletText("Index: "..tostring(i).." - Value: "..tostring(s))
 								end
 							end
 							GUI:TreePop()
