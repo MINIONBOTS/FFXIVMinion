@@ -159,6 +159,9 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("HW - B Rank:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("HW - A Rank:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("HW - S Rank:")
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text("SB - B Rank:")
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text("SB - A Rank:")
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text("SB - S Rank:")
 							GUI:NextColumn() -- Toggles.
 							ffxiv_radar.HuntBRankARR, changed = GUI:Checkbox("##HuntBRankARR", ffxiv_radar.HuntBRankARR) if (changed) then Settings.ffxiv_radar.HuntBRankARR = ffxiv_radar.HuntBRankARR RadarTable = {} end
 							ffxiv_radar.HuntARankARR, changed = GUI:Checkbox("##HuntARankARR", ffxiv_radar.HuntARankARR) if (changed) then Settings.ffxiv_radar.HuntARankARR = ffxiv_radar.HuntARankARR RadarTable = {} end
@@ -166,6 +169,9 @@ function ffxiv_radar.DrawCall(event, ticks )
 							ffxiv_radar.HuntBRankHW, changed = GUI:Checkbox("##HuntBRankHW", ffxiv_radar.HuntBRankHW) if (changed) then Settings.ffxiv_radar.HuntBRankHW = ffxiv_radar.HuntBRankHW RadarTable = {} end
 							ffxiv_radar.HuntARankHW, changed = GUI:Checkbox("##HuntARankHW", ffxiv_radar.HuntARankHW) if (changed) then Settings.ffxiv_radar.HuntARankHW = ffxiv_radar.HuntARankHW RadarTable = {} end
 							ffxiv_radar.HuntSRankHW, changed = GUI:Checkbox("##HuntSRankHW", ffxiv_radar.HuntSRankHW) if (changed) then Settings.ffxiv_radar.HuntSRankHW = ffxiv_radar.HuntSRankHW RadarTable = {} end
+							ffxiv_radar.HuntBRankSB, changed = GUI:Checkbox("##HuntBRankSB", ffxiv_radar.HuntBRankSB) if (changed) then Settings.ffxiv_radar.HuntBRankSB = ffxiv_radar.HuntBRankSB RadarTable = {} end
+							ffxiv_radar.HuntARankSB, changed = GUI:Checkbox("##HuntARankSB", ffxiv_radar.HuntARankSB) if (changed) then Settings.ffxiv_radar.HuntARankSB = ffxiv_radar.HuntARankSB RadarTable = {} end
+							ffxiv_radar.HuntSRankSB, changed = GUI:Checkbox("##HuntSRankSB", ffxiv_radar.HuntSRankSB) if (changed) then Settings.ffxiv_radar.HuntSRankSB = ffxiv_radar.HuntSRankSB RadarTable = {} end
 							GUI:NextColumn() -- Current colours.
 							GUI:ColorButton(ffxiv_radar.HuntBRankARRColour.r,ffxiv_radar.HuntBRankARRColour.g,ffxiv_radar.HuntBRankARRColour.b,ffxiv_radar.HuntBRankARRColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntBRankARRColour" end
 							GUI:ColorButton(ffxiv_radar.HuntARankARRColour.r,ffxiv_radar.HuntARankARRColour.g,ffxiv_radar.HuntARankARRColour.b,ffxiv_radar.HuntARankARRColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntARankARRColour" end
@@ -173,6 +179,9 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:ColorButton(ffxiv_radar.HuntBRankHWColour.r,ffxiv_radar.HuntBRankHWColour.g,ffxiv_radar.HuntBRankHWColour.b,ffxiv_radar.HuntBRankHWColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntBRankHWColour" end
 							GUI:ColorButton(ffxiv_radar.HuntARankHWColour.r,ffxiv_radar.HuntARankHWColour.g,ffxiv_radar.HuntARankHWColour.b,ffxiv_radar.HuntARankHWColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntARankHWColour" end
 							GUI:ColorButton(ffxiv_radar.HuntSRankHWColour.r,ffxiv_radar.HuntSRankHWColour.g,ffxiv_radar.HuntSRankHWColour.b,ffxiv_radar.HuntSRankHWColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntSRankHWColour" end
+							GUI:ColorButton(ffxiv_radar.HuntBRankSBColour.r,ffxiv_radar.HuntBRankSBColour.g,ffxiv_radar.HuntBRankSBColour.b,ffxiv_radar.HuntBRankSBColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntBRankSBColour" end
+							GUI:ColorButton(ffxiv_radar.HuntARankSBColour.r,ffxiv_radar.HuntARankSBColour.g,ffxiv_radar.HuntARankSBColour.b,ffxiv_radar.HuntARankSBColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntARankSBColour" end
+							GUI:ColorButton(ffxiv_radar.HuntSRankSBColour.r,ffxiv_radar.HuntSRankSBColour.g,ffxiv_radar.HuntSRankSBColour.b,ffxiv_radar.HuntSRankSBColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntSRankSBColour" end
 							GUI:Columns()
 							GUI:TreePop()
 							-- Update colour from colour picker.
@@ -181,7 +190,10 @@ function ffxiv_radar.DrawCall(event, ticks )
 							elseif tablecheck == "HuntSRankARRColour" and writedata ~= nil then ffxiv_radar.HuntSRankARRColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankARRColour = ffxiv_radar.HuntSRankARRColour RadarTable = {}
 							elseif tablecheck == "HuntBRankHWColour" and writedata ~= nil then ffxiv_radar.HuntBRankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntBRankHWColour = ffxiv_radar.HuntBRankHWColour RadarTable = {}
 							elseif tablecheck == "HuntARankHWColour" and writedata ~= nil then ffxiv_radar.HuntARankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntARankHWColour = ffxiv_radar.HuntARankHWColour RadarTable = {}
-							elseif tablecheck == "HuntSRankHWColour" and writedata ~= nil then ffxiv_radar.HuntSRankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankHWColour = ffxiv_radar.HuntSRankHWColour RadarTable = {}				
+							elseif tablecheck == "HuntSRankHWColour" and writedata ~= nil then ffxiv_radar.HuntSRankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankHWColour = ffxiv_radar.HuntSRankHWColour RadarTable = {}		
+							elseif tablecheck == "HuntBRankSBColour" and writedata ~= nil then ffxiv_radar.HuntBRankSBColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntBRankSBColour = ffxiv_radar.HuntBRankSBColour RadarTable = {}
+							elseif tablecheck == "HuntARankSBColour" and writedata ~= nil then ffxiv_radar.HuntARankSBColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntARankSBColour = ffxiv_radar.HuntARankSBColour RadarTable = {}
+							elseif tablecheck == "HuntSRankSBColour" and writedata ~= nil then ffxiv_radar.HuntSRankSBColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankSBColour = ffxiv_radar.HuntSRankSBColour RadarTable = {}				
 							end
 						end
 					elseif TabVal == 2 then -- Custom List Tab.
@@ -537,28 +549,29 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.All or ffxiv_radar.HuntSRankHW) and (econtentid == 4374 or econtentid == 4375 or econtentid == 4376 or econtentid == 4377 or econtentid == 4378 or econtentid == 4380)) then -- HW S Rank.
 							Colour = ffxiv_radar.HuntSRankHWColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.HuntARankHW) and (econtentid == 4362 or econtentid == 4363 or econtentid == 4364 or econtentid == 4365 or econtentid == 4366 or 
-						econtentid == 4367 or econtentid == 4368 or econtentid == 4369 or econtentid == 4370 or econtentid == 4371 or econtentid == 4372 or econtentid == 4373)) then -- HW A Rank.
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntARankHW) and (econtentid >= 4362 and econtentid <= 4373)) then -- HW A Rank.
 							Colour = ffxiv_radar.HuntARankHWColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.HuntBRankHW) and (econtentid == 4350 or econtentid == 4351 or econtentid == 4352 or econtentid == 4353 or econtentid == 4354 or 
-						econtentid == 4355 or econtentid == 4356 or econtentid == 4357 or econtentid == 4358 or econtentid == 4359 or econtentid == 4360 or econtentid == 4361)) then -- HW B Rank.
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntBRankHW) and (econtentid >= 4350 and econtentid <= 4361)) then -- HW B Rank.
 							Colour = ffxiv_radar.HuntBRankHWColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.HuntSRankARR) and (econtentid == 2953 or econtentid == 2954 or econtentid == 2955 or econtentid == 2956 or econtentid == 2957 or 
-						econtentid == 2958 or econtentid == 2959 or econtentid == 2960 or econtentid == 2961 or econtentid == 2962 or econtentid == 2963 or 
-						econtentid == 2964 or econtentid == 2965 or econtentid == 2966 or econtentid == 2967 or econtentid == 2968 or econtentid == 2969)) then -- ARR S Rank.
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntSRankARR) and (econtentid >= 2953 and econtentid <= 2969)) then -- ARR S Rank.
 							Colour = ffxiv_radar.HuntSRankARRColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.HuntARankARR) and (econtentid == 2936 or econtentid == 2937 or econtentid == 2938 or econtentid == 2939 or econtentid == 2940 or 
-						econtentid == 2941 or econtentid == 2942 or econtentid == 2943 or econtentid == 2944 or econtentid == 2945 or econtentid == 2946 or 
-						econtentid == 2947 or econtentid == 2948 or econtentid == 2949 or econtentid == 2950 or econtentid == 2951 or econtentid == 2952)) then -- ARR A Rank.
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntARankARR) and (econtentid >= 2936 and econtentid <= 2952)) then -- ARR A Rank.
 							Colour = ffxiv_radar.HuntARankARRColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.HuntBRankARR) and (econtentid == 2919 or econtentid == 2920 or econtentid == 2921 or econtentid == 2922 or econtentid == 2923 or econtentid == 2924 or 
-						econtentid == 2925 or econtentid == 2926 or econtentid == 2927 or econtentid == 2928 or econtentid == 2929 or econtentid == 2930 or econtentid == 2931 or 
-						econtentid == 2932 or econtentid == 2933 or econtentid == 2934 or econtentid == 2935)) then -- ARR B Rank.
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntBRankARR) and (econtentid >= 2919 and econtentid <= 2935)) then -- ARR B Rank.
 							Colour = ffxiv_radar.HuntBRankARRColour
+							Draw = true
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntSRankSB) and (econtentid >= 5984 and econtentid <= 5989)) then -- SB S Rank.
+							Colour = ffxiv_radar.HuntSRankSBColour
+							Draw = true
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntARankSB) and (econtentid >= 5990 and econtentid <= 6001)) then -- SB A Rank.
+							Colour = ffxiv_radar.HuntARankSBColour
+							Draw = true
+						elseif ((ffxiv_radar.All or ffxiv_radar.HuntBRankSB) and (econtentid >= 6002 and econtentid <= 6013)) then -- SB B Rank.
+							Colour = ffxiv_radar.HuntBRankSBColour
 							Draw = true
 						-- End of hunts.
 						elseif ((ffxiv_radar.All or ffxiv_radar.Attackables) and eattackable and e.fateid ~= 0) then -- Attackable Fates.
@@ -758,6 +771,9 @@ function ffxiv_radar.Settings()
 	ffxiv_radar.HuntBRankHW = Settings.ffxiv_radar.HuntBRankHW or false
 	ffxiv_radar.HuntARankHW = Settings.ffxiv_radar.HuntARankHW or false
 	ffxiv_radar.HuntSRankHW = Settings.ffxiv_radar.HuntSRankHW or false
+	ffxiv_radar.HuntBRankSB = Settings.ffxiv_radar.HuntBRankSB or false
+	ffxiv_radar.HuntARankSB = Settings.ffxiv_radar.HuntARankSB or false
+	ffxiv_radar.HuntSRankSB = Settings.ffxiv_radar.HuntSRankSB or false
 	-- Hunt Filter Colour Values.
 	ffxiv_radar.HuntBRankARRColour = Settings.ffxiv_radar.HuntBRankARRColour or Colours.Solid.orange
 	ffxiv_radar.HuntARankARRColour = Settings.ffxiv_radar.HuntARankARRColour or Colours.Solid.magenta
@@ -765,6 +781,9 @@ function ffxiv_radar.Settings()
 	ffxiv_radar.HuntBRankHWColour = Settings.ffxiv_radar.HuntBRankHWColour or Colours.Solid.orange
 	ffxiv_radar.HuntARankHWColour = Settings.ffxiv_radar.HuntARankHWColour or Colours.Solid.magenta
 	ffxiv_radar.HuntSRankHWColour = Settings.ffxiv_radar.HuntSRankHWColour or Colours.Solid.white
+	ffxiv_radar.HuntBRankSBColour = Settings.ffxiv_radar.HuntBRankSBColour or Colours.Solid.orange
+	ffxiv_radar.HuntARankSBColour = Settings.ffxiv_radar.HuntARankSBColour or Colours.Solid.magenta
+	ffxiv_radar.HuntSRankSBColour = Settings.ffxiv_radar.HuntSRankSBColour or Colours.Solid.white
 end
 
 
