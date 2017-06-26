@@ -1535,21 +1535,27 @@ function ffnav.Ascend()
 					end
 				end
 			else
-				d("[Navigation]: Jump to Ascend.")
-				Player:Jump()
-				Player:Move(FFXIV.MOVEMENT.UP) 
-				ffnav.Await(math.random(50,150))
-				return false
+				if(not Player.ismounted)then
+					d("[Navigation]: WE SHOULD NEVER BE HERE, REPORT THIS TO US PLEASE WITH A SCREENSHOT IF POSSIBLE")
+					return false
+				else
+					d("[Navigation]: Jump to Ascend.")
+					Player:Jump()
+					Player:Move(FFXIV.MOVEMENT.UP) 
+					ffnav.Await(math.random(50,150))
+					return false
+				end
 			end
 		end, 
 		failure = function ()
-			local fail = Player.incombat and not Player.ismounted
+			--local fail = Player.incombat and not Player.ismounted		-- for what cases is this player.incombat ? afaik we are already mounted or we are not (no clue how we got in this ascend() wiuthout being mounted though), and once we are moutned we can fly always  even while being in combat ?
+			local fail = not Player.ismounted
 			if ( fail ) then
-				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.
+				d("[Navigation]: Player is not mounted to Ascend...")
+				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.				
 			end
 			return fail
 		end,
-		followall = function () end  --d("WHAT IS THIS ?!?!?  Stopping the player half way upwards completely breaks the navigation logic!?") Player:Stop() end
 	}
 end
 -- END OF 64 BIT CODE
