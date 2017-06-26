@@ -694,6 +694,69 @@ function dev.DrawCall(event, ticks )
 --  END PARTY			
 			
 			
+			if ( GUI:TreeNode("Player specific Data")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)					
+					local p = Player
+					if ( p ) then 
+						GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
+						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
+						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+						
+						if ( GUI:TreeNode("Job Levels")) then
+							local lev = Player.levels
+							if (table.valid(lev)) then
+								for key, value in pairs(lev) do
+									GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+								end
+							end
+							GUI:TreePop()
+						end
+						
+						if ( GUI:TreeNode("Stats & Char Attributes")) then
+							local stat = Player.stats
+							if (table.valid(stat)) then
+								for key, value in pairs(stat) do
+									GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
+								end
+							end
+							
+							for i = 0, 100 do
+								local s = Player:GetStats(i)
+								if(s)then
+									GUI:BulletText("Index: "..tostring(i).." - Value: "..tostring(s))
+								end
+							end
+							GUI:TreePop()
+						end
+						
+						if ( GUI:TreeNode("Eorzea Time")) then
+							local ezt = GetEorzeaTime()
+							GUI:BulletText(".bell") GUI:SameLine(200) GUI:InputText("##devezt",tostring(ezt.bell))
+							GUI:BulletText(".minute") GUI:SameLine(200) GUI:InputText("##devezt2",tostring(ezt.minute))
+							GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
+							GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
+							GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
+							GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
+							GUI:TreePop()
+						end
+						
+						if ( GUI:TreeNode("Gauge Data") ) then
+							local g = Player.gauge
+							if ( table.valid(g)) then
+								for i,k in pairs (g) do
+									GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg"..tostring(i),tostring(k))	
+								end							
+							end
+							GUI:TreePop()
+						end
+					end					
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end
+-- END PLAYER INFO		
+
 			if ( GUI:TreeNode("Quest List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -873,61 +936,16 @@ function dev.DrawCall(event, ticks )
 			end
 -- END UI PERMISSIONS
 
-
-			if ( GUI:TreeNode("Utility Functions & Player specific Info")) then
+		
+			if ( GUI:TreeNode("Utility Functions")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
-					
-					local p = Player
-					if ( p ) then 
-						GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
-						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+										
+																
+					if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
 						
-						
-						if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
-						
-						if ( GUI:TreeNode("Job Levels")) then
-							local lev = Player.levels
-							if (table.valid(lev)) then
-								for key, value in pairs(lev) do
-									GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
-								end
-							end
-							GUI:TreePop()
-						end
-						
-						if ( GUI:TreeNode("Stats")) then
-							local stat = Player.stats
-							if (table.valid(stat)) then
-								for key, value in pairs(stat) do
-									GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
-								end
-							end
-							
-							for i = 0, 100 do
-								local s = Player:GetStats(i)
-								if(s)then
-									GUI:BulletText("Index: "..tostring(i).." - Value: "..tostring(s))
-								end
-							end
-							GUI:TreePop()
-						end
-						
-						if ( GUI:TreeNode("Eorzea Time")) then
-							local ezt = GetEorzeaTime()
-							GUI:BulletText(".bell") GUI:SameLine(200) GUI:InputText("##devezt",tostring(ezt.bell))
-							GUI:BulletText(".minute") GUI:SameLine(200) GUI:InputText("##devezt2",tostring(ezt.minute))
-							GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
-							GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
-							GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
-							GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
-							GUI:TreePop()
-						end
-					end
-					
 					local t = Player:GetTarget()
 					if ( t ) then
 						if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.z,true))) end	-- without the "true" argument, the facing is 100% instant, else it is smooth
@@ -942,9 +960,9 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
--- END UTILITY FUNCTIONS & INFO		
+-- 	END UTILITY FUNCTIONS
 
-			
+
 			GUI:PopStyleVar(2)
 		end
 		GUI:End()
