@@ -1434,16 +1434,8 @@ function c_avoidaggressives:evaluate()
 		if (table.valid(avoidanceAreas)) then
 			for i,area in pairs(avoidanceAreas) do
 				if (area.source == "c_avoidaggressives") then
-					if (TableSize(avoidanceAreas) > 1) then
-						avoidanceAreas[i] = nil
-						needsUpdate = true
-					
-					-- the code below is quite silly for the case when other lua code parts are having also avoidance areas with different "sources" set, it would rmeove lall of em instead of only the onese we handle here
-					--[[else
-						ml_global_information.avoidanceAreas = {}
-						needsUpdate = true
-						break--]]
-					end
+					avoidanceAreas[i] = nil
+					needsUpdate = true
 				end
 			end
 		end

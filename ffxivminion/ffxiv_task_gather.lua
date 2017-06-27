@@ -1399,6 +1399,14 @@ function CanUseExpManual()
 	end
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+		if (Player.level >= 60 and MissingBuff(Player,1081)) then
+			local squadron, action = GetItem(14949)
+			if (squadron and action and squadron:IsReady(Player.id)) then
+				--d("Can use squadron manual.")
+				return true, squadron
+			end
+		end
+		
 		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,46)) then
 			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4633)
@@ -1437,33 +1445,16 @@ function CanUseExpManual()
 					return true, manual1
 				end
 			end
-			
-			if (Player.level >= 60) then
-				local squadron, action = GetItem(14949)
-				if (squadron and action and squadron:IsReady(Player.id)) then
-					--d("Can use squadron manual.")
-					return true, squadron
-				end
-				
-				local commercial, action = GetItem(12668)
-				if (commercial and action and commercial:IsReady(Player.id)) then
-					--d("Can use commercial manual.")
-					return true, commercial
-				end
-				
-				local manual2, action = GetItem(4635)
-				if (manual2 and action and manual2:IsReady(Player.id)) then
-					--d("Can use level 2 manual.")
-					return true, manual2
-				end
-				
-				local manual1, action = GetItem(4633)
-				if (manual1 and action and manual1:IsReady(Player.id)) then
-					return true, manual1
-				end
-			end
 		end
 	elseif (IsCrafter(Player.job)) then
+		if (Player.level >= 60 and MissingBuff(Player,1082)) then
+			local squadron, action = GetItem(14949)
+			if (squadron and action and squadron:IsReady(Player.id)) then
+				--d("Can use squadron manual.")
+				return true, squadron
+			end
+		end
+		
 		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,45)) then
 			if (Player.level >= 15 and Player.level < 25) then
 				local manual1, action = GetItem(4632)
@@ -1485,29 +1476,6 @@ function CanUseExpManual()
 			end
 
 			if (Player.level >= 45) then
-				local commercial, action = GetItem(12667)
-				if (commercial and action and not action.isoncd) then
-					return true, commercial
-				end
-				
-				local manual2, action = GetItem(4634)
-				if (manual2 and action and not action.isoncd) then
-					return true, manual2
-				end
-				
-				local manual1, action = GetItem(4632)
-				if (manual1 and action and not action.isoncd) then
-					return true, manual1
-				end
-			end
-			
-			if (Player.level >= 60) then
-				local squadron, action = GetItem(14950)
-				if (squadron and action and squadron:IsReady(Player.id)) then
-					--d("Can use squadron manual.")
-					return true, squadron
-				end
-				
 				local commercial, action = GetItem(12667)
 				if (commercial and action and not action.isoncd) then
 					return true, commercial
