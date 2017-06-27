@@ -3241,6 +3241,7 @@ function c_dointeract:evaluate()
 								return true
 							end
 							
+							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
 							c_dointeract.lastInteract = Now()
 							return false
 						end
@@ -3270,6 +3271,7 @@ function c_dointeract:evaluate()
 							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
+							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
 							return false
 						end
 					end

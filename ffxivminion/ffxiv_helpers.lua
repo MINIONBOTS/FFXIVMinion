@@ -114,7 +114,7 @@ function GetNearestGrindAttackable()
 	local memberids = {}
 	local filtered = {}
 
-	local attackables = EntityList("alive,attackable,fateid=0")
+	local attackables = EntityList("los,alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
 	
 		local pid = Player.id
@@ -281,7 +281,7 @@ function GetNearestFateAttackable()
 		
 		if (fate.status == 2 and fate.completion < 100) then
 			if (fate.type == 1) then
-				el = MEntityList("alive,attackable,onmesh")
+				el = MEntityList("los,alive,attackable,onmesh")
 				if (table.valid(el)) then
 					local bestTarget = nil
 					local highestHP = 0
@@ -298,7 +298,7 @@ function GetNearestFateAttackable()
 					if (bestTarget) then
 						if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
 							-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
-							el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
+							el = MEntityList("los,nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
 							if (table.valid(el)) then
 								local nearestQuick = nil
 								local nearestQuickDistance = 500
@@ -330,7 +330,7 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
-			el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance=10")
+			el = MEntityList("los,alive,attackable,targetingme,onmesh,maxdistance=10")
 			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
@@ -352,7 +352,7 @@ function GetNearestFateAttackable()
 			nearest,nearestDistance = nil,0
 			local companion = GetCompanionEntity()
 			if (companion) then
-				el = MEntityList("alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+				el = MEntityList("los,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
 				if (table.valid(el)) then
 					for i,e in pairs(el) do
 						if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
@@ -373,7 +373,7 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
-			el = MEntityList("alive,attackable,aggro,onmesh,maxdistance=10")
+			el = MEntityList("los,alive,attackable,aggro,onmesh,maxdistance=10")
 			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
@@ -2759,35 +2759,18 @@ function InCombatRange(targetid)
 		end
 	end
 	
-	--if ( attackRange < 5 ) then			
-		--if (skillID ~= nil) then
-			--[[
-			if (highestRange > 5) then
-				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
-					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
-						if SkillMgr.Cast( target ) then
-							local pos = target.pos
-							SetFacing(pos.x,pos.y,pos.z)
-							return true
-						end
-					end
-				elseif (charge) then
-					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
-						if SkillMgr.Cast( target ) then
-							local pos = target.pos
-							SetFacing(pos.x,pos.y,pos.z)
-							return true
-						end
-					end
-				end
-			end
-			--]]
-		--end
-	--else
-		return (target.distance2d ~= 0 and target.distance2d <= (attackRange * (tonumber(combatRange) / 100)))
-	--end
-
-	--return false
+	local gcdSkills = SkillMgr.GCDSkills
+	if (table.valid(gcdSkills)) then
+		local actionid = gcdSkills[Player.job]
+		if (actionid) then
+			local action = ActionList:Get(1,actionid)
+			if (action and action:IsReady(targetid)) then
+				return true
+			end		
+		end
+	end
+	
+	return (target.distance2d ~= 0 and target.distance2d <= (attackRange * (tonumber(combatRange) / 100)))
 end
 function CanAttack(targetid,skillid,skilltype)
 	local target = {}
@@ -2843,15 +2826,15 @@ function IsPositionLocked()
 end
 function IsLoading()
 	if (IsControlOpen("NowLoading")) then
-		--d("IsLoading [1]")
+		--d("IsLoading [1] - Loading screen open.")
 		return true
 	elseif (Player.localmapid == 0) then
-		--d("IsLoading [2]")
+		--d("IsLoading [2] - In a transitional map state (mapid 0).")
 		return true
 	else
 		local meshState = NavigationManager:GetNavMeshState()
-		if (meshState ~= GLOBAL.MESHSTATE.MESHREADY and meshState ~= GLOBAL.MESHSTATE.MESHEMPTY) then
-			--d("IsLoading [3]")
+		if (In(meshState,GLOBAL.MESHSTATE.MESHLOADING,GLOBAL.MESHSTATE.MESHSAVING,GLOBAL.MESHSTATE.MESHBUILDING)) then
+			--d("IsLoading [3]: MESHSTATE ["..tostring(meshState).."]")
 			return true
 		end
 	end

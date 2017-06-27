@@ -452,6 +452,9 @@ function ffxiv_task_movetointeract.Create()
 	newinst.detectedMovement = false
 	newinst.stealthFunction = nil
 	
+	newinst.interactAttempts = 0
+	newinst.maxAttempts = 0
+	
 	gSkipTalk = true
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
@@ -584,6 +587,17 @@ function ffxiv_task_movetointeract:task_fail_eval()
 		return true
 	end
 	
+	if (IsNull(self.maxAttempts,0) > 0 and IsNull(self.interactAttempts,0) >= IsNull(self.maxAttempts,0)) then
+		if (not ml_global_information.failedInteracts) then
+			ml_global_information.failedInteracts = {}
+		end
+		if (self.interact) then
+			d("adding ["..tostring(self.interact).."] to failed interacts")
+			ml_global_information.failedInteracts[self.interact] = Now()
+		end
+		return true
+	end
+	
 	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 10000
@@ -598,7 +612,6 @@ function ffxiv_task_movetointeract:task_fail_eval()
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
-	d("kill interact")
     self.valid = false
 end
 
@@ -1710,7 +1723,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 		local target = MGetTarget()
 		if (not target or (target and target.id ~= self.interact)) then
 			local interact = EntityList:Get(tonumber(self.interact))
-			if (interact and interact.targetable and interact.distance < 50) then
+			if (interact and interact.targetable) then
 				Player:SetTarget(self.interact)
 				d("Setting target for interact.")
 			end		
