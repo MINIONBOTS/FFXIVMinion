@@ -400,7 +400,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:GetFishingState()))
 					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))
 					if (not dev.fishbait) then dev.fishbait = 0 end
-					GUI:BulletText("Bait itemID") GUI:SameLine(200) dev.fishbait = GUI:InputText("##devfi2",dev.fishbait) 
+					GUI:BulletText("Bait itemID") GUI:SameLine(200) dev.fishbait = GUI:InputInt("##devfi2",dev.fishbait,0,0) 
 					GUI:SameLine()
 					if (GUI:Button("Set Bait##"..tostring(id),50,15) ) then Player:SetBait(dev.fishbait) end
 					GUI:PopItemWidth()
