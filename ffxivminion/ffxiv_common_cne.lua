@@ -1240,6 +1240,7 @@ function c_walktopos:evaluate()
 	then
 		return false
 	end
+	c_walktopos.pos = {}
 
     if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then	
 		local myPos = Player.pos
@@ -1364,7 +1365,7 @@ function c_avoidaggressives:evaluate()
 	
 	local needsUpdate = false
 	
-	local interactable;
+	local interactable
 	if (ml_task_hub:CurrentTask().interact ~= 0) then
 		interactable = EntityList:Get(ml_task_hub:CurrentTask().interact)
 	end
@@ -1377,29 +1378,31 @@ function c_avoidaggressives:evaluate()
 		for i,entity in pairs(aggressives) do
 			if (entity.distance2d < 15 or entity.los2 or entity.los) then
 				local hasEntry = false
-				for i,area in pairs(avoidanceAreas) do
-					if (area.id == entity.id) then
-						local movedDist = PDistance3D(entity.pos.x,entity.pos.y,entity.pos.z,area.x,area.y,area.z)
-						if (area.expiration < Now()) then
-							d("Removed avoidance area for ["..tostring(entity.name).."] because it has expired.")
-							avoidanceAreas[i] = nil
-						elseif (movedDist > 4) then
-							d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
-							avoidanceAreas[i] = nil
-						else
-							hasEntry = true
+				for k,area in pairs(avoidanceAreas) do
+					if (area.source == "c_avoidaggressives") then
+						if (area.id == entity.id) then
+							local movedDist = PDistance3D(entity.pos.x,entity.pos.y,entity.pos.z,area.x,area.y,area.z)
+							if (area.expiration < Now()) then
+								d("Removed avoidance area for ["..tostring(entity.name).."] because it has expired.")
+								avoidanceAreas[k] = nil
+							elseif (movedDist > 4) then
+								d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
+								avoidanceAreas[k] = nil
+							else
+								hasEntry = true
+							end
 						end
 					end
 				end
 				
 				if (not hasEntry) then
-					local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 10, expiration = Now() + 15000, source = "c_avoidaggressives" }
+					local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 0, expiration = Now() + 15000, source = "c_avoidaggressives" }
 					
 					local canAdd = true
 					if (interactable) then
 						local intDist = math.distance2d(interactable.pos,newArea)
 						if (intDist <= newArea.r) then
-							if (intDist < 3) then
+							if (intDist < 9) then
 								d("Could not add avoidance area, too close to interactable.")
 								canAdd = false
 							else
@@ -1419,7 +1422,7 @@ function c_avoidaggressives:evaluate()
 					--]]
 					
 					if (canAdd) then
-						d("Setting avoidance area for ["..tostring(entity.name).."].")
+						d("Setting avoidance area for ["..tostring(entity.name).."]. Total Avoidance areas: "..tostring(table.size(avoidanceAreas)))
 						table.insert(avoidanceAreas,newArea)
 						needsUpdate = true
 					end
@@ -1434,10 +1437,12 @@ function c_avoidaggressives:evaluate()
 					if (TableSize(avoidanceAreas) > 1) then
 						avoidanceAreas[i] = nil
 						needsUpdate = true
-					else
+					
+					-- the code below is quite silly for the case when other lua code parts are having also avoidance areas with different "sources" set, it would rmeove lall of em instead of only the onese we handle here
+					--[[else
 						ml_global_information.avoidanceAreas = {}
 						needsUpdate = true
-						break
+						break--]]
 					end
 				end
 			end
