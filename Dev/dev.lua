@@ -21,7 +21,19 @@ dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 function dev.Init()
 	gDevFilterActions = false	
 	gDevAddonTextFilter = ""
+	gDevHackMaxZoom = 20.0
+	gDevHackMinZoom = 1.5
+	gDevHackDisableCutscene = false
+	gDevHackDisableRendering = false
+	gDevHackFlySpeed = 20.0
+	gDevHackWalkSpeed = 6.0
+	gDevHackWalkSpeedBwd = 2.4000000953674
+	gDevHackMountSpeed = 9.0
+	gDevHackMountSpeedBwd = 3.2000000476837
+	
 end
+
+
 RegisterEventHandler("Module.Initalize",dev.Init)
 
 function dev.ChatTest()
@@ -458,6 +470,58 @@ function dev.DrawCall(event, ticks )
 			end
 --End GATHERING COLLECTABLE
 
+			if ( GUI:TreeNode("Hacks")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(200)
+						if (GUI:Button("ResetCam##",100,15) ) then
+							Hacks:ResetCamMaxZoom() 
+							gDevHackMaxZoom = 20.0
+							gDevHackMinZoom = 1.5
+						end
+						gDevHackMaxZoom = GUI:SliderFloat("CamZoomMax", gDevHackMaxZoom, 1.5, 240)
+						if(gDevHackMaxZoom < gDevHackMinZoom) then
+							gDevHackMinZoom = gDevHackMaxZoom - 1.0
+						end
+						gDevHackMinZoom = GUI:SliderFloat("CamZoomMin", gDevHackMinZoom, 1.5, 240)
+						Hacks:SetCamMaxZoom(gDevHackMinZoom,gDevHackMaxZoom)
+						
+						gDevHackDisableCutscene = GUI:Checkbox("Disable Cutscene", gDevHackDisableCutscene)
+						Hacks:SkipCutscene(gDevHackDisableCutscene)
+						
+						gDevHackDisableRendering = GUI:Checkbox("Disable Rendering", gDevHackDisableRendering)
+						Hacks:Disable3DRendering(gDevHackDisableRendering)
+						
+						gDevHackFlySpeed = GUI:SliderFloat("Fly Speed", gDevHackFlySpeed, 10, 100)
+						Player:SetSpeed(0,gDevHackFlySpeed,gDevHackFlySpeed,gDevHackFlySpeed)	
+
+						gDevHackWalkSpeed = GUI:SliderFloat("Walk Speed", gDevHackWalkSpeed, 6, 50)
+						Player:SetSpeed(1,gDevHackWalkSpeed,gDevHackWalkSpeed,gDevHackWalkSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						
+						gDevHackMountSpeed = GUI:SliderFloat("Mount Speed", gDevHackMountSpeed, 6, 50)
+						Player:SetSpeed(2,gDevHackMountSpeed,gDevHackMountSpeed,gDevHackMountSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						
+						
+						if (GUI:Button("ResetSpeed##",100,15) ) then
+							Player:ResetSpeed(0) -- flying
+							Player:ResetSpeed(1) -- walking
+							Player:ResetSpeed(2) -- mounted
+							gDevHackFlySpeed = 20.0
+							gDevHackWalkSpeed = 6.0
+							gDevHackWalkSpeedBwd = 2.4000000953674
+							gDevHackMountSpeed = 9.0
+							gDevHackMountSpeedBwd = 3.2000000476837	
+						end
+						
+
+						
+					GUI:PopItemWidth()
+
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+--End HACKS
 
 			if ( GUI:TreeNode("Inventory")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
