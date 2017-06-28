@@ -1536,7 +1536,7 @@ function ffnav.Ascend()
 				end
 			else
 				if(not Player.ismounted)then
-					d("[Navigation]: WE SHOULD NEVER BE HERE, REPORT THIS TO US PLEASE WITH A SCREENSHOT IF POSSIBLE")
+					--This actually happens and needs to be handled!
 					return false
 				else
 					d("[Navigation]: Jump to Ascend.")
