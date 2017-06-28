@@ -1170,7 +1170,7 @@ function c_setbait:evaluate()
 					return true
 				end
 			end
-		else
+		elseif (baitChoice ~= "") then
 			d("Problem encountered with fishing task.  Need more bait, but have not set the task up with rebuy ids.")
 		end
 	end
@@ -2025,8 +2025,7 @@ end
 c_fishisloading = inheritsFrom( ml_cause )
 e_fishisloading = inheritsFrom( ml_effect )
 function c_fishisloading:evaluate()
-	local navmeshstate = NavigationManager:GetNavMeshState()
-	return MIsLoading() or In(navmeshstate,GLOBAL.MESHSTATE.MESHLOADING,GLOBAL.MESHSTATE.MESHSAVING,GLOBAL.MESHSTATE.MESHBUILDING)
+	return MIsLoading()
 end
 function e_fishisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
@@ -2406,7 +2405,6 @@ function ffxiv_task_fish:Init()
 	
 	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
     self:add( ke_nextTask, self.process_elements)
-	
 	
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 175 )
     self:add( ke_nextMarker, self.process_elements)

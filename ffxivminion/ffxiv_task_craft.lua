@@ -371,14 +371,19 @@ function c_precraftbuff:evaluate()
 			end
 		else
 			if (gFood ~= "None") then
-				local foodID = ml_global_information.foods[gFood]
-				local food, action = GetItem(foodID)
-				if (food and action and not action.isoncd and MissingBuff(Player,48,60)) then
-					cd("[PreCraftBuff]: Need to eat.",3)
-					e_precraftbuff.activity = "eat"
-					e_precraftbuff.id = foodID
-					e_precraftbuff.requiresLogClose = true
-					return true
+				local foodDetails = ml_global_information.foods[gFood]
+				if (foodDetails) then
+					local foodID = foodDetails.id
+					local foodStack = foodDetails.buffstackid
+					
+					local food, action = GetItem(foodID)
+					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
+						cd("[PreCraftBuff]: Need to eat.",3)
+						e_precraftbuff.activity = "eat"
+						e_precraftbuff.id = foodID
+						e_precraftbuff.requiresLogClose = true
+						return true
+					end
 				end
 			end
 		end
@@ -883,7 +888,7 @@ function ffxiv_task_craft:Draw()
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = ml_gui.style.current.windowpadding.y
 	local framePaddingY = ml_gui.style.current.framepadding.y
-	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	local itemSpacingY = ml_gui.style.current.itemspacing.y	
 	
 	local profileChanged = GUI_Combo(GetString("profile"), "gCraftProfileIndex", "gCraftProfile", ffxiv_craft.profilesDisplay)
 	if (profileChanged) then
