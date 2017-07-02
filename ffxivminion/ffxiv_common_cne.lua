@@ -1376,7 +1376,7 @@ function c_avoidaggressives:evaluate()
 	if (table.valid(aggressives)) then
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		for i,entity in pairs(aggressives) do
-			if (entity.distance2d < 15 or entity.los2 or entity.los) then
+			if (entity.distance2d < 15 or entity.los) then
 				local hasEntry = false
 				for k,area in pairs(avoidanceAreas) do
 					if (area.source == "c_avoidaggressives") then
