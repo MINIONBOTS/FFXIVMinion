@@ -1479,8 +1479,8 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then			
-			if ((not InCombatRange(target.id) or (not target.los and not target.los2)) and not MIsCasting()) then
-				--d("InCombatRange : "..tostring(InCombatRange(target.id))..",los:"..tostring(target.los)..",los2:"..tostring(target.los2))
+			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
+				--d("InCombatRange : "..tostring(InCombatRange(target.id))..",los:"..tostring(target.los)..",los2:"..tostring(target.los))
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p = FindClosestMesh(telePos)
@@ -1511,7 +1511,7 @@ function ffxiv_task_grindCombat:Process()
 					--d("Need to dismount if we are close.")
 					Dismount()
 				end
-				if (Player:IsMoving() and not IsFlying() and (target.los or target.los2)) then
+				if (Player:IsMoving() and not IsFlying() and target.los ) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
@@ -1524,7 +1524,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			--d("Checking if we are in combat range and the target was attackable.")
-			if (InCombatRange(target.id) and target.attackable and target.alive and (target.los or target.los2)) then
+			if (InCombatRange(target.id) and target.attackable and target.alive and target.los ) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 					--d("FIRE AWAY")
 					SkillMgr.Cast( target )
