@@ -1373,7 +1373,7 @@ function c_avoidaggressives:evaluate()
 	if (table.valid(aggressives)) then
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		for i,entity in pairs(aggressives) do
-			if (entity.distance2d < 15 or entity.los2 or entity.los) then
+			if (entity.distance2d < 15 or entity.los) then
 				local hasEntry = false
 				for k,area in pairs(avoidanceAreas) do
 					if (area.source == "c_avoidaggressives") then
@@ -3162,7 +3162,7 @@ function c_dointeract:evaluate()
 			end
 			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
 		end
-	end
+	end 
 	
 	-- Get the actual entity, to work with.
 	if (ml_task_hub:CurrentTask().interact ~= 0) then
@@ -3182,9 +3182,9 @@ function c_dointeract:evaluate()
 					local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z, x,y,z)
 					if (pathSize > 0) then
 						ml_task_hub:CurrentTask().pos = interactable.meshpos
-						d("found a size ["..tostring(pathSize).."] to the mesh position")
+						d("[c_dointeract] - Found a Path with size ["..tostring(pathSize).."] to "..(interactable.name or "").." mesh position.")
 					else
-						d("path to mesh position only returned ["..tostring(pathSize).."]")
+						d("[c_dointeract] - No Path towards mesh position of "..interactable.name.." found.")
 					end
 					ml_task_hub:CurrentTask().pathChecked = true
 				end
@@ -3238,7 +3238,7 @@ function c_dointeract:evaluate()
 							
 				--[[
 				if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
-					if (interactable.type == 5) then
+					if (interactable.type == 5) then -- Aetherytes
 						if (interactable.distance2d > 0 and interactable.distance2d <= 7) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
@@ -3248,7 +3248,7 @@ function c_dointeract:evaluate()
 								return true
 							end
 							
-							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
+							d("[c_dointeract] - ["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
 							Player:Interact(interactable.id)
 							if (TimeSince(c_dointeract.lastInteract) > 2000) then
 								ml_global_information.Await(1000)
@@ -3268,22 +3268,22 @@ function c_dointeract:evaluate()
 							range = 2.5
 						end
 						
-						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d > 0 and interactable.distance2d < range) then
+						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then --  interactable.distance2d > 0 causes the bot to stop when teleport gathering/questing is used and it exactly teleports to the target
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
 							if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
-								d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
+								d("[c_dointeract] - ["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
 								Player:Stop()
 								return true
 							end
 							
 							if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-								d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
+								d("[c_dointeract] - ["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
 								return false
 							end
 							
-							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+							d("[c_dointeract] - ["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
 							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
 							return false

@@ -117,7 +117,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gatherables:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Players:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("NPC's:")
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("EventObjects:")
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Event Objects:")
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Aether Currents:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("All:")
 							GUI:NextColumn() -- Toggles.
 							ffxiv_radar.Attackables, changed = GUI:Checkbox("##Attackables", ffxiv_radar.Attackables) if (changed) then Settings.ffxiv_radar.Attackables = ffxiv_radar.Attackables RadarTable = {} end
@@ -126,6 +127,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							ffxiv_radar.Players, changed = GUI:Checkbox("##Players", ffxiv_radar.Players) if (changed) then Settings.ffxiv_radar.Players = ffxiv_radar.Players RadarTable = {} end
 							ffxiv_radar.NPCs, changed = GUI:Checkbox("##NPCs", ffxiv_radar.NPCs) if (changed) then Settings.ffxiv_radar.NPCs = ffxiv_radar.NPCs RadarTable = {} end
 							ffxiv_radar.EventObjects, changed = GUI:Checkbox("##EventObjects", ffxiv_radar.EventObjects) if (changed) then Settings.ffxiv_radar.EventObjects = ffxiv_radar.EventObjects RadarTable = {} end
+							ffxiv_radar.AetherCurrents, changed = GUI:Checkbox("##AetherCurrents", ffxiv_radar.AetherCurrents) if (changed) then Settings.ffxiv_radar.AetherCurrents = ffxiv_radar.AetherCurrents RadarTable = {} end
 							ffxiv_radar.All, changed = GUI:Checkbox("##All", ffxiv_radar.All) if (changed) then Settings.ffxiv_radar.All = ffxiv_radar.All RadarTable = {} end
 							GUI:NextColumn() -- Current colours.
 							GUI:ColorButton(ffxiv_radar.AttackablesColour.r,ffxiv_radar.AttackablesColour.g,ffxiv_radar.AttackablesColour.b,ffxiv_radar.AttackablesColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "AttackablesColour" end
@@ -134,6 +136,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:ColorButton(ffxiv_radar.PlayersColour.r,ffxiv_radar.PlayersColour.g,ffxiv_radar.PlayersColour.b,ffxiv_radar.PlayersColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "PlayersColour" end
 							GUI:ColorButton(ffxiv_radar.NPCsColour.r,ffxiv_radar.NPCsColour.g,ffxiv_radar.NPCsColour.b,ffxiv_radar.NPCsColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "NPCsColour" end
 							GUI:ColorButton(ffxiv_radar.EventObjectsColour.r,ffxiv_radar.EventObjectsColour.g,ffxiv_radar.EventObjectsColour.b,ffxiv_radar.EventObjectsColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "EventObjectsColour" end
+							GUI:ColorButton(ffxiv_radar.AetherCurrentsColour.r,ffxiv_radar.AetherCurrentsColour.g,ffxiv_radar.AetherCurrentsColour.b,ffxiv_radar.AetherCurrentsColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "AetherCurrentsColour" end
 							GUI:ColorButton(ffxiv_radar.AllColour.r,ffxiv_radar.AllColour.g,ffxiv_radar.AllColour.b,ffxiv_radar.AllColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "AllColour" end
 							GUI:Columns()
 							GUI:TreePop()
@@ -144,6 +147,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							elseif tablecheck == "PlayersColour" and writedata ~= nil then ffxiv_radar.PlayersColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.PlayersColour = ffxiv_radar.PlayersColour RadarTable = {}
 							elseif tablecheck == "NPCsColour" and writedata ~= nil then ffxiv_radar.NPCsColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.NPCsColour = ffxiv_radar.NPCsColour RadarTable = {}
 							elseif tablecheck == "EventObjectsColour" and writedata ~= nil then ffxiv_radar.EventObjectsColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.EventObjectsColour = ffxiv_radar.EventObjectsColour RadarTable = {}
+							elseif tablecheck == "AetherCurrentsColour" and writedata ~= nil then ffxiv_radar.AetherCurrentsColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.AetherCurrentsColour = ffxiv_radar.AetherCurrentsColour RadarTable = {}
 							elseif tablecheck == "AllColour" and writedata ~= nil then ffxiv_radar.AllColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.AllColour = ffxiv_radar.AllColour RadarTable = {}			
 							end
 						end
@@ -589,6 +593,9 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.All or ffxiv_radar.NPCs) and efriendly and etype == 3) then -- NPCs.
 							Colour = ffxiv_radar.NPCsColour
 							Draw = true
+						elseif ((ffxiv_radar.All or ffxiv_radar.AetherCurrents) and (econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234)) then -- Event objects.
+							Colour = ffxiv_radar.AetherCurrentsColour
+							Draw = true
 						elseif ((ffxiv_radar.All or ffxiv_radar.EventObjects) and (etype == 0 or etype == 5 or etype == 7)) then -- Event objects.
 							Colour = ffxiv_radar.EventObjectsColour
 							Draw = true
@@ -752,6 +759,7 @@ function ffxiv_radar.Settings()
 	ffxiv_radar.Players = Settings.ffxiv_radar.Players or false
 	ffxiv_radar.NPCs = Settings.ffxiv_radar.NPCs or false
 	ffxiv_radar.EventObjects = Settings.ffxiv_radar.EventObjects or false
+	ffxiv_radar.AetherCurrents = Settings.ffxiv_radar.AetherCurrents or false
 	ffxiv_radar.All = Settings.ffxiv_radar.All or false
 	-- Radar Togglea.
 	ffxiv_radar.Enable3D = Settings.ffxiv_radar.Enable3D or false
@@ -763,6 +771,7 @@ function ffxiv_radar.Settings()
 	ffxiv_radar.PlayersColour = Settings.ffxiv_radar.PlayersColour or Colours.Solid.blue
 	ffxiv_radar.NPCsColour = Settings.ffxiv_radar.NPCsColour or Colours.Solid.yellow
 	ffxiv_radar.EventObjectsColour = Settings.ffxiv_radar.EventObjectsColour or Colours.Solid.cyan
+	ffxiv_radar.AetherCurrentsColour = Settings.ffxiv_radar.AetherCurrentsColour or Colours.Solid.white
 	ffxiv_radar.AllColour = Settings.ffxiv_radar.AllColour or Colours.Solid.gray
 	-- Hunt Filter Toggles.
 	ffxiv_radar.HuntBRankARR = Settings.ffxiv_radar.HuntBRankARR or false

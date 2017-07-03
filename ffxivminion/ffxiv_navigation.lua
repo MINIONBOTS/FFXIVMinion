@@ -1548,10 +1548,10 @@ function ffnav.Ascend()
 						return false
 					end
 				end
-			else
+			else				
 				if (not Player.ismounted)then
 					d("[Navigation]: WE SHOULD NEVER BE HERE, REPORT THIS TO US PLEASE WITH A SCREENSHOT IF POSSIBLE")
-					Player:StopMovement()
+					Player:StopMovement()  -- this is redudant, failure below is doing that already
 					return true
 				else
 					d("[Navigation]: Jump to Ascend.")
