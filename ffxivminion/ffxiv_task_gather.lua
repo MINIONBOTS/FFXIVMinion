@@ -281,12 +281,14 @@ function c_movetonode:evaluate()
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			
 			local gpos = gatherable.pos
-			local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
+			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
+			local reachable = gatherable.interactable
 			if (not reachable or IsFlying()) then
-				gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				
+				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
-				gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
@@ -407,18 +409,14 @@ function e_movetonode:execute()
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
-					--local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					--local p = FindClosestMesh(telePos)
-					--if (p) then
-						local alternateTask = ffxiv_task_movetopos.Create()
-						alternateTask.pos = pos
-						alternateTask.useTeleport = (gTeleportHack)
-						alternateTask.range = 2.5
-						alternateTask.remainMounted = true
-						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
-						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-						gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
-					--end
+					local alternateTask = ffxiv_task_movetopos.Create()
+					alternateTask.pos = pos
+					alternateTask.useTeleport = (gTeleportHack)
+					alternateTask.range = 2.5
+					alternateTask.remainMounted = true
+					alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
+					ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+					gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
 				end
 				gd("Need to use cordial, manual, or wait for GP. ",2)
 				return

@@ -20,7 +20,7 @@ e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
 	-- block killtarget for grinding when user has specified "Fates Only"
-	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gGrindFatesOnly ) then
+	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gGrindDoFates and gGrindFatesOnly ) then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
 			local aggro = GetNearestAggro()
 			if table.valid(aggro) then
@@ -290,6 +290,9 @@ function c_add_fate:evaluate()
     if (gGrindDoFates ) then
 		local fate = GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
+			
+			
+		
 			c_add_fate.fate = fate
 			return true
 		end
@@ -301,15 +304,6 @@ function e_add_fate:execute()
 	local fate = c_add_fate.fate
 	local ppos = Player.pos
 	local fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
-	
-	local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z,fatePos.x,fatePos.y,fatePos.z)
-	if (pathSize <= 0) then
-		--fatePos = FindClosestMesh(fatePos,20)
-		--local newPath = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z,fatePos.x,fatePos.y,fatePos.z)
-		--if (pathSize <= 0) then
-			--d("Cannot do fate ["..fate.name.."] because we cannot build a path to it.")
-		--end
-	end
 	
 	local newTask = ffxiv_task_fate.Create()
     newTask.fateid = c_add_fate.fate.id
@@ -717,7 +711,7 @@ function c_interactgate:evaluate()
 				local interacts = EntityList("targetable,maxdistance=4,contentid="..tostring(pos.g))
 				if (table.valid(interacts)) then
 					local i,interactable = next(interacts)
-					if (i and interactable) then
+					if (i and interactable and interactable.interactable) then
 						e_interactgate.id = interactable.id
 						if (pos.i) then
 							e_interactgate.selector = pos.i
@@ -741,6 +735,7 @@ function e_interactgate:execute()
 	
 	if (Player:IsMoving()) then
 		Player:Stop()
+		ml_global_information.Await(100,2000, function () return not Player:IsMoving() end)
 	end
 	
 	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
@@ -1266,8 +1261,10 @@ function c_walktopos:evaluate()
 			local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
 			
 			if (dist2d > range2d or dist3d > range3d or IsFlying()) then
-				c_walktopos.pos = gotoPos
-				return true
+				if (ml_navigation:CheckPath(myPos,gotoPos)) then
+					c_walktopos.pos = gotoPos
+					return true
+				end
 			end
 		end
     end
@@ -3219,7 +3216,27 @@ function c_dointeract:evaluate()
 		-- npcs (radius 0.5) (type 7): distance2d of 3.5
 
 		if (not IsFlying()) then
-			if (myTarget and myTarget.id == interactable.id) then
+			if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
+				-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
+				if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
+					d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
+					Player:Stop()
+					return true
+				end
+				
+				if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+					d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
+					return false
+				end
+				
+				d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+				Player:Interact(interactable.id)
+				ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+				
+				-- this return might need to be false, if the .interactable is not perfect
+				return true
+							
+				--[[
 				if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
 					if (interactable.type == 5) then
 						if (interactable.distance2d > 0 and interactable.distance2d <= 7) then
@@ -3273,6 +3290,7 @@ function c_dointeract:evaluate()
 						end
 					end
 				end
+				--]]
 			end
 		end
 	end

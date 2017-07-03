@@ -259,6 +259,9 @@ function c_precastbuff:evaluate()
 		end
 		
 		if (fs == 4) then
+			if (c_mooch2:evaluate()) then
+				return false
+			end
 			if (c_mooch:evaluate()) then
 				return false
 			end
@@ -348,6 +351,67 @@ function e_precastbuff:execute()
 			return
 		end
 	end
+end
+c_mooch2 = inheritsFrom( ml_cause )
+e_mooch2 = inheritsFrom( ml_effect )
+function c_mooch2:evaluate()
+	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
+		return false
+	end
+	
+	local useMooch2 = false
+	local marker = ml_marker_mgr.currentMarker
+	local task = ffxiv_fish.currentTask
+	if (table.valid(task)) then
+		useMooch2 = IsNull(task.usemooch2,false)
+	elseif (table.valid(marker)) then
+		useMooch2 = IsNull(marker.usemooch2,false)
+	else
+		return false
+	end
+	
+	if (type(useMooch2) == "string" and GUI_Get(useMooch2) ~= nil) then
+		useMooch2 = GUI_Get(useMooch2)
+	end
+	
+    local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+        local fs = tonumber(Player:GetFishingState())
+        if (fs == 0 or fs == 4) then
+			local mooch2 = SkillMgr.GetAction(268,1)
+			if (useMooch2 and mooch2 and mooch2:IsReady(Player.id)) then
+				local moochables2 = ""
+				if (table.valid(task)) then
+					if (task.moochables2) then
+						moochables2 = task.moochables2
+					end
+				elseif (table.valid(marker)) then
+					moochables2 = IsNull(marker.moochables2,"")
+				end
+				
+				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+				if (not lastCatch or moochables2 == "") then
+					return true
+				elseif (lastCatch and moochables2 ~= "") then
+					for moochables2 in StringSplit(moochables2,",") do
+						if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
+							return true
+						end
+					end
+				end
+			end
+        end
+    end
+    return false
+end
+function e_mooch2:execute()
+    local mooch2 = SkillMgr.GetAction(268,1)
+    if (mooch2 and mooch2:IsReady(Player.id)) then
+        if (mooch2:Cast()) then
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+		end
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+    end
 end
 
 c_mooch = inheritsFrom( ml_cause )
@@ -654,7 +718,11 @@ function e_bite:execute()
 				return
 			end
 		end
-			
+		local doubleHook = SkillMgr.GetAction(269,1)
+		if (doubleHook and doubleHook:IsReady(Player.id)) then
+			doubleHook:Cast()
+			return true
+		end
 		local bite = SkillMgr.GetAction(296,1)
 		if (bite and bite:IsReady(Player.id)) then
 			bite:Cast()
@@ -2444,6 +2512,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 45 )
     self:add(ke_precast, self.process_elements)
+	
+	local ke_mooch2 = ml_element:create( "Mooch2", c_mooch2, e_mooch2, 42 )
+    self:add(ke_mooch2, self.process_elements)
 	
 	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 40 )
     self:add(ke_mooch, self.process_elements)

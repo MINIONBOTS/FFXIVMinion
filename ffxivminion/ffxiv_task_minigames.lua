@@ -464,7 +464,7 @@ function c_interactgamevendor:evaluate()
 	local vendors = EntityList("shortestpath,contentid="..tostring(vendorID))
 	if (ValidTable(vendors)) then
 		local i,entity = next(vendors)
-		if (entity and entity.targetable) then
+		if (entity and entity.interactable) then
 			
 			local ppos = Player.pos
 			local epos = entity.pos

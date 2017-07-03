@@ -62,13 +62,15 @@ function GetNearestGrindAttackable()
 	local marker = ml_marker_mgr.currentMarker
 	
 	if (table.valid(task)) then
-		maxLevel = IsNull(task.mincontentlevel,1)
-		minLevel = IsNull(task.maxcontentlevel,70)
+		d("task is valid")
+		minLevel = IsNull(task.mincontentlevel,1)
+		maxLevel = IsNull(task.maxcontentlevel,70)
 		radius = IsNull(task.maxradius,150)
 		basePos = task.pos
 		blacklist = IsNull(task.blacklist,"")
 		whitelist = IsNull(task.whitelist,"")
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+		d("marker is valid")
 		minLevel = IsNull(marker.mincontentlevel,1)
 		maxLevel = IsNull(marker.maxcontentlevel,70)
 		radius = IsNull(marker.maxradius,150)
@@ -92,6 +94,9 @@ function GetNearestGrindAttackable()
 		end
 	end
 	
+	d("huntString:"..tostring(huntString))
+	d("excludeString:"..tostring(excludeString))
+	
 	local huntTable = {}
 	local excludeTable = {}
 	if (huntString ~= "") then
@@ -105,6 +110,9 @@ function GetNearestGrindAttackable()
 		end
 	end
 	
+	table.print(huntTable)
+	table.print(excludeTable)
+	
 	local selfaggro = {}
 	local immediateaggro = {}
 	local partyaggro = {}
@@ -116,6 +124,8 @@ function GetNearestGrindAttackable()
 
 	local attackables = EntityList("los,alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
+	
+		d("found ["..tostring(table.size(attackables).."]"))
 	
 		local pid = Player.id
 		local party = EntityList.myparty
@@ -181,6 +191,9 @@ function GetNearestGrindAttackable()
 	end
 	
 	if (table.valid(filtered)) then
+		
+		d("found ["..tostring(table.size(filtered).."] filtered enemies"))
+	
 		-- Check if we have something we can claim (for hunting near us)
 		if (table.valid(claimrange)) then
 			local nearest, nearestDistance = nil, 1000
@@ -241,8 +254,11 @@ function GetNearestGrindAttackable()
 		end
 			
 		if (nearest) then
-			d("[GetNearestGrindAttackable]: Returning nearest grindable mob.")
-			return attackables[nearest.id]
+			local actual = EntityList:Get(nearest.id)
+			if (actual) then
+				d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+				return actual
+			end
 		end
 	end
 	
@@ -1242,16 +1258,23 @@ end
 function GetNearestFromList(strList,pos,radius)
 	local el = MEntityList(strList)
 	if (table.valid(el)) then
+		local ppos = Player.pos
+		
 		local filteredList = {}
 		for i,e in pairs(el) do
-			if (not radius or (radius >= 100)) then
-				table.insert(filteredList,e)
-			else
-				local epos = e.pos
-				local dist = Distance2D(pos.x,pos.z,epos.x,epos.z)
-				
-				if (dist <= radius) then
+			local fate = fateList[i]
+			
+			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+			if (ml_navigation:CheckPath(ppos,fatePos)) then
+				if (not radius or (radius >= 100)) then
 					table.insert(filteredList,e)
+				else
+					local epos = e.pos
+					local dist = Distance2D(pos.x,pos.z,epos.x,epos.z)
+					
+					if (dist <= radius) then
+						table.insert(filteredList,e)
+					end
 				end
 			end
 		end
@@ -2186,23 +2209,24 @@ function IsInsideFate()
 	
 	return false
 end
-function GetClosestFate(pos,pathcheck)
-	if (pathcheck == nil) then pathcheck = false end
-	
+function GetClosestFate(pos)
+
 	local fateList = GetApprovedFates()
 	if (table.valid(fateList)) then	
-		--[[
-		if (pathcheck and not gTeleportHack) then
+
+		if (not gTeleportHack) then
+			local ppos = Player.pos
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-				if (not HasNavPath(pos,fatePos)) then
+				if (not ml_navigation:CheckPath(ppos,fatePos)) then
 					d("Removing fate ["..tostring(fate.id).."] from list, no path.")
 					table.remove(fateList, i)
+				else
+					d("had a path to fate ["..tostring(fate.name).."]")
 				end
 			end
 		end
-		--]]
 		
 		--d("Found some approved fates.")
         local nearestFate = nil
