@@ -5827,19 +5827,19 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-playerhp-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttack")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttack",SKM_PUnderAttack),"SKM_PUnderAttack"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttackMelee")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttackMelee",SKM_PUnderAttackMelee),"SKM_PUnderAttackMelee"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowL",SKM_PPowL,0,0),"SKM_PPowL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowB",SKM_PPowB,0,0),"SKM_PPowB"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPL",SKM_PMPPL,0,0),"SKM_PMPPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPB",SKM_PMPPB,0,0),"SKM_PMPPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowL",SKM_PPowL,0,0),"SKM_PPowL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowB",SKM_PPowB,0,0),"SKM_PPowB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPL",SKM_PMPPL,0,0),"SKM_PMPPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPB",SKM_PMPPB,0,0),"SKM_PMPPB"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPRGT",SKM_PMPRGT,0,0),"SKM_PMPRGT"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPRGT",SKM_PMPPRGT,0,0),"SKM_PMPPRGT"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >= Cost of [ID]")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PMPRSGT",SKM_PMPRSGT),"SKM_PMPRSGT"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPL",SKM_PTPL,0,0),"SKM_PTPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPB",SKM_PTPB,0,0),"SKM_PTPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPL",SKM_PTPL,0,0),"SKM_PTPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPB",SKM_PTPB,0,0),"SKM_PTPB"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5850,12 +5850,12 @@ function SkillMgr.DrawBattleEditor()
 		
 		GUI:PushItemWidth(100)
 		GUI:Text(GetString("skmPTCount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTCount",SKM_PTCount,0,0),"SKM_PTCount"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTHPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTHPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTMPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPL",SKM_PTMPL,0,0),"SKM_PTMPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTMPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPB",SKM_PTMPB,0,0),"SKM_PTMPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTTPL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPL",SKM_PTTPL,0,0),"SKM_PTTPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTTPB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPB",SKM_PTTPB,0,0),"SKM_PTTPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPL",SKM_PTMPL,0,0),"SKM_PTMPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPB",SKM_PTMPB,0,0),"SKM_PTMPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPL",SKM_PTTPL,0,0),"SKM_PTTPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPB",SKM_PTTPB,0,0),"SKM_PTTPB"); GUI:NextColumn();
 		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTBuff",SKM_PTBuff),"SKM_PTBuff"); GUI:NextColumn();
 		GUI:Text(GetString("Known Debuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PTKBuff",SKM_PTKBuff),"SKM_PTKBuff"); GUI:NextColumn();
 		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTNBuff",SKM_PTNBuff),"SKM_PTNBuff"); GUI:NextColumn();
@@ -5875,14 +5875,14 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("skmPGTRG")); GUI:NextColumn(); SKM_Combo("##SKM_PGTRG","gSMPlayerGroundTargetPosition","SKM_PGTRG",gSMPlayerGroundTargetPositions); GUI:NextColumn();
 		GUI:Text(GetString("skmPPos")); GUI:NextColumn(); SKM_Combo("##SKM_PPos","gSMPlayerPosition","SKM_PPos",gSMPlayerPositions); GUI:NextColumn();
 		
-		GUI:Text(GetString("targetHPGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPL",SKM_THPL,0,0),"SKM_THPL"); GUI:NextColumn();
-		GUI:Text(GetString("targetHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPB",SKM_THPB,0,0),"SKM_THPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmTHPCL")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCL",SKM_THPCL,0,0),"SKM_THPCL"); GUI:NextColumn();
-		GUI:Text(GetString("skmTHPCB")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCB",SKM_THPCB,0,0),"SKM_THPCB"); GUI:NextColumn();
+		GUI:Text(GetString("targetHPGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPL",SKM_THPL,0,0),"SKM_THPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetHPLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPB",SKM_THPB,0,0),"SKM_THPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCL",SKM_THPCL,0,0),"SKM_THPCL"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCB",SKM_THPCB,0,0),"SKM_THPCB"); GUI:NextColumn();
 		
 		GUI:Text(GetString("hpAdvantage")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_THPADV",SKM_THPADV,0,0,2),"SKM_THPADV"); GUI:NextColumn();
-		GUI:Text(GetString("targetTPLE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
-		GUI:Text(GetString("targetMPLE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetTPLE",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetMPLE",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
 		GUI:Text(GetString("skmTCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
 		GUI:Text(GetString("skmTNCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
 
@@ -5921,7 +5921,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("enmityAOE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EnmityAOE",SKM_EnmityAOE),"SKM_EnmityAOE"); GUI:NextColumn();
 		GUI:Text(GetString("frontalCone")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_FrontalConeAOE",SKM_FrontalConeAOE),"SKM_FrontalConeAOE"); GUI:NextColumn();
 		GUI:Text(GetString("tankedTargetsOnly")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TankedOnly",SKM_TankedOnly),"SKM_TankedOnly"); GUI:NextColumn();
-		GUI:Text(GetString("Average HP % >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TEHPAvgGT",SKM_TEHPAvgGT,0,0),"SKM_TEHPAvgGT"); GUI:NextColumn();
+		GUI:Text(GetString("Average HP %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TEHPAvgGT",SKM_TEHPAvgGT,0,0),"SKM_TEHPAvgGT"); GUI:NextColumn();
 		GUI:Text(GetString("skmTECount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount",SKM_TECount,0,0),"SKM_TECount"); GUI:NextColumn();
 		GUI:Text(GetString("skmTECount2")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount2",SKM_TECount2,0,0),"SKM_TECount2"); GUI:NextColumn();
 		GUI:Text(GetString("skmTERange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TERange",SKM_TERange,0,0),"SKM_TERange"); GUI:NextColumn();

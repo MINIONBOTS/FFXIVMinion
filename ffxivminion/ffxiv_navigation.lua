@@ -630,7 +630,7 @@ function ml_navigation:CheckPath(pos,pos2)
 	end
 
 	local t2d, t3d = ml_navigation.GetNewPathThresholds()
-	if (table.valid(ffnav.lastStart) and table.valid(ffnav.currentGoal)) then
+	if (table.valid(ffnav.lastStart) and table.valid(ffnav.currentGoal) and TimeSince(ffnav.lastGoalCheck) < 10000) then
 		local start2d = math.distance2d(pos,ffnav.lastStart)
 		local start3d = math.distance3d(pos,ffnav.lastStart)
 		local goal2d = math.distance2d(pos2,ffnav.currentGoal)
@@ -651,6 +651,7 @@ function ml_navigation:CheckPath(pos,pos2)
 	ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
 	ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
 	ffnav.lastGoalResult = length
+	ffnav.lastGoalCheck = Now()
 	
 	if (length > 0) then
 		return true
@@ -725,7 +726,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+	--d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	
 	ffnav.lastPathTime = Now()
@@ -1300,6 +1301,7 @@ ffnav.lastStart = {}
 ffnav.currentGoal = {}
 ffnav.currentParams = {}
 ffnav.lastGoalResult = 0
+ffnav.lastGoalCheck = 0
 ffnav.lastGoalReachedFrom = {}
 ffnav.lastGoalReached = {}
 ffnav.lastPathTime = 0
@@ -1548,10 +1550,10 @@ function ffnav.Ascend()
 						return false
 					end
 				end
-			else				
+			else
 				if (not Player.ismounted)then
 					d("[Navigation]: WE SHOULD NEVER BE HERE, REPORT THIS TO US PLEASE WITH A SCREENSHOT IF POSSIBLE")
-					Player:StopMovement()  -- this is redudant, failure below is doing that already
+					Player:StopMovement()
 					return true
 				else
 					d("[Navigation]: Jump to Ascend.")

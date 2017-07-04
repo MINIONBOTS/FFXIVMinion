@@ -4772,12 +4772,23 @@ end
 --]]
 
 -- returns a string in the current language or an indicator that the string does not exist in the language file
-function GetString(stringName)
+-- fixpercent arg added because GUI:Text() and some other controls strips out % unless it is escaped with another %
+function GetString(stringName,fixpercent)
+	local fixpercent = IsNull(fixpercent,false)
+	
+	local returnString = ""
 	if (not strings or strings[gCurrentLanguage] == nil or strings[gCurrentLanguage][stringName] == nil) then
-		return stringName
+		returnString = stringName
 	else
-		return strings[gCurrentLanguage][stringName]
+		returnString = strings[gCurrentLanguage][stringName]
 	end
+	
+	if (fixpercent and string.valid(returnString)) then
+		returnString = string.gsub(returnString,"%%%%","%%")
+		returnString = string.gsub(returnString,"%%","%%%%")
+	end
+	
+	return returnString
 end
 
 function GetUSString(stringName)
