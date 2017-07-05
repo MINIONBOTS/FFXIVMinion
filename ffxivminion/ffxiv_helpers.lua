@@ -1262,10 +1262,9 @@ function GetNearestFromList(strList,pos,radius)
 		
 		local filteredList = {}
 		for i,e in pairs(el) do
-			local fate = fateList[i]
 			
-			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-			if (ml_navigation:CheckPath(ppos,fatePos)) then
+			local epos = e.pos
+			if (ml_navigation:CheckPath(ppos,epos)) then
 				if (not radius or (radius >= 100)) then
 					table.insert(filteredList,e)
 				else
