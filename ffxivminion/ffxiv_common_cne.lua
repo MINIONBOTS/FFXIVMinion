@@ -3217,7 +3217,7 @@ function c_dointeract:evaluate()
 
 		if (not IsFlying()) then
 			--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
-			if (myTarget and myTarget.id == interactable.id and interactable.los) then
+			if (myTarget and myTarget.id == interactable.id) then
 				
 				--[[
 				-- Special handler for gathering.  Need to wait on GP before interacting sometimes.

@@ -647,16 +647,17 @@ function ml_navigation:CheckPath(pos,pos2)
 		NavigationManager:UseCubes(true)
 	end
 	local length = self:GetPath(pos.x,pos.y,pos.z, pos2.x,pos2.y,pos2.z)
+	NavigationManager:UseCubes(true)
 	
 	ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
 	ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
 	ffnav.lastGoalResult = length
 	ffnav.lastGoalCheck = Now()
-	
+		
 	if (length > 0) then
 		return true
 	end
-	NavigationManager:UseCubes(true)
+	
 	return false
 end
 

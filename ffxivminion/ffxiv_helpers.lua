@@ -5809,7 +5809,7 @@ function GetInteractableEntity(contentids,types)
 				for i, interact in pairs(validInteracts) do
 					local dist = math.distance2d(ppos,interact.pos)
 					if (not nearest or (nearest and dist < nearestDistance)) then
-						d("setting nearest to ["..interact.name.."]")
+						d("[GetInteractableEntity] - setting nearest to ["..interact.name.."]")
 						nearest, nearestDistance = interact, dist
 					end
 				end
