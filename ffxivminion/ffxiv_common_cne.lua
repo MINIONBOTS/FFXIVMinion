@@ -1261,7 +1261,7 @@ function c_walktopos:evaluate()
 			local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
 			
 			if (dist2d > range2d or dist3d > range3d or IsFlying()) then
-				if (ml_navigation:CheckPath(myPos,gotoPos)) then	-- THIS is generating a NEW path each time, it is not just "CHECKING", doing that in the CAUSE is wrong.
+				if (ml_navigation:CheckPath(myPos,gotoPos)) then
 					c_walktopos.pos = gotoPos
 					return true
 				end
@@ -3192,15 +3192,21 @@ function c_dointeract:evaluate()
 		end
 	end
 	
+	if (interactable and interactable.targetable) then
+		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+			Player:SetTarget(interactable.id)
+		end
+	end
+	
 	if (interactable and not IsFlying()) then
-		--[[local ipos = interactable.pos
+		local ipos = interactable.pos
 		local ydiff = (ipos.y - ppos.y)
 		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
 		local defaults = {
 			[0] = 2.5,
 			[3] = 5.5,
 			[7] = 2.1,
-		}--]]
+		}
 		
 		-- general rules so far:
 		-- aetherytes (radius 2): distance2d of slightly less than 8
@@ -3210,53 +3216,8 @@ function c_dointeract:evaluate()
 		-- npcs (radius 0.5) (type 7): distance2d of 3.5
 
 		if (not IsFlying()) then
-			if (interactable.targetable and interactable.distance < 30 ) then
-				if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-					Player:SetTarget(interactable.id)
-				end
-			end
-			
-			if (interactable.interactable and (not interactable.cangather or interactable.distance2d < 2.5) and (interactable.type ~= 5 or interactable.distance2d < 3)) then	-- aetherytes and gather nodes fuck up with interactable SHIT SE CODE!
-			
-				if (TimeSince(c_dointeract.lastInteract) < 2000) then					
-					d("["..ml_task_hub:CurrentTask().name.."]: Waiting for interaction...")					
-					ml_global_information.Await(1000)					
-				end
-				
-				Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)				
-				
-				if (interactable.cangather) then
-					-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
-					if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
-						d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
-						Player:Stop()
-						return true
-					end
-							
-					if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-						d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
-						return false
-					end
-				end
-												
-				d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
-				if ( Player:IsMoving() ) then
-					Player:Stop()
-				end
-				Player:Interact(interactable.id)
-				if ( not ml_task_hub:CurrentTask().interactAttempts ) then -- don't ask me why, I got the spam that it bugged out here because it was nil
-					ml_task_hub:CurrentTask().interactAttempts = 1
-				else
-					ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1				
-				end
-				c_dointeract.lastInteract = Now()				
-				return true
-			
-				
-			
-			
-			
-			--if (myTarget and myTarget.id == interactable.id and interactable.los) then
+			--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
+			if (myTarget and myTarget.id == interactable.id) then
 				
 				--[[
 				-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
@@ -3277,7 +3238,7 @@ function c_dointeract:evaluate()
 				
 				-- this return might need to be false, if the .interactable is not perfect
 				return true
-				
+				--]]
 				
 				if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
 					if (interactable.type == 5) then
@@ -3331,7 +3292,7 @@ function c_dointeract:evaluate()
 							return false
 						end
 					end
-				end--]]
+				end
 			end
 		end
 	end
