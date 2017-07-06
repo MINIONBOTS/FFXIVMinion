@@ -1258,13 +1258,12 @@ end
 function GetNearestFromList(strList,pos,radius)
 	local el = MEntityList(strList)
 	if (table.valid(el)) then
-		local ppos = Player.pos
 		
 		local filteredList = {}
 		for i,e in pairs(el) do
 			
 			local epos = e.pos
-			if (ml_navigation:CheckPath(ppos,epos)) then
+			if (NavigationManager:IsReachable(epos)) then
 				if (not radius or (radius >= 100)) then
 					table.insert(filteredList,e)
 				else
@@ -2218,7 +2217,7 @@ function GetClosestFate(pos)
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-				if (not ml_navigation:CheckPath(ppos,fatePos)) then
+				if (not NavigationManager:IsReachable(fatePos)) then
 					d("Removing fate ["..tostring(fate.id).."] from list, no path.")
 					table.remove(fateList, i)
 				else
@@ -5809,7 +5808,7 @@ function GetInteractableEntity(contentids,types)
 				for i, interact in pairs(validInteracts) do
 					local dist = math.distance2d(ppos,interact.pos)
 					if (not nearest or (nearest and dist < nearestDistance)) then
-						d("setting nearest to ["..interact.name.."]")
+						d("[GetInteractableEntity] - setting nearest to ["..interact.name.."]")
 						nearest, nearestDistance = interact, dist
 					end
 				end

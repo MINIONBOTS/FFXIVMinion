@@ -261,7 +261,7 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".isattuned") GUI:SameLine(200) GUI:InputText("##devae6"..tostring(id),tostring(e.isattuned))
 								GUI:BulletText(".isfavpoint") GUI:SameLine(200) GUI:InputText("##devae7"..tostring(id),tostring(e.isfavpoint))
 								GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devae8"..tostring(id),tostring(e.price))
-								GUI:BulletText(".territory") GUI:SameLine(200) GUI:InputText("##devae9"..tostring(id),tostring(e.territory))
+								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devae9"..tostring(id),tostring(e.territory))
 								if (GUI:Button("Teleport##"..tostring(id),50,15) ) then d("Teleport Result: "..tostring(Player:Teleport(e.id))) end
 								GUI:TreePop()
 							end
@@ -1016,7 +1016,7 @@ function dev.DrawCall(event, ticks )
 						GUI:SameLine()
 						if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
 						if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
-												
+						if (GUI:Button("Raycast##"..tostring(id),100,15) ) then d("Result : "..tostring(RayCast(Player.pos.x,Player.pos.y,Player.pos.z,t.pos.x,t.pos.y,t.pos.z))) end
 					else
 						GUI:Text("Select a Target...")
 					end
@@ -1171,12 +1171,4 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 	
 	GUI:PopItemWidth()	
 end
-
-
-
-
-
-
-
-
 
