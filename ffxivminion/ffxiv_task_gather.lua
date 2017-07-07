@@ -279,15 +279,13 @@ function c_movetonode:evaluate()
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather and gatherable.targetable) then
-			
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
 			if (not reachable or IsFlying()) then
-				
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
-			else
+			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local useCordials = (gGatherUseCordials)
@@ -325,8 +323,9 @@ function c_movetonode:evaluate()
 				end
 		--]]
 				
-				if (Player.gp.current >= minimumGP) then
-					gd("[MoveToNode]: We have enough GP, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
+				
+				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
+					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					
@@ -338,15 +337,12 @@ function c_movetonode:evaluate()
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
-				elseif (noGPitem ~= "") then
-					gd("[MoveToNode]: We don't have enough GP but have a No GP item, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
-					Player:SetTarget(gatherable.id)
-					Player:SetFacing(gpos.x,gpos.y,gpos.z)
-					
+				elseif (Player.gp.current < minimumGP) then
 					local myTarget = MGetTarget()
-					if (myTarget and myTarget.id == gatherable.id) then
-						Player:Interact(gatherable.id)
+					if (myTarget and myTarget.id ~= gatherable.id) then
+						Player:SetTarget(gatherable.id)
 					end
+					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
@@ -427,7 +423,7 @@ function e_movetonode:execute()
 			end
 			
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
-			newTask.interactRange = 2.5 
+			newTask.interactRange = 2.5
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)
