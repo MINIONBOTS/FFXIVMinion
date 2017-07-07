@@ -718,11 +718,28 @@ function e_bite:execute()
 				return
 			end
 		end
-		local doubleHook = SkillMgr.GetAction(269,1)
-		if (doubleHook and doubleHook:IsReady(Player.id)) then
-			doubleHook:Cast()
-			return true
+		
+		local useDoubleHook = false
+		local task = ffxiv_fish.currentTask
+		local marker = ml_marker_mgr.currentMarker
+		if (table.valid(task)) then
+			useDoubleHook = IsNull(task.usedoublehook,false)
+		elseif (table.valid(marker)) then
+			useDoubleHook = IsNull(marker.usedoublehook,false )
 		end
+		
+		if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
+			useDoubleHook = GUI_Get(useDoubleHook)
+		end
+		
+		if (useDoubleHook) then
+			local doubleHook = SkillMgr.GetAction(269,1)
+			if (doubleHook and doubleHook:IsReady(Player.id)) then
+				doubleHook:Cast()
+				return true
+			end
+		end		
+		
 		local bite = SkillMgr.GetAction(296,1)
 		if (bite and bite:IsReady(Player.id)) then
 			bite:Cast()

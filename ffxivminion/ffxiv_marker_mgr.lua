@@ -320,6 +320,7 @@ function ffxiv_marker_mgr.BuildFishing()
 		usepatience = false,
 		usepatience2 = false,
 		usechum = false,
+		usedoublehook = false,
 		moochables = "",
 		whitelist = "",
 		whitelistHQ = "",
