@@ -728,10 +728,9 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	
 	local ppos = Player.pos
 	-- reenabled this now, since sebb's bot stand there doing nothign and noone knows where it wants to go, we need this to debug the meshes still
-	if ( not ml_navigation.lastspamcoords or ml_navigation.lastspamcoords.x ~= x or ml_navigation.lastspamcoords.x ~= y or ml_navigation.lastspamcoords.z~=z or not ml_navigation.lastspam or ml_global_information.Now - ml_navigation.lastspam > 5000 ) then
+	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
 		ml_navigation.lastspam = ml_global_information.Now
-		ml_navigation.lastspamcoords = { x = x, y = y, z = z }
-		d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
 	end
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	
