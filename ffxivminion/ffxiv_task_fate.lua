@@ -604,9 +604,10 @@ function c_endfate:evaluate()
 	else
 		local minFateLevel = tonumber(gGrindFatesMinLevel) or 0
 		local maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
-		
-		if ((minFateLevel ~= 0 and not gGrindFatesNoMinLevel and (fate.level < (Player.level - minFateLevel))) or 
-			(maxFateLevel ~= 0 and not gGrindFatesNoMaxLevel and (fate.level > (Player.level + maxFateLevel))))
+		local level = Player.level
+				
+		if ((minFateLevel ~= 0 and not gGrindFatesNoMinLevel and (fate.level < (level - minFateLevel))) or 
+			(maxFateLevel ~= 0 and not gGrindFatesNoMaxLevel and (fate.level > (level + maxFateLevel))))
 		then
 			return true
 		end
