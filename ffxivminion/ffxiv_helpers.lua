@@ -2148,7 +2148,7 @@ function GetApprovedFates()
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = tonumber(gGrindFatesMinLevel) or 0
 			local maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
-			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+			--local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
 			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
@@ -2218,10 +2218,10 @@ function GetClosestFate(pos)
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				if (not NavigationManager:IsReachable(fatePos)) then
-					d("Removing fate ["..tostring(fate.id).."] from list, no path.")
+					d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.id).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
 					table.remove(fateList, i)
 				else
-					d("had a path to fate ["..tostring(fate.name).."]")
+					d("[GetClosestFate] - Found a path to fate ["..tostring(fate.name).."]")
 				end
 			end
 		end
@@ -2314,7 +2314,7 @@ function GetClosestFate(pos)
 		end
     
         if (nearestFate) then
-			d("Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
+			d("[GetClosestFate] - Nearest Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
             return nearestFate
         end
     end
