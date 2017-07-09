@@ -2717,12 +2717,12 @@ function InCombatRange(targetid)
 	if (type(targetid) == "table") then
 		local id = targetid.id
 		target = MGetEntity(id)
-		if (not target or not table.valid(target)) then
+		if (not target or not table.valid(target) or not target.los) then
 			return false
 		end
 	else
 		target = MGetEntity(targetid)
-		if (not target or not table.valid(target)) then
+		if (not target or not table.valid(target) or not target.los) then
 			return false
 		end
 	end

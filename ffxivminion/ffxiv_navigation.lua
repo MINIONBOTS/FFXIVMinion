@@ -637,7 +637,7 @@ function ml_navigation:CheckPath(pos,pos2)
 		local goal3d = math.distance3d(pos2,ffnav.currentGoal)
 		
 		if (start2d <= t2d and goal2d <= t2d and start3d <= t3d and goal3d <= t3d) then
-			return (ffnav.lastGoalResult > 0)
+			return ffnav.lastGoalResult
 		end
 	end
 
@@ -646,19 +646,16 @@ function ml_navigation:CheckPath(pos,pos2)
 	else
 		NavigationManager:UseCubes(true)
 	end
-	local length = self:GetPath(pos.x,pos.y,pos.z, pos2.x,pos2.y,pos2.z)
+	
+	local reachable = NavigationManager:IsReachable(pos2)
 	NavigationManager:UseCubes(true)
 	
 	ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
 	ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
-	ffnav.lastGoalResult = length
+	ffnav.lastGoalResult = reachable
 	ffnav.lastGoalCheck = Now()
-		
-	if (length > 0) then
-		return true
-	end
 	
-	return false
+	return reachable
 end
 
 -- Often  used function to determine if the next node in the path is reached
@@ -731,7 +728,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	
 	ffnav.lastPathTime = Now()
-	ffnav.lastGoalResult = ret
+	ffnav.lastGoalResult = (ret > 0)
 	return ret
 end
 
@@ -1301,7 +1298,7 @@ ffnav.alteredGoal = {}
 ffnav.lastStart = {}
 ffnav.currentGoal = {}
 ffnav.currentParams = {}
-ffnav.lastGoalResult = 0
+ffnav.lastGoalResult = false
 ffnav.lastGoalCheck = 0
 ffnav.lastGoalReachedFrom = {}
 ffnav.lastGoalReached = {}
