@@ -3720,7 +3720,7 @@ function GetAetheryteByMapID(mapid, p)
 		},	
 		[614] = {name = "Yanxia",
 			[1] = { name = "Namai", aethid = 107, x = 432, z = -85 },
-			[2] = { name = "Tamamizu", aethid = 105, x = 365, z = -263 },
+			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402 },
 		},	
 		[620] = {name = "The Peaks",
 			[1] = { name = "Ala Gannha", aethid = 100, x = 114, z = -747 },
@@ -4960,6 +4960,44 @@ function GetSeaOfCloudsSection(pos)
     return sec
 end
 
+function GetYanxiaSection(pos)
+	local sections = {
+		[1] = {
+			a = {x = 357, z = -294},
+			b = {x = -48, z = -54},
+			c = {x = -326, z = 864},
+			d = {x = 950, z = 864},
+			x = {x = 286, z = 208},
+		},
+		[2] = {
+			a = {x = 357, z = -294},
+			b = {x = 850, z = -600},
+			c = {x = 850, z = 0},
+			d = {x = 357, z = 0},
+			x = {x = 600, z = -300},
+		},
+		[3] = {
+			a = {x = 48, z = -54},
+			b = {x = -800, z = -54},
+			c = {x = -800, z = 864},
+			d = {x = 48, z = 864},
+			x = {x = -400, z = 400},
+		},
+	}
+	
+	local sec = 2
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+	
+	return sec
+end
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -5395,6 +5433,74 @@ function Transport401(pos1,pos2)
 	return false			
 end
 
+function Transport614(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
+			if (GilCount() > 100) then
+				if (GetYanxiaSection(Player.pos) == 1) then
+					if (CanUseAetheryte(108) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(108)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 108
+									newTask.mapID = 614
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				else
+					if (CanUseAetheryte(107) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(107)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 107
+									newTask.mapID = 614
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if (GetYanxiaSection(pos2) == 2) then
+		if not (CanUseAetheryte(108)) then
+			return true, function()
+				local newTask = ffxiv_task_movetomap.Create()
+				newTask.destMapID = 622
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+	
+
+	return false			
+end
 function Transport622(pos1,pos2)
     local pos1 = pos1 or Player.pos
     local pos2 = pos2
@@ -5414,7 +5520,7 @@ function Transport622(pos1,pos2)
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
     end
-
+	
     return false            
 end
 
@@ -5746,11 +5852,10 @@ function GetNamedTaskProperty(strTask, strProperty)
 end
 function In(var,...)
 	local var = var
-	local varnum = tonumber(var)
 	
 	local args = {...}
 	for i=1, #args do
-		if (args[i] == var or tonumber(args[i]) == varnum) then
+		if (args[i] == var or tonumber(args[i]) == tonumber(var)) then
 			return true
 		end
 	end
