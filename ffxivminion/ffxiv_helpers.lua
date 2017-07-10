@@ -5746,10 +5746,11 @@ function GetNamedTaskProperty(strTask, strProperty)
 end
 function In(var,...)
 	local var = var
+	local varnum = tonumber(var)
 	
 	local args = {...}
 	for i=1, #args do
-		if (args[i] == var or tonumber(args[i]) == tonumber(var)) then
+		if (args[i] == var or tonumber(args[i]) == varnum) then
 			return true
 		end
 	end

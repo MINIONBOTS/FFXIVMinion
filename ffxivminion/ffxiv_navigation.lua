@@ -648,16 +648,17 @@ function ml_navigation:CheckPath(pos,pos2)
 		NavigationManager:UseCubes(true)
 	end
 	
-	--local reachable = NavigationManager:IsReachable(pos2)
-	local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
-	local reachable = (length > 0)
+	local reachable = NavigationManager:IsReachable(pos2)
+	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
+	--local reachable = (length > 0)
 	NavigationManager:UseCubes(true)
 	
-	ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
-	ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
-	ffnav.lastGoalResult = reachable
-	ffnav.lastGoalCheck = Now()
-	
+	if(reachable) then
+		ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
+		ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
+		ffnav.lastGoalResult = reachable
+		ffnav.lastGoalCheck = Now()
+	end
 	return reachable
 end
 
@@ -727,7 +728,11 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	--d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+	-- reenabled this now, since sebb's bot stand there doing nothign and noone knows where it wants to go, we need this to debug the meshes still
+	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
+ 		ml_navigation.lastspam = ml_global_information.Now
+		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+ 	end
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	
 	ffnav.lastPathTime = Now()
