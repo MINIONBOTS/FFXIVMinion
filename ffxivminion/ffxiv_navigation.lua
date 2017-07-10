@@ -648,9 +648,9 @@ function ml_navigation:CheckPath(pos,pos2)
 		NavigationManager:UseCubes(true)
 	end
 	
-	local reachable = NavigationManager:IsReachable(pos2)
-	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
-	--local reachable = (length > 0)
+	--local reachable = NavigationManager:IsReachable(pos2)
+	local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
+	local reachable = (length > 0)
 	NavigationManager:UseCubes(true)
 	
 	if(reachable) then
