@@ -637,8 +637,8 @@ function ml_navigation:CheckPath(pos,pos2)
 		local goal3d = math.distance3d(pos2,ffnav.currentGoal)
 		
 		if (start2d <= t2d and goal2d <= t2d and start3d <= t3d and goal3d <= t3d) then
-			--return ffnav.lastGoalResult
-			return (ffnav.lastGoalResult > 0)
+			return ffnav.lastGoalResult
+			--return (ffnav.lastGoalResult > 0)
 		end
 	end
 
