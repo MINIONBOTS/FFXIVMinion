@@ -921,7 +921,11 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[622] = {
-			{id = 613, cost = 1, x = -742.36, y = -0.83, z = -866.99, h = -2.08, },
+			{id = 613, cost = 1, x = -742.36, y = -0.83, z = -866.99, h = -2.08
+				, requires = {
+					["GetQuestInfo(2630,'step') >= 3 or QuestCompleted(2630)"] = true,
+				},
+			},
 		},
 	},
 	[614] =
@@ -1131,7 +1135,9 @@ ffxiv_aetheryte_data = {
 		},
 	},
 	[622] = {
-		{id = 622, aethid = 109, x = 555.07, y = -19.51, z = 346.61},
+		{id = 622, aethid = 109, x = 555.07, y = -19.51, z = 346.61, 
+			requires = function () return QuestCompleted(2630) end,
+		},
 		{id = 622, aethid = 110, x = 71.34, y = 114.90, z = 36.01, 
 			requires = function () return QuestCompleted(2507) end,
 		},

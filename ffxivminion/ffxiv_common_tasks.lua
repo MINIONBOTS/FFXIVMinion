@@ -1733,7 +1733,8 @@ function ffxiv_mesh_interact:task_complete_eval()
 			if (not MIsLoading() and not MIsLocked()) then
 				local interact = EntityList:Get(tonumber(self.interact))
 				local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
-				if (interact and interact.distance < (radius * 4)) then
+				if (interact and interact.interactable) then
+				--if (interact and interact.distance < (radius * 4)) then
 					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
 					self.interactLatency = Now() + 1000

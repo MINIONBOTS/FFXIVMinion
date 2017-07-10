@@ -1426,7 +1426,7 @@ function ffxiv_craft.Draw( event, ticks )
 				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
 				GUI:PopItemWidth()
 				
-				for k = 10,60,10 do
+				for k = 10,70,10 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
 					if (dictionary and dictionaryDisplay) then
 						GUI:PushItemWidth(300)
@@ -1445,7 +1445,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddFoodIndex = 1
 								gCraftOrderAddFood = GetString("None")
 							end
-							for j = 10,60,10 do
+							for j = 10,70,10 do
 								if (j ~= k) then
 									_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
 									_G["gCraftDictionarySelect"..tostring(j)] = GetString("None")		
