@@ -478,28 +478,53 @@ function dev.DrawCall(event, ticks )
 							gDevHackMaxZoom = 20.0
 							gDevHackMinZoom = 1.5
 						end
-						gDevHackMaxZoom = GUI:SliderFloat("CamZoomMax", gDevHackMaxZoom, 1.5, 240)
-						if(gDevHackMaxZoom < gDevHackMinZoom) then
-							gDevHackMinZoom = gDevHackMaxZoom - 1.0
+						
+						local zoommax, changedmaxzoom = GUI:SliderFloat("CamZoomMax", gDevHackMaxZoom, 1.5, 240)
+						if (changedmaxzoom) then
+							gDevHackMaxZoom = zoommax
+							if (gDevHackMaxZoom < gDevHackMinZoom) then
+								gDevHackMinZoom = gDevHackMaxZoom - 1.0
+							end
 						end
-						gDevHackMinZoom = GUI:SliderFloat("CamZoomMin", gDevHackMinZoom, 1.5, 240)
-						Hacks:SetCamMaxZoom(gDevHackMinZoom,gDevHackMaxZoom)
 						
-						gDevHackDisableCutscene = GUI:Checkbox("Disable Cutscene", gDevHackDisableCutscene)
-						Hacks:SkipCutscene(gDevHackDisableCutscene)
+						local zoommin, changedminzoom = GUI:SliderFloat("CamZoomMin", gDevHackMinZoom, 1.5, 240)
+						if (changedminzoom) then
+							gDevHackMinZoom = zoommin
+						end
 						
-						gDevHackDisableRendering = GUI:Checkbox("Disable Rendering", gDevHackDisableRendering)
-						Hacks:Disable3DRendering(gDevHackDisableRendering)
+						if (changedminzoom or changedmaxzoom) then
+							Hacks:SetCamMaxZoom(gDevHackMinZoom,gDevHackMaxZoom)
+						end
 						
-						gDevHackFlySpeed = GUI:SliderFloat("Fly Speed", gDevHackFlySpeed, 10, 100)
-						Player:SetSpeed(0,gDevHackFlySpeed,gDevHackFlySpeed,gDevHackFlySpeed)	
+						local disabled, changedcutscene = GUI:Checkbox("Disable Cutscene", gDevHackDisableCutscene)
+						if (changedcutscene) then
+							gDevHackDisableCutscene = disabled
+							Hacks:SkipCutscene(gDevHackDisableCutscene)
+						end
+						
+						local disabled, changedrendering = GUI:Checkbox("Disable Rendering", gDevHackDisableRendering)
+						if (changedrendering) then
+							gDevHackDisableRendering = disabled
+							Hacks:Disable3DRendering(gDevHackDisableRendering)
+						end
+						
+						local hackFlySpeed, changedflyspeed = GUI:SliderFloat("Fly Speed", gDevHackFlySpeed, 10, 100)
+						if (changedflyspeed) then
+							gDevHackFlySpeed = hackFlySpeed
+							Player:SetSpeed(0,gDevHackFlySpeed,gDevHackFlySpeed,gDevHackFlySpeed)	
+						end
 
-						gDevHackWalkSpeed = GUI:SliderFloat("Walk Speed", gDevHackWalkSpeed, 6, 50)
-						Player:SetSpeed(1,gDevHackWalkSpeed,gDevHackWalkSpeed,gDevHackWalkSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						local hackWalkSpeed, changedwalkspeed = GUI:SliderFloat("Walk Speed", gDevHackWalkSpeed, 6, 50)
+						if (changedwalkspeed) then
+							gDevHackWalkSpeed = hackWalkSpeed
+							Player:SetSpeed(1,gDevHackWalkSpeed,gDevHackWalkSpeed,gDevHackWalkSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						end
 						
-						gDevHackMountSpeed = GUI:SliderFloat("Mount Speed", gDevHackMountSpeed, 6, 50)
-						Player:SetSpeed(2,gDevHackMountSpeed,gDevHackMountSpeed,gDevHackMountSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
-						
+						local hackMountSpeed, changedmountspeed = GUI:SliderFloat("Mount Speed", gDevHackMountSpeed, 6, 50)
+						if (changedmountspeed) then
+							gDevHackMountSpeed = hackMountSpeed
+							Player:SetSpeed(2,gDevHackMountSpeed,gDevHackMountSpeed,gDevHackMountSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						end
 						
 						if (GUI:Button("ResetSpeed##",100,15) ) then
 							Player:ResetSpeed(0) -- flying
