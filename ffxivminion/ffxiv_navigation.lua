@@ -647,10 +647,11 @@ function ml_navigation:CheckPath(pos,pos2)
 	else
 		NavigationManager:UseCubes(true)
 	end
-	
-	--local reachable = NavigationManager:IsReachable(pos2)
-	local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
-	local reachable = (length > 0)
+		
+	--d("IS REACHABLE POS: "..tostring(pos2.x).." - "..tostring(pos2.y).. " - "..tostring(pos2.z))
+	local reachable = NavigationManager:IsReachable(pos2)
+	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
+	--local reachable = (length > 0)
 	NavigationManager:UseCubes(true)
 	
 	if(reachable) then
@@ -1430,7 +1431,7 @@ function ffnav.IsYielding()
 end
 
 function ffnav.Await(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ffnav.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
@@ -1450,7 +1451,7 @@ function ffnav.Await(param1, param2, param3, param4, param5)
 end
 
 function ffnav.AwaitDo(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ffnav.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
@@ -1470,7 +1471,7 @@ function ffnav.AwaitDo(param1, param2, param3, param4, param5)
 end
 
 function ffnav.AwaitFail(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ffnav.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
@@ -1490,7 +1491,7 @@ function ffnav.AwaitFail(param1, param2, param3, param4, param5)
 end
 
 function ffnav.AwaitSuccess(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ffnav.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
@@ -1510,7 +1511,7 @@ function ffnav.AwaitSuccess(param1, param2, param3, param4, param5)
 end
 
 function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
 		ffnav.yield = {
 			mintimer = IIF(param1 ~= 0,Now() + param1,0),
 			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
