@@ -3632,6 +3632,15 @@ function GetAetheryteByMapID(mapid, p)
 	then
 		return nil
 	end
+	if (mapid == 639 and myMap ~= 628) then
+		mapid = 628
+	end
+	if ((myMap == 614 and GetYanxiaSection(Player.pos) == 2) or (myMap == 622)) and HasQuest(2518) then
+		return nil
+	end
+	if (((mapid == 614 and GetYanxiaSection(pos) == 2) or (myMap == 614 and GetYanxiaSection(Player.pos) == 1)) and HasQuest(2518)) then
+		mapid = 622
+	end
 	
 	local ppos = Player.pos
 	
@@ -3719,9 +3728,23 @@ function GetAetheryteByMapID(mapid, p)
 			[2] = { name = "Tamamizu", aethid = 105, x = 365, z = -263 },
 		},	
 		[614] = {name = "Yanxia",
-			[1] = { name = "Namai", aethid = 107, x = 432, z = -85 },
-			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402 },
-		},	
+			[1] = { name = "Namai", aethid = 107, x = 432, z = -85,
+				best = function ()  
+					if (GetYanxiaSection(Player.pos) == 2 and GetYanxiaSection(pos) == 1) then
+						return true
+					end
+					return false
+				end				
+			},
+			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402,
+				best = function ()  
+					if (GetYanxiaSection(Player.pos) == 1 and GetYanxiaSection(pos) == 2) then
+						return true
+					end
+					return false
+				end				
+			},
+		},
 		[620] = {name = "The Peaks",
 			[1] = { name = "Ala Gannha", aethid = 100, x = 114, z = -747 },
 			[2] = { name = "Ala Ghiri", aethid = 101, x = -272, z = 746 },
@@ -5488,7 +5511,7 @@ function Transport614(pos1,pos2)
 			end
 		end
 	end
-	if (GetYanxiaSection(pos2) == 2) then
+	if (GetYanxiaSection(Player.pos) ~= 2) and (GetYanxiaSection(pos2) == 2) then
 		if not (CanUseAetheryte(108)) then
 			return true, function()
 				local newTask = ffxiv_task_movetomap.Create()
@@ -5501,18 +5524,19 @@ function Transport614(pos1,pos2)
 
 	return false			
 end
+
 function Transport622(pos1,pos2)
     local pos1 = pos1 or Player.pos
     local pos2 = pos2
     
-    if ((pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and not (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50)) then
+    if ((pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and not (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50) and CanFlyInZone() == false) then
         return true, function()
             local newTask = ffxiv_nav_interact.Create()
             newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
             newTask.contentid = 1019424
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
-    elseif (not (pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50)) then
+    elseif (not (pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50) and CanFlyInZone() == false) then
         return true, function()
             local newTask = ffxiv_nav_interact.Create()
             newTask.pos = {x = 61.60, y = 8.80, z = 41.12}
@@ -5520,7 +5544,7 @@ function Transport622(pos1,pos2)
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
     end
-	
+
     return false            
 end
 
