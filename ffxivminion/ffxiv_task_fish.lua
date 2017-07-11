@@ -1172,12 +1172,14 @@ function e_buybait:execute()
 				newTask["mapid"] = nearestPurchase.mapid
 				newTask["id"] = nearestPurchase.id
 				newTask["conversationIndex"] = nearestPurchase.index
+				newTask["conversationstrings"] = nearestPurchase.indexstrings
 				newTask["buyamount"] = buyamount
 				
 				 ml_task_hub:CurrentTask():AddSubTask(newTask)
 				d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(nearestPurchase.id).."]")
 				d("Nearest Pos:")
 				table.print(nearestPurchase.pos)
+				table.print(nearestPurchase.indexstrings)
 				return true
 			end
 		end
