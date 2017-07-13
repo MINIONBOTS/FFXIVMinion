@@ -745,7 +745,11 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("SetPitch") GUI:SameLine(200) dev.pitch = GUI:InputFloat("##devmov10",dev.pitch,0,0,2)
 					GUI:SameLine()					
 					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
-									
+					
+					GUI:BulletText("IsSwimming") GUI:SameLine(200) GUI:InputText("##devmov14",tostring(Player.diving.isswimming))
+					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
+					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
+					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
 					GUI:PopItemWidth()
 				else
 					GUI:Text("Not Ingame...")
