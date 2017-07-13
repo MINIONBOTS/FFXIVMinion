@@ -910,6 +910,13 @@ ffxiv_map_nav.data = {
 		[635] = {
 			{id = 635, cost = 1, x = 482.54, y = 61.65, z = -556.99, h = 2.01, },
 		},
+		[683] = {
+			{id = 683, cost = 1, x = 802.3, y = 178.22, z = -302.3, h = 0, g = 2008200
+				, requires = {
+					["GetQuestInfo(2532,'step') >= 4 or QuestCompleted(2532)"] = true,
+				},
+			},
+		},
 	},
 	[613] =
 	{
@@ -921,9 +928,9 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[622] = {
-			{id = 613, cost = 1, x = -742.36, y = -0.83, z = -866.99, h = -2.08
+			{id = 622, cost = 1, x = -742.36, y = -0.83, z = -866.99, h = -2.08
 				, requires = {
-					["GetQuestInfo(2630,'step') >= 3 or QuestCompleted(2630)"] = true,
+					["GetQuestInfo(2630,'step') >= 2 or QuestCompleted(2630)"] = true,
 				},
 			},
 		},
@@ -975,7 +982,7 @@ ffxiv_map_nav.data = {
 			{id = 612, cost = 1, x = 2.10, y = -2.12, z = 163.50, h = 0, },
 		},
 		[613] = {
-			{id = 612, cost = 1, x = 878.62, y = 1.18, z = 878.28, h = 0.75, },
+			{id = 613, cost = 1, x = 878.62, y = 1.18, z = 878.28, h = 0.75, },
 		},	
 	},
 	[635] =
@@ -1002,6 +1009,12 @@ ffxiv_map_nav.data = {
 	{
 		[129] = {
 			{id = 129, cost = 1, x = -0.02, y = 16.35, z = -19.03, h = 3.13, g = 2008373},
+		},
+	},
+	[683] =
+	{
+		[612] = {
+			{id = 612, cost = 1, x = 1.0, y = -4.27, z = 43.45, h = 0.00, g = 2008372},
 		},
 	},
 }-- set reference for mesh mgr

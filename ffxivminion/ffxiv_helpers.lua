@@ -4983,6 +4983,70 @@ function GetSeaOfCloudsSection(pos)
     return sec
 end
 
+function GetFringeSection(pos)
+    local sections = {
+		-- gate tunnel
+        [1] = {
+            a = {x = -86, z = 229}, -- gate right
+            b = {x = -67, z = 193}, -- gate left
+            c = {x = -159, z = 144}, -- left side ent 
+            d = {x = -179, z = 181},-- right side ent
+            x = {x = -124, z = 188},
+        },
+		 -- left bottom side
+        [2] = {
+            a = {x = -86, z = 229}, -- gate right
+            b = {x = -1000, z = 181}, --right side ent
+            c = {x = -1000, z = 1000}, -- left bdy
+            d = {x = -86, z = 1000}, -- gate waaaaaay south
+            x = {x = -450, z = 600},
+        },
+		-- top left side
+        [3] = {
+            a = {x = -1000, z = -1000}, -- top left corner map
+            b = {x = -1000, z = 144}, --left side ent
+            c = {x = 106, z = 144}, -- gate right
+            d = {x = 106, z = -1000}, -- top of zone
+            x = {x = -450, z = -400},
+        },
+		-- top of map 
+         [4] = {
+            a = {x = 600, z = -370}, -- top of section 2
+            b = {x = 600, z = -1000}, -- top right corner zone
+            c = {x = -1000, z = -1000}, -- top left cnr map
+            d = {x = -1000, z = -370}, -- right side to top of section 2
+            x = {x = -200, z = -600},
+        },
+        -- top right mid 1
+        [5] = {
+            a = {x = 383, z = -350}, -- 1
+            b = {x = 262, z = -150}, -- 2
+            c = {x = 55, z = -333}, -- 3
+            d = {x = 177, z = -465}, -- 4
+            x = {x = 227, z = -371},
+        },
+		[6] = {
+            a = {x = 383, z = -376}, -- 1
+            b = {x = 348, z = -300}, -- 
+            c = {x = 55, z = -333}, -- 
+            d = {x = 177, z = -465}, --
+            x = {x = 227, z = -371},
+        },
+    }
+	
+	local sec = 2
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+	
+	return sec
+end
 function GetYanxiaSection(pos)
 	local sections = {
 		[1] = {
@@ -5341,7 +5405,7 @@ function Transport398(pos1,pos2)
 								return
 							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-								if (Player:Teleport(76)) then	
+								if (Player:Teleport(76)) then
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 76
 									newTask.mapID = 398
@@ -5453,6 +5517,88 @@ function Transport401(pos1,pos2)
 		end
 	end
 
+	return false			
+end
+
+function Transport612(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if QuestCompleted(2530) then 
+			local gilCount = GilCount()
+	--d("Player Fringe sec = ["..tostring(GetFringeSection(Player.pos))"]")
+	--d("Endpoint Fringe sec = ["..tostring(GetFringeSection(pos2))"]")
+			if (GetFringeSection(pos1) ~= GetFringeSection(pos2)) then
+				if (GetFringeSection(Player.pos) == 2) then
+					if (CanUseAetheryte(98) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(98)) then	
+								--d("teleport 98")
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 98
+									newTask.mapID = 612
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -68, y = 56, z = 211}
+								newTask.contentid = 1019531
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				else
+					if (CanUseAetheryte(99) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(99)) then	
+								--d("teleport 99")
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 99
+									newTask.mapID = 612
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -91, y = 50, z = 210}
+								newTask.contentid = 1019530
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+		
 	return false			
 end
 

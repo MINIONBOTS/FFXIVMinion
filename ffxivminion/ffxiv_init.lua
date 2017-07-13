@@ -367,7 +367,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgrs Reach")	
 		ml_mesh_mgr.SetDefaultMesh(639, "Ruby Bazaar Offices")		
 		ml_mesh_mgr.SetDefaultMesh(680, "ImOnABoatAgain")
-		ml_mesh_mgr.SetDefaultMesh(68, "The House of the Fierce")
+		ml_mesh_mgr.SetDefaultMesh(681, "The House of the Fierce")
+		ml_mesh_mgr.SetDefaultMesh(683, "First Alter of Djanan")
 		
 		
 		-- Dungeons

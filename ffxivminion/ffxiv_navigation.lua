@@ -648,7 +648,6 @@ function ml_navigation:CheckPath(pos,pos2)
 		NavigationManager:UseCubes(true)
 	end
 		
-	--d("IS REACHABLE POS: "..tostring(pos2.x).." - "..tostring(pos2.y).. " - "..tostring(pos2.z))
 	local reachable = NavigationManager:IsReachable(pos2)
 	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
 	--local reachable = (length > 0)
