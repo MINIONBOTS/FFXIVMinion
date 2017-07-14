@@ -1026,9 +1026,14 @@ function dev.DrawCall(event, ticks )
 -- END UI PERMISSIONS
 
 		
-			if ( GUI:TreeNode("Utility Functions")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					GUI:PushItemWidth(200)
+			if ( GUI:TreeNode("Utility & Functions")) then
+				GUI:PushItemWidth(200)
+				GUI:BulletText("GetGameState") GUI:SameLine(200) GUI:InputText("##devUT0",tostring(GetGameState()))
+				GUI:BulletText("GameVersion") GUI:SameLine(200) GUI:InputText("##devUT1",tostring(GetGameVersion()))
+				GUI:BulletText("GameLanguage") GUI:SameLine(200) GUI:InputText("##devUT2",tostring(GetGameLanguage()))
+				GUI:BulletText("GetGameRegion") GUI:SameLine(200) GUI:InputText("##devUT3",tostring(GetGameRegion()))
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then					
+										
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
 										
@@ -1044,9 +1049,9 @@ function dev.DrawCall(event, ticks )
 						if (GUI:Button("Raycast##"..tostring(id),100,15) ) then d("Result : "..tostring(RayCast(Player.pos.x,Player.pos.y,Player.pos.z,t.pos.x,t.pos.y,t.pos.z))) end
 					else
 						GUI:Text("Select a Target...")
-					end
-					GUI:PopItemWidth()
+					end					
 				end
+				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
 -- 	END UTILITY FUNCTIONS
