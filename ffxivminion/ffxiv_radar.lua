@@ -593,7 +593,7 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.All or ffxiv_radar.NPCs) and efriendly and etype == 3) then -- NPCs.
 							Colour = ffxiv_radar.NPCsColour
 							Draw = true
-						elseif ((ffxiv_radar.All or ffxiv_radar.AetherCurrents) and (econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234)) then -- Event objects.
+						elseif ((ffxiv_radar.All or ffxiv_radar.AetherCurrents) and ((econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234))) then -- Event objects.
 							Colour = ffxiv_radar.AetherCurrentsColour
 							Draw = true
 						elseif ((ffxiv_radar.All or ffxiv_radar.EventObjects) and (etype == 0 or etype == 5 or etype == 7)) then -- Event objects.
