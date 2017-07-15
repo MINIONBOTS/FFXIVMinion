@@ -4067,51 +4067,54 @@ end
 function GetBestGrindMapDefault()
 	local mapid = Player.localmapid
 	local level = Player.level
-	
-	local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
-	local inshroud = 	In(mapid,148,152,153,154,132,133)
-	local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
-	
-	if (level < 12) then
-		if (inthanalan) then
-			return 140 --western than
-		elseif (inshroud) then
-			return 148 --central shroud
-		elseif (inlanoscea) then
-			return 134 --middle la noscea
-		else
-			return 148
-		end
-	elseif ( level >= 12 and level < 20) then
-		if (inthanalan) then
-			return 140 --western than
-		elseif (inshroud) then
+	if ( mapid and level ) then
+		local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
+		local inshroud = 	In(mapid,148,152,153,154,132,133)
+		local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
+		
+		if (level < 12) then
+			if (inthanalan) then
+				return 140 --western than
+			elseif (inshroud) then
+				return 148 --central shroud
+			elseif (inlanoscea) then
+				return 134 --middle la noscea
+			else
+				return 148
+			end
+			
+		elseif ( level >= 12 and level < 20) then
+			if (inthanalan) then
+				return 140 --western than
+			elseif (inshroud) then
+				return 152 --east shroud
+			elseif (inlanoscea) then
+				return 138 --middle la noscea
+			else
+				return 152
+			end
+			
+		elseif (level >= 20 and level < 22) then
 			return 152 --east shroud
-		elseif (inlanoscea) then
-			return 138 --middle la noscea
+		elseif (level >= 22 and level < 30) then
+			return 153 --south shroud
+		elseif (level >= 30 and level < 40) then
+			return 137 --eastern la noscea
+		elseif (level >= 40 and level < 45) then
+			return 155 --coerthas
+		elseif ((level >= 45 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
+			return 138
+		elseif (level >= 58 and CanAccessMap(478) and CanAccessMap(399)) then
+			return 399 --The Dravanian Hinterlands
+		elseif (level >= 55 and level < 60 and CanAccessMap(398)) then
+			return 398	--The Dravanian Forelands
+		elseif (level >= 50 and level < 60 and CanAccessMap(397)) then
+			return 397 --Coerthas Western Highlands
+		elseif (level >= 60 and CanAccessMap(612)) then
+			return 612 --The Fringes
 		else
-			return 152
-		end
-	elseif (level >= 20 and level < 22) then
-		return 152 --east shroud
-	elseif (level >= 22 and level < 30) then
-		return 153 --south shroud
-	elseif (level >= 30 and level < 40) then
-		return 137 --eastern la noscea
-	elseif (level >= 40 and level < 45) then
-		return 155 --coerthas
-	elseif (level >= 45 and level < 50) then
-		return 138
-	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
-		return 397
-	elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
-		return 398
-	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
-		return 397
-	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
-		return 398
-	else
-		return 138
+			return 138
+		end	
 	end
 end
 function EquipItem(itemid, itemslot)
