@@ -618,7 +618,7 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
-	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
+	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCodeSB",ffxivminion.AutoGrindDefault)
 	GetBestGrindMap = GetBestGrindMapDefault
 	local f = loadstring(gAutoGrindCode)
 	if (f ~= nil) then
