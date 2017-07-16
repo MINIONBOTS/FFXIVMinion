@@ -785,7 +785,7 @@ function e_gather:execute()
 		d("Checking gardening section.")
 			
 		-- 2nd pass, gardening supplies
-		if (gatherGardening ~= "" and gatherGardening ~= false and gatherGardening ~= false) then
+		if (gatherGardening ~= "" and gatherGardening ~= false ) then
 			for i, item in pairs(list) do
 				local attemptGather = false
 				if (gatherGardening ~= "") then
