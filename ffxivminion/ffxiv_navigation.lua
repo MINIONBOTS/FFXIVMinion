@@ -734,7 +734,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	local buildNewPath = false
 	local newGoal = { x = x, y = y, z = z }
 	local newPath2d, newPath3d = ml_navigation.GetNewPathThresholds()
-	if (not ffnav.currentGoal) then
+	if (not table.valid(ffnav.currentGoal)) then
 		buildNewPath = true
 		d("[NAVIGATION]: Need to build a new path, no current goal [MOVETO1].")
 	else
