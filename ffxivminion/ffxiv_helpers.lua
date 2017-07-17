@@ -69,7 +69,7 @@ function GetNearestGrindAttackable()
 		basePos = task.pos
 		blacklist = IsNull(task.blacklist,"")
 		whitelist = IsNull(task.whitelist,"")
-	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+	elseif (table.valid(marker)) then
 		d("marker is valid")
 		minLevel = IsNull(marker.mincontentlevel,1)
 		maxLevel = IsNull(marker.maxcontentlevel,70)
@@ -124,8 +124,6 @@ function GetNearestGrindAttackable()
 
 	local attackables = EntityList("los,alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
-	
-		d("found ["..tostring(table.size(attackables).."]"))
 	
 		local pid = Player.id
 		local party = EntityList.myparty
@@ -191,8 +189,6 @@ function GetNearestGrindAttackable()
 	end
 	
 	if (table.valid(filtered)) then
-		
-		d("found ["..tostring(table.size(filtered).."] filtered enemies"))
 	
 		-- Check if we have something we can claim (for hunting near us)
 		if (table.valid(claimrange)) then
