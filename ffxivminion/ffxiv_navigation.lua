@@ -520,10 +520,37 @@ function ml_navigation.GetMovementThresholds()
 		return ml_navigation.NavPointReachedDistances["2dmount"],ml_navigation.NavPointReachedDistances["3dmount"]
 	end
 end
-		
+
+-- New setup, split path building and movement so that calls aren't duplicated and re-checked unnecessarily.
+-- [canPath] flag allows .Navigate() to run, this is necessary to that simply building a path does not necessarily mean it will be used.
+-- in ffxiv_common_cne, walktopos will be split into getmovementpath and walktopos.
+-- this is mostly because many things like stealth, mount, flight, etc, require not only knowing if they are needed but if they are possible (mesh exists, path exists, etc)
+
+
+ml_navigation.canPath = false
 ml_navigation.CanRun = function() 
-	return GetGameState() == FFXIV.GAMESTATE.INGAME
+	return (GetGameState() == FFXIV.GAMESTATE.INGAME and ml_navigation.canPath)
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
+
+ml_navigation.EnablePathing = function (self)
+	if (not self.canPath) then
+		self.canPath = true
+		return true
+	end
+	return false
+end
+
+ml_navigation.DisablePathing = function (self)
+	if (self.canPath) then
+		self.canPath = false
+		return true
+	end
+	return false
+end
+
+ml_navigation.HasPath = function (self)
+	return (table.valid(self.path) and self.path[self.pathindex] ~= nil)
+end
 
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
@@ -624,41 +651,40 @@ function ml_navigation:IsDestinationClose(ppos,goal)
 	return false
 end
 
-function ml_navigation:CheckPath(pos,pos2)
+function ml_navigation:CheckPath(pos,pos2,usecubes)
+	local usecubes = IsNull(usecubes,true)
 	if (not table.valid(pos) or not table.valid(pos2)) then
 		return false
 	end
 
 	local t2d, t3d = ml_navigation.GetNewPathThresholds()
-	if (table.valid(ffnav.lastStart) and table.valid(ffnav.currentGoal) and TimeSince(ffnav.lastGoalCheck) < 10000) then
+	if (table.valid(ffnav.lastStart) and table.valid(ffnav.lastGoal) and TimeSince(ffnav.lastGoalCheck) < 10000) then
 		local start2d = math.distance2d(pos,ffnav.lastStart)
 		local start3d = math.distance3d(pos,ffnav.lastStart)
-		local goal2d = math.distance2d(pos2,ffnav.currentGoal)
-		local goal3d = math.distance3d(pos2,ffnav.currentGoal)
+		local goal2d = math.distance2d(pos2,ffnav.lastGoal)
+		local goal3d = math.distance3d(pos2,ffnav.lastGoal)
 		
 		if (start2d <= t2d and goal2d <= t2d and start3d <= t3d and goal3d <= t3d) then
 			return ffnav.lastGoalResult
-			--return (ffnav.lastGoalResult > 0)
 		end
 	end
 
-	if (Player.incombat and not Player.ismounted) then
+	if ((Player.incombat and not Player.ismounted) or not usecubes) then
 		NavigationManager:UseCubes(false)
 	else
 		NavigationManager:UseCubes(true)
 	end
-		
+	
 	local reachable = NavigationManager:IsReachable(pos2)
 	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
 	--local reachable = (length > 0)
 	NavigationManager:UseCubes(true)
 	
-	if(reachable) then
-		ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
-		ffnav.currentGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
-		ffnav.lastGoalResult = reachable
-		ffnav.lastGoalCheck = Now()
-	end
+	ffnav.lastStart = { x = pos.x, y = pos.y, z = pos.z }
+	ffnav.lastGoal = { x = pos2.x, y = pos2.y, z = pos2.z }
+	ffnav.lastGoalResult = reachable
+	ffnav.lastGoalCheck = Now()
+	
 	return reachable
 end
 
@@ -700,8 +726,50 @@ function ml_navigation:IsGoalClose(ppos,node)
 	return false
 end
 
+-- MoveTo will now only build a path if one does not exist or the one it wants to use is not compatible.
+-- Ideally, BuildPath should be called before this but there maybe legacy situations/tasks not updated where we don't want to just break them.
+-- Added misc debug codes to more easily help identify debug messages.
+function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff, newpathdistance, pathdeviationdistance)
+	
+	local buildNewPath = false
+	local newGoal = { x = x, y = y, z = z }
+	local newPath2d, newPath3d = ml_navigation.GetNewPathThresholds()
+	if (not ffnav.currentGoal) then
+		buildNewPath = true
+		d("[NAVIGATION]: Need to build a new path, no current goal [MOVETO1].")
+	else
+		local dist2d = math.distance2d(ffnav.currentGoal,newGoal)
+		local dist3d = math.distance3d(ffnav.currentGoal,newGoal)
+		
+		if (dist2d > newPath2d or dist3d > newPath3d) then
+			buildNewPath = true
+			d("[NAVIGATION]: Need to build a new path, current goal not appropriate [MOVETO2].")
+		end
+	end
+	
+	local ret;
+	if (buildNewPath) then
+		ret = Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff)
+	end
+	
+	if (ml_navigation:HasPath()) then
+		if (ml_navigation:EnablePathing()) then
+			d("[NAVIGATION: Started pathing [MOVETO3].")
+		end
+		return true
+	else
+		if (ml_navigation:DisablePathing()) then
+			d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")
+		end
+		return false
+	end
+	
+	d("[NAVIGATION: Something went wrong, path result ["..tostring(ret).."], returned false as default [MOVETO5].")
+	return ret
+end
+
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
-function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff)
+function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff, newpathdistance, pathdeviationdistance)
 	-- Catching it trying to use cubes incombat still.
 	-- Seems to originate from the fact that if a path can only be built with cubes that it will include them.
 	-- Need something to build a partial path for walking only, to get it out of danger.
@@ -728,13 +796,11 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	-- reenabled this now, since sebb's bot stand there doing nothign and noone knows where it wants to go, we need this to debug the meshes still
-	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
- 		ml_navigation.lastspam = ml_global_information.Now
-		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
- 	end
-	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
+	--d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	
+	ffnav.lastStart = { x = ppos.x, y = ppos.y, z = ppos.z }
+	ffnav.lastGoal = { x = newGoal.x, y = newGoal.y, z = newGoal.z }
 	ffnav.lastPathTime = Now()
 	ffnav.lastGoalResult = (ret > 0)
 	return ret
@@ -745,6 +811,7 @@ function Player:Stop()
 	--ml_navigation.ResetRenderPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
+	ml_navigation.canPath = false
 	ffnav.lastStart = {}
 	ffnav.currentGoal = {}
 	ffnav.currentParams = {}
@@ -1304,6 +1371,7 @@ ffnav.yield = {}
 ffnav.process = {}
 ffnav.alteredGoal = {}
 ffnav.lastStart = {}
+ffnav.lastGoal = {}
 ffnav.currentGoal = {}
 ffnav.currentParams = {}
 ffnav.lastGoalResult = false

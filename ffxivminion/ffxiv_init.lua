@@ -79,7 +79,10 @@ ml_global_information.lastMeasure = 0
 ml_global_information.requiresTransport = {}
 ml_global_information.landing = nil
 ml_global_information.queueLoader = false
+-- Split this into 2 variables to deal with the logic timing.
+-- [needsStealth] must be known in order to adjust the path request, and [canStealth] must come after to adjust actual activity performed.
 ml_global_information.needsStealth = false
+ml_global_information.canStealth = false
 ml_global_information.gatherid = 0
 ml_global_information.targetid = 0
 ml_global_information.foods = {}
@@ -129,6 +132,9 @@ function ml_global_information.ToggleRun()
 		ml_global_information.yield = {}
 		ml_global_information.Stop()
 	end
+	
+	-- Do some resets here.
+	ml_marker_mgr.currentMarker = nil
 end
 
 function ml_global_information.GetMainIcon()

@@ -1204,48 +1204,26 @@ function e_updatewalkpos:execute()
 	-- don't really need this, waste of time
 end
 
----------------------------------------------------------------------------------------------
---Task Completion CNEs
---These are cnes which are added to the process element list for a task and exist only to
---complete the specified task. They should be specific to the task which contains them...
---their only purpose should be to check the current game state and adjust the behavior of 
---the task in order to ensure its completion. 
----------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------------
---WALKTOPOS: If (distance to target > task.range) Then (move to pos)
----------------------------------------------------------------------------------------------
-c_walktopos = inheritsFrom( ml_cause )
-e_walktopos = inheritsFrom( ml_effect )
-c_walktopos.pos = {}
-e_walktopos.lastRun = 0
-e_walktopos.lastPath = 0
-e_walktopos.lastFail = 0
-e_walktopos.lastCode = 0
-e_walktopos.lastStealth = 0
-c_walktopos.lastPos = {}
-function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or
-		MIsLoading() or
-		Player:IsJumping() or 
-		IsMounting() or
-		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
-		IsShopWindowOpen() or
-		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
-	then
+-- Part 1 of the split-logic nav.
+-- This part will build the path, and walktopos will only need to check if one exists and enable pathing.
+c_getmovementpath = inheritsFrom( ml_cause )
+e_getmovementpath = inheritsFrom( ml_effect )
+function c_getmovementpath:evaluate()
+	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
+		d("loading, processing, or ascending")
+		d("ascending:"..tostring(ffnav.isascending))
 		return false
 	end
-	c_walktopos.pos = {}
 
-    if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then	
+    if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
 		local myPos = Player.pos
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
-			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 3)
+			ml_debug("[c_getmovementpath]: Position adjusted to gate position.", "gLogCNE", 3)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
-			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 3)
+			ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
 		end
 		
 		if (table.valid(gotoPos)) then
@@ -1257,95 +1235,140 @@ function c_walktopos:evaluate()
 				end
 			end
 			
-			local range2d, range3d = ml_navigation.GetMovementThresholds()
-			local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
-			
-			if (dist2d > range2d or dist3d > range3d or IsFlying()) then
-				if (ml_navigation:CheckPath(myPos,gotoPos)) then
-					c_walktopos.pos = gotoPos
-					return true
-				end
+			local pathLength = 0
+		
+			-- Attempt to get a path that doesn't require cubes for stealth pathing.
+			if (ml_global_information.needsStealth and not IsFlying() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
 			end
+			
+			if (pathLength <= 0) then
+				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, false)
+			end
+			
+			if (pathLength > 0) then
+				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
+				return false
+			end
+		else
+			d("no valid gotopos")
 		end
+	else
+		d("didn't have a valid position")
     end
+	
+	d("[GetMovementPath]: We could not get a path to our destination.")
+    return true
+end
+function e_getmovementpath:execute()
+	-- Logic is reversed here, if we successfully updated the path, there's no reason to do anything.
+	-- If no path was pulled, we should Stop() the character, because there's no reason to try mount/stealth/walk without any path.
+	if (Player:IsMoving()) then
+		Player:Stop()
+	end
+end
+
+---------------------------------------------------------------------------------------------
+--Task Completion CNEs
+--These are cnes which are added to the process element list for a task and exist only to
+--complete the specified task. They should be specific to the task which contains them...
+--their only purpose should be to check the current game state and adjust the behavior of 
+--the task in order to ensure its completion. 
+---------------------------------------------------------------------------------------------
+c_walktopos = inheritsFrom( ml_cause )
+e_walktopos = inheritsFrom( ml_effect )
+function c_walktopos:evaluate()
+	if ((MIsLocked() and not IsFlying()) or
+		MIsLoading() or
+		Player:IsJumping() or 
+		IsMounting() or
+		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
+		IsShopWindowOpen() or
+		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
+	then
+		return false
+	end
+	
+	if (ml_navigation:HasPath()) then
+		if (ml_navigation:EnablePathing()) then
+			d("[WalkToPos]: Pathing was started.")
+		end
+		return true
+	else
+		if (ml_navigation:DisablePathing()) then
+			d("[WalkToPos]: Pathing was stopped.")
+		end
+	end
 	
     return false
 end
 function e_walktopos:execute()
+	-- Nothing to really do here, just updating the pathing var, which should allow navigation to begin running.
+end
 
-	local needsStealth = ml_global_information.needsStealth
-	-- this stealth poop would need to go into the navigation itself...so it does not stupidly stealth before the bot goes to a cube path
-	if (not IsFlying() and not ffnav.isascending and not ffnav.IsProcessing() and table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil ) then
-		local canstealth = true
-		for i, node in pairs(ml_navigation.path) do
-			if (node.type == "CUBE") then
-				canstealth = false
-				break
-			end
+-- Slight difference here in that we cannot simply stop near an entity if we are flying.
+-- Player must be forced to the ground in order to be able to dismount if at all possible.
+-- Sometimes due to the way the pathing works, it will put us hovering right at an object, and this is not acceptable.
+c_walktoentity = inheritsFrom( ml_cause )
+e_walktoentity = inheritsFrom( ml_effect )
+function c_walktoentity:evaluate()
+	if ((MIsLocked() and not IsFlying()) or
+		MIsLoading() or
+		Player:IsJumping() or 
+		IsMounting() or
+		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
+		IsShopWindowOpen() or
+		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
+	then
+		return false
+	end
+	
+	if (ml_navigation:HasPath()) then
+		if (ml_navigation:EnablePathing()) then
+			d("[WalkToEntity]: Pathing was started.")
 		end
-		if ( canstealth ) then
-			if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-
-				local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying()
-				local hasStealth = HasBuff(Player.id,47)
-				if (not hasStealth and needsStealth) then
-					if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-						local newTask = ffxiv_task_stealth.Create()
-						newTask.addingStealth = true
-						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-						e_walktopos.lastStealth = Now()
-						c_walktopos.lastPos = nil
-						--d("adding stealth.")
-						return
-					end
-				elseif (hasStealth and not needsStealth) then
-					if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-						local newTask = ffxiv_task_stealth.Create()
-						newTask.droppingStealth = true
-						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-						e_walktopos.lastStealth = Now()
-						--d("dropping stealth.")
-						c_walktopos.lastPos = nil
-						return
-					end
+		return true
+	else
+		if (IsFlying()) then
+			-- First make sure there is somewhere to land so we don't fly into deep space.
+			local ppos = Player.pos
+			local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-15,ppos.z)
+			if (hit) then
+			
+				-- Basically just aim down and try to land.
+				-- If this doesn't work we are probably SOL anyway.
+				Player:SetPitch(1.377) 
+				if (not Player:IsMoving()) then
+					Player:Move(FFXIV.MOVEMENT.FORWARD)
+					ffnav.Await(3000, function () return Player:IsMoving() end)
+					return true
 				end
+				ffnav.Await(5000, function () return not IsFlying() end)
+				return true
+			else
+				if (ml_navigation:DisablePathing()) then
+					d("[WalkToEntity]: Pathing was stopped, while in flight, because no landing area was detected.")
+				end
+			end
+		else
+			if (ml_navigation:DisablePathing()) then
+				d("[WalkToEntity]: Pathing was stopped.")
 			end
 		end
 	end
 	
-	if (table.valid(c_walktopos.pos)) then
-		local gotoPos = c_walktopos.pos
-		local myPos = Player.pos
-		
-		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 3)
-		
-		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		local useFollow = ml_task_hub:CurrentTask().useFollowMovement and dist < 6
-		--local useRandom = (FFXIV_Common_RandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
-		
-		ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 3)
-		--local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
-		local noFly = IsNull(ml_task_hub:CurrentTask().noFly,false)
-		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,nil,nil,nil,noFly)
-		c_walktopos.lastPos = gotoPos
-		if (path >= 0) then
-			ml_debug("[e_walktopos]: Path generated by MoveTo with ["..tostring(path).."] points. ["..tostring(round(myPos.x,1))..","..tostring(round(myPos.y,1))..","..tostring(round(myPos.z,1)).."] to ["..tostring(round(gotoPos.x,1))..","..tostring(round(gotoPos.y,1))..","..tostring(round(gotoPos.z,1)).."]")
-			
-			e_walktopos.lastPath = Now()
-		elseif (path <= -1) then
-			ml_debug("[e_walktopos]: Error code ["..tostring(path).."] was generated by MoveTo, while creating a path from ["..tostring(round(myPos.x,1))..","..tostring(round(myPos.y,1))..","..tostring(round(myPos.z,1)).."] to ["..tostring(round(gotoPos.x,1))..","..tostring(round(gotoPos.y,1))..","..tostring(round(gotoPos.z,1)).."]")
-
-			e_walktopos.lastCode = path
-			e_walktopos.lastFail = Now()
-		end
-	end
+    return false
+end
+function e_walktoentity:execute()
+	-- Nothing to really do here, just updating the pathing var, which should allow navigation to begin running.
 end
 
 c_avoidaggressives = inheritsFrom( ml_cause )
 e_avoidaggressives = inheritsFrom( ml_effect )
 c_avoidaggressives.lastSet = {}
 function c_avoidaggressives:evaluate()
-	if (IsFlying() or MIsLocked()) then
+	-- Disabled this for now, the size is too unpredictable.
+	if (IsFlying() or MIsLocked() or true) then
 		return false
 	end
 	
@@ -1374,6 +1397,7 @@ function c_avoidaggressives:evaluate()
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		for i,entity in pairs(aggressives) do
 			if (entity.distance2d < 15 or entity.los) then
+					
 				local hasEntry = false
 				for k,area in pairs(avoidanceAreas) do
 					if (area.source == "c_avoidaggressives") then
@@ -1386,6 +1410,13 @@ function c_avoidaggressives:evaluate()
 								d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
 								avoidanceAreas[k] = nil
 							else
+								if (interactable) then
+									local intDist = math.distance2d(interactable.pos,entity.pos)
+									if (intDist < 15) then
+										avoidanceAreas[k] = nil
+									end
+								end
+								
 								hasEntry = true
 							end
 						end
@@ -1398,13 +1429,9 @@ function c_avoidaggressives:evaluate()
 					local canAdd = true
 					if (interactable) then
 						local intDist = math.distance2d(interactable.pos,newArea)
-						if (intDist <= newArea.r) then
-							if (intDist < 9) then
-								d("Could not add avoidance area, too close to interactable.")
-								canAdd = false
-							else
-								newArea.r = intDist - 1
-							end
+						if (intDist < 15) then
+							d("Could not add avoidance area, too close to interactable.")
+							canAdd = false
 						end
 					end
 					
@@ -1632,7 +1659,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting()) 
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth) 
 	then
 		return false
 	end
@@ -2040,8 +2067,10 @@ function c_flee:evaluate()
 		if (evacPoint) then
 			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
-				e_flee.fleePos = fpos
-				return true
+				if (NavigationManager:IsReachable(fpos)) then
+					e_flee.fleePos = fpos
+					return true
+				end
 			end
 		end
 		
@@ -2049,7 +2078,7 @@ function c_flee:evaluate()
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
 				local p = FindClosestMesh(newPos)
-				if (p) then
+				if (p and NavigationManager:IsReachable(p)) then
 					e_flee.fleePos = p
 					return true
 				end
@@ -2320,7 +2349,7 @@ function c_stealthupdate:evaluate()
 			return false
 		end
 		
-		local needsStealth = stealthFunction()
+		local needsStealth = (stealthFunction() and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying())
 		if (ml_global_information.needsStealth ~= needsStealth) then
 			ml_global_information.needsStealth = needsStealth
 		end
@@ -2334,6 +2363,53 @@ function c_stealthupdate:evaluate()
 end
 function e_stealthupdate:execute()
 	--Nothing here, just update the variable.
+end
+
+c_dostealth = inheritsFrom( ml_cause )
+e_dostealth = inheritsFrom( ml_effect )
+c_dostealth.lastStealth = 0
+c_dostealth.addStealth = false
+c_dostealth.dropStealth = false
+function c_dostealth:evaluate()	
+	c_dostealth.addStealth = false
+	c_dostealth.dropStealth = false
+
+	local needsStealth = ml_global_information.needsStealth
+	local hasStealth = HasBuff(Player.id,47)
+	local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
+	if (needsStealth and nextnode and string.contains(nextnode.type,"CUBE")) then
+		-- If we have stealth, we could actually walk up to a cube node to some degree sometimes, but this may not be needed, so keeping it simple for now.
+		-- Not going to remove stealth in this cne because mounting should take care of it for us and be safer.
+		d("[DoStealth]: Next node type is a cube, we won't be able to stealth to it.")
+		ml_global_information.canStealth = false
+		return false
+	end
+	
+	if (not IsGatherer(Player.job) and not IsFisher(Player.job)) then
+		ml_global_information.canStealth = false
+		return false
+	end
+	
+	-- 367 is the player animation for stealth and 1200 is just a little more than the time it usually takes to add it.
+	if (Player.action ~= 367 and TimeSince(c_dostealth.lastStealth) > 1200) then
+		if (needsStealth and not hasStealth) then
+			c_dostealth.addStealth = true
+			return true
+		elseif (not needsStealth and hasStealth) then
+			c_dostealth.dropStealth = true
+			return true
+		end
+	end
+	
+	return false
+end
+function e_dostealth:execute()
+	ml_global_information.canStealth = ml_global_information.needsStealth
+	local newTask = ffxiv_task_stealth.Create()
+	newTask.addingStealth = c_dostealth.addStealth
+	newTask.droppingStealth = c_dostealth.dropStealth
+	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+	c_dostealth.lastStealth = Now()
 end
 
 c_acceptquest = inheritsFrom( ml_cause )

@@ -77,13 +77,19 @@ function ffxiv_task_movetopos:Init()
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
 	
-	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
+	local ke_stealth = ml_element:create( "CheckStealth", c_stealthupdate, e_stealthupdate, 100 )
     self:add( ke_stealth, self.process_elements)
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 90 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 85 )
+    self:add( ke_getMovementPath, self.process_elements)
+	
+	local ke_useStealth = ml_element:create( "Stealth", c_dostealth, e_dostealth, 80 )
+    self:add( ke_useStealth, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 75 )
     self:add( ke_mount, self.process_elements)
 	
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
@@ -91,9 +97,6 @@ function ffxiv_task_movetopos:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
-	
-	--local ke_updatePos = ml_element:create( "UpdatePos", c_updatewalkpos, e_updatewalkpos, 50 )
-    --self:add( ke_updatePos, self.process_elements)
     	
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 40 )
     self:add( ke_walkToPos, self.process_elements)
@@ -180,17 +183,7 @@ function ffxiv_task_movetopos:task_fail_eval()
 		return true
 	end
 	
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
-		if (self.failTimer == 0) then
-			self.failTimer = Now() + 10000
-		end
-	else
-		if (self.failTimer ~= 0) then
-			self.failTimer = 0
-		end
-	end
-	
-	return (self.failTimer ~= 0 and Now() > self.failTimer)
+	return false
 end
 
 function ffxiv_task_movetopos:task_fail_execute()
@@ -244,7 +237,10 @@ function ffxiv_task_movetofate:Init()
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 100 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 90 )
+    self:add( ke_getMovementPath, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
 	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
@@ -400,17 +396,7 @@ function ffxiv_task_movetofate:task_fail_eval()
 		return true
 	end
 	
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
-		if (self.failTimer == 0) then
-			self.failTimer = Now() + 3000
-		end
-	else
-		if (self.failTimer ~= 0) then
-			self.failTimer = 0
-		end
-	end
-	
-	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
+	return false
 end
 function ffxiv_task_movetofate:task_fail_execute()
 	Player:Stop()
@@ -483,7 +469,13 @@ function ffxiv_task_movetointeract:Init()
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 90 )
+    self:add( ke_getMovementPath, self.process_elements)
+	
+	local ke_useStealth = ml_element:create( "Stealth", c_dostealth, e_dostealth, 85 )
+    self:add( ke_useStealth, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
@@ -495,8 +487,8 @@ function ffxiv_task_movetointeract:Init()
 	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
     self:add( ke_interact, self.process_elements)
 	
-	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-    self:add( ke_walkToPos, self.process_elements)
+	local ke_walkToEntity = ml_element:create( "WalkToEntity", c_walktoentity, e_walktoentity, 10 )
+    self:add( ke_walkToEntity, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -598,17 +590,7 @@ function ffxiv_task_movetointeract:task_fail_eval()
 		return true
 	end
 	
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
-		if (self.failTimer == 0) then
-			self.failTimer = Now() + 10000
-		end
-	else
-		if (self.failTimer ~= 0) then
-			self.failTimer = 0
-		end
-	end
-	
-	return (self.failTimer ~= 0 and Now() > self.failTimer)
+	return false
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
@@ -1282,8 +1264,11 @@ function ffxiv_task_flee.Create()
 end
 
 function ffxiv_task_flee:Init()	
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 11 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 20 )
     self:add( ke_teleportToPos, self.process_elements)
+	
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 15 )
+    self:add( ke_getMovementPath, self.process_elements)
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
     self:add( ke_falling, self.process_elements)
@@ -1320,16 +1305,7 @@ function ffxiv_task_flee:task_complete_execute()
 end
 
 function ffxiv_task_flee:task_fail_eval()
-	if (((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)) then
-		if (self.failTimer == 0) then
-			self.failTimer = Now() + 5000
-		end
-	else
-		if (self.failTimer ~= 0) then
-			self.failTimer = 0
-		end
-	end
-	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
+	return (not Player.alive)
 end
 
 --=======================GRIND COMBAT TASK=========================-
@@ -1479,8 +1455,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then			
-			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
-				--d("InCombatRange : "..tostring(InCombatRange(target.id))..",los:"..tostring(target.los)..",los2:"..tostring(target.los))
+			if (not InCombatRange(target.id) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p = FindClosestMesh(telePos)
@@ -1511,7 +1486,7 @@ function ffxiv_task_grindCombat:Process()
 					--d("Need to dismount if we are close.")
 					Dismount()
 				end
-				if (Player:IsMoving() and not IsFlying() and target.los ) then
+				if (Player:IsMoving() and not IsFlying()) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
@@ -1524,7 +1499,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			--d("Checking if we are in combat range and the target was attackable.")
-			if (InCombatRange(target.id) and target.attackable and target.alive and target.los ) then
+			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 					--d("FIRE AWAY")
 					SkillMgr.Cast( target )
@@ -1539,7 +1514,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 		else
 			--d("Melee class, check if we're in combat range and such..")
-			if (not InCombatRange(target.id) or not target.los) then
+			if (not InCombatRange(target.id)) then
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
@@ -1573,7 +1548,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (InCombatRange(target.id) and not IsFlying()) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (Player:IsMoving() and target.los) then
+				if (Player:IsMoving()) then
 					Player:Stop()
 				end
 				
@@ -1836,7 +1811,10 @@ function ffxiv_nav_interact:Init()
 	self:add( ke_teleportToPos, self.process_elements)
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 90 )
-    self:add( ke_useNavInteraction, self.process_elements)
+    self:add( ke_useNavInteraction, self.process_elements )
+	
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 85 )
+    self:add( ke_getMovementPath, self.process_elements)
 			
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 60 )
 	self:add( ke_mount, self.process_elements)
@@ -1847,8 +1825,8 @@ function ffxiv_nav_interact:Init()
 	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
     self:add( ke_interact, self.process_elements)	
 	
-	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-	self:add( ke_walkToPos, self.process_elements)
+	local ke_walkToEntity = ml_element:create( "WalkToEntity", c_walktoentity, e_walktoentity, 10 )
+    self:add( ke_walkToEntity, self.process_elements)
 
 	self:AddTaskCheckCEs()
 end
@@ -2122,11 +2100,14 @@ function ffxiv_task_moveaethernet:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
 	
-	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 100 )
     self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 95 )
+    self:add( ke_getMovementPath, self.process_elements)
 	
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)

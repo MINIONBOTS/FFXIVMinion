@@ -187,7 +187,7 @@ function c_findnode:evaluate()
 			elseif (task.unspoiled and task.unspoiled == true) then
 				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
 			end
-		elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+		elseif (table.valid(marker)) then
 			whitelist = IsNull(marker.whitelist,"1;2;3;4;9;10;11;12;13;14;15;16;17;18;19;20;21")
 			radius = IsNull(marker.maxradius,150)
 			if (radius == 0) then radius = 150 end
@@ -309,19 +309,19 @@ function c_movetonode:evaluate()
 					useCordials = GUI_Get(useCordials)
 				end
 				
-					--[[
-				if (useCordials) then
-					local canUse,cordialItem = CanUseCordial()
-					if (canUse and table.valid(cordialItem)) then
-						d("[NodePreBuff]: Need to use a cordial.")
-						e_nodeprebuff.activity = "usecordial"
-						e_nodeprebuff.itemid = cordialItem.hqid
-						e_nodeprebuff.requirestop = true
-						e_nodeprebuff.requiredismount = true
-						return true
-					end					
-				end
-		--]]
+				--[[
+					if (useCordials) then
+						local canUse,cordialItem = CanUseCordial()
+						if (canUse and table.valid(cordialItem)) then
+							d("[NodePreBuff]: Need to use a cordial.")
+							e_nodeprebuff.activity = "usecordial"
+							e_nodeprebuff.itemid = cordialItem.hqid
+							e_nodeprebuff.requirestop = true
+							e_nodeprebuff.requiredismount = true
+							return true
+						end					
+					end
+				--]]
 				
 				
 				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
@@ -423,7 +423,6 @@ function e_movetonode:execute()
 			end
 			
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
-			newTask.interactRange = 2.5
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)
@@ -452,7 +451,7 @@ function c_returntobase:evaluate()
 				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
 			end
-		elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+		elseif (table.valid(marker)) then
 			basePos = marker:GetPosition()
 		end
 		
@@ -1233,7 +1232,7 @@ function CanUseCordialSoon()
 	if (table.valid(task)) then
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
-	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+	elseif (table.valid(marker)) then
 		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 	else
@@ -1320,7 +1319,7 @@ function CanUseCordial()
 	if (table.valid(task)) then
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
-	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+	elseif (table.valid(marker)) then
 		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 	else
@@ -1550,7 +1549,7 @@ function c_nodeprebuff:evaluate()
 		taskType = IsNull(task.type,"")
 		useFavor = IsNull(task.favor,0)
 		useFood = IsNull(task.food,0)
-	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+	elseif (table.valid(marker)) then
 		if (IsNull(marker.skillprofile,"") ~= "" and IsNull(marker.skillprofile,"") ~= GetString("None")) then
 			skillProfile = marker.skillprofile
 		end
@@ -1870,8 +1869,10 @@ function c_gatherflee:evaluate()
 		if (evacPoint) then
 			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
-				e_gatherflee.fleePos = fpos
-				return true
+				if (NavigationManager:IsReachable(fpos)) then
+					e_gatherflee.fleePos = fpos
+					return true
+				end
 			end
 		end
 		
@@ -1879,7 +1880,7 @@ function c_gatherflee:evaluate()
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
 				local p = FindClosestMesh(newPos)
-				if (p) then
+				if (p and NavigationManager:IsReachable(p)) then
 					e_gatherflee.fleePos = p
 					return true
 				end
@@ -1901,7 +1902,7 @@ function e_gatherflee:execute()
 			end
 		newTask.task_fail_eval = 
 			function ()
-				return not Player.alive or ((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)
+				return not Player.alive
 			end
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
@@ -2884,7 +2885,7 @@ function c_gatherstealth:evaluate()
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		useStealth = IsNull(task.usestealth,false)
-	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+	elseif (table.valid(marker)) then
 		useStealth = (marker.usestealth )
 	else
 		return false
