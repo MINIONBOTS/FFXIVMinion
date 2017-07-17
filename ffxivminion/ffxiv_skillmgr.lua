@@ -537,14 +537,24 @@ SkillMgr.Variables = {
 	
 	SKM_SingleUseCraft = { default = true, cast = "boolean", profile = "singleuseonly", section = "crafting"},
 	SKM_ConsecutiveUseCraft = { default = false, cast = "boolean", profile = "consecutiveuseonly", section = "crafting"},
+	
+	SKM_CLevelMin = { default = 0, cast = "number", profile = "playerlevelmin", section = "fighting", group = "", useData = "level" },
+	SKM_CLevelMax = { default = 0, cast = "number", profile = "playerlevelmax", section = "fighting", group = ""   },
+	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
 	SKM_CPMIN = { default = 0, cast = "number", profile = "cpmin", section = "crafting"},
 	SKM_CPMAX = { default = 0, cast = "number", profile = "cpmax", section = "crafting"},
 	SKM_DURMIN = { default = 0, cast = "number", profile = "durabmin", section = "crafting"},
 	SKM_DURMAX = { default = 0, cast = "number", profile = "durabmax", section = "crafting"},
+	SKM_MAXDURMIN = { default = 0, cast = "number", profile = "maxdurabmin", section = "crafting"},
+	SKM_MAXDURMAX = { default = 0, cast = "number", profile = "maxdurabmax", section = "crafting"},
 	SKM_PROGMIN = { default = 0, cast = "number", profile = "progrmin", section = "crafting"},
 	SKM_PROGMAX = { default = 0, cast = "number", profile = "progrmax", section = "crafting"},
+
+	SKM_MAXPROGMIN = { default = 0, cast = "number", profile = "maxprogrmin", section = "crafting"},
+	SKM_MAXPROGMAX = { default = 0, cast = "number", profile = "maxprogrmax", section = "crafting"},
+	
 	SKM_CRAFTMIN = { default = 0, cast = "number", profile = "craftmin", section = "crafting"},
 	SKM_CRAFTMAX = { default = 0, cast = "number", profile = "craftmax", section = "crafting"},
 	SKM_CONTROLMIN = { default = 0, cast = "number", profile = "controlmin", section = "crafting"},
@@ -557,6 +567,7 @@ SkillMgr.Variables = {
 	
 	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", section = "crafting"},
 	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", section = "crafting"},
+	SKM_IQSTACKMAX = { default = 0, cast = "number", profile = "iqstackmax", section = "crafting"},
 	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", section = "crafting"},
 	SKM_GSSTACKMIN = { default = 0, cast = "number", profile = "gsstackmin", section = "crafting"},
 	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
@@ -2949,7 +2960,9 @@ function SkillMgr.Craft()
 					local stats = Player.stats
 					local cp = Player.cp
 					local step = synth.step
+					local durabilitymax = synth.durabilitymax
 					local durability = synth.durability
+					local progressmax = synth.progressmax
 					local progress = synth.progress
 					local quality = synth.quality
 					local qualitypercent = synth.qualitypercent
@@ -2958,10 +2971,19 @@ function SkillMgr.Craft()
                         (tonumber(skill.stepmax) > 0 and synth.step >= tonumber(skill.stepmax)) or
                         (tonumber(skill.cpmin) > 0 and Player.cp.current < tonumber(skill.cpmin)) or
                         (tonumber(skill.cpmax) > 0 and Player.cp.current >= tonumber(skill.cpmax)) or
+						
+						(tonumber(skill.maxdurabmin) > 0 and durabilitymax < tonumber(skill.maxdurabmin)) or
+                        (tonumber(skill.maxdurabmax) > 0 and durabilitymax >= tonumber(skill.maxdurabmax)) or
+						
                         (tonumber(skill.durabmin) > 0 and synth.durability < tonumber(skill.durabmin)) or
                         (tonumber(skill.durabmax) > 0 and synth.durability >= tonumber(skill.durabmax)) or
+						
+						(tonumber(skill.maxprogrmin) > 0 and progressmax < tonumber(skill.maxprogrmin)) or
+                        (tonumber(skill.maxprogrmax) > 0 and progressmax >= tonumber(skill.maxprogrmax)) or
+						
                         (tonumber(skill.progrmin) > 0 and synth.progress < tonumber(skill.progrmin)) or
                         (tonumber(skill.progrmax) > 0 and synth.progress >= tonumber(skill.progrmax)) or
+						
 						(tonumber(skill.craftmin) > 0 and Player.stats.craftmanship < tonumber(skill.craftmin)) or
                         (tonumber(skill.craftmax) > 0 and Player.stats.craftmanship >= tonumber(skill.craftmax)) or
                         (tonumber(skill.controlmin) > 0 and Player.stats.control < tonumber(skill.controlmin)) or
@@ -3012,8 +3034,13 @@ function SkillMgr.Craft()
 						castable = false
 					end
 					
+					if (tonumber(skill.iqstackmax) > 0 and SkillMgr.currentIQStack >= tonumber(skill.iqstackmax)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet max IQ stack requirements.")
+						castable = false
+					end
+					
 					if (tonumber(skill.iqstack) > 0 and SkillMgr.currentIQStack < tonumber(skill.iqstack)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet IQ stack requirements.")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet minimum IQ stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.gsstackmin) > 0 and SkillMgr.currentGSStack < tonumber(skill.gsstackmin)) then
@@ -6010,16 +6037,16 @@ function SkillMgr.DrawCraftEditor()
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Text(GetString("Consecutive Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ConsecutiveUseCraft",SKM_ConsecutiveUseCraft),"SKM_ConsecutiveUseCraft"); GUI:NextColumn();
-		
+		GUI:Separator();
+		GUI:Text(GetString("Player Level >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMin",SKM_CLevelMin,0,0),"SKM_CLevelMin"); GUI:NextColumn();	
+		GUI:Text(GetString("Player Level <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMax",SKM_CLevelMax,0,0),"SKM_CLevelMax"); GUI:NextColumn();
 		GUI:Separator();		
 		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
 		GUI:Separator()
-		
 		GUI:Text(GetString("Condition")); GUI:NextColumn(); SKM_Combo("##SKM_CONDITION","gSMCraftConditionIndex","SKM_CONDITION",gSMCraftConditions); GUI:NextColumn();
 		GUI:Text(GetString("Has Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPBuff",SKM_CPBuff),"SKM_CPBuff"); GUI:NextColumn();	
 		GUI:Text(GetString("Missing Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPNBuff",SKM_CPNBuff),"SKM_CPNBuff"); GUI:NextColumn();	
-		
 		GUI:Separator();
 		GUI:Text(GetString("CP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("CP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
@@ -6027,8 +6054,14 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMIN",SKM_DURMIN,0,0),"SKM_DURMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMAX",SKM_DURMAX,0,0),"SKM_DURMAX"); GUI:NextColumn();
 		GUI:Separator();
+		GUI:Text(GetString("Max Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMIN",SKM_MAXDURMIN,0,0),"SKM_MAXDURMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Max Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMAX",SKM_MAXDURMAX,0,0),"SKM_MAXDURMAX"); GUI:NextColumn();
+		GUI:Separator();
 		GUI:Text(GetString("Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMIN",SKM_PROGMIN,0,0),"SKM_PROGMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Progress <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMAX",SKM_PROGMAX,0,0),"SKM_PROGMAX"); GUI:NextColumn();
+		GUI:Separator();
+		GUI:Text(GetString("Max Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMIN",SKM_MAXPROGMIN,0,0),"SKM_MAXPROGMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Max Progress <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMAX",SKM_MAXPROGMAX,0,0),"SKM_MAXPROGMAX"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Quality >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Quality <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
@@ -6048,6 +6081,7 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Hasty Touch Successes >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HTSUCCEED",SKM_HTSUCCEED,0,0),"SKM_HTSUCCEED"); GUI:NextColumn();	
 		GUI:Text(GetString("Manipulation Uses <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPMAX",SKM_MANIPMAX,0,0),"SKM_MANIPMAX"); GUI:NextColumn();
 		GUI:Text(GetString("IQ Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_IQSTACK",SKM_IQSTACK,0,0),"SKM_IQSTACK"); GUI:NextColumn();	
+		GUI:Text(GetString("IQ Stack <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_IQSTACKMAX",SKM_IQSTACKMAX,0,0),"SKM_IQSTACKMAX"); GUI:NextColumn();	
 		GUI:Text(GetString("Great Strides Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GSSTACKMIN",SKM_GSSTACKMIN,0,0),"SKM_GSSTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Steady Hand Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SHSTACKMIN",SKM_SHSTACKMIN,0,0),"SKM_SHSTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Steady Hand 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SH2STACKMIN",SKM_SH2STACKMIN,0,0),"SKM_SH2STACKMIN"); GUI:NextColumn();
