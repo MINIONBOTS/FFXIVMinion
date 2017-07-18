@@ -1498,7 +1498,7 @@ e_nodeprebuff.class = nil
 e_nodeprebuff.requirestop = false
 e_nodeprebuff.requiredismount = false
 function c_nodeprebuff:evaluate()
-	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying()) or 
+	if (MIsLoading() or MIsCasting() or CannotMove() or 
 		IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece")) then
 		return false
 	end
@@ -3151,7 +3151,7 @@ end
 c_gatherislocked = inheritsFrom( ml_cause )
 e_gatherislocked = inheritsFrom( ml_effect )
 function c_gatherislocked:evaluate()
-	return (MIsLocked() and not IsFlying()) or IsControlOpen("Gathering")
+	return CannotMove() or IsControlOpen("Gathering")
 end
 function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")

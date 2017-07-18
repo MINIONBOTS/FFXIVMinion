@@ -331,7 +331,7 @@ c_huntlogkill = inheritsFrom( ml_cause )
 e_huntlogkill = inheritsFrom( ml_effect )
 e_huntlogkill.targetid = 0
 function c_huntlogkill:evaluate()
-	if (not table.valid(ml_task_hub:CurrentTask().huntParams) or MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying())) then
+	if (not table.valid(ml_task_hub:CurrentTask().huntParams) or MIsLoading() or MIsCasting() or CannotMove()) then
 		return false
 	end
 	

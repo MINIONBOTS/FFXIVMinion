@@ -62,7 +62,6 @@ function GetNearestGrindAttackable()
 	local marker = ml_marker_mgr.currentMarker
 	
 	if (table.valid(task)) then
-		d("task is valid")
 		minLevel = IsNull(task.mincontentlevel,1)
 		maxLevel = IsNull(task.maxcontentlevel,70)
 		radius = IsNull(task.maxradius,150)
@@ -70,7 +69,6 @@ function GetNearestGrindAttackable()
 		blacklist = IsNull(task.blacklist,"")
 		whitelist = IsNull(task.whitelist,"")
 	elseif (table.valid(marker)) then
-		d("marker is valid")
 		minLevel = IsNull(marker.mincontentlevel,1)
 		maxLevel = IsNull(marker.maxcontentlevel,70)
 		radius = IsNull(marker.maxradius,150)
@@ -93,9 +91,6 @@ function GetNearestGrindAttackable()
 			excludeString = blacklist
 		end
 	end
-	
-	d("huntString:"..tostring(huntString))
-	d("excludeString:"..tostring(excludeString))
 	
 	local huntTable = {}
 	local excludeTable = {}
@@ -121,6 +116,7 @@ function GetNearestGrindAttackable()
 	local claimrange = {}
 	local memberids = {}
 	local filtered = {}
+	local unclaimed = {}
 
 	local attackables = EntityList("los,alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
@@ -164,7 +160,7 @@ function GetNearestGrindAttackable()
 				if (attackables[i]) then
 					filtered[eid] = cached
 				
-					if (not incombat) then
+					if (gClaimed or not incombat) then
 						notincombat[eid] = cached
 						if (gClaimFirst) then
 							if (distance2d <= gClaimRange) then
@@ -242,18 +238,20 @@ function GetNearestGrindAttackable()
 		end
 		
 		-- Last check, nearest non-filtered mob.
-		local nearest, nearestDistance = nil, 1000
-		for i,e in pairs(filtered) do
-			if (not nearest or (nearest and e.distance2d < nearestDistance)) then
-				nearest, nearestDistance = e, e.distance2d
+		if (table.valid(notincombat)) then
+			local nearest, nearestDistance = nil, 1000
+			for i,e in pairs(notincombat) do
+				if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+					nearest, nearestDistance = e, e.distance2d
+				end
 			end
-		end
-			
-		if (nearest) then
-			local actual = EntityList:Get(nearest.id)
-			if (actual) then
-				d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
-				return actual
+				
+			if (nearest) then
+				local actual = EntityList:Get(nearest.id)
+				if (actual) then
+					d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+					return actual
+				end
 			end
 		end
 	end
@@ -5716,6 +5714,44 @@ function GetPitch()
 		return Player.flying.pitch
 	end
 	return false
+end
+
+function CanDiveInZone()
+	if (Player.diving) then
+		if (Player.diving.candiveinzone) then
+			return true
+		end
+	end
+	return false
+end
+
+function IsSwimming()
+	if (Player.diving) then
+		if (Player.diving.isswimming) then
+			return true
+		end
+	end
+	return false
+end
+
+function IsDiving()
+	if (Player.diving) then
+		if (Player.diving.isdiving) then
+			return true
+		end
+	end
+	return false
+end
+
+function GetDiveHeight()
+	if (Player.diving) then
+		return Player.diving.heightlevel
+	end
+	return false
+end
+
+function CannotMove()
+	return (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming())
 end
 
 function DoWait(ms)

@@ -105,7 +105,7 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if ((MIsLocked() and not IsFlying()) or MIsLoading() or self.startMap ~= Player.localmapid) then
+	if (CannotMove() or MIsLoading() or self.startMap ~= Player.localmapid) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -460,14 +460,14 @@ function ffxiv_task_movetointeract:Init()
 	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 135 )
     self:add( ke_unlockAethernet, self.process_elements)
 	
-	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
-    self:add( ke_stealth, self.process_elements)
-
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
 	
-	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 125 )
     self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
+    self:add( ke_stealth, self.process_elements)
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 90 )
     self:add( ke_getMovementPath, self.process_elements)
@@ -529,7 +529,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	end
 	
-	if ((MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+	if (CannotMove() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
@@ -855,7 +855,7 @@ function ffxiv_task_teleport:task_fail_eval()
 		return true
 	end
 	
-	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying())) then
+	if (MIsLoading() or MIsCasting() or CannotMove()) then
 		self.lastActivity = Now()
 		return false
 	end
@@ -2011,7 +2011,7 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	
 	if (Player.job ~= class) then
 		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
-		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+		if (IsShopWindowOpen() or CannotMove() or MIsLoading() or 
 			not Player.alive or Player.incombat or
 			IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
 		then

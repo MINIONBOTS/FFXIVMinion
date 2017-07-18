@@ -141,7 +141,7 @@ end
 c_nextgrindarea = inheritsFrom( ml_cause )
 e_nextgrindarea = inheritsFrom( ml_effect )
 function c_nextgrindarea:evaluate()	
-	if ((MIsLocked() and not IsFlying()) or not Player.alive or Player.incombat or ffxiv_task_grind.inFate or MIsLoading() or ml_task_hub:ThisTask().doingHuntlog) then
+	if (CannotMove() or not Player.alive or Player.incombat or ffxiv_task_grind.inFate or MIsLoading() or ml_task_hub:ThisTask().doingHuntlog) then
 		return false
 	end
 	

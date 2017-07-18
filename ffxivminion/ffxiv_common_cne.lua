@@ -832,7 +832,7 @@ e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
 	if (MIsLoading() or 
-		(MIsLocked() and not IsFlying()) or 
+		CannotMove() or 
 		MIsCasting() or
 		Player.localmapid == 0) 
 	then
@@ -894,7 +894,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if (MIsLoading() or 
-		(MIsLocked() and not IsFlying()) or 
+		CannotMove() or 
 		MIsCasting() or GilCount() < 1500 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == Player.localmapid) 
@@ -1278,7 +1278,7 @@ end
 c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or
+	if (CannotMove() or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -1312,7 +1312,7 @@ end
 c_walktoentity = inheritsFrom( ml_cause )
 e_walktoentity = inheritsFrom( ml_effect )
 function c_walktoentity:evaluate()
-	if ((MIsLocked() and not IsFlying()) or
+	if (CannotMove() or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -2219,7 +2219,7 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-	if (Player.incombat or MIsCasting() or MIsLoading() or (MIsLocked() and not IsFlying()) or IsControlOpen("Gathering")) then
+	if (Player.incombat or MIsCasting() or MIsLoading() or CannotMove() or IsControlOpen("Gathering")) then
 		return false
 	end
 	
@@ -2559,7 +2559,7 @@ e_autoequip.bag = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if (((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
-		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+		IsShopWindowOpen() or CannotMove() or MIsLoading() or 
 		not Player.alive or Player.incombat or
 		IsControlOpen("Gathering") or Player:GetFishingState() ~= 0 or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) 
 	then
@@ -2780,7 +2780,7 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
-	if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
+	if (IsShopWindowOpen() or CannotMove() or MIsLoading() or IsControlOpen("Talk") or
 		not Player.alive or Player.incombat or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
 	then
 		return false
@@ -3029,7 +3029,7 @@ end
 c_movetomap = inheritsFrom( ml_cause )
 e_movetomap = inheritsFrom( ml_effect )
 function c_movetomap:evaluate()
-	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading()) then
+	if (MIsCasting() or CannotMove() or MIsLoading()) then
 		return false
 	end
 	
@@ -3105,7 +3105,7 @@ c_moveandinteract = inheritsFrom( ml_cause )
 e_moveandinteract = inheritsFrom( ml_effect )
 c_moveandinteract.entityid = 0
 function c_moveandinteract:evaluate()
-	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+	if (MIsCasting() or CannotMove() or MIsLoading() or 
 		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen()) 
 	then
 		return false
@@ -3138,7 +3138,7 @@ function c_switchclass:evaluate()
 	
 	local class = ml_task_hub:CurrentTask().class
 	if (Player.job ~= class) then
-		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+		if (IsShopWindowOpen() or CannotMove() or MIsLoading() or 
 			not Player.alive or Player.incombat or
 			IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
 		then
