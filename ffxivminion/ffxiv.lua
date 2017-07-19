@@ -66,8 +66,8 @@ ffxivminion.AutoGrindDefault = [[
 		elseif (level >= 40 and level < 45) then
 			return 155 --coerthas
 		elseif ((level >= 45 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
-			return 138
-		elseif (level >= 58 and CanAccessMap(478) and CanAccessMap(399)) then
+			return 397
+		elseif (level >= 58 and level < 60 and CanAccessMap(478) and CanAccessMap(399)) then
 			return 399 --The Dravanian Hinterlands
 		elseif (level >= 55 and level < 60 and CanAccessMap(398)) then
 			return 398	--The Dravanian Forelands
@@ -619,7 +619,7 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
-	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCodeSB",ffxivminion.AutoGrindDefault)
+	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
 	GetBestGrindMap = GetBestGrindMapDefault
 	local f = loadstring(gAutoGrindCode)
 	if (f ~= nil) then
