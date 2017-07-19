@@ -66,18 +66,18 @@ ffxivminion.AutoGrindDefault = [[
 		elseif (level >= 40 and level < 45) then
 			return 155 --coerthas
 		elseif ((level >= 45 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
-			return 397
+			return 147 -- northern thanalan
+		elseif (level >= 60 and CanAccessMap(612)) then
+			return 612 --The Fringes
 		elseif (level >= 58 and level < 60 and CanAccessMap(478) and CanAccessMap(399)) then
 			return 399 --The Dravanian Hinterlands
 		elseif (level >= 55 and level < 60 and CanAccessMap(398)) then
 			return 398	--The Dravanian Forelands
 		elseif (level >= 50 and level < 60 and CanAccessMap(397)) then
-			return 397 --Coerthas Western Highlands
-		elseif (level >= 60 and CanAccessMap(612)) then
-			return 612 --The Fringes
+			return 397 --Coerthas Western Highlands		
 		else
 			return 138
-		end	
+		end
 	end
 ]]
 
