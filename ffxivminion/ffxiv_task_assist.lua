@@ -63,7 +63,6 @@ function ffxiv_task_assist:InitAddon()
 end
 
 function ffxiv_task_assist:Process()
-
 	if (Player.alive) then
 		local target = Player:GetTarget()
 		
@@ -88,7 +87,7 @@ function ffxiv_task_assist:Process()
 				Player:SetTarget(target.id)  
 			end
 		end
-		
+
 		local casted = false
 		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance <= 35 or gAssistFollowTarget )) then
 			if (gStartCombat or (not gStartCombat and Player.incombat)) then
@@ -217,12 +216,24 @@ function ffxiv_task_assist:Draw()
 		
 		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
 		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP)."))
+		end
 		GUI_Capture(GUI:Checkbox("Face Target",gAssistTrackTarget),"gAssistTrackTarget");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode."))
+		end
 		
 		GUI_Combo(GetString("assistMode"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
 		GUI_Combo(GetString("assistPriority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)		
-		GUI_Capture(GUI:Checkbox("Use Autoface",gAssistUseAutoFace),"gAssistUseAutoFace");
+		GUI_Capture(GUI:Checkbox(GetString("Using Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options."))
+		end
 		GUI_Capture(GUI:Checkbox(GetString("startCombat"),gStartCombat),"gStartCombat");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already."))
+		end
 		GUI_Capture(GUI:Checkbox(GetString("confirmDuty"),gAssistConfirmDuty),"gAssistConfirmDuty");
 		GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
 			function ()

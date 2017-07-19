@@ -72,7 +72,9 @@ function ffxiv_task_grind.Create()
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
-
+	
+	AddEvacPoint()
+	
     return newinst
 end
 
@@ -846,7 +848,7 @@ function ffxiv_task_grind:Draw()
 		
 		local res = GUI_Capture(GUI:Checkbox(GetString("doFates"),gGrindDoFates),"gGrindDoFates")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will complete FATEs in addition to mob-grinding.")) end
-		if( res ) then 
+		if ( res ) then 
 			GUI:SameLine(0,10)
 			GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", 
 				function () 
@@ -856,6 +858,11 @@ function ffxiv_task_grind:Draw()
 				end
 			)
 			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will idle between FATEs, and will not perform mob-grinding.")) end
+		else
+			-- If we don't want to do fates, turn off fates only also, just for good measure.
+			if (gGrindFatesOnly) then
+				GUI_Set("gGrindFatesOnly",false) 
+			end
 		end
 		
 		GUI_Capture(GUI:Checkbox("Kill Non-Fate Aggro",gFateKillAggro),"gFateKillAggro");

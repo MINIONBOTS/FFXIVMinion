@@ -726,7 +726,7 @@ function ffxiv_task_teleport.Create()
 	newinst.mesh = nil
     newinst.started = Now()
 	newinst.lastActivity = Now()
-	newinst.setEvac = false
+	newinst.setEvac = true
 	newinst.setHomepoint = false
 	newinst.conversationIndex = 0
     
@@ -840,7 +840,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (self.setEvac) then
-		ml_marker_mgr.AddEvacPoint()
+		AddEvacPoint()
 	end
 	
 	--d("complete teleport")

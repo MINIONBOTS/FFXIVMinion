@@ -56,9 +56,13 @@ function c_fatewait:evaluate()
     local evacPoint = GetNearestEvacPoint()
 	if (table.valid(evacPoint)) then
 		local gotoPos = evacPoint.pos
-		if (gFateWaitNearEvac and gGrindFatesOnly and gGrindDoFates and math.distance2d(myPos, gotoPos) > 15) then
-			e_fatewait.pos = gotoPos
-			return true
+		if (NavigationManager:IsReachable(gotoPos)) then
+			if (gFateWaitNearEvac and gGrindFatesOnly and gGrindDoFates and math.distance2d(myPos, gotoPos) > 10) then
+				e_fatewait.pos = gotoPos
+				return true
+			end
+		else
+			d("[FateWait]: Evac point @ ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] was not reachable.")
 		end
 	end
 	return false
@@ -70,13 +74,14 @@ function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos.Create()
 	newTask.destination = "FATE_WAIT"
     local evacPos = e_fatewait.pos
-    local newPos = NavigationManager:GetRandomPointOnCircle(evacPos.x,evacPos.y,evacPos.z,1,5)
-    if (table.valid(newPos)) then
+    local newPos = NavigationManager:GetRandomPointOnCircle(evacPos.x,evacPos.y,evacPos.z,1,8)
+    if (table.valid(newPos) and NavigationManager:IsReachable(newPos)) then
         newTask.pos = {x = newPos.x, y = newPos.y, z = newPos.z}
     else
         newTask.pos = {x = evacPos.x, y = evacPos.y, z = evacPos.z}
     end
     
+	newTask.range = 5
     newTask.remainMounted = true
 	newTask.task_fail_eval = function ()
 		return c_add_fate:evaluate()
@@ -455,6 +460,7 @@ function c_faterandomdelay:evaluate()
 		if (fate.completion == 0 and dist > (fate.radius + 20)) then
 			return true
 		else
+			d("[FateRandomDelay]: Delay does not apply, completion is too high.")
 			ml_task_hub:ThisTask().randomDelayCompleted = true
 		end
 	end
@@ -462,8 +468,8 @@ function c_faterandomdelay:evaluate()
     return false
 end
 function e_faterandomdelay:execute()
-	local minWait = tonumber(gFateRandomDelayMin) * 1000
-	local maxWait = tonumber(gFateRandomDelayMax) * 1000
+	local minWait = gFateRandomDelayMin * 1000
+	local maxWait = gFateRandomDelayMax * 1000
 	
 	ml_global_information.Await(math.random(minWait,maxWait))
 	ml_task_hub:ThisTask().randomDelayCompleted = true
@@ -604,10 +610,9 @@ function c_endfate:evaluate()
 	else
 		local minFateLevel = tonumber(gGrindFatesMinLevel) or 0
 		local maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
-		local level = Player.level
-				
-		if ((minFateLevel ~= 0 and not gGrindFatesNoMinLevel and (fate.level < (level - minFateLevel))) or 
-			(maxFateLevel ~= 0 and not gGrindFatesNoMaxLevel and (fate.level > (level + maxFateLevel))))
+		
+		if ((minFateLevel ~= 0 and not gGrindFatesNoMinLevel and (fate.level < (Player.level - minFateLevel))) or 
+			(maxFateLevel ~= 0 and not gGrindFatesNoMaxLevel and (fate.level > (Player.level + maxFateLevel))))
 		then
 			return true
 		end

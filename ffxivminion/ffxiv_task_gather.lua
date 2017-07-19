@@ -37,12 +37,14 @@ function ffxiv_task_gather.Create()
 	ffxiv_gather.currentTask = {}
 	ffxiv_gather.currentTaskIndex = 0
 	
-	newinst.pos = 0
+	newinst.pos = Player.pos
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.failedSearches = 0 
+	
+	AddEvacPoint()
 	
     return newinst
 end
@@ -188,7 +190,7 @@ function c_findnode:evaluate()
 				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
 			end
 		elseif (table.valid(marker)) then
-			whitelist = IsNull(marker.whitelist,"1;2;3;4;9;10;11;12;13;14;15;16;17;18;19;20;21")
+			whitelist = IsNull(marker.whitelist,"")
 			radius = IsNull(marker.maxradius,150)
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker.mincontentlevel,1)
@@ -196,6 +198,8 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
 			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
 			basePos = marker:GetPosition()
+		else
+			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
 		if (table.valid(basePos)) then
@@ -434,7 +438,7 @@ c_returntobase = inheritsFrom( ml_cause )
 e_returntobase = inheritsFrom( ml_effect )
 e_returntobase.pos = {}
 function c_returntobase:evaluate()
-	if (IsControlOpen("Gathering")) then
+	if (IsControlOpen("Gathering") or not ffxiv_gather.HasDirective()) then
 		return false
 	end
 	
@@ -453,10 +457,12 @@ function c_returntobase:evaluate()
 			end
 		elseif (table.valid(marker)) then
 			basePos = marker:GetPosition()
+		else
+			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
 		local p = FindClosestMesh(basePos)
-		if (p) then
+		if (p and NavigationManager:IsReachable(p)) then
 			basePos = p
 		end
 
@@ -488,10 +494,6 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
-	local p = FindClosestMesh(pos)
-	if (p) then
-		pos = p
-	end
 	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
@@ -3180,8 +3182,8 @@ function ffxiv_task_gather:Init()
 	local ke_flee = ml_element:create( "Flee", c_gatherflee, e_gatherflee, 140 )
     self:add( ke_flee, self.overwatch_elements)
 	
-	local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
-    self:add( ke_avoidAggressives, self.overwatch_elements)
+	--local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
+    --self:add( ke_avoidAggressives, self.overwatch_elements)
 	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )
     self:add( ke_inventoryFull, self.overwatch_elements)
@@ -3219,8 +3221,8 @@ function ffxiv_task_gather:Init()
     self:add( ke_nextMarker, self.process_elements)
 	
 	
-	local ke_noActivity = ml_element:create( "NoActivity", c_gathernoactivity, e_gathernoactivity, 145 )
-    self:add( ke_noActivity, self.process_elements)
+	--local ke_noActivity = ml_element:create( "NoActivity", c_gathernoactivity, e_gathernoactivity, 145 )
+    --self:add( ke_noActivity, self.process_elements)
 	
 	local ke_moveToNode = ml_element:create( "MoveToNode", c_movetonode, e_movetonode, 140 )
     self:add(ke_moveToNode, self.process_elements)
@@ -3373,6 +3375,26 @@ function ffxiv_task_gather:Draw()
 			end
 		end
 	end
+end
+
+function ffxiv_gather.GetDirective()
+	local marker = ml_marker_mgr.currentMarker
+	local task = ffxiv_gather.currentTask
+	
+	if (table.valid(task)) then
+		return task, "task"
+	elseif (table.valid(marker)) then
+		return marker, "marker"
+	end
+	
+	return nil
+end
+
+function ffxiv_gather.HasDirective()
+	local marker = ml_marker_mgr.currentMarker
+	local task = ffxiv_gather.currentTask
+	
+	return (table.valid(task) or table.valid(marker))
 end
 
 function ffxiv_gather.DeleteTask(key)

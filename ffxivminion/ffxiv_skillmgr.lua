@@ -375,6 +375,26 @@ SkillMgr.Variables = {
 	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting", group = "" },
 	SKM_CHAINEND = { default = false, cast = "boolean", profile = "chainend", section = "fighting", group = "" },
 	
+	SKM_GAUGE1LT = { default = 0, cast = "number", profile = "gauge1lt", section = "fighting", group = "" },
+	SKM_GAUGE1GT = { default = 0, cast = "number", profile = "gauge1gt", section = "fighting", group = "" },
+	SKM_GAUGE1EQ = { default = 0, cast = "number", profile = "gauge1eq", section = "fighting", group = "" },
+	SKM_GAUGE1OR = { default = "", cast = "string", profile = "gauge1or", section = "fighting", group = "" },
+	
+	SKM_GAUGE2LT = { default = 0, cast = "number", profile = "gauge2lt", section = "fighting", group = "" },
+	SKM_GAUGE2GT = { default = 0, cast = "number", profile = "gauge2gt", section = "fighting", group = "" },
+	SKM_GAUGE2EQ = { default = 0, cast = "number", profile = "gauge2eq", section = "fighting", group = "" },
+	SKM_GAUGE2OR = { default = "", cast = "string", profile = "gauge2or", section = "fighting", group = "" },
+	
+	SKM_GAUGE3LT = { default = 0, cast = "number", profile = "gauge3lt", section = "fighting", group = "" },
+	SKM_GAUGE3GT = { default = 0, cast = "number", profile = "gauge3gt", section = "fighting", group = "" },
+	SKM_GAUGE3EQ = { default = 0, cast = "number", profile = "gauge3eq", section = "fighting", group = "" },
+	SKM_GAUGE3OR = { default = "", cast = "string", profile = "gauge3or", section = "fighting", group = "" },
+	
+	SKM_GAUGE4LT = { default = 0, cast = "number", profile = "gauge4lt", section = "fighting", group = "" },
+	SKM_GAUGE4GT = { default = 0, cast = "number", profile = "gauge4gt", section = "fighting", group = "" },
+	SKM_GAUGE4EQ = { default = 0, cast = "number", profile = "gauge4eq", section = "fighting", group = "" },
+	SKM_GAUGE4OR = { default = "", cast = "string", profile = "gauge4or", section = "fighting", group = "" },
+	
 	-- Macro Vars.
 	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", section = "fighting" },
 	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
@@ -5433,6 +5453,48 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Gauge Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		
+		for i = 1,4 do
+			local g = Player.gauge
+			if (table.valid(g) and g[i] ~= nil and tonumber(g[i]) ~= nil) then
+				if (skill["gauge"..tostring(i).."lt"] ~= 0) then
+					if (g[i] > skill["gauge"..tostring(i).."lt"]) then
+						return true
+					end
+				end	
+				if (skill["gauge"..tostring(i).."gt"] ~= 0) then
+					if (g[i] < skill["gauge"..tostring(i).."gt"]) then
+						return true
+					end
+				end		
+				if (skill["gauge"..tostring(i).."eq"] ~= 0) then
+					if (g[i] ~= skill["gauge"..tostring(i).."eq"]) then
+						return true
+					end
+				end		
+				if (skill["gauge"..tostring(i).."or"] ~= "") then
+					local foundVal = false
+					for val in StringSplit(skill["gauge"..tostring(i).."or"],",") do
+						if (tonumber(val) == g[i]) then
+							foundVal = true
+							break
+						end
+					end					
+					if (not foundVal) then
+						return true
+					end
+				end		
+			end
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
 end
 
 function SkillMgr.Capture(newVal,varName)
@@ -5913,6 +5975,25 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("skmTCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
 		GUI:Text(GetString("skmTNCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
 
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader(GetString("Gauges"),"battle-gauges-header",true,true)) then
+		GUI:Columns(2,"#battle-gauges-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+		
+		for i = 1,4 do
+			GUI:Text(GetString("Gauge Indicator "..tostring(i))); GUI:NextColumn(); GUI:NextColumn();
+			GUI:Text(GetString("Value <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."LT",_G["SKM_GAUGE"..tostring(i).."LT"],0,0),"SKM_GAUGE"..tostring(i).."LT"); GUI:NextColumn();
+			GUI:Text(GetString("Value >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."GT",_G["SKM_GAUGE"..tostring(i).."GT"],0,0),"SKM_GAUGE"..tostring(i).."GT"); GUI:NextColumn();
+			GUI:Text(GetString("Value =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."EQ",_G["SKM_GAUGE"..tostring(i).."EQ"],0,0),"SKM_GAUGE"..tostring(i).."EQ"); GUI:NextColumn();
+			GUI:Text(GetString("Value In")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GAUGE"..tostring(i).."OR",_G["SKM_GAUGE"..tostring(i).."OR"]),"SKM_GAUGE"..tostring(i).."OR"); 
+			if (GUI:IsItemHovered()) then
+				GUI:SetTooltip(GetString("Ex: [0,16,32,48] if the value needs to be 0 or 16 or 32 or 48 (do not include brackets)."))
+			end
+			GUI:NextColumn();	
+		end
+			
 		GUI:Columns(1)
 	end
 	

@@ -213,13 +213,13 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 						end
 					else
 						--d("login paused:Attempt to issue notice")
-						login.loginPaused = true
+						ffxivminion.loginvars.loginPaused = true
 						ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
 					end
 				else
 					if (UseControlAction("TitleDataCenter","Proceed",0) or UseControlAction("TitleDCWorldMap","Proceed",0)) then
 						ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-						login.datacenterSelected = false
+						ffxivminion.loginvars.datacenterSelected = false
 					end
 				end
 			end	
@@ -229,6 +229,7 @@ end
 
 function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
+	--if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 	if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 		--d("checking charselect")
 		
@@ -248,13 +249,13 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 								if (e.name == FFXIV_Login_ServerName) then
 									d("selected server id:"..tostring(id))
 									SelectServer(id)
-									login.serverSelected = true
+									ffxivminion.loginvars.serverSelected = true
 									ml_global_information.Await(2000)
 								end
 							end
 						end	
 					else
-						login.loginPaused = true
+						ffxivminion.loginvars.loginPaused = true
 						ffxiv_dialog_manager.IssueNotice("Server Required", "You must select a Server to continue the login process.")
 					end
 				end
@@ -1190,15 +1191,22 @@ function ml_global_information.DrawMainFull()
 					GUI:PushItemWidth(200)
 					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					if (skillsChanged) then
-						local uuid = GetUUID()
-						Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
-						SkillMgr.UseProfile(gSkillProfile)
+						if (gACREnabled) then
+							gSkillProfileIndex = 1
+						else
+							local uuid = GetUUID()
+							Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
+							SkillMgr.UseProfile(gSkillProfile)
+						end
 					end
 					GUI:PopItemWidth()
 			
 					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 16, 16)) then
 						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
+					end
+					if (GUI:Button(GetString("ACR Profile Options"),200,22)) then
+						ACR.OpenProfileOptions()
 					end
 					
 					--[[
@@ -1217,8 +1225,13 @@ function ml_global_information.DrawMainFull()
 					)
 					GUI:PopItemWidth()
 					--]]
+					
+					local space = -50
+					if (In(gBotMode,GetString("grindMode"),GetString("gatherMode"),GetString("fishMode"))) then
+						space = -100
+					end
 
-					GUI:BeginChild("##main-task-section",0,-50,false)
+					GUI:BeginChild("##main-task-section",0,space,false)
 					local mainTask = ml_global_information.mainTask
 					if (mainTask) then
 						if (mainTask.Draw) then
@@ -1227,10 +1240,66 @@ function ml_global_information.DrawMainFull()
 					end
 					GUI:EndChild()
 					
-					if (GUI:Button(GetString("advancedSettings"),width,20)) then
+					if (space == -100) then
+						if (GUI:Button(GetString("Add Evac Point"),contentwidth,20)) then
+							AddEvacPoint(true)
+						end
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Adds an evacuation destination for flee tasks."))
+						end
+					
+						if (GUI:Button(GetString("Edit/View Markers"),(contentwidth/2)-4,20)) then
+							ml_marker_mgr.GUI.main_window.open = true
+							
+							if (gBotMode == GetString("grindMode")) then
+								gMarkerType = GetString("Grind")
+							elseif (gBotMode == GetString("gatherMode")) then
+								if (Player.job == 16) then
+									gMarkerType = GetString("Mining")
+								elseif (Player.job == 17) then
+									gMarkerType = GetString("Botany")
+								end
+							elseif (gBotMode == GetString("fishMode")) then
+								gMarkerType = GetString("Fishing")
+							end
+							
+							gMarkerTypeIndex = GetKeyByValue(gMarkerType,ml_marker_mgr.templateDisplay)
+							ml_marker_mgr.UpdateMarkerSelector()							
+						end
+						
+						GUI:SameLine()
+						
+						if (GUI:Button(GetString("Create Marker"),(contentwidth/2)-4,20)) then
+							ml_marker_mgr.GUI.main_window.open = true
+							
+							local markerAddType = ""
+							if (gBotMode == GetString("grindMode")) then
+								gMarkerType = GetString("Grind")
+								markerAddType = "Grind"
+							elseif (gBotMode == GetString("gatherMode")) then
+								if (Player.job == 16) then
+									gMarkerType = GetString("Mining")
+									markerAddType = "Mining"
+								elseif (Player.job == 17) then
+									gMarkerType = GetString("Botany")
+									markerAddType = "Botany"
+								end
+							elseif (gBotMode == GetString("fishMode")) then
+								gMarkerType = GetString("Fishing")
+								markerAddType = "Fishing"
+							end
+							
+							gMarkerTypeIndex = GetKeyByValue(gMarkerType,ml_marker_mgr.templateDisplay)
+							ml_marker_mgr.UpdateMarkerSelector()
+							
+							ml_marker_mgr.AddMarker(markerAddType)						
+						end
+
+					end
+					if (GUI:Button(GetString("advancedSettings"),contentwidth,20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
-					if (GUI:Button("Start / Stop",width,20)) then
+					if (GUI:Button("Start / Stop",contentwidth,20)) then
 						ml_global_information.ToggleRun()	
 					end
 				end

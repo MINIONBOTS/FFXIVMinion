@@ -69,6 +69,8 @@ function ffxiv_task_fish.Create()
 	ffxiv_fish.attemptedCasts = 0
 	ffxiv_fish.biteDetected = 0
 	
+	AddEvacPoint()
+	
 	setmetatable(newinst, { __index = ffxiv_task_fish })
     return newinst
 end
@@ -92,6 +94,26 @@ function fd(var,level)
 			end
 		end
 	end
+end
+
+function ffxiv_fish.GetDirective()
+	local marker = ml_marker_mgr.currentMarker
+	local task = ffxiv_fish.currentTask
+	
+	if (table.valid(task)) then
+		return task, "task"
+	elseif (table.valid(marker)) then
+		return marker, "marker"
+	end
+	
+	return nil
+end
+
+function ffxiv_fish.HasDirective()
+	local marker = ml_marker_mgr.currentMarker
+	local task = ffxiv_fish.currentTask
+	
+	return (table.valid(task) or table.valid(marker))
 end
 
 function HasBaits(name)
@@ -352,6 +374,7 @@ function e_precastbuff:execute()
 		end
 	end
 end
+
 c_mooch2 = inheritsFrom( ml_cause )
 e_mooch2 = inheritsFrom( ml_effect )
 function c_mooch2:evaluate()
@@ -367,7 +390,7 @@ function c_mooch2:evaluate()
 	elseif (table.valid(marker)) then
 		useMooch2 = IsNull(marker.usemooch2,false)
 	else
-		return false
+		useMooch2 = true
 	end
 	
 	if (type(useMooch2) == "string" and GUI_Get(useMooch2) ~= nil) then
@@ -429,7 +452,7 @@ function c_mooch:evaluate()
 	elseif (table.valid(marker)) then
 		useMooch = IsNull(marker.usemooch,false)
 	else
-		return false
+		useMooch = true
 	end
 	
 	if (type(useMooch) == "string" and GUI_Get(useMooch) ~= nil) then
@@ -479,7 +502,7 @@ end
 c_release = inheritsFrom( ml_cause )
 e_release = inheritsFrom( ml_effect )
 function c_release:evaluate()
-	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
+	if (Now() < ml_task_hub:CurrentTask().networkLatency or not ffxiv_fish.HasDirective()) then
 		return false
 	end
 	
@@ -751,6 +774,10 @@ end
 c_chum = inheritsFrom( ml_cause )
 e_chum = inheritsFrom( ml_effect )
 function c_chum:evaluate()
+	if (not ffxiv_fish.HasDirective()) then
+		return false
+	end
+
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
@@ -794,6 +821,10 @@ end
 c_fisheyes = inheritsFrom( ml_cause )
 e_fisheyes = inheritsFrom( ml_effect )
 function c_fisheyes:evaluate()
+	if (not ffxiv_fish.HasDirective()) then
+		return false
+	end
+
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
@@ -831,6 +862,10 @@ end
 c_snagging = inheritsFrom( ml_cause )
 e_snagging = inheritsFrom( ml_effect )
 function c_snagging:evaluate()
+	if (not ffxiv_fish.HasDirective()) then
+		return false
+	end
+	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
@@ -1191,7 +1226,7 @@ e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
 e_setbait.baitname = ""
 function c_setbait:evaluate()
-	if (Player.ismounted) then
+	if (Player.ismounted or not ffxiv_fish.HasDirective()) then
 		return false
 	end
 	
@@ -2121,11 +2156,12 @@ end
 c_fishnoactivity = inheritsFrom( ml_cause )
 e_fishnoactivity = inheritsFrom( ml_effect )
 function c_fishnoactivity:evaluate()
-	local marker = ml_marker_mgr.currentMarker
-	local task = ffxiv_fish.currentTask
-	if (not table.valid(task) and not table.valid(marker)) then
-		ml_global_information.Await(1000)
-		return true
+	if (not ffxiv_fish.HasDirective()) then
+		local cast = SkillMgr.GetAction(289,1)
+		if (not cast or not cast:IsReady(Player.id)) then
+			ml_global_information.Await(1000)
+			return true
+		end
 	end
 	return false
 end

@@ -2173,7 +2173,7 @@ function e_dead:execute()
 		ml_marker_mgr.currentMarker = nil
 		ml_task_hub:ThisTask().networkLatency = 0
 		ml_task_hub:ThisTask().requiresAdjustment = false
-		ml_task_hub:ThisTask().snapshot = GetSnapshot()
+		ml_task_hub:ThisTask().snapshot = GetInventorySnapshot({0,1,2,3})
 	end
 	
 	if (e_dead.blockOnly) then

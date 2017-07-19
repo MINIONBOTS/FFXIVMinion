@@ -999,7 +999,11 @@ function ml_navigation.Navigate(event, ticks )
 							-- OMC Teleport
 							ml_navigation.GUI.lastAction = "Teleport OMC"
 							
-							Hacks:TeleportToXYZ(nextnode.x,nextnode.y,nextnode.z,true)
+							if (gTeleportHack) then
+								Hacks:TeleportToXYZ(nextnode.x,nextnode.y,nextnode.z,true)
+							else
+								ffxiv_dialog_manager.IssueStopNotice("Teleport OMC","Teleport OMC's exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
+							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							
 						elseif ( omc.type == 4 ) then

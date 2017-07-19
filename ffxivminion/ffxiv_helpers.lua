@@ -105,9 +105,6 @@ function GetNearestGrindAttackable()
 		end
 	end
 	
-	table.print(huntTable)
-	table.print(excludeTable)
-	
 	local selfaggro = {}
 	local immediateaggro = {}
 	local partyaggro = {}
@@ -118,7 +115,7 @@ function GetNearestGrindAttackable()
 	local filtered = {}
 	local unclaimed = {}
 
-	local attackables = EntityList("los,alive,attackable,fateid=0")
+	local attackables = EntityList("alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
 	
 		local pid = Player.id
@@ -183,6 +180,206 @@ function GetNearestGrindAttackable()
 			end
 		end
 	end
+	
+	if (table.valid(filtered)) then
+	
+		-- Check if we have something we can claim (for hunting near us)
+		if (table.valid(claimrange)) then
+			local nearest, nearestDistance = nil, 1000
+			for i,e in pairs(filtered) do
+				if (claimrange[i]) then
+					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+						nearest, nearestDistance = e, e.distance2d
+					end
+				end
+			end
+			
+			if (nearest) then
+				d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
+				return attackables[nearest.id]
+			end
+		end
+		
+		-- Check for aggro
+		if (table.valid(selfaggro) or table.valid(immediateaggro) or table.valid(partyaggro)) then
+			local lowest, lowestHP = nil, 100
+			local nearest, nearestDistance = nil, 1000
+			
+			if (table.valid(lowhp)) then
+				for i,e in pairs(lowhp) do
+					if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
+						if (not lowest or (lowest and e.hpp < lowestHP)) then
+							lowest, lowestHP = e, e.hpp
+						end
+					end
+				end
+			end
+			
+			if (lowest) then
+				d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
+				return attackables[lowest.id]
+			end
+			
+			for i,e in pairs(filtered) do
+				if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
+					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+						nearest, nearestDistance = e, e.distance2d
+					end
+				end
+			end
+			
+			if (nearest) then
+				d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
+				return attackables[nearest.id]
+			end
+		end
+		
+		-- Last check, nearest non-filtered mob.
+		if (table.valid(notincombat)) then
+			local nearest, nearestDistance = nil, 1000
+			for i,e in pairs(notincombat) do
+				if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+					nearest, nearestDistance = e, e.distance2d
+				end
+			end
+				
+			if (nearest) then
+				local actual = EntityList:Get(nearest.id)
+				if (actual) then
+					d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+					return actual
+				end
+			end
+		end
+	end
+	
+    return nil
+end
+
+function GetNearestFateAttackable2()
+
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+	if (fate) then
+		local maxLevel = fate.maxlevel
+		local overMaxLevel = (Player.level > maxLevel)
+		local basePos = { x = fate.x, y = fate.y, z = fate.z }
+		local radius = fate.radius
+		
+		local excludeString = ""
+		local monsterBlacklist = ml_list_mgr.GetList("Mob Blacklist")
+		local monsterHuntlist = ml_list_mgr.GetList("Mob Whitelist")
+		if (monsterBlacklist) then
+			excludeString = monsterBlacklist:GetList("string","id",";")
+		end
+		
+		local el = nil
+		local nearestGrind = nil
+		local nearestDistance = 9999
+		
+		if (excludeString == "") then
+			excludeString = "541"
+		else
+			excludeString = excludeString..";541"
+		end
+		local blacklist = ""
+		if (blacklist ~= "") then
+			if (excludeString ~= "") then
+				excludeString = excludeString..";"..blacklist
+			else
+				excludeString = blacklist
+			end
+		end
+		
+		local excludeTable = {}
+		if (excludeString ~= "") then
+			for contentid in StringSplit(excludeString,";") do
+				excludeTable[tonumber(contentid)] = true
+			end
+		end
+		
+		local selfaggro = {}
+		local immediateaggro = {}
+		local partyaggro = {}
+		local notincombat = {}
+		local lowhp = {}
+		local claimrange = {}
+		local memberids = {}
+		local filtered = {}
+		local unclaimed = {}
+		
+		local attackables = EntityList("alive,attackable")
+		if (table.valid(attackables)) then
+			local pid = Player.id
+			local party = EntityList.myparty
+			if (party) then
+				for i,e in pairs(party) do
+					memberids[e.id] = true
+				end
+			end
+			memberids[pid] = true
+			local pet = Player.pet
+			local companion = GetCompanionEntity()
+			
+			for i,e in pairs(attackables) do
+				local entity = EntityList:Get(e.id)
+				if (entity) then
+					local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat, fateid = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.targetid, entity.targetid, entity.incombat, entity.fateid
+					local cached = { id = eid, hpp = hpp, pos = epos, distance2d = distance2d, contentid = contentid, aggro = aggro, claimedbyid = claimedbyid, targetid = targetid, incombat = incombat, fateid = fateid }
+					
+					-- Filter out entities by distance
+					if (table.valid(basePos) and radius > 0) then
+						local dist2d = math.distance2d(entity.pos,basePos)
+						if (dist2d > radius) then
+							attackables[i] = nil
+						end
+					end
+					
+					-- Filter out white/blacklists
+					if (table.valid(huntTable)) then
+						if (not huntTable[contentid]) then
+							attackables[i] = nil
+						end
+					elseif (table.valid(excludeTable)) then
+						if (excludeTable[contentid]) then
+							attackables[i] = nil
+						end
+					end
+					
+					if (attackables[i]) then
+						filtered[eid] = cached
+					
+						if (gClaimed or not incombat) then
+							notincombat[eid] = cached
+							if (gClaimFirst) then
+								if (distance2d <= gClaimRange) then
+									claimrange[eid] = cached
+								end
+							end
+						end
+						if (hpp < 50) then
+							lowhp[eid] = cached
+						end
+						
+						if (aggro or claimedbyid == pid or targetid == Player.id) then
+							selfaggro[eid] = cached
+						elseif ((pet and (claimedbyid == pet.id or targetid == pet.id)) or (companion and (claimedbyid == companion.id or targetid == companion.id))) then
+							immediateaggro[eid] = cached
+						elseif (memberids[claimedbyid] or memberids[targetid]) then
+							partyaggro[eid] = cached					
+						end
+					end
+				end
+			end
+			
+		end
+	
+		
+		if (fate.status == 2 and fate.completion < 100) then
+			
+		end
+	end
+
+
 	
 	if (table.valid(filtered)) then
 	
@@ -340,7 +537,7 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
-			el = MEntityList("los,alive,attackable,targetingme,onmesh,maxdistance=10")
+			el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance=10")
 			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
@@ -362,7 +559,7 @@ function GetNearestFateAttackable()
 			nearest,nearestDistance = nil,0
 			local companion = GetCompanionEntity()
 			if (companion) then
-				el = MEntityList("los,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+				el = MEntityList("alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
 				if (table.valid(el)) then
 					for i,e in pairs(el) do
 						if (e.fateid == fate.id or e.fateid > 10000 or gFateKillAggro) then
@@ -1386,6 +1583,37 @@ function GetNearestEvacPoint()
 		end
 	end
 	return nearest
+end
+function AddEvacPoint(manual)
+	local manual = IsNull(manual,false)
+	
+	local checkDistance = 30	
+	if (manual) then
+		checkDistance = 10
+	end
+	
+	local canAdd = true
+	local evacPoint = GetNearestEvacPoint()
+	if (evacPoint) then
+		local fpos = evacPoint.pos
+		local ppos = Player.pos
+		if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) < checkDistance) then
+			d("[AddEvacPoint]: Evac point was not added, there is already one very close.")
+			canAdd = false
+		end
+	end
+	
+	if (not manual) then
+		local el = EntityList("alive,attackable,aggressive,exclude_contentid=541,maxdistance=40")
+		if (table.valid(el)) then
+			d("[AddEvacPoint]: Evac point was not added, it does not appear to be a safe area.")
+			canAdd = false
+		end
+	end
+	
+	if (canAdd) then
+		ml_marker_mgr.AddEvacPoint()
+	end
 end
 function HasBuff(targetid, buffID, stacks, duration, ownerid)
 	local buffID = tonumber(buffID) or 0
@@ -6060,7 +6288,7 @@ function In(var,...)
 	
 	local args = {...}
 	for i=1, #args do
-		if (args[i] == var or tonumber(args[i]) == tonumber(var)) then
+		if (args[i] == var or (tonumber(var) ~= nil and tonumber(args[i]) == tonumber(var))) then
 			return true
 		end
 	end
