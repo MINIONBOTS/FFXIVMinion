@@ -20,6 +20,7 @@
 ["usefisheyes"] = true/false;
 ["usesnagging"] = true/false;
 ["usecollect"] = true/false;
+["usedoublehook"] = true/false;
 ["baitname"] = "Bloodworm,Butterworm";	
 
 ["whitelist"] = "Some Fish,Someother Fish";
