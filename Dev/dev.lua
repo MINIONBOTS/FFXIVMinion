@@ -275,6 +275,25 @@ function dev.DrawCall(event, ticks )
 			end
 -- END Aetheryte LIST
 
+			if ( GUI:TreeNode("Chat Log")) then
+				local clog = GetChatLines()
+				if ( table.valie(clog)) then
+					GUI:PushItemWidth(200)
+					for i,k in (clog) do
+						if ( GUI:TreeNode("Line -"..tostring(i))) then
+							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),k.line)
+							GUI:BulletText(".timestamp") GUI:SameLine(200) GUI:InputText("##CH2"..tostring(i),tostring(k.timestamp))
+							GUI:BulletText(".code") GUI:SameLine(200) GUI:InputText("##CH3"..tostring(i),tostring(k.code))
+							GUI:BulletText(".subcode") GUI:SameLine(200) GUI:InputText("##CH4"..tostring(i),tostring(k.subcode))
+							GUI:TreePop()
+						end
+					end
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end				
+--  END CHAT	
+
 			if ( GUI:TreeNode("Crafting")) then
 				GUI:PushItemWidth(200)
 				if ( GUI:TreeNode("Desynth Skill Level")) then
