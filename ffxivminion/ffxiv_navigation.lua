@@ -531,6 +531,7 @@ ml_navigation.CanRun = function()
 	return (GetGameState() == FFXIV.GAMESTATE.INGAME)
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 
+ml_navigation.canPath = false
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
 		self.canPath = true
@@ -795,7 +796,10 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
 	
 	local ppos = Player.pos
-	--d("[64][NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
+		ml_navigation.lastspam = ml_global_information.Now
+		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
+ 	end
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	
 	ffnav.lastStart = { x = ppos.x, y = ppos.y, z = ppos.z }
@@ -810,6 +814,7 @@ function Player:Stop()
 	--ml_navigation.ResetRenderPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
+	ml_navigation.canPath = false
 	ffnav.lastStart = {}
 	ffnav.currentGoal = {}
 	ffnav.currentParams = {}
@@ -853,7 +858,7 @@ function ml_navigation.Navigate(event, ticks )
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 				
-		if ( ml_navigation.CanRun() ) then				
+		if ( ml_navigation.CanRun() and ml_navigation.canPath) then				
 			local ppos = Player.pos
 			
 			ml_navigation.GUI = {
@@ -1007,7 +1012,6 @@ function ml_navigation.Navigate(event, ticks )
 						elseif ( omc.type == 4 ) then
 							-- OMC Interact  I AM SO UNSURE IF THAT IS WORKING OR EVEN USED ANYMORE :D:D:D:D
 							ml_navigation.GUI.lastAction = "Interact OMC"
-							
 							if (Player:IsMoving()) then
 								Player:StopMovement()
 								ffnav.Await(1000, function () return not Player:IsMoving() end)

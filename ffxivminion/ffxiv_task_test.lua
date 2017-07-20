@@ -68,7 +68,7 @@ function c_gotopostest:evaluate()
 		pos.z = tonumber(gTestMapZ)
 		
 		local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
-		if (dist > 3) then
+		if (dist > 2) then
 			c_gotopostest.pos = pos
 			return true
 		end
@@ -199,6 +199,9 @@ function ffxiv_task_test:Draw()
 	if (GUI:Button("Get Current Pos",200,20)) then
 		ffxiv_task_test.GetCurrentPosition()
 	end
+	if (GUI:Button("Get Random Pos",200,20)) then
+		ffxiv_task_test.GetRandomPosition()
+	end
 	GUI_Capture(GUI:Checkbox("No Fly",gTestNoFly),"gTestNoFly")
 	
 	GUI:PopItemWidth()
@@ -218,6 +221,23 @@ function ffxiv_task_test.GetCurrentPosition()
 	GUI_Set("gTestMapX",gTestMapX)
 	GUI_Set("gTestMapY",gTestMapY)
 	GUI_Set("gTestMapZ",gTestMapZ)
+end
+
+function ffxiv_task_test.GetRandomPosition()
+	local mapid = Player.localmapid
+	local pos = NavigationManager:GetRandomPoint()
+	if (table.size(pos) > 0 ) then
+	
+		gTestMapX = pos.x
+		gTestMapY = pos.y
+		gTestMapZ = pos.z
+		gTestMapID = mapid
+		
+		GUI_Set("gTestMapID",gTestMapID)
+		GUI_Set("gTestMapX",gTestMapX)
+		GUI_Set("gTestMapY",gTestMapY)
+		GUI_Set("gTestMapZ",gTestMapZ)
+	end
 end
 
 function ffxiv_task_test.TestShopVendor()
