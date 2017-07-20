@@ -5310,6 +5310,91 @@ function GetYanxiaSection(pos)
 	
 	return sec
 end
+
+function GetPeaksSection(pos)
+    local section3 = {
+        [1] = {
+            a = {x = -81, z = 225},
+            b = {x = 700, z = 225},
+            c = {x = 700, z = 500},
+            d = {x = -81, z = 500},
+            x = {x = 350, z = 375},
+        },
+        [2] = {
+            a = {x = -38, z = 500},
+            b = {x = 700, z = 500},
+            c = {x = 700, z = 900},
+            d = {x = -38, z = 900},
+            x = {x = 350, z = 700},
+        },
+        [3] = {
+            a = {x = -100, z = 700},
+            b = {x = -38, z = 700},
+            c = {x = -38, z = 900},
+            d = {x = -100, z = 900},
+            x = {x = -70, z = 800},
+        },
+        [4] = {
+            a = {x = -81, z = 225},
+            b = {x = 700, z = 225},
+            c = {x = 700, z = 26},
+            d = {x = -81, z = 26},
+            x = {x = 350, z = 100},
+        },
+        [5] = {
+            a = {x = -81, z = 225},
+            b = {x = -180, z = 130},
+            c = {x = -110, z = 70},
+            d = {x = -32, z = 164},
+            x = {x = -90, z = 150},
+        },
+        [6] = {
+            a = {x = -180, z = 130},
+            b = {x = -180, z = 0},
+            c = {x = 50, z = 0},
+            d = {x = 50, z = 130},
+            x = {x = -50, z = 70},
+        },
+		[7] = {
+            a = {x = -100, z = 75},
+            b = {x = -100, z = -55},
+            c = {x = 65, z = -55},
+            d = {x = 65, z = 75},
+            x = {x = -15, z = 38},
+        },
+        
+    }
+	local section1 = {
+        [1] = {
+            a = {x = -1000, z = 26},
+            b = {x = 1000, z = 26},
+            c = {x = 1000, z = -1000},
+            d = {x = -1000, z = -1000},
+            x = {x = 0, z = -500},
+        },
+    }
+	local sec = 2
+	if (table.valid(pos)) then
+        for i,section in pairs(section1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+	 if (table.valid(pos)) then
+        for i,section in pairs(section3) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 3
+                break
+            end
+        end
+    end
+	
+	return sec
+end
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -5888,6 +5973,93 @@ function Transport614(pos1,pos2)
 				local newTask = ffxiv_task_movetomap.Create()
 				newTask.destMapID = 622
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+
+	return false			
+end
+
+function Transport620(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetPeaksSection(pos1) ~= GetPeaksSection(pos2)) then
+			if (GilCount() > 100) then
+				if (GetPeaksSection(Player.pos) ~= 1) then
+					if (GetPeaksSection(pos2) == 1) then
+						if (CanUseAetheryte(100) and not Player.incombat) then
+							return true, function () 
+								if (Player:IsMoving()) then
+									Player:Stop()
+									ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+									return
+								end
+								if (Player.ismounted and GetGameRegion() ~= 1) then
+									Dismount()
+									return
+								end
+								if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+									if (Player:Teleport(100)) then	
+										local newTask = ffxiv_task_teleport.Create()
+										newTask.aetheryte = 100
+										newTask.mapID = 620
+										ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+									end
+								end
+							end
+						end
+					end
+				end
+				
+				if (GetPeaksSection(Player.pos) == 1) then
+					if (GetPeaksSection(pos2) ~= 1) then
+						if (CanUseAetheryte(101) and not Player.incombat) then
+							return true, function () 
+								if (Player:IsMoving()) then
+									Player:Stop()
+									ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+									return
+								end
+								if (Player.ismounted and GetGameRegion() ~= 1) then
+									Dismount()
+									return
+								end
+								if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+									if (Player:Teleport(101)) then	
+										local newTask = ffxiv_task_teleport.Create()
+										newTask.aetheryte = 101
+										newTask.mapID = 620
+										ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if GetQuestInfo(2537,'step') >= 2 or QuestCompleted(2537) then
+		if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
+			if (GilCount() > 0) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -132, y = 305, z = 191}
+					newTask.contentid = 1021557
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+		if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
+			if (GilCount() > 0) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -124, y = 305, z = 184}
+					newTask.contentid = 1021558
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
 			end
 		end
 	end
