@@ -277,9 +277,9 @@ function dev.DrawCall(event, ticks )
 
 			if ( GUI:TreeNode("Chat Log")) then
 				local clog = GetChatLines()
-				if ( table.valie(clog)) then
+				if ( table.valid(clog)) then
 					GUI:PushItemWidth(200)
-					for i,k in (clog) do
+					for i,k in pairs(clog) do
 						if ( GUI:TreeNode("Line -"..tostring(i))) then
 							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),k.line)
 							GUI:BulletText(".timestamp") GUI:SameLine(200) GUI:InputText("##CH2"..tostring(i),tostring(k.timestamp))
