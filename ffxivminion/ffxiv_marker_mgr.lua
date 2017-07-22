@@ -281,6 +281,7 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	marker.fields.usepatience2, changed = GUI:Checkbox("Use Patience II",marker.fields.usepatience2); if (changed) then dowrite = true end
 	marker.fields.usefisheyes, changed = GUI:Checkbox("Use Fish Eyes",marker.fields.usefisheyes); if (changed) then dowrite = true end
 	marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
+	marker.fields.usedoublehook, changed = GUI:Checkbox("Use Double Hook",marker.fields.usedoublehook); if (changed) then dowrite = true end
 	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 	GUI:SameLine(0,10)
 	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
