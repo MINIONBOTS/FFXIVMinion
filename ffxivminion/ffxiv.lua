@@ -1191,13 +1191,14 @@ function ml_global_information.DrawMainFull()
 					GUI:PushItemWidth(200)
 					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					if (skillsChanged) then
-						if (gACREnabled) then
-							gSkillProfileIndex = 1
-						else
+						-- todo, fix this once ACR is updated again.
+						--if (gACREnabled) then
+							--gSkillProfileIndex = 1
+						--else
 							local uuid = GetUUID()
 							Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
 							SkillMgr.UseProfile(gSkillProfile)
-						end
+						--end
 					end
 					GUI:PopItemWidth()
 			
