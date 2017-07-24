@@ -5362,7 +5362,13 @@ function GetPeaksSection(pos)
             d = {x = 65, z = 75},
             x = {x = -15, z = 38},
         },
-        
+        [8] = {
+            a = {x = -136, z = 178},
+            b = {x = -115, z = 199},
+            c = {x = -104, z = 190},
+            d = {x = -124, z = 163},
+            x = {x = -122, z = 179},
+        },
     }
 	local section1 = {
         [1] = {
@@ -5986,7 +5992,7 @@ function Transport620(pos1,pos2)
 	
 	if (not CanFlyInZone()) then
 		if (GetPeaksSection(pos1) ~= GetPeaksSection(pos2)) then
-			if (GilCount() > 100) then
+			if (GilCount() > 200) then
 				if (GetPeaksSection(Player.pos) ~= 1) then
 					if (GetPeaksSection(pos2) == 1) then
 						if (CanUseAetheryte(100) and not Player.incombat) then
@@ -6041,7 +6047,29 @@ function Transport620(pos1,pos2)
 			end
 		end
 	end
-	if GetQuestInfo(2537,'step') >= 2 or QuestCompleted(2537) then
+	if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or HasQuest(2538) or HasQuest(2539) or HasQuest(2540) or HasQuest(2541) then
+		if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
+			if (GilCount() > 0) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -129, y = 305, z = 189}
+					newTask.contentid = 2008449
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+		if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
+			if (GilCount() > 0) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -125, y = 305, z = 185}
+					newTask.contentid = 2008450
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+	end
+	if QuestCompleted(2541) then
 		if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
 			if (GilCount() > 0) then
 				return true, function ()
