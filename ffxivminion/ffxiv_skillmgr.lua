@@ -3161,11 +3161,11 @@ function SkillMgr.Craft()
 						
 						local ret = realskilldata:Cast(Player.id)
 						local successFunction = function ()
-							if (skid == 100098) then
+							if (skillid == 100098) then
 								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
-							elseif (skid == 100108) then
+							elseif (skillid == 100108) then
 								SkillMgr.checkHT = true
-							elseif (skid == 278) then
+							elseif (skillid == 278) then
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
 							end
 
@@ -5932,7 +5932,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-party-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("party"),"battle-party-header",true,true)) then
 		GUI:Columns(2,"#battle-party-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		

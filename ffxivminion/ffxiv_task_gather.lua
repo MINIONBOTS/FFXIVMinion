@@ -2817,14 +2817,20 @@ end
 
 c_gathernextprofilemap = inheritsFrom( ml_cause )
 e_gathernextprofilemap = inheritsFrom( ml_effect )
+e_gathernextprofilemap.mapid = 0
 function c_gathernextprofilemap:evaluate()
-    if (not table.valid(ffxiv_gather.profileData)) then
-		return false
-	end
-    
+    e_gathernextprofilemap.mapid = 0
+	
 	local task = ffxiv_gather.currentTask
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		if (Player.localmapid ~= task.mapid) then
+		if (task.mapid and Player.localmapid ~= task.mapid) then
+			e_gathernextprofilemap.mapid = task.mapid
+			return true
+		end
+	elseif (table.valid(marker)) then
+		if (marker.mapid and Player.localmapid ~= marker.mapid) then
+			e_gathernextprofilemap.mapid = marker.mapid
 			return true
 		end
 	end
@@ -2832,10 +2838,7 @@ function c_gathernextprofilemap:evaluate()
     return false
 end
 function e_gathernextprofilemap:execute()
-	local index = ffxiv_gather.currentTaskIndex
-	local task = ffxiv_gather.currentTask
-
-	local mapID = task.mapid
+	local mapID = e_gathernextprofilemap.mapid
 	local taskPos = ffxiv_gather.GetCurrentTaskPos()
 	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)
 	if (table.valid(pos)) then		

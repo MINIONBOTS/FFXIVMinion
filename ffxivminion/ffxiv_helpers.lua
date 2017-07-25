@@ -6046,53 +6046,53 @@ function Transport620(pos1,pos2)
 				end
 			end
 		end
-	end
-	if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or HasQuest(2538) or HasQuest(2539) or HasQuest(2540) or HasQuest(2541) then
-		if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
-			if (GilCount() > 0) then
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -129, y = 305, z = 189}
-					newTask.contentid = 2008449
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
+		
+		if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or HasQuest(2538) or HasQuest(2539) or HasQuest(2540) or HasQuest(2541) then
+			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -129, y = 305, z = 189}
+						newTask.contentid = 2008449
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end
+			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -125, y = 305, z = 185}
+						newTask.contentid = 2008450
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
 				end
 			end
 		end
-		if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-			if (GilCount() > 0) then
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -125, y = 305, z = 185}
-					newTask.contentid = 2008450
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
+		if QuestCompleted(2541) then
+			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -132, y = 305, z = 191}
+						newTask.contentid = 1021557
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
 				end
 			end
-		end
-	end
-	if QuestCompleted(2541) then
-		if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
-			if (GilCount() > 0) then
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -132, y = 305, z = 191}
-					newTask.contentid = 1021557
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end
-		end
-		if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-			if (GilCount() > 0) then
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -124, y = 305, z = 184}
-					newTask.contentid = 1021558
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
+			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -124, y = 305, z = 184}
+						newTask.contentid = 1021558
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
 				end
 			end
 		end
 	end
 	
-
 	return false			
 end
 

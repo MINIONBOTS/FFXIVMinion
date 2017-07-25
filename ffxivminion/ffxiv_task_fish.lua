@@ -2031,24 +2031,28 @@ end
 
 c_fishnextprofilemap = inheritsFrom( ml_cause )
 e_fishnextprofilemap = inheritsFrom( ml_effect )
+e_fishnextprofilemap.mapid = 0
 function c_fishnextprofilemap:evaluate()
-    if (not table.valid(ffxiv_fish.currentTask)) then
-		return false
-	end
-    
+
+	e_fishnextprofilemap.mapid = 0
+	
 	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		if (Player.localmapid ~= task.mapid) then
+		if (task.mapid and Player.localmapid ~= task.mapid) then
+			e_fishnextprofilemap.mapid = task.mapid
+			return true
+		end
+	elseif (table.valid(marker)) then
+		if (marker.mapid and Player.localmapid ~= marker.mapid) then
+			e_fishnextprofilemap.mapid = marker.mapid
 			return true
 		end
 	end
-    
+	
     return false
 end
 function e_fishnextprofilemap:execute()
-	local index = ffxiv_fish.currentTaskIndex
-	local task = ffxiv_fish.currentTask
-	
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
 		local finishcast = SkillMgr.GetAction(299,1)
@@ -2058,7 +2062,7 @@ function e_fishnextprofilemap:execute()
 		return
 	end
 
-	local mapID = task.mapid
+	local mapID = e_fishnextprofilemap.mapid
 	local taskPos = GetCurrentTaskPos()
 	
 	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)

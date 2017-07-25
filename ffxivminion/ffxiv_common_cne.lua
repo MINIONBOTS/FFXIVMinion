@@ -1260,7 +1260,7 @@ function c_getmovementpath:evaluate()
     return true
 end
 function e_getmovementpath:execute()
-	-- Logic is reversed here, if we successfully updated the path, there's no reason to do anything. Logic is shit here, it should nevr update the path in a CAUSE when it is unclear what effect gets executed in the end of this pulse!
+	-- Logic is reversed here, if we successfully updated the path, there's no reason to do anything.
 	-- If no path was pulled, we should Stop() the character, because there's no reason to try mount/stealth/walk without any path.
 	if (Player:IsMoving()) then
 		Player:Stop()

@@ -761,7 +761,7 @@ function ffxiv_task_grind:UIInit()
 	gGrindFatesOnly = ffxivminion.GetSetting("gGrindFatesOnly",false)
 	gGrindFatesMaxLevel = ffxivminion.GetSetting("gGrindFatesMaxLevel",2)
 	gGrindFatesNoMaxLevel = ffxivminion.GetSetting("gGrindFatesNoMaxLevel",false)
-	gGrindFatesMinLevel = ffxivminion.GetSetting("gGrindFatesMinLevel",5)
+	gGrindFatesMinLevel = ffxivminion.GetSetting("gGrindFatesMinLevel",15)
 	gGrindFatesNoMinLevel = ffxivminion.GetSetting("gGrindFatesNoMinLevel",false)
 	
 	gGrindAtmaMode = ffxivminion.GetSetting("gGrindAtmaMode",false)
