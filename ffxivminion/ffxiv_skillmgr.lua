@@ -198,6 +198,21 @@ SkillMgr.ExtraProfiles = {
 	"Gathering_Leveling",
 	"Gathering_Scrips",	
 	"Gathering_Shards",	
+	"PVP-AST-HusbandoMax",
+	"PVP-BLM-HusbandoMax",
+	"PVP-BRD-HusbandoMax",
+	"PVP-DRG-HusbandoMax",
+	"PVP-DRK-HusbandoMax",
+	"PVP-MCH-HusbandoMax",
+	"PVP-MNK-HusbandoMax",
+	"PVP-NIN-HusbandoMax",
+	"PVP-PLD-HusbandoMax",
+	"PVP-RDM-HusbandoMax",
+	"PVP-SAM-HusbandoMax",
+	"PVP-SCH-HusbandoMax",
+	"PVP-SMN-HusbandoMax",
+	"PVP-WAR-HusbandoMax",
+	"PVP-WHM-HusbandoMax",
 }
 
 function SkillMgr.UpdateDefaultProfiles()
