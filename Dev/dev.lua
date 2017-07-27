@@ -52,6 +52,8 @@ function dev.DrawCall(event, ticks )
 			GUI:PushStyleVar(GUI.StyleVar_FramePadding, 4, 0)
 			GUI:PushStyleVar(GUI.StyleVar_ItemSpacing, 8, 2)
 			
+			-- cbk: Addon Controls
+			
 			if ( GUI:TreeNode("AddonControls")) then
 				GUI:PushItemWidth(200); gDevAddonTextFilter = GUI:InputText("Filter by Name",gDevAddonTextFilter); GUI:PopItemWidth();
 				if ( GUI:TreeNode("Active Controls")) then
@@ -142,16 +144,60 @@ function dev.DrawCall(event, ticks )
 			end
 			--End Active Controls
 			
+			-- cbk: Player
 			if ( GUI:TreeNode("Player") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player
 					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player found.") end
+					
+					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
+					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+					GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
+					
+					if ( GUI:TreeNode("Gauge Data") ) then
+						local g = Player.gauge
+						if ( table.valid(g)) then
+							for i,k in pairs (g) do
+								GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg"..tostring(i),tostring(k))	
+							end							
+						end
+						GUI:TreePop()
+					end
+					
+					if ( GUI:TreeNode("Job Levels")) then
+						local lev = Player.levels
+						if (table.valid(lev)) then
+							for key, value in pairs(lev) do
+								GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+							end
+						end
+						GUI:TreePop()
+					end
+					
+					if ( GUI:TreeNode("Stats & Char Attributes")) then
+						local stat = Player.stats
+						if (table.valid(stat)) then
+							for key, value in pairs(stat) do
+								GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
+							end
+						end
+						
+						for i = 0, 100 do
+							local s = Player:GetStats(i)
+							if(s)then
+								GUI:BulletText("Index: "..tostring(i).." - Value: "..tostring(s))
+							end
+						end
+						GUI:TreePop()
+					end
 				else
 					GUI:Text("Not Ingame...")
 				end
 				GUI:TreePop()
 			end
+-- END PLAYER INFO		
 			
+			-- cbk: Player Pet
 			if (Player.pet) then
 				if ( GUI:TreeNode("Pet") ) then
 					if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -164,6 +210,7 @@ function dev.DrawCall(event, ticks )
 				end
 			end
 			
+			-- cbk: Target
 			if ( GUI:TreeNode("Target") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player:GetTarget()
@@ -174,6 +221,18 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 			
+			-- cbk: Scanner
+			if ( GUI:TreeNode("Scanner") ) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					local c = Player:GetTarget()
+					if ( c ) then dev.DrawGameObjectDetails(c) else	GUI:Text("No target found.") end
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+			
+			-- cbk: ActionList
 			if ( GUI:TreeNode("ActionList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(100)	
@@ -244,6 +303,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END ACTIONLIST
 
+			-- cbk: Aetheryte List
 			if ( GUI:TreeNode("Aetheryte List")) then				
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -275,25 +335,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END Aetheryte LIST
 
-			if ( GUI:TreeNode("Chat Log")) then
-				local clog = GetChatLines()
-				if ( table.valid(clog)) then
-					GUI:PushItemWidth(200)
-					for i,k in pairs(clog) do
-						if ( GUI:TreeNode("Line -"..tostring(i))) then
-							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),k.line)
-							GUI:BulletText(".timestamp") GUI:SameLine(200) GUI:InputText("##CH2"..tostring(i),tostring(k.timestamp))
-							GUI:BulletText(".code") GUI:SameLine(200) GUI:InputText("##CH3"..tostring(i),tostring(k.code))
-							GUI:BulletText(".subcode") GUI:SameLine(200) GUI:InputText("##CH4"..tostring(i),tostring(k.subcode))
-							GUI:TreePop()
-						end
-					end
-					GUI:PopItemWidth()
-				end
-				GUI:TreePop()
-			end				
---  END CHAT	
-
+			-- cbk: Crafting
 			if ( GUI:TreeNode("Crafting")) then
 				GUI:PushItemWidth(200)
 				if ( GUI:TreeNode("Desynth Skill Level")) then
@@ -326,6 +368,7 @@ function dev.DrawCall(event, ticks )
 			end
 --  END CRAFTING	
 
+			-- cbk: Duty List
 			if ( GUI:TreeNode("Duty List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -356,7 +399,8 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END DUTY LIST
-
+			
+			-- cbk: EnmityList
 			if ( GUI:TreeNode("EnmityList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)
@@ -376,7 +420,7 @@ function dev.DrawCall(event, ticks )
 			end
 --End ENMITYLIST
 
-
+			-- cbk: Fates
 			if ( GUI:TreeNode("Fates")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)
@@ -413,6 +457,7 @@ function dev.DrawCall(event, ticks )
 			end
 --End Fates
 
+			-- cbk: Fishing
 			if ( GUI:TreeNode("Fishing")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(150)
@@ -430,7 +475,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END FISHING 
 
-
+			-- cbk: Gathering
 			if ( GUI:TreeNode("Gathering")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)
@@ -464,6 +509,7 @@ function dev.DrawCall(event, ticks )
 			end
 --End GATHERING
 
+			-- cbk: Gathering - Collectable
 			if ( GUI:TreeNode("Gathering - Collectable")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					if ( IsControlOpen("GatheringMasterpiece") ) then
@@ -488,7 +534,8 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 --End GATHERING COLLECTABLE
-
+			
+			-- cbk: Hacks
 			if ( GUI:TreeNode("Hacks")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)
@@ -567,6 +614,7 @@ function dev.DrawCall(event, ticks )
 			end
 --End HACKS
 
+			-- cbk: Inventory
 			if ( GUI:TreeNode("Inventory")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)			
@@ -693,7 +741,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END INVENTORY
 			
-
+			-- cbk: Loot
 			if ( GUI:TreeNode("Loot List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)				
@@ -735,6 +783,7 @@ function dev.DrawCall(event, ticks )
 			end
 --  END LOOTLIST
 			
+			-- cbk: Movement
 			if ( GUI:TreeNode("Movement")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(150)					
@@ -764,11 +813,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("SetPitch") GUI:SameLine(200) dev.pitch = GUI:InputFloat("##devmov10",dev.pitch,0,0,2)
 					GUI:SameLine()					
 					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
-					
-					GUI:BulletText("IsSwimming") GUI:SameLine(200) GUI:InputText("##devmov14",tostring(Player.diving.isswimming))
-					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
-					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
-					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
+									
 					GUI:PopItemWidth()
 				else
 					GUI:Text("Not Ingame...")
@@ -777,7 +822,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END MOVEMENT
 
-
+			-- cbk: Party
 			if ( GUI:TreeNode("PartyMembers")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -805,70 +850,7 @@ function dev.DrawCall(event, ticks )
 			end
 --  END PARTY			
 			
-			
-			if ( GUI:TreeNode("Player specific Data")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					GUI:PushItemWidth(200)					
-					local p = Player
-					if ( p ) then 
-						GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
-						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
-						
-						if ( GUI:TreeNode("Job Levels")) then
-							local lev = Player.levels
-							if (table.valid(lev)) then
-								for key, value in pairs(lev) do
-									GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
-								end
-							end
-							GUI:TreePop()
-						end
-						
-						if ( GUI:TreeNode("Stats & Char Attributes")) then
-							local stat = Player.stats
-							if (table.valid(stat)) then
-								for key, value in pairs(stat) do
-									GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
-								end
-							end
-							
-							for i = 0, 100 do
-								local s = Player:GetStats(i)
-								if(s)then
-									GUI:BulletText("Index: "..tostring(i).." - Value: "..tostring(s))
-								end
-							end
-							GUI:TreePop()
-						end
-						
-						if ( GUI:TreeNode("Eorzea Time")) then
-							local ezt = GetEorzeaTime()
-							GUI:BulletText(".bell") GUI:SameLine(200) GUI:InputText("##devezt",tostring(ezt.bell))
-							GUI:BulletText(".minute") GUI:SameLine(200) GUI:InputText("##devezt2",tostring(ezt.minute))
-							GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
-							GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
-							GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
-							GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
-							GUI:TreePop()
-						end
-						
-						if ( GUI:TreeNode("Gauge Data") ) then
-							local g = Player.gauge
-							if ( table.valid(g)) then
-								for i,k in pairs (g) do
-									GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg"..tostring(i),tostring(k))	
-								end							
-							end
-							GUI:TreePop()
-						end
-					end					
-					GUI:PopItemWidth()
-				end
-				GUI:TreePop()
-			end
--- END PLAYER INFO		
-
+			-- cbk: Quest
 			if ( GUI:TreeNode("Quest List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -908,8 +890,8 @@ function dev.DrawCall(event, ticks )
 			end
 -- END QUEST LIST
 			
-
-				if ( GUI:TreeNode("Renderobject List")) then
+			-- cbk: Render Manager
+			if ( GUI:TreeNode("Renderobject List")) then
 			
 				-- RenderManager:AddObject( tablewith vertices here ) , returns the renderobject which is a lua metatable. it has an .id which should be used everytime afterwards if the object is being accessed:
 				-- RenderManager:GetObject(id)  - use this always before you actually access a renderobject of yours, because the object could have been deleted at any time in c++ due to other code erasing it
@@ -988,7 +970,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END RENDEROBJECTS			
 			
-			
+			-- cbk: Shop List
 			if ( GUI:TreeNode("Shop List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -1016,7 +998,7 @@ function dev.DrawCall(event, ticks )
 			end
 --  END SHOPLIST
 
-
+			-- cbk: ServerList
 			if ( GUI:TreeNode("ServerList")) then
 				GUI:PushItemWidth(200)
 				local servers = GetServerList()
@@ -1033,7 +1015,7 @@ function dev.DrawCall(event, ticks )
 			end
 -- END SERVERLIST 
 
-
+			-- cbk: UI Permissions
 			if ( GUI:TreeNode("UI Permissions")) then
 				local totalUI = 0
 				for i=0,165 do
@@ -1048,19 +1030,32 @@ function dev.DrawCall(event, ticks )
 			end
 -- END UI PERMISSIONS
 
-		
-			if ( GUI:TreeNode("Utility & Functions")) then
-				GUI:PushItemWidth(200)
-				GUI:BulletText("GetGameState") GUI:SameLine(200) GUI:InputText("##devUT0",tostring(GetGameState()))
-				GUI:BulletText("GameVersion") GUI:SameLine(200) GUI:InputText("##devUT1",tostring(GetGameVersion()))
-				GUI:BulletText("GameLanguage") GUI:SameLine(200) GUI:InputText("##devUT2",tostring(GetGameLanguage()))
-				GUI:BulletText("GetGameRegion") GUI:SameLine(200) GUI:InputText("##devUT3",tostring(GetGameRegion()))
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then					
-										
+			-- cbk: Weather
+			if ( GUI:TreeNode("Player specific Data")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)					
+					if ( GUI:TreeNode("Eorzea Time")) then
+						local ezt = GetEorzeaTime()
+						GUI:BulletText(".bell") GUI:SameLine(200) GUI:InputText("##devezt",tostring(ezt.bell))
+						GUI:BulletText(".minute") GUI:SameLine(200) GUI:InputText("##devezt2",tostring(ezt.minute))
+						GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
+						GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
+						GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
+						GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
+						GUI:TreePop()
+					end
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end
+
+			-- cbk: Utility
+			if ( GUI:TreeNode("Utility Functions")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
 										
-																
 					if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
 						
 					local t = Player:GetTarget()
@@ -1072,13 +1067,12 @@ function dev.DrawCall(event, ticks )
 						if (GUI:Button("Raycast##"..tostring(id),100,15) ) then d("Result : "..tostring(RayCast(Player.pos.x,Player.pos.y,Player.pos.z,t.pos.x,t.pos.y,t.pos.z))) end
 					else
 						GUI:Text("Select a Target...")
-					end					
+					end
+					GUI:PopItemWidth()
 				end
-				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
 -- 	END UTILITY FUNCTIONS
-
 
 			GUI:PopStyleVar(2)
 		end
