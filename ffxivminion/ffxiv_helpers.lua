@@ -6078,7 +6078,7 @@ function Transport620(pos1,pos2)
 				end
 			end
 		end
-		if QuestCompleted(2541) then
+		if QuestCompleted(2541) and (not HasQuest(2859) or (HasQuest(2859) and MissingBuff(Player.id,404))) then
 			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
 				if (GilCount() > 0) then
 					return true, function ()
