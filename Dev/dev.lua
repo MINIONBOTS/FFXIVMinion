@@ -335,6 +335,26 @@ function dev.DrawCall(event, ticks )
 			end
 -- END Aetheryte LIST
 
+			if ( GUI:TreeNode("Chat Log")) then
+				local clog = GetChatLines()
+				if ( table.valid(clog)) then
+					GUI:PushItemWidth(200)
+					for i,k in pairs(clog) do
+						if ( GUI:TreeNode("Line -"..tostring(i))) then
+							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),k.line)
+							GUI:BulletText(".timestamp") GUI:SameLine(200) GUI:InputText("##CH2"..tostring(i),tostring(k.timestamp))
+							GUI:BulletText(".code") GUI:SameLine(200) GUI:InputText("##CH3"..tostring(i),tostring(k.code))
+							GUI:BulletText(".subcode") GUI:SameLine(200) GUI:InputText("##CH4"..tostring(i),tostring(k.subcode))
+							GUI:TreePop()
+						end
+					end
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end				
+---  END CHAT	
+
+
 			-- cbk: Crafting
 			if ( GUI:TreeNode("Crafting")) then
 				GUI:PushItemWidth(200)
@@ -814,6 +834,12 @@ function dev.DrawCall(event, ticks )
 					GUI:SameLine()					
 					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
 									
+					GUI:BulletText("IsSwimming") GUI:SameLine(200) GUI:InputText("##devmov14",tostring(Player.diving.isswimming))
+					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
+					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
+					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
+				
+					
 					GUI:PopItemWidth()
 				else
 					GUI:Text("Not Ingame...")
@@ -1053,6 +1079,12 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Utility Functions")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
+					GUI:BulletText("GetGameState") GUI:SameLine(200) GUI:InputText("##devUT0",tostring(GetGameState()))
+					GUI:BulletText("GameVersion") GUI:SameLine(200) GUI:InputText("##devUT1",tostring(GetGameVersion()))
+					GUI:BulletText("GameLanguage") GUI:SameLine(200) GUI:InputText("##devUT2",tostring(GetGameLanguage()))
+					GUI:BulletText("GetGameRegion") GUI:SameLine(200) GUI:InputText("##devUT3",tostring(GetGameRegion()))
+				
+
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
 										
