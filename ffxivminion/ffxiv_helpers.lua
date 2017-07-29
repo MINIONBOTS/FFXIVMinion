@@ -6067,18 +6067,8 @@ function Transport620(pos1,pos2)
 					end
 				end
 			end
-			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-				if (GilCount() > 0) then
-					return true, function ()
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = -125, y = 305, z = 185}
-						newTask.contentid = 2008450
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				end
-			end
 		end
-		if QuestCompleted(2541) and (not HasQuest(2859) or (HasQuest(2859) and MissingBuff(Player.id,404))) then
+		if QuestCompleted(2541) then
 			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
 				if (GilCount() > 0) then
 					return true, function ()
@@ -6089,16 +6079,7 @@ function Transport620(pos1,pos2)
 					end
 				end
 			end
-			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-				if (GilCount() > 0) then
-					return true, function ()
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = -124, y = 305, z = 184}
-						newTask.contentid = 1021558
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				end
-			end
+			
 		end
 	end
 	
