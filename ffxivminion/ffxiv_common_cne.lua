@@ -1242,7 +1242,7 @@ function c_getmovementpath:evaluate()
 			end
 			
 			if (pathLength <= 0) then
-				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, false)
+				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
 			end
 			
 			if (pathLength > 0) then
