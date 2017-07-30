@@ -30,7 +30,7 @@ function dev.Init()
 	gDevHackWalkSpeedBwd = 2.4000000953674
 	gDevHackMountSpeed = 9.0
 	gDevHackMountSpeedBwd = 3.2000000476837
-	
+	gDevScannerString = "alive,aggressive"
 end
 
 
@@ -220,7 +220,81 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
-									
+						
+			-- cbk: Scanner
+			if ( GUI:TreeNode("Scanner") ) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:Separator()
+					GUI:Text("EntityList")
+					GUI:PushItemWidth(500)
+					gDevScannerString = GUI:InputText("##scanner-string",gDevScannerString);
+					GUI:PopItemWidth()
+					GUI:Separator()
+					local el = EntityList(gDevScannerString)
+					if (table.valid(el)) then
+						GUI:Columns(9, "##dev-scanner-details",true)
+						
+						GUI:Text("Identity"); GUI:NextColumn()
+						GUI:Text("Current Target"); GUI:NextColumn()
+						GUI:Text("Casting"); GUI:NextColumn()
+						GUI:Text("Casttime"); GUI:NextColumn()
+						GUI:Text("Channeling"); GUI:NextColumn()
+						GUI:Text("Channeltime"); GUI:NextColumn()
+						GUI:Text("Channel Target"); GUI:NextColumn()
+						GUI:Text("Animation"); GUI:NextColumn()
+						GUI:Text("Last Anim"); GUI:NextColumn()
+						
+						for i, entity in pairs(el) do
+							GUI:Text(entity.name.." ["..tostring(entity.contentid).."]"); GUI:NextColumn();
+							
+							local targetname = ""
+							if (entity.targetid ~= 0) then
+								local target = EntityList:Get(entity.targetid)
+								if (target and target.name ~= nil) then
+									targetname = target.name
+								end
+							end
+							GUI:Text(targetname); GUI:NextColumn();
+							local castname, channelname = "", ""
+							local castlookup, channellookup
+							local ci = entity.castinginfo
+							if (ci) then
+								castlookup = SearchAction(ci.castingid,1)
+								channellookup = SearchAction(ci.channelingid,1)
+							end
+							if (castlookup and castlookup[1]) then 
+								castname = IsNull(castlookup[1].name,"") 
+							end
+							if (channellookup and channellookup[1]) then 
+								channelname = IsNull(channellookup[1].name,"") 
+							end
+							
+							GUI:Text(castname.."["..tostring(ci.castingid).."]"); GUI:NextColumn();
+							GUI:Text(ci.casttime); GUI:NextColumn();
+							GUI:Text(channelname.."["..tostring(ci.channelingid).."]"); GUI:NextColumn();
+							GUI:Text(ci.channeltime); GUI:NextColumn();
+							
+							targetname = ""
+							if (ci.channeltargetid ~= 0) then
+								local target = EntityList:Get(ci.channeltargetid)
+								if (target and target.name ~= nil) then
+									targetname = target.name
+								end
+							end
+							GUI:Text(targetname); GUI:NextColumn();
+							
+							GUI:Text(entity.action); GUI:NextColumn();
+							GUI:Text(entity.lastaction); GUI:NextColumn();
+						end
+						
+						GUI:Columns(1)
+					end
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+						
 			-- cbk: ActionList
 			if ( GUI:TreeNode("ActionList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
