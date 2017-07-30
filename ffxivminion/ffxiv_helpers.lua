@@ -5371,6 +5371,13 @@ function GetPeaksSection(pos)
             d = {x = -124, z = 163},
             x = {x = -122, z = 179},
         },
+		[9] = {
+            a = {x = -105, z = 740},
+            b = {x = -105, z = 769},
+            c = {x = -50, z = 769},
+            d = {x = -50, z = 740},
+            x = {x = -86, z = 753},
+        },
     }
 	local section1 = {
         [1] = {
@@ -6060,16 +6067,6 @@ function Transport620(pos1,pos2)
 					end
 				end
 			end
-			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-				if (GilCount() > 0) then
-					return true, function ()
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = -125, y = 305, z = 185}
-						newTask.contentid = 2008450
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				end
-			end
 		end
 		if QuestCompleted(2541) then
 			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
@@ -6082,16 +6079,7 @@ function Transport620(pos1,pos2)
 					end
 				end
 			end
-			if (GetPeaksSection(Player.pos) == 3) and (GetPeaksSection(pos2) == 2) then
-				if (GilCount() > 0) then
-					return true, function ()
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = -124, y = 305, z = 184}
-						newTask.contentid = 1021558
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				end
-			end
+			
 		end
 	end
 	

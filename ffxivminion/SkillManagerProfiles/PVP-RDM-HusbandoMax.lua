@@ -41,7 +41,7 @@ local obj1 = {
 		[35] = true;
 	};
 	["filters"] = {
-		[1] = " ";
+		[1] = "Corps (Jump for rotation)";
 		[2] = "  ";
 		[3] = "   ";
 		[4] = "    ";
@@ -597,7 +597,7 @@ local obj1 = {
 			["enmityaoe"] = false;
 			["filterfive"] = "Ignore";
 			["filterfour"] = "Ignore";
-			["filterone"] = "Ignore";
+			["filterone"] = "On";
 			["filterthree"] = "Ignore";
 			["filtertwo"] = "Ignore";
 			["frontalconeaoe"] = false;
