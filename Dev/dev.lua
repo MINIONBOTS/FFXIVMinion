@@ -220,18 +220,7 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
-			
-			-- cbk: Scanner
-			if ( GUI:TreeNode("Scanner") ) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
-					local c = Player:GetTarget()
-					if ( c ) then dev.DrawGameObjectDetails(c) else	GUI:Text("No target found.") end
-				else
-					GUI:Text("Not Ingame...")
-				end
-				GUI:TreePop()
-			end
-			
+									
 			-- cbk: ActionList
 			if ( GUI:TreeNode("ActionList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
