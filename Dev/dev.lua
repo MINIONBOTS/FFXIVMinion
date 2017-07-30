@@ -150,8 +150,8 @@ function dev.DrawCall(event, ticks )
 					local c = Player
 					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player found.") end
 					
-					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(c.localmapid))
+					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(c.localmapid))
 					GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
 					
 					if ( GUI:TreeNode("Gauge Data") ) then
