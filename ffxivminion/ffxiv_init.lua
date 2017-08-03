@@ -339,6 +339,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(198, "Limsa Lominsa - Command")
 		ml_mesh_mgr.SetDefaultMesh(204, "Gridania - First Bow")
 		ml_mesh_mgr.SetDefaultMesh(286, "ImOnABoat")
+		ml_mesh_mgr.SetDefaultMesh(288, "ImOnABoat")
 		
 		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
 		ml_mesh_mgr.SetDefaultMesh(388, "Gold Saucer - Chocobo Square")
