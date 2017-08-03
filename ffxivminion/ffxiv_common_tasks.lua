@@ -1408,8 +1408,8 @@ function ffxiv_task_grindCombat:Process()
 			--d("Check fate details.")
 			local fateID = target.fateid
 			local fate = MGetFateByID(fateID)
-			if ( fate and fate.completion < 100 and fate.status == 2) then
-				if (AceLib.API.Fate.RequiresSync(fate.id)) then
+			if ( fate and fate.completion <= 100 and fate.status == 2) then
+				if (Player.level > fate.maxlevel) then
 					local myPos = Player.pos
 					local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 					if (distance > (fate.radius * .98)) then

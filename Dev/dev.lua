@@ -31,6 +31,8 @@ function dev.Init()
 	gDevHackMountSpeed = 9.0
 	gDevHackMountSpeedBwd = 3.2000000476837
 	gDevScannerString = "alive,aggressive"
+	gDevRecordNPCs = false
+	gDevRecordedNPCs = {}
 end
 
 
@@ -1162,6 +1164,34 @@ function dev.DrawCall(event, ticks )
 						if (GUI:Button("Raycast##"..tostring(id),100,15) ) then d("Result : "..tostring(RayCast(Player.pos.x,Player.pos.y,Player.pos.z,t.pos.x,t.pos.y,t.pos.z))) end
 					else
 						GUI:Text("Select a Target...")
+					end
+				
+					gDevRecordNPCs = GUI:Checkbox("Record NPCs",gDevRecordNPCs)
+					if (gDevRecordNPCs) then
+						local mapid = Player.localmapid
+						if (mapid ~= 0) then
+							local el = EntityList("")
+							if (table.valid(el)) then
+								for i,e in pairs(el) do
+									local entity = EntityList:Get(e.id)
+									if (entity) then
+										local contentid = entity.contentid
+										if (contentid >= 1000000 and contentid <= 1024000 and gDevRecordedNPCs[contentid] == nil) then
+											local pos = entity.pos
+											gDevRecordedNPCs[contentid] = { contentid = contentid, mapid = mapid, x = pos.x, y = pos.y, z = pos.z }
+										end
+									end
+								end
+							end
+						end
+					end		
+
+					if (GUI:Button("Output Entries")) then
+						local filePath = GetStartupPath() .. [[\LuaMods\Dev\npcrecordings.csv]]
+						for contentid,entry in pairsByKeys(gDevRecordedNPCs) do
+							local towrite = entry.contentid .. "," .. entry.mapid .. "," .. entry.x .. "," .. entry.y .. "," .. entry.z .. "\n"
+							FileWrite(filePath,towrite,true)
+						end
 					end
 					GUI:PopItemWidth()
 				end

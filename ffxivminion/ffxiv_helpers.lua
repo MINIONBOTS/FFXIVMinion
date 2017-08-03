@@ -3410,7 +3410,9 @@ function GetRoleString(jobID)
         jobID == FFXIV.JOBS.THAUMATURGE or
 		jobID == FFXIV.JOBS.ROGUE or
 		jobID == FFXIV.JOBS.NINJA or
-		jobID == FFXIV.JOBS.MACHINIST
+		jobID == FFXIV.JOBS.MACHINIST or
+		jobID == FFXIV.JOBS.SAMURAI or
+		jobID == FFXIV.JOBS.REDMAGE
     then
         return GetString("dps")
     elseif
@@ -3443,6 +3445,8 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.ROGUE] = true,
 			[FFXIV.JOBS.NINJA] = true,
 			[FFXIV.JOBS.MACHINIST] = true,
+			[FFXIV.JOBS.SAMURAI] = true,
+			[FFXIV.JOBS.REDMAGE] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
@@ -3469,6 +3473,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.CONJURER] = true,
 			[FFXIV.JOBS.SCHOLAR] = true,
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
+			[FFXIV.JOBS.REDMAGE] = true,
 		}
 	end
 	return nil
@@ -3487,7 +3492,8 @@ function IsMeleeDPS(var)
 			jobid == FFXIV.JOBS.DRAGOON or
 			jobid == FFXIV.JOBS.LANCER or
 			jobid == FFXIV.JOBS.ROGUE or
-			jobid == FFXIV.JOBS.NINJA)
+			jobid == FFXIV.JOBS.NINJA or 
+			jobid == FFXIV.JOBS.SAMURAI)
 end
 function IsRangedDPS(var)
 	local var = IsNull(var,Player)
@@ -3504,7 +3510,8 @@ function IsRangedDPS(var)
 			jobid == FFXIV.JOBS.BLACKMAGE or
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.MACHINIST)
+			jobid == FFXIV.JOBS.MACHINIST or 
+			jobid == FFXIV.JOBS.REDMAGE)
 end
 function IsRanged(var)
 	local var = IsNull(var,Player)
@@ -3525,7 +3532,8 @@ function IsRanged(var)
 			jobid == FFXIV.JOBS.SCHOLAR or
 			jobid == FFXIV.JOBS.WHITEMAGE or
 			jobid == FFXIV.JOBS.ASTROLOGIAN or
-			jobid == FFXIV.JOBS.MACHINIST)
+			jobid == FFXIV.JOBS.MACHINIST or
+			jobid == FFXIV.JOBS.REDMAGE)
 end
 function IsPhysicalDPS(var)
 	local var = IsNull(var,Player)
@@ -3543,6 +3551,7 @@ function IsPhysicalDPS(var)
 			jobid == FFXIV.JOBS.ROGUE or
 			jobid == FFXIV.JOBS.NINJA or 
 			jobid == FFXIV.JOBS.ARCHER or
+			jobid == FFXIV.JOBS.SAMURAI or
 			jobid == FFXIV.JOBS.BARD or
 			jobid == FFXIV.JOBS.MACHINIST)
 end
@@ -3558,7 +3567,8 @@ function IsCasterDPS(var)
 	return 	(jobid == FFXIV.JOBS.ARCANIST or
 			jobid == FFXIV.JOBS.BLACKMAGE or
 			jobid == FFXIV.JOBS.SUMMONER or
-			jobid == FFXIV.JOBS.THAUMATURGE)
+			jobid == FFXIV.JOBS.THAUMATURGE or
+			jobid == FFXIV.JOBS.REDMAGE)
 end
 function IsCaster(var)
 	local var = IsNull(var,Player)
@@ -3576,7 +3586,8 @@ function IsCaster(var)
 			jobid == FFXIV.JOBS.WHITEMAGE or
 			jobid == FFXIV.JOBS.CONJURER or
 			jobid == FFXIV.JOBS.SCHOLAR or 
-			jobid == FFXIV.JOBS.ASTROLOGIAN)
+			jobid == FFXIV.JOBS.ASTROLOGIAN or
+			jobid == FFXIV.JOBS.REDMAGE)
 end
 function IsHealer(var)
 	local var = IsNull(var,Player)
