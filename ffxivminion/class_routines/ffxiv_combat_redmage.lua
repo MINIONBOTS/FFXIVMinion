@@ -1,10 +1,10 @@
 ffxiv_combat_redmage = {}
-ffxiv_combat_redmage.range = 24
+ffxiv_combat_redmage.range = 2
 ffxiv_combat_redmage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_redmage.info"
 if (not FileExists(ffxiv_combat_redmage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {
-		gRestHP = 75,
+		gRestHP = 50,
 		gRestMP = 30,
 		gPotionHP = 50,
 		gPotionMP = 0,
