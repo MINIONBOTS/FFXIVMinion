@@ -905,7 +905,13 @@ function ffxivminion.CheckClass()
 	if (ml_global_information.CurrentClass == nil) then
 		ml_global_information.CurrentClass = playerClass
 		ml_global_information.CurrentClassID = Player.job
-		ml_global_information.AttackRange = playerClass.range or 2
+		local baseRange = 2
+		if (type(playerClass.range) == "function") then
+			baseRange = playerClass.range()
+		elseif (type(playerClass.range) == "number") then
+			baseRange = playerClass.range
+		end
+		ml_global_information.AttackRange = baseRange
 		SkillMgr.UseDefaultProfile()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
@@ -915,7 +921,13 @@ function ffxivminion.CheckClass()
     if (ml_global_information.CurrentClassID ~= Player.job) then
         ml_global_information.CurrentClass = playerClass
         ml_global_information.CurrentClassID = Player.job
-		ml_global_information.AttackRange = playerClass.range or 2
+		local baseRange = 2
+		if (type(playerClass.range) == "function") then
+			baseRange = playerClass.range()
+		elseif (type(playerClass.range) == "number") then
+			baseRange = playerClass.range
+		end
+		ml_global_information.AttackRange = baseRange
 		SkillMgr.UseDefaultProfile()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()

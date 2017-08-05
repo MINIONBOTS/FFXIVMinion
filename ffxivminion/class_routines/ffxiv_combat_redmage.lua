@@ -1,5 +1,11 @@
 ffxiv_combat_redmage = {}
-ffxiv_combat_redmage.range = 2
+ffxiv_combat_redmage.range = function () 
+	if (Player.level >= 2) then
+		return 24
+	else
+		return 2
+	end
+end
 ffxiv_combat_redmage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_redmage.info"
 if (not FileExists(ffxiv_combat_redmage.optionsPath)) then
 	local defaults = {}
