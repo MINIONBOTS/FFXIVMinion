@@ -2430,7 +2430,6 @@ function IsInsideFate()
 	return false
 end
 function GetClosestFate(pos)
-
 	local fateList = GetApprovedFates()
 	if (table.valid(fateList)) then	
 
@@ -2438,10 +2437,23 @@ function GetClosestFate(pos)
 			local ppos = Player.pos
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
-				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+				local fatePos = {x = fate.x, y = fate.y, z = fate.z}	
+				
 				if (not NavigationManager:IsReachable(fatePos)) then
-					d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.id).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
-					table.remove(fateList, i)
+					
+					local hasPossibleTransport = false
+					local transportFunction = _G["Transport"..tostring(Player.localmapid)]
+					if (transportFunction ~= nil and type(transportFunction) == "function") then
+						local retval = transportFunction(Player.pos,fatePos)
+						if (retval == true) then
+							hasPossibleTransport = true
+						end
+					end
+					
+					if (not hasPossibleTransport) then
+						d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.id).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
+						table.remove(fateList, i)
+					end
 				else
 					d("[GetClosestFate] - Found a path to fate ["..tostring(fate.name).."]")
 				end

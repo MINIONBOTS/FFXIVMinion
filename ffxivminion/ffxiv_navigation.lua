@@ -656,7 +656,8 @@ function ml_navigation:CheckPath(pos,pos2,usecubes)
 	if (not table.valid(pos) or not table.valid(pos2)) then
 		return false
 	end
-
+	
+	--[[
 	local t2d, t3d = ml_navigation.GetNewPathThresholds()
 	if (table.valid(ffnav.lastStart) and table.valid(ffnav.lastGoal) and TimeSince(ffnav.lastGoalCheck) < 10000) then
 		local start2d = math.distance2d(pos,ffnav.lastStart)
@@ -668,6 +669,7 @@ function ml_navigation:CheckPath(pos,pos2,usecubes)
 			return ffnav.lastGoalResult
 		end
 	end
+	--]]
 
 	if ((Player.incombat and not Player.ismounted) or not usecubes) then
 		NavigationManager:UseCubes(false)
@@ -676,6 +678,18 @@ function ml_navigation:CheckPath(pos,pos2,usecubes)
 	end
 	
 	local reachable = NavigationManager:IsReachable(pos2)
+	
+	if (not reachable) then
+		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
+		if (transportFunction ~= nil and type(transportFunction) == "function") then
+			local retval = transportFunction(pos,pos2)
+			if (retval == true) then
+				reachable = true
+			end
+		end
+	end
+	
+	--d("reachable:"..tostring(reachable))
 	--local length = self:GetPath(pos.x,pos.y,pos.z,pos2.x,pos2.y,pos2.z)
 	--local reachable = (length > 0)
 	NavigationManager:UseCubes(true)
@@ -780,8 +794,10 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local smoothturns = IsNull(smoothturns,false)
 	
 	if ((Player.incombat and not Player.ismounted) or cubesoff) then
+		cubesoff = true
 		NavigationManager:UseCubes(false)
 	else
+		cubesoff = false
 		NavigationManager:UseCubes(true)
 	end
 	
@@ -793,12 +809,17 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local newGoal = { x = x, y = y, z = z }
 	
 	ffnav.currentGoal = newGoal
-	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
+	if (ffnav.currentParams and ffnav.currentParams.cubesoff ~= cubesoff) then
+		d("Reset path, switch cubes mode.")
+		ml_navigation:ResetCurrentPath()
+	end
+	
+	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns, cubesoff = cubesoff}
 	
 	local ppos = Player.pos
 	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
 		ml_navigation.lastspam = ml_global_information.Now
-		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid).. " Rnd "..tostring(randompath))
+		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
  	end
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	
