@@ -1248,12 +1248,14 @@ function c_getmovementpath:evaluate()
 			if (pathLength > 0) then
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
+			else
+				d("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 			end
 		else
-			d("no valid gotopos")
+			d("[GetMovementPath]: no valid gotopos")
 		end
 	else
-		d("didn't have a valid position")
+		d("[GetMovementPath]: didn't have a valid position")
     end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")

@@ -1408,7 +1408,7 @@ function ffxiv_task_grindCombat:Process()
 			--d("Check fate details.")
 			local fateID = target.fateid
 			local fate = MGetFateByID(fateID)
-			if ( fate and fate.completion <= 100 and fate.status == 2) then
+			if ( fate and fate.completion < 100 and fate.status == 2) then
 				if (Player.level > fate.maxlevel) then
 					local myPos = Player.pos
 					local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
@@ -1421,7 +1421,7 @@ function ffxiv_task_grindCombat:Process()
 						newTask.actualPos = fatePos
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 						return
-					elseif (distance <= fate.radius) then	
+					elseif (distance <= (fate.radius*.98)) then --else stuckoutside the fate,never syncing	
 						if (Player:GetSyncLevel() == 0) then
 							if (Now() > ml_global_information.syncTimer) then
 								Player:SyncLevel()
