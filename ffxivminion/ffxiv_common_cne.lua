@@ -1210,8 +1210,6 @@ c_getmovementpath = inheritsFrom( ml_cause )
 e_getmovementpath = inheritsFrom( ml_effect )
 function c_getmovementpath:evaluate()
 	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
-		d("loading, processing, or ascending")
-		d("ascending:"..tostring(ffnav.isascending))
 		return false
 	end
 
@@ -1248,14 +1246,12 @@ function c_getmovementpath:evaluate()
 			if (pathLength > 0) then
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
-			else
-				d("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 			end
 		else
-			d("[GetMovementPath]: no valid gotopos")
+			d("no valid gotopos")
 		end
 	else
-		d("[GetMovementPath]: didn't have a valid position")
+		d("didn't have a valid position")
     end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")
@@ -1660,7 +1656,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth) 
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming() or IsDiving()) 
 	then
 		return false
 	end
@@ -1760,7 +1756,7 @@ function c_mount:evaluate()
 end
 function e_mount:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
+		Player:PauseMovement()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
@@ -1852,8 +1848,8 @@ function c_battlemount:evaluate()
 end
 function e_battlemount:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		--d("Stopped.")
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
 	
@@ -1901,8 +1897,8 @@ function c_companion:evaluate()
 end
 function e_companion:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_global_information.Await(2000, function () return not Player:IsMoving() end)
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 	end
 	
 	local green = GetItem(4868)
@@ -2119,8 +2115,8 @@ function c_eat:evaluate()
 end
 function e_eat:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return false
 	end
 	
@@ -3335,7 +3331,11 @@ function c_dointeract:evaluate()
 								return true
 							end
 							
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+								ml_task_hub:CurrentTask().interactAttempts = 1
+							else
+								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							end
 							c_dointeract.lastInteract = Now()
 							return false
 						end
@@ -3365,7 +3365,11 @@ function c_dointeract:evaluate()
 							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+								ml_task_hub:CurrentTask().interactAttempts = 1
+							else
+								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							end
 							return false
 						end
 					end

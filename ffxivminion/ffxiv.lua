@@ -442,7 +442,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 								if (item and item:IsReady() and companion and companion.alive) then
 									local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
 									if (MissingBuffs(companion, buffString)) then
-										Player:Stop()
+										Player:PauseMovement()
+										ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 										local newTask = ffxiv_task_useitem.Create()
 										newTask.itemid = itemid
 										--newTask.targetid = companion.id

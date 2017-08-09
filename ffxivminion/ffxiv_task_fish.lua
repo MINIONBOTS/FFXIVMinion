@@ -323,8 +323,8 @@ function e_precastbuff:execute()
 	local activity = c_precastbuff.activity
 	
 	if (requirestop and Player:IsMoving()) then
-		Player:Stop()
-		ml_global_information.Await(1500, function () return (not Player:IsMoving()) end)
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
 	

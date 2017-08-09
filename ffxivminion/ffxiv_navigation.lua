@@ -5,6 +5,8 @@ ml_navigation.NavPointReachedDistances = {
 	["2dwalk"] = 1,
 	["3dmount"] = 5,
 	["2dmount"] = 1,
+	["3dswim"] = 5,
+	["2dswim"] = 1,
 	["3dfly"] = 5,
 	["2dfly"] = 1.5,
 }
@@ -25,6 +27,8 @@ ml_navigation.OMCReachedDistances = {
 	["2dwalk"] = 0.4,
 	["3dmount"] = 5,
 	["2dmount"] = 0.6,
+	["3dswim"] = 5,
+	["2dswim"] = 0.75,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
 } 
@@ -34,6 +38,8 @@ ml_navigation.NewPathDistanceThresholds = {
 	["2dwalk"] = 0.4,
 	["3dmount"] = 3.0,
 	["2dmount"] = 0.6,
+	["3dswim"] = 3.0,
+	["2dswim"] = 1.0,
 	["3dfly"] = 3.0,
 	["2dfly"] = 1.0,
 }
@@ -43,6 +49,8 @@ ml_navigation.PathDeviationDistances = {
 	["2dwalk"] = 2,
 	["3dmount"] = 5,
 	["2dmount"] = 5,
+	["3dswim"] = 6,
+	["2dswim"] = 5,
 	["3dfly"] = 10,
 	["2dfly"] = 8,
 }
@@ -495,7 +503,9 @@ function ml_navigation.GetMovementType()
 	if ( not Player.ismounted ) then 
 		return "2dwalk" 
 	elseif ( Player.flying.isflying ) then
-		return "3dmount"
+		return "3dfly"
+	elseif ( Player.diving.isswimming ) then
+		return "3dswim"
 	else
 		return "2dmount"
 	end
@@ -506,6 +516,8 @@ function ml_navigation.GetNewPathThresholds()
 		return ml_navigation.NewPathDistanceThresholds["2dwalk"],ml_navigation.NewPathDistanceThresholds["3dwalk"]
 	elseif ( Player.flying.isflying ) then
 		return ml_navigation.NewPathDistanceThresholds["2dfly"],ml_navigation.NewPathDistanceThresholds["3dfly"]
+	elseif ( Player.diving.isswimming ) then
+		return ml_navigation.NewPathDistanceThresholds["2dswim"],ml_navigation.NewPathDistanceThresholds["3dswim"]
 	else
 		return ml_navigation.NewPathDistanceThresholds["2dmount"],ml_navigation.NewPathDistanceThresholds["3dmount"]
 	end
@@ -516,8 +528,22 @@ function ml_navigation.GetMovementThresholds()
 		return ml_navigation.NavPointReachedDistances["2dwalk"],ml_navigation.NavPointReachedDistances["3dwalk"]
 	elseif ( Player.flying.isflying ) then
 		return ml_navigation.NavPointReachedDistances["2dfly"],ml_navigation.NavPointReachedDistances["3dfly"]
+	elseif ( Player.diving.isswimming ) then
+		return ml_navigation.NavPointReachedDistances["2dswim"],ml_navigation.NavPointReachedDistances["3dswim"]
 	else
 		return ml_navigation.NavPointReachedDistances["2dmount"],ml_navigation.NavPointReachedDistances["3dmount"]
+	end
+end
+
+function ml_navigation.GetDeviationThresholds()
+	if ( not Player.ismounted ) then 
+		return ml_navigation.PathDeviationDistances["2dwalk"],ml_navigation.PathDeviationDistances["3dwalk"]
+	elseif ( Player.flying.isflying ) then
+		return ml_navigation.PathDeviationDistances["2dfly"],ml_navigation.PathDeviationDistances["3dfly"]
+	elseif ( Player.diving.isswimming ) then
+		return ml_navigation.PathDeviationDistances["2dswim"],ml_navigation.PathDeviationDistances["3dswim"]
+	else
+		return ml_navigation.PathDeviationDistances["2dmount"],ml_navigation.PathDeviationDistances["3dmount"]
 	end
 end
 
@@ -757,7 +783,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		
 		if (dist2d > newPath2d or dist3d > newPath3d) then
 			buildNewPath = true
-			d("[NAVIGATION]: Need to build a new path, current goal not appropriate [MOVETO2].")
+			--d("[NAVIGATION]: Need to build a new path, current goal not appropriate [MOVETO2].")
 		end
 	end
 	
@@ -783,6 +809,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 end
 
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
+-- TODO: Discuss with fx if we should have path do a one-time check through the path and perform a fast-forward if any point ahead of our current one is near enough to our current one (to prevent a loop that can sometimes occur).
 function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff, newpathdistance, pathdeviationdistance)
 	-- Catching it trying to use cubes incombat still.
 	-- Seems to originate from the fact that if a path can only be built with cubes that it will include them.
@@ -800,7 +827,7 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 		cubesoff = false
 		NavigationManager:UseCubes(true)
 	end
-	
+
 	if (x == nil or y==nil or z==nil ) then -- yes this happens regularly inside fates, because some of the puzzle code calls moveto nil/nil/nil
 		d("[NAVIGATION]: Invalid Move To Position :["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
 		return 0
@@ -809,9 +836,13 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local newGoal = { x = x, y = y, z = z }
 	
 	ffnav.currentGoal = newGoal
-	if (ffnav.currentParams and ffnav.currentParams.cubesoff ~= cubesoff) then
-		d("Reset path, switch cubes mode.")
-		ml_navigation:ResetCurrentPath()
+	if (ffnav.currentParams) then
+		if (ffnav.currentParams.cubesoff == nil) then
+			ffnav.currentParams.cubesoff = cubesoff
+		elseif (ffnav.currentParams.cubesoff ~= nil and ffnav.currentParams.cubesoff ~= cubesoff) then
+			d("Reset path, switch cubes mode.")
+			ml_navigation:ResetCurrentPath()
+		end
 	end
 	
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns, cubesoff = cubesoff}
@@ -831,8 +862,11 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
-function Player:Stop()
-	--ml_navigation.ResetRenderPath()
+function Player:Stop(resetpath)
+	local resetpath = IsNull(resetpath,true)
+	-- Resetting the path can cause some problems with macro nodes.
+	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
+	
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
 	ml_navigation.canPath = false
@@ -842,6 +876,18 @@ function Player:Stop()
 	ffnav.yield = {}
 	ffnav.process = {}
 	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
+end
+
+-- This should be used instead of Stop() if the path and all of it's info should remain and we are only stopping to perform a task en-route (like mounting).
+-- This ensures that the navigation pathfinder doesn't do a loopback incase a macro node is a bit off course.
+function Player:PauseMovement(param1, param2, param3, param4, param5)
+	local param1 = IsNull(param1, 1500)
+	local param2 = IsNull(param2, function () return not Player:IsMoving() end)
+	
+	ml_navigation.canPath = false
+	Player:StopMovement()
+	
+	ffnav.Await(param1, param2, param3, param4, param5)
 end
 
 function ml_navigation.IsHandlingInstructions(tickcount)
@@ -977,7 +1023,7 @@ function ml_navigation.Navigate(event, ticks )
 							
 							if ( Player:IsJumping()) then
 								d("[Navigation]: Jumping for OMC.")
-								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:Stop() end)
+								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:StopMovement() end)
 							else	 
 								-- We are still before our Jump
 								if ( not ml_navigation.omc_startheight ) then
@@ -1113,7 +1159,74 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation:NavigateToNode(ppos,nextnode,1500)						
 																
 						end	
-		-- Cube Navigation
+			-- Cube Navigation
+					elseif (IsDiving()) then
+						--d("[Navigation]: Underwater navigation.")
+						
+						ml_navigation.GUI.lastAction = "Swimming underwater to Node"
+						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
+						if (hit) then
+							ml_debug("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+						end
+						
+						-- Check if we left our path
+						if ( not ml_navigation:IsStillOnPath("3dswim") ) then return end
+														
+						-- Check if the next node is reached:
+						local dist3D = math.distance3d(nextnode,ppos)
+						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(ppos.x, ppos.y, ppos.z, hitx, hity, hitz) <= 5 ))) then
+							-- We reached the node
+							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+							--ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
+							
+							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
+							if (not string.contains(nextnode.type,"CUBE") ) then
+								d("[Navigation]: Next node is not an underwater node.")
+								
+								--[[
+								if (not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) then
+									d("[Navigation]: Next next node is also not a flying node.")
+									d("[Navigation] - Landing...")
+								
+									--Player:Move(FFXIV.MOVEMENT.DOWN)
+									--SendTextCommand("/mount")			
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
+									Player:SetPitch(1.377) 
+									if (not Player:IsMoving()) then
+										Player:Move(FFXIV.MOVEMENT.FORWARD)
+										ffnav.Await(3000, function () return Player:IsMoving() end)
+										return false
+									end
+									ffnav.Await(5000, function () return not IsFlying() end)
+									return false									
+								end
+								--]]
+							end
+							ml_navigation.pathindex = ml_navigation.pathindex + 1		
+						else			
+							ml_debug("[Navigation]: Moving to next node")
+							-- We have not yet reached our node
+							-- Face next node
+							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+							else
+								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+							end
+							
+							-- Set Pitch							
+							local currentPitch = math.round(Player.flying.pitch,3)
+							local minVector = math.normalize(math.vectorize(ppos,nextnode))
+							local pitch = math.asin(-1 * minVector.y)
+							Player:SetPitch(pitch)
+							
+							-- Move
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)	
+								ffnav.Await(2000, function () return Player:IsMoving() end)
+							end
+						end
+			-- Cube Navigation		
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
 						
@@ -1124,7 +1237,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- Check if we left our path
-						if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end
+						if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,"3dfly") ) then return end
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
@@ -1223,8 +1336,7 @@ function ml_navigation.Navigate(event, ticks )
 -- TODO: ADD UNSTUCK HERE !!
 
 						--d("[Navigation]: Navigate to node.")
-						ml_navigation:NavigateToNode(ppos,nextnode)
-										
+						ml_navigation:NavigateToNode(ppos,nextnode)										
 					end
 				
 				else
@@ -1268,7 +1380,9 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 	if ( stillonpaththreshold ) then
 		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
 	else
-		if ( not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end	
+		-- One path may contain all thresholds, so the static path deviation setting is useless for FF.
+		local threshold2d, threshold3d = ml_navigation.GetDeviationThresholds()
+		if ( not ml_navigation:IsStillOnPath(ppos,threshold3d) ) then return end	
 	end
 				
 	-- Check if the next node is reached
@@ -1320,12 +1434,17 @@ end
 
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
 	if ( ml_navigation.pathindex > 1 ) then
-		local treshold = deviationthreshold or ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
+		local threshold = ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
+		if (type(deviationthreshold) == "number") then
+			threshold = deviationthreshold
+		elseif (type(deviationthreshold) == "string") then
+			threshold = ml_navigation.PathDeviationDistances[deviationthreshold]
+		end
 		if ( not Player:IsJumping()) then
 			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
 			if (IsFlying()) then
-				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > treshold) then			
-					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(treshold))
+				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > threshold) then			
+					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					Player:Stop()
 					return false
 				end
@@ -1334,8 +1453,8 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 				local from = { x = ml_navigation.path[ml_navigation.pathindex-1].x, y = 0, z = ml_navigation.path[ml_navigation.pathindex-1].z }
 				local to = { x = ml_navigation.path[ml_navigation.pathindex].x, y = 0, z = ml_navigation.path[ml_navigation.pathindex].z }
 				local ppos2d = { x = ppos.x, y = 0, z = ppos.z }
-				if (math.distancepointline(from, to, ppos2d) > treshold) then			
-					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(treshold))
+				if (math.distancepointline(from, to, ppos2d) > threshold) then			
+					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					Player:Stop()
 					return false
 				end				
@@ -1525,22 +1644,24 @@ function ffnav.IsYielding()
 end
 
 function ffnav.Await(param1, param2, param3, param4, param5)
-	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
-		ffnav.yield = {
-			mintimer = IIF(param1 ~= 0,Now() + param1,0),
-			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
-			evaluator = param3,
-			followall = param4,
-			both = IsNull(param5,false),
-		}
-	else
-		ffnav.yield = {
-			mintimer = 0,
-			maxtimer = Now() + param1,
-			evaluator = param2,
-			followall = param3,
-			both = IsNull(param4,false),
-		}
+	if (param1 and type(param1) == "number") then
+		if (param2 and type(param2) == "number") then
+			ffnav.yield = {
+				mintimer = IIF(param1 ~= 0,Now() + param1,0),
+				maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+				evaluator = param3,
+				followall = param4,
+				both = IsNull(param5,false),
+			}
+		else
+			ffnav.yield = {
+				mintimer = 0,
+				maxtimer = Now() + param1,
+				evaluator = param2,
+				followall = param3,
+				both = IsNull(param4,false),
+			}
+		end
 	end
 end
 
