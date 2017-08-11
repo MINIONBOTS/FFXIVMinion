@@ -194,6 +194,7 @@ SkillMgr.ExtraProfiles = {
 	"Gathering_Leveling",
 	"Gathering_Scrips",	
 	"Gathering_Shards",	
+	"Custom_Task",
 }
 
 function SkillMgr.UpdateDefaultProfiles()
