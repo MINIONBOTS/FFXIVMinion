@@ -677,7 +677,7 @@ function ml_navigation:IsDestinationClose(ppos,goal)
 	return false
 end
 
-function ml_navigation:CheckPath(pos,pos2,usecubes)
+function ml_navigation:CheckPath(pos2,usecubes)
 	local usecubes = IsNull(usecubes,true)
 	if (not table.valid(pos) or not table.valid(pos2)) then
 		return false

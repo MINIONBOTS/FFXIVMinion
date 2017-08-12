@@ -1871,7 +1871,7 @@ function c_gatherflee:evaluate()
 		if (evacPoint) then
 			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
-				if (NavigationManager:IsReachable(fpos)) then
+				if (ml_navigation:CheckPath(fpos,true)) then
 					e_gatherflee.fleePos = fpos
 					return true
 				end
@@ -1882,7 +1882,7 @@ function c_gatherflee:evaluate()
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
 				local p = FindClosestMesh(newPos)
-				if (p and NavigationManager:IsReachable(p)) then
+				if (p and ml_navigation:CheckPath(p,true)) then
 					e_gatherflee.fleePos = p
 					return true
 				end

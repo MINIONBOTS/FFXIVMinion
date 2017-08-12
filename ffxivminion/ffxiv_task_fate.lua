@@ -56,7 +56,7 @@ function c_fatewait:evaluate()
     local evacPoint = GetNearestEvacPoint()
 	if (table.valid(evacPoint)) then
 		local gotoPos = evacPoint.pos
-		if (ml_navigation:CheckPath(Player.pos,gotoPos)) then
+		if (ml_navigation:CheckPath(gotoPos)) then
 			if (gFateWaitNearEvac and gGrindFatesOnly and gGrindDoFates and math.distance2d(myPos, gotoPos) > 10) then
 				e_fatewait.pos = gotoPos
 				return true
@@ -75,7 +75,7 @@ function e_fatewait:execute()
 	newTask.destination = "FATE_WAIT"
     local evacPos = e_fatewait.pos
     local newPos = NavigationManager:GetRandomPointOnCircle(evacPos.x,evacPos.y,evacPos.z,1,8)
-    if (table.valid(newPos) and ml_navigation:CheckPath(Player.pos,newPos)) then
+    if (table.valid(newPos) and ml_navigation:CheckPath(newPos)) then
         newTask.pos = {x = newPos.x, y = newPos.y, z = newPos.z}
     else
         newTask.pos = {x = evacPos.x, y = evacPos.y, z = evacPos.z}

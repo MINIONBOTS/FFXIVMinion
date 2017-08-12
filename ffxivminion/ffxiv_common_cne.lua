@@ -2047,7 +2047,7 @@ e_flee = inheritsFrom( ml_effect )
 e_flee.fleePos = {}
 function c_flee:evaluate()
 	local params = ml_task_hub:ThisTask().params
-	if (params and params.noflee and params.noflee == true) then
+	if (params and params.noflee and params.noflee == true or InInstance()) then
 		return false
 	end
 	
@@ -2064,7 +2064,7 @@ function c_flee:evaluate()
 		if (evacPoint) then
 			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
-				if (NavigationManager:IsReachable(fpos)) then
+				if (ml_navigation:CheckPath(fpos,true)) then
 					e_flee.fleePos = fpos
 					return true
 				end
@@ -2075,7 +2075,7 @@ function c_flee:evaluate()
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
 				local p = FindClosestMesh(newPos)
-				if (p and NavigationManager:IsReachable(p)) then
+				if (p and ml_navigation:CheckPath(p,true)) then
 					e_flee.fleePos = p
 					return true
 				end
