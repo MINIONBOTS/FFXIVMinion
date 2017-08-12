@@ -928,7 +928,7 @@ function ffxiv_task_stealth:task_complete_eval()
 			return true
 		end
 		if (action and action.isoncd and Player:IsMoving()) then
-			Player:Stop()
+			Player:PauseMovement()
 		end
 	end
 	
@@ -943,7 +943,7 @@ end
 function ffxiv_task_stealth:task_complete_execute()
 	-- Need this or the Player will continue moving at slow speeds.
 	if (self.droppingStealth and Player:IsMoving()) then
-		Player:Stop()
+		Player:PauseMovement()
 		Player:Move(FFXIV.MOVEMENT.FORWARD)
 	end
     self.completed = true
