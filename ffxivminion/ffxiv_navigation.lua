@@ -679,7 +679,7 @@ end
 
 function ml_navigation:CheckPath(pos2,usecubes)
 	local usecubes = IsNull(usecubes,true)
-	if (not table.valid(pos) or not table.valid(pos2)) then
+	if (not table.valid(pos2)) then
 		return false
 	end
 	
@@ -697,7 +697,7 @@ function ml_navigation:CheckPath(pos2,usecubes)
 	end
 	--]]
 
-	if ((Player.incombat and not Player.ismounted) or not usecubes) then
+	if (not IsFlying() and not IsDiving() and ((Player.incombat and not Player.ismounted) or not usecubes)) then
 		NavigationManager:UseCubes(false)
 	else
 		NavigationManager:UseCubes(true)
