@@ -679,6 +679,7 @@ end
 
 function ml_navigation:CheckPath(pos2,usecubes)
 	local usecubes = IsNull(usecubes,true)
+	local pos = Player.pos
 	if (not table.valid(pos2)) then
 		return false
 	end
@@ -847,12 +848,14 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns, cubesoff = cubesoff}
 	
-	local ppos = Player.pos
+	local ppos = Player.pos	
+	
+	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
 		ml_navigation.lastspam = ml_global_information.Now
-		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID "..tostring(Player.localmapid))
- 	end
-	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
+		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID ["..tostring(Player.localmapid).."]")
+		d("[NAVIGATION]: IsReachable ["..tostring(NavigationManager:IsReachable(newGoal)).."], PathLength ["..tostring(ret).."]")
+	end
 	
 	ffnav.lastStart = { x = ppos.x, y = ppos.y, z = ppos.z }
 	ffnav.lastGoal = { x = newGoal.x, y = newGoal.y, z = newGoal.z }
