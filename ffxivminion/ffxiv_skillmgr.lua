@@ -181,7 +181,7 @@ SkillMgr.StartingProfiles = {
 
 SkillMgr.ExtraProfiles = {
 	"Aetherial_Gathering",
-	"Aetherial_Multi",
+	"Gathering_Multi",
 	"Gathering_530",
 	"Gathering_Clusters",
 	"Gathering_Collectables",
