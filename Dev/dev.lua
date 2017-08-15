@@ -903,7 +903,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
 					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
 					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
-				
+					if (GUI:Button("Dive##"..tostring(id),50,15) ) then Player:Dive() end
 					
 					GUI:PopItemWidth()
 				else
@@ -1305,6 +1305,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 				GUI:TreePop()
 			end	
 			GUI:BulletText("Last Cast ID") GUI:SameLine(200) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
+			GUI:BulletText("Last Cast Timestamp") GUI:SameLine(200) GUI:InputText("##dev47", tostring(cinfo.lastcasttimestamp))
 			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
 			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
 			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))
