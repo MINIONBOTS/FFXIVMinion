@@ -4647,6 +4647,7 @@ local obj1 = {
 				};
 			};
 		};
+		--[[
 		[388] = {
 			["level"] = 5;
 			["name"] = "Bloodied and Bowed";
@@ -4713,6 +4714,7 @@ local obj1 = {
 				};
 			};
 		};
+		]]
 		[389] = {
 			["level"] = 4;
 			["name"] = "Fantastic Voyage";
