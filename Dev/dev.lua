@@ -1305,7 +1305,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 				GUI:TreePop()
 			end	
 			GUI:BulletText("Last Cast ID") GUI:SameLine(200) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
-			GUI:BulletText("Last Cast Timestamp") GUI:SameLine(200) GUI:InputText("##dev47", tostring(cinfo.lastcasttimestamp))
+			GUI:BulletText("Time Since Last Cast") GUI:SameLine(200) GUI:InputText("##dev47", tostring(cinfo.timesincecast))
 			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
 			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
 			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))
