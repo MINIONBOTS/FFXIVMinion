@@ -6600,7 +6600,7 @@ function IsEntityReachable(entityid,range)
 	end
 	
 	if (table.valid(entity)) then
-		if (entity and (not entity.meshpos or (entity.meshpos and entity.meshpos.distance <= range))) then
+		if (entity and (IsDiving() or (not entity.meshpos or (entity.meshpos and entity.meshpos.distance <= range)))) then
 			return true
 		end
 	end

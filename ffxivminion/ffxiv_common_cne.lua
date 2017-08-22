@@ -1236,14 +1236,16 @@ function c_getmovementpath:evaluate()
 		
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
 			if (ml_global_information.needsStealth and not IsFlying() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+				--d("rebuild non-cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
 			end
 			
 			if (pathLength <= 0) then
+				--d("rebuild cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
 			end
 			
-			if (pathLength > 0) then
+			if (pathLength > 0 or ml_navigation:HasPath()) then
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
 			end
