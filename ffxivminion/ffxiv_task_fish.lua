@@ -219,7 +219,7 @@ function c_precastbuff:evaluate()
 	c_precastbuff.requiredismount = false
 		
 	local fs = tonumber(Player:GetFishingState())
-	if (fs == 0 or (MissingBuff(Player,764) and fs == 4)) then
+	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,764)) and fs == 4)) then
 		if (Player.job ~= FFXIV.JOBS.FISHER) then
 			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
 				c_precastbuff.activity = "switchclass"
@@ -728,45 +728,73 @@ function e_bite:execute()
 		ffxiv_fish.biteDetected = Now() + math.random(250,1000)
 		return
 	elseif (Now() > ffxiv_fish.biteDetected) then
-		if (HasBuffs(Player,"764")) then
-			local precisionHook = SkillMgr.GetAction(4179,1)
-			local powerfulHook = SkillMgr.GetAction(4103,1)
-			local status = Player.status
-			
-			if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
-				precisionHook:Cast()
-				return
-			elseif ((status == 37 or status == 38) and powerfulHook and powerfulHook:IsReady(Player.id)) then
-				powerfulHook:Cast()
-				return
-			end
-		end
-		
-		local useDoubleHook = false
+		local doHook = true
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
-			useDoubleHook = IsNull(task.usedoublehook,false)
-		elseif (table.valid(marker)) then
-			useDoubleHook = IsNull(marker.usedoublehook,false )
+			lightTug = IsNull(task.lighttug,true)
+			medTug = IsNull(task.mediumtug,true)
+			massiveTug = IsNull(task.massivetug,true)
+		end
+		if (type(lightTug) == "string" and GUI_Get(lightTug) ~= nil) then
+			lightTug = GUI_Get(lightTug)
+		end
+		if (type(medTug) == "string" and GUI_Get(medTug) ~= nil) then
+			medTug = GUI_Get(medTug)
+		end
+		if (type(massiveTug) == "string" and GUI_Get(massiveTug) ~= nil) then
+			massiveTug = GUI_Get(massiveTug)
 		end
 		
-		if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
-			useDoubleHook = GUI_Get(useDoubleHook)
+		if (not lightTug) and Player.status == 36 then
+			doHook = false
+		end
+		if (not medTug) and Player.status == 37 then
+			doHook = false
+		end
+		if (not massiveTug) and Player.status == 38 then
+			doHook = false
 		end
 		
-		if (useDoubleHook) then
-			local doubleHook = SkillMgr.GetAction(269,1)
-			if (doubleHook and doubleHook:IsReady(Player.id)) then
-				doubleHook:Cast()
+		if doHook then
+			if (HasBuffs(Player,"764")) then
+				local precisionHook = SkillMgr.GetAction(4179,1)
+				local powerfulHook = SkillMgr.GetAction(4103,1)
+				local status = Player.status
+				-- 36 = small tug?
+				if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
+					precisionHook:Cast()
+					return
+				elseif ((status == 37 or status == 38) and powerfulHook and powerfulHook:IsReady(Player.id)) then
+					powerfulHook:Cast()
+					return
+				end
+			end
+			
+			local useDoubleHook = false
+			if (table.valid(task)) then
+				useDoubleHook = IsNull(task.usedoublehook,false)
+			elseif (table.valid(marker)) then
+				useDoubleHook = IsNull(marker.usedoublehook,false )
+			end
+			
+			if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
+				useDoubleHook = GUI_Get(useDoubleHook)
+			end
+			
+			if (useDoubleHook) then
+				local doubleHook = SkillMgr.GetAction(269,1)
+				if (doubleHook and doubleHook:IsReady(Player.id)) then
+					doubleHook:Cast()
+					return true
+				end
+			end	
+			
+			local bite = SkillMgr.GetAction(296,1)
+			if (bite and bite:IsReady(Player.id)) then
+				bite:Cast()
 				return true
 			end
-		end		
-		
-		local bite = SkillMgr.GetAction(296,1)
-		if (bite and bite:IsReady(Player.id)) then
-			bite:Cast()
-			return true
 		end
 	end
 end
@@ -1063,7 +1091,8 @@ function c_collectibleaddonfish:evaluate()
 									if (info.collectability >= tonumber(minvalue)) then
 										validCollectible = true
 									else
-										gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+										d("Collectibility was too low ["..tostring(info.collectability).."].")
+										d("Collectibility Required is ["..tonumber(minvalue).."].")
 									end
 								end	
 							end
@@ -1075,10 +1104,10 @@ function c_collectibleaddonfish:evaluate()
 			-- needs to be removed
 			--ml_global_information:ToggleRun()
 			if (not validCollectible) then
-				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				gd("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
 				UseControlAction("SelectYesNoCountItem","No")
 			else
-				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				gd("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
 				UseControlAction("SelectYesNoCountItem","Yes")
 			end
 			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
@@ -1693,7 +1722,9 @@ function c_fishnexttask:evaluate()
 								local lockoutTime = data.lockout or 300
 								
 								if (TimePassed(GetCurrentTime(), lockout) < lockoutTime) then
-									fd("Task ["..tostring(i).."] not valid due to lockout.",3)
+									d("Task ["..tostring(i).."] not valid due to lockout.",3)
+									d("Task ["..tostring(i).."] lockout Current Time = ["..tostring(lockout).."].",3)
+									d("Task ["..tostring(i).."] lockoutTime max = ["..tostring(lockoutTime).."].",3)
 									valid = false
 								end
 							end
