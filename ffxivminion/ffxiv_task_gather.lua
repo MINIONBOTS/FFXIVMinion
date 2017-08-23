@@ -1945,7 +1945,7 @@ function e_collectiblegame:execute()
 		return 
 	end
 	
-	d("[CollectableGame]: Checking collectable info.")
+	gd("[CollectableGame]: Checking collectable info.",1)
 	local info = GetControlData("GatheringMasterpiece")
 	if (table.valid(info)) then
 		local valuepairs = {
@@ -2026,10 +2026,10 @@ function e_collectiblegame:execute()
 			end
 		end
 					
-		d("Item current rarity ["..tostring(info.rarity).."].")
-		d("Item required rarity ["..tostring(requiredRarity).."].")
-		d("Item current wear ["..tostring(info.wear).."].")
-		d("Item max wear ["..tostring(info.wearmax).."].")
+		gd("Item current rarity ["..tostring(info.rarity).."].",1)
+		gd("Item required rarity ["..tostring(requiredRarity).."].",1)
+		gd("Item current wear ["..tostring(info.wear).."].",1)
+		gd("Item max wear ["..tostring(info.wearmax).."].",1)
 				
 		if (info.rarity > 0 and
 			(((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or 
@@ -2075,7 +2075,7 @@ function e_collectiblegame:execute()
 					end
 				end
 							
-				if (HasBuffs(Player,"757")) then
+				if (HasBuffs(Player,"757") or Player.gp.current < 200) then
 					if (methodical and methodical:IsReady(Player.id)) then
 						methodical:Cast()
 						e_collectiblegame.timer = Now() + 2500
@@ -2101,9 +2101,11 @@ function c_collectibleaddongather:evaluate()
 						if (itemid) then
 							if (string.contains(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(collectable.value)) then
+									d("Collectibility Required is ["..tostring(collectable.value).."].")
 									validCollectible = true
 								else
-									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+									d("Collectibility Required is ["..tostring(collectable.value).."].")
+									d("Collectibility was too low ["..tostring(info.collectability).."].")
 								end
 							end	
 						end
@@ -2145,9 +2147,11 @@ function c_collectibleaddongather:evaluate()
 							if (itemid) then
 								if (string.contains(tostring(info.itemid),tostring(itemid))) then
 									if (info.collectability >= tonumber(minvalue)) then
+										d("Collectibility Required is ["..tonumber(minvalue).."].")
 										validCollectible = true
 									else
-										gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+										d("Collectibility Required is ["..tonumber(minvalue).."].")
+										d("Collectibility was too low ["..tostring(info.collectability).."].")
 									end
 								end	
 							end
@@ -2157,10 +2161,10 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (not validCollectible) then
-				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				d("Cannot collect item ["..info.name.."], collectibility rating not approved.")
 				UseControlAction("SelectYesNoCountItem","No")
 			else
-				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				d("Attempting to collect item ["..info.name.."], collectibility rating approved.")
 				UseControlAction("SelectYesNoCountItem","Yes")
 			end
 			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
