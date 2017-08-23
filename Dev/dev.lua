@@ -904,6 +904,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
 					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
 					if (GUI:Button("Dive##"..tostring(id),50,15) ) then Player:Dive() end
+					if (GUI:Button("TakeOff##"..tostring(id),50,15) ) then Player:TakeOff() end
 					
 					GUI:PopItemWidth()
 				else
