@@ -1133,7 +1133,12 @@ function dev.DrawCall(event, ticks )
 						GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
 						GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
 						GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
-						GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
+						GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt6",tostring(ezt.servertime))	
+						GUI:TreePop()
+					end
+				if ( GUI:TreeNode("Snipe Cam")) then
+						local snp = Player:GetSnipeCam()
+						GUI:BulletText("x, y, zoom") GUI:SameLine(200)  GUI:InputFloat3( "##dev9", snp.x, snp.y, snp.zoom , 2, GUI.InputTextFlags_ReadOnly)
 						GUI:TreePop()
 					end
 					GUI:PopItemWidth()
