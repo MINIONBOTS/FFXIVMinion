@@ -728,45 +728,76 @@ function e_bite:execute()
 		ffxiv_fish.biteDetected = Now() + math.random(250,1000)
 		return
 	elseif (Now() > ffxiv_fish.biteDetected) then
-		if (HasBuffs(Player,"764")) then
-			local precisionHook = SkillMgr.GetAction(4179,1)
-			local powerfulHook = SkillMgr.GetAction(4103,1)
-			local status = Player.status
-			
-			if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
-				precisionHook:Cast()
-				return
-			elseif ((status == 37 or status == 38) and powerfulHook and powerfulHook:IsReady(Player.id)) then
-				powerfulHook:Cast()
-				return
-			end
-		end
-		
-		local useDoubleHook = false
+		local doHook = true
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
+	    local lightTug, medTug, massiveTug = true,true,true
 		if (table.valid(task)) then
-			useDoubleHook = IsNull(task.usedoublehook,false)
-		elseif (table.valid(marker)) then
-			useDoubleHook = IsNull(marker.usedoublehook,false )
+			lightTug = IsNull(task.lighttug,true)
+			medTug = IsNull(task.mediumtug,true)
+			massiveTug = IsNull(task.massivetug,true)
+		end
+		if (type(lightTug) == "string" and GUI_Get(lightTug) ~= nil) then
+			lightTug = GUI_Get(lightTug)
+		end
+		if (type(medTug) == "string" and GUI_Get(medTug) ~= nil) then
+			medTug = GUI_Get(medTug)
+		end
+		if (type(massiveTug) == "string" and GUI_Get(massiveTug) ~= nil) then
+			massiveTug = GUI_Get(massiveTug)
 		end
 		
-		if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
-			useDoubleHook = GUI_Get(useDoubleHook)
+		if (not lightTug) and Player.status == 36 then
+			doHook = false
+			d("light dohook false")
 		end
-		
-		if (useDoubleHook) then
-			local doubleHook = SkillMgr.GetAction(269,1)
-			if (doubleHook and doubleHook:IsReady(Player.id)) then
-				doubleHook:Cast()
+		if (not medTug) and Player.status == 37 then
+			doHook = false
+			d("med dohook false")
+		end
+		if (massiveTug) and Player.status == 38 then
+			doHook = false
+			d("massive dohook false")
+		end
+		if doHook then
+			if (HasBuffs(Player,"764")) then
+				local precisionHook = SkillMgr.GetAction(4179,1)
+				local powerfulHook = SkillMgr.GetAction(4103,1)
+				local status = Player.status
+				-- 36 = small tug?
+				if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
+					precisionHook:Cast()
+					return
+				elseif ((status == 37 or status == 38) and powerfulHook and powerfulHook:IsReady(Player.id)) then
+					powerfulHook:Cast()
+					return
+				end
+			end
+			
+			local useDoubleHook = false
+			if (table.valid(task)) then
+				useDoubleHook = IsNull(task.usedoublehook,false)
+			elseif (table.valid(marker)) then
+				useDoubleHook = IsNull(marker.usedoublehook,false )
+			end
+			
+			if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
+				useDoubleHook = GUI_Get(useDoubleHook)
+			end
+			
+			if (useDoubleHook) then
+				local doubleHook = SkillMgr.GetAction(269,1)
+				if (doubleHook and doubleHook:IsReady(Player.id)) then
+					doubleHook:Cast()
+					return true
+				end
+			end	
+			
+			local bite = SkillMgr.GetAction(296,1)
+			if (bite and bite:IsReady(Player.id)) then
+				bite:Cast()
 				return true
 			end
-		end		
-		
-		local bite = SkillMgr.GetAction(296,1)
-		if (bite and bite:IsReady(Player.id)) then
-			bite:Cast()
-			return true
 		end
 	end
 end
