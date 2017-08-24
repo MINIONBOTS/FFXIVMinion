@@ -1266,7 +1266,7 @@ function ml_navigation.Navigate(event, ticks )
 							if (not string.contains(nextnode.type,"CUBE") ) then
 								d("[Navigation]: Next node is not a flying node.")
 								
-								if (not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) then
+								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
 									d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
 								
@@ -1279,7 +1279,7 @@ function ml_navigation.Navigate(event, ticks )
 										ffnav.Await(3000, function () return Player:IsMoving() end)
 										return false
 									end
-									ffnav.Await(5000, function () return not IsFlying() end)
+									ffnav.Await(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end)
 									return false									
 								end
 							end
