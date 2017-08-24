@@ -347,7 +347,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 											elseif stringval == "ID" then EntityString = EntityString.."["..e.id.."]"
 											elseif stringval == "ContentID" then EntityString = EntityString.."["..e.contentid.."]"
 											elseif stringval == "Distance2D" then EntityString = EntityString.."["..eDistance2D.."]"
-											elseif stringval == "Type" then EntityString = EntityString.."["..e.type.."]"
+											elseif stringval == "Type" then EntityString = EntityString.."["..eType.."]"
 											elseif stringval == "HP" then EntityString = EntityString.."["..eHP.current.."/"..eHP.max.."]"
 											end
 										end
