@@ -290,9 +290,6 @@ function c_add_fate:evaluate()
     if (gGrindDoFates ) then
 		local fate = GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
-			
-			
-		
 			c_add_fate.fate = fate
 			return true
 		end
@@ -3254,12 +3251,8 @@ function c_dointeract:evaluate()
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
 					local x,y,z = meshpos.x,meshpos.y,meshpos.z
-					local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z, x,y,z)
-					if (pathSize > 0) then
+					if (NavigationManager:IsReachable(meshpos)) then
 						ml_task_hub:CurrentTask().pos = interactable.meshpos
-						d("found a size ["..tostring(pathSize).."] to the mesh position")
-					else
-						d("path to mesh position only returned ["..tostring(pathSize).."]")
 					end
 					ml_task_hub:CurrentTask().pathChecked = true
 				end

@@ -2438,24 +2438,10 @@ function GetClosestFate(pos)
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}	
-				
-				if (not NavigationManager:IsReachable(fatePos)) then
-					
-					local hasPossibleTransport = false
-					local transportFunction = _G["Transport"..tostring(Player.localmapid)]
-					if (transportFunction ~= nil and type(transportFunction) == "function") then
-						local retval = transportFunction(Player.pos,fatePos)
-						if (retval == true) then
-							hasPossibleTransport = true
-						end
-					end
-					
-					if (not hasPossibleTransport) then
-						d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.id).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
-						table.remove(fateList, i)
-					end
-				else
-					d("[GetClosestFate] - Found a path to fate ["..tostring(fate.name).."]")
+
+				if (not ml_navigation:CheckPath(fatePos)) then
+					d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.name).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
+					table.remove(fateList, i)
 				end
 			end
 		end
@@ -2535,8 +2521,8 @@ function GetClosestFate(pos)
 			end
 			
 			if (nearestFate) then
-				local pathSize = ml_navigation:GetPath(myPos.x,myPos.y,myPos.z,nearestFate.x,nearestFate.y,nearestFate.z)
-				if (pathSize <= 0) then
+				--d("we have a nearest fate")
+				if (not ml_navigation:CheckPath(nearestFate)) then
 					if (table.size(validFates) > 1) then
 						recheck = true
 						noPaths[nearestFate.id] = true
