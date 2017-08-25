@@ -599,6 +599,7 @@ end
 ml_navigation.DisablePathing = function (self)
 	if (self.canPath) then
 		self.canPath = false
+		Player:Stop() -- how about we actually stop then :P else endless running happens...
 		return true
 	end
 	return false
@@ -838,13 +839,10 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		return true
 	else
 		if (ml_navigation:DisablePathing()) then
-			d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")
+			d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")			
 		end
 		return false
 	end
-	
-	d("[NAVIGATION: Something went wrong, path result ["..tostring(ret).."], returned false as default [MOVETO5].")
-	return ret
 end
 
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
@@ -905,7 +903,7 @@ end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
 function Player:Stop(resetpath)
-	local resetpath = IsNull(resetpath,true)
+	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
