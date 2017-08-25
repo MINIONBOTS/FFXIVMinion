@@ -3343,6 +3343,8 @@ function c_dointeract:evaluate()
 							range = 2.5
 						end
 						
+						d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
+						
 						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
