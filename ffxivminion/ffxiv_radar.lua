@@ -325,12 +325,12 @@ function ffxiv_radar.DrawCall(event, ticks )
 						local eColour = e.Colour
 						local eHP = e.hp
 						local eType = e.type
-						local eDistance = string.format("%.1f",e.distance)
+						local eDistance = math.round(e.distance,0)
 						local eDistance2D = string.format("%.1f",e.distance2d)
 						-- Limit render distance if enabled.
 						if ffxiv_radar.EnableRadarDistance3D and eDistance <= (ffxiv_radar.RadarDistance3D-4) or not ffxiv_radar.EnableRadarDistance3D then
 							local Scale
-							Scale = (0.9-round((eDistance/250),3))
+							Scale = (0.9-math.round((eDistance/250),3))
 							if Scale < 0.5 then Scale = (0.5*(ffxiv_radar.TextScale/100)) else Scale = (Scale*(ffxiv_radar.TextScale/100)) end
 							GUI:SetWindowFontScale(Scale)
 							local RoundedPos = { x = math.round(e.pos.x,2), y = math.round(e.pos.y,2), z = math.round(e.pos.z,2) }
@@ -353,7 +353,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 										end
 									end
 								else
-									EntityString = "["..e.name.."]".."["..tostring(round(eDistance,0)).."]"
+									EntityString = "["..e.name.."]".."["..tostring(math.round(eDistance,0)).."]"
 								end
 								local stringsize = (GUI:CalcTextSize(EntityString))
 								local stringheight = GUI:GetWindowFontSize()+2
@@ -366,16 +366,16 @@ function ffxiv_radar.DrawCall(event, ticks )
 										if ffxiv_radar.HPBarStyle == 1 then
 											-- Colour HP bar
 											local Rectangle = {
-												x1 = round((screenPos.x - (62*Scale)),0),
-												y1 = round((screenPos.y + (14*Scale)+(2*Scale)),0),
-												x2 = round((screenPos.x + (62*Scale)),0),
-												y2 = round((screenPos.y + (30*Scale)+(2*Scale)),0),
+												x1 = math.round((screenPos.x - (62*Scale)),0),
+												y1 = math.round((screenPos.y + (14*Scale)+(2*Scale)),0),
+												x2 = math.round((screenPos.x + (62*Scale)),0),
+												y2 = math.round((screenPos.y + (30*Scale)+(2*Scale)),0),
 											}
 											local Rectangle2 = {
-												x1 = round((screenPos.x - (62 * Scale)),0),
-												y1 = round((screenPos.y + (14 * Scale)+(2*Scale)),0),
-												x2 = round((screenPos.x + (-62 + (124 * (eHP.percent/100))) * Scale),0),
-												y2 = round((screenPos.y + (30 * Scale)+(2*Scale)),0),
+												x1 = math.round((screenPos.x - (62 * Scale)),0),
+												y1 = math.round((screenPos.y + (14 * Scale)+(2*Scale)),0),
+												x2 = math.round((screenPos.x + (-62 + (124 * (eHP.percent/100))) * Scale),0),
+												y2 = math.round((screenPos.y + (30 * Scale)+(2*Scale)),0),
 											}
 											local HPBar = GUI:ColorConvertFloat4ToU32(0,1,0,0.6)
 											--local HPBar = GUI:ColorConvertFloat4ToU32(math.abs((-100+eHP.percent)/100), eHP.percent/100, 0, 1) -- Different Colouring.
@@ -391,16 +391,16 @@ function ffxiv_radar.DrawCall(event, ticks )
 										elseif ffxiv_radar.HPBarStyle == 2 then
 											-- Colour HP bar
 											local Rectangle = {
-												x1 = round((screenPos.x - (82*Scale)),0),
-												y1 = round((screenPos.y + (17*Scale)+(2*Scale)),0),
-												x2 = round((screenPos.x + (42*Scale)),0),
-												y2 = round((screenPos.y + (23*Scale)+(2*Scale)),0),
+												x1 = math.round((screenPos.x - (82*Scale)),0),
+												y1 = math.round((screenPos.y + (17*Scale)+(2*Scale)),0),
+												x2 = math.round((screenPos.x + (42*Scale)),0),
+												y2 = math.round((screenPos.y + (23*Scale)+(2*Scale)),0),
 											}
 											local Rectangle2 = {
-												x1 = round((screenPos.x - (82 * Scale)),0),
-												y1 = round((screenPos.y + (17 * Scale)+(2*Scale)),0),
-												x2 = round((screenPos.x + (-82 + (124 * (eHP.percent/100))) * Scale),0),
-												y2 = round((screenPos.y + (23 * Scale)+(2*Scale)),0),
+												x1 = math.round((screenPos.x - (82 * Scale)),0),
+												y1 = math.round((screenPos.y + (17 * Scale)+(2*Scale)),0),
+												x2 = math.round((screenPos.x + (-82 + (124 * (eHP.percent/100))) * Scale),0),
+												y2 = math.round((screenPos.y + (23 * Scale)+(2*Scale)),0),
 											}
 											local HPBar = GUI:ColorConvertFloat4ToU32(0,1,0,0.6)
 											--local HPBar = GUI:ColorConvertFloat4ToU32(math.abs((-100+eHP.percent)/100), eHP.percent/100, 0, 1) -- Different Colouring.
