@@ -43,6 +43,17 @@ ml_navigation.NewPathDistanceThresholds = {
 	["3dfly"] = 3.0,
 	["2dfly"] = 1.0,
 }
+-- We have a macro-path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
+ml_navigation.NewMacroPathDistanceThresholds = { 	
+	["3dwalk"] = 10.0,		
+	["2dwalk"] = 10.0,
+	["3dmount"] = 10.0,
+	["2dmount"] = 10.0,
+	["3dswim"] = 10.0,
+	["2dswim"] = 10.0,
+	["3dfly"] = 10.0,
+	["2dfly"] = 10.0,
+}	
 -- The max. distance the playerposition can be away from the current path. (The Point-Line distance between player and the last & next pathnode)
 ml_navigation.PathDeviationDistances = { 		
 	["3dwalk"] = 4,		
