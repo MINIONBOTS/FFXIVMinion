@@ -1316,6 +1316,7 @@ function c_walktoentity:evaluate()
 		IsShopWindowOpen() or
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
+		ml_navigation:DisablePathing()
 		return false
 	end
 	
