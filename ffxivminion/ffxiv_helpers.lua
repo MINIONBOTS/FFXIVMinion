@@ -2438,24 +2438,10 @@ function GetClosestFate(pos)
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}	
-				
-				if (not NavigationManager:IsReachable(fatePos)) then
-					
-					local hasPossibleTransport = false
-					local transportFunction = _G["Transport"..tostring(Player.localmapid)]
-					if (transportFunction ~= nil and type(transportFunction) == "function") then
-						local retval = transportFunction(Player.pos,fatePos)
-						if (retval == true) then
-							hasPossibleTransport = true
-						end
-					end
-					
-					if (not hasPossibleTransport) then
-						d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.id).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
-						table.remove(fateList, i)
-					end
-				else
-					d("[GetClosestFate] - Found a path to fate ["..tostring(fate.name).."]")
+
+				if (not ml_navigation:CheckPath(fatePos)) then
+					d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.name).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
+					table.remove(fateList, i)
 				end
 			end
 		end
@@ -2535,8 +2521,8 @@ function GetClosestFate(pos)
 			end
 			
 			if (nearestFate) then
-				local pathSize = ml_navigation:GetPath(myPos.x,myPos.y,myPos.z,nearestFate.x,nearestFate.y,nearestFate.z)
-				if (pathSize <= 0) then
+				--d("we have a nearest fate")
+				if (not ml_navigation:CheckPath(nearestFate)) then
 					if (table.size(validFates) > 1) then
 						recheck = true
 						noPaths[nearestFate.id] = true
@@ -3311,7 +3297,8 @@ function IsMap(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 6687 and itemid <= 6692) or
 		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
-		(itemid >= 12241 and itemid <= 12243))
+		(itemid >= 12241 and itemid <= 12243) or
+		(itemid >= 17835 and itemid <= 17836))
 end
 function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -5076,6 +5063,59 @@ function CanAccessMap(mapid)
 	return false
 end
 
+function GetELNSection(pos)
+    local section3 = {
+        [1] = {
+            a = {x = 950, z = 100},
+            b = {x = 850, z = 100},
+            c = {x = 850, z = 170},
+            d = {x = 950, z = 170},
+            x = {x = 875, z = 150},
+        },
+       
+        
+    }
+	local section1 = {
+        
+		[1] = {
+            a = {x = 1000, z = 40},
+            b = {x = 275, z = 40},
+            c = {x = 275, z = 1000},
+            d = {x = 1000, z = 1000},
+            x = {x = 600, z = 500},
+        },
+		
+		[2] = {
+            a = {x = 1000, z = 270},
+            b = {x = 175, z = 270},
+            c = {x = 175, z = 1000},
+            d = {x = 1000, z = 1000},
+            x = {x = 600, z = 600},
+        },
+    }
+	local sec = 2
+	if (table.valid(pos)) then
+        for i,section in pairs(section1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+	 if (table.valid(pos)) then
+        for i,section in pairs(section3) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 3
+                break
+            end
+        end
+    end
+	
+	return sec
+end
+
 function GetForelandsSection(pos)
     local sections = {
          [1] = {
@@ -5495,77 +5535,72 @@ end
 function Transport137(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
-	
-	if (Distance3DT(pos2,{x = 877, y = 20, z = 145}) < 100 and Distance3DT(pos1,{x = 877, y = 20, z = 145}) > 100) then
-		-- Need to go from Costa to the boat, talk to the Ferry Skipper.
-		return true, function ()
-			local newTask = ffxiv_nav_interact.Create()
-			newTask.pos = {x = 607.8, y = 11.6, z = 391.8}
-			newTask.contentid = 1003585
-			newTask.conversationstrings = {
-				["us"] = "Board the Rhotano privateer",
-				de = "Zum Großen Schoner",
-				fr = "Aller à bord du navire au large",
-				jp = "「洋上の大型船」へ行く",
-				cn = "前往海上的大型船",
-				kr = "'대형 원양어선'으로 이동",
-			}
-			ml_task_hub:CurrentTask():AddSubTask(newTask)
-		end
-	elseif (Distance3DT(pos1,{x = 877, y = 20, z = 145}) < 100  and Distance3DT(pos2,{x = 877, y = 20, z = 145}) > 100) then
-		-- Need to leave the boat, talk to the captain.
-		return true, function ()
-			-- Need to leave the boat, talk to the captain.
-			local newTask = ffxiv_nav_interact.Create()
-			newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
-			newTask.contentid = 1005414
-			ml_task_hub:CurrentTask():AddSubTask(newTask)
-		end
-	end
-	
-	
-	if (GilCount() > 100) then
-		if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
-			--d("Need to move from Costa area to Wineport.")
-			return true, function()
-				if (CanUseAetheryte(12) and not Player.incombat) then
-					if (Player:IsMoving()) then
-						Player:Stop()
-						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-						return
-					end
-					if (Player.ismounted) then
-						Dismount()
-						return
-					end
-					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-						if (Player:Teleport(12)) then	
-							local newTask = ffxiv_task_teleport.Create()
-							newTask.aetheryte = 12
-							newTask.mapID = 137
-							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-						end
-					end
-				else
-					d("Aetheryte 12 check?:"..tostring(CanUseAetheryte(12)))
+	if (GetELNSection(pos1) ~= GetELNSection(pos2)) then
+		if (GetELNSection(Player.pos) ~= 3) and (GetELNSection(pos2) == 3) then
+			if (GilCount() > 0) then
+				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
-					newTask.contentid = 1003588
-					newTask.abort = function () return (CanUseAetheryte(12) and not Player.incombat) end
+					newTask.pos = {x = 607.8, y = 11.6, z = 391.8}
+					newTask.contentid = 1003585
+					newTask.conversationstrings = {
+						["us"] = "Board the Rhotano privateer",
+						de = "Zum Großen Schoner",
+						fr = "Aller à bord du navire au large",
+						jp = "「洋上の大型船」へ行く",
+						cn = "前往海上的大型船",
+						kr = "'대형 원양어선'으로 이동",
+					}
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
-		elseif (not (pos1.x > 218 and pos1.z > 51) and (pos2.x > 218 and pos2.z > 51)) then
+		elseif (GetELNSection(Player.pos) == 3) and (GetELNSection(pos2) == 1) then
+			if (GilCount() > 0) then
+				return true, function ()
+					-- Need to leave the boat, talk to the captain.
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
+					newTask.contentid = 1005414
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+		if (GetELNSection(Player.pos) ~= 2) and (GetELNSection(pos2) == 2) then
+			if (GilCount() > 100) then
+				if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
+					--d("Need to move from Costa area to Wineport.")
+					return true, function()
+						if (CanUseAetheryte(12) and not Player.incombat) then
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(12)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 12
+									newTask.mapID = 137
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						else
+							d("Aetheryte 12 check?:"..tostring(CanUseAetheryte(12)))
+							local newTask = ffxiv_nav_interact.Create()
+							newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
+							newTask.contentid = 1003588
+							newTask.abort = function () return (CanUseAetheryte(12) and not Player.incombat) end
+							ml_task_hub:CurrentTask():AddSubTask(newTask)
+						end
+					end
+				end
+			end
+		elseif (GetELNSection(Player.pos) == 2) and (GetELNSection(pos2) ~= 2) then
 			--d("Need to move from Wineport to Costa area.")
 			return true, function()
 				if (CanUseAetheryte(11) and not Player.incombat) then
 					if (Player:IsMoving()) then
 						Player:Stop()
 						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-						return
-					end
-					if (Player.ismounted) then
-						Dismount()
 						return
 					end
 					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
@@ -6079,7 +6114,7 @@ function Transport620(pos1,pos2)
 			end
 		end
 		
-		if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or HasQuest(2538) or HasQuest(2539) or HasQuest(2540) or HasQuest(2541) then
+		if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or (QuestCompleted(2537) and not QuestCompleted(2541)) then
 			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
 				if (GilCount() > 0) then
 					return true, function ()
@@ -6552,7 +6587,7 @@ function IsEntityReachable(entityid,range)
 	end
 	
 	if (table.valid(entity)) then
-		if (entity and (not entity.meshpos or (entity.meshpos and entity.meshpos.distance <= range))) then
+		if (entity and (IsDiving() or (not entity.meshpos or (entity.meshpos and entity.meshpos.distance <= range)))) then
 			return true
 		end
 	end

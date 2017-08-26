@@ -90,7 +90,7 @@ local obj1 = {
 			["hprio4"] = "None";
 			["hpriohp"] = 0;
 			["id"] = 3360;
-			["ignoremoving"] = true;
+			["ignoremoving"] = false;
 			["lastcast"] = 0;
 			["lastcastunique"] = {
 			};

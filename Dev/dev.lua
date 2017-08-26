@@ -903,7 +903,8 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
 					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
 					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
-				
+					if (GUI:Button("Dive##"..tostring(id),50,15) ) then Player:Dive() end
+					if (GUI:Button("TakeOff##"..tostring(id),50,15) ) then Player:TakeOff() end
 					
 					GUI:PopItemWidth()
 				else
@@ -1132,7 +1133,12 @@ function dev.DrawCall(event, ticks )
 						GUI:BulletText(".moon") GUI:SameLine(200) GUI:InputText("##devezt3",tostring(ezt.moon))		
 						GUI:BulletText(".sun") GUI:SameLine(200) GUI:InputText("##devezt4",tostring(ezt.sun))	
 						GUI:BulletText(".year") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.year))	
-						GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt5",tostring(ezt.servertime))	
+						GUI:BulletText(".servertime") GUI:SameLine(200) GUI:InputText("##devezt6",tostring(ezt.servertime))	
+						GUI:TreePop()
+					end
+				if ( GUI:TreeNode("Snipe Cam")) then
+						local snp = Player:GetSnipeCam()
+						GUI:BulletText("x, y, zoom") GUI:SameLine(200)  GUI:InputFloat3( "##dev9", snp.x, snp.y, snp.zoom , 2, GUI.InputTextFlags_ReadOnly)
 						GUI:TreePop()
 					end
 					GUI:PopItemWidth()
@@ -1305,6 +1311,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 				GUI:TreePop()
 			end	
 			GUI:BulletText("Last Cast ID") GUI:SameLine(200) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
+			GUI:BulletText("Time Since Last Cast") GUI:SameLine(200) GUI:InputText("##dev47", tostring(cinfo.timesincecast))
 			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
 			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
 			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))

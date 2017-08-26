@@ -290,9 +290,6 @@ function c_add_fate:evaluate()
     if (gGrindDoFates ) then
 		local fate = GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
-			
-			
-		
 			c_add_fate.fate = fate
 			return true
 		end
@@ -1210,8 +1207,6 @@ c_getmovementpath = inheritsFrom( ml_cause )
 e_getmovementpath = inheritsFrom( ml_effect )
 function c_getmovementpath:evaluate()
 	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
-		d("loading, processing, or ascending")
-		d("ascending:"..tostring(ffnav.isascending))
 		return false
 	end
 
@@ -1238,24 +1233,24 @@ function c_getmovementpath:evaluate()
 		
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
 			if (ml_global_information.needsStealth and not IsFlying() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+				--d("rebuild non-cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
 			end
 			
 			if (pathLength <= 0) then
+				--d("rebuild cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
 			end
 			
-			if (pathLength > 0) then
+			if (pathLength > 0 or ml_navigation:HasPath()) then
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
-			else
-				d("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 			end
 		else
-			d("[GetMovementPath]: no valid gotopos")
+			d("no valid gotopos")
 		end
 	else
-		d("[GetMovementPath]: didn't have a valid position")
+		d("didn't have a valid position")
     end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")
@@ -1660,7 +1655,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth) 
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming() or IsDiving()) 
 	then
 		return false
 	end
@@ -1760,7 +1755,7 @@ function c_mount:evaluate()
 end
 function e_mount:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
+		Player:PauseMovement()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
@@ -1852,8 +1847,8 @@ function c_battlemount:evaluate()
 end
 function e_battlemount:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		--d("Stopped.")
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
 	
@@ -1901,8 +1896,8 @@ function c_companion:evaluate()
 end
 function e_companion:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_global_information.Await(2000, function () return not Player:IsMoving() end)
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 	end
 	
 	local green = GetItem(4868)
@@ -2051,7 +2046,7 @@ e_flee = inheritsFrom( ml_effect )
 e_flee.fleePos = {}
 function c_flee:evaluate()
 	local params = ml_task_hub:ThisTask().params
-	if (params and params.noflee and params.noflee == true) then
+	if (params and params.noflee and params.noflee == true or InInstance()) then
 		return false
 	end
 	
@@ -2068,7 +2063,7 @@ function c_flee:evaluate()
 		if (evacPoint) then
 			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
-				if (NavigationManager:IsReachable(fpos)) then
+				if (ml_navigation:CheckPath(fpos,true)) then
 					e_flee.fleePos = fpos
 					return true
 				end
@@ -2079,7 +2074,7 @@ function c_flee:evaluate()
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
 				local p = FindClosestMesh(newPos)
-				if (p and NavigationManager:IsReachable(p)) then
+				if (p and ml_navigation:CheckPath(p,true)) then
 					e_flee.fleePos = p
 					return true
 				end
@@ -2119,8 +2114,8 @@ function c_eat:evaluate()
 end
 function e_eat:execute()
 	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+		Player:PauseMovement()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return false
 	end
 	
@@ -3256,12 +3251,8 @@ function c_dointeract:evaluate()
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
 					local x,y,z = meshpos.x,meshpos.y,meshpos.z
-					local pathSize = ml_navigation:GetPath(ppos.x,ppos.y,ppos.z, x,y,z)
-					if (pathSize > 0) then
+					if (NavigationManager:IsReachable(meshpos)) then
 						ml_task_hub:CurrentTask().pos = interactable.meshpos
-						d("found a size ["..tostring(pathSize).."] to the mesh position")
-					else
-						d("path to mesh position only returned ["..tostring(pathSize).."]")
 					end
 					ml_task_hub:CurrentTask().pathChecked = true
 				end
@@ -3335,7 +3326,11 @@ function c_dointeract:evaluate()
 								return true
 							end
 							
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+								ml_task_hub:CurrentTask().interactAttempts = 1
+							else
+								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							end
 							c_dointeract.lastInteract = Now()
 							return false
 						end
@@ -3347,6 +3342,8 @@ function c_dointeract:evaluate()
 						if (interactable.cangather) then
 							range = 2.5
 						end
+						
+						d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
 						
 						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
@@ -3365,7 +3362,11 @@ function c_dointeract:evaluate()
 							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+								ml_task_hub:CurrentTask().interactAttempts = 1
+							else
+								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							end
 							return false
 						end
 					end
