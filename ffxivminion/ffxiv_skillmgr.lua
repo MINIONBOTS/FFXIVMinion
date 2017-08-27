@@ -5976,8 +5976,8 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("hpAdvantage")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the difference of Max HP between you and an enemy is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_THPADV",SKM_THPADV,0,0,2),"SKM_THPADV"); GUI:NextColumn();
 		GUI:Text(GetString("targetTPLE",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the TP of the Target is less than this amount.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
 		GUI:Text(GetString("targetMPLE",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the TP of the Target is more than this amount.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
-		GUI:Text(GetString("skmTNCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
+		GUI:Text(GetString("skmTNCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must NOT have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
 
 		GUI:Columns(1)
 	end
@@ -6004,9 +6004,9 @@ function SkillMgr.DrawBattleEditor()
 	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header",true,true)) then
 		GUI:Columns(2,"#battle-casting-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
-		GUI:Text(GetString("skmTCASTID")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCASTTM")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TCASTTM",SKM_TCASTTM),"SKM_TCASTTM"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCASTTIME")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTTIME",SKM_TCASTTIME),"SKM_TCASTTIME"); GUI:NextColumn();		
+		GUI:Text(GetString("skmTCASTID")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must be channelling one of the listed spell IDs (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTM")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must be casting the spell on me (self).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TCASTTM",SKM_TCASTTM),"SKM_TCASTTM"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTIME")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Cast time left on the current spell must be greater than or equal to (>=) this time in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTTIME",SKM_TCASTTIME),"SKM_TCASTTIME"); GUI:NextColumn();		
 		GUI:Columns(1)
 	end
 	
@@ -6015,7 +6015,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmHPRIOHP")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HPRIOHP",SKM_HPRIOHP,0,0),"SKM_HPRIOHP"); GUI:NextColumn();		
+		GUI:Text(GetString("skmHPRIOHP")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("HP percentage (%) must be lesser or equal to (<=) this number for the spell to apply.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HPRIOHP",SKM_HPRIOHP,0,0),"SKM_HPRIOHP"); GUI:NextColumn();		
 		GUI:Text(GetString("skmHPRIO1")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO1","gSMHealPriority1","SKM_HPRIO1",gSMHealPriorities); GUI:NextColumn();
 		GUI:Text(GetString("skmHPRIO2")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO2","gSMHealPriority2","SKM_HPRIO2",gSMHealPriorities); GUI:NextColumn();
 		GUI:Text(GetString("skmHPRIO3")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO3","gSMHealPriority3","SKM_HPRIO3",gSMHealPriorities); GUI:NextColumn();
@@ -6097,8 +6097,8 @@ function SkillMgr.DrawBattleEditor()
 		
 		GUI:PushItemWidth(100)
 		GUI:Text(GetString("offGCDSkill")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this dropdown to tell FFXIVMinion explicitly if the skill is off the global cooldown.")) end GUI:NextColumn(); SKM_Combo("##SKM_OffGCD","gSMOffGCDSetting","SKM_OffGCD",gSMOffGCDSettings); GUI:NextColumn();
-		GUI:Text(GetString("Off GCD Time >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTime",SKM_OffGCDTime,0,0,2),"SKM_OffGCDTime"); GUI:NextColumn();	
-		GUI:Text(GetString("Off GCD Time <=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No idea - Please contanct Coalesca Eir-Irata if you know what this does.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTimeLT",SKM_OffGCDTimeLT,0,0,2),"SKM_OffGCDTimeLT"); GUI:NextColumn();	
+		GUI:Text(GetString("Off GCD Time >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Global cooldown time remaining must be greater or equal to this number in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTime",SKM_OffGCDTime,0,0,2),"SKM_OffGCDTime"); GUI:NextColumn();	
+		GUI:Text(GetString("Off GCD Time <=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Global cooldown time remaining must be lesser or equal to this number in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTimeLT",SKM_OffGCDTimeLT,0,0,2),"SKM_OffGCDTimeLT"); GUI:NextColumn();	
 		GUI:Text(GetString("Ignore Moving")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, the skill will be used whether or not the character is moving. ")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_IgnoreMoving",SKM_IgnoreMoving),"SKM_IgnoreMoving"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
