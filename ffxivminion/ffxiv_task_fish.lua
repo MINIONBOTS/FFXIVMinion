@@ -755,7 +755,7 @@ function e_bite:execute()
 			doHook = false
 			d("med dohook false")
 		end
-		if (massiveTug) and Player.status == 38 then
+		if (not massiveTug) and Player.status == 38 then
 			doHook = false
 			d("massive dohook false")
 		end
@@ -1064,7 +1064,8 @@ function c_collectibleaddonfish:evaluate()
 								if (info.collectability >= tonumber(collectable.value)) then
 									validCollectible = true
 								else
-									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+									d("Collectibility was too low ["..tostring(info.collectability).."].")
+									d("Collectibility Required is ["..tonumber(collectable.value).."].")
 								end
 							end	
 						end
