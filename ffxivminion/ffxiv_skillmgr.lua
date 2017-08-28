@@ -5196,14 +5196,18 @@ function SkillMgr.AddDefaultConditions()
 		if (gBotMode ~= GetString("assistMode")) then
 			local target = EntityList:Get(TID)
 			if (target and target.fateid ~= 0) then
+				
+				SkillMgr.DebugOutput(skill.prio, "Target has a FATE ID of ["..tostring(target.fateid).."].")
 				local fate = GetFateByID(target.fateid)
 				if (table.valid(fate)) then
 					if (fate.status == 2) then
-						if (Player:GetSyncLevel() == 0 and AceLib.API.Fate.RequiresSync(fate.id)) then
+						if (Player:GetSyncLevel() == 0 and Player.level >= fate.maxlevel) then
+							SkillMgr.DebugOutput(skill.prio, "Player's sync level ["..tostring(Player.level).."] is too high for the target FATE ["..tostring(fate.maxlevel).."].")
 							return true
 						end
 					end
 				else
+					SkillMgr.DebugOutput(skill.prio, "Could not find the active FATE ["..tostring(target.fateid).."].")
 					return true
 				end
 			end
