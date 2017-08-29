@@ -43,8 +43,8 @@ ml_navigation.NewPathDistanceThresholds = {
 	["3dfly"] = 3.0,
 	["2dfly"] = 1.0,
 }
--- We have a macro-path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
-ml_navigation.NewMacroPathDistanceThresholds = { 	
+-- We have a path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build, else it tries to adjust just the tail of the current path to save cpu power
+ml_navigation.NewPathMaxDistanceThresholds = { 	
 	["3dwalk"] = 10.0,		
 	["2dwalk"] = 10.0,
 	["3dmount"] = 10.0,
