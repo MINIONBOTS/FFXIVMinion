@@ -5989,50 +5989,48 @@ function Transport614(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
-	if (not CanFlyInZone()) then
-		if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
-			if (GilCount() > 100) then
-				if (GetYanxiaSection(Player.pos) == 1) then
-					if (CanUseAetheryte(108) and not Player.incombat) then
-						return true, function () 
-							if (Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-								if (Player:Teleport(108)) then	
-									local newTask = ffxiv_task_teleport.Create()
-									newTask.aetheryte = 108
-									newTask.mapID = 614
-									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-								end
+	if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
+		if (GilCount() > 100) then
+			if (GetYanxiaSection(Player.pos) == 1) then
+				if (CanUseAetheryte(108) and not Player.incombat) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (Player.ismounted and GetGameRegion() ~= 1) then
+							Dismount()
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (Player:Teleport(108)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 108
+								newTask.mapID = 614
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 							end
 						end
 					end
-				else
-					if (CanUseAetheryte(107) and not Player.incombat) then
-						return true, function () 
-							if (Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-								if (Player:Teleport(107)) then	
-									local newTask = ffxiv_task_teleport.Create()
-									newTask.aetheryte = 107
-									newTask.mapID = 614
-									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-								end
+				end
+			else
+				if (CanUseAetheryte(107) and not Player.incombat) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (Player.ismounted and GetGameRegion() ~= 1) then
+							Dismount()
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (Player:Teleport(107)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 107
+								newTask.mapID = 614
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 							end
 						end
 					end
