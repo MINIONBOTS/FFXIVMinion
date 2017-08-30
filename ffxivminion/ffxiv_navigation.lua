@@ -2,11 +2,11 @@
 -- Distance to the next node in the path at which the ml_navigation.pathindex is iterated 
 ml_navigation.NavPointReachedDistances = { 	
 	["3dwalk"] = 2,		
-	["2dwalk"] = 1,
+	["2dwalk"] = .5,
 	["3dmount"] = 5,
 	["2dmount"] = 1,
 	["3dswim"] = 5,
-	["2dswim"] = 1,
+	["2dswim"] = .5,
 	["3dfly"] = 5,
 	["2dfly"] = 1.5,
 }
@@ -1357,7 +1357,10 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
 										d("[Navigation] - Ascend for flight.")
-										ffnav.Ascend()
+										Player:TakeOff()
+										--ffnav.Await(1000, function () return IsFlying() end)
+										
+										--ffnav.Ascend()
 										ffnav.isascending = true
 										return
 									end
