@@ -502,7 +502,7 @@ function c_add_fatetarget:evaluate()
 			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local dist = PDistance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
-			if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
+			if (Player.level <= fate.maxlevel or dist < fate.radius) then
 				local target = GetNearestFateAttackable()
 				if (table.valid(target)) then
 					if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then

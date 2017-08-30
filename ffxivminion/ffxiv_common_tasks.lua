@@ -265,7 +265,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		local myPos = Player.pos
 		local fatedist = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
-		if (not AceLib.API.Fate.RequiresSync(fate.id) or fatedist < fate.radius) then
+		if (Player.level <= fate.maxlevel or fatedist < fate.radius) then
 			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
 			local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(maxdistance)..",fateid="..tostring(fate.id))
 			if ( table.valid(el) ) then
