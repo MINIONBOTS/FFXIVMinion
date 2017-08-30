@@ -1138,7 +1138,12 @@ function dev.DrawCall(event, ticks )
 					end
 				if ( GUI:TreeNode("Snipe Cam")) then
 						local snp = Player:GetSnipeCam()
-						GUI:BulletText("x, y, zoom") GUI:SameLine(200)  GUI:InputFloat3( "##dev9", snp.x, snp.y, snp.zoom , 2, GUI.InputTextFlags_ReadOnly)
+						GUI:BulletText("x, y, zoom") GUI:SameLine(200)  GUI:InputFloat3( "##dev9", snp.x, snp.y, snp.zoom , 2, GUI.InputTextFlags_ReadOnly) 
+						-- Player:SetSnipeCam(x,y,zoom)
+						-- Player:SetSnipeCam(x,y)
+						-- Player:SetSnipeCam(zoom)
+						GUI:SameLine()	if (GUI:Button("SnipeShoot##",100,15) ) then Player:SnipeShoot() end
+						
 						GUI:TreePop()
 					end
 					GUI:PopItemWidth()
