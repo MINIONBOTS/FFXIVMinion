@@ -5201,7 +5201,7 @@ function SkillMgr.AddDefaultConditions()
 				local fate = GetFateByID(target.fateid)
 				if (table.valid(fate)) then
 					if (fate.status == 2) then
-						if (Player:GetSyncLevel() == 0 and Player.level >= fate.maxlevel) then
+						if (Player:GetSyncLevel() == 0 and Player.level > fate.maxlevel) then
 							SkillMgr.DebugOutput(skill.prio, "Player's sync level ["..tostring(Player.level).."] is too high for the target FATE ["..tostring(fate.maxlevel).."].")
 							return true
 						end
