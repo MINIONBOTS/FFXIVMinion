@@ -2197,7 +2197,8 @@ e_fishnoactivity = inheritsFrom( ml_effect )
 function c_fishnoactivity:evaluate()
 	if (not ffxiv_fish.HasDirective()) then
 		local cast = SkillMgr.GetAction(289,1)
-		if (not cast or not cast:IsReady(Player.id)) then
+		local fs = tonumber(Player:GetFishingState())
+		if ((not cast or not cast:IsReady(Player.id)) and fs == 0) then
 			ml_global_information.Await(1000)
 			return true
 		end
@@ -2571,8 +2572,8 @@ function ffxiv_task_fish:Init()
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 175 )
     self:add( ke_nextMarker, self.process_elements)
 	
-	local ke_noActivity = ml_element:create( "NoActivity", c_fishnoactivity, e_fishnoactivity, 150 )
-    self:add( ke_noActivity, self.process_elements)
+	--local ke_noActivity = ml_element:create( "NoActivity", c_fishnoactivity, e_fishnoactivity, 150 )
+    --self:add( ke_noActivity, self.process_elements)
 	
 	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_fishnextprofilemap, e_fishnextprofilemap, 110 )
     self:add( ke_nextProfileMap, self.process_elements)
