@@ -5339,28 +5339,42 @@ function GetFringeSection(pos)
 end
 function GetYanxiaSection(pos)
 	local sections = {
-		[1] = {
-			a = {x = 357, z = -294},
-			b = {x = -48, z = -54},
-			c = {x = -326, z = 864},
-			d = {x = 950, z = 864},
-			x = {x = 286, z = 208},
-		},
-		[2] = {
-			a = {x = 357, z = -294},
-			b = {x = 850, z = -600},
-			c = {x = 850, z = 0},
-			d = {x = 357, z = 0},
-			x = {x = 600, z = -300},
-		},
-		[3] = {
-			a = {x = 48, z = -54},
-			b = {x = -800, z = -54},
-			c = {x = -800, z = 864},
-			d = {x = 48, z = 864},
-			x = {x = -400, z = 400},
-		},
-	}
+        [1] = {
+            a = {x = -650, z = 90},
+            b = {x = 990, z = 90},
+            c = {x = 990, z = 900},
+            d = {x = -650, z = 900},
+            x = {x = 170, z = 495},
+        },
+        [2] = {
+            a = {x = 12, z = 90},
+            b = {x = 990, z = 90},
+            c = {x = 990, z = -280},
+            d = {x = 12, z = -280},
+            x = {x = 501, z = -95},
+        },
+        [3] = {
+            a = {x = 340, z = -280},
+            b = {x = 990, z = -280},
+            c = {x = 990, z = -350},
+            d = {x = 340, z = -350},
+            x = {x = 665, z = -315},
+        },
+        [4] = {
+            a = {x = 550, z = -350},
+            b = {x = 990, z = -440},
+            c = {x = 990, z = -440},
+            d = {x = 550, z = -350},
+            x = {x = 770, z = -395},
+        },
+        [5] = {
+            a = {x = -245, z = 90},
+            b = {x = 12, z = -40},
+            c = {x = 12, z = -40},
+            d = {x = -245, z = 90},
+            x = {x = -116.5, z = 25},
+        },
+    }
 	
 	local sec = 2
     if (table.valid(pos)) then
@@ -5990,7 +6004,7 @@ function Transport614(pos1,pos2)
 	local pos2 = pos2
 	
 	if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
-		if (GilCount() > 100) then
+		if (GilCount() > 200) then
 			if (GetYanxiaSection(Player.pos) == 1) then
 				if (CanUseAetheryte(108) and not Player.incombat) then
 					return true, function () 
