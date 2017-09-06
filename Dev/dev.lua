@@ -1291,7 +1291,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Targetable") GUI:SameLine(200) GUI:InputText("##dev30", tostring(c.targetable))
 		GUI:BulletText("Alive") GUI:SameLine(200) GUI:InputText("##dev31", tostring(c.alive))
 		GUI:BulletText("Gatherable") GUI:SameLine(200) GUI:InputText("##dev32", tostring(c.cangather))
-		GUI:BulletText("Spear Fish State") GUI:SameLine(200) GUI:InputText("##dev32", tostring(c.spearfishstate))
+		GUI:BulletText("Spear Fish State") GUI:SameLine(200) GUI:InputText("##dev33", tostring(c.spearfishstate))
 			-- SpearFishing
 			--SPEARFISHSTATE_NOTFISHNODE = -1,
 			--SPEARFISHSTATE_NONE = 0,
