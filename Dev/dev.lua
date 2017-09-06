@@ -1291,6 +1291,17 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Targetable") GUI:SameLine(200) GUI:InputText("##dev30", tostring(c.targetable))
 		GUI:BulletText("Alive") GUI:SameLine(200) GUI:InputText("##dev31", tostring(c.alive))
 		GUI:BulletText("Gatherable") GUI:SameLine(200) GUI:InputText("##dev32", tostring(c.cangather))
+		GUI:BulletText("Spear Fish State") GUI:SameLine(200) GUI:InputText("##dev32", tostring(c.spearfishstate))
+			-- SpearFishing
+			--SPEARFISHSTATE_NOTFISHNODE = -1,
+			--SPEARFISHSTATE_NONE = 0,
+			--SPEARFISHSTATE_BEGIN = 1,
+			--SPEARFISHSTATE_BUBBLES = 2, 
+			--SPEARFISHSTATE_SUCCESS = 4,
+			--SPEARFISHSTATE_MISSED = 5,
+			--SPEARFISHSTATE_UNKN = 6,
+			--SPEARFISHSTATE_GOTAWAY = 7,
+			--SPEARFISHSTATE_NOTAVAIL = 9,
 		if ( c.cangather ) then
 			GUI:BulletText("GatherAttempts") GUI:SameLine(200) GUI:InputText("##dev33", tostring(c.gatherattempts))
 			GUI:BulletText("GatherAttemptsMax") GUI:SameLine(200) GUI:InputText("##dev34", tostring(c.gatherattemptsmax))
