@@ -5996,6 +5996,7 @@ function Transport614(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
+	if (not CanFlyInZone()) then
 	if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
 		if (GilCount() > 200) then
 			if (GetYanxiaSection(Player.pos) == 1) then
@@ -6044,6 +6045,7 @@ function Transport614(pos1,pos2)
 				end
 			end
 		end
+	end
 	end
 	if (GetYanxiaSection(Player.pos) ~= 2) and (GetYanxiaSection(pos2) == 2) then
 		if not (CanUseAetheryte(108)) then
