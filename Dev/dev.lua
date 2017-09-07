@@ -19,7 +19,7 @@ dev.job_class = {
 dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 
 function dev.Init()
-	gDevFilterActions = false	
+	gDevFilterActions = true	
 	gDevAddonTextFilter = ""
 	gDevHackMaxZoom = 20.0
 	gDevHackMinZoom = 1.5
@@ -960,8 +960,18 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".I8E") GUI:SameLine(200) GUI:InputText("##devql7"..tostring(id),tostring(e.I8E))
 								GUI:BulletText(".I8F") GUI:SameLine(200) GUI:InputText("##devql8"..tostring(id),tostring(e.I8F))
 								GUI:BulletText(".I8AH") GUI:SameLine(200) GUI:InputText("##devql9"..tostring(id),tostring(e.I8AH))
-								
-								GUI:TreePop()
+								GUI:BulletText(".I8BH") GUI:SameLine(200) GUI:InputText("##flag8"..tostring(id),tostring(e.I8BH))
+                                GUI:BulletText(".I8CH") GUI:SameLine(200) GUI:InputText("##flag9"..tostring(id),tostring(e.I8CH))
+                                GUI:BulletText(".I8DH") GUI:SameLine(200) GUI:InputText("##flag10"..tostring(id),tostring(e.I8DH))
+                                GUI:BulletText(".I8EH") GUI:SameLine(200) GUI:InputText("##flag11"..tostring(id),tostring(e.I8EH))
+                                GUI:BulletText(".I8FH") GUI:SameLine(200) GUI:InputText("##flag12"..tostring(id),tostring(e.I8FH))
+                                GUI:BulletText(".I8AL") GUI:SameLine(200) GUI:InputText("##flag13"..tostring(id),tostring(e.I8AL))
+                                GUI:BulletText(".I8BL") GUI:SameLine(200) GUI:InputText("##flag14"..tostring(id),tostring(e.I8BL))
+                                GUI:BulletText(".I8CL") GUI:SameLine(200) GUI:InputText("##flag15"..tostring(id),tostring(e.I8CL))
+                                GUI:BulletText(".I8DL") GUI:SameLine(200) GUI:InputText("##flag16"..tostring(id),tostring(e.I8DL))
+                                GUI:BulletText(".I8EL") GUI:SameLine(200) GUI:InputText("##flag17"..tostring(id),tostring(e.I8EL))
+                                GUI:BulletText(".I8FL") GUI:SameLine(200) GUI:InputText("##flag18"..tostring(id),tostring(e.I8FL))
+                                GUI:TreePop()
 							end
 						end
 						GUI:Separator()
