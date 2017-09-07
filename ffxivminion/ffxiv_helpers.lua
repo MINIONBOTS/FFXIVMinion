@@ -5347,32 +5347,39 @@ function GetYanxiaSection(pos)
             x = {x = 170, z = 495},
         },
         [2] = {
-            a = {x = 12, z = 90},
-            b = {x = 990, z = 90},
-            c = {x = 990, z = -280},
-            d = {x = 12, z = -280},
-            x = {x = 501, z = -95},
+            a = {x = 333, z = -350},
+            b = {x = 1000, z = -350},
+            c = {x = 1000, z = 1000},
+            d = {x = 333, z = 1000},
+            x = {x = 700, z = 400},
         },
         [3] = {
-            a = {x = 340, z = -280},
-            b = {x = 990, z = -280},
-            c = {x = 990, z = -350},
-            d = {x = 340, z = -350},
-            x = {x = 665, z = -315},
+            a = {x = 465, z = -497},
+            b = {x = 1000, z = -497},
+            c = {x = 1000, z = 1000},
+            d = {x = 465, z = 1000},
+            x = {x = 700, z = 750},
         },
         [4] = {
-            a = {x = 550, z = -350},
-            b = {x = 990, z = -440},
-            c = {x = 990, z = -440},
-            d = {x = 550, z = -350},
-            x = {x = 770, z = -395},
+            a = {x = -1000, z = -17},
+            b = {x = 1000, z = -17},
+            c = {x = 1000, z = 1000},
+            d = {x = -1000, z = 1000},
+            x = {x = 0, z = 500},
         },
         [5] = {
-            a = {x = -245, z = 90},
-            b = {x = 12, z = -40},
-            c = {x = 12, z = -40},
-            d = {x = -245, z = 90},
-            x = {x = -116.5, z = 25},
+            a = {x = -71, z = -172},
+            b = {x = 1000, z = -172},
+            c = {x = 1000, z = 1000},
+            d = {x = -71, z = 1000},
+            x = {x = 500, z = 400},
+        },
+		[6] = {
+            a = {x = 273, z = -375},
+            b = {x = 1000, z = -375},
+            c = {x = 1000, z = 1000},
+            d = {x = 273, z = 1000},
+            x = {x = 600, z = 300},
         },
     }
 	
@@ -6003,55 +6010,57 @@ function Transport614(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
-	if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
-		if (GilCount() > 200) then
-			if (GetYanxiaSection(Player.pos) == 1) then
-				if (CanUseAetheryte(108) and not Player.incombat) then
-					return true, function () 
-						if (Player:IsMoving()) then
-							Player:Stop()
-							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-							return
-						end
-						if (Player.ismounted and GetGameRegion() ~= 1) then
-							Dismount()
-							return
-						end
-						if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-							if (Player:Teleport(108)) then	
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.aetheryte = 108
-								newTask.mapID = 614
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	--if (not CanFlyInZone()) then
+		if (GetYanxiaSection(pos1) ~= GetYanxiaSection(pos2)) then
+			if (GilCount() > 200) then
+				if (GetYanxiaSection(Player.pos) == 1) then
+					if (CanUseAetheryte(108) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(108)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 108
+									newTask.mapID = 614
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
 							end
 						end
 					end
-				end
-			else
-				if (CanUseAetheryte(107) and not Player.incombat) then
-					return true, function () 
-						if (Player:IsMoving()) then
-							Player:Stop()
-							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-							return
-						end
-						if (Player.ismounted and GetGameRegion() ~= 1) then
-							Dismount()
-							return
-						end
-						if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
-							if (Player:Teleport(107)) then	
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.aetheryte = 107
-								newTask.mapID = 614
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+				else
+					if (CanUseAetheryte(107) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(107)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 107
+									newTask.mapID = 614
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
 							end
 						end
 					end
 				end
 			end
 		end
-	end
+	--end
 	if (GetYanxiaSection(Player.pos) ~= 2) and (GetYanxiaSection(pos2) == 2) then
 		if not (CanUseAetheryte(108)) then
 			return true, function()

@@ -313,6 +313,17 @@ function c_movetonode:evaluate()
 					useCordials = GUI_Get(useCordials)
 				end
 				
+				if minimumGP == 999 then
+					if (gSkillProfile == GetString("Aetherial_Gathering")) or (gSkillProfile == GetString("Gathering_Collectables")) then
+						minimumGP = 400
+					end
+					if (gSkillProfile == GetString("Gathering_SB_4_Swings")) or (gSkillProfile == GetString("Gathering_SB_3_Swings")) or (gSkillProfile == GetString("Gathering_Multi")) then
+						minimumGP = 600
+					end
+					if (gSkillProfile == GetString("Gathering_HQ")) then
+						minimumGP = 300
+					end
+				end
 				--[[
 					if (useCordials) then
 						local canUse,cordialItem = CanUseCordial()
