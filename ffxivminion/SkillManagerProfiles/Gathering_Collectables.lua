@@ -2364,5 +2364,6 @@ local obj1 = {
 		};
 	};
 	["version"] = 3;
+	["mingp"] = 400;
 }
 return obj1

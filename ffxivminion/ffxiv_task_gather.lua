@@ -141,6 +141,28 @@ function ffxiv_gather.GetCurrentTaskPos()
 	return pos
 end
 
+function getMinGP()
+	local profile = SkillMgr.SkillProfile.mingp
+	local minimumGP = 0
+	local task = ffxiv_gather.currentTask
+	if (table.valid(task)) then
+		minimumGP = IsNull(task.mingp,0)
+		if task.mingp == "skillProfileDefined" then
+			if SkillMgr.ProfileRaw.mingp ~= nil then
+				minimumGP = SkillMgr.ProfileRaw.mingp
+			else
+				minimumGP = 0
+			end
+		elseif (table.valid(marker)) then
+			minimumGP = IsNull(marker.mingp,0)
+		end
+		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+			minimumGP = GUI_Get(minimumGP)
+		end
+	end
+	return minimumGP
+end
+
 c_findnode = inheritsFrom( ml_cause )
 e_findnode = inheritsFrom( ml_effect )
 function c_findnode:evaluate()
@@ -291,28 +313,21 @@ function c_movetonode:evaluate()
 				return true
 			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
-				local minimumGP = 0				
+				local minimumGP = getMinGP()	
 				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
 				
 				local task = ffxiv_gather.currentTask
 				local marker = ml_marker_mgr.currentMarker
 				if (table.valid(task)) then
-					minimumGP = IsNull(task.mingp,0)
 					noGPitem = IsNull(task.nogpitem,"")
 					useCordials = IsNull(task.usecordials,useCordials)
 				elseif (table.valid(marker)) then
-					minimumGP = IsNull(marker.mingp,0)
 					useCordials = IsNull(marker.usecordials,useCordials)
-				end
-				
-				if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-					minimumGP = GUI_Get(minimumGP)
 				end
 				if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 					useCordials = GUI_Get(useCordials)
 				end
-				
 				--[[
 					if (useCordials) then
 						local canUse,cordialItem = CanUseCordial()
@@ -380,25 +395,20 @@ function e_movetonode:execute()
 			newTask.pos = pos
 			newTask.useTeleport = false
 			
-			local minimumGP = 0
+			local minimumGP = getMinGP()
 			local task = ffxiv_gather.currentTask
 			local noGPitem = ""
 			local marker = ml_marker_mgr.currentMarker
 			if (table.valid(task)) then
-				minimumGP = IsNull(task.mingp,0)
 				noGPitem = IsNull(task.nogpitem,"")
 			elseif (table.valid(marker)) then
-				minimumGP = IsNull(marker.mingp,0)
 				noGPitem = IsNull(marker.nogpitem,"")
 			end
 			
-			if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-				minimumGP = GUI_Get(minimumGP)
-			end
 			if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 				useCordials = GUI_Get(useCordials)
 			end
-			
+				
 			if (Player.gp.current < minimumGP and noGPitem ~= "") then
 				newTask.minGP = 0
 			else
@@ -670,7 +680,7 @@ function e_gather:execute()
 		local item2 = ""
 		local item3 = ""
 		local nogpitem = ""
-		local minimumGP = 0
+		local minimumGP = getMinGP()
 
 		local task = ffxiv_gather.currentTask
 		local marker = ml_marker_mgr.currentMarker
@@ -685,7 +695,6 @@ function e_gather:execute()
 			item2 = IsNull(task.item2,"")
 			item3 = IsNull(task.item3,"")
 			nogpitem = IsNull(task.nogpitem,"")
-			minimumGP = IsNull(task.mingp,0)
 			noGPGather = IsNull(task.nogpgather,false)
 		elseif (table.valid(marker)) then
 			gatherMaps = IsNull(marker.gathermaps,"")
@@ -696,7 +705,6 @@ function e_gather:execute()
 			item1 = IsNull(marker.item1,"")
 			item2 = IsNull(marker.item2,"")
 			item3 = IsNull(marker.item3,"")
-			minimumGP = IsNull(marker.mingp,0)
 		end
 		
 		if (type(gatherGardening) == "string" and GUI_Get(gatherGardening) ~= nil) then
@@ -722,9 +730,6 @@ function e_gather:execute()
 		end
 		if (type(item3) == "string" and GUI_Get(item3) ~= nil) then
 			item3 = GUI_Get(item3)
-		end
-		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-			minimumGP = GUI_Get(minimumGP)
 		end
 	
         if (touchOnly) then
@@ -1216,7 +1221,7 @@ function ffxiv_gather.CheckBuffs(item)
 end
 
 function CanUseCordialSoon()
-	local minimumGP = 0
+	local minimumGP = getMinGP()
 	local useCordials = false
 	
 	local profile, task;
@@ -1232,21 +1237,17 @@ function CanUseCordialSoon()
 	
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker)) then
-		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 	else
 		return false
 	end
 
-	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-		minimumGP = GUI_Get(minimumGP)
-	end
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 		useCordials = GUI_Get(useCordials)
 	end
+	
 	
 	
 	if (useCordials) then
@@ -1303,7 +1304,7 @@ function CanUseCordialSoon()
 end
 
 function CanUseCordial()
-	local minimumGP = 0
+	local minimumGP = getMinGP()
 	local useCordials = false
 	
 	local profile, task;
@@ -1319,22 +1320,17 @@ function CanUseCordial()
 	
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker)) then
-		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 	else
 		return false
 	end
 	
-	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-		minimumGP = GUI_Get(minimumGP)
-	end
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 		useCordials = GUI_Get(useCordials)
 	end
-	
+			
 	if (useCordials) then
 		local cordialQuick, cordialQuickAction = GetItem(1016911)
 		if (not cordialQuick) then
@@ -1350,7 +1346,7 @@ function CanUseCordial()
 		end
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
-		
+				
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuick:IsReady(Player.id)) then
 				--d("[CanUseCordial]: Returning cordial.")
@@ -1533,7 +1529,7 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	local skillProfile = ""
-	local minimumGP = 0
+	local minimumGP = getMinGP()
 	local useCordials = (gGatherUseCordials )
 	local taskType = ""
 	local useFavor = 0
@@ -1546,7 +1542,6 @@ function c_nodeprebuff:evaluate()
 		if (IsNull(task.skillprofile,"") ~= "" and IsNull(task.skillprofile,"") ~= GetString("None")) then
 			skillProfile = task.skillprofile
 		end
-		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
 		useFavor = IsNull(task.favor,0)
@@ -1555,7 +1550,6 @@ function c_nodeprebuff:evaluate()
 		if (IsNull(marker.skillprofile,"") ~= "" and IsNull(marker.skillprofile,"") ~= GetString("None")) then
 			skillProfile = marker.skillprofile
 		end
-		minimumGP = IsNull(marker.mingp,0)
 		useCordials = IsNull(marker.usecordials,useCordials)
 		--taskType = IsNull(marker.type,"")
 		useFavor = IsNull(marker.favor,0)
@@ -1563,12 +1557,9 @@ function c_nodeprebuff:evaluate()
 	else
 		return false
 	end
-	
+							
 	if (type(skillProfile) == "string" and GUI_Get(skillProfile) ~= nil) then
 		skillProfile = GUI_Get(skillProfile)
-	end
-	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-		minimumGP = GUI_Get(minimumGP)
 	end
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 		useCordials = GUI_Get(useCordials)
