@@ -6,7 +6,7 @@ ml_navigation.NavPointReachedDistances = {
 	["3dmount"] = 5,
 	["2dmount"] = 1,
 	["3dswim"] = 5,
-	["2dswim"] = .5,
+	["2dswim"] = .75,
 	["3dfly"] = 5,
 	["2dfly"] = 1.5,
 }
@@ -859,9 +859,11 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	
 	if ((Player.incombat and not Player.ismounted) or cubesoff) then
 		cubesoff = true
+		--d("[Navigation]: Turning cube usage off.")
 		NavigationManager:UseCubes(false)
 	else
 		cubesoff = false
+		--d("[Navigation]: Allowing cube usage.")
 		NavigationManager:UseCubes(true)
 	end
 
@@ -967,7 +969,10 @@ function ml_navigation.Navigate(event, ticks )
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 				
-		if ( ml_navigation.CanRun() and ml_navigation.canPath) then				
+		if ( ml_navigation.CanRun() and ml_navigation.canPath) then	
+			--ffnav.Trim()
+			
+			--d("Can Path.")
 			local ppos = Player.pos
 			
 			ml_navigation.GUI = {
@@ -983,7 +988,8 @@ function ml_navigation.Navigate(event, ticks )
 			-- Normal Navigation Mode			
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
-					--table.print(ml_navigation.path)
+				
+					--d("pathindex:"..tostring(ml_navigation.pathindex)..", max nodes:"..tostring(table.size(ml_navigation.path)))
 					
 					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal)) then
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
@@ -1205,7 +1211,7 @@ function ml_navigation.Navigate(event, ticks )
 						end	
 			-- Cube Navigation
 					elseif (IsDiving()) then
-						ml_debug("[Navigation]: Underwater navigation.")
+						--d("[Navigation]: Underwater navigation.")
 						
 						ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 						-- Check if we left our path
@@ -1216,18 +1222,12 @@ function ml_navigation.Navigate(event, ticks )
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE"))) then
+						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 							-- We reached the node
-							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
-							--ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
-							
-							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
-							if (not string.contains(nextnode.type,"CUBE") ) then
-								d("[Navigation]: Next node is not an underwater node.")
-							end
+							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
 							ml_navigation.pathindex = ml_navigation.pathindex + 1		
 						else			
-							ml_debug("[Navigation]: Moving to next node")
+							--d("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
 							-- Face next node
 							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
@@ -1248,7 +1248,7 @@ function ml_navigation.Navigate(event, ticks )
 							-- Move
 							if (not Player:IsMoving()) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)	
-								ffnav.Await(2000, function () return Player:IsMoving() end)
+								ffnav.Await(150, function () return Player:IsMoving() end)
 							end
 						end
 			-- Cube Navigation		
@@ -1319,7 +1319,6 @@ function ml_navigation.Navigate(event, ticks )
 		-- Normal Navigation
 					else
 						--d("[Navigation]: Normal navigation..")
-						
 						
 						if (string.contains(nextnode.type,"CUBE")) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
@@ -1446,6 +1445,14 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 		end
 		
+		if (IsDiving()) then
+			-- Set Pitch							
+			local currentPitch = math.round(Player.flying.pitch,3)
+			local minVector = math.normalize(math.vectorize(ppos,nextnode))
+			local pitch = math.asin(-1 * minVector.y)
+			Player:SetPitch(pitch)
+		end
+		
 		if (not Player:IsMoving() and not MIsLocked()) then
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
 			ffnav.Await(2000, function () return Player:IsMoving() end)
@@ -1476,7 +1483,7 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 		end
 		if ( not Player:IsJumping()) then
 			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
-			if (IsFlying()) then
+			if (IsFlying() or IsDiving()) then
 				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > threshold) then			
 					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					Player:Stop()
@@ -1566,6 +1573,26 @@ ffnav.lastGoalReached = {}
 ffnav.lastPathTime = 0
 ffnav.ascendTime = 0
 ffnav.lastCubeSwap = 0
+ffnav.lastTrim = 0
+
+function ffnav.Trim()
+	if (table.valid(ml_navigation.path)) then
+		if (TimeSince(ffnav.lastTrim) > 1000 and TimeSince(ml_navigation.pathlastupdated) < 1000) then
+			local ppos = Player.pos
+			local newIndex = 0
+			for i,node in pairsByKeys(ml_navigation.path) do
+				if (ml_navigation:IsGoalClose(ppos,node)) then
+					newIndex = i
+				end
+			end
+			
+			if (newIndex ~= 0) then
+				ml_navigation.pathindex = newIndex
+			end			
+			ffnav.lastTrim = Now()
+		end		
+	end
+end
 
 function ffnav.IsProcessing()
 	if (ffnav.IsYielding()) then

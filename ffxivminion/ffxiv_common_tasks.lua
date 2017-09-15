@@ -85,7 +85,7 @@ function ffxiv_task_movetopos:Init()
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 85 )
     self:add( ke_getMovementPath, self.process_elements)
-	
+
 	local ke_useStealth = ml_element:create( "Stealth", c_dostealth, e_dostealth, 80 )
     self:add( ke_useStealth, self.process_elements)
 	
@@ -105,7 +105,7 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if (CannotMove() or MIsLoading() or self.startMap ~= Player.localmapid) then
+	if (Busy() or self.startMap ~= Player.localmapid) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -529,7 +529,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	end
 	
-	if (CannotMove() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+	-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
+	if (Busy() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
@@ -855,7 +856,7 @@ function ffxiv_task_teleport:task_fail_eval()
 		return true
 	end
 	
-	if (MIsLoading() or MIsCasting() or CannotMove()) then
+	if (Busy()) then
 		self.lastActivity = Now()
 		return false
 	end
@@ -2011,10 +2012,7 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	
 	if (Player.job ~= class) then
 		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
-		if (IsShopWindowOpen() or CannotMove() or MIsLoading() or 
-			not Player.alive or Player.incombat or
-			IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
-		then
+		if (Busy() or Player.incombat) then
 			d("[SwitchClass]: Cannot swap right now, invalid state.")
 			return false
 		end

@@ -828,11 +828,7 @@ c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
-	if (MIsLoading() or 
-		CannotMove() or 
-		MIsCasting() or
-		Player.localmapid == 0) 
-	then
+	if (Busy()) then
 		return false
 	end
 	
@@ -890,12 +886,7 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if (MIsLoading() or 
-		CannotMove() or 
-		MIsCasting() or GilCount() < 1500 or
-		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
-		IsNull(ml_task_hub:ThisTask().destMapID,0) == Player.localmapid) 
-	then
+	if (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
 	end
@@ -1232,7 +1223,7 @@ function c_getmovementpath:evaluate()
 			local pathLength = 0
 		
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
-			if (ml_global_information.needsStealth and not IsFlying() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+			if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
 				--d("rebuild non-cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
 			end
@@ -1274,14 +1265,7 @@ end
 c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 function c_walktopos:evaluate()
-	if (CannotMove() or
-		MIsLoading() or
-		Player:IsJumping() or 
-		IsMounting() or
-		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
-		IsShopWindowOpen() or
-		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
-	then
+	if (Busy() or Player:IsJumping() or IsMounting()) then
 		return false
 	end
 	
@@ -1293,6 +1277,7 @@ function c_walktopos:evaluate()
 	else
 		if (ml_navigation:DisablePathing()) then
 			d("[WalkToPos]: Pathing was stopped.")
+			return true
 		end
 	end
 	
@@ -1308,15 +1293,7 @@ end
 c_walktoentity = inheritsFrom( ml_cause )
 e_walktoentity = inheritsFrom( ml_effect )
 function c_walktoentity:evaluate()
-	if (CannotMove() or
-		MIsLoading() or
-		Player:IsJumping() or 
-		IsMounting() or
-		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or 
-		IsShopWindowOpen() or
-		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
-	then
-		ml_navigation:DisablePathing()
+	if (Busy() or Player:IsJumping() or IsMounting()) then
 		return false
 	end
 	
@@ -1331,7 +1308,8 @@ function c_walktoentity:evaluate()
 			local ppos = Player.pos
 			local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-15,ppos.z)
 			if (hit) then
-			
+				d("[WalkToEntity]: Attempt to land.")
+				
 				-- Basically just aim down and try to land.
 				-- If this doesn't work we are probably SOL anyway.
 				Player:SetPitch(1.377) 
@@ -1655,8 +1633,8 @@ e_mount.lastPathPos = {}
 c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
-	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming() or IsDiving()) 
+	if ((MIsLocked() and not IsDiving()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
 	then
 		return false
 	end
@@ -1720,7 +1698,7 @@ function c_mount:evaluate()
 				forcemount = true
 			end
 		end
-
+		
 		if ((distance > tonumber(gMountDist)) or forcemount) then
 			--Added mount verifications here.
 			--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
@@ -2098,16 +2076,14 @@ end
 c_eat = inheritsFrom( ml_cause )
 e_eat = inheritsFrom( ml_effect )
 function c_eat:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting() or IsFlying() or Player.incombat) then
+	if (Busy() or Player.incombat) then
 		return false
 	end
 	
 	if ( gFood ~= "None") then
 		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000) then
-			if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
-				if (ShouldEat()) then
-					return true
-				end
+			if (ShouldEat()) then
+				return true
 			end
 		end
 	end
@@ -2216,7 +2192,7 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-	if (Player.incombat or MIsCasting() or MIsLoading() or CannotMove() or IsControlOpen("Gathering")) then
+	if (Busy() or Player.incombat) then
 		return false
 	end
 	
@@ -2555,11 +2531,7 @@ e_autoequip.item = nil
 e_autoequip.bag = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()	
-	if (((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
-		IsShopWindowOpen() or CannotMove() or MIsLoading() or 
-		not Player.alive or Player.incombat or
-		IsControlOpen("Gathering") or Player:GetFishingState() ~= 0 or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) 
-	then
+	if (true or Busy() or ((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or Player.incombat or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
 		return false
 	end
 	
@@ -2777,9 +2749,7 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
-	if (IsShopWindowOpen() or CannotMove() or MIsLoading() or IsControlOpen("Talk") or
-		not Player.alive or Player.incombat or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
-	then
+	if (Busy() or Player.incombat) then
 		return false
 	end	
 	
@@ -3026,7 +2996,7 @@ end
 c_movetomap = inheritsFrom( ml_cause )
 e_movetomap = inheritsFrom( ml_effect )
 function c_movetomap:evaluate()
-	if (MIsCasting() or CannotMove() or MIsLoading()) then
+	if (Busy()) then
 		return false
 	end
 	
@@ -3056,7 +3026,7 @@ e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
 function c_buy:evaluate()
 	if (IsControlOpen("SelectYesno")) then
-		PressYesNo(true)
+		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
 		return true
 	end
@@ -3102,9 +3072,7 @@ c_moveandinteract = inheritsFrom( ml_cause )
 e_moveandinteract = inheritsFrom( ml_effect )
 c_moveandinteract.entityid = 0
 function c_moveandinteract:evaluate()
-	if (MIsCasting() or CannotMove() or MIsLoading() or 
-		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen()) 
-	then
+	if (Busy())	then
 		return false
 	end
 	
@@ -3135,10 +3103,7 @@ function c_switchclass:evaluate()
 	
 	local class = ml_task_hub:CurrentTask().class
 	if (Player.job ~= class) then
-		if (IsShopWindowOpen() or CannotMove() or MIsLoading() or 
-			not Player.alive or Player.incombat or
-			IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
-		then
+		if (Busy() or Player.incombat) then
 			return false
 		end
 			
@@ -3248,7 +3213,7 @@ function c_dointeract:evaluate()
 		if (ml_task_hub:CurrentTask().useTargetPos) then
 			ml_task_hub:CurrentTask().pos = interactable.pos
 		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
-			if ( interactable.meshpos and not IsFlying()) then
+			if ( interactable.meshpos and not IsFlying() and not IsDiving()) then
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
 					local x,y,z = meshpos.x,meshpos.y,meshpos.z

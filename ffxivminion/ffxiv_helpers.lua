@@ -1465,6 +1465,8 @@ function GetNearestFromList(strList,pos,radius)
 						table.insert(filteredList,e)
 					end
 				end
+			else
+				d("entity not reachable")
 			end
 		end
 		
@@ -2452,15 +2454,24 @@ function GetClosestFate(pos)
         local level = Player.level
 		local myPos = Player.pos
 		
+		local hasWhitelist = false
 		local fateBlacklist = ml_list_mgr.GetList("FATE Blacklist")
 		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
+		if (table.valid(fateWhitelist)) then
+			for i, entry in pairs(fateWhitelist) do
+				if (entry.mapid == Player.localmapid) then
+					hasWhitelist = true
+					break
+				end
+			end
+		end
 		
 		local recheck = true
 		local noPaths = {}
 		
 		while (recheck) do
 			recheck = false
-			if (table.valid(fateWhitelist:GetList())) then
+			if (hasWhitelist) then
 				d("[GetClosestFate]: Player has a whitelist setup, need to follow it.")
 				for k, fate in pairs(fateList) do
 					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
@@ -2937,14 +2948,19 @@ function InCombatRange(targetid)
 	if (type(targetid) == "table") then
 		local id = targetid.id
 		target = MGetEntity(id)
-		if (not target or not table.valid(target) or not target.los) then
+		if (not target or not table.valid(target)) then
 			return false
 		end
 	else
 		target = MGetEntity(targetid)
-		if (not target or not table.valid(target) or not target.los) then
+		if (not target or not table.valid(target)) then
 			return false
 		end
+	end
+	
+	if (not target.los and target.distance2d > 1) then
+		-- Have to add the annoying distance component due to some weird entities being stuck in walls (or being a wall) and los fails.
+		return false
 	end
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
@@ -3174,7 +3190,12 @@ function Dismount()
 	local isflying = IsFlying()
 	
 	if (Player.ismounted and (not isflying or (isflying and not Player:IsMoving()))) then
-		SendTextCommand("/mount")
+		local dismount = ActionList:Get(5,23)
+		if (dismount and dismount:IsReady(Player.id)) then
+			dismount:Cast(Player.id)
+		else
+			SendTextCommand("/mount")
+		end
 	end
 end
 function Repair()
@@ -5808,7 +5829,7 @@ function Transport398(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(76)) then
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 76
@@ -5830,7 +5851,7 @@ function Transport398(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(77)) then	
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 77
@@ -5884,7 +5905,7 @@ function Transport401(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(72)) then	
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 72
@@ -5906,7 +5927,7 @@ function Transport401(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(73)) then	
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 73
@@ -5946,7 +5967,7 @@ function Transport612(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(98)) then	
 								--d("teleport 98")
 									local newTask = ffxiv_task_teleport.Create()
@@ -5978,7 +5999,7 @@ function Transport612(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(99)) then	
 								--d("teleport 99")
 									local newTask = ffxiv_task_teleport.Create()
@@ -6094,7 +6115,7 @@ function Transport620(pos1,pos2)
 									Dismount()
 									return
 								end
-								if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 									if (Player:Teleport(100)) then	
 										local newTask = ffxiv_task_teleport.Create()
 										newTask.aetheryte = 100
@@ -6120,7 +6141,7 @@ function Transport620(pos1,pos2)
 									Dismount()
 									return
 								end
-								if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 									if (Player:Teleport(101)) then	
 										local newTask = ffxiv_task_teleport.Create()
 										newTask.aetheryte = 101
@@ -6646,4 +6667,12 @@ function GetInteractableEntity(contentids,types)
 		end
 	end
 	return nil
+end
+
+-- Very general check for things that would prevent moving around
+function Busy()
+	local currentTask = ml_task_hub:CurrentTask()
+	return CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
+		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
+		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
