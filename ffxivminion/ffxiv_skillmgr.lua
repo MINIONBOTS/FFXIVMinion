@@ -55,6 +55,7 @@ SkillMgr.ClassJob = {
 }
 
 SkillMgr.SkillBook = {}
+SkillMgr.ProfileRaw = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.EditingSkill = 0
 
@@ -1481,6 +1482,7 @@ function SkillMgr.ReadFile(strFile)
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
 	if (table.valid(profile)) then
+		SkillMgr.ProfileRaw = profile
 		if (table.valid(profile.classes)) then
 			validJob = false
 			for jobid,validity in pairs(profile.classes) do
@@ -1493,6 +1495,7 @@ function SkillMgr.ReadFile(strFile)
 			SkillMgr.SkillProfile = profile.skills
 		end
 	else
+		SkillMgr.ProfileRaw = {}
 		d(e)
 		return false
 	end
