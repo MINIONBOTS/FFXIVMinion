@@ -2458,7 +2458,8 @@ function GetClosestFate(pos)
 		local fateBlacklist = ml_list_mgr.GetList("FATE Blacklist")
 		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
 		if (table.valid(fateWhitelist)) then
-			for i, entry in pairs(fateWhitelist) do
+			local entries = fateWhitelist.entries
+			for i, entry in pairs(entries) do
 				if (entry.mapid == Player.localmapid) then
 					hasWhitelist = true
 					break
