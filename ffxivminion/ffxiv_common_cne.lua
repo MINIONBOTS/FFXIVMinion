@@ -945,7 +945,7 @@ function c_teleporttomap:evaluate()
 				end
 			end
 		else
-			d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
+			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
 			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
 			if (aeth) then
 				d("using block 1")
@@ -3309,7 +3309,7 @@ function c_dointeract:evaluate()
 							range = 2.5
 						end
 						
-						d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
+						--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
 						
 						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
@@ -3326,7 +3326,7 @@ function c_dointeract:evaluate()
 								return false
 							end
 							
-							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+							--d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							Player:Interact(interactable.id)
 							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
 								ml_task_hub:CurrentTask().interactAttempts = 1

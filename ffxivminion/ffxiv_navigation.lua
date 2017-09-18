@@ -773,11 +773,11 @@ function ml_navigation:IsGoalClose(ppos,node)
 	
 	if (goaldist2d < 4 and goaldist < 6 and not Player.diving.isswimming and not Player.diving.isdiving) then
 		if (clear3d < goaldist) then
-			d("[Navigation]: Using clearance 3D distance.")
+			--d("[Navigation]: Using clearance 3D distance.")
 			goaldist = clear3d
 		end
 		if (clear2d < goaldist2d) then
-			d("[Navigation]: Using clearance 2D distance.")
+			--d("[Navigation]: Using clearance 2D distance.")
 			goaldist2d = clear2d
 		end
 	end
@@ -1224,7 +1224,7 @@ function ml_navigation.Navigate(event, ticks )
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 							-- We reached the node
-							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
+							--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
 							ml_navigation.pathindex = ml_navigation.pathindex + 1		
 						else			
 							--d("[Navigation]: Moving to next node")
@@ -1268,7 +1268,7 @@ function ml_navigation.Navigate(event, ticks )
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(ppos.x, ppos.y, ppos.z, hitx, hity, hitz) <= 5 ))) then
 							-- We reached the node
-							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+							--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
 							
 							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
@@ -1421,7 +1421,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-		d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							
 		-- We arrived at an OMC Node
 		if ( string.contains(nextnode.type,"OMC")) then
