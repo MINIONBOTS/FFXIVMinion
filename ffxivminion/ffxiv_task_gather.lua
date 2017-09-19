@@ -308,7 +308,7 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
-			if (not reachable or IsFlying()) then
+			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else	
@@ -554,11 +554,16 @@ function c_nextgathermarker:evaluate()
 			marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 		end
 	end
-	
 	if (currentMarker) then
 		if (marker == nil) then
 			if (IsNull(currentMarker.timeout,0) > 0) then
 				if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > currentMarker.timeout) then
+			d("Marker Timed Out 1")
+					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
+				end
+			elseif (IsNull(currentMarker.timeout,0) == 0) then
+				if (ml_task_hub:CurrentTask().taskFailed > 0 and TimeSince(ml_task_hub:CurrentTask().taskFailed) > 2) then
+			d("Marker Timed Out 2")
 					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 				end
 			end
@@ -575,11 +580,14 @@ function c_nextgathermarker:evaluate()
 		if (marker == nil) then
 			if (currentMarker.duration > 0) then
 				if (currentMarker:GetTimeRemaining() <= 0) then
-					ml_debug("Getting Next Marker, TIME IS UP!")
+					gd("Getting Next Marker, TIME IS UP!",1)
 					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 				else
 					return false
 				end
+			elseif (currentMarker.duration == 0) then
+			gd("Unlimited Time Marker",1)
+				return false
 			end
 		end
 	end
@@ -619,7 +627,7 @@ function DoGathering(item)
 		return 2
 	end	
 	
-	d("[Gather]: Using Gather ["..tostring(item.index-1).."].")
+	gd("[Gather]: Using Gather ["..tostring(item.index-1).."].",1)
 	Player:Gather(item.index-1)
 	if (HasBuffs(Player,"805")) then
 		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
@@ -788,7 +796,7 @@ function e_gather:execute()
 			end
 		end
 			
-		d("Checking gardening section.")
+		gd("Checking gardening section.",1)
 			
 		-- 2nd pass, gardening supplies
 		if (gatherGardening ~= "" and gatherGardening ~= false ) then
@@ -815,7 +823,7 @@ function e_gather:execute()
 			end
 		end
 			
-		d("Checking special rare item section.")
+		gd("Checking special rare item section.",1)
 			
 		-- 3rd pass, try to get special rare items
 		if (gatherSuperRares ~= "" and gatherSuperRares ~= false) then
@@ -842,7 +850,7 @@ function e_gather:execute()
 			end
 		end
 			
-		d("Checking ixali rare item section.")
+		gd("Checking ixali rare item section.",1)
 						
 		-- 5th pass, ixali rare items
 		for i, item in pairs(list) do
@@ -854,7 +862,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking ixali semi-rare item section.")
+		gd("Checking ixali semi-rare item section.",1)
 
 		-- 6th pass, semi-rare ixali items
 		for i, item in pairs(list) do
@@ -866,7 +874,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking chocobo rare item section.")
+		gd("Checking chocobo rare item section.",1)
 		
 		-- 7th pass to get chocobo rare items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false) then
@@ -893,7 +901,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking regular rare item section.")
+		gd("Checking regular rare item section.",1)
 		
 		-- 4th pass, regular rare items
 		if (gatherRares ~= "" and gatherRares ~= false) then
@@ -918,7 +926,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking chocobo item section.")
+		gd("Checking chocobo item section.",1)
 		
 		-- 7th pass to get chocobo items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood) then
@@ -945,7 +953,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking unknown item section.")
+		gd("Checking unknown item section.",1)
 		
 			-- Gather unknown items to unlock them.
 		if (Player.level < 70) then
@@ -956,7 +964,7 @@ function e_gather:execute()
 			end
 		end
 		
-		d("Checking regular item section.")
+		gd("Checking regular item section.",1)
 		
 		local itemid1 = 0
 		local itemid2 = 0
