@@ -1483,7 +1483,7 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 		end
 		if ( not Player:IsJumping()) then
 			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
-			if (IsFlying() or IsDiving()) then
+			if ((IsFlying() or IsDiving()) and string.contains(ml_navigation.path[ml_navigation.pathindex],"CUBE")) then --if the node we goto is on the floor (underwater!) use 2D, it happens that recast just points to the next node which is pathing through U or A shaped terrain.
 				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > threshold) then			
 					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					Player:Stop()
