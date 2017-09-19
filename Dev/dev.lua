@@ -368,6 +368,31 @@ function dev.DrawCall(event, ticks )
 			end
 -- END ACTIONLIST
 
+			-- cbk: Aether Currents
+			if ( GUI:TreeNode("Aether Currents List")) then					
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local aeclist = Player:GetAetherCurrentsList()
+					if (table.valid(aeclist)) then
+						for id, e in pairs(aeclist) do
+							if ( GUI:TreeNode(tostring(id).." - "..GetMapName(e.mapid))) then
+								GUI:BulletText(".isattuned") GUI:SameLine(200) GUI:InputText("##devaec0"..tostring(id),tostring(e.isattuned))	
+								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devaec1"..tostring(id),tostring(e.mapid))	
+								for statidx, statvalue in pairs(e.status) do
+									GUI:BulletText(".status["..tostring(statidx).."]") GUI:SameLine(200) GUI:InputText("##devaec2"..tostring(id)..tostring(statidx),tostring(statvalue))	
+								end
+								GUI:TreePop()
+							end
+						end
+					end
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end				
+				GUI:TreePop()
+			end
+-- END Aether Currents LIST
+
 			-- cbk: Aetheryte List
 			if ( GUI:TreeNode("Aetheryte List")) then				
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
