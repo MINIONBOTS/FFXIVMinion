@@ -6641,7 +6641,7 @@ function GetInteractableEntity(contentids,types)
 	local types = IsNull(types,{0,2,3,5,6,7})
 	
 	if (string.valid(contentids)) then
-		local interacts = EntityList("targetable,contentid="..contentids..",maxdistance=30")
+		local interacts = EntityList("targetable,contentid="..contentids..",maxdistance2d=30")
 		if (table.valid(interacts)) then
 			local validInteracts = {}
 			for i,entity in pairs(interacts) do

@@ -3226,7 +3226,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.targetable) then
+	if (interactable and interactable.targetable and interactable.distance2d < 30) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end

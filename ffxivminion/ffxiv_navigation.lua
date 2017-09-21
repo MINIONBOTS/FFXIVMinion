@@ -1213,31 +1213,24 @@ function ml_navigation.Navigate(event, ticks )
 					elseif (IsDiving()) then
 						--d("[Navigation]: Underwater navigation.")
 						
-						ml_navigation.GUI.lastAction = "Swimming underwater to Node"
-						-- Check if we left our path
-						if ( not ml_navigation:IsStillOnPath(ppos,"3dswim") ) then 
-							d("we have left the path")
-							return 
-						end
-														
-						-- Check if the next node is reached:
-						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-							-- We reached the node
-							--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
-							ml_navigation.pathindex = ml_navigation.pathindex + 1		
-						else			
-							--d("[Navigation]: Moving to next node")
-							-- We have not yet reached our node
-							-- Face next node
-							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+						local target = Player:GetTarget()
+						if (target and target.los and target.distance2d < 15) then
+							if (target.distance2d < 1) then
+								Player:Stop()
+								return false
+							end
+
+							-- If we're close, we need to just fly directly.  The cubes make it an impossible task to try to do this via the actual path.
+							local tpos = target.pos
+							local dist3D = math.distance3d(tpos,ppos)
+							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
 							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+								Player:SetFacing(tpos.x,tpos.y,tpos.z, true) -- smooth facing
 							else
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								Player:SetFacing(tpos.x,tpos.y,tpos.z)
 							end
 							
-							local modifiedNode = { type = nextnode.type, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
+							local modifiedNode = { type = tpos.type, x = tpos.x, y = (tpos.y - 2), z = tpos.z }
 							
 							-- Set Pitch							
 							local currentPitch = math.round(Player.flying.pitch,3)
@@ -1250,7 +1243,48 @@ function ml_navigation.Navigate(event, ticks )
 								Player:Move(FFXIV.MOVEMENT.FORWARD)	
 								ffnav.Await(150, function () return Player:IsMoving() end)
 							end
+						else
+							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
+							-- Check if we left our path
+							if ( not ml_navigation:IsStillOnPath(ppos,"3dswim") ) then 
+								d("we have left the path")
+								return 
+							end
+															
+							-- Check if the next node is reached:
+							local dist3D = math.distance3d(nextnode,ppos)
+							if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
+								-- We reached the node
+								d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
+								ml_navigation.pathindex = ml_navigation.pathindex + 1		
+							else			
+								--d("[Navigation]: Moving to next node")
+								-- We have not yet reached our node
+								-- Face next node
+								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+								else
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								end
+								
+								local modifiedNode = { type = nextnode.type, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
+								
+								-- Set Pitch							
+								local currentPitch = math.round(Player.flying.pitch,3)
+								local minVector = math.normalize(math.vectorize(ppos,modifiedNode))
+								local pitch = math.asin(-1 * minVector.y)
+								Player:SetPitch(pitch)
+								
+								-- Move
+								if (not Player:IsMoving()) then
+									Player:Move(FFXIV.MOVEMENT.FORWARD)	
+									ffnav.Await(150, function () return Player:IsMoving() end)
+								end
+							end
 						end
+						
+						
 			-- Cube Navigation		
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
