@@ -6677,3 +6677,26 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
+
+function GetAetherCurrentData(mapid)
+	if (not IsControlOpen("AetherCurrent")) then
+		ActionList:Get(10,67):Cast()
+	end
+	
+	local status = {}
+	local aeclist = Player:GetAetherCurrentsList()
+	if (table.valid(aeclist)) then
+		if (aeclist[mapid]) then
+			status = aeclist[mapid].status
+		end
+	end
+	
+	if (IsControlOpen("AetherCurrent")) then
+		local aeControl = GetControl("AetherCurrent")
+		if (aeControl) then
+			aeControl:Close()
+		end
+	end
+	
+	return status
+end
