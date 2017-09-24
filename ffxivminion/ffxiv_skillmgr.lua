@@ -606,6 +606,7 @@ SkillMgr.Variables = {
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
 	
 	SKM_SingleUse = { default = true, cast = "boolean", profile = "singleuseonly", section = "gathering"},
+	SKM_GatherMax = { default = false, cast = "boolean", profile = "gathermax", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
@@ -3279,6 +3280,11 @@ function SkillMgr.Gather(item)
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattempts."..tonumber(node.gatherattempts).."")
 						castable = false 
 					end
+					if skill.gathermax and (node.gatherattempts < node.gatherattemptsmax) then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] Node gatherattempts = "..tonumber(node.gatherattempts).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] Node gatherattemptsmax = "..tonumber(node.gatherattemptsmax).."")
+						castable = false 
+					end
 					if 
 						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax))	then 
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] gatherattemptsmax."..tonumber(skill.gatherattemptsmax).."")
@@ -5868,32 +5874,32 @@ function SkillMgr.DrawBattleEditor()
 		--GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
 		SkillMgr.DrawLineItem{control = "combobox", name = "Combat Status", variable = "SKM_Combat", indexvar = "gSMBattleStatusIndex", tablevar = gSMBattleStatuses, width = 200}
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmCHARGE")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When selected, this skill will be considered a 'gap closer', like Shoulder Tackle or Plunge.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHARGE",SKM_CHARGE),"SKM_CHARGE"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("appliesBuff")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Check this box if the skill applies a Buff or Debuff.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_DOBUFF",SKM_DOBUFF),"SKM_DOBUFF"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("removesBuff")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Check this box if the skill removes a Buff.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_REMOVESBUFF",SKM_REMOVESBUFF),"SKM_REMOVESBUFF"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmCHARGE")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When selected, this skill will be considered a 'gap closer', like Shoulder Tackle or Plunge")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHARGE",SKM_CHARGE),"SKM_CHARGE"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("appliesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_DOBUFF",SKM_DOBUFF),"SKM_DOBUFF"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("removesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_REMOVESBUFF",SKM_REMOVESBUFF),"SKM_REMOVESBUFF"); GUI:NextColumn();
 		
-		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "skmLevelMin", variable = "SKM_LevelMin", width = 50, tooltip = "Use this skill when the character is at or above a certain level (Set to 0 to ignore)."}
-		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "skmLevelMax", variable = "SKM_LevelMax", width = 50, tooltip = "Use this skill when the character is at or below a certain level (Set to 0 to ignore)."}
-		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "minRange", variable = "SKM_MinR", width = 50, tooltip = "Minimum range the skill can be used (For most skills, this will stay at 0)."}
-		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "maxRange", variable = "SKM_MaxR", width = 50, tooltip = "Maximum range the skill can be used."}
+		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "skmLevelMin", variable = "SKM_LevelMin", width = 50}
+		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "skmLevelMax", variable = "SKM_LevelMax", width = 50}
+		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "minRange", variable = "SKM_MinR", width = 50}
+		GUI:AlignFirstTextHeightToWidgets(); SkillMgr.DrawLineItem{control = "int", name = "maxRange", variable = "SKM_MaxR", width = 50}
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevComboSkill")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill is part of a combo, enter the ID of the skill that should be executed immediately before this one.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PCSkillID",SKM_PCSkillID),"SKM_PCSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevComboSkillNot")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill is part of a combo, enter the ID of the skill that should NOT be executed immediately before this one.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPCSkillID",SKM_NPCSkillID),"SKM_NPCSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous GCD Skill")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill should be used immediately after another skill on the GCD, put the ID of that skill here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PGSkillID",SKM_PGSkillID),"SKM_PGSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous GCD Skill NOT")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill should NOT be used immediately after another skill on the GCD, put the ID of that skill here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPGSkillID",SKM_NPGSkillID),"SKM_NPGSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous Skill")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill should be used immediately after another skill that is not on the GCD, put the ID of that skill here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillID",SKM_PSkillID),"SKM_PSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous Skill NOT")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill should NOT be used immediately after another skill that is not on the GCD, put the ID of that skill here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPSkillID",SKM_NPSkillID),"SKM_NPSkillID"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Current Action NOT")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill should NOT be used while the character is in a particular animation, put the ID of that animation here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NCURRENTACTION",SKM_NCURRENTACTION),"SKM_NCURRENTACTION"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter1")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Quick 'switches' used to adjust what skills can or can't be used.")) end GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter2")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Quick 'switches' used to adjust what skills can or can't be used.")) end GUI:NextColumn(); SKM_Combo("##SKM_FilterTwo","gSMFilter2Index","SKM_FilterTwo",gSMFilterStatuses); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter3")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Quick 'switches' used to adjust what skills can or can't be used.")) end GUI:NextColumn(); SKM_Combo("##SKM_FilterThree","gSMFilter3Index","SKM_FilterThree",gSMFilterStatuses); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter4")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Quick 'switches' used to adjust what skills can or can't be used.")) end GUI:NextColumn(); SKM_Combo("##SKM_FilterFour","gSMFilter4Index","SKM_FilterFour",gSMFilterStatuses); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter5")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Quick 'switches' used to adjust what skills can or can't be used.")) end GUI:NextColumn(); SKM_Combo("##SKM_FilterFive","gSMFilter5Index","SKM_FilterFive",gSMFilterStatuses); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlySolo")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will only be used when the character is solo or with only their chocobo.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlySolo",SKM_OnlySolo),"SKM_OnlySolo"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlyParty")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will only be used when the character is in a Party.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlyParty",SKM_OnlyParty),"SKM_OnlyParty"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will only be used when the character is in a Party.")) end GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Party Size <=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will only be used when the character is in a Party of less than or equal to this number of characters (Set to 0 to ignore).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PartySizeLT",SKM_PartySizeLT,0,0),"SKM_PartySizeLT"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("secsSinceLastCast")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Set this to ensure that the skill is used at least this many seconds since the last time it was used on this mob.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassed",SKM_SecsPassed,0,0,3),"SKM_SecsPassed"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Secs Passed Unique")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Set this to ensure that the skill is used at least this many seconds since the last time it was used irrespective of mob.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassedUnique",SKM_SecsPassedUnique,0,0,3),"SKM_SecsPassedUnique"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevComboSkill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PCSkillID",SKM_PCSkillID),"SKM_PCSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevComboSkillNot")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPCSkillID",SKM_NPCSkillID),"SKM_NPCSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous GCD Skill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PGSkillID",SKM_PGSkillID),"SKM_PGSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Previous GCD Skill NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPGSkillID",SKM_NPGSkillID),"SKM_NPGSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevSkillID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillID",SKM_PSkillID),"SKM_PSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("prevSkillIDNot")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPSkillID",SKM_NPSkillID),"SKM_NPSkillID"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("currentActionNot")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NCURRENTACTION",SKM_NCURRENTACTION),"SKM_NCURRENTACTION"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter1")); GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter2")); GUI:NextColumn(); SKM_Combo("##SKM_FilterTwo","gSMFilter2Index","SKM_FilterTwo",gSMFilterStatuses); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter3")); GUI:NextColumn(); SKM_Combo("##SKM_FilterThree","gSMFilter3Index","SKM_FilterThree",gSMFilterStatuses); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter4")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFour","gSMFilter4Index","SKM_FilterFour",gSMFilterStatuses); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("filter5")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFive","gSMFilter5Index","SKM_FilterFive",gSMFilterStatuses); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlySolo")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlySolo",SKM_OnlySolo),"SKM_OnlySolo"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("onlyParty")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlyParty",SKM_OnlyParty),"SKM_OnlyParty"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Party Size <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PartySizeLT",SKM_PartySizeLT,0,0),"SKM_PartySizeLT"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("secsSinceLastCast")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassed",SKM_SecsPassed,0,0,3),"SKM_SecsPassed"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Secs Passed Unique")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SecsPassedUnique",SKM_SecsPassedUnique,0,0,3),"SKM_SecsPassedUnique"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5902,9 +5908,9 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-chain-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Chain Name")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this skill is part of a custom chain, enter that name here.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINNAME",SKM_CHAINNAME),"SKM_CHAINNAME"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Chain Start")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will be considered the first skill in the custom chain.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINSTART",SKM_CHAINSTART),"SKM_CHAINSTART"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Chain End")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, this skill will be considered the last skill in the custom chain.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINEND",SKM_CHAINEND),"SKM_CHAINEND"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("chain")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINNAME",SKM_CHAINNAME),"SKM_CHAINNAME"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("chainStart")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINSTART",SKM_CHAINSTART),"SKM_CHAINSTART"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("chainEnd")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHAINEND",SKM_CHAINEND),"SKM_CHAINEND"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5913,12 +5919,12 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-otherskills-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Is Ready")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("The ID of any skill that should be available for use before this skill is used.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKREADY",SKM_SKREADY),"SKM_SKREADY"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("CD Ready")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString(" The ID of any skill off the global cooldown that should be ready before this skill is used.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKOFFCD",SKM_SKOFFCD),"SKM_SKOFFCD"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Is Not Ready")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString(" The ID of any skill that should NOT be ready before this skill is used.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNREADY",SKM_SKNREADY),"SKM_SKNREADY"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("CD Not Ready")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("The ID of any skill off the global cooldown that should NOT be ready before this skill is used.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNOFFCD",SKM_SKNOFFCD),"SKM_SKNOFFCD"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("CD Time >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This is in reference to 'CD Not Ready' - Use this and the following skill to set advanced usage instructions, such as 'Use this skill when Skill 'X' has between 2 and 6 seconds left on cooldown'.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMIN",SKM_SKNCDTIMEMIN,0,0,3),"SKM_SKNCDTIMEMIN"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("CD Time <=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This is in reference to 'CD Not Ready' - Use this and the preceeding skill to set advanced usage instructions, such as 'Use this skill when Skill 'X' has between 2 and 6 seconds left on cooldown'.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMAX",SKM_SKNCDTIMEMAX,0,0,3),"SKM_SKNCDTIMEMAX"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("What is this?")) end GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("isReady")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKREADY",SKM_SKREADY),"SKM_SKREADY"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("cdIsReady")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKOFFCD",SKM_SKOFFCD),"SKM_SKOFFCD"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("isNotReady")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNREADY",SKM_SKNREADY),"SKM_SKNREADY"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("cdNotReady")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNOFFCD",SKM_SKNOFFCD),"SKM_SKNOFFCD"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("cdTimeGT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMIN",SKM_SKNCDTIMEMIN,0,0,3),"SKM_SKNCDTIMEMIN"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("cdTimeLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMAX",SKM_SKNCDTIMEMAX,0,0,3),"SKM_SKNCDTIMEMAX"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5927,19 +5933,19 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-playerhp-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPGT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player HP is greater than this percent.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPLT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player HP is less than this percent.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttack")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player is under attack from Ranged or Melee targets.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttack",SKM_PUnderAttack),"SKM_PUnderAttack"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttackMelee")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player is under attack from Melee targets only.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttackMelee",SKM_PUnderAttackMelee),"SKM_PUnderAttackMelee"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerGT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP is more than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowL",SKM_PPowL,0,0),"SKM_PPowL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerLT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP is less than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowB",SKM_PPowB,0,0),"SKM_PPowB"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP is greater than this percent.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPL",SKM_PMPPL,0,0),"SKM_PMPPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("TUse this skill when Player MP is less than this percent.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPB",SKM_PMPPB,0,0),"SKM_PMPPB"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP after casting the skill will be more than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPRGT",SKM_PMPRGT,0,0),"SKM_PMPRGT"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP %% >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP after casting the skill will be more than this percent.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPRGT",SKM_PMPPRGT,0,0),"SKM_PMPPRGT"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >= Cost of [ID]")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player MP after casting the skill will be greater than or equal to the MP required to cast the spell whose ID is in this field.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PMPRSGT",SKM_PMPRSGT),"SKM_PMPRSGT"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("The ID of any skill that should be available for use before this skill is used.")) end GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player TP is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPL",SKM_PTPL,0,0),"SKM_PTPL"); GUI:NextColumn();
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when Player TP is less than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPB",SKM_PTPB,0,0),"SKM_PTPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPL",SKM_PHPL,0,0),"SKM_PHPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerHPLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PHPB",SKM_PHPB,0,0),"SKM_PHPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttack")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttack",SKM_PUnderAttack),"SKM_PUnderAttack"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("underAttackMelee")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PUnderAttackMelee",SKM_PUnderAttackMelee),"SKM_PUnderAttackMelee"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowL",SKM_PPowL,0,0),"SKM_PPowL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("playerPowerLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PPowB",SKM_PPowB,0,0),"SKM_PPowB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPL",SKM_PMPPL,0,0),"SKM_PMPPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPMPPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPB",SKM_PMPPB,0,0),"SKM_PMPPB"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPRGT",SKM_PMPRGT,0,0),"SKM_PMPRGT"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PMPPRGT",SKM_PMPPRGT,0,0),"SKM_PMPPRGT"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Result MP >= Cost of [ID]")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PMPRSGT",SKM_PMPRSGT),"SKM_PMPRSGT"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPL",SKM_PTPL,0,0),"SKM_PTPL"); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmPTPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTPB",SKM_PTPB,0,0),"SKM_PTPB"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5949,16 +5955,16 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmPTCount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTCount",SKM_PTCount,0,0),"SKM_PTCount"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the number of party members is more or equal to this number.")) end GUI:NextColumn();
-		GUI:Text(GetString("skmPTHPL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' HP is greater than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTHPB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' HP is less than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTMPL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' MP is greater than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPL",SKM_PTMPL,0,0),"SKM_PTMPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTMPB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' MP is less than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPB",SKM_PTMPB,0,0),"SKM_PTMPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTTPL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' TP is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPL",SKM_PTTPL,0,0),"SKM_PTTPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTTPB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when a party members' TP is less than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPB",SKM_PTTPB,0,0),"SKM_PTTPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmHasBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill if a party member is being affected by buffs with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTBuff",SKM_PTBuff),"SKM_PTBuff"); GUI:NextColumn();
-		GUI:Text(GetString("Known Debuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When selected, use this skill when being affected by a Minion-maintained list of debuffs (helpful for Esuna skills).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PTKBuff",SKM_PTKBuff),"SKM_PTKBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmMissBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill if a party member is missing a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTNBuff",SKM_PTNBuff),"SKM_PTNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTCount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTCount",SKM_PTCount,0,0),"SKM_PTCount"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPL",SKM_PTHPL,0,0),"SKM_PTHPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTHPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTHPB",SKM_PTHPB,0,0),"SKM_PTHPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPL",SKM_PTMPL,0,0),"SKM_PTMPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTMPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTMPB",SKM_PTMPB,0,0),"SKM_PTMPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPL",SKM_PTTPL,0,0),"SKM_PTTPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTTPB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PTTPB",SKM_PTTPB,0,0),"SKM_PTTPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTBuff",SKM_PTBuff),"SKM_PTBuff"); GUI:NextColumn();
+		GUI:Text(GetString("Known Debuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PTKBuff",SKM_PTKBuff),"SKM_PTKBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTNBuff",SKM_PTNBuff),"SKM_PTNBuff"); GUI:NextColumn();
 		GUI:Columns(1)
 	end
 	
@@ -5967,24 +5973,24 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmTRG")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select the target of the skill, including Ground Target, Tankable Enemy, etc.")) end GUI:NextColumn(); SKM_Combo("##SKM_TRG","gSMTarget","SKM_TRG",gSMTargets); GUI:NextColumn();
-		GUI:Text(GetString("skmTRGTYPE")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select the role of the character that this spell should be used on.")) end GUI:NextColumn(); SKM_Combo("##SKM_TRGTYPE","gSMTargetType","SKM_TRGTYPE",gSMTargetTypes); GUI:NextColumn();
-		GUI:Text(GetString("Include Self")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, the skill will be used on yourself if you meet the conditions.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TRGSELF",SKM_TRGSELF),"SKM_TRGSELF"); GUI:NextColumn();
-		GUI:Text(GetString("skmNPC")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, the skill will be used on NPCs who meet the conditions.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_NPC",SKM_NPC),"SKM_NPC"); GUI:NextColumn();
-		GUI:Text(GetString("skmPTRG")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select the Target of the Player casting the spell- Enemy or Player.")) end GUI:NextColumn(); SKM_Combo("##SKM_PTRG","gSMPlayerTarget","SKM_PTRG",gSMPlayerTargets); GUI:NextColumn();
-		GUI:Text(GetString("skmPGTRG")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select how 'accurate' the Ground Target effect should be- directly on the target, behind it, or near it.")) end GUI:NextColumn(); SKM_Combo("##SKM_PGTRG","gSMPlayerGroundTargetPosition","SKM_PGTRG",gSMPlayerGroundTargetPositions); GUI:NextColumn();
-		GUI:Text(GetString("skmPPos")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If the skill has a positional, select it here.")) end GUI:NextColumn(); SKM_Combo("##SKM_PPos","gSMPlayerPosition","SKM_PPos",gSMPlayerPositions); GUI:NextColumn();
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmTRG")); GUI:NextColumn(); SKM_Combo("##SKM_TRG","gSMTarget","SKM_TRG",gSMTargets); GUI:NextColumn();
+		GUI:Text(GetString("skmTRGTYPE")); GUI:NextColumn(); SKM_Combo("##SKM_TRGTYPE","gSMTargetType","SKM_TRGTYPE",gSMTargetTypes); GUI:NextColumn();
+		GUI:Text(GetString("Include Self")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TRGSELF",SKM_TRGSELF),"SKM_TRGSELF"); GUI:NextColumn();
+		GUI:Text(GetString("skmNPC")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_NPC",SKM_NPC),"SKM_NPC"); GUI:NextColumn();
+		GUI:Text(GetString("skmPTRG")); GUI:NextColumn(); SKM_Combo("##SKM_PTRG","gSMPlayerTarget","SKM_PTRG",gSMPlayerTargets); GUI:NextColumn();
+		GUI:Text(GetString("skmPGTRG")); GUI:NextColumn(); SKM_Combo("##SKM_PGTRG","gSMPlayerGroundTargetPosition","SKM_PGTRG",gSMPlayerGroundTargetPositions); GUI:NextColumn();
+		GUI:Text(GetString("skmPPos")); GUI:NextColumn(); SKM_Combo("##SKM_PPos","gSMPlayerPosition","SKM_PPos",gSMPlayerPositions); GUI:NextColumn();
 		
-		GUI:Text(GetString("targetHPGT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the HP of the Target is greater than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPL",SKM_THPL,0,0),"SKM_THPL"); GUI:NextColumn();
-		GUI:Text(GetString("targetHPLT",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the HP of the Target is less than this percentage.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPB",SKM_THPB,0,0),"SKM_THPB"); GUI:NextColumn();
-		GUI:Text(GetString("skmTHPCL",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the HP of the Target is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCL",SKM_THPCL,0,0),"SKM_THPCL"); GUI:NextColumn();
-		GUI:Text(GetString("skmTHPCB",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the HP of the Target is less than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCB",SKM_THPCB,0,0),"SKM_THPCB"); GUI:NextColumn();
+		GUI:Text(GetString("targetHPGT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPL",SKM_THPL,0,0),"SKM_THPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetHPLT",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPB",SKM_THPB,0,0),"SKM_THPB"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCL",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCL",SKM_THPCL,0,0),"SKM_THPCL"); GUI:NextColumn();
+		GUI:Text(GetString("skmTHPCB",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_THPCB",SKM_THPCB,0,0),"SKM_THPCB"); GUI:NextColumn();
 		
-		GUI:Text(GetString("hpAdvantage")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the difference of Max HP between you and an enemy is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_THPADV",SKM_THPADV,0,0,2),"SKM_THPADV"); GUI:NextColumn();
-		GUI:Text(GetString("targetTPLE",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the TP of the Target is less than this amount.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
-		GUI:Text(GetString("targetMPLE",true)); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the TP of the Target is more than this amount.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
-		GUI:Text(GetString("skmTNCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must NOT have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
+		GUI:Text(GetString("hpAdvantage")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_THPADV",SKM_THPADV,0,0,2),"SKM_THPADV"); GUI:NextColumn();
+		GUI:Text(GetString("targetTPLE",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TTPL",SKM_TTPL,0,0),"SKM_TTPL"); GUI:NextColumn();
+		GUI:Text(GetString("targetMPLE",true)); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TMPL",SKM_TMPL,0,0),"SKM_TMPL"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
+		GUI:Text(GetString("skmTNCONTIDS")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
 
 		GUI:Columns(1)
 	end
@@ -6011,9 +6017,9 @@ function SkillMgr.DrawBattleEditor()
 	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header",true,true)) then
 		GUI:Columns(2,"#battle-casting-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
-		GUI:Text(GetString("skmTCASTID")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must be channelling one of the listed spell IDs (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCASTTM")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must be casting the spell on me (self).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TCASTTM",SKM_TCASTTM),"SKM_TCASTTM"); GUI:NextColumn();
-		GUI:Text(GetString("skmTCASTTIME")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Cast time left on the current spell must be greater than or equal to (>=) this time in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTTIME",SKM_TCASTTIME),"SKM_TCASTTIME"); GUI:NextColumn();		
+		GUI:Text(GetString("skmTCASTID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTM")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TCASTTM",SKM_TCASTTM),"SKM_TCASTTM"); GUI:NextColumn();
+		GUI:Text(GetString("skmTCASTTIME")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTTIME",SKM_TCASTTIME),"SKM_TCASTTIME"); GUI:NextColumn();		
 		GUI:Columns(1)
 	end
 	
@@ -6022,11 +6028,11 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmHPRIOHP")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("HP percentage (%) must be lesser or equal to (<=) this number for the spell to apply.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HPRIOHP",SKM_HPRIOHP,0,0),"SKM_HPRIOHP"); GUI:NextColumn();		
-		GUI:Text(GetString("skmHPRIO1")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO1","gSMHealPriority1","SKM_HPRIO1",gSMHealPriorities); GUI:NextColumn();
-		GUI:Text(GetString("skmHPRIO2")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO2","gSMHealPriority2","SKM_HPRIO2",gSMHealPriorities); GUI:NextColumn();
-		GUI:Text(GetString("skmHPRIO3")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO3","gSMHealPriority3","SKM_HPRIO3",gSMHealPriorities); GUI:NextColumn();
-		GUI:Text(GetString("skmHPRIO4")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Heals will target the applicable groups in this priority order. Possible values: Self, Tank, Party, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_HPRIO4","gSMHealPriority4","SKM_HPRIO4",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIOHP")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HPRIOHP",SKM_HPRIOHP,0,0),"SKM_HPRIOHP"); GUI:NextColumn();		
+		GUI:Text(GetString("skmHPRIO1")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO1","gSMHealPriority1","SKM_HPRIO1",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO2")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO2","gSMHealPriority2","SKM_HPRIO2",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO3")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO3","gSMHealPriority3","SKM_HPRIO3",gSMHealPriorities); GUI:NextColumn();
+		GUI:Text(GetString("skmHPRIO4")); GUI:NextColumn(); SKM_Combo("##SKM_HPRIO4","gSMHealPriority4","SKM_HPRIO4",gSMHealPriorities); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6037,18 +6043,18 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("enmityAOE")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select this option if the skill is an Area-of-Effect skill that generates enmity.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EnmityAOE",SKM_EnmityAOE),"SKM_EnmityAOE"); GUI:NextColumn();
-		GUI:Text(GetString("frontalCone")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select this option if the skill has a frontal cone effect.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_FrontalConeAOE",SKM_FrontalConeAOE),"SKM_FrontalConeAOE"); GUI:NextColumn();
-		GUI:Text(GetString("tankedTargetsOnly")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select this option if the skill should only be used on enemies being tanked.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TankedOnly",SKM_TankedOnly),"SKM_TankedOnly"); GUI:NextColumn();
-		GUI:Text(GetString("Average HP %% >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the average HP of the enemies is greater than or equal to this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TEHPAvgGT",SKM_TEHPAvgGT,0,0),"SKM_TEHPAvgGT"); GUI:NextColumn();
-		GUI:Text(GetString("skmTECount")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the number of enemies is greater than or equal to this number.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount",SKM_TECount,0,0),"SKM_TECount"); GUI:NextColumn();
-		GUI:Text(GetString("skmTECount2")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the number of enemies is less than or equal to this number.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount2",SKM_TECount2,0,0),"SKM_TECount2"); GUI:NextColumn();
-		GUI:Text(GetString("skmTERange")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when enemies are within this range (150 = size of the minimap).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TERange",SKM_TERange,0,0),"SKM_TERange"); GUI:NextColumn();
-		GUI:Text(GetString("aoeCenter")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this dropdown to select where the AOE should be centered. Possible values: Target, Self.")) end GUI:NextColumn(); SKM_Combo("##SKM_TECenter","gSMAOECenter","SKM_TECenter",gSMAOECenters); GUI:NextColumn();
-		GUI:Text(GetString("skmTELevel")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when there is a level difference between you and the target. Possible values: 2, 4, 6.")) end GUI:NextColumn(); SKM_Combo("##SKM_TELevel","gSMAOELevel","SKM_TELevel",gSMAOELevels); GUI:NextColumn();
-		GUI:Text(GetString("skmTACount")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the number of allies near you is greater or equal to this number.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TACount",SKM_TACount,0,0),"SKM_TACount"); GUI:NextColumn();
-		GUI:Text(GetString("skmTARange")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when allies are within this range (150 = size of the minimap).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TARange",SKM_TARange,0,0),"SKM_TARange"); GUI:NextColumn();
-		GUI:Text(GetString("alliesNearHPLT")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the HP of an ally is less than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TAHPL",SKM_TAHPL,0,0),"SKM_TAHPL"); GUI:NextColumn();
+		GUI:Text(GetString("enmityAOE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EnmityAOE",SKM_EnmityAOE),"SKM_EnmityAOE"); GUI:NextColumn();
+		GUI:Text(GetString("frontalCone")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_FrontalConeAOE",SKM_FrontalConeAOE),"SKM_FrontalConeAOE"); GUI:NextColumn();
+		GUI:Text(GetString("tankedTargetsOnly")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_TankedOnly",SKM_TankedOnly),"SKM_TankedOnly"); GUI:NextColumn();
+		GUI:Text(GetString("Average HP %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TEHPAvgGT",SKM_TEHPAvgGT,0,0),"SKM_TEHPAvgGT"); GUI:NextColumn();
+		GUI:Text(GetString("skmTECount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount",SKM_TECount,0,0),"SKM_TECount"); GUI:NextColumn();
+		GUI:Text(GetString("skmTECount2")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TECount2",SKM_TECount2,0,0),"SKM_TECount2"); GUI:NextColumn();
+		GUI:Text(GetString("skmTERange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TERange",SKM_TERange,0,0),"SKM_TERange"); GUI:NextColumn();
+		GUI:Text(GetString("aoeCenter")); GUI:NextColumn(); SKM_Combo("##SKM_TECenter","gSMAOECenter","SKM_TECenter",gSMAOECenters); GUI:NextColumn();
+		GUI:Text(GetString("skmTELevel")); GUI:NextColumn(); SKM_Combo("##SKM_TELevel","gSMAOELevel","SKM_TELevel",gSMAOELevels); GUI:NextColumn();
+		GUI:Text(GetString("skmTACount")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TACount",SKM_TACount,0,0),"SKM_TACount"); GUI:NextColumn();
+		GUI:Text(GetString("skmTARange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TARange",SKM_TARange,0,0),"SKM_TARange"); GUI:NextColumn();
+		GUI:Text(GetString("alliesNearHPLT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TAHPL",SKM_TAHPL,0,0),"SKM_TAHPL"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6059,10 +6065,10 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmHasBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the Player is being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuff",SKM_PBuff),"SKM_PBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PBuffDura",SKM_PBuffDura,0,0),"SKM_PBuffDura"); GUI:NextColumn();
-		GUI:Text(GetString("skmMissBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the Player is not being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuff",SKM_PNBuff),"SKM_PNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is less than or equal to this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PNBuffDura",SKM_PNBuffDura,0,0),"SKM_PNBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PBuff",SKM_PBuff),"SKM_PBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PBuffDura",SKM_PBuffDura,0,0),"SKM_PBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PNBuff",SKM_PNBuff),"SKM_PNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PNBuffDura",SKM_PNBuffDura,0,0),"SKM_PNBuffDura"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6073,12 +6079,12 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmTBuffOwner")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select the entity who will have the buff for this condition. Possible values: Player, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_TBuffOwner","gSMBuffOwner","SKM_TBuffOwner",gSMBuffOwners); GUI:NextColumn();
-		GUI:Text(GetString("skmHasBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the Target is being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuff",SKM_TBuff),"SKM_TBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TBuffDura",SKM_TBuffDura,0,0),"SKM_TBuffDura"); GUI:NextColumn();
-		GUI:Text(GetString("skmTBuffOwner")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Select the entity who will be missing the buff for this condition. Possible values: Player, Any.")) end GUI:NextColumn(); SKM_Combo("##SKM_TNBuffOwner","gSMBuffOwnerN","SKM_TNBuffOwner",gSMBuffOwners); GUI:NextColumn();
-		GUI:Text(GetString("skmMissBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the Target is not being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuff",SKM_TNBuff),"SKM_TNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is less than or equal to this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TNBuffDura",SKM_TNBuffDura,0,0),"SKM_TNBuffDura"); GUI:NextColumn();	
+		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TBuffOwner","gSMBuffOwner","SKM_TBuffOwner",gSMBuffOwners); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TBuff",SKM_TBuff),"SKM_TBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TBuffDura",SKM_TBuffDura,0,0),"SKM_TBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmTBuffOwner")); GUI:NextColumn(); SKM_Combo("##SKM_TNBuffOwner","gSMBuffOwnerN","SKM_TNBuffOwner",gSMBuffOwners); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNBuff",SKM_TNBuff),"SKM_TNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TNBuffDura",SKM_TNBuffDura,0,0),"SKM_TNBuffDura"); GUI:NextColumn();	
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6089,10 +6095,10 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("skmHasBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when your pet is being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuff",SKM_PetBuff),"SKM_PetBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmAndBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is greater than this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetBuffDura",SKM_PetBuffDura,0,0),"SKM_PetBuffDura"); GUI:NextColumn();
-		GUI:Text(GetString("skmMissBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when your pet is not being affected by a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuff",SKM_PetNBuff),"SKM_PetNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("skmOrBuffDura")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill when the duration remaining of one of the buffs above is less than or equal to this value.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetNBuffDura",SKM_PetNBuffDura,0,0),"SKM_PetNBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetBuff",SKM_PetBuff),"SKM_PetBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmAndBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetBuffDura",SKM_PetBuffDura,0,0),"SKM_PetBuffDura"); GUI:NextColumn();
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PetNBuff",SKM_PetNBuff),"SKM_PetNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("skmOrBuffDura")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PetNBuffDura",SKM_PetNBuffDura,0,0),"SKM_PetNBuffDura"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6103,10 +6109,10 @@ function SkillMgr.DrawBattleEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
 		GUI:PushItemWidth(100)
-		GUI:Text(GetString("offGCDSkill")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this dropdown to tell FFXIVMinion explicitly if the skill is off the global cooldown.")) end GUI:NextColumn(); SKM_Combo("##SKM_OffGCD","gSMOffGCDSetting","SKM_OffGCD",gSMOffGCDSettings); GUI:NextColumn();
-		GUI:Text(GetString("Off GCD Time >=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Global cooldown time remaining must be greater or equal to this number in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTime",SKM_OffGCDTime,0,0,2),"SKM_OffGCDTime"); GUI:NextColumn();	
-		GUI:Text(GetString("Off GCD Time <=")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Global cooldown time remaining must be lesser or equal to this number in seconds.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTimeLT",SKM_OffGCDTimeLT,0,0,2),"SKM_OffGCDTimeLT"); GUI:NextColumn();	
-		GUI:Text(GetString("Ignore Moving")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When checked, the skill will be used whether or not the character is moving. ")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_IgnoreMoving",SKM_IgnoreMoving),"SKM_IgnoreMoving"); GUI:NextColumn();
+		GUI:Text(GetString("offGCDSkill")); GUI:NextColumn(); SKM_Combo("##SKM_OffGCD","gSMOffGCDSetting","SKM_OffGCD",gSMOffGCDSettings); GUI:NextColumn();
+		GUI:Text(GetString("Off GCD Time >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTime",SKM_OffGCDTime,0,0,2),"SKM_OffGCDTime"); GUI:NextColumn();	
+		GUI:Text(GetString("Off GCD Time <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_OffGCDTimeLT",SKM_OffGCDTimeLT,0,0,2),"SKM_OffGCDTimeLT"); GUI:NextColumn();	
+		GUI:Text(GetString("Ignore Moving")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_IgnoreMoving",SKM_IgnoreMoving),"SKM_IgnoreMoving"); GUI:NextColumn();
 		GUI:PopItemWidth()
 		
 		GUI:Columns(1)
@@ -6127,39 +6133,39 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Columns(2,"#craft-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,500);
 		
-		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
+		GUI:Text(GetString("singleUse")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Text(GetString("Consecutive Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ConsecutiveUseCraft",SKM_ConsecutiveUseCraft),"SKM_ConsecutiveUseCraft"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Player Level >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMin",SKM_CLevelMin,0,0),"SKM_CLevelMin"); GUI:NextColumn();	
 		GUI:Text(GetString("Player Level <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMax",SKM_CLevelMax,0,0),"SKM_CLevelMax"); GUI:NextColumn();
 		GUI:Separator();		
-		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("stepmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("stepmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
 		GUI:Separator()
-		GUI:Text(GetString("Condition")); GUI:NextColumn(); SKM_Combo("##SKM_CONDITION","gSMCraftConditionIndex","SKM_CONDITION",gSMCraftConditions); GUI:NextColumn();
-		GUI:Text(GetString("Has Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPBuff",SKM_CPBuff),"SKM_CPBuff"); GUI:NextColumn();	
-		GUI:Text(GetString("Missing Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPNBuff",SKM_CPNBuff),"SKM_CPNBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("condition")); GUI:NextColumn(); SKM_Combo("##SKM_CONDITION","gSMCraftConditionIndex","SKM_CONDITION",gSMCraftConditions); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPBuff",SKM_CPBuff),"SKM_CPBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPNBuff",SKM_CPNBuff),"SKM_CPNBuff"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("CP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("CP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("cpmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("cpmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMIN",SKM_DURMIN,0,0),"SKM_DURMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMAX",SKM_DURMAX,0,0),"SKM_DURMAX"); GUI:NextColumn();
+		GUI:Text(GetString("durabmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMIN",SKM_DURMIN,0,0),"SKM_DURMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("durabmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMAX",SKM_DURMAX,0,0),"SKM_DURMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Max Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMIN",SKM_MAXDURMIN,0,0),"SKM_MAXDURMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Max Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMAX",SKM_MAXDURMAX,0,0),"SKM_MAXDURMAX"); GUI:NextColumn();
+		GUI:Text(GetString("maxdurabmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMIN",SKM_MAXDURMIN,0,0),"SKM_MAXDURMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("maxdurabmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXDURMAX",SKM_MAXDURMAX,0,0),"SKM_MAXDURMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMIN",SKM_PROGMIN,0,0),"SKM_PROGMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Progress <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMAX",SKM_PROGMAX,0,0),"SKM_PROGMAX"); GUI:NextColumn();
+		GUI:Text(GetString("progrmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMIN",SKM_PROGMIN,0,0),"SKM_PROGMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("progrmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMAX",SKM_PROGMAX,0,0),"SKM_PROGMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Max Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMIN",SKM_MAXPROGMIN,0,0),"SKM_MAXPROGMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Max Progress <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMAX",SKM_MAXPROGMAX,0,0),"SKM_MAXPROGMAX"); GUI:NextColumn();
+		GUI:Text(GetString("maxprogrmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMIN",SKM_MAXPROGMIN,0,0),"SKM_MAXPROGMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("maxprogrmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAXPROGMAX",SKM_MAXPROGMAX,0,0),"SKM_MAXPROGMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Quality >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Quality <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
+		GUI:Text(GetString("qualitymin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("qualitymax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Quality %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
-		GUI:Text(GetString("Quality %% <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
+		GUI:Text(GetString("qualityminper")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
+		GUI:Text(GetString("qualitymaxper")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Craftsmanship >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMIN",SKM_CRAFTMIN,0,0),"SKM_CRAFTMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Craftsmanship <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMAX",SKM_CRAFTMAX,0,0),"SKM_CRAFTMAX"); GUI:NextColumn();
@@ -6201,11 +6207,13 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
 		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
 		GUI:Separator();
+		
+		GUI:Text(GetString("Gather Attempts Full")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_GatherMax",SKM_GatherMax),"SKM_GatherMax"); GUI:NextColumn();
 		GUI:Text(GetString("Gather Attempts >")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	
 		GUI:Text(GetString("Gather Attempts <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMax",SKM_GAttemptsMax,0,0),"SKM_GAttemptsMax"); GUI:NextColumn();
 		GUI:Separator();		
-		GUI:Text(GetString("GP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("GP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("gpmin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("gpmax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
 		GUI:Separator();
 		GUI:Text(GetString("Has Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_HasItem",SKM_HasItem),"SKM_HasItem"); GUI:NextColumn();	
 		GUI:Text(GetString("Is Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_IsItem",SKM_IsItem),"SKM_IsItem"); GUI:NextColumn();
@@ -6219,9 +6227,9 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("HQ Chance >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemHQChanceMin",SKM_ItemHQChanceMin,0,0),"SKM_ItemHQChanceMin"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Time Since Last Cast(s) >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_GSecsPassed",SKM_GSecsPassed,0,0,2),"SKM_GSecsPassed"); GUI:NextColumn();
-		GUI:Text(GetString("Has Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	
-		GUI:Text(GetString("Missing Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPNBuff",SKM_GPNBuff),"SKM_GPNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillIDG",SKM_PSkillIDG),"SKM_PSkillIDG"); GUI:NextColumn();
+		GUI:Text(GetString("skmHasBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("skmMissBuffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPNBuff",SKM_GPNBuff),"SKM_GPNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("prevSkillID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillIDG",SKM_PSkillIDG),"SKM_PSkillIDG"); GUI:NextColumn();
 		GUI:Columns(1)
 	end
 end
