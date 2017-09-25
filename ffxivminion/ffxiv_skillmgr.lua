@@ -6136,7 +6136,6 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Text(GetString("Consecutive Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ConsecutiveUseCraft",SKM_ConsecutiveUseCraft),"SKM_ConsecutiveUseCraft"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Gather Attempts Full")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_GatherMax",SKM_GatherMax),"SKM_GatherMax"); GUI:NextColumn();
 		GUI:Text(GetString("Player Level >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMin",SKM_CLevelMin,0,0),"SKM_CLevelMin"); GUI:NextColumn();	
 		GUI:Text(GetString("Player Level <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CLevelMax",SKM_CLevelMax,0,0),"SKM_CLevelMax"); GUI:NextColumn();
 		GUI:Separator();		
@@ -6208,6 +6207,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
 		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
 		GUI:Separator();
+		GUI:Text(GetString("Gather Attempts Full")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_GatherMax",SKM_GatherMax),"SKM_GatherMax"); GUI:NextColumn();
 		GUI:Text(GetString("Gather Attempts >")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	
 		GUI:Text(GetString("Gather Attempts <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMax",SKM_GAttemptsMax,0,0),"SKM_GAttemptsMax"); GUI:NextColumn();
 		GUI:Separator();		
