@@ -606,6 +606,7 @@ SkillMgr.Variables = {
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
 	
 	SKM_SingleUse = { default = true, cast = "boolean", profile = "singleuseonly", section = "gathering"},
+	SKM_GatherMax = { default = false, cast = "boolean", profile = "gathermax", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
@@ -3277,6 +3278,11 @@ function SkillMgr.Gather(item)
 					if (tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) 	then 
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] gatherattempts."..tonumber(skill.gatherattempts).."")
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattempts."..tonumber(node.gatherattempts).."")
+						castable = false 
+					end
+					if skill.gathermax and (node.gatherattempts < node.gatherattemptsmax) then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] Node gatherattempts = "..tonumber(node.gatherattempts).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] Node gatherattemptsmax = "..tonumber(node.gatherattemptsmax).."")
 						castable = false 
 					end
 					if 
