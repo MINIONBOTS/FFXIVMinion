@@ -6410,8 +6410,8 @@ end
 
 function SkillMgr.DrawSkillFilters()
 	if (SkillMgr.GUI.filters.open) then	
-		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
-		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		GUI:SetNextWindowPosCenter(GUI.SetCond_FirstUseEver)
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever
 		SkillMgr.GUI.filters.visible, SkillMgr.GUI.filters.open = GUI:Begin(SkillMgr.GUI.filters.name, SkillMgr.GUI.filters.open)
 		if ( SkillMgr.GUI.filters.visible ) then 
 			GUI_Capture(GUI:Checkbox(gSkillManagerFilter1,gAssistFilter1),"gAssistFilter1");

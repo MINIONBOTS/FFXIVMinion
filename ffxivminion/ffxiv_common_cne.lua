@@ -2749,7 +2749,7 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
-	if (Busy() or Player.incombat) then
+	if (not gAutoEquip or Busy() or Player.incombat) then
 		return false
 	end	
 	

@@ -342,7 +342,7 @@ function c_precraftbuff:evaluate()
 					local foodStack = foodDetails.buffstackid
 					
 					local food, action = GetItem(foodID)
-					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
+					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,120)) then
 						cd("[PreCraftBuff]: Need to eat, using override food choice.",3)
 						e_precraftbuff.activity = "eat"
 						e_precraftbuff.id = foodID
@@ -359,7 +359,7 @@ function c_precraftbuff:evaluate()
 						local foodStack = foodDetails.buffstackid
 						
 						local food, action = GetItem(foodID)
-						if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
+						if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,120)) then
 							cd("[PreCraftBuff]: Need to eat, using order specific food.",3)
 							e_precraftbuff.activity = "eat"
 							e_precraftbuff.id = foodID
@@ -377,7 +377,7 @@ function c_precraftbuff:evaluate()
 					local foodStack = foodDetails.buffstackid
 					
 					local food, action = GetItem(foodID)
-					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,60)) then
+					if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,120)) then
 						cd("[PreCraftBuff]: Need to eat.",3)
 						e_precraftbuff.activity = "eat"
 						e_precraftbuff.id = foodID

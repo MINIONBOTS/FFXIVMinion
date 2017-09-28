@@ -56,14 +56,10 @@ function ffxiv_task_assist:Init()
     self:add( ke_eat, self.process_elements)
 	
     self:AddTaskCheckCEs()
-	--self:InitAddon()
-end
-
-function ffxiv_task_assist:InitAddon()
 end
 
 function ffxiv_task_assist:Process()
-	if (Player.alive) then
+	if (Player.alive and not MIsLoading()) then
 		local target = Player:GetTarget()
 		
 		if ( FFXIV_Assist_Mode ~= GetString("none") ) then

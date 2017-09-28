@@ -973,7 +973,7 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(200)
 					local qList = Quest:GetQuestList()
 					if (table.valid(qList)) then
-						for id, e in pairs(qList) do
+						for id, e in pairsByKeys(qList) do
 							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then							
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devql0"..tostring(id),tostring(e.id))
 								GUI:BulletText(".step") GUI:SameLine(200) GUI:InputText("##devql1"..tostring(id),tostring(e.step))

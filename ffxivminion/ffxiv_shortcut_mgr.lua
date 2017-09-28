@@ -138,6 +138,7 @@ for i,shortcut in pairsByKeys(sck.hotkeys) do
 	})
 end
 
+
 function sck.ModuleInit() 	
 	for _,hotkey in pairsByKeys(sck.hotkeys) do
 		_G[hotkey.mod1] = ffxivminion.GetSetting(hotkey.mod1,1)
@@ -390,5 +391,5 @@ sck.Clicks = {
 
 sck.ClicksDisplay,sck.ClicksMap = sck.CreateDisplayMap(sck.Clicks)
 
-RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
-RegisterEventHandler("Module.Initalize",sck.ModuleInit)
+--RegisterEventHandler("Gameloop.Draw", sck.DrawCall)
+--RegisterEventHandler("Module.Initalize",sck.ModuleInit)

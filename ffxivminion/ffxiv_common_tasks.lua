@@ -153,13 +153,15 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Current Distance: "..tostring(dist3d))
 		--ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
+		
 		local requiredRange = (self.range + self.gatherRange)
+		local requiredRange3d = (IsNull(self.range3d,self.range + 2))
 		
-		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
-		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
-		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
+		d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
+		d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
+		d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."], ["..tostring(requiredRange3d).."]")
 		
-		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= (requiredRange + 2) or dist3d <= range3d)) then
+		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 			return true
 		end
     end    
