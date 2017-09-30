@@ -142,7 +142,6 @@ function ffxiv_gather.GetCurrentTaskPos()
 end
 
 function getMinGP()
-	local profile = SkillMgr.SkillProfile.mingp
 	local minimumGP = 0
 	local task = ffxiv_gather.currentTask
 	if (table.valid(task)) then
