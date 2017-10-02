@@ -6,6 +6,8 @@ ffxivminion.lastTradeDecline = 0
 ffxivminion.lastTradeMessage = 0
 ffxivminion.tradeDeclines = 0
 ffxivminion.declineTimer = 0
+ffxivminion.scripExchange = {}
+ffxivminion.lastScripExchangeUpdate = {}
 
 ffxivminion.loginvars = {
 	reset = true,
@@ -325,6 +327,20 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		e_skipcutscene:execute()
 		--return false
 	end
+	
+	if (IsControlOpen("MasterPieceSupply")) then
+		local category = GetControlData("MasterPieceSupply","category")
+		if (not ffxivminion.lastScripExchangeUpdate[category] or TimeSince(ffxivminion.lastScripExchangeUpdate[category]) > 600000) then
+			local items = GetControlData("MasterPieceSupply","items")
+			if (table.valid(items)) then
+				ffxivminion.scripExchange[category] = {}
+				for i,item in pairs(items) do
+					ffxivminion.scripExchange[category][item.itemid] = true
+				end
+				ffxivminion.lastScripExchangeUpdate[category] = Now()
+			end
+		end
+	end
 
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
 		return false
@@ -400,7 +416,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
 			ml_global_information.updateFoodTimer = tickcount
-			ffxivminion.FillFoodOptions()
+			ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 		end
 		
 		if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair) then
@@ -580,7 +596,7 @@ function ffxivminion.SetMainVars()
 	gFoods = {GetString("none")}
 	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific",true)
 	gFoodAvailableOnly = ffxivminion.GetSetting("gFoodAvailableOnly",true)
-	ffxivminion.FillFoodOptions()
+	ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 	
 	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
 	gTeleportHack = ffxivminion.GetSetting("gTeleportHack",false)
@@ -999,8 +1015,9 @@ function ffxivminion.AddMode(name, task)
 end
 
 -- New GUI methods.
-function ffxivminion.FillFoodOptions()
-	local allFoods = AceLib.API.Items.GetAllFoods()
+function ffxivminion.FillFoodOptions(availableonly)
+	local availableonly = IsNull(availableonly,false)
+	local allFoods = AceLib.API.Items.GetAllFoods(availableonly)
 
 	ml_global_information.foods = {}
 	if (table.valid(allFoods)) then
@@ -1444,12 +1461,12 @@ function ml_global_information.DrawSettings()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
-					GUI:SameLine(0,5)
+					GUI:SameLine(260)
 					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillMountOptions()
 					end
 					GUI:SameLine(0,5)
-					GUI_Capture(GUI:Checkbox("Show Available Mounts Only",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
+					GUI_Capture(GUI:Checkbox("Show Usable Only##mount",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
 					end
@@ -1457,15 +1474,21 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods)
-					GUI:SameLine(0,5)
+					GUI:SameLine(260)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
-						ffxivminion.FillFoodOptions()
+						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+					end
+					GUI:SameLine(0,5)
+					GUI_Capture(GUI:Checkbox("Show Usable Only##food",gFoodAvailableOnly),"gFoodAvailableOnly");
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("If this option is on, only available items will be shown.")
 					end
 					GUI:SameLine(0,5)
 					GUI_Capture(GUI:Checkbox("Enforce Specifics",gFoodSpecific),"gFoodSpecific");
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("This option will force this specific food to be used, even if another one is currently in use.")
 					end
+				
 					
 					GUI_Capture(GUI:Checkbox(GetString("avoidAOE"),gAvoidAOE),"gAvoidAOE");
 					GUI_Capture(GUI:Checkbox(GetString("randomPaths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");

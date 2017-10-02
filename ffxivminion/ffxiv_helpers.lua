@@ -1342,7 +1342,7 @@ function GetPVPTarget()
 					end
 				end
 				
-				if targets[GetString("nearDead")] == entity and (entity.hp.percent > 30 or not entity.alive or entity.distance > 25) then
+				if targets[GetString("nearDead")] == entity and (entity.hp.percent > 30 or not entity.alive or entity.distance2d > 25) then
 					targets[GetString("nearDead")] = nil
 				end
 				
@@ -1351,7 +1351,7 @@ function GetPVPTarget()
 				end
 					
 				
-				if targets[GetString("nearest")] == nil or targets[GetString("nearest")].distance > entity.distance then
+				if targets[GetString("nearest")] == nil or targets[GetString("nearest")].distance2d > entity.distance2d then
 					targets[GetString("nearest")] = entity
 				end
 				
@@ -1990,6 +1990,7 @@ function IsUncoverSkill(skillID)
 end
 function IsOmni(entity)
 	if not entity or entity.id == Player.id then return false end
+	if (HasBuff(Player,1250)) then return true end
 	local omnis = {
 		[4954] = true,
 		[4776] = true,
@@ -2000,11 +2001,12 @@ function IsFlanking(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
+	if (HasBuff(Player,1250)) then return true end
 	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
-    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
+    if (entity.distance2d <= ml_global_information.AttackRange or not dorangecheck) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -2032,11 +2034,12 @@ function IsBehind(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
+	if (HasBuff(Player,1250)) then return true end
 	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
-    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
+    if (entity.distance2d <= ml_global_information.AttackRange or not dorangecheck) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -2086,11 +2089,12 @@ function IsFront(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
+	if (HasBuff(Player,1250)) then return true end
 	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
-	if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
+	if (entity.distance2d <= ml_global_information.AttackRange or not dorangecheck) then
 		local entityHeading = nil
 		
 		if (entity.pos.h < 0) then
@@ -3063,7 +3067,7 @@ function CanAttack(targetid,skillid,skilltype)
 		end
 		
 		if (action) then
-			if (action:IsReady(target.id) or (action.range >= ((target.distance - target.hitradius) * .98))) then
+			if (action:IsReady(target.id) or (action.range >= target.distance2d)) then
 				return true
 			end
 		end
@@ -4016,7 +4020,7 @@ function GetAetheryteByMapID(mapid, p)
 			--d("This is not a shared map or we were not given a position.")
 			for index,aetheryte in pairsByKeys(list) do
 				if (aetheryte.territory == mapid) then
-					if (GilCount() >= aetheryte.price and aetheryte.price > 0 and aetheryte.isattuned) then
+					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id) and aetheryte.isattuned) then
 						return aetheryte
 					end
 				end
@@ -4102,7 +4106,7 @@ function CanUseAetheryte(aethid)
 		if (table.valid(list)) then
 			for k,aetheryte in pairs(list) do
 				if (aetheryte.id == aethid) then
-					if (GilCount() >= aetheryte.price and aetheryte.price > 0) then
+					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aethid)) then
 						return true
 					end
 				end
@@ -6700,4 +6704,45 @@ function GetAetherCurrentData(mapid)
 	end
 	
 	return status
+end
+
+function FindNearestCollectableAppraiser()
+	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
+	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
+	
+	if (Player.localmapid == morDhona.mapid) then
+		return morDhona
+	elseif (Player.localmapid == rhalgr.mapid) then
+		return rhalgr
+	else
+		local hasRhalgr, hasMorDhona = false, false
+		local rhalgrCost, morDhonaCost = 0, 0
+		local gil = GilCount()
+		local attuned = GetAttunedAetheryteList(true)
+		if (table.valid(attuned)) then
+			for id,aetheryte in pairsByKeys(attuned) do
+				if (aetheryte.id == morDhona.aethid and gil >= aetheryte.price) then
+					hasMorDhona = true
+					morDhonaCost = aetheryte.price
+				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
+					hasRhalgr = true
+					rhalgrCost = aetheryte.price
+				end
+				if (hasMorDhona and hasRhalgr) then
+					break
+				end
+			end
+		end
+		if (hasMorDhona and hasRhalgr) then
+			if (morDhonaCost < rhalgrCost) then
+				return morDhona
+			else
+				return rhalgr
+			end
+		elseif (hasMorDhona) then
+			return morDhona
+		end
+	end
+	
+	return nil
 end

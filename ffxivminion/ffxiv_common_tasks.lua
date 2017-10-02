@@ -303,7 +303,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						local dist = Distance2D(self.actualPos.x,self.actualPos.z,npos.x,npos.z)
 						
 						if (dist < 10) then
-							if (IsFrontSafe(npc) and (npc.distance < fate.radius * .90)) then
+							if (IsFrontSafe(npc) and (npc.distance2d < fate.radius * .90)) then
 								self.pos = myPos
 								self.requiresPosRandomize = false
 								self.lastRandomize = Now()	
@@ -1544,7 +1544,7 @@ function ffxiv_task_grindCombat:Process()
 					ml_task_hub:CurrentTask().lastMovement = Now()
 				end
 			end
-			if (target.distance <= 15) then
+			if (target.distance2d <= 15) then
 				if (Player.ismounted) then
 					Dismount()
 				end
@@ -1680,7 +1680,7 @@ end
 
 function ffxiv_mesh_interact:task_complete_eval()	
 	if (self.interact == 0) then
-		local interacts = EntityList("nearest,targetable,type=7,chartype=0,maxdistance=6")
+		local interacts = EntityList("nearest,targetable,type=7,chartype=0,maxdistance2d=6")
 		if (table.valid(interacts)) then
 			local i, interact = next(interacts)
 			if (interact and interact.id and interact.id ~= 0) then
@@ -1688,7 +1688,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 			end
 		end
 		
-		local interacts = EntityList("nearest,targetable,type=3,chartype=0,maxdistance=6")
+		local interacts = EntityList("nearest,targetable,type=3,chartype=0,maxdistance2d=6")
 		if (table.valid(interacts)) then
 			local i, interact = next(interacts)
 			if (interact and interact.id and interact.id ~= 0) then
@@ -1722,7 +1722,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 	end
 	
 	local interact = EntityList:Get(tonumber(self.interact))
-	if (not interact or not interact.targetable or MIsLoading() or interact.distance > 6) then
+	if (not interact or not interact.targetable or MIsLoading() or interact.distance2d > 6) then
 		return true
 	end
 end
@@ -2231,3 +2231,63 @@ end
 ffxiv_task_moveaethernet.task_complete_execute = ffxiv_task_movetointeract.task_complete_execute
 ffxiv_task_moveaethernet.task_fail_eval = ffxiv_task_movetointeract.task_fail_eval
 ffxiv_task_moveaethernet.task_fail_execute = ffxiv_task_movetointeract.task_fail_execute
+
+ffxiv_misc_scripexchange = inheritsFrom(ml_task)
+function ffxiv_misc_scripexchange.Create()
+    local newinst = inheritsFrom(ffxiv_misc_scripexchange)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MISC_SCRIPEXCHANGE"
+	
+	newinst.exchanges = {}
+	
+	local appraiser = FindNearestCollectableAppraiser()
+	if (table.valid(appraiser)) then
+		newinst.id = appraiser.id
+		newinst.mapid = appraiser.mapid
+		newinst.pos = appraiser.pos
+		newinst.aethid = appraiser.aethid
+	else
+		newinst.id = 1013396
+		newinst.mapid = 156
+		newinst.pos = {
+			x = 50.28, y = 31.09, z = -735.2
+		}
+	end
+	
+	
+    return newinst
+end
+
+function ffxiv_misc_scripexchange:task_complete_eval()
+	return table.valid(exchanges)
+end
+
+function ffxiv_misc_scripexchange:task_complete_execute()
+	self.completed = true
+end
+
+function ffxiv_misc_scripexchange:Init()
+	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
+    self:add( ke_moveToMap, self.process_elements)
+	
+	local ke_scripExchange = ml_element:create( "ScripExchange", c_scripexchange, e_scripexchange, 100 )
+	self:add( ke_scripExchange, self.process_elements)
+	
+	local ke_selectConvIndex = ml_element:create( "SelectConvIndex", c_selectconvindex, e_selectconvindex, 90 )
+    self:add( ke_selectConvIndex, self.process_elements)
+	
+	local ke_positionLocked = ml_element:create( "PositionLocked", c_positionlocked, e_positionlocked, 80 )
+    self:add( ke_positionLocked, self.process_elements)
+	
+	local ke_interact = ml_element:create( "Interact", c_moveandinteract, e_moveandinteract, 10 )
+    self:add( ke_interact, self.process_elements)
+
+	self:AddTaskCheckCEs()
+end

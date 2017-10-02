@@ -85,7 +85,7 @@ function ffxiv_task_assist:Process()
 		end
 
 		local casted = false
-		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance <= 35 or gAssistFollowTarget )) then
+		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
 			if (gStartCombat or (not gStartCombat and Player.incombat)) then
 				
 				if (gAssistFollowTarget ) then
@@ -121,7 +121,7 @@ function ffxiv_task_assist:Process()
 						if (not InCombatRange(target.id) or not target.los) then
 							Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
 						end
-						if (target.distance <= 15) then
+						if (target.distance2d <= 15) then
 							if (Player.ismounted) then
 								Dismount()
 							end
@@ -312,9 +312,9 @@ function ffxiv_assist.GetAttackTarget()
 				local closest = nil
 				local closestDistance = 999
 				for i,tank in pairs(tanks) do
-					if (not closest or (closest and tank.distance < closestDistance)) then
+					if (not closest or (closest and tank.distance2d < closestDistance)) then
 						closest = tank
-						closestDistance = tank.distance
+						closestDistance = tank.distance2d
 					end
 				end
 				

@@ -2540,7 +2540,7 @@ function SkillMgr.GetTankableTarget( range )
 	if (table.valid(party)) then
 		for i,member in pairs(party) do
 			if (member.id ~= Player.id) then
-				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxrange="..tostring(range))
+				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxdistance2d="..tostring(range))
 				if (table.valid(list)) then
 					for k,entity in pairs(list) do
 						targets[k] = entity
@@ -2552,9 +2552,9 @@ function SkillMgr.GetTankableTarget( range )
 	
 	if (table.valid(targets)) then
 		for k,entity in pairs(targets) do
-			if (not closest or (closest and entity.distance < closestRange)) then
+			if (not closest or (closest and entity.distance2d < closestRange)) then
 				closest = entity
-				closestRange = entity.distance
+				closestRange = entity.distance2d
 			end
 		end
 		
@@ -2582,7 +2582,7 @@ function SkillMgr.GetTankedTarget( range )
 	
 	if (table.valid(tanks)) then
 		for i,tank in pairs(tanks) do
-			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxrange="..tostring(range))
+			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxdistance2d="..tostring(range))
 			if (table.valid(list)) then
 				for k,entity in pairs(list) do
 					targets[k] = entity
@@ -2593,9 +2593,9 @@ function SkillMgr.GetTankedTarget( range )
 	
 	if (table.valid(targets)) then
 		for i,target in pairs(targets) do
-			if (not closest or (closest and closest.distance < closestRange)) then
+			if (not closest or (closest and closest.distance2d < closestRange)) then
 				closest = target
-				closestRange = target.distance
+				closestRange = target.distance2d
 			end
 		end
 		
@@ -4449,17 +4449,10 @@ function SkillMgr.AddDefaultConditions()
 		local minRange = tonumber(skill.minRange)
 		local maxRange = tonumber(skill.maxRange)
 		
-		local dist;
-		if (target.distance < 30 and math.abs(target.distance - target.distance2d) < 5) then
-			dist = target.distance2d
-		else
-			dist = target.distance
-		end
-		
-		local hitradius = (target.hitradius < 1 and 1) or target.hitradius	
-		if (minRange > 0 and (dist - hitradius) < minRange) then 
+		local dist = target.distance2d		
+		if (minRange > 0 and dist < minRange) then 
 			return true
-		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - hitradius) > maxRange) then
+		elseif (maxRange > 0 and maxRange ~= realskilldata.range and dist > maxRange) then
 			return true
 		--elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - hitradius) > realskilldata.range)) then
 			--return true

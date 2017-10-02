@@ -974,17 +974,17 @@ ffxiv_map_nav.data = {
 		},
 	},
 	[628] =
-	{
-		[639] = {
-			{id = 639, cost = 1, x = 151.02, y = 14.78, z = 93.81, h = 0.14, g = 1019070},
-		},
-		[612] = {
-			{id = 612, cost = 1, x = 2.10, y = -2.12, z = 163.50, h = 0, },
-		},
-		[613] = {
-			{id = 613, cost = 1, x = 878.62, y = 1.18, z = 878.28, h = 0.75, },
-		},	
-	},
+    {
+        [639] = {
+            {id = 639, cost = 1, x = 151.02, y = 14.78, z = 93.81, h = 0.14, g = 1019070},
+        },
+        [612] = {
+            {id = 612, cost = 1, x = 2.10, y = -2.12, z = 163.50, h = 0, },
+        },
+        [613] = {
+            {id = 613, cost = 1, x = -134.31, y = -6.91, z = -58.86, h = -1.61, },
+        },    
+    },
 	[635] =
 	{
 		[612] = {
@@ -1169,6 +1169,33 @@ ffxiv_aetheryte_data = {
 		{id = 628, aethid = 111, x = 45.89, y = 4.20, z = -40.59}
 	},
 }	
+
+function ffxiv_map_nav.GetAetherytes()
+	local list = {}
+	
+	local data = ffxiv_aetheryte_data
+	if (table.valid(data)) then
+		for mapid,aetherytes in pairs(data) do
+			if (table.valid(aetherytes)) then
+				for i,aetheryte in pairs(aetherytes) do
+					list[aetheryte.aethid] = true
+				end
+			end
+		end
+	end
+	
+	return list
+end
+
+ffxiv_map_nav.list = ffxiv_map_nav.GetAetherytes()
+
+function ffxiv_map_nav.IsAetheryte(id)
+	return ffxiv_map_nav.list[id] ~= nil
+end
+
+function ffxiv_map_nav.IsAethernet(id)
+	return ffxiv_map_nav.list[id] == nil
+end
 
 function ffxiv_map_nav.SetupNavNodes()
 	ml_nav_manager.nodes = {}

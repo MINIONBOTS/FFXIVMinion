@@ -24,7 +24,7 @@ function c_add_killtarget:evaluate()
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
 			local aggro = GetNearestAggro()
 			if table.valid(aggro) then
-				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance2d <= 30) then
 					c_add_killtarget.targetid = aggro.id
 					d("Adding an aggro target in first block.")
 					return true
@@ -41,7 +41,7 @@ function c_add_killtarget:evaluate()
 	if not (ml_task_hub:ThisTask().name == "LT_FATE" and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 		local aggro = GetNearestAggro()
 		if table.valid(aggro) then
-			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance2d <= 30) then
 				d("Adding an aggro target.")
 				c_add_killtarget.targetid = aggro.id
 				return true
@@ -89,7 +89,7 @@ function c_killaggrotarget:evaluate()
 		if (leader and leader.id ~= 0) then
 			local entity = EntityList:Get(leader.id)
 			if ( entity  and entity.id ~= 0) then
-				if ((entity.incombat and entity.distance > 7) or (not entity.incombat and entity.distance > 10) or (entity.ismounted) or Player.ismounted) then
+				if ((entity.incombat and entity.distance2d > 7) or (not entity.incombat and entity.distance2d > 10) or (entity.ismounted) or Player.ismounted) then
 					return false
 				end
 			end
@@ -197,7 +197,7 @@ function e_assistleader:execute()
 			--d("executing caster version")
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (Now() > c_assistleader.movementDelay) then
-					if (target.distance <= (target.hitradius + 1)) then
+					if (target.distance2d <= ml_global_information.AttackRange) then
 						Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
 					else
 						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
@@ -3015,6 +3015,9 @@ end
 function e_movetomap:execute()
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = e_movetomap.mapID
+	if (ml_task_hub:CurrentTask().aethid) then
+		task.aethid = ml_task_hub:CurrentTask().aethid
+	end
 	if (table.valid(ml_task_hub:CurrentTask().pos)) then
 		task.pos = ml_task_hub:CurrentTask().pos
 	end
@@ -3343,4 +3346,95 @@ function c_dointeract:evaluate()
 	return false
 end
 function e_dointeract:execute()
+end
+
+c_scripexchange = inheritsFrom( ml_cause )
+e_scripexchange = inheritsFrom( ml_effect )
+c_scripexchange.lastItem = 0
+c_scripexchange.handoverComplete = false
+function c_scripexchange:evaluate()
+	if (IsControlOpen("Request")) then
+		if (c_scripexchange.handoverComplete) then
+			d("[ScripExchange]: Completing handover process.")
+			UseControlAction("Request","HandOver")
+			ml_global_information.Await(1500, function () return not IsControlOpen("Request") end)
+			c_scripexchange.handoverComplete = false
+			return true
+		else
+			local item = GetItem(c_scripexchange.lastItem,{0,1,2,3})
+			if (table.valid(item)) then
+				d("[ScripExchange]: Handing over item ["..tostring(c_scripexchange.lastItem).."]")
+				item:HandOver()
+				c_scripexchange.handoverComplete = true
+				return true
+			else
+				d("[ScripExchange]: Couldn't find item ["..tostring(c_scripexchange.lastItem).."]")
+			end
+		end
+	end
+	
+	c_scripexchange.lastItem = 0
+	c_scripexchange.handoverComplete = false
+	
+	if (not IsControlOpen("MasterPieceSupply")) then
+		return false
+	end
+	
+	local currentCategory = GetControlData("MasterPieceSupply","category")
+	local currentItems = GetControlData("MasterPieceSupply","items")
+	local exchanges = IsNull(ml_task_hub:CurrentTask().exchanges,{})
+	
+	--[[  Example "exchange":
+		[0] = {
+			[520087] = true,
+			[512827] = true,
+		},
+		[1] = {
+			[510586] = true,
+		},
+	--]]
+	
+	if (table.valid(exchanges)) then
+		for category,catitems in pairsByKeys(exchanges) do
+			if (table.valid(catitems)) then
+				for itemid,needscomplete in pairs(catitems) do
+					if (needscomplete) then
+						if (currentCategory ~= category) then
+							d("[ScripExchange]: Switch to category ["..tostring(category).."]")
+							UseControlAction("MasterPieceSupply","SelectCategory",category)
+							ml_global_information.Await(2000,function () return (GetControlData("MasterPieceSupply","category") == category and table.valid(GetControlData("MasterPieceSupply","items"))) end)
+							return true
+						else
+							if (table.valid(currentItems)) then
+								d("[ScripExchange]: Found items list.")
+								for index,itemdata in pairs(currentItems) do
+									--[[
+										expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
+									--]]
+									if (itemdata.itemid == itemid) then
+										if (itemdata.ownedquantity >= itemdata.requiredquantity) then
+											local originalQuantity = itemdata.ownedquantity
+											c_scripexchange.lastItem = itemid
+											c_scripexchange.handoverComplete = false
+											UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
+											ml_global_information.Await(2000, function () return IsControlOpen("Request") end)
+											return true
+										else
+											exchanges[category][itemid] = nil
+											return true
+										end
+									end
+								end
+							end
+						end
+					end
+				end			
+			end
+		end		
+	end
+	
+	return false
+end
+function e_scripexchange:execute()
+	--don't really need this
 end
