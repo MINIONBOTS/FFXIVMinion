@@ -3742,7 +3742,7 @@ function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
 	if (table.valid(apiList)) then
 		local aethData = {}
-		for i,aetheryte in pairsByKeys(apiList) do
+		for i,aetheryte in pairs(apiList) do
 			aethData[i] = {
 				ptr = aetheryte.ptr,
 				id = aetheryte.id,
@@ -3763,7 +3763,7 @@ end
 function GetLocalAetheryte()
     local list = ml_global_information.Player_Aetherytes
 	if (table.valid(list)) then
-		for index,aetheryte in pairsByKeys(list) do
+		for index,aetheryte in pairs(list) do
 			if (aetheryte.islocalmap) then
 				return aetheryte.id
 			end
@@ -3779,7 +3779,7 @@ function GetAttunedAetheryteList(force)
 	
 	local list = GetAetheryteList(force)
 	if (table.valid(list)) then
-		for id,aetheryte in pairsByKeys(list) do
+		for id,aetheryte in pairs(list) do
 			if (aetheryte.isattuned) then
 				table.insert(attuned, aetheryte)
 			end
@@ -3807,7 +3807,7 @@ function GetUnattunedAetheryteList()
 	if (table.valid(aethList)) then
 		local list = ml_global_information.Player_Aetherytes
 		if (table.valid(list)) then
-			for id,aetheryte in pairsByKeys(list) do
+			for id,aetheryte in pairs(list) do
 				if (aetheryte.isattuned and aethList[aetheryte.id]) then
 					aethList[aetheryte.id] = nil
 				end
@@ -3822,7 +3822,7 @@ function GetHomepoint()
 	
 	local attuned = GetAttunedAetheryteList(true)
 	if (table.valid(attuned)) then
-		for id,aetheryte in pairsByKeys(attuned) do
+		for id,aetheryte in pairs(attuned) do
 			if (aetheryte.ishomepoint) then
 				homepoint = aetheryte.territory
 			end
@@ -3836,7 +3836,7 @@ function GetAetheryteByID(id,force)
 	
 	local list = GetAetheryteList(force)
 	if (table.valid(list)) then
-		for index,aetheryte in pairsByKeys(list) do
+		for index,aetheryte in pairs(list) do
 			if (aetheryte.id == aethid) then
 				return aetheryte
 			end
@@ -4018,7 +4018,7 @@ function GetAetheryteByMapID(mapid, p)
 	if (table.valid(list)) then
 		if (not pos or not sharedMaps[mapid]) then
 			--d("This is not a shared map or we were not given a position.")
-			for index,aetheryte in pairsByKeys(list) do
+			for index,aetheryte in pairs(list) do
 				if (aetheryte.territory == mapid) then
 					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id) and aetheryte.isattuned) then
 						return aetheryte
@@ -4032,7 +4032,7 @@ function GetAetheryteByMapID(mapid, p)
 			local sharedMap = sharedMaps[mapid]
 			local choices = {}
 			for _,sharedData in pairs(sharedMap) do
-				for index,aetheryte in pairsByKeys(list) do
+				for index,aetheryte in pairs(list) do
 					if (aetheryte.id == sharedData.aethid) then
 						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
 							choices[#choices+1] = sharedData
@@ -4065,14 +4065,14 @@ function GetAetheryteByMapID(mapid, p)
 				end
 				
 				if (bestID ~= nil) then
-					for index,aetheryte in pairsByKeys(list) do
+					for index,aetheryte in pairs(list) do
 						if (aetheryte.id == bestID) then
 							return aetheryte
 						end
 					end
 				end
 			elseif (size == 1) then
-				for index,aetheryte in pairsByKeys(list) do
+				for index,aetheryte in pairs(list) do
 					if (aetheryte.id == choices[1].aethid) then
 						return aetheryte
 					end
@@ -4447,7 +4447,7 @@ function IsInventoryFull(maxitems)
 	
 	local itemcount = 0
 	local inventories = {0,1,2,3}
-	for _,invid in pairsByKeys(inventories) do
+	for _,invid in pairs(inventories) do
 		local bag = Inventory:Get(invid)
 		if (table.valid(bag)) then
 			itemcount = itemcount + bag.used
@@ -4534,7 +4534,7 @@ function GetItem(hqid,inventories)
 	
 	if (hqid ~= 0) then
 		if (table.valid(inventories)) then
-			for _,invid in pairsByKeys(inventories) do
+			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.valid(bag)) then
 					local ilist = bag:GetList()
@@ -4559,7 +4559,7 @@ function GetItemAction(hqid,inventories)
 	
 	if (hqid ~= 0) then
 		if (table.valid(inventories)) then
-			for _,invid in pairsByKeys(inventories) do
+			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.valid(bag)) then
 					local ilist = bag:GetList()
@@ -4599,7 +4599,7 @@ function GetFirstFreeSlot(hqid,inventories)
 	
 	if (hqid ~= 0) then
 		if (table.valid(inventories)) then
-			for _,invid in pairsByKeys(inventories) do
+			for _,invid in ipairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.valid(bag)) then
 					if (bag.free > 0) then
@@ -4643,13 +4643,16 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 	
 	if (hqid ~= 0) then
 		if (table.valid(inventories)) then
-			for _,invid in pairsByKeys(inventories) do
+			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.valid(bag)) then
 					local ilist = bag:GetList()
 					if (table.valid(ilist)) then
-						for slot,item in pairs(ilist) do
-							if (item.hqid == hqid or (includehq and (item.hqid == hqid + 1000000))) then
+						local bagSize = bag.size
+						
+						for slot = 1, bag.size do
+							local item = ilist[slot]
+							if (item and item.hqid == hqid or (includehq and (item.hqid == hqid + 1000000))) then
 								itemcount = itemcount + item.count
 							end
 						end
@@ -6720,7 +6723,7 @@ function FindNearestCollectableAppraiser()
 		local gil = GilCount()
 		local attuned = GetAttunedAetheryteList(true)
 		if (table.valid(attuned)) then
-			for id,aetheryte in pairsByKeys(attuned) do
+			for id,aetheryte in pairs(attuned) do
 				if (aetheryte.id == morDhona.aethid and gil >= aetheryte.price) then
 					hasMorDhona = true
 					morDhonaCost = aetheryte.price

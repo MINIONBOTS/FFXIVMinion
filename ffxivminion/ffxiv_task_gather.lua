@@ -141,7 +141,7 @@ function ffxiv_gather.GetCurrentTaskPos()
 	return pos
 end
 
-function getMinGP()
+function GetMinGP()
 	local minimumGP = 0
 	local task = ffxiv_gather.currentTask
 	if (table.valid(task)) then
@@ -312,7 +312,7 @@ function c_movetonode:evaluate()
 				return true
 			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
-				local minimumGP = getMinGP()	
+				local minimumGP = GetMinGP()	
 				local useCordials = (gGatherUseCordials)
 				local noGPitem = ""
 				
@@ -394,7 +394,7 @@ function e_movetonode:execute()
 			newTask.pos = pos
 			newTask.useTeleport = false
 			
-			local minimumGP = getMinGP()
+			local minimumGP = GetMinGP()
 			local task = ffxiv_gather.currentTask
 			local noGPitem = ""
 			local marker = ml_marker_mgr.currentMarker
@@ -687,7 +687,7 @@ function e_gather:execute()
 		local item2 = ""
 		local item3 = ""
 		local nogpitem = ""
-		local minimumGP = getMinGP()
+		local minimumGP = GetMinGP()
 
 		local task = ffxiv_gather.currentTask
 		local marker = ml_marker_mgr.currentMarker
@@ -1228,7 +1228,7 @@ function ffxiv_gather.CheckBuffs(item)
 end
 
 function CanUseCordialSoon()
-	local minimumGP = getMinGP()
+	local minimumGP = GetMinGP()
 	local useCordials = false
 	
 	local profile, task;
@@ -1311,7 +1311,7 @@ function CanUseCordialSoon()
 end
 
 function CanUseCordial()
-	local minimumGP = getMinGP()
+	local minimumGP = GetMinGP()
 	local useCordials = false
 	
 	local profile, task;
@@ -1536,7 +1536,7 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	local skillProfile = ""
-	local minimumGP = getMinGP()
+	local minimumGP = GetMinGP()
 	local useCordials = (gGatherUseCordials )
 	local taskType = ""
 	local useFavor = 0

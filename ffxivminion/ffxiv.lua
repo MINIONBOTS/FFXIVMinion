@@ -1021,7 +1021,7 @@ function ffxivminion.FillFoodOptions(availableonly)
 
 	ml_global_information.foods = {}
 	if (table.valid(allFoods)) then
-		for i,item in pairsByKeys(allFoods) do
+		for i,item in pairs(allFoods) do
 			ml_global_information.foods[item.name] = {
 				id = item.hqid,
 				name = item.name,
