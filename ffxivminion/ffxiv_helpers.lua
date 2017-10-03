@@ -4520,8 +4520,8 @@ function GetItem(hqid,inventories)
 			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.isa(bag)) then
-					local size = bag.size
-					for i = 0,size-1 do
+					local bagSize = bag.size
+					for i = 0,bagSize-1 do
 						local item = bag:GetItem(i)
 						if (item and item.hqid == hqid) then
 							return item,item:GetAction()
@@ -4551,8 +4551,8 @@ function GetItems(hqids,inventories)
 			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
 				if (table.isa(bag)) then
-					local size = bag.size
-					for i = 0,size-1 do
+					local bagSize = bag.size
+					for i = 0,bagSize-1 do
 						local item = bag:GetItem(i)
 						if (item) then
 							local hqid = item.hqid
@@ -4665,7 +4665,7 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 				if (table.isa(bag)) then
 					local bagSize = bag.size
 					for i = 0,bagSize-1 do
-						local item = bag:GetItem(slot)
+						local item = bag:GetItem(i)
 						if (item) then
 							local ihqid = item.hqid -- maybe a bit overkill, but it does take away 1 call at least
 							if (ihqid == hqid or (includehq and (ihqid == hqid + 1000000))) then
@@ -4680,6 +4680,51 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 	
 	return itemcount
 end
+
+function ItemCounts(hqids,inventoriesArg,includehqArg)
+	
+	local hqids = IsNull(hqids,{})
+	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	
+	local returnables = {}
+	if (table.isa(hqids)) then
+		for i = 1,#hqids do 
+			local hqid = hqids[i]
+			returnables[hqid] = { id = hqid, count = 0 }
+		end
+	
+		if (table.isa(inventories)) then
+			for _,invid in pairs(inventories) do
+				local bag = Inventory:Get(invid)
+				if (table.isa(bag)) then
+					local bagSize = bag.size
+					for i = 0,bagSize-1 do
+						local item = bag:GetItem(i)
+						if (item) then
+							local itemid = 0
+							if (includehq) then
+								itemid = item.id
+							else
+								itemid = item.hqid
+							end
+							if (returnables[itemid]) then
+								local thisItem = returnables[itemid]
+								if (thisItem == nil) then
+									returnables[itemid] = { id = itemid, count = item.count }
+								else
+									returnables[itemid].count = thisItem.count + item.count
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return returnables
+end	
+
 function GilCount()
 	local gil = 0
 	local gilItem = GetItemBySlot(1,2000)
