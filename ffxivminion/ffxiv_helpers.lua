@@ -4390,27 +4390,10 @@ function IsEquipped(itemid)
 	
 	local bag = Inventory:Get(1000)
 	if (table.valid(bag)) then
-		--d("bag was valid, looking for ["..tostring(itemid).."]")
 		local item = bag:Get(itemid)
 		if (item) then
-			--d("found item via easy method.")
 			return true
 		end
-		
-		local ilist = bag:GetList()
-		if (table.valid(ilist)) then
-			for slot,item in pairs(ilist) do
-				--d("checking item ["..tostring(item.hqid).."]")
-				if (item.hqid == itemid) then
-					--d("found item via list method")
-					return true
-				end
-			end
-		else
-			--d("list was empty.")
-		end
-	else
-		--d("bag wasn't valid.")
 	end
 	
 	return false
@@ -4533,16 +4516,15 @@ function GetItem(hqid,inventories)
 	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
 	
 	if (hqid ~= 0) then
-		if (table.valid(inventories)) then
+		if (table.isa(inventories)) then
 			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
-				if (table.valid(bag)) then
-					local ilist = bag:GetList()
-					if (table.valid(ilist)) then
-						for slot,item in pairs(ilist) do
-							if (item.hqid == hqid) then
-								return item,item:GetAction()
-							end
+				if (table.isa(bag)) then
+					local size = bag.size
+					for i = 0,size-1 do
+						local item = bag:GetItem(i)
+						if (item and item.hqid == hqid) then
+							return item,item:GetAction()
 						end
 					end
 				end
@@ -4553,20 +4535,29 @@ function GetItem(hqid,inventories)
 	return nil,nil
 end	
 
-function GetItemAction(hqid,inventories)
-	local hqid = tonumber(hqid) or 0
+function GetItems(hqids,inventories)
+	
+	local hqids = IsNull(hqids,{})
 	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
 	
-	if (hqid ~= 0) then
-		if (table.valid(inventories)) then
+	local returnables = {}
+	if (table.isa(hqids)) then
+		local searchables = {}
+		for i = 1,#hqids do 
+			searchables[hqids[i]] = true 
+		end
+	
+		if (table.isa(inventories)) then
 			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
-				if (table.valid(bag)) then
-					local ilist = bag:GetList()
-					if (table.valid(ilist)) then
-						for slot,item in pairs(ilist) do
-							if (item.hqid == hqid) then
-								return item:GetAction()
+				if (table.isa(bag)) then
+					local size = bag.size
+					for i = 0,size-1 do
+						local item = bag:GetItem(i)
+						if (item) then
+							local hqid = item.hqid
+							if (searchables[hqid]) then
+								returnables[hqid] = { item = item, action = item:GetAction() }
 							end
 						end
 					end
@@ -4575,18 +4566,43 @@ function GetItemAction(hqid,inventories)
 		end
 	end
 	
-	return nil
+	return returnables
 end	
+
+function GetItemTest(hqid, method, iterations)
+	local method = IsNull(method,1)
+	local iterations = IsNull(iterations,1)
+	
+	local results = 0
+	
+	local testFunc;
+	if (method == 1) then
+		testFunc = ItemCount
+	else
+		testFunc = ItemCount2
+	end
+	for i = 1,iterations do
+		local startTime = os.clock()
+		local item = testFunc(hqid)
+		local finishTime = os.clock()
+		local elapsed = (finishTime - startTime)
+		results = results + elapsed
+	end
+	
+	local average = results/iterations
+	
+	d("ItemCount took an average of ["..tostring(average).."] seconds to complete.")
+end
 
 function GetItemBySlot(slotid,inventoryid)
 	local slotid = tonumber(slotid) or 1
 	local inventoryid = inventoryid or 2000
 	
 	local bag = Inventory:Get(inventoryid)
-	if (table.valid(bag)) then
-		local ilist = bag:GetList()
-		if (table.valid(ilist)) then
-			return ilist[slotid]
+	if (table.isa(bag)) then
+		local item = bag:GetItem(slotid-1)
+		if (item) then
+			return item
 		end
 	end
 	
@@ -4598,16 +4614,16 @@ function GetFirstFreeSlot(hqid,inventories)
 	local inventories = inventories or {0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
 	
 	if (hqid ~= 0) then
-		if (table.valid(inventories)) then
+		if (table.isa(inventories)) then
 			for _,invid in ipairs(inventories) do
 				local bag = Inventory:Get(invid)
-				if (table.valid(bag)) then
+				if (table.isa(bag)) then
 					if (bag.free > 0) then
 						if (bag.free == bag.size) then
 							return invid,1
 						else
 							local ilist = bag:GetList()
-							if (table.valid(ilist)) then
+							if (table.isa(ilist)) then
 								for i = 1, bag.size do
 									if (not ilist[i]) then
 										return invid,i
@@ -4623,6 +4639,7 @@ function GetFirstFreeSlot(hqid,inventories)
 	
 	return nil,nil
 end	
+
 function ItemCount(hqid,inventoriesArg,includehqArg)
 	local hqid = tonumber(hqid) or 0
 	local inventories = {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
@@ -4643,16 +4660,15 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 	
 	if (hqid ~= 0) then
 		if (table.valid(inventories)) then
-			for _,invid in pairs(inventories) do
-				local bag = Inventory:Get(invid)
-				if (table.valid(bag)) then
-					local ilist = bag:GetList()
-					if (table.valid(ilist)) then
-						local bagSize = bag.size
-						
-						for slot = 1, bag.size do
-							local item = ilist[slot]
-							if (item and item.hqid == hqid or (includehq and (item.hqid == hqid + 1000000))) then
+			for invid = 1,#inventories do
+				local bag = Inventory:Get(inventories[invid])
+				if (table.isa(bag)) then
+					local bagSize = bag.size
+					for i = 0,size-1 do
+						local item = bag:GetItem(slot)
+						if (item) then
+							local ihqid = item.hqid -- maybe a bit overkill, but it does take away 1 call at least
+							if (ihqid == hqid or (includehq and (ihqid == hqid + 1000000))) then
 								itemcount = itemcount + item.count
 							end
 						end
