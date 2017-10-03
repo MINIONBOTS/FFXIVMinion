@@ -4662,7 +4662,7 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 		if (table.valid(inventories)) then
 			for invid = 1,#inventories do
 				local bag = Inventory:Get(inventories[invid])
-				if (table.isa(bag)) then
+				if (table.size(bag)) then
 					local bagSize = bag.size
 					for i = 0,size-1 do
 						local item = bag:GetItem(slot)
