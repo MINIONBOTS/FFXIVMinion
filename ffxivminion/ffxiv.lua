@@ -17,18 +17,28 @@ ffxivminion.loginvars = {
 	charSelected = false,
 }
 
-ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos" }
+if (GetGameRegion() == 1) then
+	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos" }
+else
+	ffxivminion.logincenters = { "Main" }
+end
 
-ffxivminion.loginservers = {
-	[1] = { "None" },
-	[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
-	[3] = { "None","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
-	[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
-	[5] = { "None","Adamantoise","Balmung","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Sargatanas","Siren","Zalera" },
-	[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
-	[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
-}
-
+if (GetGameRegion() == 1) then
+	ffxivminion.loginservers = {
+		[1] = { "None" },
+		[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
+		[3] = { "None","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
+		[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
+		[5] = { "None","Adamantoise","Balmung","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Sargatanas","Siren","Zalera" },
+		[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
+		[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
+	}
+else
+	ffxivminion.loginservers = {
+		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
+	}
+end
+	
 ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
@@ -519,7 +529,7 @@ function ffxivminion.SetMainVars()
 	else
 		FFXIV_Login_DataCenterName = ffxivminion.GetSetting("FFXIV_Login_DataCenterName",ffxivminion.logincenters[1])
 	end
-	FFXIV_Login_DataCenter = GetKeyByValue(FFXIV_Login_DataCenterName,ffxivminion.logincenters)
+	FFXIV_Login_DataCenter = IsNull(GetKeyByValue(FFXIV_Login_DataCenterName,ffxivminion.logincenters),1)
 	
 	if ( Settings.FFXIVMINION.FFXIV_Login_Servers and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] ) then
 		FFXIV_Login_ServerName = Settings.FFXIVMINION.FFXIV_Login_Servers[uuid]
@@ -528,7 +538,7 @@ function ffxivminion.SetMainVars()
 		FFXIV_Login_ServerName = ffxivminion.GetSetting("FFXIV_Login_ServerName",ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
 		--d("pulling first available login server name ["..tostring(FFXIV_Login_ServerName).."]")
 	end
-	FFXIV_Login_Server = GetKeyByValue(FFXIV_Login_ServerName,ffxivminion.loginservers[FFXIV_Login_DataCenter])
+	FFXIV_Login_Server = IsNull(GetKeyByValue(FFXIV_Login_ServerName,ffxivminion.loginservers[FFXIV_Login_DataCenter]),1)
 	if (FFXIV_Login_Server == nil) then 
 		FFXIV_Login_Server = 1
 		FFXIV_Login_ServerName = ""

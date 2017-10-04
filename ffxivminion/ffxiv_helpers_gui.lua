@@ -293,15 +293,23 @@ end
 
 function GUI_DrawIntMinMax(label,varname,step,stepfast,minval,maxval,onchange)
 	local var = _G[varname]
-	local returned = GUI_Capture(GUI:InputInt(label,var,step,stepfast),varname, onchange)
-	if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+	if (var ~= nil) then
+		local returned = GUI_Capture(GUI:InputInt(label,var,step,stepfast),varname, onchange)
+		if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+	else
+		d("[GUI_DrawIntMinMax]: ["..varname.."] is nil.")
+	end
 end
 
 function GUI_DrawFloatMinMax(label,varname,step,stepfast,precision,minval,maxval,onchange)
 	local var = _G[varname]
-	local precision = IsNull(precision,2)
-	local returned = GUI_Capture(GUI:InputFloat(label,var,step,stepfast,precision),varname,onchange)
-	if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+	if (var ~= nil) then
+		local precision = IsNull(precision,2)
+		local returned = GUI_Capture(GUI:InputFloat(label,var,step,stepfast,precision),varname,onchange)
+		if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+	else
+		d("[GUI_DrawFloatMinMax]: ["..varname.."] is nil.")
+	end
 end
 
 function GUI_CreateTabs(strTabs,doTranslate)
