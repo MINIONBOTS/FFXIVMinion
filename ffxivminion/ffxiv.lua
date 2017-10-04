@@ -39,8 +39,6 @@ else
 	}
 end
 
--- Version number used to Auto update vaules. YYYYMMDD
-ffxivminion.AutoGrindDefaultVersion = 20170923
 ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
@@ -663,11 +661,19 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	-- Auto Grind Stuff
+	
+-- Version number used to Auto update vaules. YYYYMMDD
+	ffxivminion.AutoGrindDefaultVersion = 20171006
+	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
+	
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
-	if Settings.FFXIVMINION.gAutoGrindVersion == nil or Settings.FFXIVMINION.gAutoGrindVersion ~= nil and Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
-		d("No Autogrind version or outdated... Updating...")
+	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
+	
+		
 		Settings.FFXIVMINION.gAutoGrindVersion = ffxivminion.AutoGrindDefaultVersion
 		Settings.FFXIVMINION.gAutoGrindCode = ffxivminion.AutoGrindDefault
+		gAutoGrindVersion = ffxivminion.AutoGrindDefaultVersion
+		d("Autogrind version outdated... Updating to version "..tostring(gAutoGrindVersion))
 	end
 	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
 	GetBestGrindMap = GetBestGrindMapDefault
