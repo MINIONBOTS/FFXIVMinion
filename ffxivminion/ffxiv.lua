@@ -194,37 +194,45 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
 		
-		local serviceAccountList = GetConversationList()
-		if (table.valid(serviceAccountList)) then
-			if (SelectConversationLine(FFXIV_Login_ServiceAccount)) then
-				ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
-			end
-		else
-			-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
-			if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap") ) then		
-				if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
-					ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
+		if (GetGameRegion() == 1) then
+		
+			local serviceAccountList = GetConversationList()
+			if (table.valid(serviceAccountList)) then
+				if (SelectConversationLine(FFXIV_Login_ServiceAccount)) then
+					ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
 				end
 			else
-				if (not login.datacenterSelected) then
-					if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
-						d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
-						if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2)) or UseControlAction("TitleDCWorldMap","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
-							login.datacenterSelected = true
-							ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
-						end
-					else
-						--d("login paused:Attempt to issue notice")
-						ffxivminion.loginvars.loginPaused = true
-						ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
+				-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
+				if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap") ) then		
+					if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
+						ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
 					end
 				else
-					if (UseControlAction("TitleDataCenter","Proceed",0) or UseControlAction("TitleDCWorldMap","Proceed",0)) then
-						ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-						ffxivminion.loginvars.datacenterSelected = false
+					if (not login.datacenterSelected) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
+							d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
+							if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2)) or UseControlAction("TitleDCWorldMap","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
+								login.datacenterSelected = true
+								ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap") end)
+							end
+						else
+							--d("login paused:Attempt to issue notice")
+							ffxivminion.loginvars.loginPaused = true
+							ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
+						end
+					else
+						if (UseControlAction("TitleDataCenter","Proceed",0) or UseControlAction("TitleDCWorldMap","Proceed",0)) then
+							ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+							ffxivminion.loginvars.datacenterSelected = false
+						end
 					end
-				end
-			end	
+				end	
+			end
+		else
+			if (UseControlAction("_TitleMenu","Start")) then
+				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+				ffxivminion.loginvars.datacenterSelected = false
+			end
 		end
 	end
 end
