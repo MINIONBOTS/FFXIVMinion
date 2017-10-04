@@ -123,46 +123,34 @@ function ffxiv_task_minigames:Draw()
 	if (tabs.tabs[1].isselected) then
 		GUI:BeginChild("##header-games",0,GUI_GetFrameHeight(3),true)
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Cuff-a-Cur")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Cuff-a-Cur mingame.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Monster Toss")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Monster Toss mingame.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Tower Striker")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Tower Striker mingame.")
-		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("CuffaCur"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("MonsterToss"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("TowerStriker"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
 		GUI:NextColumn()
-		GUI_Capture(GUI:Checkbox("##Cuff-a-Cur",gMGOptionPunch),"gMGOptionPunch", 
+		GUI_Capture(GUI:Checkbox("##CuffaCur",gMGOptionPunch),"gMGOptionPunch", 
 			function ()
 				GUI_Set("gMGOptionToss",false)
 				GUI_Set("gMGOptionHammer",false)
 			end
 		);
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Cuff-a-Cur mingame.")
-		end
-		GUI_Capture(GUI:Checkbox("##Monster Toss",gMGOptionToss),"gMGOptionToss", 
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
+		GUI_Capture(GUI:Checkbox("##MonsterToss",gMGOptionToss),"gMGOptionToss", 
 			function ()
 				GUI_Set("gMGOptionPunch",false)
 				GUI_Set("gMGOptionHammer",false)
 			end
 		);
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Monster Toss mingame.")
-		end
-		GUI_Capture(GUI:Checkbox("##Tower Striker",gMGOptionHammer),"gMGOptionHammer", 
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
+		GUI_Capture(GUI:Checkbox("##TowerStriker",gMGOptionHammer),"gMGOptionHammer", 
 			function ()
 				GUI_Set("gMGOptionPunch",false)
 				GUI_Set("gMGOptionToss",false)
 			end
 		);
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Play the Tower Striker mingame.")
-		end
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CuffaCurTooltip")) end
 		GUI:Columns()
 		GUI:EndChild()
 	end
@@ -170,62 +158,35 @@ function ffxiv_task_minigames:Draw()
 	if (tabs.tabs[2].isselected) then
 		GUI:BeginChild("##header-safety",0,GUI_GetFrameHeight(6),true)
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Randomize Game")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Changed to a random minigame. (Time set with Random Time Min/Max)")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Random Time Min (m)")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Min time used when randomly changing minigames.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Random Time Max (m)")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Max time used when randomly changing minigames.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Play Time (m)")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Time to play before resting.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Rest Time (m)")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Time to rest after playing before starting again.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Post-Game Delay (ms)")
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Delay between starting each minigame.")
-		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("RandomizeGame"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomizeGameTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("RandomTimeMin"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomTimeMinTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("RandomTimeMax"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomTimeMaxTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("PlayTime"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PlayTimeTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("RestTime"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RestTimeTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("PostGameDelay"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PostGameDelayTooltip")) end
 		GUI:NextColumn()
 		local ColumnWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(ColumnWidth)
-		GUI_Capture(GUI:Checkbox("##Randomize Game",gMGRandomize),"gMGRandomize");
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Changed to a random minigame. (Time set with Random Time Min/Max)")
-		end
-		GUI_DrawIntMinMax("##Random Time Min (m)","gMGRandomizeTimeMin",1,5,0,120)
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Min time used when randomly changing minigames.")
-		end
-		GUI_DrawIntMinMax("##Random Time Max (m)","gMGRandomizeTimeMax",1,5,0,120)
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Max time used when randomly changing minigames.")
-		end
-		GUI_DrawIntMinMax("##Play Time (m)","gMGPlayTime",1,5,0,360)
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Time to play before resting.")
-		end
-		GUI_DrawIntMinMax("##Rest Time (m)","gMGRestTime",1,5,0,360)
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Time to rest after playing before starting again.")
-		end
-		GUI_DrawIntMinMax("##Post-Game Delay (ms)","gMGRestTime",100,500,0,10000)
-		if (GUI:IsItemHovered()) then 
-			GUI:SetTooltip("Delay between starting each minigame.")
-		end
+		GUI_Capture(GUI:Checkbox("##RandomizeGame",gMGRandomize),"gMGRandomize");
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomizeGameTooltip")) end
+		GUI_DrawIntMinMax("##RandomTimeMin","gMGRandomizeTimeMin",1,5,0,120)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomTimeMinTooltip")) end
+		GUI_DrawIntMinMax("##RandomTimeMax","gMGRandomizeTimeMax",1,5,0,120)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RandomTimeMaxTooltip")) end
+		GUI_DrawIntMinMax("##PlayTime","gMGPlayTime",1,5,0,360)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PlayTimeTooltip")) end
+		GUI_DrawIntMinMax("##RestTime","gMGRestTime",1,5,0,360)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RestTimeTooltip")) end
+		GUI_DrawIntMinMax("##PostGameDelay","gMGRestTime",100,500,0,10000)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PostGameDelayTooltip")) end
 		GUI:PopItemWidth()
 		GUI:Columns()
-		
-		
-		
 		GUI:EndChild()
 	end
 end

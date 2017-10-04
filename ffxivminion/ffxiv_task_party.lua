@@ -189,19 +189,26 @@ function ffxiv_task_party:Draw()
 	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("UseGamePartyLeader"))
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Sync to Fates")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("UseGamePartyLeaderTooltip")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("SynctoFates"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SynctoFatesTooltip")) end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("PartyLeader"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PartyLeaderTooltip")) end
 	GUI:NextColumn()
 	local ColumnWidth = GUI:GetContentRegionAvail()
 	GUI:PushItemWidth(ColumnWidth)
-	GUI_Capture(GUI:Checkbox("##"..GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
-	GUI_Capture(GUI:Checkbox("##Sync to Fates",gPartyGrindFateSync),"gPartyGrindFateSync")
-	GUI_Capture(GUI:InputText("##"..GetString("PartyLeader"),gPartyLeaderName),"gPartyLeaderName");
+	GUI_Capture(GUI:Checkbox("##UseGamePartyLeader",gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("UseGamePartyLeaderTooltip")) end
+	GUI_Capture(GUI:Checkbox("##SynctoFates",gPartyGrindFateSync),"gPartyGrindFateSync")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SynctoFatesTooltip")) end
+	GUI_Capture(GUI:InputText("##PartyLeader",gPartyLeaderName),"gPartyLeaderName");
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PartyLeaderTooltip")) end
 	GUI:PopItemWidth()
 	GUI:Columns()	
 	local FullWidth = GUI:GetContentRegionAvail()	
 	if (GUI:Button(GetString("GetPartyLeader"),FullWidth,20)) then
 		ffxiv_task_party.SetLeaderFromTarget()
 	end
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("GetPartyLeaderTooltip")) end
 	GUI:EndChild()
 end
