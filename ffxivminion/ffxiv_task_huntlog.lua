@@ -260,7 +260,7 @@ c_huntlogmovetomap = inheritsFrom( ml_cause )
 e_huntlogmovetomap = inheritsFrom( ml_effect )
 e_huntlogmovetomap.mapID = 0
 function c_huntlogmovetomap:evaluate()
-	if (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
+	if Player.incombat or (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
 		return false
 	end
 	
