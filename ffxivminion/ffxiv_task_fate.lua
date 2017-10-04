@@ -3,10 +3,10 @@
 ---------------------------------------------------------------------------------------------
 
 ffxiv_task_fate = inheritsFrom(ml_task)
---[[
+
 ffxiv_task_fate.tracking = {
 	measurementDelay = 0,
-}]]
+}
 function ffxiv_task_fate.Create()
     local newinst = inheritsFrom(ffxiv_task_fate)
     
@@ -429,6 +429,10 @@ end
 
 c_resettarget = inheritsFrom( ml_cause )
 e_resettarget = inheritsFrom( ml_effect )
+c_add_fatetarget = inheritsFrom( ml_cause )
+e_add_fatetarget = inheritsFrom( ml_effect )
+c_add_fatetarget.oocCastTimer = 0
+c_add_fatetarget.throttle = 500
 
 function c_resettarget:evaluate()
 	if ffxiv_task_fate.tracking.measurementDelay > Now() then
@@ -513,10 +517,6 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
-c_add_fatetarget = inheritsFrom( ml_cause )
-e_add_fatetarget = inheritsFrom( ml_effect )
-c_add_fatetarget.oocCastTimer = 0
-c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
 	if (not Player.incombat) then
 		if (SkillMgr.Cast( Player, true)) then
@@ -609,8 +609,8 @@ function ffxiv_task_fate:Init()
     local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 50 )
     self:add( ke_syncFate, self.overwatch_elements)
 	
-	--local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_add_fatetarget, 60 )
-	--self:add( ke_resetTarget, self.process_elements)
+	local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_add_fatetarget, 60 )
+	self:add( ke_resetTarget, self.process_elements)
     
     --init process
 	local ke_moveToFateMap = ml_element:create( "MoveToFateMap", c_movetofatemap, e_movetofatemap, 100 )
