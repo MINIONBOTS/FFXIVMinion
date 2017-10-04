@@ -20,7 +20,8 @@ e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
 	-- block killtarget for grinding when user has specified "Fates Only"
-	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gGrindDoFates and gGrindFatesOnly ) then
+	
+	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gGrindDoFates and (gGrindFatesOnly and Player.level > 10)) then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
 			local aggro = GetNearestAggro()
 			if table.valid(aggro) then
@@ -61,7 +62,7 @@ function c_add_killtarget:evaluate()
 	local target = ml_task_hub:CurrentTask().targetFunction()
     if (table.valid(target)) then
         if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-			d("Picked target in normal block.")
+			--d("Picked target in normal block.")
             c_add_killtarget.targetid = target.id
             return true
         end

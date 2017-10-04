@@ -190,21 +190,30 @@ function ffxiv_task_test:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(6),true)
-	GUI:PushItemWidth(120)					
-	GUI_Capture(GUI:InputText("Map ID",gTestMapID),"gTestMapID");
-	GUI_Capture(GUI:InputText("X",gTestMapX),"gTestMapX");
-	GUI_Capture(GUI:InputText("Y",gTestMapY),"gTestMapY");
-	GUI_Capture(GUI:InputText("Z",gTestMapZ),"gTestMapZ");	
-	if (GUI:Button("Get Current Pos",200,20)) then
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(7),true)
+	GUI:Columns(2)
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Map ID")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("X")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Y")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Z")
+	GUI:NextColumn()
+	local ColumnWidth = GUI:GetContentRegionAvail()
+	GUI:PushItemWidth(ColumnWidth)
+	GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
+	GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
+	GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
+	GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
+	GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
+	GUI:PopItemWidth()
+	GUI:Columns()
+	local FullWidth = GUI:GetContentRegionAvail()
+	if (GUI:Button("Get Current Pos",FullWidth,20)) then
 		ffxiv_task_test.GetCurrentPosition()
 	end
-	if (GUI:Button("Get Random Pos",200,20)) then
+	if (GUI:Button("Get Random Pos",FullWidth,20)) then
 		ffxiv_task_test.GetRandomPosition()
 	end
-	GUI_Capture(GUI:Checkbox("No Fly",gTestNoFly),"gTestNoFly")
-	
-	GUI:PopItemWidth()
 	GUI:EndChild()
 end
 

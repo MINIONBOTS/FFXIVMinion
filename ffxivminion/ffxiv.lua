@@ -38,7 +38,9 @@ else
 		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
 	}
 end
-	
+
+-- Version number used to Auto update vaules. YYYYMMDD
+ffxivminion.AutoGrindDefaultVersion = 20170923
 ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
@@ -46,7 +48,7 @@ ffxivminion.AutoGrindDefault = [[
 		local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
 		local inshroud = 	In(mapid,148,152,153,154,132,133)
 		local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
-		
+
 		if (level < 12) then
 			if (inthanalan) then
 				return 140 --western than
@@ -58,7 +60,7 @@ ffxivminion.AutoGrindDefault = [[
 				return 148
 			end
 			
-		elseif ( level >= 12 and level < 20) then
+		elseif ( level >= 12 and level < 17) then
 			if (inthanalan) then
 				return 140 --western than
 			elseif (inshroud) then
@@ -69,7 +71,7 @@ ffxivminion.AutoGrindDefault = [[
 				return 152
 			end
 			
-		elseif (level >= 20 and level < 22) then
+		elseif (level >= 17 and level < 22) then
 			return 152 --east shroud
 		elseif (level >= 22 and level < 30) then
 			return 153 --south shroud
@@ -77,7 +79,9 @@ ffxivminion.AutoGrindDefault = [[
 			return 137 --eastern la noscea
 		elseif (level >= 40 and level < 45) then
 			return 155 --coerthas
-		elseif ((level >= 45 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
+		elseif (level >= 45 and level < 48) then
+			return 146 -- southern thanalan
+		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
 			return 147 -- northern thanalan
 		elseif (level >= 60 and CanAccessMap(612)) then
 			return 612 --The Fringes
@@ -133,6 +137,11 @@ ffxivminion.GUI = {
 		visible = true,
 		modified = false,
 		error_text = "",
+	},
+	help = {
+		name = "Help Window",
+		open = false,
+		visible = true,
 	},
 	current_tab = 1,
 	draw_mode = 1,
@@ -653,7 +662,13 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
-	
+	-- Auto Grind Stuff
+	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
+	if Settings.FFXIVMINION.gAutoGrindVersion == nil or Settings.FFXIVMINION.gAutoGrindVersion ~= nil and Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
+		d("No Autogrind version or outdated... Updating...")
+		Settings.FFXIVMINION.gAutoGrindVersion = ffxivminion.AutoGrindDefaultVersion
+		Settings.FFXIVMINION.gAutoGrindCode = ffxivminion.AutoGrindDefault
+	end
 	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
 	GetBestGrindMap = GetBestGrindMapDefault
 	local f = loadstring(gAutoGrindCode)
@@ -675,6 +690,7 @@ function ffxivminion.HandleInit()
 
 	-- Build bottom menu for new GUI addons.
 	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("botStatus,generalSettings,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
+	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Help,FAQ,Report",true)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
 	
@@ -1207,8 +1223,30 @@ function ml_global_information.DrawMainFull()
 					
 					ffxivminion.GUI.x = x; ffxivminion.GUI.y = y; ffxivminion.GUI.width = width; ffxivminion.GUI.height = height;
 					
-					GUI:PushItemWidth(150)
-					local modeChanged = GUI_Combo(GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
+					if (FFXIV_Common_BotRunning) then
+						GUI:Text("Bot Status:") GUI:SameLine()
+						GUI:TextColored(.1,1,.2,1,"RUNNING")
+					else
+						GUI:Text("Bot Status:") GUI:SameLine()
+						GUI:TextColored(1,.1,.2,1,"NOT RUNNING")
+					end
+					GUI:AlignFirstTextHeightToWidgets()	GUI:Text(GetString("botMode")) 
+					if (GUI:IsItemHovered()) then 
+						GUI:SetTooltip("Assist: Handles combat with a selected skill profile while you do the moving.\
+Crafting: Automates crafting of a single item or list using crafting orders.\
+Fish: Automates fishing with a marker system, profile or quickstart.\
+Gather: Automates gathering with a marker system, profile or quickstart.\
+Grind: Various tasks like Fates, Mob farming, Relic (Atma/Luminous) and Hunting log.\
+Minigames: Farms MGP via Cuff-a-Cur, Monster Toss and Tower Striker minigames.\
+Party-Grind: Follows a party leader around assisting  them in combat.\
+Quest: Completes quests based on a questing profile.\
+") 
+					end
+					GUI:SameLine()
+					local RemainingSizeBotMode = GUI:GetContentRegionAvailWidth()
+					GUI:PushItemWidth(RemainingSizeBotMode-65)
+					local modeChanged = GUI_Combo("##"..GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
+					GUI:PopItemWidth()
 					if (modeChanged) then
 						ffxivminion.SwitchMode(gBotMode)
 						local uuid = GetUUID()
@@ -1217,13 +1255,11 @@ function ml_global_information.DrawMainFull()
 							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
 						end
 					end
-					
-					if (FFXIV_Common_BotRunning) then
-						GUI:SameLine(0,25)
-						GUI:TextColored(.1,1,.2,1,"*** RUNNING ***")
+					GUI:SameLine()
+					if (GUI:ImageButton("##help",ml_global_information.path.."\\GUI\\UI_Textures\\questionmark.png", 14, 14)) then
+						ffxivminion.GUI.help.open = true
 					end
-					
-					GUI:SameLine(contentwidth-20);
+					GUI:SameLine(0,5)
 					GUI:Image(ml_global_information.GetMainIcon(),14,14)
 					if (GUI:IsItemHovered()) then
 						if (GUI:IsMouseClicked(0)) then
@@ -1234,28 +1270,40 @@ function ml_global_information.DrawMainFull()
 							end
 						end
 					end
+					GUI:AlignFirstTextHeightToWidgets()	GUI:Text(GetString("Skill Profile")) GUI:SameLine()
+					local RemainingSizeSkillProfile = GUI:GetContentRegionAvailWidth()
+					--if (not GatherClasses) and (gACREnabled) then RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 end
+					if (gACREnabled) then RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 end
+					GUI:PushItemWidth(RemainingSizeSkillProfile-65)
+					local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					GUI:PopItemWidth()
-					
-					GUI:PushItemWidth(200)
-					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					if (skillsChanged) then
 						-- todo, fix this once ACR is updated again.
-						--if (gACREnabled) then
-							--gSkillProfileIndex = 1
-						--else
+						if (gACREnabled) then
+							gSkillProfileIndex = 1
+						else
 							local uuid = GetUUID()
 							Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
 							SkillMgr.UseProfile(gSkillProfile)
-						--end
+						end
 					end
-					GUI:PopItemWidth()
-			
-					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 16, 16)) then
-						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
-					end
-					if (GUI:Button(GetString("ACR Profile Options"),200,22)) then
+					GUI:SameLine()
+					--local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+					--local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
+					--if (not craftClasses) and (not gatherClasses) and (not gACREnabled) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
+					if (not gACREnabled) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
+						if gSkillProfileIndex ~= 1 then
+							SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
+						else
+							d("Invalid skill profile")
+						end
+					--elseif (not craftClasses) and (not gatherClasses) and (gACREnabled) then
+					elseif (gACREnabled) and (GUI:Button(GetString("ACR"),30,20)) then
 						ACR.OpenProfileOptions()
+					end
+					GUI:SameLine(0,5)
+					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
+						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 					end
 					
 					--[[
@@ -1277,7 +1325,12 @@ function ml_global_information.DrawMainFull()
 					
 					local space = -50
 					if (In(gBotMode,GetString("grindMode"),GetString("gatherMode"),GetString("fishMode"))) then
-						space = -100
+						local GatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+						if (GatherClasses) then
+							space = -75 
+						elseif (not GatherClasses) then
+							space = -100
+						end
 					end
 
 					GUI:BeginChild("##main-task-section",0,space,false)
@@ -1289,12 +1342,15 @@ function ml_global_information.DrawMainFull()
 					end
 					GUI:EndChild()
 					
-					if (space == -100) then
-						if (GUI:Button(GetString("Add Evac Point"),contentwidth,20)) then
-							AddEvacPoint(true)
-						end
-						if (GUI:IsItemHovered()) then
-							GUI:SetTooltip(GetString("Adds an evacuation destination for flee tasks."))
+					if (space == -100 or space == -75) then
+						local GatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+						if (not GatherClasses) then
+							if (GUI:Button(GetString("Add Evac Point"),contentwidth,20)) then
+								AddEvacPoint(true)
+							end
+							if (GUI:IsItemHovered()) then
+								GUI:SetTooltip(GetString("Adds an evacuation destination for flee tasks."))
+							end
 						end
 					
 						if (GUI:Button(GetString("Edit/View Markers"),(contentwidth/2)-4,20)) then
@@ -1345,7 +1401,7 @@ function ml_global_information.DrawMainFull()
 						end
 
 					end
-					if (GUI:Button(GetString("advancedSettings"),contentwidth,20)) then
+					if (GUI:Button(GetString("Advanced Settings"),contentwidth,20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
 					if (GUI:Button("Start / Stop",contentwidth,20)) then
@@ -1433,7 +1489,7 @@ function ml_global_information.DrawSettings()
 				if (tabs.tabs[1].isselected) then
 					GUI:BeginChild("##main-header-botstatus",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(100)
-					GUI_DrawIntMinMax(GetString("pulseTime"),"gPulseTime",5,10,5,2000)
+					GUI_DrawIntMinMax(GetString("Pulse Time"),"gPulseTime",5,10,5,2000)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(60)
 					GUI:Text("# Active Task Count"); GUI:SameLine(150); GUI:InputText("##active-task-count",FFXIV_Core_ActiveTaskCount,GUI.InputTextFlags_ReadOnly)
@@ -1444,8 +1500,8 @@ function ml_global_information.DrawSettings()
 					GUI:Text("Idle Pulse Count"); GUI:SameLine(150); GUI:InputText("##idle-pulse-count",FFXIV_Core_IdlePulseCount,GUI.InputTextFlags_ReadOnly)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(100)
-					GUI_Capture(GUI:Checkbox(GetString("enableLog"),gEnableLog),"gEnableLog");
-					GUI_Capture(GUI:Checkbox(GetString("logCNE"),gLogCNE),"gLogCNE");
+					GUI_Capture(GUI:Checkbox(GetString("Enable Log"),gEnableLog),"gEnableLog");
+					GUI_Capture(GUI:Checkbox(GetString("Log CNE"),gLogCNE),"gLogCNE");
 					GUI_Capture(GUI:Combo("Log Level", gLogLevel, gLogLevels ),"gLogLevel")
 					
 					GUI:LabelText("Eorzea Time",FFXIV_Common_EorzeaTime)
@@ -1458,8 +1514,8 @@ function ml_global_information.DrawSettings()
 					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(200)
 					
-					GUI_Capture(GUI:Checkbox(GetString("autoStartBot"),gAutoStart),"gAutoStart");
-					GUI_Capture(GUI:Checkbox(GetString("autoEquip"),gAutoEquip),"gAutoEquip",
+					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
+					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"),gAutoEquip),"gAutoEquip",
 						function ()
 							if (gBotMode == GetString("questMode")) then
 								 GUI_Set("gQuestAutoEquip",gAutoEquip)
@@ -1474,17 +1530,17 @@ function ml_global_information.DrawSettings()
 							end
 						end					
 					)
-					GUI_DrawIntMinMax(GetString("mountDist"),"gMountDist",5,10,0,200)
-					GUI_Combo(GetString("mount"), "gMountNameIndex", "gMountName", gMountNames)
+					GUI_DrawIntMinMax(GetString("Mount Distance"),"gMountDist",5,10,0,200)
+					GUI_Combo(GetString("Mount"), "gMountNameIndex", "gMountName", gMountNames)
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
-					GUI:SameLine(260)
+					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillMountOptions()
 					end
 					GUI:SameLine(0,5)
-					GUI_Capture(GUI:Checkbox("Show Usable Only##mount",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
+					GUI_Capture(GUI:Checkbox("Show Available Mounts Only",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
 					end
@@ -1506,10 +1562,9 @@ function ml_global_information.DrawSettings()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("This option will force this specific food to be used, even if another one is currently in use.")
 					end
-				
 					
-					GUI_Capture(GUI:Checkbox(GetString("avoidAOE"),gAvoidAOE),"gAvoidAOE");
-					GUI_Capture(GUI:Checkbox(GetString("randomPaths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
+					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"),gAvoidAOE),"gAvoidAOE");
+					GUI_Capture(GUI:Checkbox(GetString("Random Paths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
 
 					GUI:PopItemWidth()
 					GUI:EndChild()
@@ -1549,13 +1604,13 @@ function ml_global_information.DrawSettings()
 					GUI:BeginChild("##main-header-playerhpmptp",0,GUI_GetFrameHeight(7),true)
 					GUI:PushItemWidth(120)
 
-					GUI_DrawIntMinMax(GetString("avoidHP"),"gAvoidHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gAvoidHP",gAvoidHP) end )
-					GUI_DrawIntMinMax(GetString("restHP"),"gRestHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gRestHP",gRestHP) end)
-					GUI_DrawIntMinMax(GetString("restMP"),"gRestMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gRestMP",gRestMP) end)
-					GUI_DrawIntMinMax(GetString("potionHP"),"gPotionHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gPotionHP",gPotionHP) end)
-					GUI_DrawIntMinMax(GetString("potionMP"),"gPotionMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gPotionMP",gPotionMP) end)
-					GUI_DrawIntMinMax(GetString("fleeHP"),"gFleeHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gFleeHP",gFleeHP) end)
-					GUI_DrawIntMinMax(GetString("fleeMP"),"gFleeMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gFleeMP",gFleeMP) end)
+					GUI_DrawIntMinMax(GetString("Avoid HP"),"gAvoidHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gAvoidHP",gAvoidHP) end )
+					GUI_DrawIntMinMax(GetString("Rest HP"),"gRestHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gRestHP",gRestHP) end)
+					GUI_DrawIntMinMax(GetString("Rest MP"),"gRestMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gRestMP",gRestMP) end)
+					GUI_DrawIntMinMax(GetString("Potion HP"),"gPotionHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gPotionHP",gPotionHP) end)
+					GUI_DrawIntMinMax(GetString("Potion MP"),"gPotionMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gPotionMP",gPotionMP) end)
+					GUI_DrawIntMinMax(GetString("Flee HP"),"gFleeHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gFleeHP",gFleeHP) end)
+					GUI_DrawIntMinMax(GetString("Flee MP"),"gFleeMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gFleeMP",gFleeMP) end)
 					
 					GUI:PopItemWidth()
 					GUI:EndChild()
@@ -1574,25 +1629,88 @@ function ml_global_information.DrawSettings()
 						end
 					)
 
-					GUI_Capture(GUI:Checkbox(GetString("paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
-					GUI_Capture(GUI:Checkbox(GetString("permaSprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
-					GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
-					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),gSkipTalk),"gSkipTalk"); GUI:SameLine(0,15)
+					GUI_Capture(GUI:Checkbox(GetString("Paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
+					GUI_Capture(GUI:Checkbox(GetString("Perma Sprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
+					GUI_Capture(GUI:Checkbox(GetString("Skip Cutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
+					GUI_Capture(GUI:Checkbox(GetString("Skip Dialogue"),gSkipTalk),"gSkipTalk"); GUI:SameLine(0,15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##skiptalk",gSkipTalkRunningOnly),"gSkipTalkRunningOnly")
 					GUI:EndChild()
 				end
 				
 				if (tabs.tabs[7].isselected) then
-					GUI:BeginChild("##main-header-advancedsettings",0,GUI_GetFrameHeight(4),true)
+					local width, height = GUI:GetWindowSize()
+			
 					GUI:PushItemWidth(120)
-					GUI_DrawIntMinMax("Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
-					GUI_DrawIntMinMax("Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
-					GUI:PopItemWidth()
-					GUI_Capture(GUI:Checkbox("Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
-					if (GUI:Button("View Login Settings",200,20)) then
-						ffxivminion.GUI.login.open = true
+					local dcChanged = GUI_Combo("DataCenter", "FFXIV_Login_DataCenter", "FFXIV_Login_DataCenterName", ffxivminion.logincenters)
+					if (dcChanged) then
+						local uuid = GetUUID()
+						if ( string.valid(uuid) ) then
+							if  ( Settings.FFXIVMINION.FFXIV_Login_DataCenters == nil ) then 
+								Settings.FFXIVMINION.FFXIV_Login_DataCenters = {} 
+							end
+							--d("set login datacenter to ["..tostring(FFXIV_Login_DataCenterName).."] for UUID ["..tostring(uuid).."]")
+							Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+						else
+							--d("uuid not valid")
+						end
+						GUI_Set("FFXIV_Login_Server",1)
+						GUI_Set("FFXIV_Login_ServerName","")
+						if ( string.valid(uuid) ) then
+							if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
+								Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+							end
+							Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+						end
+						
+						ffxivminion.loginvars.datacenterSelected = false
 					end
-					GUI:EndChild()
+					
+					if (table.valid(ffxivminion.loginservers[FFXIV_Login_DataCenter])) then
+						--d("servers are valid for this datacenter")
+						
+						local serverChanged = GUI_Combo("Server", "FFXIV_Login_Server", "FFXIV_Login_ServerName", ffxivminion.loginservers[FFXIV_Login_DataCenter])
+						if (serverChanged) then
+							local uuid = GetUUID()
+							if ( string.valid(uuid) ) then
+								if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
+									Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+								end
+								--d("set login server to ["..tostring(FFXIV_Login_ServerName).."] for UUID ["..tostring(uuid).."]")
+								Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+							else	
+								--d("uuid not valid")
+							end
+							
+							ffxivminion.loginvars.serverSelected = false
+						end
+					end
+					
+					GUI_DrawIntMinMax("Service Account Index (0-n)","FFXIV_Login_ServiceAccount",1,1,0,15,
+						function () 
+							local uuid = GetUUID()
+							if ( string.valid(uuid) ) then
+								if  ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts == nil ) then 
+									Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts = {} 
+								end
+								Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+							end
+						end 
+					)
+
+					GUI_DrawIntMinMax("Character Index (0-n)","FFXIV_Login_Character",1,1,0,15,
+						function () 
+							local uuid = GetUUID()
+							if ( string.valid(uuid) ) then
+								if  ( Settings.FFXIVMINION.FFXIV_Login_Characters == nil ) then 
+									Settings.FFXIVMINION.FFXIV_Login_Characters = {} 
+								end
+								Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
+							end
+								
+							ffxivminion.loginvars.charSelected = false
+						end 
+					)
+					GUI:PopItemWidth()
 				end
 			end
 
@@ -1841,6 +1959,189 @@ function ml_global_information.DrawAutoGrindEditor()
 	end
 end
 
+
+function ml_global_information.DrawHelper() -- Helper Window
+	local gamestate = GetGameState()
+	if (gamestate == FFXIV.GAMESTATE.INGAME) then
+		if (ffxivminion.GUI.help.open) then
+			GUI:SetNextWindowSize(400,500,GUI.SetCond_Always) --set the next window size, only on first ever	
+			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+			ffxivminion.GUI.help.visible, ffxivminion.GUI.help.open = GUI:Begin(ffxivminion.GUI.help.name, ffxivminion.GUI.help.open)
+			if ( ffxivminion.GUI.help.visible ) then
+				--[[
+					if (gBotMode == GetString("grindMode")) then
+					elseif (gBotMode == GetString("gatherMode")) then
+					elseif (gBotMode == GetString("fishMode")) then
+					end
+					
+					assistMode                      = "Assist",
+					grindMode                       = "Grind",
+					gatherMode                      = "Gather",
+					fishMode                        = "Fish",
+					huntMode						= "Hunt",
+					huntlogMode						= "Hunting Log",
+					partyMode                       = "Party-Grind",
+					craftMode                       = "Crafting",
+				]]--
+				
+				GUI:Text("Current Bot Mode: "..gBotMode)
+				GUI:Separator()
+				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
+				local tabs = ffxivminion.GUI.help.main_tabs
+				-- Help tab.
+				if (tabs.tabs[1].isselected) then
+					if (gBotMode == GetString("assistMode")) then
+						GUI:Text(GetString("Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used."))
+					elseif (gBotMode == GetString("grindMode")) then
+						GUI:Text(GetString("Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used."))
+					elseif (gBotMode == GetString("gatherMode")) then
+						GUI:Text(GetString("Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile"))
+					elseif (gBotMode == GetString("fishMode")) then
+						GUI:Text(GetString("Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles."))
+					elseif (gBotMode == GetString("craftMode")) then
+						GUI:Text(GetString("Craft Mode will... \
+ \
+Craft a list of items Set via Profile\
+or \
+Craft Single item type in Quickstart. \
+\
+Only for Craft Classes. \
+\
+Skills Profiles... \
+\
+Profile mode is set via the Craft Edit Tab, \
+This allows Profiles to swap between crafts \
+\
+or \
+\
+Quickstart will use the Active Skill Profile Selection. \
+\
+Craft Mode is Only as Good as the Skill Profile!!"))
+					else
+						GUI:Text(GetString("Accepting help and Faq suggestions"))
+					end
+				end
+				-- FAQ tab.
+				if (tabs.tabs[2].isselected) then
+					if (gBotMode == GetString("assistMode")) then
+						GUI:Text(GetString("My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?"))
+					elseif (gBotMode == GetString("grindMode")) then
+						GUI:Text(GetString("My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job."))
+					elseif (gBotMode == GetString("gatherMode")) then
+						GUI:Text(GetString("Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list."))
+					elseif (gBotMode == GetString("fishMode")) then
+						GUI:Text(GetString("Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?"))
+					elseif (gBotMode == GetString("craftMode")) then
+						GUI:Text(GetString("Bot Doesnt Craft? \
+\
+Profiles... \
+Check UI alert and see if there is an alert. \
+\
+\
+Quick start \
+Have you set a Skill Profile? \
+Do you have materials?"))
+					else
+						GUI:Text(GetString("Accepting help and Faq suggestions"))
+					end
+				end
+				-- Report tab.
+				if (tabs.tabs[3].isselected) then
+					GUI:Text("Report issues in the Forum or Discord Channel.")
+					GUI:Spacing();
+					GUI:TextWrapped("We need enough info to reproduce the issue or we cant fix it.")
+					GUI:Spacing();
+					GUI:Spacing();
+					GUI:Text("Please provide a screenshot with any issues")
+					GUI:Separator()
+					GUI:Text("Navmesh:")
+					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					GUI:Separator()
+					GUI:Text("POS:")
+					local PlayerPos = Player.pos
+					GUI:Text("X: "..PlayerPos.x)
+					GUI:Text("Y: "..PlayerPos.y)
+					GUI:Text("Z: "..PlayerPos.z)
+					GUI:Separator()
+					GUI:Text("Current Task: "); GUI:SameLine();	GUI:Text(FFXIV_Core_ActiveTaskName)
+					GUI:Separator()
+					GUI:Text("Is Flying: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.isflying))
+					GUI:Text("Is Diving: "); GUI:SameLine(); GUI:Text(tostring(Player.diving.isdiving))
+					GUI:Separator()
+					if gBotMode == GetString("questMode") then
+						GUI:Text("Profile : "); GUI:SameLine(); GUI:Text(gQuestProfile)
+						if gCurrQuestID ~= "" then
+							GUI:Text("Quest ID : "); GUI:SameLine(); GUI:Text(gCurrQuestID)
+						end
+						if gQuestStepType ~= "" then
+							GUI:Text("Quest Task : "); GUI:SameLine(); GUI:Text(gQuestStepType)
+						end
+						if gCurrQuestStep ~= "" then
+							GUI:Text("Quest Step Index : "); GUI:SameLine(); GUI:Text(gCurrQuestStep)
+						end
+						if gCurrQuestObjective ~= "" then
+							GUI:Text("Quest Objective : "); GUI:SameLine(); GUI:Text(gCurrQuestObjective)
+						end
+						if gCurrQuestStep ~= "" then
+							GUI:Text("Quest Step : "); GUI:SameLine(); GUI:Text(gCurrQuestStep)
+						end
+					end
+				end
+	
+			end
+			GUI:End()
+			GUI:PopStyleColor()
+		end
+	end
+end
+
+
 function ml_global_information.Draw( event, ticks ) 
 	-- Main "mode" window.
 	-- DrawMode 1 is fully drawn, 2 is minimized, mode visible only.
@@ -1851,6 +2152,7 @@ function ml_global_information.Draw( event, ticks )
 	ml_global_information.DrawMiniButtons()
 	ml_global_information.DrawLoginHandler()
 	ml_global_information.DrawAutoGrindEditor()
+	ml_global_information.DrawHelper()
 end
 
 -- Register Event Handlers

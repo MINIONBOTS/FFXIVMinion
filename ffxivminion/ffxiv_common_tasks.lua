@@ -12,6 +12,10 @@
 --This task moves the player to a specified position, the partent of this task needs to make sure
 --that this movetopos task has up2date positions and is still valid.
 ---------------------------------------------------------------------------------------------
+
+ffxiv_task_fate.tracking = {
+	measurementDelay = 0,
+}
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)
@@ -157,9 +161,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local requiredRange = (self.range + self.gatherRange)
 		local requiredRange3d = (IsNull(self.range3d,self.range + 2))
 		
-		d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
-		d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
-		d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."], ["..tostring(requiredRange3d).."]")
+		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
+		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
+		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
 		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 			return true
@@ -1345,7 +1349,7 @@ function ffxiv_task_grindCombat.Create()
 	newinst.betterTargetFunction = nil
 	ffxiv_unstuck.Reset()
 	
-	d("[GrindCombat]: Beginning new task.")
+	--d("[GrindCombat]: Beginning new task.")
 	
     return newinst
 end
@@ -1595,9 +1599,10 @@ end
 function ffxiv_task_grindCombat:task_complete_eval()
 	local target = EntityList:Get(self.targetid)
     if (not target or not target.alive or not target.attackable) then
-		d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
+		--d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
+   
 	return false
 end
 function ffxiv_task_grindCombat:task_complete_execute()
@@ -1624,17 +1629,17 @@ function ffxiv_task_grindCombat:task_fail_eval()
 			local fateID = target.fateid
 			local fate = MGetFateByID(fateID)
 			if (not fate) then
-				d("[GrindCombat]: Task complete due to fate target and fate not found.")
+				--d("[GrindCombat]: Task complete due to fate target and fate not found.")
 				return true
 			elseif (fate and fate.completion > 99) then
-				d("[GrindCombat]: Task complete due to fate target and fate completion > 99 ["..tostring(fate.completion).."].")
+				--d("[GrindCombat]: Task complete due to fate target and fate completion > 99 ["..tostring(fate.completion).."].")
 				return true
 			end
 		end
 	end
 	
 	if (not Player.alive) then
-		d("[GrindCombat]: Task failure due to death.")
+		--d("[GrindCombat]: Task failure due to death.")
 		return true
 	end
 	

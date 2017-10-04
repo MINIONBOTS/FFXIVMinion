@@ -17,7 +17,14 @@ ffxiv_gather.collectors = {
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
 function ffxiv_task_gather.Create()
-    local newinst = inheritsFrom(ffxiv_task_gather)
+    if gGatherMarkerOrProfileIndex == 1 then
+		if Player.job == 16 then 
+			gMarkerType = "Mining"
+		elseif Player.job == 17 then 
+			gMarkerType = "Botany"
+		end
+	end
+	local newinst = inheritsFrom(ffxiv_task_gather)
     --ml_task members
     newinst.valid = true
     newinst.completed = false
@@ -219,7 +226,7 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
 			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
 			basePos = marker:GetPosition()
-		else
+		elseif gGatherMarkerOrProfileIndex == 3 then
 			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
@@ -306,8 +313,8 @@ function c_movetonode:evaluate()
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
-			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
-			if (not reachable or IsFlying()) then
+			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5) and not IsFlying()
+			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else	
@@ -466,7 +473,7 @@ function c_returntobase:evaluate()
 			end
 		elseif (table.valid(marker)) then
 			basePos = marker:GetPosition()
-		else
+		elseif gGatherMarkerOrProfileIndex == 3 then
 			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
@@ -519,17 +526,16 @@ end
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	if (table.valid(ffxiv_gather.profileData)) then
-		return false
-	end
-	
 	if (Now() < ffxiv_gather.timer or IsControlOpen("Gathering")) then
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
+	if (gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1 then
+		return false
+	end
 	
 	local filter = "mapid="..tostring(Player.localmapid)
-	if (gMarkerMgrMode ~= GetString("singleMarker")) then
+	if (gMarkerMgrMode ~= GetString("Single Marker")) then
 		filter = filter..",minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
 	end
 	
@@ -546,13 +552,14 @@ function c_nextgathermarker:evaluate()
 		marker = ml_marker_mgr.GetNextMarker(markerType,filter)
 	end
 	
-	if (gMarkerMgrMode == GetString("markerTeam")) then
+	if (gMarkerMgrMode == GetString("Marker Team")) then
 		--d("Checking marker team section.")
 		local gatherid = ml_task_hub:CurrentTask().gatherid or 0
 		if (gatherid == 0 and ml_task_hub:CurrentTask().failedSearches > 5) then
 			marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 		end
 	end
+	
 	if (currentMarker) then
 		if (marker == nil) then
 			if (IsNull(currentMarker.timeout,0) > 0) then
@@ -570,7 +577,7 @@ function c_nextgathermarker:evaluate()
 		
 		-- next check to see if our level is out of range
 		if (marker == nil) then
-			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
+			if (not gMarkerMgrMode == GetString("Single Marker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
 				marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 			end
 		end
@@ -579,14 +586,11 @@ function c_nextgathermarker:evaluate()
 		if (marker == nil) then
 			if (currentMarker.duration > 0) then
 				if (currentMarker:GetTimeRemaining() <= 0) then
-					gd("Getting Next Marker, TIME IS UP!",1)
+					ml_debug("Getting Next Marker, TIME IS UP!")
 					marker = ml_marker_mgr.GetNextMarker(markerType, filter)
 				else
 					return false
 				end
-			elseif (currentMarker.duration == 0) then
-			gd("Unlimited Time Marker",1)
-				return false
 			end
 		end
 	end
@@ -615,13 +619,13 @@ end
 
 function DoGathering(item)
 	if (ffxiv_gather.CheckBuffs(item)) then
-		d("[Gather]: Running a buff check.")
+		gd("[Gather]: Running a buff check.",1)
 		ml_global_information.Await(1500)
 		return 1
 	end
 	
 	if (SkillMgr.Gather(item)) then
-		d("[Gather]: Running a skillmanager process.")
+		gd("[Gather]: Running a skillmanager process.",1)
 		ml_global_information.Await(500)
 		return 2
 	end	
@@ -704,14 +708,19 @@ function e_gather:execute()
 			nogpitem = IsNull(task.nogpitem,"")
 			noGPGather = IsNull(task.nogpgather,false)
 		elseif (table.valid(marker)) then
-			gatherMaps = IsNull(marker.gathermaps,"")
+			gatherMaps = gQuickstartMaps
 			gatherGardening = IsNull(marker.gathergardening,false)
 			gatherRares = IsNull(marker.gatherrares,false)
-			gatherSuperRares = IsNull(marker.gatherspecialrares,false)
 			gatherChocoFood = IsNull(marker.gatherchocofood,false)
 			item1 = IsNull(marker.item1,"")
 			item2 = IsNull(marker.item2,"")
 			item3 = IsNull(marker.item3,"")
+		elseif gGatherMarkerOrProfileIndex == 3 then
+			gatherMaps = gQuickstartMaps
+			gatherGardening = gQuickstartGardening
+			gatherRares = gQuickstartRares
+			gatherChocoFood = gQuickstartChocoboFood
+			item1 = gGatherQuickSlot
 		end
 		
 		if (type(gatherGardening) == "string" and GUI_Get(gatherGardening) ~= nil) then
@@ -795,7 +804,7 @@ function e_gather:execute()
 			end
 		end
 			
-		gd("Checking gardening section.",1)
+		gd("Checking gardening section.",2)
 			
 		-- 2nd pass, gardening supplies
 		if (gatherGardening ~= "" and gatherGardening ~= false ) then
@@ -822,7 +831,7 @@ function e_gather:execute()
 			end
 		end
 			
-		gd("Checking special rare item section.",1)
+		gd("Checking special rare item section.",2)
 			
 		-- 3rd pass, try to get special rare items
 		if (gatherSuperRares ~= "" and gatherSuperRares ~= false) then
@@ -849,7 +858,7 @@ function e_gather:execute()
 			end
 		end
 			
-		gd("Checking ixali rare item section.",1)
+		gd("Checking ixali rare item section.",2)
 						
 		-- 5th pass, ixali rare items
 		for i, item in pairs(list) do
@@ -861,7 +870,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking ixali semi-rare item section.",1)
+		gd("Checking ixali semi-rare item section.",2)
 
 		-- 6th pass, semi-rare ixali items
 		for i, item in pairs(list) do
@@ -873,7 +882,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking chocobo rare item section.",1)
+		gd("Checking chocobo rare item section.",2)
 		
 		-- 7th pass to get chocobo rare items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false) then
@@ -900,7 +909,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking regular rare item section.",1)
+		gd("Checking regular rare item section.",2)
 		
 		-- 4th pass, regular rare items
 		if (gatherRares ~= "" and gatherRares ~= false) then
@@ -925,7 +934,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking chocobo item section.",1)
+		gd("Checking chocobo item section.",2)
 		
 		-- 7th pass to get chocobo items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood) then
@@ -952,7 +961,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking unknown item section.",1)
+		gd("Checking unknown item section.",2)
 		
 			-- Gather unknown items to unlock them.
 		if (Player.level < 70) then
@@ -963,7 +972,7 @@ function e_gather:execute()
 			end
 		end
 		
-		gd("Checking regular item section.",1)
+		gd("Checking regular item section.",2)
 		
 		local itemid1 = 0
 		local itemid2 = 0
@@ -978,14 +987,14 @@ function e_gather:execute()
 		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
 
 		if (Player.gp.current < minimumGP or noGPGather) then
-			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none")) then
+			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("None")) then
 				nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
 				if (nogpitemid == 0) then
-					d("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].")
+					gd("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].",2)
 				else
 					ffxiv_gather.currentTask.nogpgather = true
 					noGPGather = true
-					d("[Gather]: Setting nogpitemid to ["..tostring(nogpitemid).."]")
+					gd("[Gather]: Setting nogpitemid to ["..tostring(nogpitemid).."]",2)
 				end
 			end
 			if (tonumber(nogpitem) ~= nil) then
@@ -993,16 +1002,16 @@ function e_gather:execute()
 				nogpitemid = tonumber(nogpitem)
 				ffxiv_gather.currentTask.nogpgather = true
 				noGPGather = true
-				d("[Gather]: Using slot for No GP item - ["..tostring(nogpitemslot).."].")
+				gd("[Gather]: Using slot for No GP item - ["..tostring(nogpitemslot).."].",2)
 			end
 		end
 
-		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
+		if (item1 and item1 ~= "" and item1 ~= GetString("None")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
+				gd("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",2)
 			else
-				d("[Gather]: Setting itemid1 to ["..tostring(itemid1).."]")
+				gd("[Gather]: Setting itemid1 to ["..tostring(itemid1).."]",2)
 			end
 		end
 		if (type(item1) == "number") then
@@ -1010,15 +1019,15 @@ function e_gather:execute()
 		end
 		if (tonumber(item1) ~= nil) then
 			itemslot1 = tonumber(item1)
-			d("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].")
+			gd("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].",2)
 		end
 		
-		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
+		if (item2 and item2 ~= "" and item2 ~= GetString("None")) then
 			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
+				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",2)
 			else
-				d("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]")
+				gd("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]",2)
 			end
 		end
 		if (type(item1) == "number") then
@@ -1026,15 +1035,15 @@ function e_gather:execute()
 		end
 		if (tonumber(item2) ~= nil) then
 			itemslot2 = tonumber(item2)
-			d("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].")
+			gd("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].",2)
 		end
 		
-		if (item3 and item3 ~= "" and item3 ~= GetString("none")) then
+		if (item3 and item3 ~= "" and item3 ~= GetString("None")) then
 			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].")
+				gd("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].",2)
 			else
-				d("[Gather]: Setting itemid3 to ["..tostring(itemid3).."]")
+				gd("[Gather]: Setting itemid3 to ["..tostring(itemid3).."]",2)
 			end
 		end
 		if (type(item3) == "number") then
@@ -1042,7 +1051,7 @@ function e_gather:execute()
 		end
 		if (tonumber(item3) ~= nil) then
 			itemslot3 = tonumber(item3)
-			d("[Gather]: Using slot for item 3 - ["..tostring(itemslot3).."].")
+			gd("[Gather]: Using slot for item 3 - ["..tostring(itemslot3).."].",2)
 		end
 		
 		for i, item in pairs(list) do
@@ -1054,7 +1063,7 @@ function e_gather:execute()
 
 			if (nogpitemslot ~= 0) then
 				if (item.index == nogpitemslot and item.id ~= nil) then
-					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
+					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1069,7 +1078,7 @@ function e_gather:execute()
 					
 			if (itemslot1 ~= 0) then
 				if (item.index == itemslot1 and item.id ~= nil) then
-					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
+					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1078,14 +1087,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid2 ~= 0) then
 				if (item.id == itemid2) then
-					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
+					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == itemslot2 and item.id ~= nil) then
-					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
+					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1287,11 +1296,11 @@ function CanUseCordialSoon()
 			end
 		end
 		
-		if (gpDeficit >= 400 and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+		if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 			return true, cordialHigh
-		elseif (gpDeficit >= 300 and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+		elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 			return true, cordialNormal
-		elseif (gpDeficit >= 150 and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+		elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
 			return true, cordialQuick
 		end	
 		
@@ -1587,7 +1596,7 @@ function c_nodeprebuff:evaluate()
 			e_nodeprebuff.requiredismount = false
 			return true
 		else
-			if (skillProfile == GetString("none")) then
+			if (skillProfile == GetString("None")) then
 				d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 				SkillMgr.UseProfile(skillProfile)
 				e_nodeprebuff.activity = "switchprofile"
@@ -2185,6 +2194,10 @@ function c_gathernexttask:evaluate()
 	if (not Player.alive or not table.valid(ffxiv_gather.profileData) or IsControlOpen("Gathering")) then
 		return false
 	end
+	if ((gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 2)) then
+	d("return false")
+		return false
+	end
 	
 	c_gathernexttask.blockOnly = false
 	
@@ -2593,6 +2606,7 @@ function c_gathernexttask:evaluate()
 				local highPriority = {}
 				local normalPriority = {}
 				local lowPriority = {}
+				local idlePriority = {}
 				
 				for i,data in pairsByKeys(validTasks) do
 					if (not data.lockout or Now() > data.lockout) then
@@ -2606,6 +2620,9 @@ function c_gathernexttask:evaluate()
 						elseif (data.lowpriority) then
 							gd("Added task at ["..tostring(i).."] to the low priority queue.")
 							lowPriority[i] = data
+						elseif (data.idlepriority) then
+							gd("Added task at ["..tostring(i).."] to the idle priority queue.")
+							idlePriority[i] = data
 						elseif (data.weatherlast or data.weathernow or data.weathernext) then
 							gd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
@@ -2762,6 +2779,62 @@ function c_gathernexttask:evaluate()
 					
 				end
 				
+				-- Idle priority section.
+				if (invalid and not best) then
+					gd("[GatherNextTask]: Check the idle priority section since haven't found anything yet.",3)
+					if (IsNull(currentTask.set,"") ~= "") then
+						gd("[GatherNextTask]: Check for the next task in this set.",3)
+						lowestIndex = 9999
+						for i,data in pairsByKeys(idlePriority) do
+							if (IsNull(data.set,"") == currentTask.set) then
+								
+								if (i > currentTaskIndex) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+						end
+						
+						if (not best) then
+							gd("[GatherNextTask]: Loop back around to check previous tasks in this set.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(idlePriority) do
+								if (IsNull(data.set,"") == currentTask.set) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+						end
+					else
+						gd("[GatherNextTask]: Check for the next task available for idle priority.",3)
+						lowestIndex = 9999
+						for i,data in pairsByKeys(idlePriority) do
+							if (i > currentTaskIndex) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+						
+						if (not best) then
+							gd("[GatherNextTask]: Still don't have anything, check previous idle priority section tasks.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(idlePriority) do
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+					end
+					
+				end
+				
 				if (best) then
 					if (ffxiv_gather.currentTaskIndex ~= lowestIndex) then
 						ffxiv_gather.currentTaskIndex = lowestIndex
@@ -2783,7 +2856,6 @@ function e_gathernexttask:execute()
 	if (c_gathernexttask.blockOnly) then
 		return
 	end
-	
 	if (Player:IsMoving()) then
 		Player:Stop()
 	end
@@ -2794,7 +2866,6 @@ function e_gathernexttask:execute()
 	if (gBotMode == GetString("questMode")) then
 		gQuestStepType = "gather - ["..tostring(taskName).."]"
 	end
-	
 	ml_marker_mgr.currentMarker = false
 	gStatusMarkerName = ""
 	ml_task_hub:CurrentTask().gatherid = 0
@@ -3285,7 +3356,7 @@ function ffxiv_task_gather:UIInit()
 	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
 	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
-	--gGatherCollectablesList = { GetString("none") }
+	--gGatherCollectablesList = { GetString("None") }
 	--if (ValidString(uistring)) then
 		--for collectable in StringSplit(uistring,",") do
 			--table.insert(gGatherCollectablesList,collectable)
@@ -3293,13 +3364,37 @@ function ffxiv_task_gather:UIInit()
 	--end
 	
 	gGatherUseCordials = ffxivminion.GetSetting("gGatherUseCordials",true)
-	gGatherCollectablePresets = ffxivminion.GetSetting("gGatherCollectablePresets",{})	
+	ghighCordialsGP = ffxivminion.GetSetting("ghighCordialsGP",200)
+	gnormCordialsGP = ffxivminion.GetSetting("gnormCordialsGP",300)
+	gwateredCordialsGP = ffxivminion.GetSetting("gwateredCordialsGP",150)
 	
+	gQuickstartMaps = ffxivminion.GetSetting("gQuickstartMaps",false)
+	gQuickstartGardening = ffxivminion.GetSetting("gQuickstartGardening",false)
+	gQuickstartRares = ffxivminion.GetSetting("gQuickstartRares",false)
+	gQuickstartChocoboFood = ffxivminion.GetSetting("gQuickstartChocoboFood",false)
+	
+	local quickslot = { 1, 2, 3,4 ,5 ,6, 7, 8}
+	gGatherQuickSlot = ffxivminion.GetSetting("gGatherQuickSlot",1)
+	gGatherQuickSlotIndex = GetKeyByValue(gGatherQuickSlot,quickslot)
+	
+	gGatherCollectablePresets = ffxivminion.GetSetting("gGatherCollectablePresets",{})	
 	gGatherTaskFilterID = 0
 	gGatherTaskFilterAlias = ""
 	
+	-- New Marker/Profile Settings
+	gGatherMarkerOrProfileOptions = { GetString("Markers"), GetString("Profile"), GetString("Quick Start Mode") }
+	gGatherMarkerOrProfile = ffxivminion.GetSetting("gGatherMarkerOrProfile",GetString("Markers"))
+	gGatherMarkerOrProfileIndex = ffxivminion.GetSetting("gGatherMarkerOrProfileIndex",1)
+	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	-- Load correct tabs for current mode on inital run.
+	if gGatherMarkerOrProfileIndex == 1 then
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 2 then
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 3 then
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
+		end
 	self.GUI.profile = {
 		open = false,
 		visible = true,
@@ -3309,45 +3404,201 @@ function ffxiv_task_gather:UIInit()
 end
 
 function ffxiv_task_gather:Draw()
-	
-	local profileChanged = GUI_Combo(GetString("profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
-	if (profileChanged) then
-		ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
-		local uuid = GetUUID()
-		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = gGatherProfile
-		c_gathernexttask.subsetExpiration = 0
+	-- Gather Mode Selections.
+	GUI:Separator()
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Mode")
+	GUI:SameLine()
+	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
+	GUI:PushItemWidth(MarkerOrProfileWidth-8)
+	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gGatherMarkerOrProfileIndex", "gGatherMarkerOrProfile", gGatherMarkerOrProfileOptions)
+	if (MarkerOrProfile) then
+		-- Update tabs on change.
+		if gGatherMarkerOrProfileIndex == 1 then
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 2 then
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 3 then
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
+		end
 	end
-	
+	GUI:PopItemWidth()
+	if gGatherMarkerOrProfileIndex == 1 then -- Marker stuff.
+		if gGatherProfileIndex ~= 1 then
+			gGatherProfileIndex = 1
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Mode")
+		GUI:SameLine()
+		local MarkerModeWidth = GUI:GetContentRegionAvail() 
+		GUI:PushItemWidth(MarkerModeWidth-8)
+		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
+		if (modeChanged) then
+			local uuid = GetUUID()
+			if ( string.valid(uuid) ) then
+				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
+				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+			end
+		end
+	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
+		GUI:SameLine()
+		local ProfileWidth = GUI:GetContentRegionAvail() 
+		GUI:PushItemWidth(ProfileWidth-8)
+		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
+		if (profileChanged) then
+			ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
+			local uuid = GetUUID()
+			Settings.FFXIVMINION.gLastGatherProfiles[uuid] = gGatherProfile
+			c_gathernexttask.subsetExpiration = 0
+		end
+		GUI:PopItemWidth()
+		if gGatherProfileIndex == 1 then
+			GUI:TextColored(1,.1,.2,1,"No Profile Selected.")
+			if (FFXIV_Common_BotRunning) then
+				ml_global_information:ToggleRun()
+				d("Please select/create a valid profile.")
+			end
+		end
+	end
+	-- Gather Tabs.
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
-	
-	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
-		GUI:PushItemWidth(120)					
+	-- Settings Tab.
+	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[2].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[1].isselected)) then
+		if (gGatherMarkerOrProfileIndex == 2) then
+			local profiletask = ffxiv_gather.currentTask
+			if table.valid(profiletask) then
+				local TimeLeft = 999
+				if profiletask.maxtime ~= nil then
+					if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
+						local TastStarted = profiletask.taskStarted
+						local TimeSince = TimeSince(profiletask.taskStarted)
+						local MaxTime = profiletask.maxtime
+						TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
+						if TimeLeft < 0 then TimeLeft = 0 end
+					end
+				end
+				GUI:BeginChild("##header-Timers",-8,GUI_GetFrameHeight(2),true)	
+				GUI:Columns(2)
+				GUI:Spacing();
+				GUI:Text(GetString("Task Time Remaning (s): "))
+				GUI:Spacing();
+				GUI:Text(GetString("Gather Task: "))
+				GUI:NextColumn()
+				
+				GUI:PushItemWidth(50)
+				GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+				local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
+				GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
+				GUI:PopItemWidth()
+				GUI:Columns()
+				GUI:EndChild()
+			end
+		end
 		
-		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
-		local debugLevels = { 1, 2, 3}
-		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
-		
-		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
-		GUI_Capture(GUI:Checkbox("Use Cordials",gGatherUseCordials),"gGatherUseCordials");
-		
+		GUI:BeginChild("##header-status",-8,GUI_GetFrameHeight(5),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Experience boost manuals.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - High Cordial")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a High Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - Cordial")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - Watered Cordial")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a Watered Cordial.")
+		end
+		GUI:NextColumn()
+		local CordialWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(CordialWidth)
+		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Experience boost manuals.")
+		end
+		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI_DrawIntMinMax(GetString("##High Cordial If    <= (Min GP)"),"ghighCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a High Cordial.")
+		end
+		GUI_DrawIntMinMax(GetString("##Cordial If         <= (Min GP)"),"gnormCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a Cordial.")
+		end
+		GUI_DrawIntMinMax(GetString("##Watered Cordial If <= (Min GP)"),"gwateredCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP required before using a Watered Cordial.")
+		end
 		GUI:PopItemWidth()
+		GUI:Columns()
+		GUI:EndChild()
+		--Stealth Settings
+		GUI:BeginChild("##main-header-stealth",-8,GUI_GetFrameHeight(3),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before applying Stealth.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Remove Range")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before removing Stealth.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Smart Stealth")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
+		end
+		GUI:NextColumn()
+		local StealthWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(StealthWidth)
+		GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before applying Stealth.")
+		end
+		GUI_DrawIntMinMax("##Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before removing Stealth.")
+		end
+		GUI:PopItemWidth()
+		GUI_Capture(GUI:Checkbox("##Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
+		end
+		GUI:Columns()
 		GUI:EndChild()
 	end
-	
-	if (tabs.tabs[2].isselected) then
-		if (GUI:Button("Add Collectable",150,20)) then
+	-- Collectable Tab
+	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[3].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[2].isselected)) then
+		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
+		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
 			table.insert(gGatherCollectablePresets,newCollectable)
 			GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 		end
-		
+		GUI:Columns(2)
+		local CollectableWidth1 = GUI:GetContentRegionAvail()
+		GUI:Text("Item Name")
+		GUI:NextColumn()
+		local CollectableWidth2 = GUI:GetContentRegionAvail()
+		GUI:Text("Min Value")
+		GUI:Columns()
+		GUI:Separator()
+		-- Collectable List
 		if (table.valid(gGatherCollectablePresets)) then
-			GUI:Text("Item Name"); GUI:SameLine(210); GUI:Text("Min Value")
+			GUI:Columns(2)
 			for i,collectable in pairsByKeys(gGatherCollectablePresets) do
+				GUI:PushItemWidth(CollectableWidth1-8)
 				GUI:AlignFirstTextHeightToWidgets()
-				GUI:PushItemWidth(200)
 				local newName = GUI:InputText("##gather-collectablepair-name"..tostring(i),collectable.name)
 				if (newName ~= collectable.name) then
 					gGatherCollectablePresets[i].name = newName
@@ -3357,8 +3608,8 @@ function ffxiv_task_gather:Draw()
 					GUI:SetTooltip("Case-sensitive item name for the item to become a collectable.")
 				end
 				GUI:PopItemWidth()
-				GUI:PushItemWidth(40)
-				GUI:SameLine()
+				GUI:NextColumn()
+				GUI:PushItemWidth(CollectableWidth2-28)
 				local newValue = GUI:InputInt("##gather-collectablepair-value"..tostring(i),collectable.value,0,0)
 				if (newValue ~= collectable.value) then
 					gGatherCollectablePresets[i].value = newValue
@@ -3377,8 +3628,190 @@ function ffxiv_task_gather:Draw()
 					GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 				end
 				GUI:PopStyleColor(2)
+				GUI:NextColumn()
+			end
+			GUI:Columns()
+		end
+	end
+	-- Marker Tab
+	if (gGatherMarkerOrProfileIndex == 1 and (tabs.tabs[1].isselected)) then
+		local currentMode = ml_marker_mgr.modes[gMarkerModeIndex]
+		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
+		local currentMap = ml_marker_mgr.activeMap
+		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Type")
+		GUI:SameLine()
+		local MarkerTypeWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(MarkerTypeWidth-8)
+		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
+		if (modeChanged) then
+			ml_marker_mgr.UpdateMarkerSelector()
+		end
+		GUI:PopItemWidth()
+		-- Marker List
+		GUI:BeginChild("##header-list",-8,GUI_GetFrameHeight(6),true)
+		if table.valid(currentList) then
+			for i,marker in pairsByKeys(currentList) do
+				if (table.valid(marker)) then
+					local MarkerButtonWidth = GUI:GetContentRegionAvail()
+					if (GUI:Button(marker.name.." ["..tostring(marker.id).."]",MarkerButtonWidth-50,18)) then
+						-- Set this marker as the currently editing marker.
+						ml_marker_mgr.GUI.main_window.open = true
+						ml_marker_mgr.createMarker = 0
+						ml_marker_mgr.editMarker = marker.id
+						ml_marker_mgr.addMarker = 0
+						ml_marker_mgr.SwitchTab(2)
+					end
+					GUI:SameLine(0,5)
+					if (GUI:Button("UP##"..tostring(i),20,18)) then
+						local lists = ml_marker_mgr.lists
+						if (table.valid(lists)) then
+							if (lists[currentMode]) then
+								if (lists[currentMode][currentType]) then
+									if (lists[currentMode][currentType][currentMap]) then
+										local thisList = lists[currentMode][currentType][currentMap]
+										if (table.valid(thisList)) then
+											if (i ~= 1) then
+												local temp = thisList[i-1]
+												thisList[i-1] = thisList[i]
+												thisList[i] = temp
+												ml_marker_mgr.WriteMarkerFile()
+											end
+										end
+									end
+								end
+							end
+						end							
+					end
+					GUI:SameLine(0,5)
+					if (GUI:Button("DN##"..tostring(i),20,18)) then
+						local lists = ml_marker_mgr.lists
+						if (table.valid(lists)) then
+							if (lists[currentMode]) then
+								if (lists[currentMode][currentType]) then
+									if (lists[currentMode][currentType][currentMap]) then
+										local thisList = lists[currentMode][currentType][currentMap]
+										if (table.valid(thisList)) then
+											if (i ~= table.size(thisList)) then
+												local temp = thisList[i+1]
+												thisList[i+1] = thisList[i]
+												thisList[i] = temp
+												ml_marker_mgr.WriteMarkerFile()
+											end
+										end
+									end
+								end
+							end
+						end				
+					end
+				end
+			end
+		else -- No Valid marker list.
+			GUI:TextWrapped("No markers exist for "..gMarkerType.." - "..gMarkerMode)
+			GUI:TextWrapped("Set Markers and Marker Type Prior to enabling Bot")
+			if (FFXIV_Common_BotRunning) then
+				d("No markers exist for "..gMarkerType.." - "..gMarkerMode)
+				ml_global_information:ToggleRun()
 			end
 		end
+		GUI:EndChild()
+	end
+	if (gGatherMarkerOrProfileIndex == 3 and (tabs.tabs[1].isselected)) then
+		
+		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(5),true)
+		GUI:Columns(2)
+		
+	
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Slot")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Slot to collect inside Node.")
+		end
+		
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Maps")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Maps If Available.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gardening")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Seeds etc If Available.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Rares")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Rare Items If Available.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Chocobo Food")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
+		end
+		
+		GUI:NextColumn()
+		
+		local MarkerTypeWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(MarkerTypeWidth-8)
+		
+		local quickslot = { 1, 2, 3,4 ,5 ,6, 7, 8}
+		gGatherQuickSlotIndex = GetKeyByValue(gGatherQuickSlot,quickslot) or 1
+		if (quickslot[gGatherQuickSlotIndex] ~= gGatherQuickSlot) then
+			gGatherQuickSlot = quickslot[gGatherQuickSlotIndex]
+		end
+		GUI_Combo("##quickslot", "gGatherQuickSlotIndex", "gGatherQuickSlot", quickslot)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Slot to collect inside Node.")
+		end
+		GUI_Capture(GUI:Checkbox("##gQuickstartMaps",gQuickstartMaps),"gQuickstartMaps")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Maps If Available.")
+		end
+		GUI_Capture(GUI:Checkbox("##gQuickstartGardening",gQuickstartGardening),"gQuickstartGardening")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Seeds etc If Available.")
+		end
+		GUI_Capture(GUI:Checkbox("##gQuickstartRares",gQuickstartRares),"gQuickstartRares")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Rare Items If Available.")
+		end
+		GUI_Capture(GUI:Checkbox("##gQuickstartChocoboFood",gQuickstartChocoboFood),"gQuickstartChocoboFood")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
+		end
+		
+		GUI:Columns()
+		GUI:EndChild()
+	end
+	-- Debug Tab
+	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[4].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[3].isselected))  then
+		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Debug")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Enable Debug messages in console.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Debug Level")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
+		end
+		GUI:NextColumn()
+		
+		
+		GUI_Capture(GUI:Checkbox("##Gather Debug",gFishDebug),"gFishDebug")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Enable Debug messages in console.")
+		end
+		local DebugWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(DebugWidth)
+		
+		local debugLevels = { 1, 2, 3}
+		gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels) or 1
+		if (debugLevels[gGatherDebugLevelIndex] ~= gGatherDebugLevel) then
+			gGatherDebugLevel = debugLevels[gGatherDebugLevelIndex]
+		end
+		GUI_Combo("##Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
+		end
+		GUI:PopItemWidth()
+		GUI:Columns()
+		GUI:EndChild()
 	end
 end
 
@@ -3491,7 +3924,7 @@ function ffxiv_gather.GetUnspoiledMarkers(mapid)
 	local mapid = tonumber(mapid) or 0
 	local meshName = Settings.minionlib.DefaultMaps[mapid]
 	if (meshName) then
-		local markerNameList = GetOffMapMarkerList(meshName, GetString("unspoiledMarker"))
+		local markerNameList = GetOffMapMarkerList(meshName, GetString("Unspoiled Marker"))
 		if (markerNameList) then
 			return markerNameList
 		else

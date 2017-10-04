@@ -41,7 +41,10 @@ ffxiv_fish.GUI = {
 ffxiv_task_fish = inheritsFrom(ml_task)
 function ffxiv_task_fish.Create()
     --local newinst = inheritsFrom(ffxiv_task_fish)
-    
+    if gFishMarkerOrProfileIndex == 1 then
+		gMarkerType = "Fishing"
+	end
+	
 	local newinst = {}
 	
     --ml_task members
@@ -305,8 +308,8 @@ function c_precastbuff:evaluate()
 				d("[PreCastBuff]: Need to use a cordial.")
 				c_precastbuff.activity = "usecordial"
 				c_precastbuff.itemid = cordialItem.hqid
-				c_precastbuff.requirestop = true
-				c_precastbuff.requiredismount = true
+				c_precastbuff.requirestop = false
+				c_precastbuff.requiredismount = false
 				return true
 			end					
 		end
@@ -389,6 +392,8 @@ function c_mooch2:evaluate()
 		useMooch2 = IsNull(task.usemooch2,false)
 	elseif (table.valid(marker)) then
 		useMooch2 = IsNull(marker.usemooch2,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		useMooch2 = gQuickstartMooch2
 	else
 		useMooch2 = true
 	end
@@ -396,7 +401,6 @@ function c_mooch2:evaluate()
 	if (type(useMooch2) == "string" and GUI_Get(useMooch2) ~= nil) then
 		useMooch2 = GUI_Get(useMooch2)
 	end
-	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
@@ -431,6 +435,7 @@ function e_mooch2:execute()
     local mooch2 = SkillMgr.GetAction(268,1)
     if (mooch2 and mooch2:IsReady(Player.id)) then
         if (mooch2:Cast()) then
+		d("Mooch2 Cast",1)
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
@@ -451,6 +456,8 @@ function c_mooch:evaluate()
 		useMooch = IsNull(task.usemooch,false)
 	elseif (table.valid(marker)) then
 		useMooch = IsNull(marker.usemooch,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		useMooch = gQuickstartMooch
 	else
 		useMooch = true
 	end
@@ -493,6 +500,7 @@ function e_mooch:execute()
     local mooch = SkillMgr.GetAction(297,1)
     if (mooch and mooch:IsReady(Player.id)) then
         if (mooch:Cast()) then
+		fd("Mooch Cast",1)
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
@@ -779,6 +787,8 @@ function e_bite:execute()
 				useDoubleHook = IsNull(task.usedoublehook,false)
 			elseif (table.valid(marker)) then
 				useDoubleHook = IsNull(marker.usedoublehook,false )
+			elseif gFishMarkerOrProfileIndex == 3 then
+				useDoubleHook = gQuickstartDH
 			end
 			
 			if (type(useDoubleHook) == "string" and GUI_Get(useDoubleHook) ~= nil) then
@@ -805,7 +815,7 @@ end
 c_chum = inheritsFrom( ml_cause )
 e_chum = inheritsFrom( ml_effect )
 function c_chum:evaluate()
-	if (not ffxiv_fish.HasDirective()) then
+	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end
 
@@ -822,6 +832,9 @@ function c_chum:evaluate()
 		elseif (table.valid(marker)) then
 			useChum = IsNull(marker.usechum,false )
 			useEyes = IsNull(marker.usefisheyes,false)
+		elseif gFishMarkerOrProfileIndex == 3 then
+			useChum = gQuickstartChum
+			useEyes = gQuickstartFishEyes
 		end
 		
 		if (type(useChum) == "string" and GUI_Get(useChum) ~= nil) then
@@ -847,12 +860,13 @@ function c_chum:evaluate()
     return false
 end
 function e_chum:execute()
+		fd("Chum Cast",1)
 end
 
 c_fisheyes = inheritsFrom( ml_cause )
 e_fisheyes = inheritsFrom( ml_effect )
 function c_fisheyes:evaluate()
-	if (not ffxiv_fish.HasDirective()) then
+	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end
 
@@ -866,12 +880,13 @@ function c_fisheyes:evaluate()
 			useBuff = IsNull(task.usefisheyes,false)
 		elseif (table.valid(marker)) then
 			useBuff = IsNull(marker.usefisheyes,false)
+		elseif gFishMarkerOrProfileIndex == 3 then
+			useBuff = gQuickstartFishEyes
 		end
 
 		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
 			useBuff = GUI_Get(useBuff)
 		end
-				
 		if (useBuff) then
 			local fisheyes = SkillMgr.GetAction(4105,1)
 			if (fisheyes and fisheyes:IsReady(Player.id)) then
@@ -888,12 +903,13 @@ function c_fisheyes:evaluate()
     return false
 end
 function e_fisheyes:execute()
+		fd("Fisheyes Cast",1)
 end
 
 c_snagging = inheritsFrom( ml_cause )
 e_snagging = inheritsFrom( ml_effect )
 function c_snagging:evaluate()
-	if (not ffxiv_fish.HasDirective()) then
+	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end
 	
@@ -904,27 +920,32 @@ function c_snagging:evaluate()
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
-			local snagging = SkillMgr.GetAction(4100,1)
-			if (snagging and snagging:IsReady(Player.id)) then
-				useBuff = IsNull(task.usesnagging,false)
-				if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
-					useBuff = GUI_Get(useBuff)
+			useBuff = IsNull(task.usesnagging,false)
+		elseif (table.valid(marker)) then
+			useBuff = IsNull(marker.usesnagging,false)
+		elseif gFishMarkerOrProfileIndex == 3 then
+			useBuff = gQuickstartSnagging
+		end
+		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
+			useBuff = GUI_Get(useBuff)
+		end
+		
+
+		local snagging = SkillMgr.GetAction(4100,1)
+		if (snagging and snagging:IsReady(Player.id)) then
+			if (useBuff) then
+				if (MissingBuffs(Player,"761")) then
+					if (snagging:Cast()) then
+						ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
+					end
+					return true
 				end
-				local requiresCast = false
-				if (useBuff) then
-					if (MissingBuffs(Player,"761")) then
-						if (snagging:Cast()) then
-							ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
-						end
-						return true
+			else
+				if (HasBuffs(Player,"761")) then
+					if (snagging:Cast()) then
+						ml_global_information.Await(3000, function () return (MissingBuffs(Player,"761")) end)
 					end
-				else
-					if (HasBuffs(Player,"761")) then
-						if (snagging:Cast()) then
-							ml_global_information.Await(3000, function () return (MissingBuffs(Player,"761")) end)
-						end
-						return true
-					end
+					return true
 				end
 			end
 		end
@@ -933,6 +954,7 @@ function c_snagging:evaluate()
     return false
 end
 function e_snagging:execute()
+		fd("Snagging Cast",1)
 end
 
 c_usecollect = inheritsFrom( ml_cause )
@@ -1011,6 +1033,9 @@ function c_patience:evaluate()
 		elseif (table.valid(marker)) then
 			usePatience = IsNull(marker.usepatience,false)
 			usePatience2 = IsNull(marker.usepatience2,false)
+		elseif gFishMarkerOrProfileIndex == 3 then
+			usePatience = gQuickstartPatience
+			usePatience2 = gQuickstartPatience2
 		end
 		
 		if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
@@ -1045,7 +1070,9 @@ function c_patience:evaluate()
 	
     return false
 end
-function e_patience:execute() end
+function e_patience:execute() 
+		fd("Patience Cast",1)
+end
 
 c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
@@ -1259,7 +1286,8 @@ e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
 e_setbait.baitname = ""
 function c_setbait:evaluate()
-	if (Player.ismounted or not ffxiv_fish.HasDirective()) then
+	
+	if (Player.ismounted or (not ffxiv_fish.HasDirective() and gFishMarkerOrProfileIndex ~= 3)) then
 		return false
 	end
 	
@@ -1280,6 +1308,10 @@ function c_setbait:evaluate()
 			end
 		elseif (table.valid(marker)) then
 			baitChoice = IsNull(marker.baitname,"")
+		elseif gFishMarkerOrProfileIndex == 3 then
+			if gFishQuickBait ~= GetString("None") then
+				baitChoice = gFishQuickBait
+			end
 		else
 			return false
 		end
@@ -1349,6 +1381,8 @@ function e_setbait:execute()
 		end
 	elseif (table.valid(marker)) then
 		baitChoice = marker.baitname or ""
+	elseif gFishMarkerOrProfileIndex == 3 then
+		baitChoice = gFishQuickBait
 	end
 
 	local foundSuitable = false
@@ -1382,20 +1416,19 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
-	if (gFishProfile ~= GetString("none")) then
+	if (gBotMode == GetString("fishMode")) and gFishMarkerOrProfileIndex ~= 1 then
 		return false
 	end
 	
 	e_nextfishingmarker.marker = nil
 	
 	local filter = "mapid="..tostring(Player.localmapid)
-	if (gMarkerMgrMode ~= GetString("singleMarker")) then
+	if (gMarkerMgrMode ~= GetString("Single Marker")) then
 		filter = filter..",minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
 	end
 	
 	local currentMarker = ml_marker_mgr.currentMarker
 	local marker = nil
-	
 	if (currentMarker == nil) then
 		marker = ml_marker_mgr.GetNextMarker("Fishing",filter)
 	else
@@ -1408,7 +1441,7 @@ function c_nextfishingmarker:evaluate()
 		
 		-- next check to see if our level is out of range
 		if (marker == nil) then
-			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
+			if (not gMarkerMgrMode == GetString("Single Marker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
 				marker = ml_marker_mgr.GetNextMarker("Fishing", filter)
 			end
 		end
@@ -1422,6 +1455,8 @@ function c_nextfishingmarker:evaluate()
 				else
 					return false
 				end
+			else
+				return false
 			end
 		end
 	end
@@ -1462,6 +1497,9 @@ c_fishnexttask.subset = {}
 c_fishnexttask.subsetExpiration = 0
 function c_fishnexttask:evaluate()
 	if (not Player.alive or MIsLoading() or MIsCasting() or not table.valid(ffxiv_fish.profileData)) then
+		return false
+	end
+	if ((gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex ~= 2)) then
 		return false
 	end
 	
@@ -1641,7 +1679,7 @@ function c_fishnexttask:evaluate()
 			
 			if (not invalid) then
 				if (IsNull(currentTask.maxtime,0) > 0) then
-					if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
+					if (currentTask.taskStarted > 0 and (TimeSince(currentTask.taskStarted)/1000) > currentTask.maxtime) then
 						invalid = true
 					else
 						fd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].")
@@ -1714,8 +1752,10 @@ function c_fishnexttask:evaluate()
 						local thisIndex = i
 						local valid = true
 						if (data.minlevel and Player.level < data.minlevel) then
+						fd("Player to low",1)
 							valid = false
 						elseif (data.maxlevel and Player.level > data.maxlevel) then
+						fd("Player to high",1)
 							valid = false
 						end
 						
@@ -1744,9 +1784,11 @@ function c_fishnexttask:evaluate()
 									end
 								else
 									baitChoice = IsNull(data.baitname,"")
+									fd("Task ["..tostring(i).."] has baitChoice ["..tostring(data.baitname).."] is Bait.",1)
 								end
 								
 								if (not HasBaits(baitChoice)) then
+									fd("no valid bait",1)
 									valid = false
 								end
 							end
@@ -2452,6 +2494,7 @@ function e_fishstealth:execute()
 	else
 		newTask.addingStealth = true
 	end
+		fd("Stealth Cast",1)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
@@ -2665,8 +2708,9 @@ function ffxiv_task_fish:UIInit()
 	gFishDebugLevel = ffxivminion.GetSetting("gFishDebugLevel",1)
 	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels)
 	
+	
 	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
-	--gFishCollectablesList = { GetString("none") }
+	--gFishCollectablesList = { GetString("None") }
 	--if (ValidString(uistring)) then
 		--for collectable in StringSplit(uistring,",") do
 			--table.insert(gFishCollectablesList,collectable)
@@ -2674,10 +2718,34 @@ function ffxiv_task_fish:UIInit()
 	--end
 	
 	gFishUseCordials = ffxivminion.GetSetting("gFishUseCordials",true)
-	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})	
+	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})
 	
+	gFishQuickBait = ffxivminion.GetSetting("gFishQuickBait", GetString("None"))
+	local baitKey = { GetString("None"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Salmon Roe"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Snurble Fly"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+	gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey)
+	
+	gQuickstartMooch = ffxivminion.GetSetting("gQuickstartMooch",false)
+	gQuickstartMooch2 = ffxivminion.GetSetting("gQuickstartMooch2",false)
+	gQuickstartPatience = ffxivminion.GetSetting("gQuickstartPatience",false)
+	gQuickstartPatience2 = ffxivminion.GetSetting("gQuickstartPatience2",false)
+	gQuickstartSnagging = ffxivminion.GetSetting("gQuickstartSnagging",false)
+	gQuickstartFishEyes = ffxivminion.GetSetting("gQuickstartFishEyes",false)
+	gQuickstartChum = ffxivminion.GetSetting("gQuickstartChum",false)
+	gQuickstartDH = ffxivminion.GetSetting("gQuickstartDH",false)
+	
+	-- New Marker/Profile Settings
+	gFishMarkerOrProfileOptions = { GetString("Markers"), GetString("Profile"), GetString("Quick Start Mode") }
+	gFishMarkerOrProfile = ffxivminion.GetSetting("gFishMarkerOrProfile",GetString("Markers"))
+	gFishMarkerOrProfileIndex = ffxivminion.GetSetting("gFishMarkerOrProfileIndex",1)	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("settings,Collectable",true)
+	-- Load correct tabs for current mode on inital run.
+	if gFishMarkerOrProfileIndex == 1 then
+		self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
+	elseif gFishMarkerOrProfileIndex == 2 then
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
+	end
 	self.GUI.profile = {
 		open = false,
 		visible = true,
@@ -2687,34 +2755,125 @@ function ffxiv_task_fish:UIInit()
 end
 
 function ffxiv_task_fish:Draw()
-	
-	local profileChanged = GUI_Combo(GetString("profile"), "gFishProfileIndex", "gFishProfile", ffxiv_fish.profilesDisplay)
-	if (profileChanged) then
-		ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
-		local uuid = GetUUID()
-		Settings.FFXIVMINION.gLastFishProfiles[uuid] = gFishProfile
+	GUI:Separator()
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Mode")
+	GUI:SameLine()
+	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
+	GUI:PushItemWidth(MarkerOrProfileWidth-8)
+	local MarkerOrProfile = GUI_Combo("##FishMarkerOrProfile", "gFishMarkerOrProfileIndex", "gFishMarkerOrProfile", gFishMarkerOrProfileOptions)
+	if (MarkerOrProfile) then
+		-- Update tabs on change.
+		-- Load correct tabs for current mode on inital run.
+		if gFishMarkerOrProfileIndex == 1 then
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
+		elseif gFishMarkerOrProfileIndex == 2 then
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
+		elseif gFishMarkerOrProfileIndex == 3 then
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
+		end
 	end
-	
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
-	
-	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
-		GUI:PushItemWidth(120)					
-
-		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
-		local debugLevels = { 1, 2, 3}
-		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
-		
-		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
-		GUI_Capture(GUI:Checkbox("Use Cordials",gFishUseCordials),"gFishUseCordials");
-		
+	GUI:PopItemWidth()
+	-- Marker Options
+	if gFishMarkerOrProfileIndex == 1 then
+		if gFishProfileIndex ~= 1 or gFishProfile ~= GetString("None")then
+			gFishProfileIndex = 1
+			gFishProfile = GetString("None")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Mode")
+		GUI:SameLine()
+		local MarkerModeWidth = GUI:GetContentRegionAvail() 
+		GUI:PushItemWidth(MarkerModeWidth-8)
+		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
+		if (modeChanged) then
+			local uuid = GetUUID()
+			if ( string.valid(uuid) ) then
+				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
+				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+			end
+		end
+	-- Profile Options
+	elseif gFishMarkerOrProfileIndex == 2 then
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
+		GUI:SameLine()
+		local profileWidth = GUI:GetContentRegionAvail() 
+		GUI:PushItemWidth(profileWidth-8)
+		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gFishProfileIndex", "gFishProfile", ffxiv_fish.profilesDisplay)
+		if (profileChanged) then
+			ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
+			local uuid = GetUUID()
+			Settings.FFXIVMINION.gLastFishProfiles[uuid] = gFishProfile
+		end
 		GUI:PopItemWidth()
+		if gGatherProfileIndex == 1 and (gFishProfileIndex == 1 or gFishProfile == GetString("None")) then
+			GUI:TextColored(1,.1,.2,1,"No Profile Selected.")
+			if (FFXIV_Common_BotRunning) then
+				ml_global_information:ToggleRun()
+				d("Please select/create a valid Profile.")
+			end
+		end
+	end
+	-- Tabs
+	GUI_DrawTabs(self.GUI.main_tabs)
+	local tabs = self.GUI.main_tabs	
+	-- Settings
+	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[2].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[1].isselected)) then
+		
+		if (gFishMarkerOrProfileIndex == 2) then
+			local profiletask = ffxiv_fish.currentTask
+			if table.valid(profiletask) then
+				local TimeLeft = 999
+				if profiletask.maxtime ~= nil then
+					if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
+						local TastStarted = profiletask.taskStarted
+						local TimeSince = TimeSince(profiletask.taskStarted)
+						local MaxTime = profiletask.maxtime
+						TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
+						if TimeLeft < 0 then TimeLeft = 0 end
+					end
+				end
+				GUI:BeginChild("##header-Timers",-8,GUI_GetFrameHeight(2),true)	
+				GUI:Columns(2)
+				GUI:Spacing()
+				GUI:Text(GetString("Task Time Remaning (s): "))
+				GUI:Spacing()
+				GUI:Text(GetString("Gather Task: "))
+				GUI:NextColumn()
+				
+				GUI:PushItemWidth(50)
+				GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+				local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
+				GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
+				GUI:PopItemWidth()
+				GUI:Columns()
+				GUI:EndChild()
+			end
+		end
+		GUI:BeginChild("##header-itemuse",-8,GUI_GetFrameHeight(2),true)	
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Experience boost manuals.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI:NextColumn()
+		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Experience boost manuals.")
+		end
+		GUI_Capture(GUI:Checkbox("##Use Cordials",gFishUseCordials),"gFishUseCordials");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI:Columns()
 		GUI:EndChild()
 	end
-	
-	if (tabs.tabs[2].isselected) then
-		if (GUI:Button("Use Known Defaults",150,20)) then
+	-- Collectables
+	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[3].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[2].isselected)) then
+		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
+		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
 			GUI_Set("gFishCollectablePresets",{})
 			for k,v in pairs(ffxiv_fish.collectibles) do
 				local newCollectable = { name = v.name, value = v.minimum }
@@ -2722,22 +2881,24 @@ function ffxiv_task_fish:Draw()
 			end
 			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 		end
-		
-		GUI:Spacing()
-		GUI:Separator()
-		GUI:Spacing()
-		
-		if (GUI:Button("Add Collectable",150,20)) then
+		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
 			table.insert(gFishCollectablePresets,newCollectable)
 			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 		end
-		
+		GUI:Columns(2)
+		local CollectableWidth1 = GUI:GetContentRegionAvail()
+		GUI:Text("Item Name")
+		GUI:NextColumn()
+		local CollectableWidth2 = GUI:GetContentRegionAvail()
+		GUI:Text("Min Value")
+		GUI:Columns()
+		GUI:Separator()
+		-- Collectable List
 		if (table.valid(gFishCollectablePresets)) then
-			GUI:Text("Item Name"); GUI:SameLine(210); GUI:Text("Min Value")
+			GUI:Columns(2)
 			for i,collectable in pairsByKeys(gFishCollectablePresets) do
-				GUI:AlignFirstTextHeightToWidgets()
-				GUI:PushItemWidth(200)
+				GUI:PushItemWidth(CollectableWidth1-8)
 				local newName = GUI:InputText("##fish-collectablepair-name"..tostring(i),collectable.name)
 				if (newName ~= collectable.name) then
 					gFishCollectablePresets[i].name = newName
@@ -2747,8 +2908,8 @@ function ffxiv_task_fish:Draw()
 					GUI:SetTooltip("Case-sensitive item name for the item to become a collectable.")
 				end
 				GUI:PopItemWidth()
-				GUI:PushItemWidth(70)
-				GUI:SameLine()
+				GUI:NextColumn()
+				GUI:PushItemWidth(CollectableWidth2-28)
 				local newValue = GUI:InputInt("##fish-collectablepair-value"..tostring(i),collectable.value,0,0)
 				if (newValue ~= collectable.value) then
 					gFishCollectablePresets[i].value = newValue
@@ -2767,10 +2928,235 @@ function ffxiv_task_fish:Draw()
 					GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 				end
 				GUI:PopStyleColor(2)
+				GUI:NextColumn()
 			end
+		GUI:Columns()
 		end
 	end
+	-- Fish Mode
+	if (gFishMarkerOrProfileIndex == 1 and (tabs.tabs[1].isselected)) then
+		local currentMode = ml_marker_mgr.modes[gMarkerModeIndex]
+		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
+		local currentMap = ml_marker_mgr.activeMap
+		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Type")
+		GUI:SameLine()
+		local MarkerTypeWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(MarkerTypeWidth-8)
+		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
+		if (modeChanged) then
+			ml_marker_mgr.UpdateMarkerSelector()
+		end
+		-- Task Time testing.
+		local marker = ml_marker_mgr.currentMarker
+		if table.valid(marker) then
+			local TimeLeft
+			if marker:GetTimeRemaining() > 0 then
+				TimeLeft = marker:GetTimeRemaining()
+			else
+				TimeLeft = 999
+			end
+			if TimeLeft ~= nil then GUI:Text("Task Time Remaning: "..TimeLeft.."s") end
+		end
+		GUI:PopItemWidth()
+		-- Marker List
+		GUI:BeginChild("##header-list",-8,GUI_GetFrameHeight(6),true)
+		if table.valid(currentList) then
+			for i,marker in pairsByKeys(currentList) do
+				if (table.valid(marker)) then
+					local MarkerButtonWidth = GUI:GetContentRegionAvail()
+					if (GUI:Button(marker.name.." ["..tostring(marker.id).."]",MarkerButtonWidth-50,18)) then
+						-- Set this marker as the currently editing marker.
+						ml_marker_mgr.GUI.main_window.open = true
+						ml_marker_mgr.createMarker = 0
+						ml_marker_mgr.editMarker = marker.id
+						ml_marker_mgr.addMarker = 0
+						ml_marker_mgr.SwitchTab(2)
+					end
+					GUI:SameLine(0,5)
+					if (GUI:Button("UP##"..tostring(i),20,18)) then
+						local lists = ml_marker_mgr.lists
+						if (table.valid(lists)) then
+							if (lists[currentMode]) then
+								if (lists[currentMode][currentType]) then
+									if (lists[currentMode][currentType][currentMap]) then
+										local thisList = lists[currentMode][currentType][currentMap]
+										if (table.valid(thisList)) then
+											if (i ~= 1) then
+												local temp = thisList[i-1]
+												thisList[i-1] = thisList[i]
+												thisList[i] = temp
+												ml_marker_mgr.WriteMarkerFile()
+											end
+										end
+									end
+								end
+							end
+						end							
+					end
+					GUI:SameLine(0,5)
+					if (GUI:Button("DN##"..tostring(i),20,18)) then
+						local lists = ml_marker_mgr.lists
+						if (table.valid(lists)) then
+							if (lists[currentMode]) then
+								if (lists[currentMode][currentType]) then
+									if (lists[currentMode][currentType][currentMap]) then
+										local thisList = lists[currentMode][currentType][currentMap]
+										if (table.valid(thisList)) then
+											if (i ~= table.size(thisList)) then
+												local temp = thisList[i+1]
+												thisList[i+1] = thisList[i]
+												thisList[i] = temp
+												ml_marker_mgr.WriteMarkerFile()
+											end
+										end
+									end
+								end
+							end
+						end				
+					end
+				end
+			end
+		else -- No Valid marker list.
+			GUI:TextWrapped("No Markers exist for "..gMarkerType.." - "..gMarkerMode)
+			GUI:TextWrapped("Set Markers and Marker Type Prior to enabling Bot")
+			if (FFXIV_Common_BotRunning) then
+				d("No Markers exist for "..gMarkerType.." - "..gMarkerMode)
+				ml_global_information:ToggleRun()
+			end
+		end
+		GUI:EndChild()
+	end
+	if (gFishMarkerOrProfileIndex == 3 and (tabs.tabs[1].isselected)) then
+		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(9),true)
+		GUI:Columns(2)
+		
+	
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Bait Type")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Select the bait you would like to use.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Mooch")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Allow fish mooching.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Mooch II")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Allow fish mooching (Mooch 2).")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Patience")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Patience while fishing.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Patience II")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Patience 2 while fishing.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Snagging")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Apply the Snagging buff when fishing.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Eyes")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Apply the Fish Eyes buff when fishing.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Chum")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Chum while fishing.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Double Hook")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Double Hook.")
+		end
+		
+		GUI:NextColumn()
+		
+		local MarkerTypeWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(MarkerTypeWidth-8)
+		local baitKey = { GetString("None"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Salmon Roe"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Snurble Fly"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+		gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey) or GetString("None")
+		if (baitKey[gFishBaitIndex] ~= gFishQuickBait) then
+			gFishQuickBait = baitKey[gFishBaitIndex]
+		end
+		GUI_Combo("##BaitLevels", "gFishBaitIndex", "gFishQuickBait", baitKey)
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Select the bait you would like to use.")
+		end
+		-- Quick Start Toggles.
+		GUI_Capture(GUI:Checkbox("##Mooch",gQuickstartMooch),"gQuickstartMooch")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Allow fish mooching.")
+		end
+		GUI_Capture(GUI:Checkbox("##Mooch2",gQuickstartMooch2),"gQuickstartMooch2")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Allow fish mooching (Mooch 2).")
+		end
+		GUI_Capture(GUI:Checkbox("##Patience",gQuickstartPatience),"gQuickstartPatience")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Patience while fishing.")
+		end
+		GUI_Capture(GUI:Checkbox("##Patience2",gQuickstartPatience2),"gQuickstartPatience2")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Patience 2 while fishing.")
+		end
+		GUI_Capture(GUI:Checkbox("##Snagging",gQuickstartSnagging),"gQuickstartSnagging")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Apply the Snagging buff when fishing.")
+		end
+		GUI_Capture(GUI:Checkbox("##Fish Eyes",gQuickstartFishEyes),"gQuickstartFishEyes")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Apply the Fish Eyes buff when fishing.")
+		end
+		GUI_Capture(GUI:Checkbox("##Chum",gQuickstartChum),"gQuickstartChum")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Chum while fishing.")
+		end
+		GUI_Capture(GUI:Checkbox("##Double Hook",gQuickstartDH),"gQuickstartDH")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Use Double Hook.")
+		end
+		
+		GUI:Columns()
+		GUI:EndChild()
+	end
+		
+	-- Debug Tab
+	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[4].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[3].isselected))  then
+		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Debug")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Enable Debug messages in console.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Debug Level")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
+		end
+		GUI:NextColumn()
+		
+		
+		GUI_Capture(GUI:Checkbox("##Fish Debug",gFishDebug),"gFishDebug")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Enable Debug messages in console.")
+		end
+		local DebugWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(DebugWidth)
+		
+		local debugLevels = { 1, 2, 3}
+		gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels) or 1
+		if (debugLevels[gFishDebugLevelIndex] ~= gFishDebugLevel) then
+			gFishDebugLevel = debugLevels[gFishDebugLevelIndex]
+		end
+		GUI_Combo("##Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
+		end
+		GUI:PopItemWidth()
+		GUI:Columns()
+		GUI:EndChild()
+	end
 end
+
 function ffxiv_fish.GetLockout(profile,task)
 	if (Settings.FFXIVMINION.gFishLockout ~= nil) then
 		lockout = Settings.FFXIVMINION.gFishLockout

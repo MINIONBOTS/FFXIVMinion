@@ -892,8 +892,8 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
 		ml_navigation.lastspam = ml_global_information.Now
-		d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID ["..tostring(Player.localmapid).."]")
-		d("[NAVIGATION]: IsReachable ["..tostring(NavigationManager:IsReachable(newGoal)).."], PathLength ["..tostring(ret).."]")
+		--d("[NAVIGATION]: Move To ["..tostring(math.round(x,0))..","..tostring(math.round(y,0))..","..tostring(math.round(z,0)).."], From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."], MapID ["..tostring(Player.localmapid).."]")
+		--d("[NAVIGATION]: IsReachable ["..tostring(NavigationManager:IsReachable(newGoal)).."], PathLength ["..tostring(ret).."]")
 	end
 	
 	ffnav.lastStart = { x = ppos.x, y = ppos.y, z = ppos.z }
@@ -944,7 +944,7 @@ function ml_navigation.IsHandlingInstructions(tickcount)
 				local retval = newInstruction()
 				if (retval == true) then
 					table.remove(ml_navigation.receivedInstructions,1)
-					d("[NAVIGATION]: ["..tostring(table.size( ml_navigation.receivedInstructions)).."] more instructions left to process.")
+					--d("[NAVIGATION]: ["..tostring(table.size( ml_navigation.receivedInstructions)).."] more instructions left to process.")
 				end
 			end			
 		end
@@ -992,7 +992,7 @@ function ml_navigation.Navigate(event, ticks )
 					--d("pathindex:"..tostring(ml_navigation.pathindex)..", max nodes:"..tostring(table.size(ml_navigation.path)))
 					
 					if (ml_navigation.IsPathInvalid() and table.valid(ffnav.currentGoal)) then
-						d("[Navigation]: Resetting path, need to pull a non-cube path.")
+						--d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
 						Player:Stop()	-- calling stop first and then creating a new path would be the more logical order eh ;)
 						NavigationManager:UseCubes(false)

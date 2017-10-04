@@ -186,22 +186,22 @@ function ffxiv_task_party:Draw()
 	local windowPaddingY = ml_gui.style.current.windowpadding.y
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
-	
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
-	
-	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
-		GUI:PushItemWidth(200)					
-		
-		GUI_Capture(GUI:InputText(GetString("PartyLeader"),gPartyLeaderName),"gPartyLeaderName");
-		GUI_Capture(GUI:Checkbox(GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
-		GUI_Capture(GUI:Checkbox("Sync to Fates",gPartyGrindFateSync),"gPartyGrindFateSync")
-		if (GUI:Button(GetString("GetPartyLeader"))) then
-			ffxiv_task_party.SetLeaderFromTarget()
-		end
-
-		GUI:PopItemWidth()
-		GUI:EndChild()
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
+	GUI:Columns(2)
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("UseGamePartyLeader"))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Sync to Fates")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("PartyLeader"))
+	GUI:NextColumn()
+	local ColumnWidth = GUI:GetContentRegionAvail()
+	GUI:PushItemWidth(ColumnWidth)
+	GUI_Capture(GUI:Checkbox("##"..GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
+	GUI_Capture(GUI:Checkbox("##Sync to Fates",gPartyGrindFateSync),"gPartyGrindFateSync")
+	GUI_Capture(GUI:InputText("##"..GetString("PartyLeader"),gPartyLeaderName),"gPartyLeaderName");
+	GUI:PopItemWidth()
+	GUI:Columns()	
+	local FullWidth = GUI:GetContentRegionAvail()	
+	if (GUI:Button(GetString("GetPartyLeader"),FullWidth,20)) then
+		ffxiv_task_party.SetLeaderFromTarget()
 	end
+	GUI:EndChild()
 end

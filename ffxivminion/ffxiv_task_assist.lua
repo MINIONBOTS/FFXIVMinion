@@ -56,6 +56,10 @@ function ffxiv_task_assist:Init()
     self:add( ke_eat, self.process_elements)
 	
     self:AddTaskCheckCEs()
+	--self:InitAddon()
+end
+
+function ffxiv_task_assist:InitAddon()
 end
 
 function ffxiv_task_assist:Process()
@@ -198,52 +202,65 @@ function ffxiv_task_assist:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-		
-	if (GUI:Button("Show Filters",200,20)) then
-		SkillMgr.ShowFilterWindow()
-	end
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(7),true)
+	GUI:PushItemWidth(120)					
+	GUI:Columns(2)
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Targeting Assist"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\
+Lowest Health: Targets the lowest health target within range.\
+Nearest: Targets the closest target within range.\
+Tank Assist: Targets whatever your tank is targetting.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Priority"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Follow Target"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Face Target"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\
+		Warning:  Dangerous if using Standard movement mode.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Client Autoface"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Start Combat"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Auto-Confirm Duty"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
 	
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
+	GUI:NextColumn()
 	
-	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(8),true)
-		GUI:PushItemWidth(120)					
-		
-		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
-		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP)."))
-		end
-		GUI_Capture(GUI:Checkbox("Face Target",gAssistTrackTarget),"gAssistTrackTarget");
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode."))
-		end
-		
-		GUI_Combo(GetString("assistMode"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-		GUI_Combo(GetString("assistPriority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)		
-		GUI_Capture(GUI:Checkbox(GetString("Using Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace");
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options."))
-		end
-		GUI_Capture(GUI:Checkbox(GetString("startCombat"),gStartCombat),"gStartCombat");
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already."))
-		end
-		GUI_Capture(GUI:Checkbox(GetString("confirmDuty"),gAssistConfirmDuty),"gAssistConfirmDuty");
-		GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
-			function ()
-				local message = {
-					[1] = "Quest helpers are beta functionality, and should be used with caution.",
-					[2] = "It is not advisable to use this feature on a main account at this time.",
-				}
-				ffxiv_dialog_manager.IssueNotice("gQuestHelpersNotify", message)
-			end
-		);
-		
-		GUI:PopItemWidth()
-		GUI:EndChild()
-	end
+	--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
+	
+	local assistcolumn2width = GUI:GetContentRegionAvailWidth()
+	GUI:PushItemWidth(assistcolumn2width)
+	GUI_Combo("##"..GetString("assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\
+Lowest Health: Targets the lowest health target within range.\
+Nearest: Targets the closest target within range.\
+Tank Assist: Targets whatever your tank is targetting.")) end
+	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
+	GUI:PopItemWidth()
+	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\
+		Warning:  Dangerous if using Standard movement mode.")) end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
+	--GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
+	--	function ()
+	--		local message = {
+	--			[1] = "Quest helpers are beta functionality, and should be used with caution.",
+	--			[2] = "It is not advisable to use this feature on a main account at this time.",
+	--		}
+	--		ffxiv_dialog_manager.IssueNotice("gQuestHelpersNotify", message)
+	--	end
+	--);
+	GUI:Columns()
+	GUI:PopItemWidth()
+	GUI:EndChild()
 end
 
 c_assistyesno = inheritsFrom( ml_cause )

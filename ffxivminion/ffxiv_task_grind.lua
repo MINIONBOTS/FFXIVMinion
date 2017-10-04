@@ -43,7 +43,12 @@ ffxiv_task_grind.luminous = {
 
 function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
-    
+	local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+	local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
+	if gatherClasses or craftClasses then
+		ffxiv_dialog_manager.IssueStopNotice("	Grind Mode Stopped	", "	Wrong Class or Job	", "okonly")
+	end
+
     --ml_task members
     newinst.valid = true
     newinst.completed = false
@@ -64,6 +69,9 @@ function ffxiv_task_grind.Create()
 	if (gGrindAutoLevel and gBotMode == GetString("grindMode")) then
 		newinst.correctMapFunction = "GetBestGrindMap"
 	end
+	if (gGrindAutoLevel and Player.level < 10) then
+		gMarkerModeIndex = 3
+	end
 	
 	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
@@ -81,20 +89,24 @@ end
 c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
+	local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+	local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
+	if gatherClasses or craftClasses then
+		return false
+	end
 
 	if (table.valid(ffxiv_grind.profileData)) then
 		return false
 	end
-
+	
     if ((gBotMode == GetString("partyMode") and not IsPartyLeader()) or
-		(gGrindDoFates and gGrindFatesOnly))
+		(gGrindDoFates and ((gGrindFatesOnly) and Player.level > 10)))
 	then
         return false
     end
-	
 	local filter = "mapid="..tostring(Player.localmapid)
 	if (gMarkerMgrMode ~= GetString("singleMarker")) then
-		filter = filter..",minlevel<="..tostring(Player.level)..",maxlevel>="..tostring(Player.level)
+		filter = filter..",minlevel<"..tostring(Player.level)..",maxlevel>"..tostring(Player.level)
 	end
 	
 	local currentMarker = ml_marker_mgr.currentMarker
@@ -105,7 +117,7 @@ function c_nextgrindmarker:evaluate()
 	else
 		-- next check to see if our level is out of range
 		if (marker == nil) then
-			if (not gMarkerMgrMode == GetString("singleMarker")) and (Player.level < currentMarker.minlevel or Player.level > currentMarker.maxlevel) then
+			if (gMarkerMgrMode ~= GetString("singleMarker")) and ((Player.level < currentMarker.minlevel) or  (Player.level > currentMarker.maxlevel)) then
 				marker = ml_marker_mgr.GetNextMarker("Grind", filter)
 			end
 		end
@@ -119,6 +131,8 @@ function c_nextgrindmarker:evaluate()
 				else
 					return false
 				end
+			else
+				return false
 			end
 		end
 	end
@@ -143,6 +157,7 @@ end
 c_nextgrindarea = inheritsFrom( ml_cause )
 e_nextgrindarea = inheritsFrom( ml_effect )
 function c_nextgrindarea:evaluate()	
+
 	if (CannotMove() or not Player.alive or Player.incombat or ffxiv_task_grind.inFate or MIsLoading() or ml_task_hub:ThisTask().doingHuntlog) then
 		return false
 	end
@@ -767,7 +782,7 @@ function ffxiv_task_grind:UIInit()
 	gGrindAtmaMode = ffxivminion.GetSetting("gGrindAtmaMode",false)
 	gGrindLuminousMode = ffxivminion.GetSetting("gGrindLuminousMode",false)
 	gGrindDoHuntlog = ffxivminion.GetSetting("gGrindDoHuntlog",true)
-	gGrindAutoLevel = ffxivminion.GetSetting("gGrindAutoLevel",false)
+	gGrindAutoLevel = ffxivminion.GetSetting("gGrindAutoLevel",true)
 	
 	gClaimFirst = ffxivminion.GetSetting("gClaimFirst",false)
 	gClaimRange = ffxivminion.GetSetting("gClaimRange",20)
@@ -796,11 +811,15 @@ function ffxiv_task_grind:UIInit()
 	gFateEscortWaitPercent = ffxivminion.GetSetting("gFateEscortWaitPercent",0)
 	
 	gFateWaitNearEvac = ffxivminion.GetSetting("gFateWaitNearEvac",true)
-	gFateRandomDelayMin = ffxivminion.GetSetting("gFateRandomDelayMin",0)
-	gFateRandomDelayMax = ffxivminion.GetSetting("gFateRandomDelayMax",0)
+	
+	gEnableAdvancedGrindSettings = ffxivminion.GetSetting("gEnableAdvancedGrindSettings",false)
 	
 	self.GUI = {}
-	self.GUI.main_tabs = GUI_CreateTabs("Settings,Hunting,Tweaks",true)
+	if (gEnableAdvancedGrindSettings) then
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced,Debug",true)
+	else
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Debug",true)
+	end
 	self.GUI.profile = {
 		open = false,
 		visible = true,
@@ -815,112 +834,207 @@ function ffxiv_task_grind:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-settings",0,GUI_GetFrameHeight(13),true)
-		GUI:PushItemWidth(80)	
-		
-		GUI_Capture(GUI:Checkbox(GetString("Auto-Level Mode"),gGrindAutoLevel),"gGrindAutoLevel")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip(GetString("Automatically switch maps to continue leveling in an optimal area."))
+		local settingschildsize = 5
+		if (gGrindDoFates) then
+			settingschildsize = 6
 		end
-		GUI:SameLine(0,10)
-		if (GUI:Button(GetString("Modify Auto-Grind"))) then
+		GUI:BeginChild("##header-grindmodes",0,GUI_GetFrameHeight(settingschildsize),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("AutoLevelMode"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AutoLevelModeTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("doFates"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("doFatesTooltip")) end
+		if (gGrindDoFates) then
+			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("DoOnlyFates"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoOnlyFatesTooltip")) end
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("doHuntingLog"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("doHuntingLogTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("KillNonFateAggro"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("KillNonFateAggroTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("AdvancedSettings"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AdvancedSettingsTooltip")) end
+		GUI:NextColumn()
+		GUI_Capture(GUI:Checkbox("##AutoLevelMode",gGrindAutoLevel),"gGrindAutoLevel")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AutoLevelModeTooltip")) end
+		GUI:SameLine()
+		local ModifyAutoGrindWidth = GUI:GetContentRegionAvail()
+		if (GUI:Button(GetString("ModifyAutoGrind"),ModifyAutoGrindWidth,20)) then
 			ffxivminion.GUI.autogrind.open = true
 			ffxivminion.GUI.autogrind.error_text = ""
 		end
-		
-		GUI_Capture(GUI:Checkbox(GetString("doHuntingLog"),gGrindDoHuntlog),"gGrindDoHuntlog"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, FFXIVMinion will complete your class hunting log while grinding.")) end
-		GUI_Capture(GUI:Checkbox(GetString("doAtma"),gGrindAtmaMode),"gGrindAtmaMode", 
-			function () 
-				if (gGrindAtmaMode) then
-					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
-				end
-			end
-		)
-		
-		
-		GUI_Capture(GUI:Checkbox("Do Luminous",gGrindLuminousMode),"gGrindLuminousMode", 
-			function ()
-				if (gGrindLuminousMode) then
-					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
-				end
-			end
-		);
-		
-		local res = GUI_Capture(GUI:Checkbox(GetString("doFates"),gGrindDoFates),"gGrindDoFates")
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will complete FATEs in addition to mob-grinding.")) end
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("ModifyAutoGrindTooltip")) end
+		local res = GUI_Capture(GUI:Checkbox("##doFates",gGrindDoFates),"gGrindDoFates")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("doFatesTooltip")) end
 		if ( res ) then 
-			GUI:SameLine(0,10)
-			GUI_Capture(GUI:Checkbox(GetString("fatesOnly"),gGrindFatesOnly),"gGrindFatesOnly", 
+		GUI_Capture(GUI:Checkbox("##DoOnlyFates",gGrindFatesOnly),"gGrindFatesOnly", 
 				function () 
 					if (gGrindFatesOnly) then 
 						GUI_Set("gGrindDoFates",true) 
 					end
 				end
 			)
-			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, the bot will idle between FATEs, and will not perform mob-grinding.")) end
 		else
 			-- If we don't want to do fates, turn off fates only also, just for good measure.
 			if (gGrindFatesOnly) then
 				GUI_Set("gGrindFatesOnly",false) 
 			end
 		end
-		
-		GUI_Capture(GUI:Checkbox("Kill Non-Fate Aggro",gFateKillAggro),"gFateKillAggro");
-		GUI_Capture(GUI:Checkbox(GetString("restInFates"),gRestInFates),"gRestInFates");
-		
-		GUI_DrawIntMinMax(GetString("Min Fate Lv."),"gGrindFatesMinLevel",1,2,0,60)
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Number of levels below current Player level.")
-		end
-		GUI:SameLine(0,10); GUI_Capture(GUI:Checkbox("No Min",gGrindFatesNoMinLevel),"gGrindFatesNoMinLevel");
-		GUI_DrawIntMinMax(GetString("Max Fate Lv."),"gGrindFatesMaxLevel",1,2,0,60)
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Number of levels above current Player level.")
-		end
-		GUI:SameLine(0,10); GUI_Capture(GUI:Checkbox("No Max",gGrindFatesNoMaxLevel),"gGrindFatesNoMaxLevel");
-		
-		GUI_DrawIntMinMax(GetString("fateTeleportPercent"),"gFateTeleportPercent",1,2,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("waitNearEvac"),gFateWaitNearEvac),"gFateWaitNearEvac");
-		GUI_DrawIntMinMax("Min Random Delay (s)","gFateRandomDelayMin",10,20,0,120)
-		GUI_DrawIntMinMax("Max Random Delay (s)","gFateRandomDelayMax",10,20,0,240)
-		
-		GUI:PopItemWidth()
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoOnlyFatesTooltip")) end
+		GUI_Capture(GUI:Checkbox("##doHuntingLog",gGrindDoHuntlog),"gGrindDoHuntlog"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, FFXIVMinion will complete your class hunting log while grinding.")) end
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("doHuntingLogTooltip")) end
+		GUI_Capture(GUI:Checkbox("##KillNonFateAggro",gFateKillAggro),"gFateKillAggro")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("KillNonFateAggroTooltip")) end
+		GUI_Capture(GUI:Checkbox("##AdvancedSettings",gEnableAdvancedGrindSettings),"gEnableAdvancedGrindSettings", 
+			function ()
+				if (gEnableAdvancedGrindSettings) then
+					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced",true)
+				else
+					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding",true)
+				end
+			end
+		);
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AdvancedSettingsTooltip")) end
+		GUI:Columns()
+		GUI:EndChild()
+		GUI:BeginChild("##header-settings2",0,GUI_GetFrameHeight(2),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("doAtma"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoAtmaTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("DoLuminous"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoLuminousTooltip")) end
+		GUI:NextColumn()
+		GUI_Capture(GUI:Checkbox("##doAtma",gGrindAtmaMode),"gGrindAtmaMode", 
+			function () 
+				if (gGrindAtmaMode) then
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+				end
+			end
+		)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoAtmaTooltip")) end
+		GUI_Capture(GUI:Checkbox("##DoLuminous",gGrindLuminousMode),"gGrindLuminousMode", 
+			function ()
+				if (gGrindLuminousMode) then
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+				end
+			end
+		);
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoLuminousTooltip")) end
+		GUI:Columns()
 		GUI:EndChild()
 	end
-	
 	if (tabs.tabs[2].isselected) then
+		GUI:BeginChild("##header-tweaks",0,GUI_GetFrameHeight(7),true)
+		GUI:Columns(3)
+		GUI:Text(GetString("FateType"))
+		GUI:NextColumn()
+		GUI:Text(GetString("Enable"))
+		GUI:NextColumn()
+		GUI:Text(GetString("Startat"))
+		GUI:Columns()
+		GUI:Separator()
+		GUI:Columns(3)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Chain"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Battle"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Boss"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Grind"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Defense"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Escort"))
+		GUI:NextColumn()
+		GUI_Capture(GUI:Checkbox("##Chain Fates",gDoChainFates),"gDoChainFates");
+		GUI_Capture(GUI:Checkbox("##Battle Fates",gGrindDoBattleFates),"gGrindDoBattleFates");
+		GUI_Capture(GUI:Checkbox("##Boss Fates",gGrindDoBossFates),"gGrindDoBossFates");
+		GUI_Capture(GUI:Checkbox("##Grind Fates",gGrindDoGrindFates),"gGrindDoGrindFates");
+		GUI_Capture(GUI:Checkbox("##Defense Fates",gGrindDoDefenseFates),"gGrindDoDefenseFates");
+		GUI_Capture(GUI:Checkbox("##Escort Fates",gGrindDoEscortFates),"gGrindDoEscortFates");
+		GUI:NextColumn()
+		local StartAtColumnWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(StartAtColumnWidth)
+		GUI_DrawIntMinMax("##Chain Fates %","gFateChainWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Battle Fates %","gFateBattleWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Boss Fates %","gFateBossWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Grind Fates %","gFateGrindWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Defense Fates %","gFateDefenseWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Escort Fates %","gFateEscortWaitPercent",1,5,0,99)
+		GUI:PopItemWidth()
+		GUI:Columns()
+		GUI:EndChild()
+	end
+	if (tabs.tabs[3].isselected) then
 		GUI:BeginChild("##header-hunting",0,GUI_GetFrameHeight(3),true)
-		GUI:PushItemWidth(100)	
-		
-		GUI_Capture(GUI:Checkbox(GetString("prioritizeClaims"),gClaimFirst),"gClaimFirst");
-		GUI_DrawIntMinMax(GetString("claimRange"),"gClaimRange",1,5,0,50)
-		GUI_Capture(GUI:Checkbox(GetString("attackClaimed"),gClaimed),"gClaimed");
-		
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("prioritizeClaims"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("prioritizeClaimsTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("claimRange"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("claimRangeTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("attackClaimed"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("attackClaimedTooltip")) end
+		GUI:NextColumn()	
+		local ColumnWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(ColumnWidth)
+		GUI_Capture(GUI:Checkbox("##prioritizeClaims",gClaimFirst),"gClaimFirst")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("prioritizeClaimsTooltip")) end
+		GUI_DrawIntMinMax("##claimRange","gClaimRange",1,5,0,50)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("claimRangeTooltip")) end
+		GUI_Capture(GUI:Checkbox("##attackClaimed",gClaimed),"gClaimed")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("attackClaimedTooltip")) end
 		--GUI_DrawIntMinMax(GetString("combatRangePercent"),"gCombatRangePercent",1,5,25,100)
-		
+		GUI:Columns()
 		GUI:PopItemWidth()
 		GUI:EndChild()
 	end
-	
-	if (tabs.tabs[3].isselected) then
-		GUI:BeginChild("##header-tweaks",0,GUI_GetFrameHeight(12),true)
-		GUI:PushItemWidth(100)	
-		
-		GUI_Capture(GUI:Checkbox(GetString("Chain Fates"),gDoChainFates),"gDoChainFates");
-		GUI_DrawIntMinMax(GetString("Chain Fate Wait %"),"gFateChainWaitPercent",1,5,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("Battle Fates"),gGrindDoBattleFates),"gGrindDoBattleFates");
-		GUI_DrawIntMinMax(GetString("Battle Fate Wait %"),"gFateBattleWaitPercent",1,5,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("Boss Fates"),gGrindDoBossFates),"gGrindDoBossFates");
-		GUI_DrawIntMinMax(GetString("Boss Fate Wait %"),"gFateBossWaitPercent",1,5,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("Grind Fates"),gGrindDoGrindFates),"gGrindDoGrindFates");
-		GUI_DrawIntMinMax(GetString("Grind Fate Wait %"),"gFateGrindWaitPercent",1,5,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("Defense Fates"),gGrindDoDefenseFates),"gGrindDoDefenseFates");
-		GUI_DrawIntMinMax(GetString("Defense Fate Wait %"),"gFateDefenseWaitPercent",1,5,0,99)
-		GUI_Capture(GUI:Checkbox(GetString("Escort Fates"),gGrindDoEscortFates),"gGrindDoEscortFates");
-		GUI_DrawIntMinMax(GetString("Escort Fate Wait %"),"gFateEscortWaitPercent",1,5,0,99)
-	
+	if (gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[4])) and (tabs.tabs[4].isselected) then
+		GUI:BeginChild("##header-advanced",0,GUI_GetFrameHeight(7),true)
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("MinFateLv"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MinFateLvTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("SetNoMinFateLevel"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SetNoMinFateLevelTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("MaxFateLv"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MaxFateLvTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("SetNoMaxFateLevel"))	
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SetNoMaxFateLevelTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("fateTeleportPercent"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("fateTeleportPercentTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("restInFates"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("restInFatesTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("waitNearEvac"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("waitNearEvacTooltip")) end
+		GUI:NextColumn()
+		GUI_DrawIntMinMax(GetString("##Min Fate Lv."),"gGrindFatesMinLevel",1,2,0,60)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MinFateLvTooltip")) end
+		GUI_Capture(GUI:Checkbox("##Set No Min Fate Level",gGrindFatesNoMinLevel),"gGrindFatesNoMinLevel")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SetNoMinFateLevelTooltip")) end
+		GUI_DrawIntMinMax(GetString("##Max Fate Lv."),"gGrindFatesMaxLevel",1,2,0,60)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MaxFateLvTooltip")) end
+		GUI_Capture(GUI:Checkbox("##Set No Max Fate Level",gGrindFatesNoMaxLevel),"gGrindFatesNoMaxLevel")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SetNoMaxFateLevelTooltip")) end
+		GUI_DrawIntMinMax(GetString("##fateTeleportPercent"),"gFateTeleportPercent",1,2,0,99)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("fateTeleportPercentTooltip")) end
+		GUI_Capture(GUI:Checkbox("##"..GetString("restInFates"),gRestInFates),"gRestInFates")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("restInFatesTooltip")) end
+		GUI_Capture(GUI:Checkbox("##"..GetString("waitNearEvac"),gFateWaitNearEvac),"gFateWaitNearEvac")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("waitNearEvacTooltip")) end
+		GUI:Columns()
+		GUI:EndChild()
+	end
+	if (not gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[4])) and (tabs.tabs[4].isselected) or (gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[5])) and (tabs.tabs[5].isselected) then
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(2),true)	
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("GrindDebug"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("GrindDebugTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("debugLevel"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("debugLevelTooltip")) end
+		GUI:NextColumn()
+		local CraftStatusWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(CraftStatusWidth)
+		GUI_Capture(GUI:Checkbox("##Grind Debug",gGrindDebug),"gGrindDebug");
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("GrindDebugTooltip")) end
+		local debugLevels = { 1, 2, 3}
+		GUI_Combo("##Debug Level", "gGrindDebugLevel", "gGrindDebugLevel", debugLevels)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("debugLevelTooltip")) end
 		GUI:PopItemWidth()
+		GUI:Columns()
 		GUI:EndChild()
 	end
 end
-

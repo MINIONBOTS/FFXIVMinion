@@ -74,19 +74,19 @@ strings =
 		clearProfile					= "Clear Profile",
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
-		stepmin							= "Step <",
-		stepmax							= "Step >=",
-		durabmin						= "Durability <",
-		durabmax						= "Durability >=",
-		progrmin						= "Progress <",
-		progrmax						= "Progress >=",
-		qualitymin						= "Quality <",
-		qualitymax						= "Quality >=",
+		stepmin							= "Step >=",
+		stepmax							= "Step <",
+		durabmin						= "Durability >=",
+		durabmax						= "Durability <",
+		progrmin						= "Progress >=",
+		progrmax						= "Progress <",
+		qualitymin						= "Quality >=",
+		qualitymax						= "Quality <",
 		condition						= "Condition =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "InnerQuiet Stack >=",		
 		notused							= "NotUsed",
 		excellent						= "Excellent",
@@ -147,8 +147,8 @@ strings =
 		alias							= "Alias",
 		cdIsReady						= "CD Is Ready",
 		cdNotReady						= "CD Not Ready",
-		cdTimeLT						= "CD Time <",
-		cdTimeGT						= "CD Time >",
+		cdTimeLT						= "CD Time <=",
+		cdTimeGT						= "CD Time >=",
 		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
@@ -332,7 +332,7 @@ strings =
         showAetherytes                  = "Show Aetherytes",
         xPos                            = "X Position",
         yPos                            = "Y Position",
-        assist                          = "Assist",
+        assist                          = "Targeting Assist",
         assistPriority            	    = "Priority",
 		
 		-- new stuff (since last translation)
@@ -356,8 +356,8 @@ strings =
         blacklistEntry                  = "Blacklist Entry",
         entryTime                       = "Entry Time",
         deleteEntry                     = "Delete Entry",
-        qualityminper					= "Quality % <",
-		qualitymaxper					= "Quality % >=",
+        qualityminper					= "Quality % >=",
+		qualitymaxper					= "Quality % <",
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
@@ -697,9 +697,235 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max Durability >=",
+		maxdurabmax						= "Max Durability <",
+		maxprogrmin						= "Max Progress >=",
+		maxprogrmax						= "Max Progress <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		grindhelp						= "Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		gatherhelp						= "Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile",
+		fishhelp						= "Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles.",
+
+-- Faq
+		assistfaq						= "My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?",
+		grindfaq						= "My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job.",
+		gatherhfaq						= "Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list.",
+		fishfaq						= "Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?",
+		
+	-- Missing GUI strings 09/27/17 HusbandoMax
+		-- Shared
+		debugLevel = "Debug Level",
+		addCollectable = "Add Collectable",
+		itemName = "Item Name",
+		minValue = "Min Value",
+		noProfileSelected = "Please select/create a valid profile.",
+		markerMode = "Marker Mode",
+		markerType = "Marker Type",
+		useCordials = "Use Cordials.",
+		collectablePresets = "Use Known Defaults",
+		expManuals = "Use Experience Manuals",
+		
+		-- Assist
+		followTarget = "Follow Target",
+		faceTarget = "Face Target",
+		clientAutoface = "Using Client Autoface",
+		-- Craft
+		forSingleCraftsOnly = "For Single Crafts Only",
+		craftDebug = "Craft Debug",
+		useHQMats = "Use HQ Mats",
+		onlyIfNecesssary = "Only If Necesssary",
+		-- Fish
+		fishMarkerProfileMode = "Fish Mode",
+		baitType = "Bait Type",
+			-- Fish Actions
+		mooch = "Mooch",
+		mooch2 = "Mooch II",
+		patience = "Patience",
+		patience2 = "Patience II",
+		snagging = "Snagging",
+		fishEyes = "Fish Eyes",
+		chum = "Chum",
+		doubleHook = "Double Hook",
+		fishDebug = "Fish Debug",
+		-- Gather
+		gatherDebug = "Gather Debug",
+		gatherMarkerProfileMode = "Gather Mode",
+		minGPHighCordial = "Min GP - High Cordial",
+		minGPCordial = "Min GP - Cordial",
+		minGPWateredCordial = "Min GP - Watered Cordial",
+		stealthDetectRange = "Stealth - Detect Range",
+		stealthRemoveRange = "Stealth - Remove Range",
+		smartStealth = "Smart Stealth",
+		gatherSlotQuickstart = "Gather Slot",
+		mapsQuickstart = "Maps",
+		gardeningQuickstart = "Gardening",
+		raresQuickstart = "Rares",
+		superRaresQuickstart = "Super Rares",
+		chocoboFoodQuickstart = "Chocobo Food",
+		-- Grind
+		
+		
+		AutoLevelMode = "Auto-Level Mode",
+		ModifyAutoGrind = "Modify Auto-Grind",
+		DoOnlyFates = "Do Only Fates",
+		KillNonFateAggro = "Kill Non-Fate Aggro",
+		AdvancedSettings = "Advanced Settings",
+		DoLuminous = "Do Luminous",
+		FateType = "Fate Type",
+		Enable = "Enable",
+		Startat = "Start at %%",
+		Chain = "Chain",
+		Battle = "Battle",
+		Boss = "Boss",
+		Grind = "Grind",
+		Defense = "Defense",
+		Escort = "Escort",
+		MinFateLv = "Min Fate Lv.",
+		SetNoMinFateLevel = "No Min Fate Level",
+		MaxFateLv = "Max Fate Lv.",
+		SetNoMaxFateLevel = "No Max Fate Level",
+		GrindDebug = "Grind Debug",
+		
+		
+		
+		
+	-- Tooltips :D 09/27/17 HusbandoMax
+		-- Shared
+		debugLevelTooltip = "Change the Debug message level. (The higher the number the more detailed the messages)",
+		addCollectableTooltip = "Add a new Collectable to the list below.",
+		itemNameCollectableTooltip = "Case-sensitive item name for the item to become a collectable.",
+		itemRaitingCollectableTooltip = "Minimum collectable value at which the item will be accepted as a collectable.",
+		profileTooltip = "The profile to be used in the current mode. (Crafting Orders, Gathering, Fishing)",
+		markerModeTooltip = "Select Single,Random or List.",
+		markerTypeTooltip = "Marker type to show in the list below.",
+		useCordialsTooltip = "Allow use of Cordials for GP.",
+		collectablePresetsTooltip = "Add Known Collectables to the list below.",
+		-- Assist
+		assistTooltip = "None: Use manual targetting.\
+Lowest Health: Targets the lowest health target within range.\
+Nearest: Targets the closest target within range.\
+Tank Assist: Targets whatever your tank is targetting.",
+		assistPriorityTooltip = "Prioritize Damage or Healing.",
+		followTargetTooltip = "Attempts to continually follow the target (useful in PvP).",
+		faceTargetTooltip = "Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode.",
+		clientAutofaceTooltip = "This option should be turned on if you are using the game client's [Face Target on Attack] options.",
+		startCombatTooltip = "If this option is off, the bot will not attack a mob that is not in combat already.",
+		confirmDutyTooltip = "Auto accepts Duty Queue.",
+		-- Craft
+		craftingOrderEditTooltip = "Opens the Crafting Order Editor.",
+		craftingOrderCreateTooltip = "Creates a New Crafting Order profile.",
+		expManualsTooltip = "Allow use of Experience boost manuals.",
+		craftDebugTooltip = "Enable Debug messages in console.",
+		forSingleCraftsOnlyTooltip = "These settings are for Single Craft (When no profile is selected)",
+		craftAmountTooltip = "Haw many crafts to complete before stopping.",
+		minimumCPTooltip = "CP required before starting the craft. (Useful for CP food)",
+		useHQMatsTooltip = "Allow the use of HQ materials while crafting.",
+		onlyIfNecesssaryTooltip = "Only use HQ materials if there are no NQ materials left.",
+		-- Fish
+		fishMarkerProfileModeTooltip = "Select between Markers, Profile or Quickstart.",
+		baitTypeTooltip = "Bait to be used in Quick Start mode.",
+			-- Fish Actions
+		moochTooltip = "Allow fish mooching.",
+		mooch2Tooltip = "Allow fish mooching (Mooch 2).",
+		patienceTooltip = "Use Patience while fishing.",
+		patience2Tooltip = "Use Patience 2 while fishing.",
+		snaggingTooltip = "Apply the Snagging buff when fishing.",
+		fishEyesTooltip = "Apply the Fish Eyes buff when fishing.",
+		chumTooltip = "Use Chum while fishing.",
+		doubleHookTooltip = "Use Double Hook.",
+		fishDebugTooltip = "Enable Debug messages in console.",
+		-- Gather
+		gatherDebugTooltip = "Enable Debug messages in console.",
+		gatherMarkerProfileModeTooltip = "Select between Markers, Profile or Quickstart.",
+		minGPHighCordialTooltip = "Min GP required before using a High Cordial.",
+		minGPCordialTooltip = "Min GP required before using a Cordial.",
+		minGPWateredCordialTooltip = "Min GP required before using a Watered Cordial.",
+		stealthDetectRangeTooltip = "Enemy range before applying Stealth.",
+		stealthRemoveRangeTooltip = "Enemy range before removing Stealth.",
+		smartStealthTooltip = "Smarter Stealth based on players direction and mob.",
+		gatherSlotQuickstartTooltip = "Set the item slot to gather.",
+		mapsQuickstartTooltip = "Gather Maps when avalible.",
+		gardeningQuickstartTooltip = "Gather Gardening when avalible.",
+		raresQuickstartTooltip = "Gather Rares when avalible.",
+		superRaresQuickstartTooltip = "Gather Super Rares when avalible.",
+		chocoboFoodQuickstartTooltip = "Gather Chocobo Food when avalible.",
+		-- Grind
+		AutoLevelModeTooltip = "Automatically switch maps to continue leveling in an optimal area.",
+		ModifyAutoGrindTooltip = "Opens a GUI to edit the Auto-Level code",
+		doFatesTooltip = "When enabled, the bot will complete FATEs in addition to mob-grinding.",
+		DoOnlyFatesTooltip = "When enabled, the bot will idle between FATEs, and will not perform mob-grinding.",
+		KillNonFateAggroTooltip = "Kills any Non-Fate Aggro",
+		AdvancedSettingsTooltip = "Enable use of Advanced Settings",
+		DoAtmaTooltip = "Grind Atma crystals and moves to the next zones. (Relic)",
+		DoLuminousTooltip = "Grind Luminous crystals and moves to the next zones. (Relic)",
+		MinFateLvTooltip = "Number of levels below current Player level.",
+		SetNoMinFateLevelTooltip = "Number of levels below current Player level.",
+		MaxFateLvTooltip = "Number of levels above current Player level.",
+		SetNoMaxFateLevelTooltip = "Number of levels above current Player level.",
+		fateTeleportPercentTooltip = "Fate percentage required before teleporting to it. (Hacks)",
+		restInFatesTooltip = "Allow resting while in fate when low HP.",
+		waitNearEvacTooltip = "Allow wating near evac postions instead of standing where you are waiting.",
+		GrindDebugTooltip = "Enable Debug messages in console.",
+		prioritizeClaimsTooltip = "Will claim all mobs withing set range on you for optimal drops.",
+		claimRangeTooltip = "Range to claim when using Prioritize Claims.",
+		attackClaimedTooltip = "Attack already clamied mobs.",
+		
+		doHuntingLogTooltip = "When enabled, FFXIVMinion will complete your class hunting log while grinding.",
+
+		
+		
+		
 		--us end
-    },                                  
-    
+    },         
 	-- bk: CN
 	["cn"] =                            
     {                               
@@ -770,19 +996,19 @@ strings =
 		clearProfile					= "新配置文件",
 		skillbookrefresh                = "舒心技能",
         targetType                      = "目标类型",
-		stepmin							= "步 <",
-		stepmax							= "步 >",
-		durabmin						= "持久<",
-		durabmax						= "持久 >",
-		progrmin						= "进度 <",
-		progrmax						= "进度 >",
-		qualitymin						= "质量 <",
-		qualitymax						= "质量 >",
+		stepmin							= "步 >=",
+		stepmax							= "步 <",
+		durabmin						= "持久 >=",
+		durabmax						= "持久 <",
+		progrmin						= "进度 >=",
+		progrmax						= "进度 <",
+		qualitymin						= "质量 >=",
+		qualitymax						= "质量 <",
 		condition						= "条件 =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "内部静态堆叠 >=",
 		notused							= "没有使用",
 		excellent						= "优秀",
@@ -852,8 +1078,8 @@ strings =
 		alias							= "队友",
 		cdIsReady						= "CD 准备",
 		cdNotReady						= "CD 没准备",
-		cdTimeLT						= "CD 时间 <",
-		cdTimeGT						= "CD 时间 >",
+		cdTimeLT						= "CD 时间 <=",
+		cdTimeGT						= "CD 时间 >=",
 		nextSkillPrio					= "下一个技能优先",
 		skmTYPE							= "动作类型",
 		skmSTYPE					 	= "技能类型",
@@ -1061,8 +1287,8 @@ strings =
         blacklistEntry                  = "黑名单值",
         entryTime                       = "值时间",
         deleteEntry                     = "删除值",
-        qualityminper					= "质量 % <",
-		qualitymaxper					= "质量 % >=",
+        qualityminper					= "质量 % >=",
+		qualitymaxper					= "质量 % <",
         blacklistTarget                 = "黑名单目标",
         addEntry                        = "添加值",
         blacklistFate                   = "危命黑名单",
@@ -1403,6 +1629,69 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max 持久 >=",
+		maxdurabmax						= "Max 持久 <",
+		maxprogrmin						= "Max 进度 >=",
+		maxprogrmax						= "Max 进度 <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "輔助模式會... \
+\
+你指導，我們拍. \
+\
+戰鬥程序來自技能檔案或ACR. \
+戰鬥只與使用的配置文件一樣好.",
+		grindhelp						= "研磨模式會... \
+\
+做命運，狩獵和研磨暴徒. \
+\
+只適用於戰鬥班. \
+\
+雖然我們努力自動設置, \
+如果啟用高級設置，則可以更改設置. \
+\
+戰鬥程序來自技能檔案或ACR. \
+戰鬥只與使用的配置文件一樣好.",
+		gatherhelp						= "收集模式會... \
+\
+使用標記，配置文件或快速入門. \
+只適用於礦工或植物學家. \
+\
+技能使用由技能資料設定.",
+		fishhelp						= "魚模式會... \
+\
+使用標記，配置文件或快速入門. \
+\
+只有費雪. \
+\
+技能不是通過技能資料設置的. \
+通過標記或配置文件設置技能.",
+
+-- Faq
+		assistfaq						= "我的殭屍不會攻擊? \
+\
+檢查你的技能資料設置為正確的班級/工作. \
+開始戰鬥檢查?",
+		grindfaq						= "我的機器不動? \
+\
+有任何有效的命運可用? \
+最大命運設置為低? \
+\
+我的殭屍不會攻擊? \
+\
+檢查你的技能資料設置為正確的班級/工作.",
+		gatherhfaq						= "玩家不動? \
+\
+配置文件沒有有效的任務? \
+標記半徑很小? \
+天氣或風暴可能需要標記列表.",
+		fishfaq						= "玩家不魚? \
+\
+配置文件沒有有效的任務? \
+當前位置由於釣魚而被鎖定限制?",
 		--cn end
 	},
 	
@@ -1475,16 +1764,16 @@ strings =
         clearProfile                    = "プロファイルをクリアする",
         skillbookrefresh                = "更新",
         targetType                      = "標的",
-        stepmin                         = "ターン <",
-        stepmax                         = "ターン >",
-        durabmin                        = "耐久 <",
-        durabmax                        = "耐久 >",
-        progrmin                        = "工数 <",
-        progrmax                        = "工数 >",
-        qualitymin                      = "品質 <",
-        qualitymax                      = "品質 >",
+        stepmin                         = "ターン >=",
+        stepmax                         = "ターン <",
+        durabmin                        = "耐久 >=",
+        durabmax                        = "耐久 <",
+        progrmin                        = "工数 >=",
+        progrmax                        = "工数 <",
+        qualitymin                      = "品質 >=",
+        qualitymax                      = "品質 <",
         condition                       = "状態",
-        cpmin                           = "CP <",
+        cpmin                           = "CP >=",
         cpmax                           = "CP >=",
         gpmin                           = "GP <",
         gpmax                           = "GP >",
@@ -1546,8 +1835,8 @@ strings =
         alias                           = "エイリアス",
         cdIsReady                       = "CD Is Ready",
         cdNotReady                      = "CD Not Ready",
-        cdTimeLT                        = "CD Time <",
-        cdTimeGT                        = "CD Time >",
+        cdTimeLT                        = "CD Time <=",
+        cdTimeGT                        = "CD Time >=",
         nextSkillPrio                   = "Next Skill Prio",
         skmTYPE                         = "アクションタイプ",
         skmSTYPE                        = "スキルタイプ",
@@ -1753,8 +2042,8 @@ strings =
         blacklistEntry                  = "エントリー",
         entryTime                       = "時間",
         deleteEntry                     = "エントリーを削除",
-        qualityminper                   = "品質 % <",
-        qualitymaxper                   = "品質 % >=",
+        qualityminper                   = "品質 % >=",
+        qualitymaxper                   = "品質 % <",
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "エントリーを追加",
         blacklistFate                   = "ブラックリストに追加",
@@ -2062,6 +2351,69 @@ strings =
         blacklistFish                   = "ブラックリスト",
         blacklistFishHQ                 = "ブラックリスト(HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max 耐久 >=",
+		maxdurabmax						= "Max 耐久 <",
+		maxprogrmin						= "Max 工数 >=",
+		maxprogrmax						= "Max 工数 <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "アシストモード... \
+\
+あなたは私たちを狙う. \
+\
+戦闘ルーチンはスキルプロファイルまたはACRから来る. \
+戦闘は使用されたプロファイルと同じくらい良いです.",
+		grindhelp						= "グラインドモード... \
+\
+フェイト、ハントログ、グラインドモーブ. \
+\
+バトルクラスのみ. \
+\
+私たちは自動設定に努めていますが, \
+[詳細設定]を有効にすると設定を変更できます. \
+\
+戦闘ルーチンはスキルプロファイルまたはACRから来る. \
+戦闘は使用されたプロファイルと同じくらい良いです.",
+		gatherhelp						= "収集モード... \
+\
+マーカー、プロファイル、クイックスタートを使用する. \
+鉱夫または植物学者のみ. \
+\
+スキルの使用はスキルプロファイルによって設定されます.",
+		fishhelp						= "フィッシュモード... \
+\
+マーカー、プロファイル、クイックスタートを使用する. \
+\
+フィッシャーのみ. \
+\
+スキルはスキルプロファイルでは設定されません. \
+マーカーまたはプロファイルによるスキルの設定.",
+
+-- Faq
+		assistfaq						= "私のボットは攻撃しない? \
+\
+スキルプロファイルが正しいクラス/ジョブに設定されていることを確認してください. \
+スタート戦闘はチェックされていますか？",
+		grindfaq						= "私のボットは動かない? \
+\
+有効な運命はありますか？ \
+最大運命の設定は低いですか？ \
+\
+私のボットは攻撃しない? \
+\
+スキルプロファイルが正しいクラス/ジョブに設定されていることを確認してください.",
+		gatherhfaq						= "ボットが動かない? \
+\
+プロファイルに有効なタスクがありません? \
+マーカーの半径は小さい? \
+天国や嵐の血痕マーカーリストが必要な場合があります.",
+		fishfaq						= "ボット・イットン・フィッシュ? \
+\
+プロファイルに有効なタスクがありません? \
+現在の位置は釣りの限界によりロックアウトされています?",
 		--jp end
 	},   
     
@@ -2134,19 +2486,19 @@ strings =
 		clearProfile					= "Clear Profile",		
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
-		stepmin							= "Step <",
-		stepmax							= "Step >",
-		durabmin						= "Durability <",
-		durabmax						= "Durability >",
-		progrmin						= "Progress <",
-		progrmax						= "Progress >",
-		qualitymin						= "Quality <",
-		qualitymax						= "Quality >",
+		stepmin							= "Step >=",
+		stepmax							= "Step <",
+		durabmin						= "Durability >=",
+		durabmax						= "Durability <",
+		progrmin						= "Progress >=",
+		progrmax						= "Progress <",
+		qualitymin						= "Quality >=",
+		qualitymax						= "Quality <",
 		condition						= "Zustand =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "InnerQuiet Stack >=",
 		notused							= "NotUsed",
 		excellent						= "Exzellent",
@@ -2205,8 +2557,8 @@ strings =
 		alias							= "Alias",
 		cdIsReady						= "CD Is Ready",
 		cdNotReady						= "CD Not Ready",
-		cdTimeLT						= "CD Time <",
-		cdTimeGT						= "CD Time >",
+		cdTimeLT						= "CD Time <=",
+		cdTimeGT						= "CD Time >=",
 		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
@@ -2388,7 +2740,7 @@ strings =
         showAetherytes                  = "Show Aetherytes",
         xPos                            = "X Position",
         yPos                            = "Y Position",
-        assist                          = "Assist",
+        assist                          = "Targeting Assist",
 		assistPriority            	    = "Priority",
 
         -- new stuff (since last translation)
@@ -2412,8 +2764,8 @@ strings =
         blacklistEntry                  = "Blacklist Entry",
         entryTime                       = "Entry Time",
         deleteEntry                     = "Delete Entry",
-        qualityminper					= "Quality % <",
-		qualitymaxper					= "Quality % >=",
+        qualityminper					= "Quality % >=",
+		qualitymaxper					= "Quality % <",
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
@@ -2723,6 +3075,69 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max Durability >=",
+		maxdurabmax						= "Max Durability <",
+		maxprogrmin						= "Max Progress >=",
+		maxprogrmax						= "Max Progress <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		grindhelp						= "Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		gatherhelp						= "Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile",
+		fishhelp						= "Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles.",
+
+-- Faq
+		assistfaq						= "My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?",
+		grindfaq						= "My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job.",
+		gatherhfaq						= "Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list.",
+		fishfaq						= "Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?",
 		--de end
 	},     
     
@@ -2795,19 +3210,19 @@ strings =
 		clearProfile					= "Clear Profile",			
 		skillbookrefresh                = "Rafraîchir Compétences",
 		targetType                      = "Cible",
-		stepmin							= "Étape <",
-		stepmax							= "Étape >",
-		durabmin						= "Durabilité <",
-		durabmax						= "Durabilité >",
-		progrmin						= "Progrès <",
-		progrmax						= "Progrès >",
-		qualitymin						= "Qualité <",
-		qualitymax						= "Qualité >",
+		stepmin							= "Étape >=",
+		stepmax							= "Étape <",
+		durabmin						= "Durabilité >=",
+		durabmax						= "Durabilité <",
+		progrmin						= "Progrès >=",
+		progrmax						= "Progrès <",
+		qualitymin						= "Qualité >=",
+		qualitymax						= "Qualité <",
 		condition						= "Condition =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "InnerQuiet Stack >=",
 		notused							= "NotUsed",
 		excellent						= "Excellent",
@@ -2866,8 +3281,8 @@ strings =
 		alias							= "Alias",
 		cdIsReady						= "CD Is Ready",
 		cdNotReady						= "CD Not Ready",
-		cdTimeLT						= "CD Time <",
-		cdTimeGT						= "CD Time >",
+		cdTimeLT						= "CD Time <=",
+		cdTimeGT						= "CD Time >=",
 		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
@@ -3049,7 +3464,7 @@ strings =
         showAetherytes                  = "Show Aetherytes",
         xPos                            = "X Position",
         yPos                            = "Y Position",
-        assist                          = "Assist",
+        assist                          = "Targeting Assist",
 		assistPriority            	    = "Priority",
 
         		-- new stuff (since last translation)
@@ -3073,8 +3488,8 @@ strings =
         blacklistEntry                  = "Blacklist Entry",
         entryTime                       = "Entry Time",
         deleteEntry                     = "Delete Entry",
-        qualityminper					= "Quality % <",
-		qualitymaxper					= "Quality % >=",
+        qualityminper					= "Quality % >=",
+		qualitymaxper					= "Quality % <",
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
@@ -3383,7 +3798,70 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 		singleUse						= "Single Use",
-		--us end
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max Durabilité >=",
+		maxdurabmax						= "Max Durabilité <",
+		maxprogrmin						= "Max Progrès >=",
+		maxprogrmax						= "Max Progrès <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		grindhelp						= "Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		gatherhelp						= "Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile",
+		fishhelp						= "Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles.",
+
+-- Faq
+		assistfaq						= "My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?",
+		grindfaq						= "My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job.",
+		gatherhfaq						= "Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list.",
+		fishfaq						= "Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?",
+		--FR end
 	},       
     
 	-- bk: RU
@@ -3455,19 +3933,19 @@ strings =
 		clearProfile					= "Clear Profile",			
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
-		stepmin							= "Step <",
-		stepmax							= "Step >",
-		durabmin						= "Durability <",
-		durabmax						= "Durability >",
-		progrmin						= "Progress <",
-		progrmax						= "Progress >",
-		qualitymin						= "Quality <",
-		qualitymax						= "Quality >",
+		stepmin							= "Step >=",
+		stepmax							= "Step <",
+		durabmin						= "Durability >=",
+		durabmax						= "Durability <",
+		progrmin						= "Progress >=",
+		progrmax						= "Progress <",
+		qualitymin						= "Quality >=",
+		qualitymax						= "Quality <",
 		condition						= "Condition =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "InnerQuiet Stack >=",
 		notused							= "NotUsed",
 		excellent						= "Excellent",
@@ -3492,8 +3970,8 @@ strings =
 		instacast            		    = "Instant Skill",
 		channeled            		    = "Channel Skill",		
 		cooldown                        = "Cooldown",
-        minRange                        = "MinRange",
-        maxRange                        = "MaxRange",
+        minRange                        = "Min Range",
+        maxRange                        = "Max Range",
         isGroundTargeted                = "Is GroundTargeted",        
         useOutOfCombat                  = "Use out of Combat",
         playerMoving                    = "Player Moving",
@@ -3526,8 +4004,8 @@ strings =
 		alias							= "Alias",
 		cdIsReady						= "CD Is Ready",
 		cdNotReady						= "CD Not Ready",
-		cdTimeLT						= "CD Time <",
-		cdTimeGT						= "CD Time >",
+		cdTimeLT						= "CD Time <=",
+		cdTimeGT						= "CD Time >=",
 		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
@@ -3709,7 +4187,7 @@ strings =
         showAetherytes                  = "Show Aetherytes",
         xPos                            = "X Position",
         yPos                            = "Y Position",
-        assist                          = "Assist",
+        assist                          = "Targeting Assist",
 		assistPriority            	    = "Priority",
 
         		-- new stuff (since last translation)
@@ -3732,8 +4210,8 @@ strings =
         blacklistEntry                  = "Blacklist Entry",
         entryTime                       = "Entry Time",
         deleteEntry                     = "Delete Entry",
-        qualityminper					= "Quality % <",
-		qualitymaxper					= "Quality % >=",
+        qualityminper					= "Quality % >=",
+		qualitymaxper					= "Quality % <",
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
@@ -4042,6 +4520,69 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max Durability >=",
+		maxdurabmax						= "Max Durability <",
+		maxprogrmin						= "Max Progress >=",
+		maxprogrmax						= "Max Progress <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		grindhelp						= "Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		gatherhelp						= "Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile",
+		fishhelp						= "Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles.",
+
+-- Faq
+		assistfaq						= "My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?",
+		grindfaq						= "My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job.",
+		gatherhfaq						= "Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list.",
+		fishfaq						= "Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?",
 		--ru end
 	},    	
 	
@@ -4114,19 +4655,19 @@ strings =
 		clearProfile					= "프로필 클리어",
 		skillbookrefresh                = "스킬들 복원",
 		targetType                      = "타겟",
-		stepmin							= "스텝 <",
-		stepmax							= "스텝 >=",
-		durabmin						= "내구도 <",
-		durabmax						= "내구도 >=",
-		progrmin						= "진행 <",
-		progrmax						= "진행 >=",
-		qualitymin						= "품질 <",
-		qualitymax						= "품질 >=",
+		stepmin							= "스텝 >=",
+		stepmax							= "스텝 <",
+		durabmin						= "내구도 >=",
+		durabmax						= "내구도 <",
+		progrmin						= "진행 >=",
+		progrmax						= "진행 <",
+		qualitymin						= "품질 >=",
+		qualitymax						= "품질 <",
 		condition						= "상태 =",
-		cpmin							= "CP <",
-		cpmax							= "CP >=",
-        gpmin							= "GP <",
-		gpmax							= "GP >",
+		cpmin							= "CP >=",
+		cpmax							= "CP <",
+        gpmin							= "GP >=",
+		gpmax							= "GP <",
 		iqstack							= "내부 스택 >=",		
 		notused							= "사용안함",
 		excellent						= "최고품질",
@@ -4187,8 +4728,8 @@ strings =
 		alias							= "별명",
 		cdIsReady						= "CD 준비됨",
 		cdNotReady						= "CD 준비가안됨",
-		cdTimeLT						= "CD 시간 <",
-		cdTimeGT						= "CD 시간 >",
+		cdTimeLT						= "CD 시간 <=",
+		cdTimeGT						= "CD 시간 >=",
 		nextSkillPrio					= "다음 스킬 순서",
 		skmTYPE							= "행동 유형",
 		skmSTYPE					 	= "스킬 유형",
@@ -4396,8 +4937,8 @@ strings =
         blacklistEntry                  = "블랙리스트 명단",
         entryTime                       = "명단 시간",
         deleteEntry                     = "명단 삭제",
-        qualityminper					= "품질 % <",
-		qualitymaxper					= "품질 % >=",
+        qualityminper					= "품질 % >=",
+		qualitymaxper					= "품질 % <",
         blacklistTarget                 = "블랙리스트 타겟",
         addEntry                        = "추가 명단",
         blacklistFate                   = "블랙리스트 돌발목표",
@@ -4737,6 +5278,69 @@ strings =
 		blacklistFish					= "블랙리스트 낚시",
 		blacklistFishHQ					= "블랙리스트 낚시 (HQ)",
 		singleUse						= "Single Use",
+		
+		--===== Added 9/20/15 - Sebbs
+		maxdurabmin						= "Max 내구도 >=",
+		maxdurabmax						= "Max 내구도 <",
+		maxprogrmin						= "Max 진행 >=",
+		maxprogrmax						= "Max 진행 <",
+		
+		--===== Added 9/23/15 - Sebbs
+		-- Help
+		assisthelp						= "Assist Mode will... \
+\
+You Steer, we Shoot. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		grindhelp						= "Grind Mode will... \
+\
+Do Fates, Huntlogs and Grind Mobs. \
+\
+Only for COMBAT Classes. \
+\
+While we endevour to Automate Settings, \
+Settings can be changed if Advanced Settings is enabled. \
+\
+Combat routines come from Skill Profile or ACR. \
+Combat is only as good as the Profile used.",
+		gatherhelp						= "Gather Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+Only for Miner or Botanist. \
+\
+Skills use are set by Skill Profile",
+		fishhelp						= "Fish Mode will... \
+\
+Use Markers, Profiles or Quickstart. \
+\
+Only for Fisher. \
+\
+Skills are NOT set via Skill Profile. \
+Set Skills Via Marker or Profiles.",
+
+-- Faq
+		assistfaq						= "My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job. \
+Is Start combat Checked?",
+		grindfaq						= "My Bot Doesnt move? \
+\
+Are any valid Fates Available? \
+Are Max Fate settings to low? \
+\
+My Bot Wont attack? \
+\
+Check your skill profile is set to the right Class/Job.",
+		gatherhfaq						= "Bot Doesnt move? \
+\
+Profile has no valid tasks? \
+Markers have radius to small? \
+Heavensward or Stormblood may need Marker list.",
+		fishfaq						= "Bot Doesnt Fish? \
+\
+Profile has no valid tasks? \
+Current location has Lockout out due to fishing Limit?",
 		--kr end
     },                               
 }
