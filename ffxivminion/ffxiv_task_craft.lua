@@ -1162,7 +1162,6 @@ function ffxiv_task_craft:Draw()
 		
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
-		GUI:PopStyleColor(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
@@ -1184,7 +1183,8 @@ function ffxiv_task_craft:Draw()
 		if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 			ffxivminion.FillFoodOptions()
 		end
-					
+			
+		GUI:PopStyleColor()		
 		
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
@@ -1492,10 +1492,9 @@ function ffxiv_craft.UpdateAlertElement()
 				
 			end
 		end
+		ffxiv_craft.SaveProfile()
+		ffxiv_craft.tracking.measurementDelay = Now() + 10000
 	end
-	
-	ffxiv_craft.SaveProfile()
-	ffxiv_craft.tracking.measurementDelay = Now() + 10000
 end	
 
 function ffxiv_craft.UpdateOrderElement()

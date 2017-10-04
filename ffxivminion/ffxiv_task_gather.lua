@@ -2425,10 +2425,10 @@ function c_gathernexttask:evaluate()
 						gd("Task ["..tostring(i).."] not enabled.",3)
 					end
 
-					if (data.minlevel and Player.level < data.minlevel) then
+					if (data.minlevel and Player.level < tonumber(data.minlevel)) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to min level requirement.",3)
-					elseif (data.maxlevel and Player.level > data.maxlevel) then
+					elseif (data.maxlevel and Player.level > tonumber(data.maxlevel)) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
@@ -3470,11 +3470,13 @@ function ffxiv_task_gather:Draw()
 				local TimeLeft = 999
 				if profiletask.maxtime ~= nil then
 					if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
-						local TastStarted = profiletask.taskStarted
-						local TimeSince = TimeSince(profiletask.taskStarted)
-						local MaxTime = profiletask.maxtime
-						TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
-						if TimeLeft < 0 then TimeLeft = 0 end
+						local TaskStarted = profiletask.taskStarted
+						if TaskStarted then
+							local TimeSince = TimeSince(profiletask.taskStarted) or 0
+							local MaxTime = profiletask.maxtime
+							TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
+							if TimeLeft < 0 then TimeLeft = 0 end
+						end
 					end
 				end
 				GUI:BeginChild("##header-Timers",-8,GUI_GetFrameHeight(2),true)	

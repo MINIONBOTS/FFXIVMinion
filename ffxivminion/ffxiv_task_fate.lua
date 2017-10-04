@@ -3,10 +3,10 @@
 ---------------------------------------------------------------------------------------------
 
 ffxiv_task_fate = inheritsFrom(ml_task)
-
+--[[
 ffxiv_task_fate.tracking = {
 	measurementDelay = 0,
-}
+}]]
 function ffxiv_task_fate.Create()
     local newinst = inheritsFrom(ffxiv_task_fate)
     
@@ -429,10 +429,6 @@ end
 
 c_resettarget = inheritsFrom( ml_cause )
 e_resettarget = inheritsFrom( ml_effect )
-c_add_fatetarget = inheritsFrom( ml_cause )
-e_add_fatetarget = inheritsFrom( ml_effect )
-c_add_fatetarget.oocCastTimer = 0
-c_add_fatetarget.throttle = 500
 
 function c_resettarget:evaluate()
 	if ffxiv_task_fate.tracking.measurementDelay > Now() then
@@ -455,11 +451,11 @@ function c_resettarget:evaluate()
 						ffxiv_task_fate.tracking.measurementDelay = Now() + 5000
 						return true
 					end
-				elseif (table.valid(el)) then
+				elseif (table.valid(defend)) then
 					local newTarget = nil
 					local lowestHP = Player:GetTarget().hp.current
 					
-					for i,e in pairs(el) do
+					for i,e in pairs(defend) do
 						if (fate) then
 							if (e.fateid == fate.id) then
 								if (e.hp.current < lowestHP) then
@@ -473,7 +469,7 @@ function c_resettarget:evaluate()
 							end
 							if (newTarget) then
 								d("[GrindCombat]: Target Reset due to Defend Self target found.")
-								c_add_fatetarget.targetid = el.id
+								c_add_fatetarget.targetid = e.id
 								return true
 							end
 						end
@@ -517,6 +513,10 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
+c_add_fatetarget = inheritsFrom( ml_cause )
+e_add_fatetarget = inheritsFrom( ml_effect )
+c_add_fatetarget.oocCastTimer = 0
+c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
 	if (not Player.incombat) then
 		if (SkillMgr.Cast( Player, true)) then
@@ -540,26 +540,28 @@ function c_add_fatetarget:evaluate()
 					c_add_fatetarget.targetid = e.id
 					return true
 				end
-			elseif (table.valid(el)) then
-				local newTarget = nil
-				local lowestHP = Player:GetTarget().hp.current
-				
-				for i,e in pairs(el) do
-					if (fate) then
-						if (e.fateid == fate.id) then
-							if (e.hp.current < lowestHP) then
-								newTarget = e
+			elseif (table.valid(defend)) then
+				if Player:GetTarget() then 
+					local newTarget = nil
+					local lowestHP = Player:GetTarget().hp.current
+					
+					for i,e in pairs(defend) do
+						if (fate) then
+							if (e.fateid == fate.id) then
+								if (e.hp.current < lowestHP) then
+									newTarget = e
+								end
+							elseif gFateKillAggro then
+								if (e.hp.current < lowestHP) then
+									newTarget = e
+								end
+								
 							end
-						elseif gFateKillAggro then
-							if (e.hp.current < lowestHP) then
-								newTarget = e
+							if (newTarget) then
+								d("[GrindCombat]: Defend Self target found.")
+								c_add_fatetarget.targetid = e.id
+								return true
 							end
-							
-						end
-						if (newTarget) then
-							d("[GrindCombat]: Defend Self target found.")
-							c_add_fatetarget.targetid = el.id
-							return true
 						end
 					end
 				end
@@ -607,8 +609,8 @@ function ffxiv_task_fate:Init()
     local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 50 )
     self:add( ke_syncFate, self.overwatch_elements)
 	
-	local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_add_fatetarget, 60 )
-	self:add( ke_resetTarget, self.process_elements)
+	--local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_add_fatetarget, 60 )
+	--self:add( ke_resetTarget, self.process_elements)
     
     --init process
 	local ke_moveToFateMap = ml_element:create( "MoveToFateMap", c_movetofatemap, e_movetofatemap, 100 )
