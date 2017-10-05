@@ -1089,7 +1089,20 @@ function ffxiv_task_craft:Draw()
 				
 				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 				
-				if uiAlert == "skillprofile" then
+				if uiAlert == "skip" then
+					local child_color = { r = 1, g = .90, b = .33, a = .0 }
+					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text("Skip")
+					GUI:EndChild()
+					GUI:PopStyleColor()
+					GUI:PopStyleVar()
+					GUI:PopStyleVar()
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
+				elseif uiAlert == "skillprofile" then
 					local child_color = { r = 1, g = .90, b = .33, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
 					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
@@ -1115,19 +1128,6 @@ function ffxiv_task_craft:Draw()
 					GUI:PopStyleVar()
 					GUI:PopStyleVar()
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. CP Below Task Requirement.")) end
-				elseif uiAlert == "skip" then
-					local child_color = { r = 1, g = .90, b = .33, a = .0 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skip")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
 				elseif uiAlert == "cantCraft" then
 					local child_color = { r = .50, g = 0.05, b = .2, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
@@ -1474,14 +1474,14 @@ function ffxiv_craft.UpdateAlertElement()
 					
 				local canCraft = AceLib.API.Items.CanCraft(id)
 				local okCP = (order["requiredcp"] ~= nil and (playercp >= order["requiredcp"])) or (order["usequick"] == true)
-				if (order["skillprofile"] == "None") and (order["usequick"] == false) then
+				if order["skip"] == true then
+					order["uialert"] = "skip"
+				elseif (order["skillprofile"] == "None") and (order["usequick"] == false) then
 					order["uialert"] = "skillprofile"
 				elseif not okCP then
 					order["uialert"] = "lowcp"
 				elseif not canCraft then
 					order["uialert"] = "cantCraft"
-				elseif order["skip"] == true then
-					order["uialert"] = "skip"
 				elseif canCraft then
 					order["uialert"] = "canCraft"
 				end
@@ -1725,9 +1725,14 @@ function ffxiv_craft.Draw( event, ticks )
 							orders[id].skip = false
 							ffxiv_craft.SaveProfile()
 						end
+						
 						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
 						if (changed) then
 							orders[id].skip = newVal
+							if orders[id].skip == true then
+								orders[id].uialert = skip
+							end
+							ffxiv_craft.tracking.measurementDelay = Now()
 						end
 						GUI:NextColumn()
 						
@@ -1776,7 +1781,20 @@ function ffxiv_craft.Draw( event, ticks )
 				
 				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 				
-				if uiAlert == "skillprofile" then
+				if uiAlert == "skip" then
+					local child_color = { r = 1, g = .90, b = .33, a = .0 }
+					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text("Skip")
+					GUI:EndChild()
+					GUI:PopStyleColor()
+					GUI:PopStyleVar()
+					GUI:PopStyleVar()
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
+				elseif uiAlert == "skillprofile" then
 					local child_color = { r = 1, g = .90, b = .33, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
 					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
@@ -1802,19 +1820,6 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:PopStyleVar()
 					GUI:PopStyleVar()
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. CP Below Task Requirement.")) end
-				elseif uiAlert == "skip" then
-					local child_color = { r = 1, g = .90, b = .33, a = .0 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skip")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
 				elseif uiAlert == "cantCraft" then
 					local child_color = { r = .50, g = 0.05, b = .2, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
