@@ -3389,12 +3389,12 @@ function ffxiv_task_gather:UIInit()
 	self.GUI = {}
 	-- Load correct tabs for current mode on inital run.
 	if gGatherMarkerOrProfileIndex == 1 then
-		self.GUI.main_tabs = GUI_CreateTabs((GetString("Marker Lists,Settings,Collectable,Debug"),true)
-	elseif gGatherMarkerOrProfileIndex == 2 then
-		self.GUI.main_tabs = GUI_CreateTabs((GetString("Settings,Collectable,Debug"),true)
-	elseif gGatherMarkerOrProfileIndex == 3 then
-		self.GUI.main_tabs = GUI_CreateTabs((GetString("Quick Start,Settings,Collectable,Debug"),true)
-	end
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 2 then
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
+		elseif gGatherMarkerOrProfileIndex == 3 then
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
+		end
 	self.GUI.profile = {
 		open = false,
 		visible = true,
@@ -3415,11 +3415,11 @@ function ffxiv_task_gather:Draw()
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
 		if gGatherMarkerOrProfileIndex == 1 then
-		self.GUI.main_tabs = GUI_CreateTabs((GetString("Marker Lists,Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
 		elseif gGatherMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs((GetString("Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
 		elseif gGatherMarkerOrProfileIndex == 3 then
-			self.GUI.main_tabs = GUI_CreateTabs((GetString("Quick Start,Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
 		end
 	end
 	GUI:PopItemWidth()

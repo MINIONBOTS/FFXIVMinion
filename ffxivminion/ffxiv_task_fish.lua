@@ -2740,11 +2740,11 @@ function ffxiv_task_fish:UIInit()
 	self.GUI = {}
 	-- Load correct tabs for current mode on inital run.
 	if gFishMarkerOrProfileIndex == 1 then
-		self.GUI.main_tabs = GUI_CreateTabs(GetString("Marker Lists,Settings,Collectable,Debug"),true)
+		self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
 	elseif gFishMarkerOrProfileIndex == 2 then
-		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Debug"),true)
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
 	elseif gFishMarkerOrProfileIndex == 3 then
-		self.GUI.main_tabs = GUI_CreateTabs(GetString("Quick Start,Settings,Collectable,Debug"),true)
+		self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
 	end
 	self.GUI.profile = {
 		open = false,
@@ -2766,11 +2766,11 @@ function ffxiv_task_fish:Draw()
 		-- Update tabs on change.
 		-- Load correct tabs for current mode on inital run.
 		if gFishMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs(GetString("Marker Lists,Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Marker Lists,Settings,Collectable,Debug",true)
 		elseif gFishMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
 		elseif gFishMarkerOrProfileIndex == 3 then
-			self.GUI.main_tabs = GUI_CreateTabs(GetString("Quick Start,Settings,Collectable,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Quick Start,Settings,Collectable,Debug",true)
 		end
 	end
 	GUI:PopItemWidth()

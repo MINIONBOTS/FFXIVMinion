@@ -908,10 +908,10 @@ function ffxiv_task_craft:UIInit()
 	gCraftMarkerOrProfileIndex = ffxivminion.GetSetting("gCraftMarkerOrProfileIndex",1)
 	
 	if gCraftMarkerOrProfileIndex == 1 then
-		self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
-	elseif gCraftMarkerOrProfileIndex == 2 then
-		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
-	end
+			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
+		elseif gCraftMarkerOrProfileIndex == 2 then
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
+		end
 	
 end
 
@@ -940,9 +940,9 @@ function ffxiv_task_craft:Draw()
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
 		if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
 		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
+			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
 		end
 	end
 	GUI:PopItemWidth()
