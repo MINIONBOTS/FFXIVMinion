@@ -13,9 +13,6 @@
 --that this movetopos task has up2date positions and is still valid.
 ---------------------------------------------------------------------------------------------
 
-ffxiv_task_fate.tracking = {
-	measurementDelay = 0,
-}
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)

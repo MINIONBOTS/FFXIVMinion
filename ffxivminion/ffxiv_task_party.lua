@@ -19,7 +19,7 @@ function c_partysyncfatelevel:evaluate()
     local myPos = Player.pos
     local fate = GetClosestFate(myPos)
 	if (table.valid(fate)) then
-		if (AceLib.API.Fate.RequiresSync(fate.id)) then
+		if (Player.level > fate.maxlevel) then
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance < fate.radius) then				
 				return true
