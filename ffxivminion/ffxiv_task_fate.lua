@@ -435,45 +435,56 @@ c_add_fatetarget.oocCastTimer = 0
 c_add_fatetarget.throttle = 500
 
 function c_resettarget:evaluate()
+	local currentTarget = MGetTarget()
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+	
 	if ffxiv_task_fate.tracking.measurementDelay > Now() then
+	--d("Reset false")
 		return false
 	end
 	
-	
-	
 	local forlorn = EntityList("alive,targetable,attackable,contentid=6737;6738")
 	local defend = MEntityList("alive,attackable,targetingme,onmesh,maxdistance=25")
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-	if Player:GetTarget() then
+	if currentTarget then
 		if (table.valid(fate)) then
 			if (fate.status == 2) then
 				
 				if (table.valid(forlorn)) then
 					for i,e in pairs(forlorn) do
-						d("[GrindCombat]: Target Reset due to forlorn target found.")
-						c_add_fatetarget.targetid = e.id
-						ffxiv_task_fate.tracking.measurementDelay = Now() + 5000
-						return true
+						if (fate) then
+							if (e.fateid == fate.id) then
+								if e.id ~= currentTarget.id then
+									d("[GrindCombat]: Target Reset due to forlorn target found.")
+									c_add_fatetarget.targetid = e.id
+									ffxiv_task_fate.tracking.measurementDelay = Now() + 3000
+									return true
+								end
+							end
+						end
 					end
 				elseif (table.valid(defend)) then
 					local newTarget = nil
-					local lowestHP = Player:GetTarget().hp.current
+					local lowestHP = currentTarget.hp.current
 					
 					for i,e in pairs(defend) do
 						if (fate) then
 							if (e.fateid == fate.id) then
 								if (e.hp.current < lowestHP) then
-									newTarget = e
+									if e.id ~= currentTarget.id then
+										newTarget = e
+									end
 								end
 							elseif gFateKillAggro then
 								if (e.hp.current < lowestHP) then
-									newTarget = e
+									if e.id ~= currentTarget.id then
+										newTarget = e
+									end
 								end
-								
 							end
 							if (newTarget) then
 								d("[GrindCombat]: Target Reset due to Defend Self target found.")
 								c_add_fatetarget.targetid = e.id
+								ffxiv_task_fate.tracking.measurementDelay = Now() + 3000
 								return true
 							end
 						end
@@ -536,14 +547,19 @@ function c_add_fatetarget:evaluate()
 		if (fate.status == 2) then
 			if (table.valid(forlorn)) then
 				for i,e in pairs(forlorn) do
-					d("[GrindCombat]: Forlorn target found.")
-					c_add_fatetarget.targetid = e.id
-					return true
+					if (fate) then
+						if (e.fateid == fate.id) then
+							d("[GrindCombat]: Forlorn target found.")
+							c_add_fatetarget.targetid = e.id
+							return true
+						end
+					end
 				end
 			elseif (table.valid(defend)) then
-				if Player:GetTarget() then 
+				local currentTarget = MGetTarget()
+				if currentTarget then
 					local newTarget = nil
-					local lowestHP = Player:GetTarget().hp.current
+					local lowestHP = currentTarget.hp.current
 					
 					for i,e in pairs(defend) do
 						if (fate) then
@@ -610,7 +626,7 @@ function ffxiv_task_fate:Init()
     self:add( ke_syncFate, self.overwatch_elements)
 	
 	local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_add_fatetarget, 60 )
-	self:add( ke_resetTarget, self.process_elements)
+	self:add( ke_resetTarget, self.overwatch_elements)
     
     --init process
 	local ke_moveToFateMap = ml_element:create( "MoveToFateMap", c_movetofatemap, e_movetofatemap, 100 )

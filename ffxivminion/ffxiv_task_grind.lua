@@ -818,9 +818,9 @@ function ffxiv_task_grind:UIInit()
 	
 	self.GUI = {}
 	if (gEnableAdvancedGrindSettings) then
-		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Advanced,Debug"),true)
 	else
-		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Debug"),true)
 	end
 	self.GUI.profile = {
 		open = false,
@@ -890,9 +890,9 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##AdvancedSettings",gEnableAdvancedGrindSettings),"gEnableAdvancedGrindSettings", 
 			function ()
 				if (gEnableAdvancedGrindSettings) then
-					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced,Debug",true)
+					self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Advanced,Debug"),true)
 				else
-					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Debug",true)
+					self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Debug"),true)
 				end
 			end
 		);

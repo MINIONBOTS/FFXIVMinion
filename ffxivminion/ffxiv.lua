@@ -1338,7 +1338,6 @@ Quest: Completes quests based on a questing profile.\
 							space = -100
 						end
 					end
-
 					GUI:BeginChild("##main-task-section",0,space,false)
 					local mainTask = ml_global_information.mainTask
 					if (mainTask) then

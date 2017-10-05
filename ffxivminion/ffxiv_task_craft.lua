@@ -111,6 +111,7 @@ function e_craftlimit:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
 		ffxiv_craft.orders[recipeid].completed = true
+		ffxiv_craft.tracking.measurementDelay = Now()
 		
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
 		ml_task_hub:CurrentTask().completed = true
@@ -907,10 +908,10 @@ function ffxiv_task_craft:UIInit()
 	gCraftMarkerOrProfileIndex = ffxivminion.GetSetting("gCraftMarkerOrProfileIndex",1)
 	
 	if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
-		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
-		end
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
+	elseif gCraftMarkerOrProfileIndex == 2 then
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
+	end
 	
 end
 
@@ -939,9 +940,9 @@ function ffxiv_task_craft:Draw()
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
 		if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
+			self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
 		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
+			self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
 		end
 	end
 	GUI:PopItemWidth()
@@ -1439,7 +1440,7 @@ end
 	
 function ffxiv_craft.UpdateAlertElement()
 	
-	if gBotMode ~= GetString("craftMode") or (Now() < ffxiv_craft.tracking.measurementDelay) then
+	if (gBotMode == GetString("craftMode") and gCraftMarkerOrProfileIndex ~= 1) or gBotMode ~= GetString("craftMode") or (Now() < ffxiv_craft.tracking.measurementDelay) then
 		return false
 	end
 	

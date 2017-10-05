@@ -1272,7 +1272,7 @@ function c_walktopos:evaluate()
 	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
-			d("[WalkToPos]: Pathing was started.")
+			--d("[WalkToPos]: Pathing was started.")
 		end
 		return true
 	else
