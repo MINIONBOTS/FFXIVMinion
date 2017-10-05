@@ -3404,6 +3404,7 @@ function ffxiv_task_gather:UIInit()
 end
 
 function ffxiv_task_gather:Draw()
+	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	-- Gather Mode Selections.
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Mode")
@@ -3463,7 +3464,7 @@ function ffxiv_task_gather:Draw()
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	-- Settings Tab.
-	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[2].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Settings")) then
 		if (gGatherMarkerOrProfileIndex == 2) then
 			local profiletask = ffxiv_gather.currentTask
 			if table.valid(profiletask) then
@@ -3580,7 +3581,7 @@ function ffxiv_task_gather:Draw()
 		GUI:EndChild()
 	end
 	-- Collectable Tab
-	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[3].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[2].isselected)) then
+	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
 		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
@@ -3636,7 +3637,7 @@ function ffxiv_task_gather:Draw()
 		end
 	end
 	-- Marker Tab
-	if (gGatherMarkerOrProfileIndex == 1 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Marker Lists")) then
 		local currentMode = ml_marker_mgr.modes[gMarkerModeIndex]
 		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
 		local currentMap = ml_marker_mgr.activeMap
@@ -3718,7 +3719,7 @@ function ffxiv_task_gather:Draw()
 		end
 		GUI:EndChild()
 	end
-	if (gGatherMarkerOrProfileIndex == 3 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Quick Start")) then
 		
 		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(5),true)
 		GUI:Columns(2)
@@ -3781,7 +3782,7 @@ function ffxiv_task_gather:Draw()
 		GUI:EndChild()
 	end
 	-- Debug Tab
-	if (gGatherMarkerOrProfileIndex ~= 2 and (tabs.tabs[4].isselected)) or (gGatherMarkerOrProfileIndex == 2 and (tabs.tabs[3].isselected))  then
+	if (tabname == GetString("Debug"))  then
 		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Debug")

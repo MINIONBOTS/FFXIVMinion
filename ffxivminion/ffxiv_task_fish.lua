@@ -2755,6 +2755,7 @@ function ffxiv_task_fish:UIInit()
 end
 
 function ffxiv_task_fish:Draw()
+	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Mode")
 	GUI:SameLine()
@@ -2816,7 +2817,7 @@ function ffxiv_task_fish:Draw()
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs	
 	-- Settings
-	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[2].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Settings")) then
 		
 		if (gFishMarkerOrProfileIndex == 2) then
 			local profiletask = ffxiv_fish.currentTask
@@ -2871,7 +2872,7 @@ function ffxiv_task_fish:Draw()
 		GUI:EndChild()
 	end
 	-- Collectables
-	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[3].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[2].isselected)) then
+	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
 		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
 			GUI_Set("gFishCollectablePresets",{})
@@ -2934,7 +2935,7 @@ function ffxiv_task_fish:Draw()
 		end
 	end
 	-- Fish Mode
-	if (gFishMarkerOrProfileIndex == 1 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Marker Lists")) then
 		local currentMode = ml_marker_mgr.modes[gMarkerModeIndex]
 		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
 		local currentMap = ml_marker_mgr.activeMap
@@ -3027,7 +3028,7 @@ function ffxiv_task_fish:Draw()
 		end
 		GUI:EndChild()
 	end
-	if (gFishMarkerOrProfileIndex == 3 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Quick Start")) then
 		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(9),true)
 		GUI:Columns(2)
 		
@@ -3121,7 +3122,7 @@ function ffxiv_task_fish:Draw()
 	end
 		
 	-- Debug Tab
-	if (gFishMarkerOrProfileIndex ~= 2 and (tabs.tabs[4].isselected)) or (gFishMarkerOrProfileIndex == 2 and (tabs.tabs[3].isselected))  then
+	if (tabname == GetString("Debug")) then
 		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Debug")
