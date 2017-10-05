@@ -195,7 +195,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
+				--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
 				return attackables[nearest.id]
 			end
 		end
@@ -216,7 +216,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (lowest) then
-				d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
+				--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
 				return attackables[lowest.id]
 			end
 			
@@ -229,7 +229,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
+				--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
 				return attackables[nearest.id]
 			end
 		end
@@ -246,7 +246,7 @@ function GetNearestGrindAttackable()
 			if (nearest) then
 				local actual = EntityList:Get(nearest.id)
 				if (actual) then
-					d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+					--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
 					return actual
 				end
 			end
@@ -395,7 +395,7 @@ function GetNearestFateAttackable2()
 			end
 			
 			if (nearest) then
-				d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
+				--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
 				return attackables[nearest.id]
 			end
 		end
@@ -416,7 +416,7 @@ function GetNearestFateAttackable2()
 			end
 			
 			if (lowest) then
-				d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
+				--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
 				return attackables[lowest.id]
 			end
 			
@@ -429,7 +429,7 @@ function GetNearestFateAttackable2()
 			end
 			
 			if (nearest) then
-				d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
+				--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
 				return attackables[nearest.id]
 			end
 		end
@@ -446,7 +446,7 @@ function GetNearestFateAttackable2()
 			if (nearest) then
 				local actual = EntityList:Get(nearest.id)
 				if (actual) then
-					d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+					--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
 					return actual
 				end
 			end
@@ -1606,7 +1606,7 @@ function AddEvacPoint(manual)
 		end
 	end
 	
-	if (not manual) then
+	if (not manual) and gGrindEvacAuto  then
 		local el = EntityList("alive,attackable,aggressive,exclude_contentid=541,maxdistance=40")
 		if (table.valid(el)) then
 			d("[AddEvacPoint]: Evac point was not added, it does not appear to be a safe area.")

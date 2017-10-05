@@ -747,6 +747,7 @@ function ffxiv_task_grind.SetModeOptions()
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = true
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
+	gGrindEvacAuto = Settings.FFXIVMINION.gGrindEvacAuto
 end
 
 function ffxiv_task_grind:UIInit()
@@ -811,14 +812,15 @@ function ffxiv_task_grind:UIInit()
 	gFateEscortWaitPercent = ffxivminion.GetSetting("gFateEscortWaitPercent",0)
 	
 	gFateWaitNearEvac = ffxivminion.GetSetting("gFateWaitNearEvac",true)
+	gGrindEvacAuto = ffxivminion.GetSetting("gGrindEvacAuto",true)
 	
 	gEnableAdvancedGrindSettings = ffxivminion.GetSetting("gEnableAdvancedGrindSettings",false)
 	
 	self.GUI = {}
 	if (gEnableAdvancedGrindSettings) then
-		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Advanced,Debug"),true)
 	else
-		self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Debug"),true)
 	end
 	self.GUI.profile = {
 		open = false,
@@ -829,11 +831,11 @@ function ffxiv_task_grind:UIInit()
 end
 
 function ffxiv_task_grind:Draw()
-	
+	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	
-	if (tabs.tabs[1].isselected) then
+	if (tabname == GetString("Settings")) then
 		local settingschildsize = 5
 		if (gGrindDoFates) then
 			settingschildsize = 6
@@ -888,9 +890,9 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##AdvancedSettings",gEnableAdvancedGrindSettings),"gEnableAdvancedGrindSettings", 
 			function ()
 				if (gEnableAdvancedGrindSettings) then
-					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding,Advanced",true)
+					self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Advanced,Debug"),true)
 				else
-					self.GUI.main_tabs = GUI_CreateTabs("Settings,Tweaks,Mob Grinding",true)
+					self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Tweaks,Mob Grinding,Debug"),true)
 				end
 			end
 		);
@@ -923,7 +925,7 @@ function ffxiv_task_grind:Draw()
 		GUI:Columns()
 		GUI:EndChild()
 	end
-	if (tabs.tabs[2].isselected) then
+	if (tabname == GetString("Tweaks")) then
 		GUI:BeginChild("##header-tweaks",0,GUI_GetFrameHeight(7),true)
 		GUI:Columns(3)
 		GUI:Text(GetString("FateType"))
@@ -960,7 +962,7 @@ function ffxiv_task_grind:Draw()
 		GUI:Columns()
 		GUI:EndChild()
 	end
-	if (tabs.tabs[3].isselected) then
+	if (tabname == GetString("Mob Grinding")) then
 		GUI:BeginChild("##header-hunting",0,GUI_GetFrameHeight(3),true)
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("prioritizeClaims"))
@@ -983,8 +985,8 @@ function ffxiv_task_grind:Draw()
 		GUI:PopItemWidth()
 		GUI:EndChild()
 	end
-	if (gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[4])) and (tabs.tabs[4].isselected) then
-		GUI:BeginChild("##header-advanced",0,GUI_GetFrameHeight(7),true)
+	if (tabname == GetString("Advanced")) then
+		GUI:BeginChild("##header-advanced",0,GUI_GetFrameHeight(8),true)
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("MinFateLv"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MinFateLvTooltip")) end
@@ -998,6 +1000,8 @@ function ffxiv_task_grind:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("fateTeleportPercentTooltip")) end
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("restInFates"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("restInFatesTooltip")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Create Auto Evac"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Create Evac points if none close by.")) end
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("waitNearEvac"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("waitNearEvacTooltip")) end
 		GUI:NextColumn()
@@ -1011,14 +1015,16 @@ function ffxiv_task_grind:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("SetNoMaxFateLevelTooltip")) end
 		GUI_DrawIntMinMax(GetString("##fateTeleportPercent"),"gFateTeleportPercent",1,2,0,99)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("fateTeleportPercentTooltip")) end
-		GUI_Capture(GUI:Checkbox("##"..GetString("restInFates"),gRestInFates),"gRestInFates")
+		GUI_Capture(GUI:Checkbox("##"..GetString("##restInFates"),gRestInFates),"gRestInFates")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("restInFatesTooltip")) end
-		GUI_Capture(GUI:Checkbox("##"..GetString("waitNearEvac"),gFateWaitNearEvac),"gFateWaitNearEvac")
+		GUI_Capture(GUI:Checkbox("##"..GetString("##createEvac"),gGrindEvacAuto),"gGrindEvacAuto")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Create Evac points if none close by.")) end
+		GUI_Capture(GUI:Checkbox("##"..GetString("##waitNearEvac"),gFateWaitNearEvac),"gFateWaitNearEvac")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("waitNearEvacTooltip")) end
 		GUI:Columns()
 		GUI:EndChild()
 	end
-	if (not gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[4])) and (tabs.tabs[4].isselected) or (gEnableAdvancedGrindSettings) and (table.valid(tabs.tabs[5])) and (tabs.tabs[5].isselected) then
+	if (tabname == GetString("Debug")) then
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(2),true)	
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("GrindDebug"))

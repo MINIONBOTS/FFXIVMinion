@@ -111,6 +111,7 @@ function e_craftlimit:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
 		ffxiv_craft.orders[recipeid].completed = true
+		ffxiv_craft.tracking.measurementDelay = Now()
 		
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
 		ml_task_hub:CurrentTask().completed = true
@@ -907,10 +908,10 @@ function ffxiv_task_craft:UIInit()
 	gCraftMarkerOrProfileIndex = ffxivminion.GetSetting("gCraftMarkerOrProfileIndex",1)
 	
 	if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
-		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
-		end
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
+	elseif gCraftMarkerOrProfileIndex == 2 then
+		self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
+	end
 	
 end
 
@@ -939,9 +940,9 @@ function ffxiv_task_craft:Draw()
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
 		if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
+			self.GUI.main_tabs = GUI_CreateTabs(GetString("Craft List,Settings,Collectable,Gearsets,Debug"),true)
 		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
+			self.GUI.main_tabs = GUI_CreateTabs(GetString("Settings,Collectable,Gearsets,Debug"),true)
 		end
 	end
 	GUI:PopItemWidth()
@@ -998,8 +999,14 @@ function ffxiv_task_craft:Draw()
 					["amount"] = 50,
 					["width"] = 100,
 					["onclick"] = function ()
+						
 						GUI:CloseCurrentPopup()
 						ffxiv_craft.CreateNewProfile()
+						gCraftProfile = gCraftNewProfileName
+						gCraftProfileIndex = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay)
+						local uuid = GetUUID()
+						Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
+						
 					end,
 				},
 				{
@@ -1016,9 +1023,10 @@ function ffxiv_task_craft:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Creates a New Crafting Order profile.")) end
 	end
 	GUI_DrawTabs(self.GUI.main_tabs)
+	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	-- Orders List
-	if (gCraftMarkerOrProfileIndex == 1 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Craft List")) then
 		
 		GUI:Separator();
 		GUI:Columns(7, "#craft-manage-orders", true)
@@ -1158,7 +1166,7 @@ function ffxiv_task_craft:Draw()
 	
 	
 	-- Crafting Settings
-	if (gCraftMarkerOrProfileIndex ~= 2 and (tabs.tabs[2].isselected)) or (gCraftMarkerOrProfileIndex == 2 and (tabs.tabs[1].isselected)) then
+	if (tabname == GetString("Settings")) then
 		
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
@@ -1225,7 +1233,7 @@ function ffxiv_task_craft:Draw()
 		GUI:Separator()
 	end
 	-- Collectable Table
-	if (gCraftMarkerOrProfileIndex ~= 2 and (tabs.tabs[3].isselected)) or (gCraftMarkerOrProfileIndex == 2 and (tabs.tabs[2].isselected)) then
+	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
 		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
@@ -1278,7 +1286,7 @@ function ffxiv_task_craft:Draw()
 		end
 	end
 	-- Class Gear Sets
-	if (gCraftMarkerOrProfileIndex ~= 2 and (tabs.tabs[4].isselected)) or (gCraftMarkerOrProfileIndex == 2 and (tabs.tabs[3].isselected)) then
+	if (tabname == GetString("Gearsets")) then
 		GUI:PushItemWidth(40)
 		local GearSetsColumnWidth = (GUI:GetContentRegionAvail()/2)-50
 		for i = 8,15 do
@@ -1294,7 +1302,7 @@ function ffxiv_task_craft:Draw()
 		end
 		GUI:PopItemWidth()
 	end
-	if (gCraftMarkerOrProfileIndex ~= 2 and (tabs.tabs[5].isselected)) or (gCraftMarkerOrProfileIndex == 2 and (tabs.tabs[4].isselected)) then
+	if (tabname == GetString("Debug")) then
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Craft Debug"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Enable Debug messages in console.")) end
@@ -1432,7 +1440,7 @@ end
 	
 function ffxiv_craft.UpdateAlertElement()
 	
-	if gBotMode ~= GetString("craftMode") or (Now() < ffxiv_craft.tracking.measurementDelay) then
+	if (gBotMode == GetString("craftMode") and gCraftMarkerOrProfileIndex ~= 1) or gBotMode ~= GetString("craftMode") or (Now() < ffxiv_craft.tracking.measurementDelay) then
 		return false
 	end
 	

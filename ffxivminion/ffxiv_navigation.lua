@@ -816,7 +816,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	local newPath2d, newPath3d = ml_navigation.GetNewPathThresholds()
 	if (not table.valid(ffnav.currentGoal)) then
 		buildNewPath = true
-		d("[NAVIGATION]: Need to build a new path, no current goal [MOVETO1].")
+		--d("[NAVIGATION]: Need to build a new path, no current goal [MOVETO1].")
 	else
 		local dist2d = math.distance2d(ffnav.currentGoal,newGoal)
 		local dist3d = math.distance3d(ffnav.currentGoal,newGoal)
@@ -834,7 +834,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
-			d("[NAVIGATION: Started pathing [MOVETO3].")
+			--d("[NAVIGATION: Started pathing [MOVETO3].")
 		end
 		return true
 	else
@@ -1307,10 +1307,10 @@ function ml_navigation.Navigate(event, ticks )
 							
 							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
 							if (not string.contains(nextnode.type,"CUBE") ) then
-								d("[Navigation]: Next node is not a flying node.")
+								--d("[Navigation]: Next node is not a flying node.")
 								
 								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
-									d("[Navigation]: Next next node is also not a flying node.")
+									--d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
 								
 									--Player:Move(FFXIV.MOVEMENT.DOWN)
@@ -1328,7 +1328,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1		
 						else			
-							ml_debug("[Navigation]: Moving to next node")
+							--ml_debug("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
 							-- Face next node
 							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
@@ -1407,7 +1407,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 				
 				else
-					d("[Navigation] - Path end reached.")
+					--d("[Navigation] - Path end reached.")
 					
 					ffnav.lastGoalReachedFrom = ppos
 					ffnav.lastGoalReached = ffnav.currentGoal
