@@ -2447,7 +2447,7 @@ function GetClosestFate(pos)
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}	
 
 				if (not ml_navigation:CheckPath(fatePos)) then
-					d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.name).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
+					--d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.name).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
 					table.remove(fateList, i)
 				end
 			end
@@ -2551,7 +2551,7 @@ function GetClosestFate(pos)
 		end
     
         if (nearestFate) then
-			d("[GetClosestFate] - Nearest Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
+			--d("[GetClosestFate] - Nearest Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
             return nearestFate
         end
     end

@@ -1609,8 +1609,8 @@ function ffxiv_task_grindCombat:task_complete_execute()
 			if (ml_task_hub:CurrentTask():ParentTask()) then
 				ml_debug("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
 			end
-			Player:SyncLevel()
-			ml_global_information.syncTimer = Now() + 1000
+			--Player:SyncLevel()
+			--ml_global_information.syncTimer = Now() + 1000
 		end
 	end
     Player:Stop()
