@@ -472,40 +472,46 @@ function c_avoid:evaluate()
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
 	if (table.valid(el)) then
-		for i,e in pairs(el) do
-			local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
-			if (shouldAvoid and spellData) then
-				local lastAvoid = c_avoid.lastAvoid
-				if (lastAvoid) then
-					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-						--d("Don't dodge, we already dodged this recently.")
-						return false							
+		for i,entity in pairs(el) do
+			local e = EntityList:Get(entity.id)
+			if (e) then
+				local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+				if (shouldAvoid and spellData) then
+					local lastAvoid = c_avoid.lastAvoid
+					if (lastAvoid) then
+						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
+							--d("Don't dodge, we already dodged this recently.")
+							return false							
+						end
 					end
+					
+					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
+					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+					return true
 				end
-				
-				--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
-				c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-				return true
 			end
 		end
 	end
 	
 	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
 	if (table.valid(el)) then
-		for i,e in pairs(el) do
-			local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
-			if (shouldAvoid and spellData) then
-				local lastAvoid = c_avoid.lastAvoid
-				if (lastAvoid) then
-					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-						--d("Don't dodge, we already dodged this recently.")
-						return false							
+		for i,entity in pairs(el) do
+			local e = EntityList:Get(entity.id)
+			if (e) then
+				local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+				if (shouldAvoid and spellData) then
+					local lastAvoid = c_avoid.lastAvoid
+					if (lastAvoid) then
+						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
+							--d("Don't dodge, we already dodged this recently.")
+							return false							
+						end
 					end
+					
+					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
+					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+					return true
 				end
-				
-				--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
-				c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-				return true
 			end
 		end
 	end
@@ -1681,7 +1687,7 @@ function c_mount:evaluate()
 	
 	e_mount.id = 0
 	
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount) then
 		local lastPos = e_mount.lastPathPos
 
 		-- If we change our gotoPos or have never measured it, reset the watch.
@@ -1710,7 +1716,7 @@ function c_mount:evaluate()
 			if (table.valid(mountlist)) then
 				--First pass, look for our named mount.
 				for id,acMount in pairsByKeys(mountlist) do
-					if (acMount.name == gMountName) then
+					if (acMount.name == gMountName and (acMount.canfly or not CanFlyInZone())) then
 						if (acMount:IsReady(Player.id)) then
 							e_mount.id = acMount.id
 							return true
@@ -1721,7 +1727,7 @@ function c_mount:evaluate()
 				--Second pass, look for any mount as backup.
 				if (gMountName == GetString("none")) then
 					for id,acMount in pairsByKeys(mountlist) do
-						if (acMount:IsReady(Player.id)) then
+						if (acMount:IsReady(Player.id) and (acMount.canfly or not CanFlyInZone())) then
 							e_mount.id = acMount.id
 							return true
 						end
@@ -2532,7 +2538,7 @@ e_autoequip.item = nil
 e_autoequip.bag = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()	
-	if (true or Busy() or ((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or Player.incombat or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
+	if (Busy() or ((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or Player.incombat or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
 		return false
 	end
 	

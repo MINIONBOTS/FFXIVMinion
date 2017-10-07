@@ -1595,7 +1595,7 @@ function AddEvacPoint(manual)
 		checkDistance = 10
 	end
 	
-	local canAdd = true
+	local canAdd = (manual or gGrindEvacAuto)
 	local evacPoint = GetNearestEvacPoint()
 	if (evacPoint) then
 		local fpos = evacPoint.pos
@@ -1606,7 +1606,7 @@ function AddEvacPoint(manual)
 		end
 	end
 	
-	if (not manual) and gGrindEvacAuto  then
+	if (not manual) then
 		local el = EntityList("alive,attackable,aggressive,exclude_contentid=541,maxdistance=40")
 		if (table.valid(el)) then
 			d("[AddEvacPoint]: Evac point was not added, it does not appear to be a safe area.")
@@ -3149,7 +3149,7 @@ function Mount(id)
 			if (table.valid(mounts)) then
 				--First pass, look for our named mount.
 				for mountid,mountaction in pairsByKeys(mounts) do
-					if (mountaction.name == gMountName) then
+					if (mountaction.name == gMountName and (mountaction.canfly or not CanFlyInZone())) then
 						if (mountaction:IsReady(Player.id)) then
 							mountaction:Cast()
 							return true
@@ -3159,19 +3159,8 @@ function Mount(id)
 				
 				--Second pass, look for any mount as backup.
 				if (gMountName == GetString("none")) then
-					--[[
-					if (CanFlyInZone()) then
-						for mountid,mountaction in pairsByKeys(mounts) do
-							if (mountaction:IsReady(Player.id)) then
-								mountaction:Cast()
-								return true
-							end
-						end	
-					end
-					--]]
-				
 					for mountid,mountaction in pairsByKeys(mounts) do
-						if (mountaction:IsReady(Player.id)) then
+						if (mountaction:IsReady(Player.id) and (mountaction.canfly or not CanFlyInZone())) then
 							mountaction:Cast()
 							return true
 						end
@@ -3713,8 +3702,7 @@ end
 ml_global_information.lastAetheryteCache = 0
 function GetAetheryteList(force)
 	
-	return Player:GetAetheryteList()
-	--[[
+	--return Player:GetAetheryteList()
 	local force = IsNull(force,false)
 	
 	if (force == true or ml_global_information.Player_Aetherytes == nil) then
@@ -3736,7 +3724,6 @@ function GetAetheryteList(force)
 	end
 	
 	return ml_global_information.Player_Aetherytes
-	--]]
 end
 function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
