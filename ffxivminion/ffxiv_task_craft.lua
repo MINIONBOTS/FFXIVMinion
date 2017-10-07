@@ -188,7 +188,7 @@ function c_startcraft:evaluate()
 			end
 		elseif gCraftMarkerOrProfileIndex ~= 1 then
 			local minCP = tonumber(gCraftMinCP) or 0
-			if (Player.cp.current < minCP) then
+			if (Player.cp.max < minCP) then
 					d("[StartCraft]: Current CP < Minimum CP.")
 					ml_global_information:ToggleRun()
 				return false
@@ -1862,7 +1862,7 @@ function ffxiv_craft.Draw( event, ticks )
 				for k = 10,70,10 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
 					if (dictionary and dictionaryDisplay) then
-						d("found dictionary for k = "..tostring(k))
+						--d("found dictionary for k = "..tostring(k))
 						GUI:PushItemWidth(300)
 						local selectionChanged = GUI_Combo(tostring(k-9).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
 						if (selectionChanged) then
