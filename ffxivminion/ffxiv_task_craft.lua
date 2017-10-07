@@ -558,8 +558,6 @@ end
 c_quicksynth = inheritsFrom( ml_cause )
 e_quicksynth = inheritsFrom( ml_effect )
 function c_quicksynth:evaluate()
-d(Now())
-d(ffxiv_craft.tracking.quickTimer)
 	return IsControlOpen("SynthesisSimple")
 end
 function e_quicksynth:execute()
