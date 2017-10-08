@@ -56,10 +56,6 @@ function ffxiv_task_assist:Init()
     self:add( ke_eat, self.process_elements)
 	
     self:AddTaskCheckCEs()
-	--self:InitAddon()
-end
-
-function ffxiv_task_assist:InitAddon()
 end
 
 function ffxiv_task_assist:Process()
@@ -95,7 +91,6 @@ function ffxiv_task_assist:Process()
 				if (gAssistFollowTarget ) then
 					local ppos = Player.pos
 					local pos = target.pos
-					--local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 					
 					if (ml_global_information.AttackRange > 5) then
 						if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
@@ -147,8 +142,6 @@ function ffxiv_task_assist:Process()
 				
 				if (SkillMgr.Cast( target )) then
 					casted = true
-				--elseif (InCombatRange(target.id) and target.attackable and target.alive) then
-					--casted = true
 				end
 			end
 		end

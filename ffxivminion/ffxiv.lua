@@ -167,12 +167,7 @@ end
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
-	local gamestate;
-	if (GetGameState and GetGameState()) then
-		gamestate = GetGameState()
-	else
-		gamestate = 1
-	end
+	local gamestate = GetGameState()
 	
 	memoize = {}
 	if (ml_global_information.IsYielding()) then
@@ -248,7 +243,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 		else
 			if (UseControlAction("_TitleMenu","Start")) then
 				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-				ffxivminion.loginvars.datacenterSelected = false
+				ffxivminion.loginvars.datacenterSelected = true
 			end
 		end
 	end
@@ -316,7 +311,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information:ToggleRun() -- convert
 	end
 	
-	FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
+	--FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
 	
 	if (ml_mesh_mgr) then
 		if (not IsControlOpen("NowLoading")) then
@@ -328,14 +323,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
-			--ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
-			
 			local currentFile = NavigationManager.CurrentFile
 			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
 			if (currentFile ~= FFXIV_Common_NavMesh) then
 				FFXIV_Common_NavMesh = currentFile
 				FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
 			end
+			
 		else
 			if (ml_global_information.queueLoader == false) then
 				Hacks:Disable3DRendering(false)
@@ -366,15 +360,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
 	end
-
+	
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
 		return false
 	end
 	
 	local pulseTime = tonumber(gPulseTime) or 150
-	local skillPulse = (pulseTime/2)
-	
-	if (TimeSince(ml_global_information.lastrun2) > skillPulse) then
+	if (TimeSince(ml_global_information.lastrun2) >= pulseTime) then
 		ml_global_information.lastrun2 = tickcount
 		SkillMgr.OnUpdate()
 	end
@@ -386,8 +378,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
         --ml_global_information.lastrun = tickcount
 		
-		ffxivminion.UpdateGlobals()
-		NavigationManager:UseCubes(true) -- set this back to true every cycle, just in case. override when necessary.
+		if (gBotMode ~= GetString("assistMode")) then ffxivminion.UpdateGlobals() end
+		--NavigationManager:UseCubes(true) -- set this back to true every cycle, just in case. override when necessary.
 		
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and 
@@ -408,30 +400,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			FFXIV_Core_IdlePulseCount = ""
 		end
 		
-		--update marker status
-		--[[
-		if (	gBotMode == GetString("grindMode") or
-				gBotMode == GetString("gatherMode") or
-				gBotMode == GetString("fishMode") or
-				gBotMode == GetString("questMode") or
-				gBotMode == GetString("huntMode") or 
-				gBotMode == GetString("pvpMode") ) and
-				ml_task_hub.shouldRun and 
-				table.valid(ml_global_information.currentMarker)
-		then
-			local timeleft = (ml_global_information.MarkerTime - Now()) / 1000
-			if (timeleft > 0) then
-				gStatusMarkerTime = tostring(round(timeleft, 1))
-			else
-				gStatusMarkerTime = "0.0"
-			end
-		else
-			gStatusMarkerName = ""
-			gStatusMarkerTime = ""
-		end
-		--]]
-		
-		--local et = AceLib.API.Weather.GetDateTime() 
 		local et = GetEorzeaTime()
 		FFXIV_Common_EorzeaTime = tostring(et.bell)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
@@ -439,56 +407,58 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			ffxivminion.CheckClass()
 		end
 		
-		if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
-			ml_global_information.updateFoodTimer = tickcount
-			ffxivminion.FillFoodOptions(gFoodAvailableOnly)
-		end
+		if (not Player.incombat) then
+			if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
+				ml_global_information.updateFoodTimer = tickcount
+				ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+			end
 		
-		if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair) then
-			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
-				if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not Player.incombat) then
-					if (NeedsRepair()) then
-						Repair()
+			if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair) then
+				if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
+					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not Player.incombat) then
+						if (NeedsRepair()) then
+							Repair()
+						end
+						ml_global_information.repairTimer = tickcount
 					end
-					ml_global_information.repairTimer = tickcount
 				end
 			end
-		end
 		
-		if (FFXIV_Common_BotRunning) then				
-			if (gChocoItemString ~= "None") then
-				if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
-					ml_global_information.rootCheckTimer = tickcount
-					
-					local itemBuffs = ml_global_information.chocoItemBuffs
-					if (table.valid(itemBuffs)) then
-						for itemid,itemdetails in pairs(itemBuffs) do
-							if (gChocoItemString == itemdetails.name) then
-								local item = nil
-								for i = 0,3 do
-									local bag = Inventory:Get(i)
-									if (table.valid(bag)) then
-										local ilist = bag:GetList()
-										if (table.valid(ilist)) then
-											for bslot,bitem in pairs(ilist) do
-												if (bitem.id == itemid) then
-													item = bitem
+			if (FFXIV_Common_BotRunning) then				
+				if (gChocoItemString ~= "None") then
+					if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
+						ml_global_information.rootCheckTimer = tickcount
+						
+						local itemBuffs = ml_global_information.chocoItemBuffs
+						if (table.valid(itemBuffs)) then
+							for itemid,itemdetails in pairs(itemBuffs) do
+								if (gChocoItemString == itemdetails.name) then
+									local item = nil
+									for i = 0,3 do
+										local bag = Inventory:Get(i)
+										if (table.valid(bag)) then
+											local ilist = bag:GetList()
+											if (table.valid(ilist)) then
+												for bslot,bitem in pairs(ilist) do
+													if (bitem.id == itemid) then
+														item = bitem
+													end
 												end
 											end
 										end
 									end
-								end
-								
-								local companion = GetCompanionEntity()
-								if (item and item:IsReady() and companion and companion.alive) then
-									local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
-									if (MissingBuffs(companion, buffString)) then
-										Player:PauseMovement()
-										ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-										local newTask = ffxiv_task_useitem.Create()
-										newTask.itemid = itemid
-										--newTask.targetid = companion.id
-										ml_task_hub:CurrentTask():AddSubTask(newTask)
+									
+									local companion = GetCompanionEntity()
+									if (item and item:IsReady() and companion and companion.alive) then
+										local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
+										if (MissingBuffs(companion, buffString)) then
+											Player:PauseMovement()
+											ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+											local newTask = ffxiv_task_useitem.Create()
+											newTask.itemid = itemid
+											--newTask.targetid = companion.id
+											ml_task_hub:CurrentTask():AddSubTask(newTask)
+										end
 									end
 								end
 							end
@@ -1028,7 +998,6 @@ end
 function ffxivminion.UpdateGlobals()
 	if (Player) then
 		ml_global_information.Player_Aetherytes = GetAetheryteList()
-		ml_global_information.Player_Map = Player.localmapid
 	end
 	
 	local meshState = NavigationManager:GetNavMeshState()
@@ -1338,6 +1307,7 @@ Quest: Completes quests based on a questing profile.\
 							space = -100
 						end
 					end
+
 					GUI:BeginChild("##main-task-section",0,space,false)
 					local mainTask = ml_global_information.mainTask
 					if (mainTask) then
