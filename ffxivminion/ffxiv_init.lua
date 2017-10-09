@@ -506,25 +506,26 @@ end
 
 function IsControlOpen(strControl)
 	if (memoize and memoize.opencontrols) then
-		return (memoize.opencontrols[strControl] == true)
-	else
-		if (memoize.opencontrols == nil) then
-			memoize.opencontrols = {}
+		if (memoize.opencontrols[strControl]) then
+			return (memoize.opencontrols[strControl] == true)
 		end
-		
-		local controls = GetControls()
-		if (table.valid(controls)) then
-			for id,e in pairs(controls) do
-				if (e.name == strControl) then
-					local isopen = e:IsOpen()
-					memoize.opencontrols[strControl] = isopen
-					return isopen
-				end				
-			end
-		end
-		return memoize.opencontrols[strControl]
+	end
+
+	if (memoize.opencontrols == nil) then
+		memoize.opencontrols = {}
 	end
 	
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,e in pairs(controls) do
+			if (e.name == strControl) then
+				local isopen = e:IsOpen()
+				memoize.opencontrols[strControl] = isopen
+				return isopen
+			end				
+		end
+	end
+		
 	return false
 end
 
