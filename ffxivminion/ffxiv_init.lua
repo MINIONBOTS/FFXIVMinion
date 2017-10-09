@@ -505,27 +505,14 @@ function ml_global_information.Init()
 end
 
 function IsControlOpen(strControl)
-	if (memoize and memoize.opencontrols) then
-		if (memoize.opencontrols[strControl]) then
-			return (memoize.opencontrols[strControl] == true)
-		end
-	end
-
-	if (memoize.opencontrols == nil) then
-		memoize.opencontrols = {}
-	end
-	
 	local controls = GetControls()
 	if (table.valid(controls)) then
 		for id,e in pairs(controls) do
 			if (e.name == strControl) then
-				local isopen = e:IsOpen()
-				memoize.opencontrols[strControl] = isopen
-				return isopen
-			end				
+				return e:IsOpen()
+			end
 		end
 	end
-		
 	return false
 end
 
