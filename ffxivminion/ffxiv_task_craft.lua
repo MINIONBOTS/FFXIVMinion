@@ -268,10 +268,10 @@ function e_startcraft:execute()
 								if (hqAmount > 0) then
 									if (ingredient.inventoryhq >= hqAmount) then
 										Crafting:SetCraftingMats(i-1,hqAmount)
-									elseif (ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-										if (hqAmountMin > 0) then
-											Crafting:SetCraftingMats(i-1,hqAmountMin)
-										end
+									elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
+										Crafting:SetCraftingMats(i-1,hqAmountMin)
+									elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
+										Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
 									else
 										d("Stop crafting item, not enough HQ.")
 										e_craftlimit:execute()
