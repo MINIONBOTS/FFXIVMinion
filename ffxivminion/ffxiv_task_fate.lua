@@ -693,7 +693,7 @@ function c_endfate:evaluate()
 			minFateLevel = tonumber(gGrindFatesMinLevel) or 0
 			maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
 		else
-			minFateLevel = 15
+			minFateLevel = 70
 			maxFateLevel = 3
 		end
 		
