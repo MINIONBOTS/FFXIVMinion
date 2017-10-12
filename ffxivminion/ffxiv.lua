@@ -1247,14 +1247,22 @@ Quest: Completes quests based on a questing profile.\
 					end
 					GUI:AlignFirstTextHeightToWidgets()	GUI:Text(GetString("Skill Profile")) GUI:SameLine()
 					local RemainingSizeSkillProfile = GUI:GetContentRegionAvailWidth()
-					--if (not GatherClasses) and (gACREnabled) then RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 end
-					if (gACREnabled) then RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 end
+					
+					--[[local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
+					local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
+					local combatClass = not gatherClasses and not craftClasses]]
+					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
+					
+					if acrValid then
+						RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 
+					end
+					
 					GUI:PushItemWidth(RemainingSizeSkillProfile-65)
 					local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					GUI:PopItemWidth()
 					if (skillsChanged) then
 						-- todo, fix this once ACR is updated again.
-						if (gACREnabled) then
+						if acrValid then
 							gSkillProfileIndex = 1
 						else
 							local uuid = GetUUID()
@@ -1263,17 +1271,14 @@ Quest: Completes quests based on a questing profile.\
 						end
 					end
 					GUI:SameLine()
-					--local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
-					--local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
-					--if (not craftClasses) and (not gatherClasses) and (not gACREnabled) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
-					if (not gACREnabled) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
+					
+					if (not acrValid) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
 						if gSkillProfileIndex ~= 1 then
 							SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
 						else
 							d("Invalid skill profile")
 						end
-					--elseif (not craftClasses) and (not gatherClasses) and (gACREnabled) then
-					elseif (gACREnabled) and (GUI:Button(GetString("ACR"),30,20)) then
+					elseif (acrValid) and (GUI:Button(GetString("ACR"),30,20)) then
 						ACR.OpenProfileOptions()
 					end
 					GUI:SameLine(0,5)
