@@ -1284,7 +1284,6 @@ function ml_navigation.Navigate(event, ticks )
 							end
 						end
 						
-						
 			-- Cube Navigation		
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
@@ -1306,11 +1305,16 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
 							
 							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
-							if (not string.contains(nextnode.type,"CUBE") ) then
-								--d("[Navigation]: Next node is not a flying node.")
-								
-								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE") ) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
-									--d("[Navigation]: Next next node is also not a flying node.")
+							local target = Player:GetTarget()
+							local targetClose = (target and target.distance2d < 10)
+							local targetDetected = (TimeSince(ffnav.targetDetected) < 5000)
+							if (not string.contains(nextnode.type,"CUBE") or targetClose or targetDetected) then
+								d("[Navigation]: Next node is not a flying node.")
+								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2 or targetClose or targetDetected)) then
+									if (targetClose) then
+										ffnav.targetDetected = Now()
+									end
+									d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
 								
 									--Player:Move(FFXIV.MOVEMENT.DOWN)
@@ -1608,6 +1612,7 @@ ffnav.lastPathTime = 0
 ffnav.ascendTime = 0
 ffnav.lastCubeSwap = 0
 ffnav.lastTrim = 0
+ffnav.targetDetected = 0
 
 function ffnav.Trim()
 	if (table.valid(ml_navigation.path)) then
