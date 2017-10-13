@@ -63,7 +63,24 @@ function cd(var,level)
 		end
 	end
 end
-
+function ffxiv_craft.CanUseTea()
+	if (not gUseCPTea) then
+		return false
+	end
+	
+	if (IsCrafter(Player.job) and MissingBuff(Player.id,49)) then
+	
+		local tea, action = GetItem(19884)
+		if (tea and action and tea:IsReady(Player.id)) then
+			return true, tea
+		end
+		local teahq, action = GetItem(119884)
+		if (teahq and action and teahq:IsReady(Player.id)) then
+			return true, teahq
+		end
+	end
+	return false, nil
+end
 c_craftlimit = inheritsFrom( ml_cause )
 e_craftlimit = inheritsFrom( ml_effect )
 function c_craftlimit:evaluate()
@@ -388,6 +405,14 @@ function c_precraftbuff:evaluate()
 			e_precraftbuff.requiresLogClose = true
 			return true
 		end
+		local canUseTea,teaItem = ffxiv_craft.CanUseTea()
+		if (canUseTea and table.valid(teaItem)) then
+			d("[NodePreBuff]: Need to use a CP Tea.")
+			e_precraftbuff.activity = "usetea"
+			e_precraftbuff.item = teaItem
+			e_precraftbuff.requiresLogClose = true
+			return true
+		end
 		
 		local hasCollect = HasBuffs(Player,"903")
 		
@@ -455,6 +480,13 @@ function e_precraftbuff:execute()
 		local manual = activityItem
 		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
+			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
+			return
+		end
+	elseif (activity == "usetea") then
+		local tea = activityItem
+		if (tea and tea:IsReady(Player.id)) then
+			tea:Cast(Player.id)
 			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
 			return
 		end
@@ -829,6 +861,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("None"))
 	gCraftFoodIndex = 1
 	glastAlertUpdate = 0
+	gUseCPTea = ffxivminion.GetSetting("gUseCPTea",false)
 	-- Order Stuff
 	
 	--Add
@@ -1171,6 +1204,8 @@ function ffxiv_task_craft:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use CP Tea"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
 		GUI:NextColumn()
 		local CraftStatusWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CraftStatusWidth-8)
@@ -1194,6 +1229,8 @@ function ffxiv_task_craft:Draw()
 		
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
+		GUI_Capture(GUI:Checkbox("##"..GetString("Use CP Tea"),gUseCPTea),"gUseCPTea")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
 		GUI:Columns()
 		GUI:Separator()
 		if gCraftMarkerOrProfileIndex ~= 1 then
