@@ -313,8 +313,8 @@ function c_movetonode:evaluate()
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
-			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5) and not IsFlying()
-			if (not reachable) then
+			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
+			if (not reachable or IsFlying()) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else	
@@ -987,7 +987,7 @@ function e_gather:execute()
 		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
 
 		if (Player.gp.current < minimumGP or noGPGather) then
-			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("None")) then
+			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none")) then
 				nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
 				if (nogpitemid == 0) then
 					gd("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].",2)
@@ -1006,7 +1006,7 @@ function e_gather:execute()
 			end
 		end
 
-		if (item1 and item1 ~= "" and item1 ~= GetString("None")) then
+		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",2)
@@ -1022,7 +1022,7 @@ function e_gather:execute()
 			gd("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].",2)
 		end
 		
-		if (item2 and item2 ~= "" and item2 ~= GetString("None")) then
+		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
 			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",2)
@@ -1038,7 +1038,7 @@ function e_gather:execute()
 			gd("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].",2)
 		end
 		
-		if (item3 and item3 ~= "" and item3 ~= GetString("None")) then
+		if (item3 and item3 ~= "" and item3 ~= GetString("none")) then
 			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].",2)
@@ -1555,7 +1555,7 @@ function c_nodeprebuff:evaluate()
 	local task = ffxiv_gather.currentTask
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		if (IsNull(task.skillprofile,"") ~= "" and IsNull(task.skillprofile,"") ~= GetString("None")) then
+		if (IsNull(task.skillprofile,"") ~= "" and IsNull(task.skillprofile,"") ~= GetString("none")) then
 			skillProfile = task.skillprofile
 		end
 		useCordials = IsNull(task.usecordials,useCordials)
@@ -1563,7 +1563,7 @@ function c_nodeprebuff:evaluate()
 		useFavor = IsNull(task.favor,0)
 		useFood = IsNull(task.food,0)
 	elseif (table.valid(marker)) then
-		if (IsNull(marker.skillprofile,"") ~= "" and IsNull(marker.skillprofile,"") ~= GetString("None")) then
+		if (IsNull(marker.skillprofile,"") ~= "" and IsNull(marker.skillprofile,"") ~= GetString("none")) then
 			skillProfile = marker.skillprofile
 		end
 		useCordials = IsNull(marker.usecordials,useCordials)
@@ -1596,7 +1596,7 @@ function c_nodeprebuff:evaluate()
 			e_nodeprebuff.requiredismount = false
 			return true
 		else
-			if (skillProfile == GetString("None")) then
+			if (skillProfile == GetString("none")) then
 				d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 				SkillMgr.UseProfile(skillProfile)
 				e_nodeprebuff.activity = "switchprofile"
@@ -3356,7 +3356,7 @@ function ffxiv_task_gather:UIInit()
 	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
 	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
-	--gGatherCollectablesList = { GetString("None") }
+	--gGatherCollectablesList = { GetString("none") }
 	--if (ValidString(uistring)) then
 		--for collectable in StringSplit(uistring,",") do
 			--table.insert(gGatherCollectablesList,collectable)

@@ -3223,7 +3223,7 @@ function NeedsRepair()
 	return false
 end
 function ShouldEat()
-	if (gFood ~= "None") then
+	if (gFood ~= GetString("none")) then
 		local foodEntry = ml_global_information.foods[gFood]
 		if (foodEntry) then
 			local foodID = foodEntry.id
@@ -3238,7 +3238,7 @@ function ShouldEat()
 	return false
 end
 function Eat()
-	if (gFood ~= "None") then
+	if (gFood ~= GetString("none")) then
 		local foodEntry = ml_global_information.foods[gFood]
 		if (foodEntry) then
 			local foodID = foodEntry.id

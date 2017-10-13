@@ -639,7 +639,7 @@ function GetControl(strControl,allControls)
 end
 
 function GetPublicProfiles(path,ext)
-	local profiles, profilesDisplay = { [GetString("None")] = {} }, { GetString("None") }
+	local profiles, profilesDisplay = { [GetString("none")] = {} }, { GetString("none") }
 	
 	local profileList = FolderList(path,ext)
 	if (table.valid(profileList)) then

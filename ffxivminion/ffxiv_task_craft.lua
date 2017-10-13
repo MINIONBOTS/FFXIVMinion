@@ -363,7 +363,7 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
-		if (gCraftFood ~= "None") then
+		if (gCraftFood ~= GetString("none")) then
 			local foodDetails = ml_global_information.foods[gCraftFood]
 			if (foodDetails) then
 				local foodID = foodDetails.id
@@ -826,7 +826,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderSelect = "CRP"
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 	
-	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("None"))
+	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
 	gCraftFoodIndex = 1
 	glastAlertUpdate = 0
 	-- Order Stuff
@@ -841,7 +841,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderAddCollect = false
 	gCraftOrderAddHQ = false
 	gCraftOrderAddSkillProfileIndex = 1
-	gCraftOrderAddSkillProfile = GetString("None")
+	gCraftOrderAddSkillProfile = GetString("none")
 	
 	--Edit
 	gCraftOrderEditID = 0
@@ -853,7 +853,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderEditCollect = false
 	gCraftOrderEditHQ = false
 	gCraftOrderEditSkillProfileIndex = 1
-	gCraftOrderEditSkillProfile = GetString("None")
+	gCraftOrderEditSkillProfile = GetString("none")
 	
 	gCraftNewProfileName = ""
 	
@@ -895,7 +895,7 @@ function ffxiv_task_craft:UIInit()
 	
 	for k = 10,70,10 do
 		_G["gCraftDictionarySelectIndex"..tostring(k)] = 1
-		_G["gCraftDictionarySelect"..tostring(k)] = GetString("None")				
+		_G["gCraftDictionarySelect"..tostring(k)] = GetString("none")				
 	end
 	
 	
@@ -971,7 +971,7 @@ function ffxiv_task_craft:Draw()
 		GUI:PopItemWidth()
 		GUI:SameLine()
 		if (GUI:ImageButton("##main-order-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
-			if (gCraftProfile ~= GetString("None")) then
+			if (gCraftProfile ~= GetString("none")) then
 				ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
 			end
 		end
@@ -1068,7 +1068,7 @@ function ffxiv_task_craft:Draw()
 					gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					gCraftOrderEditCollect = IsNull(order["collect"],false)
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
-					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("None"))
+					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 					ffxiv_craft.UpdateOrderElement()		
 					ffxiv_task_craft.GUI.orders.open = true
@@ -1461,7 +1461,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["itemcounthq"] = 0
 				end
 				if order["skillprofile"] == nil then
-					order["skillprofile"] = GetString("None")
+					order["skillprofile"] = GetString("none")
 				end
 				if order["requiredcp"] == nil then
 					order["requiredcp"] = 0
@@ -1516,7 +1516,7 @@ function ffxiv_craft.UpdateOrderElement()
 			thisOrder["usequick"] = gCraftOrderEditQuick
 			thisOrder["collect"] = gCraftOrderEditCollect
 			thisOrder["usehq"] = gCraftOrderEditHQ
-			thisOrder["skillprofile"] = IsNull(gCraftOrderEditSkillProfile,GetString("None"))
+			thisOrder["skillprofile"] = IsNull(gCraftOrderEditSkillProfile,GetString("none"))
 			
 			for i = 1,6 do
 				thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"],false)
@@ -1620,8 +1620,8 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 			ffxiv_craft.dictionaries[craftid][maxattemptlevel] = {}
 			ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]  = {}
 			
-			local newDictionary = { [1] = {recipeid = 0, itemid = 0, name = GetString("None")} }
-			local newDisplayDictionary = { [1] = GetString("None") }
+			local newDictionary = { [1] = {recipeid = 0, itemid = 0, name = GetString("none")} }
+			local newDisplayDictionary = { [1] = GetString("none") }
 			
 			local sortfunc = function(dictionary,a,b) 
 				return (dictionary[a].name < dictionary[b].name)
@@ -1748,7 +1748,7 @@ function ffxiv_craft.Draw( event, ticks )
 							gCraftOrderEditCountHQ = IsNull(order["counthq"],false)
 							gCraftOrderEditQuick = IsNull(order["usequick"],false)
 							gCraftOrderEditHQ = IsNull(order["usehq"],false)
-							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("None"))
+							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 														
 							for i = 1,6 do
@@ -1877,12 +1877,12 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddQuick = false
 								gCraftOrderAddHQ = false
 								gCraftOrderAddSkillProfileIndex = 1
-								gCraftOrderAddSkillProfile = GetString("None")
+								gCraftOrderAddSkillProfile = GetString("none")
 							end
 							for j = 10,70,10 do
 								if (j ~= k) then
 									_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
-									_G["gCraftDictionarySelect"..tostring(j)] = GetString("None")		
+									_G["gCraftDictionarySelect"..tostring(j)] = GetString("none")		
 								end
 							end
 						end

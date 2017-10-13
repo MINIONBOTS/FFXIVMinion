@@ -2087,7 +2087,7 @@ function c_eat:evaluate()
 		return false
 	end
 	
-	if ( gFood ~= "None") then
+	if ( gFood ~= GetString("none")) then
 		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000) then
 			if (ShouldEat()) then
 				return true
@@ -3226,7 +3226,6 @@ function c_dointeract:evaluate()
 			if ( interactable.meshpos and not IsFlying() and not IsDiving()) then
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
-					local x,y,z = meshpos.x,meshpos.y,meshpos.z
 					if (NavigationManager:IsReachable(meshpos)) then
 						ml_task_hub:CurrentTask().pos = interactable.meshpos
 					end

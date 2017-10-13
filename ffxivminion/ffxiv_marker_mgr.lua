@@ -240,7 +240,7 @@ function ffxiv_marker_mgr.BuildGather()
 		favoritem = 0,
 		usestealth = false,
 		dangerousarea = false,
-		skillprofile = GetString("None"),
+		skillprofile = GetString("none"),
 		mingp = 0,
 		usecordials = false,
 		nogpitem = "",
@@ -340,6 +340,37 @@ function ffxiv_marker_mgr.BuildFishing()
 	
 	ml_marker_mgr.AddMarkerTemplate(fishingTemplate)	
 	ffxiv_marker_mgr.templates["Fishing"] = fishingTemplate
+end
+
+function ffxiv_marker_mgr.AddMarker(strType, fields)
+	local templates = ml_marker_mgr.templates
+	local selectedTemplate = templates[strType]
+	if (selectedTemplate) then
+		local defaultFields = selectedTemplate.fields
+		defaultFields.name = varname
+		defaultFields.mapid = ml_marker_mgr.activeMap
+		
+		local pos = Player.pos
+		defaultFields.pos = {}
+		if (pos) then
+			if (pos.x) then defaultFields.pos.x = pos.x end
+			if (pos.y) then defaultFields.pos.y = pos.y end
+			if (pos.z) then defaultFields.pos.z = pos.z end
+			if (pos.h) then defaultFields.pos.h = pos.h end
+			if (pos.xh) then defaultFields.pos.xh = pos.xh end
+			if (pos.yh) then defaultFields.pos.yh = pos.yh end
+			if (pos.zh) then defaultFields.pos.zh = pos.zh end
+		end
+		
+		if (table.valid(fields)) then
+			for k,v in pairs(fields) do
+				defaultFields[k] = v
+			end
+		end
+		
+		local newMarker = selectedTemplate:Create(fields.name,defaultFields)
+		ml_marker_mgr.WriteMarkerFile()
+	end
 end
 
 RegisterEventHandler("Module.Initalize",ffxiv_marker_mgr.HandleInit)

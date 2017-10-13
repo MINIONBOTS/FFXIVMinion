@@ -1288,6 +1288,21 @@ function ml_navigation.Navigate(event, ticks )
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
 						
+						local forceDescent = (TimeSince(ffnav.forceDescent) < 5000)
+						local descentPos = ffnav.descentPos
+						
+						if (forceDescent and table.valid(descentPos)) then
+							Player:SetFacing(descentPos.x,descentPos.y,descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
+							Player:SetPitch(1.377) 
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+								ffnav.Await(3000, function () return Player:IsMoving() end)
+								return false
+							end
+							ffnav.Await(5000, function () return not IsFlying() end)
+							return false		
+						end
+						
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
 						if (hit) then
@@ -1304,22 +1319,23 @@ function ml_navigation.Navigate(event, ticks )
 							--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
 							
-							-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
+							-- Commented code needs more testing, complaints about "flying left and right", not sure how reliable that info is.
 							local target = Player:GetTarget()
 							local targetClose = (target and target.distance2d < 10)
-							local targetDetected = (TimeSince(ffnav.targetDetected) < 5000)
-							if (not string.contains(nextnode.type,"CUBE") or targetClose or targetDetected) then
+							if (not string.contains(nextnode.type,"CUBE") or targetClose) then
+								if (targetClose) then
+									d("[Navigation]: Force descent to target.")
+									ffnav.forceDescent = Now()
+									ffnav.descentPos = target.pos
+									return false
+								end
+								
 								d("[Navigation]: Next node is not a flying node.")
-								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2 or targetClose or targetDetected)) then
-									if (targetClose) then
-										ffnav.targetDetected = Now()
-									end
+								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
 									d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
 								
-									--Player:Move(FFXIV.MOVEMENT.DOWN)
-									--SendTextCommand("/mount")			
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
+									Player:SetFacing(ffnav.descentPos.x,ffnav.descentPos.y,ffnav.descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
 									Player:SetPitch(1.377) 
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
@@ -1612,7 +1628,8 @@ ffnav.lastPathTime = 0
 ffnav.ascendTime = 0
 ffnav.lastCubeSwap = 0
 ffnav.lastTrim = 0
-ffnav.targetDetected = 0
+ffnav.forceDescent = 0
+ffnav.descentPos = {}
 
 function ffnav.Trim()
 	if (table.valid(ml_navigation.path)) then

@@ -1965,7 +1965,7 @@ end
 
 --Grasb all Profiles and enlist them in the dropdown field
 function SkillMgr.UpdateProfiles()
-	SkillMgr.profiles = {GetString("None")}
+	SkillMgr.profiles = {GetString("none")}
     local profileList = FolderList(SkillMgr.profilePath,[[(.*)lua$]])
     if (table.valid(profileList)) then		
 		for i,profile in pairs(profileList) do
@@ -2003,7 +2003,7 @@ end
 
 function SkillMgr.UpdateCurrentProfileData()
 	SkillMgr.SkillProfile = {}
-	if (gSkillProfile ~= GetString("None")) then
+	if (gSkillProfile ~= GetString("none")) then
 		SkillMgr.ReadFile(gSkillProfile)
 	end
 end

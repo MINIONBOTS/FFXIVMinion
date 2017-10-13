@@ -425,7 +425,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		
 			if (FFXIV_Common_BotRunning) then				
-				if (gChocoItemString ~= "None") then
+				if (gChocoItemString ~= GetString("none")) then
 					if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 						ml_global_information.rootCheckTimer = tickcount
 						
@@ -990,7 +990,7 @@ function ffxivminion.CheckMode()
         if (not ml_task_hub:CheckForTask(task)) then
             ffxivminion.SetMode(gBotMode)
         end
-    elseif (gBotMode == "None") then
+    elseif (gBotMode == GetString("none")) then
         ml_task_hub:ClearQueues()
     end
 end
@@ -1040,7 +1040,7 @@ function ffxivminion.FillFoodOptions(availableonly)
 		end
 	end
 	
-	gFoods = {GetString("none")}
+	gFoods = { GetString("none") }
 	local foods = ml_global_information.foods
 	if (table.valid(foods)) then
 		for id,item in spairs(foods, function( item,a,b ) return item[a].name < item[b].name end) do
