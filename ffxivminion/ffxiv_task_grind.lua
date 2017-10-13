@@ -69,9 +69,9 @@ function ffxiv_task_grind.Create()
 	if (gGrindAutoLevel and gBotMode == GetString("grindMode")) then
 		newinst.correctMapFunction = "GetBestGrindMap"
 	end
-	if (gGrindAutoLevel and Player.level < 10) then
-		gMarkerModeIndex = 3
-	end
+	--if (gGrindAutoLevel and Player.level < 10) then
+	--	gMarkerModeIndex = 3
+	--end
 	
 	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
