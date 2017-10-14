@@ -74,7 +74,7 @@ function ffxiv_craft.CanUseTea()
 		if (tea and action and tea:IsReady(Player.id)) then
 			return true, tea
 		end
-		local teahq, action = GetItem(119884)
+		local teahq, action = GetItem(1019884)
 		if (teahq and action and teahq:IsReady(Player.id)) then
 			return true, teahq
 		end
