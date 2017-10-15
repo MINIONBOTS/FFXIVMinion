@@ -85,6 +85,8 @@ ffxivminion.AutoGrindDefault = [[
 			return 612 --The Fringes
 		elseif (level >= 58 and level < 60 and CanAccessMap(478) and CanAccessMap(399)) then
 			return 399 --The Dravanian Hinterlands
+		elseif (level >= 60 and CanAccessMap(478) and CanAccessMap(399) and not CanAccessMap(612)) then
+			return 399 --The Dravanian Hinterlands
 		elseif (level >= 55 and level < 60 and CanAccessMap(398)) then
 			return 398	--The Dravanian Forelands
 		elseif (level >= 50 and level < 60 and CanAccessMap(397)) then
@@ -633,7 +635,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 	
 -- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20171006
+	ffxivminion.AutoGrindDefaultVersion = 20171014
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
 	
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion

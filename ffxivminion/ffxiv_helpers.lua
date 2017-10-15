@@ -5400,6 +5400,13 @@ function GetFringeSection(pos)
             d = {x = 177, z = -465}, --
             x = {x = 227, z = -371},
         },
+		[7] = {
+            a = {x = -39, z = 140}, -- 1
+            b = {x = -1000, z = 140}, -- 
+            c = {x = -1000, z = 347}, -- 
+            d = {x = -151, z = 347}, --
+            x = {x = -230, z = 180},
+        },
     }
 	
 	local sec = 2
@@ -6219,7 +6226,7 @@ function Transport620(pos1,pos2)
 					return true, function ()
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = -129, y = 305, z = 189}
-						newTask.contentid = 2008944
+						newTask.contentid = 2008449
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
