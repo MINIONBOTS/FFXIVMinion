@@ -1179,7 +1179,8 @@ function dev.DrawCall(event, ticks )
 						-- Player:SetSnipeCam(x,y)
 						-- Player:SetSnipeCam(zoom)
 						GUI:SameLine()	if (GUI:Button("SnipeShoot##",100,15) ) then Player:SnipeShoot() end
-						GUI:BulletText("Targets Remaining") GUI:SameLine(200) GUI:InputText("##devess",tostring(Player:GetSnipeTargetsRemain()))	
+						GUI:BulletText("Targets Remaining") GUI:SameLine(200) GUI:InputText("##devess",tostring(Player:GetSnipeTargetsRemain()))
+						GUI:BulletText("HasTarget") GUI:SameLine(200) GUI:InputText("##devess1",tostring(Player:SnipeHasTarget()))							
 						GUI:TreePop()
 					end
 					GUI:PopItemWidth()
