@@ -583,7 +583,49 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
--- END FISHING 
+-- End Fishing 
+
+			-- cbk: Fish Guide
+			if ( GUI:TreeNode("Fish Guide")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					local data = GetControlData("FishGuide")
+					if (table.valid(data)) then
+						GUI:PushItemWidth(150)
+						GUI:BulletText("Mode") GUI:SameLine(200) GUI:InputText("##devfigu0", data.mode)			
+						if (GUI:Button("Set Fishing Mode")) then GetControl("FishGuide"):Action("SetFishingMode") end
+						GUI:SameLine()
+						if (GUI:Button("Set Spear Fishing Mode")) then GetControl("FishGuide"):Action("SetSpearFishingMode") end
+						local caughtList = { }
+						local uncaughtList = { }
+						for _,entry in pairs(data.entries) do
+							if entry.caught then
+								table.insert(caughtList, entry)
+							else
+								table.insert(uncaughtList, entry)
+							end
+						end
+						if (GUI:TreeNode("Caught fish ids - "..tostring(#caughtList))) then
+							for _,entry in pairs(caughtList) do
+								GUI:Text(tostring(entry.id))
+							end
+							GUI:TreePop();
+						end
+						if (GUI:TreeNode("Uncaught fish ids - "..tostring(#uncaughtList))) then
+							for _,entry in pairs(uncaughtList) do
+								GUI:Text(tostring(entry.id))
+							end
+							GUI:TreePop();
+						end
+						GUI:PopItemWidth()
+					else
+						GUI:Text("Fish Guide not open...")
+					end
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+-- End Fish Guide
 
 			-- cbk: Gathering
 			if ( GUI:TreeNode("Gathering")) then
@@ -727,7 +769,17 @@ function dev.DrawCall(event, ticks )
 			-- cbk: Inventory
 			if ( GUI:TreeNode("Inventory")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
-					GUI:PushItemWidth(200)			
+					GUI:PushItemWidth(200)		
+					if (GUI:TreeNode("Special Currencies")) then
+						for id, currency in pairs(Inventory:GetSpecialCurrencies()) do
+							GUI:BulletText(tostring(currency.itemid))
+							GUI:SameLine()
+							GUI:Text(currency.name)
+							GUI:SameLine(360)
+							GUI:Text("Count: "..tostring(currency.count))
+						end
+						GUI:TreePop()
+					end
 					local inv = Inventory:GetTypes()
 					if (table.valid(inv)) then
 						for id, e in pairs(inv) do
