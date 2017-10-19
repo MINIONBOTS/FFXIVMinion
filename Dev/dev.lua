@@ -771,12 +771,15 @@ function dev.DrawCall(event, ticks )
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)		
 					if (GUI:TreeNode("Special Currencies")) then
-						for id, currency in pairs(Inventory:GetSpecialCurrencies()) do
-							GUI:BulletText(tostring(currency.itemid))
-							GUI:SameLine()
-							GUI:Text(currency.name)
-							GUI:SameLine(360)
-							GUI:Text("Count: "..tostring(currency.count))
+					local cur = Inventory:GetSpecialCurrencies()
+						if(table.valid(cur)) then
+							for id, currency in pairs(cur) do
+								GUI:BulletText(tostring(currency.itemid))
+								GUI:SameLine()
+								GUI:Text(currency.name)
+								GUI:SameLine(360)
+								GUI:Text("Count: "..tostring(currency.count))
+							end
 						end
 						GUI:TreePop()
 					end
