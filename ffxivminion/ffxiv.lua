@@ -1632,8 +1632,8 @@ function ml_global_information.DrawSettings()
 						count = count + 1
 					end
 					GUI:NewLine();
-					GUI:EndChild()
 					GUI:PopItemWidth()
+					GUI:EndChild()
 					
 					GUI:EndChild()
 				end
