@@ -3002,7 +3002,6 @@ function InCombatRange(targetid)
 	end
 	
 	local target;
-	--Quick change here to allow passing of a target or just the ID.
 	if (type(targetid) == "table") then
 		local id = targetid.id
 		target = MGetEntity(id)
@@ -3015,6 +3014,7 @@ function InCombatRange(targetid)
 			return false
 		end
 	end
+	local targetid = target.id
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
 	--d(ml_task_queue.rootTask)
@@ -3033,18 +3033,26 @@ function InCombatRange(targetid)
 		return true
 	end
 	
+	local attackRange = ml_global_information.AttackRange	
+	return ((target.los or target.type ~= 2) and target.distance2d ~= 0 and target.distance2d <= (attackRange * .98))
+	
+	--[[ -- need to factor in changing skills, some report wrong
 	local gcdSkills = SkillMgr.GCDSkills
 	if (table.valid(gcdSkills)) then
 		local actionid = gcdSkills[Player.job]
 		if (actionid) then
+			d("checked action ["..tostring(actionid).."]")
 			local action = ActionList:Get(1,actionid)
 			if (action and action:IsReady(targetid)) then
+				d("action ready")
 				return true
 			elseif (action and not action.isoncd and not action:IsReady(targetid)) then
+				d("action not ready")
 				return false
 			end		
 		end
 	end
+	--]]
 	
 	--[[
 	local highestRange = 5
@@ -3067,8 +3075,7 @@ function InCombatRange(targetid)
 	end
 	--]]
 	
-	local attackRange = ml_global_information.AttackRange	
-	return (target.los and target.distance2d ~= 0 and target.distance2d <= (attackRange * .98))
+	
 end
 function CanAttack(targetid,skillid,skilltype)
 	local target = {}
