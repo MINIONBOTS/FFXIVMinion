@@ -963,8 +963,10 @@ function ffxivminion.CheckClass()
 		elseif (type(playerClass.range) == "number") then
 			baseRange = playerClass.range
 		end
+
 		ml_global_information.AttackRange = baseRange
 		SkillMgr.UseDefaultProfile()
+		SkillMgr.UpdateBasicSkills()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
 		return
@@ -981,6 +983,7 @@ function ffxivminion.CheckClass()
 		end
 		ml_global_information.AttackRange = baseRange
 		SkillMgr.UseDefaultProfile()
+		SkillMgr.UpdateBasicSkills()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
 		
@@ -1598,7 +1601,8 @@ function ml_global_information.DrawSettings()
 					for i,abrev in pairsByKeys(fighters) do
 						local jobid = classlookup[abrev]
 						local str = "gGearset"..tostring(jobid)
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
 						GUI:SameLine(0,10)
 						if (count % 6) == 0 and count ~= table.size(fighters) then GUI:NewLine() end
 						count = count + 1
@@ -1612,7 +1616,8 @@ function ml_global_information.DrawSettings()
 					for i,abrev in pairsByKeys(crafters) do
 						local jobid = classlookup[abrev]
 						local str = "gGearset"..tostring(jobid)
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
 						GUI:SameLine(0,10)
 						if (count % 6) == 0 and count ~= table.size(crafters) then GUI:NewLine() end
 						count = count + 1
@@ -1626,7 +1631,8 @@ function ml_global_information.DrawSettings()
 					for i,abrev in pairsByKeys(gatherers) do
 						local jobid = classlookup[abrev]
 						local str = "gGearset"..tostring(jobid)
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
 						GUI:SameLine(0,10)
 						if (count % 6) == 0 and count ~= table.size(gatherers) then GUI:NewLine() end
 						count = count + 1
