@@ -2020,20 +2020,28 @@ function ffxiv_misc_switchclass:task_complete_eval()
 			d("[SwitchClass]: Cannot swap right now, invalid state.")
 			return false
 		end
-			
-		local canSwitch,bestWeapon = CanSwitchToClass(class)
-		if (canSwitch) then
-			return false
+		
+		local gsvar = "gGearset"..tostring(Player.job)
+		if (_G[gsvar] ~= 0) then
+			local commandString = "/gs change "..tostring(_G[gsvar])
+			SendTextCommand(commandString)
+			ml_global_information.Await(3000, function () return (Player.job == class) end)
+			return true
 		else
-			d("Not allowed to switch, no proper weapon found.")
-		end	
-	end
-	
-	d("[SwitchClass]: Checking autoequip.")
-	if (c_recommendequip:evaluate()) then
-		e_recommendequip:execute()
-		d("[SwitchClass]: Autoequip had work to do, so don't complete yet.")
-		return false
+			local canSwitch,bestWeapon = CanSwitchToClass(class)
+			if (canSwitch) then
+				return false
+			else
+				d("Not allowed to switch, no proper weapon found.")
+			end	
+			
+			d("[SwitchClass]: Checking autoequip.")
+			if (c_recommendequip:evaluate()) then
+				e_recommendequip:execute()
+				d("[SwitchClass]: Autoequip had work to do, so don't complete yet.")
+				return false
+			end
+		end
 	end
 	
 	d("[SwitchClass]: Completing task.")

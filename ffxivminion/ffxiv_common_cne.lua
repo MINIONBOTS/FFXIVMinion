@@ -3108,31 +3108,47 @@ end
 c_switchclass = inheritsFrom( ml_cause )
 e_switchclass = inheritsFrom( ml_effect )
 e_switchclass.weapon = nil
+e_switchclass.blockOnly = false
 function c_switchclass:evaluate()	
 	e_switchclass.weapon = nil
+	e_switchclass.blockOnly = false
 	
 	local class = ml_task_hub:CurrentTask().class
 	if (Player.job ~= class) then
 		if (Busy() or Player.incombat) then
 			return false
 		end
-			
-		local canSwitch,bestWeapon = CanSwitchToClass(class)
-		if (canSwitch and bestWeapon) then
-			e_switchclass.weapon = bestWeapon
+		
+		local gsvar = "gGearset"..tostring(Player.job)
+		if (_G[gsvar] ~= 0) then
+			local commandString = "/gs change "..tostring(_G[gsvar])
+			SendTextCommand(commandString)
+			ml_global_information.Await(3000, function () return (Player.job == class) end)
+			e_switchclass.blockOnly = true
 			return true
-		end	
+		else
+			local canSwitch,bestWeapon = CanSwitchToClass(class)
+			if (canSwitch) then
+				if (bestWeapon) then
+					e_switchclass.weapon = bestWeapon
+					return true
+				end
+			end	
+		end
 	end
 	return false
 end
-function e_switchclass:execute()	
+function e_switchclass:execute()
+	if (e_switchclass.blockOnly) then
+		return false
+	end
+	
 	local job = Player.job
 	local weapon = e_switchclass.weapon
 	if (weapon) then
 		local weaponid = weapon.hqid
-		d("attempting to move weapon ["..tostring(weaponid).."] into equipment")
 		weapon:Move(1000,0)
-		ml_global_information.Await(1000, 3000, function() return Player.job ~= job end)
+		ml_global_information.Await(1000, 3000, function () return Player.job ~= job end)
 		ml_global_information.lastEquip = 0
 	end
 end

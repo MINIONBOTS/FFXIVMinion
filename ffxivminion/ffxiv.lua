@@ -39,6 +39,44 @@ else
 	}
 end
 
+ffxivminion.classes = {
+	[FFXIV.JOBS.ARCANIST] = "ACN",
+	[FFXIV.JOBS.SCHOLAR] = "SCH",
+	[FFXIV.JOBS.SUMMONER] = "SMN",
+	[FFXIV.JOBS.THAUMATURGE] = "THM",
+	[FFXIV.JOBS.BLACKMAGE] = "BLM",
+	[FFXIV.JOBS.ARCHER]	= "ARC",
+	[FFXIV.JOBS.BARD] = "BRD",
+	[FFXIV.JOBS.CONJURER] = "CNJ",
+	[FFXIV.JOBS.WHITEMAGE] = "WHM",
+	[FFXIV.JOBS.LANCER] = "LNC",
+	[FFXIV.JOBS.DRAGOON] = "DRG",
+	[FFXIV.JOBS.GLADIATOR] = "GLD",
+	[FFXIV.JOBS.PALADIN] = "PLD",
+	[FFXIV.JOBS.MARAUDER] = "MRD",
+	[FFXIV.JOBS.WARRIOR] = "WAR",
+	[FFXIV.JOBS.PUGILIST] = "PUG",
+	[FFXIV.JOBS.MONK] = "MNK",
+	[FFXIV.JOBS.ROGUE] = "ROG",
+	[FFXIV.JOBS.NINJA] = "NIN",
+	[FFXIV.JOBS.MACHINIST] = "MCH",
+	[FFXIV.JOBS.DARKKNIGHT]	= "DRK",
+	[FFXIV.JOBS.ASTROLOGIAN] = "AST",	
+	[FFXIV.JOBS.REDMAGE] = "RDM",
+	[FFXIV.JOBS.SAMURAI] = "SAM",
+	[FFXIV.JOBS.BOTANIST] = "BTN",
+	[FFXIV.JOBS.FISHER] = "FSH",
+	[FFXIV.JOBS.MINER] = "MIN",
+	[FFXIV.JOBS.CARPENTER] = "CRP",
+	[FFXIV.JOBS.BLACKSMITH] = "BSM",
+	[FFXIV.JOBS.ARMORER] = "ARM",
+	[FFXIV.JOBS.GOLDSMITH] = "GSM",
+	[FFXIV.JOBS.LEATHERWORKER] = "LTW",
+	[FFXIV.JOBS.WEAVER] = "WVR",
+	[FFXIV.JOBS.ALCHEMIST] = "ALC",
+	[FFXIV.JOBS.CULINARIAN] = "CUL",
+}
+
 ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
@@ -616,7 +654,7 @@ function ffxivminion.SetMainVars()
 	gChocoStanceString = gChocoStances[gChocoStance]
 	
 	gChocoItem = ffxivminion.GetSetting("gChocoItem",1)
-	gChocoItems = {"Curiel Root (EXP)", "Sylkis Bud (ATK)", "Mimmet Gourd (Heal)", "Tantalplant (HP)", "Pahsana Fruit (ENM)"}
+	gChocoItems = { "Curiel Root (EXP)", "Sylkis Bud (ATK)", "Mimmet Gourd (Heal)", "Tantalplant (HP)", "Pahsana Fruit (ENM)", GetString("none") }
 	gChocoItemString = gChocoItems[gChocoItem]
 	
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE",false)
@@ -628,6 +666,12 @@ function ffxivminion.SetMainVars()
 	gFleeHP = ffxivminion.GetSetting("gFleeHP",25)
 	gFleeMP = ffxivminion.GetSetting("gFleeMP",0)
 	gAutoEquip = ffxivminion.GetSetting("gAutoEquip",true)
+	
+	for jobid,abrev in pairs(ffxivminion.classes) do
+		local str = "gGearset"..tostring(jobid)
+		_G[str] = ffxivminion.GetSetting(str,0)
+	end
+	
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip",true)	
 	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
@@ -667,7 +711,7 @@ end
 function ffxivminion.HandleInit()
 
 	-- Build bottom menu for new GUI addons.
-	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("botStatus,generalSettings,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
+	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
 	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Help,FAQ,Report",true)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
@@ -728,25 +772,6 @@ function ffxivminion.SwitchMode(mode)
 		if (FFXIV_Common_BotRunning) then
 			ml_global_information:ToggleRun()
 		end
-		
-		--[[
-		--Setup default options.
-		if (gBotMode == GetString("dutyMode")) then
-			if (Duties) then
-				Duties.UpdateProfiles()
-			end
-			gTeleportHack = gTeleportHackDefaultDuties
-			gTeleportHackParanoid = "0"
-			gSkipCutscene = "1"
-			gSkipTalk = "1"
-			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			Hacks:SkipCutscene(gSkipCutscene)
-			Hacks:SkipDialogue(gSkipTalk)
-			Hacks:Disable3DRendering(gDisableDrawing)
-			SendTextCommand("/busy off")
-			gAutoEquip = Settings.FFXIVMINION.gAutoEquip
-		end
-		--]]
 	end
 end
 
@@ -883,43 +908,41 @@ function ffxivminion.CheckClass()
 	if (not table.valid(ml_global_information.classes)) then
 		ml_global_information.classes = {
 			[FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
-			[FFXIV.JOBS.ARCHER]		= ffxiv_combat_archer,
+			[FFXIV.JOBS.ARCHER]			= ffxiv_combat_archer,
 			[FFXIV.JOBS.BARD]			= ffxiv_combat_bard,
 			[FFXIV.JOBS.BLACKMAGE]		= ffxiv_combat_blackmage,
 			[FFXIV.JOBS.CONJURER]		= ffxiv_combat_conjurer,
 			[FFXIV.JOBS.DRAGOON]		= ffxiv_combat_dragoon,
-			[FFXIV.JOBS.GLADIATOR] 	= ffxiv_combat_gladiator,
-			[FFXIV.JOBS.LANCER]		= ffxiv_combat_lancer,
+			[FFXIV.JOBS.GLADIATOR] 		= ffxiv_combat_gladiator,
+			[FFXIV.JOBS.LANCER]			= ffxiv_combat_lancer,
 			[FFXIV.JOBS.MARAUDER] 		= ffxiv_combat_marauder,
 			[FFXIV.JOBS.MONK] 			= ffxiv_combat_monk,
-			[FFXIV.JOBS.NINJA] 		= ffxiv_combat_ninja,
-			[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
 			[FFXIV.JOBS.PALADIN] 		= ffxiv_combat_paladin,
 			[FFXIV.JOBS.PUGILIST] 		= ffxiv_combat_pugilist,
 			[FFXIV.JOBS.SCHOLAR] 		= ffxiv_combat_scholar,
 			[FFXIV.JOBS.SUMMONER] 		= ffxiv_combat_summoner,
 			[FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
 			[FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
-			[FFXIV.JOBS.WHITEMAGE] 	= ffxiv_combat_whitemage,
+			[FFXIV.JOBS.WHITEMAGE] 		= ffxiv_combat_whitemage,
 			[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
 			[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
 			[FFXIV.JOBS.MACHINIST]		= ffxiv_combat_machinist,
-			[FFXIV.JOBS.DARKKNIGHT]	= ffxiv_combat_darkknight,
+			[FFXIV.JOBS.DARKKNIGHT]		= ffxiv_combat_darkknight,
 			[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,	
-			[FFXIV.JOBS.REDMAGE]	= ffxiv_combat_redmage,
-			[FFXIV.JOBS.SAMURAI]	= ffxiv_combat_samurai,	
+			[FFXIV.JOBS.REDMAGE]		= ffxiv_combat_redmage,
+			[FFXIV.JOBS.SAMURAI]		= ffxiv_combat_samurai,	
 			
 			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
-			[FFXIV.JOBS.MINER] 		= ffxiv_gather_miner,
+			[FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
 			
-			[FFXIV.JOBS.CARPENTER] 	= ffxiv_crafting_carpenter,
+			[FFXIV.JOBS.CARPENTER] 		= ffxiv_crafting_carpenter,
 			[FFXIV.JOBS.BLACKSMITH] 	= ffxiv_crafting_blacksmith,
 			[FFXIV.JOBS.ARMORER] 		= ffxiv_crafting_armorer,
-			[FFXIV.JOBS.GOLDSMITH] 	= ffxiv_crafting_goldsmith,
-			[FFXIV.JOBS.LEATHERWORKER] = ffxiv_crafting_leatherworker,
+			[FFXIV.JOBS.GOLDSMITH] 		= ffxiv_crafting_goldsmith,
+			[FFXIV.JOBS.LEATHERWORKER] 	= ffxiv_crafting_leatherworker,
 			[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
-			[FFXIV.JOBS.ALCHEMIST] 	= ffxiv_crafting_alchemist,
+			[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
 			[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
 		}
 	end
@@ -1465,10 +1488,10 @@ function ml_global_information.DrawSettings()
 			ffxivminion.GUI.settings.visible, ffxivminion.GUI.settings.open = GUI:Begin(ffxivminion.GUI.settings.name, ffxivminion.GUI.settings.open)
 			if ( ffxivminion.GUI.settings.visible ) then 
 				
-				GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
+				local tabindex, tabname = GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
 				local tabs = ffxivminion.GUI.settings.main_tabs
 				
-				if (tabs.tabs[1].isselected) then
+				if (tabindex == 1) then
 					GUI:BeginChild("##main-header-botstatus",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(100)
 					GUI_DrawIntMinMax(GetString("Pulse Time"),"gPulseTime",5,10,5,2000)
@@ -1492,18 +1515,10 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[2].isselected) then
+				if (tabindex == 2) then
 					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
-					GUI:PushItemWidth(200)
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
-					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"),gAutoEquip),"gAutoEquip",
-						function ()
-							if (gBotMode == GetString("questMode")) then
-								 GUI_Set("gQuestAutoEquip",gAutoEquip)
-							end
-						end
-					);
 					GUI_Capture(GUI:Checkbox(GetString("useMount"),gUseMount),"gUseMount", 
 						function ()
 							if (gMountName == GetString("none")) then
@@ -1512,12 +1527,13 @@ function ml_global_information.DrawSettings()
 							end
 						end					
 					)
-					GUI_DrawIntMinMax(GetString("Mount Distance"),"gMountDist",5,10,0,200)
-					GUI_Combo(GetString("Mount"), "gMountNameIndex", "gMountName", gMountNames)
+					GUI:SameLine(150)
+					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("Mount Distance"),"gMountDist",5,10,0,200); GUI:PopItemWidth()
+					GUI:PushItemWidth(200); GUI_Combo(GetString("Mount"), "gMountNameIndex", "gMountName", gMountNames); GUI:PopItemWidth()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
-					GUI:SameLine(0,5)
+					GUI:SameLine(275)
 					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillMountOptions()
 					end
@@ -1528,9 +1544,10 @@ function ml_global_information.DrawSettings()
 					end
 					
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
-					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
-					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods)
-					GUI:SameLine(260)
+					GUI:SameLine(150)
+					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200); GUI:PopItemWidth()
+					GUI:PushItemWidth(200); GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods); GUI:PopItemWidth()
+					GUI:SameLine(275)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 					end
@@ -1548,11 +1565,80 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"),gAvoidAOE),"gAvoidAOE");
 					GUI_Capture(GUI:Checkbox(GetString("Random Paths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
 
-					GUI:PopItemWidth()
+					
 					GUI:EndChild()
 				end	
 				
-				if (tabs.tabs[3].isselected) then
+				if (tabindex == 3) then
+					GUI:BeginChild("##main-header-autoequip",0,GUI_GetFrameHeight(11),true)
+					
+					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"),gAutoEquip),"gAutoEquip",
+						function ()
+							if (gBotMode == GetString("questMode")) then
+								 GUI_Set("gQuestAutoEquip",gAutoEquip)
+							end
+						end
+					);
+					
+					GUI:Spacing(); GUI:Spacing(); GUI:Spacing()
+					GUI:Text("Gearsets");
+					
+					GUI:BeginChild("##main-header-autoequip-gearsets",0,GUI_GetFrameHeight(8),true)
+					local classlookup = {}
+					for jobid,abrev in pairs(ffxivminion.classes) do
+						classlookup[abrev] = jobid
+					end
+					
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM"}
+					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
+					local gatherers = {"MIN","BTN","FSH"}
+					
+					GUI:PushItemWidth(50)
+					local count = 1
+					for i,abrev in pairsByKeys(fighters) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(fighters) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:NewLine(2);
+					GUI:Spacing()
+					GUI:Separator();
+					GUI:Spacing()
+					
+					local count = 1
+					for i,abrev in pairsByKeys(crafters) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(crafters) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:NewLine(2);
+					GUI:Spacing()
+					GUI:Separator();
+					GUI:Spacing()
+					
+					local count = 1
+					for i,abrev in pairsByKeys(gatherers) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); _G[str] = GUI:InputInt("##"..abrev,_G[str],0,0)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(gatherers) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:NewLine();
+					GUI:EndChild()
+					GUI:PopItemWidth()
+					
+					GUI:EndChild()
+				end
+				
+				if (tabindex == 4) then
 					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(5),true)
 					
 					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
@@ -1568,7 +1654,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[4].isselected) then
+				if (tabindex == 5) then
 					GUI:BeginChild("##main-header-companion",0,GUI_GetFrameHeight(3),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("assistMode"),gChocoAssist),"gChocoAssist"); GUI:SameLine()
@@ -1582,7 +1668,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[5].isselected) then
+				if (tabindex == 6) then
 					GUI:BeginChild("##main-header-playerhpmptp",0,GUI_GetFrameHeight(7),true)
 					GUI:PushItemWidth(120)
 
@@ -1598,7 +1684,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[6].isselected) then
+				if (tabindex == 7) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
 					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair"); GUI:SameLine(0,15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##repair",gRepairRunningOnly),"gRepairRunningOnly")
@@ -1619,7 +1705,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[7].isselected) then
+				if (tabindex == 8) then
 					local width, height = GUI:GetWindowSize()
 			
 					GUI:PushItemWidth(120)

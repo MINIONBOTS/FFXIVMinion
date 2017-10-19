@@ -732,7 +732,7 @@ function ml_navigation:CheckPath(pos2,usecubes)
 	end
 	--]]
 
-	if (not IsFlying() and not IsDiving() and ((Player.incombat and not Player.ismounted) or not usecubes)) then
+	if (not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or not usecubes or IsTransporting())) then
 		NavigationManager:UseCubes(false)
 	else
 		NavigationManager:UseCubes(true)
@@ -857,7 +857,7 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local randompath = IsNull(randompath,false)
 	local smoothturns = IsNull(smoothturns,false)
 	
-	if ((Player.incombat and not Player.ismounted) or cubesoff) then
+	if ((Player.incombat and not Player.ismounted) or cubesoff or IsTransporting()) then
 		cubesoff = true
 		--d("[Navigation]: Turning cube usage off.")
 		NavigationManager:UseCubes(false)
@@ -1206,8 +1206,7 @@ function ml_navigation.Navigate(event, ticks )
 						elseif ( omc.type == 6 ) then
 							-- OMC Lift
 							ml_navigation.GUI.lastAction = "Lift OMC"
-							ml_navigation:NavigateToNode(ppos,nextnode,1500)						
-																
+							ml_navigation:NavigateToNode(ppos,nextnode,1500)											
 						end	
 			-- Cube Navigation
 					elseif (IsDiving()) then
@@ -1304,7 +1303,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						ml_navigation.GUI.lastAction = "Flying to Node"
-						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
+						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+3,nextnode.z,nextnode.x,nextnode.y-2,nextnode.z) 
 						if (hit) then
 							ml_debug("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
 						end
@@ -1326,7 +1325,7 @@ function ml_navigation.Navigate(event, ticks )
 								if (targetClose) then
 									d("[Navigation]: Force descent to target.")
 									ffnav.forceDescent = Now()
-									ffnav.descentPos = target.pos
+									ffnav.descentPos = nextnode
 									return false
 								end
 								
@@ -1374,7 +1373,9 @@ function ml_navigation.Navigate(event, ticks )
 					else
 						--d("[Navigation]: Normal navigation..")
 						
-						if (string.contains(nextnode.type,"CUBE")) then
+						local target = Player:GetTarget()
+						local forceDescent = (TimeSince(ffnav.forceDescent) < 5000)
+						if (string.contains(nextnode.type,"CUBE") and not forceDescent) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
@@ -1392,7 +1393,11 @@ function ml_navigation.Navigate(event, ticks )
 								ffnav.Await(3000, function () return (MIsLoading() or IsDiving()) end)
 								return
 							elseif (not IsFlying() and CanFlyInZone()) then	-- it will start flying if we have enough space above our head, if not, it keels wwalking on the poly mesh towards the next cube node in the air until it has space to fly
-								if (not Player.ismounted) then
+								if (Player.ismounted and not Player.mountcanfly) then
+									Dismount()
+									ffnav.Await(5000, function () return not Player.ismounted end)
+									return
+								elseif (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									if (Player:IsMoving()) then
 										Player:StopMovement()
@@ -1411,19 +1416,15 @@ function ml_navigation.Navigate(event, ticks )
 									else
 										d("[Navigation] - Ascend for flight.")
 										Player:TakeOff()
-										--ffnav.Await(1000, function () return IsFlying() end)
-										
-										--ffnav.Ascend()
 										ffnav.isascending = true
 										return
 									end
 								end
 							end						
 						end
-
--- TODO: ADD UNSTUCK HERE !!
+						
 						--d("[Navigation]: Navigate to node.")
-						ml_navigation:NavigateToNode(ppos,nextnode)										
+						ml_navigation:NavigateToNode(ppos,nextnode)	
 					end
 				
 				else
@@ -1516,7 +1517,7 @@ end
 
 function ml_navigation.IsPathInvalid()
 	if (table.valid(ml_navigation.path)) then
-		if (Player.incombat and not Player.ismounted) then
+		if (Player.incombat and (not Player.ismounted or not Player.mountcanfly)) then
 			for i, node in pairs(ml_navigation.path) do
 				if (node.type == "CUBE") then
 					return true
@@ -1868,57 +1869,6 @@ function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
 			followfail = param5,
 		}
 	end
-end
-
-function ffnav.Ascend()	
-	ml_navigation.GUI.lastAction = "Ascend"
-	
-	ffnav.process = {
-		mintime = 150, maxtime = 10000, 
-		evaluator = function ()
-			local ppos = Player.pos
-			if (IsFlying()) then
-				local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-5,ppos.z) 
-				if (not hit or (os.clock() - ffnav.ascendTime) > 3 ) then
-					Player:StopMovement()
-					ffnav.Await(1000, function () return (not Player:IsMoving(FFXIV.MOVEMENT.UP)) end)
-					return true
-				else
-					if (not Player:IsMoving(FFXIV.MOVEMENT.UP)) then
-						Player:Move(FFXIV.MOVEMENT.UP) 
-						ffnav.Await(150, 5000, 
-							function () 
-								ffnav.ascendTime = os.clock()
-								return Player:IsMoving(FFXIV.MOVEMENT.UP) 
-							end
-						)
-						return false
-					end
-				end
-			else
-				if (not Player.ismounted)then
-					d("[Navigation]: WE SHOULD NEVER BE HERE, REPORT THIS TO US PLEASE WITH A SCREENSHOT IF POSSIBLE")
-					Player:StopMovement()
-					return true
-				else
-					d("[Navigation]: Jump to Ascend.")
-					Player:Jump()
-					Player:Move(FFXIV.MOVEMENT.UP) 
-					ffnav.Await(math.random(50,150))
-					return false
-				end
-			end
-		end, 
-		failure = function ()
-			--local fail = Player.incombat and not Player.ismounted		-- for what cases is this player.incombat ? afaik we are already mounted or we are not (no clue how we got in this ascend() wiuthout being mounted though), and once we are moutned we can fly always  even while being in combat ?
-			local fail = not Player.ismounted or IsSwimming() or IsDiving()
-			if ( fail ) then
-				d("[Navigation]: Player is not mounted to Ascend...")
-				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.				
-			end
-			return fail
-		end,
-	}
 end
 
 
