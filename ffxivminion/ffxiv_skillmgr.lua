@@ -142,7 +142,7 @@ SkillMgr.ExtraProfiles = {
 	"Custom_Task",
 }
 
-function SkillMgr.GetTestSkill(jobid, pvp)
+function SkillMgr.CheckTestSkill(jobid, targetid, pvp)
 	local jobid = IsNull(jobid,Player.job)
 	local pvp = IsNull(pvp,false)
 	
@@ -208,18 +208,29 @@ function SkillMgr.GetTestSkill(jobid, pvp)
 	local testSkill = testSkills[Player.job]
 	if (testSkill) then
 		if (type(testSkill) == "number") then
-			return skill
+			local action = ActionList:Get(1,testSkill)
+			if (action and action:IsReady(targetid)) then
+				return true
+			elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
+				return false
+			end	
 		elseif (type(testSkill) == "table") then
+			local found = false
 			for i = 1,table.size(testSkill) do
-				local skill = ActionList:Get(1,testSkill[i])
-				if (skill and skill.usable and not skill.isoncd) then
-					return skill.id
-				end
+				local action = ActionList:Get(1,testSkill[i])
+				if (action and action:IsReady(targetid)) then
+					return true
+				elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
+					found = true
+				end	
+			end
+			if (found) then
+				return false
 			end
 		end
 	end
 	
-	return 0
+	return nil
 end
 
 function SkillMgr.UpdateBasicSkills()

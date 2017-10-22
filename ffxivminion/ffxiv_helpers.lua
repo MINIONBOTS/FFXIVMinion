@@ -3029,18 +3029,13 @@ function InCombatRange(targetid)
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
-	if ( Player.castinginfo.channelingid ~= 0 and Player.castinginfo.channeltargetid == targetid) then
+	if (Player.castinginfo.channelingid ~= 0 and Player.castinginfo.channeltargetid == targetid) then
 		return true
 	end
 	
-	local actionid = SkillMgr.GetTestSkill(Player.job)
-	if (actionid ~= 0) then
-		local action = ActionList:Get(1,actionid)
-		if (action and action:IsReady(targetid)) then
-			return true
-		elseif (action and not action.isoncd and not action:IsReady(targetid)) then
-			return false
-		end		
+	local check = SkillMgr.CheckTestSkill(Player.job, targetid)
+	if (check ~= nil) then
+		return check
 	end
 	
 	local attackRange = ml_global_information.AttackRange	
