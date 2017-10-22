@@ -6285,12 +6285,21 @@ function Transport622(pos1,pos2)
     local pos2 = pos2
     
     if ((pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and not (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50) and CanFlyInZone() == false) then
-        return true, function()
-            local newTask = ffxiv_nav_interact.Create()
-            newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
-            newTask.contentid = 1019424
-            ml_task_hub:CurrentTask():AddSubTask(newTask)
-        end
+		if (GetQuestInfo(2509,'step') == 1) then
+			return true, function()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
+				newTask.contentid = 1023089
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		else
+			return true, function()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
+				newTask.contentid = 1019424
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
     elseif (not (pos1.x < 140 and pos1.x > -130 and pos1.z < 178 and pos1.z > -78 and pos1.y > 50) and (pos2.x < 140 and pos2.x > -130 and pos2.z < 178 and pos2.z > -78 and pos2.y > 50) and CanFlyInZone() == false) then
         return true, function()
             local newTask = ffxiv_nav_interact.Create()
