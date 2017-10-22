@@ -142,6 +142,86 @@ SkillMgr.ExtraProfiles = {
 	"Custom_Task",
 }
 
+function SkillMgr.GetTestSkill(jobid, pvp)
+	local jobid = IsNull(jobid,Player.job)
+	local pvp = IsNull(pvp,false)
+	
+	local testSkills = {}
+	if (not pvp) then
+		testSkills = {
+			[FFXIV.JOBS.GLADIATOR] = 9,
+			[FFXIV.JOBS.PALADIN] = 9,
+			[FFXIV.JOBS.MARAUDER] = 31,
+			[FFXIV.JOBS.WARRIOR] = 31,
+			[FFXIV.JOBS.PUGILIST] = 53,
+			[FFXIV.JOBS.MONK] = 53,
+			[FFXIV.JOBS.LANCER] = 75,
+			[FFXIV.JOBS.DRAGOON] = 75,
+			[FFXIV.JOBS.ARCHER] = 97,
+			[FFXIV.JOBS.BARD] = 97,
+			[FFXIV.JOBS.CONJURER] = { 127, 119 },
+			[FFXIV.JOBS.WHITEMAGE] = { 7431, 3568, 127, 119 },
+			[FFXIV.JOBS.THAUMATURGE] = 142,
+			[FFXIV.JOBS.BLACKMAGE] = 142,
+			[FFXIV.JOBS.ARCANIST] = 163,
+			[FFXIV.JOBS.SUMMONER] = { 3579, 163 },
+			[FFXIV.JOBS.SCHOLAR] = { 7435, 3584, 163},
+			[FFXIV.JOBS.BOTANIST] = 218,
+			[FFXIV.JOBS.MINER] = 235,
+			[FFXIV.JOBS.ROGUE] = 2240,
+			[FFXIV.JOBS.NINJA] = 2240,
+			[FFXIV.JOBS.MACHINIST] = { 7411, 2866 },
+			[FFXIV.JOBS.ASTROLOGIAN] = { 7442, 3598, 3596 },
+			[FFXIV.JOBS.DARKKNIGHT] = 3617,
+			[FFXIV.JOBS.SAMURAI] = 7477,
+			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
+		}
+	else
+		testSkills = {
+			[FFXIV.JOBS.GLADIATOR] = 8718,
+			[FFXIV.JOBS.PALADIN] = 8718,
+			[FFXIV.JOBS.MARAUDER] = 8758,
+			[FFXIV.JOBS.WARRIOR] = 8758,
+			[FFXIV.JOBS.PUGILIST] = 8780,
+			[FFXIV.JOBS.MONK] = 8780,
+			[FFXIV.JOBS.LANCER] = 8791,
+			[FFXIV.JOBS.DRAGOON] = 8791,
+			[FFXIV.JOBS.ARCHER] = 8834,
+			[FFXIV.JOBS.BARD] = 8834,
+			[FFXIV.JOBS.CONJURER] = 8895,
+			[FFXIV.JOBS.WHITEMAGE] = 8895,
+			[FFXIV.JOBS.THAUMATURGE] = 8858,
+			[FFXIV.JOBS.BLACKMAGE] = 8858,
+			[FFXIV.JOBS.ARCANIST] = 8904,
+			[FFXIV.JOBS.SUMMONER] = 8872,
+			[FFXIV.JOBS.SCHOLAR] = 8904,
+			[FFXIV.JOBS.ROGUE] = 8807,
+			[FFXIV.JOBS.NINJA] = 8807,
+			[FFXIV.JOBS.MACHINIST] = 8845,
+			[FFXIV.JOBS.ASTROLOGIAN] = 8912,
+			[FFXIV.JOBS.DARKKNIGHT] = 8769,
+			[FFXIV.JOBS.SAMURAI] = 8821,
+			[FFXIV.JOBS.REDMAGE] = 8882,
+		}
+	end
+	
+	local testSkill = testSkills[Player.job]
+	if (testSkill) then
+		if (type(testSkill) == "number") then
+			return skill
+		elseif (type(testSkill) == "table") then
+			for i = 1,table.size(testSkill) do
+				local skill = ActionList:Get(1,testSkill[i])
+				if (skill and skill.usable and not skill.isoncd) then
+					return skill.id
+				end
+			end
+		end
+	end
+	
+	return 0
+end
+
 function SkillMgr.UpdateBasicSkills()
 	SkillMgr.GCDSkills = {
 		[FFXIV.JOBS.GLADIATOR] = 9,

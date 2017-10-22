@@ -3033,49 +3033,18 @@ function InCombatRange(targetid)
 		return true
 	end
 	
+	local actionid = SkillMgr.GetTestSkill(Player.job)
+	if (actionid ~= 0) then
+		local action = ActionList:Get(1,actionid)
+		if (action and action:IsReady(targetid)) then
+			return true
+		elseif (action and not action.isoncd and not action:IsReady(targetid)) then
+			return false
+		end		
+	end
+	
 	local attackRange = ml_global_information.AttackRange	
-	return ((target.los or target.type ~= 2) and target.distance2d ~= 0 and target.distance2d <= (attackRange * .98))
-	
-	--[[ -- need to factor in changing skills, some report wrong
-	local gcdSkills = SkillMgr.GCDSkills
-	if (table.valid(gcdSkills)) then
-		local actionid = gcdSkills[Player.job]
-		if (actionid) then
-			d("checked action ["..tostring(actionid).."]")
-			local action = ActionList:Get(1,actionid)
-			if (action and action:IsReady(targetid)) then
-				d("action ready")
-				return true
-			elseif (action and not action.isoncd and not action:IsReady(targetid)) then
-				d("action not ready")
-				return false
-			end		
-		end
-	end
-	--]]
-	
-	--[[
-	local highestRange = 5
-	local charge = false
-	local skillID = nil
-	
-	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
-		for prio,skill in spairs(SkillMgr.SkillProfile) do
-			local skilldata = ActionList:Get(1,tonumber(skill.id))
-			if (skilldata) then
-				if ( skilldata.range > 0 and skill.used  and skilldata.range > highestRange) then
-					if ((attackRange < 5 and skilldata.isready) or attackRange >= 5) then
-						skillID = tonumber(skill.id)
-						highestRange = tonumber(skilldata.range)
-						charge = (skill.charge  and true) or false
-					end
-				end
-			end
-		end
-	end
-	--]]
-	
-	
+	return (target.los and target.distance2d ~= 0 and target.distance2d <= (attackRange * .98))
 end
 function CanAttack(targetid,skillid,skilltype)
 	local target = {}
@@ -3199,14 +3168,12 @@ function Mount(id)
 				end
 				
 				--Second pass, look for any mount as backup.
-				if (gMountName == GetString("none")) then
-					for mountid,mountaction in pairsByKeys(mounts) do
-						if (mountaction:IsReady(Player.id) and (mountaction.canfly or not CanFlyInZone())) then
-							mountaction:Cast()
-							return true
-						end
-					end		
-				end
+				for mountid,mountaction in pairsByKeys(mounts) do
+					if (mountaction:IsReady(Player.id) and (mountaction.canfly or not CanFlyInZone())) then
+						mountaction:Cast()
+						return true
+					end
+				end		
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do
@@ -6784,14 +6751,11 @@ function GetInteractableEntity(contentids,types)
 			if (table.valid(validInteracts)) then
 				local ppos = Player.pos
 				local nearest, nearestDistance = nil, math.huge
-				for i,e in pairs(validInteracts) do
-					local interact = EntityList:Get(e.id)
-					if (interact) then
-						local dist = interact.distance2d
-						if (not nearest or (nearest and dist < nearestDistance)) then
-							--d("[GetInteractableEntity] - setting nearest to ["..interact.name.."]")
-							nearest, nearestDistance = interact, dist
-						end
+				for i,interact in pairs(validInteracts) do
+					local dist = interact.distance2d
+					if (not nearest or (nearest and dist < nearestDistance)) then
+						d("[GetInteractableEntity] - setting nearest to ["..interact.name.."]")
+						nearest, nearestDistance = interact, dist
 					end
 				end
 				
@@ -6801,7 +6765,6 @@ function GetInteractableEntity(contentids,types)
 	end
 	return nil
 end
-
 -- Very general check for things that would prevent moving around
 function Busy()
 	local currentTask = ml_task_hub:CurrentTask()
@@ -6809,7 +6772,6 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
-
 function GetAetherCurrentData(mapid)
 	if (not IsControlOpen("AetherCurrent")) then
 		ActionList:Get(10,67):Cast()
@@ -6832,7 +6794,6 @@ function GetAetherCurrentData(mapid)
 	
 	return status
 end
-
 function FindNearestCollectableAppraiser()
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
@@ -6872,4 +6833,29 @@ function FindNearestCollectableAppraiser()
 	end
 	
 	return nil
+end
+function MoveDirectly3D(pos)
+	local ppos = Player.pos
+	if (pos ~= nil) then
+		local dist3D = math.distance3d(pos,ppos)
+		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = pos.x-ppos.x, y = 0, z = pos.z-ppos.z})
+		if ( anglediff < 35 and dist3D > (5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])) then
+			Player:SetFacing(pos.x,pos.y,pos.z, true) -- smooth facing
+		else
+			Player:SetFacing(pos.x,pos.y,pos.z)
+		end
+		
+		-- Set Pitch							
+		local currentPitch = math.round(Player.flying.pitch,3)
+		local minVector = math.normalize(math.vectorize(ppos,pos))
+		local pitch = math.asin(-1 * minVector.y)
+		Player:SetPitch(pitch)
+		
+		-- Move
+		if (not Player:IsMoving()) then
+			Player:Move(FFXIV.MOVEMENT.FORWARD)	
+			ml_global_information.Await(2000, function () return Player:IsMoving() end)
+		end
+		ml_navigation.path = {}
+	end
 end

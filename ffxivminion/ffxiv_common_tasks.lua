@@ -472,6 +472,9 @@ function ffxiv_task_movetointeract:Init()
 	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
     self:add( ke_stealth, self.process_elements)
 	
+	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 100 )
+    self:add( ke_interact, self.process_elements)
+	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 90 )
     self:add( ke_getMovementPath, self.process_elements)
 	
@@ -486,9 +489,6 @@ function ffxiv_task_movetointeract:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
-	
-	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
-    self:add( ke_interact, self.process_elements)
 	
 	local ke_walkToEntity = ml_element:create( "WalkToEntity", c_walktoentity, e_walktoentity, 10 )
     self:add( ke_walkToEntity, self.process_elements)

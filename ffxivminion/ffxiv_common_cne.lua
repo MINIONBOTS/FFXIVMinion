@@ -1207,49 +1207,50 @@ function c_getmovementpath:evaluate()
 	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
 		return false
 	end
-
-    if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
-		local gotoPos = nil
-		if (ml_task_hub:CurrentTask().gatePos) then
-			gotoPos = ml_task_hub:CurrentTask().gatePos
-			ml_debug("[c_getmovementpath]: Position adjusted to gate position.", "gLogCNE", 3)
-		else
-			gotoPos = ml_task_hub:CurrentTask().pos
-			ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
-		end
-		
-		if (table.valid(gotoPos)) then
-
-			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-				local meshpos = FindClosestMesh(gotoPos)
-				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-					ml_task_hub:CurrentTask().gatePos = meshpos
+	
+	if (not CannotMove()) then
+		if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
+			local gotoPos = nil
+			if (ml_task_hub:CurrentTask().gatePos) then
+				gotoPos = ml_task_hub:CurrentTask().gatePos
+				ml_debug("[c_getmovementpath]: Position adjusted to gate position.", "gLogCNE", 3)
+			else
+				gotoPos = ml_task_hub:CurrentTask().pos
+				ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
+			end
+			
+			if (table.valid(gotoPos)) then
+				if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+					local meshpos = FindClosestMesh(gotoPos)
+					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
+						ml_task_hub:CurrentTask().gatePos = meshpos
+					end
 				end
-			end
+				
+				local pathLength = 0
 			
-			local pathLength = 0
-		
-			-- Attempt to get a path that doesn't require cubes for stealth pathing.
-			if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-				--d("rebuild non-cube path")
-				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
-			end
-			
-			if (pathLength <= 0) then
-				--d("rebuild cube path")
-				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
-			end
-			
-			if (pathLength > 0 or ml_navigation:HasPath()) then
-				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
-				return false
+				-- Attempt to get a path that doesn't require cubes for stealth pathing.
+				if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+					--d("rebuild non-cube path")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
+				end
+				
+				if (pathLength <= 0) then
+					--d("rebuild cube path")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
+				end
+				
+				if (pathLength > 0 or ml_navigation:HasPath()) then
+					ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
+					return false
+				end
+			else
+				d("no valid gotopos")
 			end
 		else
-			d("no valid gotopos")
+			d("didn't have a valid position")
 		end
-	else
-		d("didn't have a valid position")
-    end
+	end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")
     return true
@@ -1725,14 +1726,12 @@ function c_mount:evaluate()
 				end
 				
 				--Second pass, look for any mount as backup.
-				if (gMountName == GetString("none")) then
-					for id,acMount in pairsByKeys(mountlist) do
-						if (acMount:IsReady(Player.id) and (acMount.canfly or not CanFlyInZone())) then
-							e_mount.id = acMount.id
-							return true
-						end
-					end		
-				end
+				for id,acMount in pairsByKeys(mountlist) do
+					if (acMount:IsReady(Player.id) and (acMount.canfly or not CanFlyInZone())) then
+						e_mount.id = acMount.id
+						return true
+					end
+				end		
 			end
 		end
     end
@@ -3119,7 +3118,7 @@ function c_switchclass:evaluate()
 			return false
 		end
 		
-		local gsvar = "gGearset"..tostring(Player.job)
+		local gsvar = "gGearset"..tostring(class)
 		if (_G[gsvar] ~= 0) then
 			local commandString = "/gs change "..tostring(_G[gsvar])
 			SendTextCommand(commandString)
@@ -3365,6 +3364,16 @@ function c_dointeract:evaluate()
 			end
 		end
 	end
+	
+	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
+		local tpos = interactable.pos
+		local dist3d = math.distance3d(gotoPos,tpos)
+		if (dist3d < 3) then
+			MoveDirectly3D(tpos)
+			return true
+		end
+	end				
+	
 	return false
 end
 function e_dointeract:execute()
