@@ -5605,6 +5605,69 @@ function GetPeaksSection(pos)
 	
 	return sec
 end
+
+function GetLochsSection(pos)
+	local sections = {
+        [1] = {
+            a = {x = 490, z = 664},
+            b = {x = 490, z = 552},
+            c = {x = 850, z = 552},
+            d = {x = 850, z = 664},
+            x = {x = 650, z = 600},
+        },
+		[2] = {
+            a = {x = 664, z = 464},
+            b = {x = 664, z = 750},
+            c = {x = 850, z = 750},
+            d = {x = 850, z = 464},
+            x = {x = 750, z = 600},
+        },
+		[3] = {
+            a = {x = 610, z = 732},
+            b = {x = 490, z = 664},
+            c = {x = 665, z = 464},
+            d = {x = 770, z = 561},
+            x = {x = 652, z = 599},
+        },
+		[4] = {
+            a = {x = 770, z = 400},
+            b = {x = 557, z = 400},
+            c = {x = 535, z = 642},
+            d = {x = 808, z = 656},
+            x = {x = 678, z = 553},
+        },
+		[5] = {
+            a = {x = 560, z = 400},
+            b = {x = 489, z = 521},
+            c = {x = 569, z = 139},
+            d = {x = 644, z = 499},
+            x = {x = 583, z = 500},
+        },
+		[6] = {
+            a = {x = 751, z = 732},
+            b = {x = 611, z = 732},
+            c = {x = 611, z = 623},
+            d = {x = 751, z = 623},
+            x = {x = 700, z = 680},
+        },
+		
+	   
+	   
+    }
+	
+	local sec = 1
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end
+	
+	return sec
+end
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -6273,6 +6336,38 @@ function Transport620(pos1,pos2)
 	end
 	
 	return false			
+end
+
+function Transport621(pos1,pos2)
+    local pos1 = pos1 or Player.pos
+    local pos2 = pos2
+    
+	if (not CanFlyInZone()) then
+		if QuestCompleted(2550) then
+			if (GetLochsSection(Player.pos)~= 1)  and (GetLochsSection(pos2) == 1) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 500, y = 69, z = 583}
+						newTask.contentid = 1023048
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end
+			if (GetLochsSection(Player.pos)~= 2)  and (GetLochsSection(pos2) == 2) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 466, y = 61, z = 583}
+						newTask.contentid = 1023047
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end
+		end
+	end
+
+    return false            
 end
 
 function Transport622(pos1,pos2)
