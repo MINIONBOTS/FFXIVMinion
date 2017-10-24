@@ -5145,6 +5145,18 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+			
+			-- Fall back check to see if we can get to Kugane, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 111 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 45.89, y = 4.2, z = -40.59}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,628,mapid)
+					if (table.valid(backupPos)) then
+						d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						return true
+					end
+				end
+			end
 		else
 			return true
 		end
