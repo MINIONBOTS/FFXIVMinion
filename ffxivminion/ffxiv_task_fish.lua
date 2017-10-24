@@ -1168,6 +1168,19 @@ function e_resetidle:execute()
 	ffxiv_fish.biteDetected = 0
 end
 
+c_isfishing = inheritsFrom( ml_cause )
+e_isfishing = inheritsFrom( ml_effect )
+function c_isfishing:evaluate()
+	local fs = tonumber(Player:GetFishingState())
+	if ( not In(fs,0,4) ) then
+		return true
+	end
+    return false
+end
+function e_isfishing:execute()
+	ml_debug("Preventing idle while waiting for bite.")
+end
+
 c_buybait = inheritsFrom( ml_cause )
 e_buybait = inheritsFrom( ml_effect )
 e_buybait.rebuy = {}
@@ -2665,6 +2678,9 @@ function ffxiv_task_fish:Init()
     
     local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 10 )
     self:add(ke_bite, self.process_elements)
+	
+	local ke_fishing = ml_element:create( "Fishing", c_isfishing, e_isfishing, 1 )
+    self:add(ke_fishing, self.process_elements)
    
     self:AddTaskCheckCEs()
 end
