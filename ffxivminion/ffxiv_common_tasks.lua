@@ -2255,7 +2255,7 @@ function ffxiv_misc_scripexchange.Create()
     newinst.overwatch_elements = {}
     newinst.name = "MISC_SCRIPEXCHANGE"
 	
-	newinst.exchanges = {}
+	newinst.categories = {}
 	
 	local appraiser = FindNearestCollectableAppraiser()
 	if (table.valid(appraiser)) then
@@ -2271,15 +2271,26 @@ function ffxiv_misc_scripexchange.Create()
 		}
 	end
 	
-	
     return newinst
 end
 
 function ffxiv_misc_scripexchange:task_complete_eval()
-	return table.valid(exchanges)
+	local checkedAll = true
+	for i = 0,10 do
+		if (self.categories[i] ~= true) then
+			checkedAll = false
+		end
+	end
+	return checkedAll
 end
 
 function ffxiv_misc_scripexchange:task_complete_execute()
+	local supply = GetControl("MasterPieceSupply")
+	if (supply and supply:IsOpen()) then
+		supply:Close()	
+		ml_global_information.Await(1500, function () return not IsControlOpen("MasterPieceSupply") end) 
+		return
+	end
 	self.completed = true
 end
 

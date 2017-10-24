@@ -3413,55 +3413,39 @@ function c_scripexchange:evaluate()
 	
 	local currentCategory = GetControlData("MasterPieceSupply","category")
 	local currentItems = GetControlData("MasterPieceSupply","items")
-	local exchanges = IsNull(ml_task_hub:CurrentTask().exchanges,{})
+	local checkedCategories = ml_task_hub:CurrentTask().categories
+	local currentCheck = 0
+	for i = 0,10 do
+		if (checkedCategories[i] ~= true) then
+			currentCheck = i
+			break
+		end
+	end
 	
-	--[[  Example "exchange":
-		[0] = {
-			[520087] = true,
-			[512827] = true,
-		},
-		[1] = {
-			[510586] = true,
-		},
-	--]]
-	
-	if (table.valid(exchanges)) then
-		for category,catitems in pairsByKeys(exchanges) do
-			if (table.valid(catitems)) then
-				for itemid,needscomplete in pairs(catitems) do
-					if (needscomplete) then
-						if (currentCategory ~= category) then
-							d("[ScripExchange]: Switch to category ["..tostring(category).."]")
-							UseControlAction("MasterPieceSupply","SelectCategory",category)
-							ml_global_information.Await(2000,function () return (GetControlData("MasterPieceSupply","category") == category and table.valid(GetControlData("MasterPieceSupply","items"))) end)
-							return true
-						else
-							if (table.valid(currentItems)) then
-								d("[ScripExchange]: Found items list.")
-								for index,itemdata in pairs(currentItems) do
-									--[[
-										expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
-									--]]
-									if (itemdata.itemid == itemid) then
-										if (itemdata.ownedquantity >= itemdata.requiredquantity) then
-											local originalQuantity = itemdata.ownedquantity
-											c_scripexchange.lastItem = itemid
-											c_scripexchange.handoverComplete = false
-											UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
-											ml_global_information.Await(2000, function () return IsControlOpen("Request") end)
-											return true
-										else
-											exchanges[category][itemid] = nil
-											return true
-										end
-									end
-								end
-							end
-						end
-					end
-				end			
+	if (currentCategory ~= currentCheck) then
+		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
+		UseControlAction("MasterPieceSupply","SelectCategory",currentCheck)
+		ml_global_information.Await(2000,function () return (GetControlData("MasterPieceSupply","category") == currentCheck and table.isa(GetControlData("MasterPieceSupply","items"))) end)
+		return true
+	else
+		if (table.isa(currentItems)) then
+			d("[ScripExchange]: Found items list.")
+			for index,itemdata in pairs(currentItems) do
+				--[[
+					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
+				--]]
+				if (itemdata.ownedquantity >= itemdata.requiredquantity) then
+					local originalQuantity = itemdata.ownedquantity
+					c_scripexchange.lastItem = itemdata.itemid
+					c_scripexchange.handoverComplete = false
+					UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
+					ml_global_information.Await(2000, function () return IsControlOpen("Request") end)
+					return true
+				end
 			end
-		end		
+			ml_task_hub:CurrentTask().categories[currentCheck] = true
+			return true
+		end
 	end
 	
 	return false
