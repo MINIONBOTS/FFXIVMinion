@@ -3367,10 +3367,13 @@ function c_dointeract:evaluate()
 	
 	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
 		local tpos = interactable.pos
-		local dist3d = math.distance3d(gotoPos,tpos)
-		if (dist3d < 3) then
-			MoveDirectly3D(tpos)
-			return true
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		if (table.valid(tpos) and table.valid(gotoPos)) then
+			local dist3d = math.distance3d(gotoPos,tpos)
+			if (dist3d < 3) then
+				MoveDirectly3D(tpos)
+				return true
+			end
 		end
 	end				
 	
