@@ -277,9 +277,11 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	
 	GUI:PushItemWidth(75)
 	marker.fields.usemooch, changed = GUI:Checkbox("Use Mooch",marker.fields.usemooch); if (changed) then dowrite = true end
+	marker.fields.usemooch2, changed = GUI:Checkbox("Use Mooch II",marker.fields.usemooch2); if (changed) then dowrite = true end
 	marker.fields.usepatience, changed = GUI:Checkbox("Use Patience I",marker.fields.usepatience); if (changed) then dowrite = true end
 	marker.fields.usepatience2, changed = GUI:Checkbox("Use Patience II",marker.fields.usepatience2); if (changed) then dowrite = true end
 	marker.fields.usefisheyes, changed = GUI:Checkbox("Use Fish Eyes",marker.fields.usefisheyes); if (changed) then dowrite = true end
+	marker.fields.usesnagging, changed = GUI:Checkbox("Use Snagging",marker.fields.usesnagging); if (changed) then dowrite = true end
 	marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
 	marker.fields.usedoublehook, changed = GUI:Checkbox("Use Double Hook",marker.fields.usedoublehook); if (changed) then dowrite = true end
 	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
@@ -318,8 +320,10 @@ function ffxiv_marker_mgr.BuildFishing()
 		baitname = "",
 		usefisheyes = false,
 		usemooch = true,
+		usemooch2 = false,
 		usepatience = false,
 		usepatience2 = false,
+		usesnagging = false,
 		usechum = false,
 		usedoublehook = false,
 		moochables = "",
