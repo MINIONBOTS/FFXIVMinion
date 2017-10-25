@@ -2977,7 +2977,7 @@ function InCombatRange(targetid)
 		return true
 	end
 	
-	local check = SkillMgr.CheckTestSkill(Player.job, targetid)
+	local check = SkillMgr.CheckTestSkill(Player.job, target)
 	if (check ~= nil) then
 		return check
 	end

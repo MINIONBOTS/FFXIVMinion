@@ -142,9 +142,10 @@ SkillMgr.ExtraProfiles = {
 	"Custom_Task",
 }
 
-function SkillMgr.CheckTestSkill(jobid, targetid, pvp)
+function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	local jobid = IsNull(jobid,Player.job)
 	local pvp = IsNull(pvp,false)
+	local targetid = target.id
 	
 	local testSkills = {}
 	if (not pvp) then
@@ -157,15 +158,15 @@ function SkillMgr.CheckTestSkill(jobid, targetid, pvp)
 			[FFXIV.JOBS.MONK] = 53,
 			[FFXIV.JOBS.LANCER] = 75,
 			[FFXIV.JOBS.DRAGOON] = 75,
-			[FFXIV.JOBS.ARCHER] = 97,
-			[FFXIV.JOBS.BARD] = 97,
-			[FFXIV.JOBS.CONJURER] = { 127, 119 },
-			[FFXIV.JOBS.WHITEMAGE] = { 7431, 3568, 127, 119 },
-			[FFXIV.JOBS.THAUMATURGE] = 142,
-			[FFXIV.JOBS.BLACKMAGE] = 142,
-			[FFXIV.JOBS.ARCANIST] = 163,
-			[FFXIV.JOBS.SUMMONER] = { 3579, 163 },
-			[FFXIV.JOBS.SCHOLAR] = { 7435, 3584, 163},
+			[FFXIV.JOBS.ARCHER] = {98, 97},
+			[FFXIV.JOBS.BARD] = {98, 97},
+			[FFXIV.JOBS.CONJURER] = { 132, 127, 121, 119 },
+			[FFXIV.JOBS.WHITEMAGE] = { 7431, 3568, 132, 127, 121, 119 },
+			[FFXIV.JOBS.THAUMATURGE] = {156, 142},
+			[FFXIV.JOBS.BLACKMAGE] = {156, 142},
+			[FFXIV.JOBS.ARCANIST] = {178, 164, 163},
+			[FFXIV.JOBS.SUMMONER] = { 7424, 3579, 178, 164, 163 },
+			[FFXIV.JOBS.SCHOLAR] = { 7435, 3584, 178, 164, 163},
 			[FFXIV.JOBS.BOTANIST] = 218,
 			[FFXIV.JOBS.MINER] = 235,
 			[FFXIV.JOBS.ROGUE] = 2240,
@@ -209,7 +210,7 @@ function SkillMgr.CheckTestSkill(jobid, targetid, pvp)
 	if (testSkill) then
 		if (type(testSkill) == "number") then
 			local action = ActionList:Get(1,testSkill)
-			if (action and action:IsReady(targetid)) then
+			if (action and (action:IsReady(targetid) or target.distance2d < action.range and target.los)) then
 				return true
 			elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
 				return false
@@ -218,7 +219,7 @@ function SkillMgr.CheckTestSkill(jobid, targetid, pvp)
 			local found = false
 			for i = 1,table.size(testSkill) do
 				local action = ActionList:Get(1,testSkill[i])
-				if (action and action:IsReady(targetid)) then
+				if (action and (action:IsReady(targetid) or target.distance2d < action.range and target.los)) then
 					return true
 				elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
 					found = true
