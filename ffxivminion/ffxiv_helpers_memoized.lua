@@ -2,6 +2,9 @@ function InitializeMemoize()
 	if (not memoize) then
 		memoize = {}
 	end
+	if (not memoize.entities) then
+		memoize.entities = {}
+	end
 	return true
 end
 
@@ -19,6 +22,10 @@ end
 function SetMemoized(key,variant)
 	InitializeMemoize()
 	memoize[key] = variant
+end
+
+function AddMemoizedEntity(id,entity)
+	memoize.entities[id] = entity
 end
 
 function MGetEntity(entityid)
@@ -88,15 +95,29 @@ end
 
 function MEntityList(elstring)
 	elstring = elstring or ""
-	
 	local memString = "MEntityList;"..tostring(elstring)
 	local memoized = GetMemoized(memString)
 	if (memoized) then
 		return memoized
 	else
+		InitializeMemoize()
 		local el = EntityList(elstring)
-		SetMemoized(memString,el)
-		return el
+		if (table.valid(el)) then
+			local newEL = {}
+			for i,e in pairs(el) do
+				if (memoize.entities and memoize.entities[i]) then
+					newEL[i] = memoize.entities[i]
+				else
+					local entity = EntityList:Get(i)
+					if (entity) then
+						newEL[i] = entity
+						memoize.entities[i] = entity
+					end
+				end
+			end
+			SetMemoized(memString,newEL)
+			return newEL
+		end
 	end
 end
 
