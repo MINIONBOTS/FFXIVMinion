@@ -61,7 +61,7 @@ function c_add_killtarget:evaluate()
 	
 	local target = ml_task_hub:CurrentTask().targetFunction()
     if (table.valid(target)) then
-        if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+        if(target.hp and target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
 			--d("Picked target in normal block.")
             c_add_killtarget.targetid = target.id
             return true
