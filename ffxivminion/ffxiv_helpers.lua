@@ -194,8 +194,11 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
-				return attackables[nearest.id]
+				local actual = EntityList:Get(nearest.id)
+				if (actual) then
+					--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
+					return actual
+				end
 			end
 		end
 		
@@ -215,8 +218,11 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (lowest) then
-				--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
-				return attackables[lowest.id]
+				local actual = EntityList:Get(lowest.id)
+				if (actual) then
+					--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
+					return actual
+				end
 			end
 			
 			for i,e in pairs(filtered) do
@@ -228,8 +234,11 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
-				return attackables[nearest.id]
+				local actual = EntityList:Get(nearest.id)
+				if (actual) then
+					--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
+					return actual
+				end
 			end
 		end
 		
@@ -243,8 +252,11 @@ function GetNearestGrindAttackable()
 			end
 				
 			if (nearest) then
+				local actual = EntityList:Get(nearest.id)
+				if (actual) then
 					--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
-				return nearest
+					return actual
+				end
 			end
 		end
 	end
