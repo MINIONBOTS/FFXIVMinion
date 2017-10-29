@@ -171,6 +171,25 @@ function ml_navigation.ParseInstructions(data)
 						end
 					end
 				)
+			elseif (itype == "Dive") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (Player.diving.isswimming) then
+							Player:Dive()
+							ml_global_information.Await(1000, function () return not Player.diving.isswimming end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "RefreshMesh") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						ml_mesh_mgr.lastmapid = 0
+						return true
+					end
+				)
 			elseif (itype == "Wait") then
 				local length = tonumber(iparams[1]) or 150
 				table.insert(ml_navigation.receivedInstructions, 
@@ -888,6 +907,11 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns, cubesoff = cubesoff}
 	
 	local ppos = Player.pos	
+	
+	local dist = math.distance3d(ppos,{ x = x, y = y, z = z})
+	if (dist < 300) then
+		NavigationManager.MacroMeshDistanceThreshold = 99999
+	end
 	
 	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance, newpathdistance, pathdeviationdistance)
 	if ( not ml_navigation.lastspam or (ml_global_information.Now - ml_navigation.lastspam > 3000) ) then
