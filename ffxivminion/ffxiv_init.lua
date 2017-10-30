@@ -156,9 +156,9 @@ function ml_global_information.NodeNeighbors(self)
 					local add = true
 					local requirements = shallowcopy(entrydata.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
-						if (f ~= nil) then
-							if (f ~= value) then
+						local ok, ret = LoadString("return " .. requirement)
+						if (ok and ret ~= nil) then
+							if (ret ~= value) then
 								add = false
 							end
 						end
@@ -195,9 +195,9 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 				if (posTable.requires) then
 					local requirements = shallowcopy(posTable.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
-						if (f ~= nil) then
-							if (f ~= value) then
+						local ok, ret = LoadString("return " .. requirement)
+						if (ok and ret ~= nil) then
+							if (ret ~= value) then
 								valid = false
 							end
 						end

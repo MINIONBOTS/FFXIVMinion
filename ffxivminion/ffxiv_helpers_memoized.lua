@@ -1,3 +1,25 @@
+pmemoize = {}
+pmemoize.loadedfunctions = {}
+
+function LoadString(str)
+	local ok, ret;
+	if (pmemoize.loadedfunctions[str] and type(pmemoize.loadedfunctions[str]) == "function") then
+		ok, ret = pcall(pmemoize.loadedfunctions[str])
+		if (ok and ret ~= nil) then
+			return ok, ret
+		end
+	elseif (type(str) == "string") then
+		local func = loadstring(str)
+		pmemoize.loadedfunctions[str] = func
+		ok, ret = pcall(func)
+		if (ok and ret ~= nil) then
+			return ok, ret
+		end
+	end
+	
+	return ok, ret
+end
+
 function InitializeMemoize()
 	if (not memoize) then
 		memoize = {}

@@ -1315,6 +1315,11 @@ function ml_navigation.Navigate(event, ticks )
 						local descentPos = ffnav.descentPos
 						
 						if (forceDescent and table.valid(descentPos)) then
+							local hoverHeight = GetHoverHeight()
+							if (hoverHeight < 3 and GetGameRegion() == 1) then
+								Dismount()
+							end
+								
 							Player:SetFacing(descentPos.x,descentPos.y,descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
 							Player:SetPitch(1.377) 
 							if (not Player:IsMoving()) then
@@ -1357,6 +1362,11 @@ function ml_navigation.Navigate(event, ticks )
 								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
 									d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
+									
+									local hoverHeight = GetHoverHeight()
+									if (hoverHeight < 3 and GetGameRegion() == 1) then
+										Dismount()
+									end
 								
 									Player:SetFacing(ffnav.descentPos.x,ffnav.descentPos.y,ffnav.descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
 									Player:SetPitch(1.377) 

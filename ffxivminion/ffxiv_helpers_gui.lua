@@ -120,13 +120,13 @@ function ffxiv_dialog_manager.TableToGUI(vars)
 							if (controlclick and type(controlclick) == "function") then
 								controlclick()
 							elseif (controlclick and type(controlclick) == "string") then
-								local f = assert(loadstring(controlclick))()
+								local f = LoadString(controlclick)
 							end
 						end
 					end	
 
 					if (changedVal and onchange and type(onchange) == "string") then
-						local f = assert(loadstring(onchange))()
+						local f = LoadString(onchange)
 					end
 					
 					if (width and type(width) == "number") then

@@ -2448,21 +2448,9 @@ function c_completequest:evaluate()
 end
 function e_completequest:execute()
 	local questid = IsNull(GetControlData("JournalResult","questid"),0)
-	
 	if (questid ~= 0) then
 		local hasReward = AceLib.API.Quest.HasReward(questid)
-		if (hasReward) then
-			local reward = AceLib.API.Quest.ChooseBestReward(questid)
-			if (reward) then
-				d("Quest reward index ["..tostring(reward).."] was chosen.",1)
-				ml_global_information.Await(math.random(1500,2500),
-					function () UseControlAction("JournalResult","Complete",reward) end,
-					ml_global_information.Await(1000, 10000, function () return not HasQuest(questid) end)
-				)
-			else
-				d("No best reward was returned, something went wrong.",1)
-			end
-		else
+		if (not hasReward) then
 			d("Quest has no reward indicated, use basic accept.",1)
 			ml_global_information.Await(math.random(1500,2500),
 				function () UseControlAction("JournalResult","Complete") end,

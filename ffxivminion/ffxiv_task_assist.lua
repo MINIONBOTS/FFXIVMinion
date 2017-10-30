@@ -195,7 +195,7 @@ function ffxiv_task_assist:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(7),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(8),true)
 	GUI:PushItemWidth(120)					
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Targeting Assist"))
@@ -216,6 +216,8 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Auto-Confirm Duty"))
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("questHelpers"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")) end
 	
 	GUI:NextColumn()
 	
@@ -224,33 +226,22 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	local assistcolumn2width = GUI:GetContentRegionAvailWidth()
 	GUI:PushItemWidth(assistcolumn2width)
 	GUI_Combo("##"..GetString("assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\
-Lowest Health: Targets the lowest health target within range.\
-Nearest: Targets the closest target within range.\
-Tank Assist: Targets whatever your tank is targetting.")) end
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\nLowest Health: Targets the lowest health target within range.\nNearest: Targets the closest target within range.\nTank Assist: Targets whatever your tank is targetting.")) end
 	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
 	GUI:PopItemWidth()
 	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\
-		Warning:  Dangerous if using Standard movement mode.")) end
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
-	--GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
-	--	function ()
-	--		local message = {
-	--			[1] = "Quest helpers are beta functionality, and should be used with caution.",
-	--			[2] = "It is not advisable to use this feature on a main account at this time.",
-	--		}
-	--		ffxiv_dialog_manager.IssueNotice("gQuestHelpersNotify", message)
-	--	end
-	--);
+	GUI_Capture(GUI:Checkbox("##"..GetString("questHelpers"),gQuestHelpers),"gQuestHelpers")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")) end
 	GUI:Columns()
 	GUI:PopItemWidth()
 	GUI:EndChild()

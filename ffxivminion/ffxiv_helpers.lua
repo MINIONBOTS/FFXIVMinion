@@ -1783,23 +1783,23 @@ function HasSkill( skillids )
 	end
 	return false
 end
-function HasBuffs(entity, buffIDs, dura, ownerid)
-	local duration = dura or 0
+function HasBuffs(entity, buffs, duration, ownerid, stacks)
+	local duration = duration or 0
 	local owner = ownerid or 0
-	local stackid = stackid or 0
-	local buffIDs = IsNull(tostring(buffIDs),"")
+	local stacks = stacks or 0
+	local buffs = IsNull(tostring(buffs),"")
 	
-	if (table.valid(entity) and buffIDs ~= "") then
-		local buffs = entity.buffs
+	if (table.valid(entity) and buffs ~= "") then
+		local ebuffs = entity.buffs
 
-		if (table.valid(buffs)) then
-			for _orids in StringSplit(buffIDs,",") do
+		if (table.valid(ebuffs)) then
+			for _orids in StringSplit(buffs,",") do
 				local found = false
 				for _andid in StringSplit(_orids,"+") do
 					found = false
-					for i, buff in pairs(buffs) do
+					for i, buff in pairs(ebuffs) do
 						if (buff.id == tonumber(_andid) 
-							and (stackid == 0 or stackid == buff.stacks)
+							and (stacks == 0 or stacks == buff.stacks)
 							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
 							and (owner == 0 or buff.ownerid == owner)) 
 						then 
@@ -1818,24 +1818,22 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	end
 	return false
 end
-function MissingBuffs(entity, buffIDs, dura, ownerid, stackid)
-	local duration = dura or 0
+function MissingBuffs(entity, buffs, duration, ownerid, stacks)
+	local duration = duration or 0
 	local owner = ownerid or 0
-	local stackid = stackid or 0
-	local buffIDs = IsNull(tostring(buffIDs),"")
+	local stacks = stacks or 0
+	local buffs = IsNull(tostring(buffs),"")
 	
-	if (table.valid(entity) and buffIDs ~= "") then
-		--If we have no buffs, we are missing everything.
-		local buffs = entity.buffs
+	if (table.valid(entity) and buffs ~= "") then
+		local ebuffs = entity.buffs
 		
-		if (table.valid(buffs)) then
-			--Start by assuming we have no buffs, so they are missing.
-			for _orids in StringSplit(buffIDs,",") do
+		if (table.valid(ebuffs)) then
+			for _orids in StringSplit(buffs,",") do
 				local missing = true
 				for _andid in StringSplit(_orids,"+") do
-					for i, buff in pairs(buffs) do
+					for i, buff in pairs(ebuffs) do
 						if (buff.id == tonumber(_andid) 
-							and (stackid == 0 or stackid == buff.stacks)
+							and (stacks == 0 or stacks == buff.stacks)
 							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id))
 							and (owner == 0 or buff.ownerid == owner)) 
 						then
@@ -3658,6 +3656,38 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
+
+function MembersWithBuffs(hasbuffs, hasnot, maxdistance, includeself) 
+	local hasbuffs = IsNull(hasbuffs,"")
+	local hasnot = IsNull(hasnot,"")
+	local maxdistance = IsNull(maxdistance,30)
+	local includeself = IsNull(includeself,true)
+	local returnables = {}
+	
+	if (hasbuffs ~= "" or hasnot ~= "") then
+		local el = MEntityList("myparty,alive,targetable,chartype=4,maxdistance2d="..tostring(maxdistance))
+		if (ValidTable(el)) then
+			for i,e in pairs(el) do	
+				if ((hasbuffs=="" or ((table.isa(hasbuffs) and HasBuffs{ entity = e, buffs = hasbuffs.buffs, duration = hasbuffs.duration, ownerid = hasbuffs.ownerid, stacks = hasbuffs.stacks}) or (type(hasbuffs) == "string" and HasBuffs(e,hasbuffs)))) and 
+					(hasnot=="" or ((table.isa(hasnot) and MissingBuffs{ entity = e, buffs = hasnot.buffs, duration = hasnot.duration, ownerid = hasnot.ownerid, stacks = hasnot.stacks}) or (type(hasnot) == "string" and MissingBuffs(e,hasnot)))))
+				then
+					table.insert(returnables,e)
+				end						
+			end
+		end
+
+		if (includeself) then
+			if ((hasbuffs=="" or ((table.isa(hasbuffs) and HasBuffs{ entity = Player, buffs = hasbuffs.buffs, duration = hasbuffs.duration, ownerid = hasbuffs.ownerid, stacks = hasbuffs.stacks}) or (type(hasbuffs) == "string" and HasBuffs(Player,hasbuffs)))) and 
+				(hasnot=="" or ((table.isa(hasnot) and MissingBuffs{ entity = Player, buffs = hasnot.buffs, duration = hasnot.duration, ownerid = hasnot.ownerid, stacks = hasnot.stacks}) or (type(hasnot) == "string" and MissingBuffs(Player,hasnot)))))
+			then
+				table.insert(returnables,Player)
+			end
+		end
+	end
+	
+	return returnables
+end
+
 ml_global_information.lastAetheryteCache = 0
 function GetAetheryteList(force)
 	
@@ -4966,7 +4996,7 @@ function IsNull(variant,default)
 end
 function IIF(test,truepart,falsepart)
 	if (ValidString(test)) then
-		local ok,ret = pcall(loadstring("return (" .. test .. ")"))
+		local ok,ret = LoadString("return (" .. test .. ")")
 		if (ok and ret == true) then
 			return truepart
 		end
@@ -6458,60 +6488,100 @@ function TestConditions(conditions)
 	if (not memoize.conditions) then
 		memoize.conditions = {}
 	end
-		
+	
+	tested = {}
 	local testKey,testVal = next(conditions)
 	if (tonumber(testKey) ~= nil) then
 		for i,conditionset in pairsByKeys(conditions) do
-			for condition,value in pairs(conditionset) do
+			tested[i] = {}
+			if (ValidTable(conditionset)) then
+				for condition,value in pairs(conditionset) do
+					
+					if (memoize.conditions[condition]) then
+						if (memoize.conditions[condition] ~= value) then
+							return false
+						end
+					else
+						d("condition [" ..tostring(condition).."] is not memoized")
+						
+						local startTime = os.clock()
+						local ok,ret;
+						if (type(condition) == "function") then
+							ok, ret = pcall(condition)
+						elseif (type(condition) == "string") then
+							ok, ret = LoadString("return " .. condition)
+						end
+						local finishTime = os.clock()
+						local elapsed = (finishTime - startTime)
+						if (elapsed > 0.1) then
+							d("condition:"..tostring(condition).." took ["..tostring(elapsedTime).."] to evaluate")
+						end
+						if (ok and ret ~= nil) then
+							memoize.conditions[condition] = ret
+							if (ret ~= value) then
+								return false
+							end
+						end
+					end
+					tested[i][condition] = true
+				end
+			end
+			
+			if (ValidTable(conditionset)) then
+				for condition,value in pairs(conditionset) do
+					if (not tested[i][condition]) then
+						if (_G[condition] and (type(_G[condition]) == "string" or type(_G[condition]) == "number")) then
+							if (_G[condition] ~= value) then
+								return false
+							end
+							tested[i][condition] = true
+						end
+					end
+				end
+			end
+		end
+	else
+		if (ValidTable(conditions)) then
+			for condition,value in pairs(conditions) do
 				if (memoize.conditions[condition]) then
 					if (memoize.conditions[condition] ~= value) then
 						return false
 					end
 				else
 					local startTime = os.clock()
-					local ok, ret = pcall(loadstring("return " .. condition))
+					local ok,ret;
+					if (type(condition) == "function") then
+						ok, ret = pcall(condition)
+					elseif (type(condition) == "string") then
+						ok, ret = LoadString("return " .. condition)
+					end
 					local finishTime = os.clock()
 					local elapsed = (finishTime - startTime)
 					if (elapsed > 0.1) then
 						d("condition:"..tostring(condition).." took ["..tostring(elapsedTime).."] to evaluate")
 					end
-					if (ok) then
+					if (ok and ret ~= nil) then
 						memoize.conditions[condition] = ret
 						if (ret ~= value) then
 							return false
 						end
-					else
-						return false
 					end
 				end
-				conditions[i][condition] = nil
+				tested[condition] = true
 			end
-			conditions[i] = nil
 		end
-	else
-		for condition,value in pairs(conditions) do
-			if (memoize.conditions[condition]) then
-				if (memoize.conditions[condition] ~= value) then
-					return false
-				end
-			else
-				local startTime = os.clock()
-				local ok, ret = pcall(loadstring("return " .. condition))
-				local finishTime = os.clock()
-				local elapsed = (finishTime - startTime)
-				if (elapsed > 0.1) then
-					d("condition:"..tostring(condition).." took ["..tostring(elapsedTime).."] to evaluate")
-				end
-				if (ok) then
-					memoize.conditions[condition] = ret
-					if (ret ~= value) then
-						return false
+		
+		if (ValidTable(conditions)) then
+			for condition,value in pairs(conditions) do
+				if (not tested[condition]) then
+					if (_G[condition] and (type(_G[condition]) == "string" or type(_G[condition]) == "number")) then
+						if (_G[condition] ~= value) then
+							return false
+						end
+						tested[condition] = true
 					end
-				else
-					return false
 				end
 			end
-			conditions[condition] = nil
 		end
 	end
 	
@@ -6923,4 +6993,15 @@ function MoveDirectly3D(pos)
 		end
 		ml_navigation.path = {}
 	end
+end
+function GetHoverHeight()
+	local ppos = Player.pos
+	local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-10,ppos.z) 
+	if (hit) then
+		local height = (ppos.y - hity)
+		if (height > 0) then
+			return height
+		end
+	end
+	return 10
 end
