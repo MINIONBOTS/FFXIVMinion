@@ -1344,7 +1344,7 @@ function ml_navigation.Navigate(event, ticks )
 							
 							-- Commented code needs more testing, complaints about "flying left and right", not sure how reliable that info is.
 							local target = Player:GetTarget()
-							local targetClose = (target and target.distance2d < 10)
+							local targetClose = (target and target.distance2d < 2 and target.distance < 5)
 							if (not string.contains(nextnode.type,"CUBE") or targetClose) then
 								if (targetClose) then
 									d("[Navigation]: Force descent to target.")
