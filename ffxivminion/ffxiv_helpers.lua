@@ -6465,21 +6465,21 @@ function DoWait(ms)
 	local instructions = {
 		{"Wait", { ms }},
 	}
-	ml_mesh_mgr.ParseInstructions(instructions)
+	ml_navigation.ParseInstructions(instructions)
 end
 
 function Stop()
 	local instructions = {
 		{"Stop", {}},
 	}
-	ml_mesh_mgr.ParseInstructions(instructions)
+	ml_navigation.ParseInstructions(instructions)
 end
 
 function Descend()
 	local instructions = {
 		{"Descend", {}},
 	}
-	ml_mesh_mgr.ParseInstructions(instructions)
+	ml_navigation.ParseInstructions(instructions)
 end
 
 function UsingBattleItem()
