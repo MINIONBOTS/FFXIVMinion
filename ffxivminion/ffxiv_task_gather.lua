@@ -314,8 +314,15 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
-			if (not reachable or IsFlying()) then
+			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
+				return true
+			elseif (reachable and IsFlying()) then
+				if (GetHoverHeight() < 2.5) then
+					Dismount()
+				else
+					Descend()
+				end
 				return true
 			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)

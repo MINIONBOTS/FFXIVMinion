@@ -6475,6 +6475,13 @@ function Stop()
 	ml_mesh_mgr.ParseInstructions(instructions)
 end
 
+function Descend()
+	local instructions = {
+		{"Descend", {}},
+	}
+	ml_mesh_mgr.ParseInstructions(instructions)
+end
+
 function UsingBattleItem()
 	local currentAction = Player.action
 	return (currentAction == 83 or currentAction == 84 or currentAction == 85 or currentAction == 89 or currentAction == 90 or currentAction == 91)
@@ -7019,10 +7026,10 @@ function GetRequiredPitch(pos,noadjustment)
 		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
 		if (hit) then
 			for i = 3, 15, 3 do
-				d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
+				--d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
 				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y-i,pos.z)
 				if (not hit) then
-					d("New trajectory appears safe, use it.")
+					--d("New trajectory appears safe, use it.")
 					pos = { x = pos.x, y = pos.y - i, z = pos.z }
 					break
 				end
@@ -7033,10 +7040,10 @@ function GetRequiredPitch(pos,noadjustment)
 		local minVector = math.normalize(math.vectorize(ppos,pos))
 		local pitch = math.asin(-1 * minVector.y)
 		if (pitch > 1.4835) then
-			d("Required pitch was too high (downward) ["..tostring(pitch).."], shifted down to max.")
+			--d("Required pitch was too high (downward) ["..tostring(pitch).."], shifted down to max.")
 			return 1.4835
 		elseif (pitch < -0.7599) then
-			d("Required pitch was too low (upward) ["..tostring(pitch).."], shifted up to max.")
+			--d("Required pitch was too low (upward) ["..tostring(pitch).."], shifted up to max.")
 			return pitch -0.7599
 		else
 			return pitch

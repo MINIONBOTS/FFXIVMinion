@@ -1365,12 +1365,19 @@ function ml_navigation.Navigate(event, ticks )
 							if (not string.contains(nextnode.type,"CUBE")) then
 								
 								d("[Navigation]: Next node is not a flying node.")
-								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
-									d("[Navigation]: Next next node is also not a flying node.")
+								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() < 0 or GetDiveHeight() > 2)) then
 									d("[Navigation] - Landing...")
 									
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
-									local pitch = GetRequiredPitch(nextnode)
+									local modifiedNode = { type = nextnode.type, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
+									local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y,nextnode.z,nextnode.x,nextnode.y-5,nextnode.z)
+									if (hit) then
+										if (hity < modifiedNode.y) then
+											modifiedNode.y = hity - 1
+										end
+									end		
+																		
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									local pitch = GetRequiredPitch(modifiedNode) -- Pitch down a little further.
 									Player:SetPitch(pitch)
 									
 									if (not Player:IsMoving()) then

@@ -3247,7 +3247,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and not IsFlying()) then
+	if (interactable) then
 		local ipos = interactable.pos
 		local ydiff = (ipos.y - ppos.y)
 		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
@@ -3264,34 +3264,34 @@ function c_dointeract:evaluate()
 		-- npcs (radius 2) (type 7): distance2d of 2.1
 		-- npcs (radius 0.5) (type 7): distance2d of 3.5
 
-		if (not IsFlying()) then
-			--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
-			if (myTarget and myTarget.id == interactable.id) then
-				
-				--[[
-				-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
-				if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
-					d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
-					Player:Stop()
-					return true
-				end
-				
-				if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-					d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
-					return false
-				end
-				
-				d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
-				Player:Interact(interactable.id)
-				ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-				
-				-- this return might need to be false, if the .interactable is not perfect
+		--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
+		if (myTarget and myTarget.id == interactable.id) then
+			
+			--[[
+			-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
+			if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
+				d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
+				Player:Stop()
 				return true
-				--]]
-				
-				if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then			
-					if (interactable.type == 5) then
-						if (interactable.distance2d <= 7) then
+			end
+			
+			if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+				d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
+				return false
+			end
+			
+			d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+			Player:Interact(interactable.id)
+			ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+			
+			-- this return might need to be false, if the .interactable is not perfect
+			return true
+			--]]
+			
+			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
+				if (interactable.type == 5) then
+					if (interactable.distance2d <= 7) then
+						if (not IsFlying()) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
 							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
@@ -3314,19 +3314,28 @@ function c_dointeract:evaluate()
 							end
 							c_dointeract.lastInteract = Now()
 							return false
+						else
+							if (GetHoverHeight() < 2.5) then
+								Dismount()
+							else
+								Descend()
+							end
+							return true
 						end
-					else
-						local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or defaults[interactable.type] or radius
-						if (not ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange3d and range > ml_task_hub:CurrentTask().interactRange3d) then
-							range = ml_task_hub:CurrentTask().interactRange3d
-						end
-						if (interactable.cangather) then
-							range = 2.5
-						end
-						
-						--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
-						
-						if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
+					end
+				else
+					local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or defaults[interactable.type] or radius
+					if (not ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange3d and range > ml_task_hub:CurrentTask().interactRange3d) then
+						range = ml_task_hub:CurrentTask().interactRange3d
+					end
+					if (interactable.cangather) then
+						range = 2.5
+					end
+					
+					--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
+					
+					if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
+						if (not IsFlying()) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
@@ -3349,6 +3358,13 @@ function c_dointeract:evaluate()
 								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
 							end
 							return false
+						else
+							if (GetHoverHeight() < 2.5) then
+								Dismount()
+							else
+								Descend()
+							end
+							return true
 						end
 					end
 				end
