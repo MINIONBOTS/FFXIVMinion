@@ -484,6 +484,7 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(200)
 					GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
 					GUI:BulletText("GetQueueStatus") GUI:SameLine(200) GUI:InputText("##devDLx2",tostring(Duty:GetQueueStatus()))
+					GUI:BulletText("GetDutyTimeRemaining") GUI:SameLine(200) GUI:InputText("##devDLx3",tostring(Duty:GetDutyTimeRemaining()))
 					local dList = Duty:GetDutyList()
 					if (table.valid(dList)) then
 						for id, e in pairs(dList) do
