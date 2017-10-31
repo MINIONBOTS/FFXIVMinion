@@ -618,6 +618,7 @@ function ffxivminion.SetMainVars()
 	gUseSprint = ffxivminion.GetSetting("gUseSprint",false)
 	gSprintDist = ffxivminion.GetSetting("gSprintDist",50)
 	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
+	FFXIV_Common_SmoothPathing = ffxivminion.GetSetting("FFXIV_Common_SmoothPathing",true)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	gUseExpManuals = ffxivminion.GetSetting("gUseExpManuals",true)
@@ -1567,7 +1568,7 @@ function ml_global_information.DrawSettings()
 					
 					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"),gAvoidAOE),"gAvoidAOE");
 					GUI_Capture(GUI:Checkbox(GetString("Random Paths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
-
+					GUI_Capture(GUI:Checkbox(GetString("Smooth Pathing"),FFXIV_Common_SmoothPathing),"FFXIV_Common_SmoothPathing");
 					
 					GUI:EndChild()
 				end	

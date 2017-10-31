@@ -982,7 +982,9 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("IsSwimming") GUI:SameLine(200) GUI:InputText("##devmov14",tostring(Player.diving.isswimming))
 					GUI:BulletText("CanDiveInZone") GUI:SameLine(200) GUI:InputText("##devmov15",tostring(Player.diving.candiveinzone))
 					GUI:BulletText("IsDiving") GUI:SameLine(200) GUI:InputText("##devmov16",tostring(Player.diving.isdiving))
-					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))									
+					GUI:BulletText("HeightLevel") GUI:SameLine(200) GUI:InputText("##devmov17",tostring(Player.diving.heightlevel))
+					GUI:BulletText("GetHoverHeight") GUI:SameLine(200) GUI:InputText("##devmov18",tostring(GetHoverHeight()))		
+					
 					if (GUI:Button("Dive##"..tostring(id),50,15) ) then Player:Dive() end
 					if (GUI:Button("TakeOff##"..tostring(id),50,15) ) then Player:TakeOff() end
 					

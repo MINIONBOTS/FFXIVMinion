@@ -1530,34 +1530,32 @@ function c_fishnexttask:evaluate()
 		local currentTask = ffxiv_fish.currentTask
 		local currentTaskIndex = ffxiv_fish.currentTaskIndex
 		
+		local eTime = GetEorzeaTime()
+		local eHour = eTime.bell
+		local eMinute = eTime.minute
+		local plevel = Player.level
+		
+		local weatherAll = AceLib.API.Weather.GetAll()
+		local shifts = AceLib.API.Weather.GetShifts()
+		local lastShift = shifts.lastShift
+		local nextShift = shifts.nextShift
+		
 		if (not table.valid(currentTask)) then
 			fd("No current task, set invalid flag.")
 			invalid = true
 		else
-			-- Pre-compile all the complete checks so we only have to loadstring once.
+			-- Pre-compile all the complete checks so we only have to loadstring once.			
 			if (currentTask.complete) then
-				local conditions = shallowcopy(currentTask.complete)
+				local conditions = currentTask.complete
 				local complete = true
 				
 				for condition,value in pairs(conditions) do
-					local f;
-					if (type(condition) == "string") then
-						f = assert(loadstring("return " .. condition))
-						if (f ~= nil) then
-							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil
-							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[f] = value
-						else
-							-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-							ffxiv_fish.profileData.tasks[currentTaskIndex].complete[condition] = nil							
+					local ok, ret = LoadString("return " .. condition)
+					if (ok and ret ~= nil) then
+						if (ret ~= value) then
+							complete = false
 						end
-					elseif (type(condition) == "function") then
-						f = condition
 					end
-					
-					if (f() ~= value) then
-						complete = false
-					end
-					conditions[condition] = nil
 					if (not complete) then
 						break
 					end
@@ -1634,10 +1632,11 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (not invalid) then
-				local weather = AceLib.API.Weather.Get(currentTask.mapid)
+				local weather = weatherAll[Player.localmapid] or { last = "", now = "", next = "" }
 				local weatherLast = weather.last or ""
 				local weatherNow = weather.now or ""
-				local weatherNext = weather.next or ""				
+				local weatherNext = weather.next or ""
+			
 				if (currentTask.weatherlast) then
 					local found = false
 					for strWeather in StringSplit(currentTask.weatherlast,",") do
@@ -1676,9 +1675,6 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (not invalid) then
-				local shifts = AceLib.API.Weather.GetShifts()
-				local lastShift = shifts.lastShift
-				local nextShift = shifts.nextShift
 				if (currentTask.lastshiftmin and currentTask.lastshiftmin < lastShift) then
 					invalid = true
 				elseif (currentTask.lastshiftmax and currentTask.lastshiftmin > lastShift) then
@@ -1699,28 +1695,11 @@ function c_fishnexttask:evaluate()
 					end
 				end
 				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-					--local eTime = AceLib.API.Weather.GetDateTime() 
-					--local eHour = eTime.hour
-					
-					local eTime = GetEorzeaTime()
-					local eHour = eTime.bell
-					
-					
-					--d("Need to figure out if we're between the valid hours.")
-					--d("MinHour ["..tostring(currentTask.eorzeaminhour).."]")
-					--d("MaxHour ["..tostring(currentTask.eorzeamaxhour).."]")
-					
+				
 					local validHour = false
 					local i = currentTask.eorzeaminhour
 					while (i ~= currentTask.eorzeamaxhour) do
-					
-						--d("i = ["..tostring(i).."]")
-						--d("ehour = ["..tostring(eHour).."]")
-						
 						if (i == eHour) then	
-						
-							--d("we found a match in our range, allow the task to continue.")
-							
 							validHour = true
 							i = currentTask.eorzeamaxhour
 						else
@@ -1740,9 +1719,9 @@ function c_fishnexttask:evaluate()
 			if (currentTask.oncomplete) then
 				local oncomplete = currentTask.oncomplete
 				if (type(oncomplete) == "function") then
-					oncomplete()
+					pcall(oncomplete)
 				elseif (type(oncomplete) == "string") then
-					assert(loadstring(oncomplete))()
+					pcall(assert(loadstring(oncomplete)))
 				end
 			end
 		end
@@ -1808,10 +1787,11 @@ function c_fishnexttask:evaluate()
 						end
 						
 						if (valid) then
-							local weather = AceLib.API.Weather.Get(data.mapid)
+							local weather = weatherAll[data.mapid] or { last = "", now = "", next = "" }
 							local weatherLast = weather.last or ""
 							local weatherNow = weather.now or ""
 							local weatherNext = weather.next or ""
+			
 							if (data.weatherlast) then
 								local found = false
 								for strWeather in StringSplit(data.weatherlast,",") do
@@ -1850,9 +1830,6 @@ function c_fishnexttask:evaluate()
 						end
 						
 						if (valid) then
-							local shifts = AceLib.API.Weather.GetShifts()
-							local lastShift = shifts.lastShift
-							local nextShift = shifts.nextShift
 							if (data.lastshiftmin and data.lastshiftmin < lastShift) then
 								valid = false
 							elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
@@ -1866,12 +1843,6 @@ function c_fishnexttask:evaluate()
 						
 						if (valid) then
 							if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-								--local eTime = AceLib.API.Weather.GetDateTime() 
-								--local eHour = eTime.hour
-								
-								local eTime = GetEorzeaTime()
-								local eHour = eTime.bell
-								
 								local validHour = false
 								local i = data.eorzeaminhour
 								while (i ~= data.eorzeamaxhour) do
@@ -1889,66 +1860,10 @@ function c_fishnexttask:evaluate()
 							end
 						end
 						
-						-- Pre-compile all condition checks so we only have to loadstring one time.
 						if (valid) then
-							if (data.condition) then
-								local conditions = deepcopy(data.condition,true)
-								local testKey,testVal = next(conditions)
-								if (tonumber(testKey) ~= nil) then
-									for i,conditionset in pairsByKeys(conditions) do
-										for condition,value in pairs(conditionset) do
-											local f;
-											if (type(condition) == "string") then
-												f = assert(loadstring("return " .. condition))
-												if (f ~= nil) then
-													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil
-													ffxiv_fish.profileData.tasks[thisIndex].condition[i][f] = value
-												else
-													-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-													ffxiv_fish.profileData.tasks[thisIndex].condition[i][condition] = nil							
-												end
-											elseif (type(condition) == "function") then
-												f = condition
-											end
-											if (f() ~= value) then
-												valid = false
-											end
-											conditions[i][condition] = nil
-											if (not valid) then
-												break
-											end
-										end
-										conditions[i] = nil
-										if (not valid) then
-											break
-										end
-									end
-								else
-									for condition,value in pairs(conditions) do
-										local f;
-										if (type(condition) == "string") then
-											f = assert(loadstring("return " .. condition))
-											if (f ~= nil) then
-												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil
-												ffxiv_fish.profileData.tasks[thisIndex].condition[f] = value
-											else
-												-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-												ffxiv_fish.profileData.tasks[thisIndex].condition[condition] = nil							
-											end
-										elseif (type(condition) == "function") then
-											f = condition
-										end
-										
-										if (f() ~= value) then
-											valid = false
-										end
-										conditions[condition] = nil
-										if (not valid) then
-											break
-										end
-									end
-								end
-							end
+							local conditions = data.condition
+							valid = TestConditions(conditions)
+							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
 						end
 						
 						if (not valid) then
@@ -1957,11 +1872,6 @@ function c_fishnexttask:evaluate()
 					end
 				
 					c_fishnexttask.subset = validTasks
-					--local eTime = AceLib.API.Weather.GetDateTime() 
-		
-					local eTime = GetEorzeaTime()
-					local eMinute = eTime.minute
-					
 					local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
 					local expirationDelay = 0
 					for quarter,_ in pairs(quarters) do

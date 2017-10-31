@@ -110,7 +110,7 @@ function ml_navigation.ParseInstructions(data)
 				table.insert(ml_navigation.receivedInstructions, 
 					function () 
 						if (IsFlying()) then
-							Player:SetPitch(1.377) 
+							Player:SetPitch(1.4835) 
 							if (not Player:IsMoving()) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
 								ml_global_information.Await(3000, function () return Player:IsMoving() end)
@@ -909,7 +909,7 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local ppos = Player.pos	
 	
 	local dist = math.distance3d(ppos,{ x = x, y = y, z = z})
-	if (dist < 300) then
+	if (dist < 200) then
 		NavigationManager.MacroMeshDistanceThreshold = 99999
 	end
 	
@@ -1278,8 +1278,47 @@ function ml_navigation.Navigate(event, ticks )
 							local dist3D = math.distance3d(nextnode,ppos)
 							if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 								-- We reached the node
-								d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")							
-								ml_navigation.pathindex = ml_navigation.pathindex + 1		
+								--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")	
+								local originalIndex = ml_navigation.pathindex + 1
+								local newIndex = originalIndex
+								if (FFXIV_Common_SmoothPathing) then
+									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+										local node = ml_navigation.path[i]
+										if (node) then
+											local dist3d = math.distance3d(node,ppos)
+											if (dist3d < 50 and string.contains(node.type,"CUBE")) then
+												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
+												if (not hit) then
+													--d("Bumped index to [" .. i .. "]")
+													newIndex = i
+												end
+											end
+										end
+									end
+									if (newIndex > originalIndex) then
+										--d("Need to compact path.")
+										for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+											if (newIndex > i) then
+												 ml_navigation.path[i] = nil
+												 --d("Removing skipped node [" .. i .. "] from path.")
+											end
+										end
+										local newPath = {}
+										if (table.valid(ml_navigation.path)) then
+											for i,node in pairsByKeys(ml_navigation.path) do
+												if (i > 0) then
+													table.insert(newPath,node)
+												else
+													newPath[0] = node
+												end
+											end
+										end
+										ml_navigation.path = newPath
+										ml_navigation.ResetRenderPath()
+									end
+								end
+								
+								ml_navigation.pathindex = originalIndex			
 							else			
 								--d("[Navigation]: Moving to next node")
 								-- We have not yet reached our node
@@ -1311,65 +1350,29 @@ function ml_navigation.Navigate(event, ticks )
 					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
 						
-						local forceDescent = (TimeSince(ffnav.forceDescent) < 5000)
-						local descentPos = ffnav.descentPos
-						
-						if (forceDescent and table.valid(descentPos)) then
-							local hoverHeight = GetHoverHeight()
-							if (hoverHeight < 3 and GetGameRegion() == 1) then
-								Dismount()
-							end
-								
-							Player:SetFacing(descentPos.x,descentPos.y,descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
-							Player:SetPitch(1.377) 
-							if (not Player:IsMoving()) then
-								Player:Move(FFXIV.MOVEMENT.FORWARD)
-								ffnav.Await(3000, function () return Player:IsMoving() end)
-								return false
-							end
-							ffnav.Await(5000, function () return not IsFlying() end)
-							return false		
-						end
-						
 						ml_navigation.GUI.lastAction = "Flying to Node"
-						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+3,nextnode.z,nextnode.x,nextnode.y-2,nextnode.z) 
-						if (hit) then
-							ml_debug("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
-						end
-						
 						-- Check if we left our path
 						if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,"3dfly") ) then return end
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(ppos.x, ppos.y, ppos.z, hitx, hity, hitz) <= 5 ))) then
+						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
+						--if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(ppos.x, ppos.y, ppos.z, hitx, hity, hitz) <= 5 ))) then
 							-- We reached the node
 							--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
 							
-							-- Commented code needs more testing, complaints about "flying left and right", not sure how reliable that info is.
-							local target = Player:GetTarget()
-							local targetClose = (target and target.distance2d < 2 and target.distance < 5)
-							if (not string.contains(nextnode.type,"CUBE") or targetClose) then
-								if (targetClose) then
-									d("[Navigation]: Force descent to target.")
-									ffnav.forceDescent = Now()
-									ffnav.descentPos = nextnode
-									return false
-								end
+							if (not string.contains(nextnode.type,"CUBE")) then
 								
 								d("[Navigation]: Next node is not a flying node.")
 								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() > 2)) then
 									d("[Navigation]: Next next node is also not a flying node.")
 									d("[Navigation] - Landing...")
 									
-									local hoverHeight = GetHoverHeight()
-									if (hoverHeight < 3 and GetGameRegion() == 1) then
-										Dismount()
-									end
-								
-									Player:SetFacing(ffnav.descentPos.x,ffnav.descentPos.y,ffnav.descentPos.z) -- facing it, in case we run over it while descending, it would turn around again.
-									Player:SetPitch(1.377) 
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
+									local pitch = GetRequiredPitch(nextnode)
+									Player:SetPitch(pitch)
+									
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
 										ffnav.Await(3000, function () return Player:IsMoving() end)
@@ -1379,7 +1382,47 @@ function ml_navigation.Navigate(event, ticks )
 									return false									
 								end
 							end
-							ml_navigation.pathindex = ml_navigation.pathindex + 1		
+							
+							local originalIndex = ml_navigation.pathindex + 1
+							local newIndex = originalIndex
+							if (FFXIV_Common_SmoothPathing) then
+								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+									local node = ml_navigation.path[i]
+									if (node) then
+										local dist3d = math.distance3d(node,ppos)
+										if (dist3d < 50 and string.contains(node.type,"CUBE")) then
+											local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
+											if (not hit) then
+												--d("Bumped index to [" .. i .. "]")
+												newIndex = i
+											end
+										end
+									end
+								end
+								if (newIndex > originalIndex) then
+									--d("Need to compact path.")
+									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+										if (newIndex > i) then
+											 ml_navigation.path[i] = nil
+											 --d("Removing skipped node [" .. i .. "] from path.")
+										end
+									end
+									local newPath = {}
+									if (table.valid(ml_navigation.path)) then
+										for i,node in pairsByKeys(ml_navigation.path) do
+											if (i > 0) then
+												table.insert(newPath,node)
+											else
+												newPath[0] = node
+											end
+										end
+									end
+									ml_navigation.path = newPath
+									ml_navigation.ResetRenderPath()
+								end
+							end
+							
+							ml_navigation.pathindex = originalIndex	
 						else			
 							--ml_debug("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
@@ -1391,10 +1434,7 @@ function ml_navigation.Navigate(event, ticks )
 								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 							end
 							
-							-- Set Pitch							
-							local currentPitch = math.round(Player.flying.pitch,3)
-							local minVector = math.normalize(math.vectorize(ppos,nextnode))
-							local pitch = math.asin(-1 * minVector.y)
+							local pitch = GetRequiredPitch(nextnode)
 							Player:SetPitch(pitch)
 							
 							-- Move

@@ -2194,8 +2194,8 @@ function c_gathernexttask:evaluate()
 	if (not Player.alive or not table.valid(ffxiv_gather.profileData) or IsControlOpen("Gathering")) then
 		return false
 	end
+	
 	if ((gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 2)) then
-	d("return false")
 		return false
 	end
 	
@@ -2210,56 +2210,34 @@ function c_gathernexttask:evaluate()
 	local currentTask = ffxiv_gather.currentTask
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
+	local eTime = GetEorzeaTime()
+	local eHour = eTime.bell
+	local eMinute = eTime.minute
+	local plevel = Player.level
+	
+	local weatherAll = AceLib.API.Weather.GetAll()
+	local shifts = AceLib.API.Weather.GetShifts()
+	local lastShift = shifts.lastShift
+	local nextShift = shifts.nextShift
+	
 	if (not table.valid(currentTask)) then
 		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
 		invalid = true
 	else
 		gd("[GatherNextTask]: We have a current task, check if it should be completed.",3)
 		
-		--[[
-		if (currentTask.complete) then
-			local conditions = shallowcopy(currentTask.complete)
-			for condition,value in pairs(conditions) do
-				local f = assert(loadstring("return " .. condition))()
-				if (f ~= nil) then
-					if (f == value) then
-						invalid = true
-						completed = true
-					end
-					conditions[condition] = nil
-				end
-				if (invalid) then
-					gd("[GatherNextTask]: Complete condition has been satisfied, invalidate.",3)
-					break
-				end
-			end
-		end
-		--]]
-		
 		-- Pre-compile all the complete checks so we only have to loadstring once.
 		if (currentTask.complete) then
-			local conditions = shallowcopy(currentTask.complete)
+			local conditions = currentTask.complete
 			local complete = true
 			
 			for condition,value in pairs(conditions) do
-				local f;
-				if (type(condition) == "string") then
-					f = assert(loadstring("return " .. condition))
-					if (f ~= nil) then
-						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[condition] = nil
-						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[f] = value
-					else
-						-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-						ffxiv_gather.profileData.tasks[currentTaskIndex].complete[condition] = nil							
+				local ok, ret = LoadString("return " .. condition)
+				if (ok and ret ~= nil) then
+					if (ret ~= value) then
+						complete = false
 					end
-				elseif (type(condition) == "function") then
-					f = condition
 				end
-				
-				if (f() ~= value) then
-					complete = false
-				end
-				conditions[condition] = nil
 				if (not complete) then
 					break
 				end
@@ -2279,6 +2257,15 @@ function c_gathernexttask:evaluate()
 		then
 			gd("[GatherNextTask]: Task is interruptable, set the flag.",3)
 			evaluate = true
+		end
+		
+		if (not invalid) then
+			local conditions = currentTask.condition
+			valid = TestConditions(conditions)
+			if (not valid) then
+				invalid = true
+			end
+			gd("Current task ["..tostring(i).."] not valid due to conditions.",3)
 		end
 		
 		if (not invalid) then
@@ -2303,10 +2290,11 @@ function c_gathernexttask:evaluate()
 		end
 			
 		if (not invalid) then
-			local weather = AceLib.API.Weather.Get(currentTask.mapid)
+			local weather = weatherAll[Player.localmapid] or { last = "", now = "", next = "" }
 			local weatherLast = weather.last or ""
 			local weatherNow = weather.now or ""
 			local weatherNext = weather.next or ""
+	
 			if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
 				gd("[GatherNextTask]: Last weather needed doesn't match up, invalidate.",3)
 				invalid = true
@@ -2320,9 +2308,6 @@ function c_gathernexttask:evaluate()
 		end
 			
 		if (not invalid) then
-			local shifts = AceLib.API.Weather.GetShifts()
-			local lastShift = shifts.lastShift
-			local nextShift = shifts.nextShift
 			if (currentTask.lastshiftmin and currentTask.lastshiftmin < lastShift) then
 				invalid = true
 			elseif (currentTask.lastshiftmax and currentTask.lastshiftmin > lastShift) then
@@ -2356,12 +2341,8 @@ function c_gathernexttask:evaluate()
 					end
 				end
 			end
+			
 			if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-				--local eTime = AceLib.API.Weather.GetDateTime() 
-				--local eHour = eTime.hour
-				local eTime = GetEorzeaTime()
-				local eHour = eTime.bell
-				
 				local validHour = false
 				local i = currentTask.eorzeaminhour
 				while (i ~= currentTask.eorzeamaxhour) do
@@ -2392,9 +2373,9 @@ function c_gathernexttask:evaluate()
 		if (currentTask.oncomplete) then
 			local oncomplete = currentTask.oncomplete
 			if (type(oncomplete) == "function") then
-				oncomplete()
+				pcall(oncomplete)
 			elseif (type(oncomplete) == "string") then
-				assert(loadstring(oncomplete))()
+				pcall(assert(loadstring(oncomplete)))
 			end
 		end
 	end
@@ -2407,7 +2388,7 @@ function c_gathernexttask:evaluate()
 
 	if (evaluate or invalid) then
 		if (table.valid(profileData.tasks)) then
-			
+		
 			local validTasks = {}
 			if (Now() < c_gathernexttask.subsetExpiration) then
 				gd("[GatherNextTask]: Check the cached subset of tasks.",3)
@@ -2434,7 +2415,6 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (valid) then
-						local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
 						local lastGather = ffxiv_gather.GetLastGather(profileName,i)
 						if (lastGather ~= 0) then
 							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
@@ -2444,83 +2424,18 @@ function c_gathernexttask:evaluate()
 						end
 					end
 					
-					--[[
 					if (valid) then
-						if (data.condition) then
-							local conditions = deepcopy(data.condition,true)
-							valid = TestConditions(conditions)
-							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
-						end
-					end
-					--]]
-					
-					-- Pre-compile all condition checks so we only have to loadstring one time.
-					if (valid) then
-						if (data.condition) then
-							local conditions = deepcopy(data.condition,true)
-							local testKey,testVal = next(conditions)
-							if (tonumber(testKey) ~= nil) then
-								for i,conditionset in pairsByKeys(conditions) do
-									for condition,value in pairs(conditionset) do
-										local f;
-										if (type(condition) == "string") then
-											f = assert(loadstring("return " .. condition))
-											if (f ~= nil) then
-												ffxiv_gather.profileData.tasks[thisIndex].condition[i][condition] = nil
-												ffxiv_gather.profileData.tasks[thisIndex].condition[i][f] = value
-											else
-												-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-												ffxiv_gather.profileData.tasks[thisIndex].condition[i][condition] = nil							
-											end
-										elseif (type(condition) == "function") then
-											f = condition
-										end
-										if (f() ~= value) then
-											valid = false
-										end
-										conditions[i][condition] = nil
-										if (not valid) then
-											break
-										end
-									end
-									conditions[i] = nil
-									if (not valid) then
-										break
-									end
-								end
-							else
-								for condition,value in pairs(conditions) do
-									local f;
-									if (type(condition) == "string") then
-										f = assert(loadstring("return " .. condition))
-										if (f ~= nil) then
-											ffxiv_gather.profileData.tasks[thisIndex].condition[condition] = nil
-											ffxiv_gather.profileData.tasks[thisIndex].condition[f] = value
-										else
-											-- if f is nil, just junk the condition so we don't keep evaluating some busted thing
-											ffxiv_gather.profileData.tasks[thisIndex].condition[condition] = nil							
-										end
-									elseif (type(condition) == "function") then
-										f = condition
-									end
-									
-									if (f() ~= value) then
-										valid = false
-									end
-									conditions[condition] = nil
-									if (not valid) then
-										break
-									end
-								end
-							end
-						end
+						local conditions = data.condition
+						valid = TestConditions(conditions)
+						gd("Task ["..tostring(i).."] not valid due to conditions.",3)
 					end
 					
 					if (valid) then
-						local weather = AceLib.API.Weather.Get(data.mapid)
+						local weather = weatherAll[data.mapid] or { last = "", now = "", next = "" }
 						local weatherLast = weather.last or ""
 						local weatherNow = weather.now or ""
 						local weatherNext = weather.next or ""
+			
 						if (data.weatherlast and data.weatherlast ~= weatherLast) then
 							valid = false
 						elseif (data.weathernow and data.weathernow ~= weatherNow) then
@@ -2534,9 +2449,6 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (valid) then
-						local shifts = AceLib.API.Weather.GetShifts()
-						local lastShift = shifts.lastShift
-						local nextShift = shifts.nextShift
 						if (data.lastshiftmin and data.lastshiftmin < lastShift) then
 							valid = false
 						elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
@@ -2553,11 +2465,6 @@ function c_gathernexttask:evaluate()
 					
 					if (valid) then
 						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-							--local eTime = AceLib.API.Weather.GetDateTime() 
-							--local eHour = eTime.hour
-							local eTime = GetEorzeaTime()
-							local eHour = eTime.bell
-							
 							local validHour = false
 							local i = data.eorzeaminhour
 							while (i ~= data.eorzeamaxhour) do
@@ -2585,8 +2492,6 @@ function c_gathernexttask:evaluate()
 				end
 				
 				c_gathernexttask.subset = validTasks
-				local eTime = GetEorzeaTime()
-				local eMinute = eTime.minute
 				local quarters = { [5] = true, [10] = true, [15] = true, [20] = true, [25] = true, [30] = true, [35] = true, [40] = true, [45] = true, [50] = true, [55] = true, [60] = true }
 				local expirationDelay = 0
 				for quarter,_ in pairs(quarters) do
@@ -2787,7 +2692,6 @@ function c_gathernexttask:evaluate()
 						lowestIndex = 9999
 						for i,data in pairsByKeys(idlePriority) do
 							if (IsNull(data.set,"") == currentTask.set) then
-								
 								if (i > currentTaskIndex) then
 									if (not best or (best and i < lowestIndex)) then
 										best = data

@@ -6996,12 +6996,47 @@ function MoveDirectly3D(pos)
 end
 function GetHoverHeight()
 	local ppos = Player.pos
-	local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-10,ppos.z) 
+	local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+2,ppos.z,ppos.x,ppos.y-10,ppos.z) 
 	if (hit) then
 		local height = (ppos.y - hity)
-		if (height > 0) then
+		if (height >= 0) then
 			return height
 		end
 	end
 	return 10
+end
+function GetRequiredPitch(pos,noadjustment)
+	local noadjustment = IsNull(noadjustment,false)
+	if (table.valid(pos)) then
+		local ppos = Player.pos
+		
+		-- The path is conputed at the feet, so it is possible to get stuck on objects at the head level.
+		-- This code attempts to angle the player down a bit if such an object is found.
+		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
+		if (hit) then
+			for i = 3, 15, 3 do
+				d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
+				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y-i,pos.z)
+				if (not hit) then
+					d("New trajectory appears safe, use it.")
+					pos = { x = pos.x, y = pos.y - i, z = pos.z }
+					break
+				end
+			end
+		end
+		
+		local currentPitch = math.round(Player.flying.pitch,3)
+		local minVector = math.normalize(math.vectorize(ppos,pos))
+		local pitch = math.asin(-1 * minVector.y)
+		if (pitch > 1.4835) then
+			d("Required pitch was too high (downward) ["..tostring(pitch).."], shifted down to max.")
+			return 1.4835
+		elseif (pitch < -0.7599) then
+			d("Required pitch was too low (upward) ["..tostring(pitch).."], shifted up to max.")
+			return pitch -0.7599
+		else
+			return pitch
+		end
+	end		
+	return 0
 end
