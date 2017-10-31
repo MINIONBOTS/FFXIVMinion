@@ -1036,6 +1036,7 @@ ffxiv_map_nav.data = {
 	},
 }-- set reference for mesh mgr
 
+--[[
 ffxiv_aethercurrent_data = {
 	[397] = {
 		{id = 397, aethid = 2005536, x = 402.058, y = 191.541, z = 561.445}
@@ -1170,7 +1171,7 @@ ffxiv_aethercurrent_data = {
 		{id = 622, aethid = 2008024, x = 106.096, y = -11.2446, z = 386.191},
 	},
 },
-
+]]
 
 
 ffxiv_aetheryte_data = {
