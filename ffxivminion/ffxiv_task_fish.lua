@@ -1862,8 +1862,12 @@ function c_fishnexttask:evaluate()
 						
 						if (valid) then
 							local conditions = data.condition
-							valid = TestConditions(conditions)
-							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
+							if (table.valid(conditions)) then
+								valid = TestConditions(conditions)
+								if (not valid) then
+									fd("Task ["..tostring(i).."] not valid due to conditions.",3)
+								end
+							end
 						end
 						
 						if (not valid) then

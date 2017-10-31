@@ -2261,11 +2261,13 @@ function c_gathernexttask:evaluate()
 		
 		if (not invalid) then
 			local conditions = currentTask.condition
-			valid = TestConditions(conditions)
-			if (not valid) then
-				invalid = true
+			if (table.valid(conitions)) then
+				valid = TestConditions(conditions)
+				if (not valid) then
+					invalid = true
+					gd("Current task ["..tostring(i).."] not valid due to conditions.",3)
+				end
 			end
-			gd("Current task ["..tostring(i).."] not valid due to conditions.",3)
 		end
 		
 		if (not invalid) then
@@ -2426,8 +2428,12 @@ function c_gathernexttask:evaluate()
 					
 					if (valid) then
 						local conditions = data.condition
-						valid = TestConditions(conditions)
-						gd("Task ["..tostring(i).."] not valid due to conditions.",3)
+						if (table.valid(conditions)) then
+							valid = TestConditions(conditions)
+							if (not valid) then
+								gd("Task ["..tostring(i).."] not valid due to conditions.",3)
+							end
+						end
 					end
 					
 					if (valid) then

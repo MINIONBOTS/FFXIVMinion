@@ -6489,6 +6489,10 @@ function TestConditions(conditions)
 		memoize.conditions = {}
 	end
 	
+	if (not table.valid(conditions)) then
+		return true
+	end
+	
 	tested = {}
 	local testKey,testVal = next(conditions)
 	if (tonumber(testKey) ~= nil) then
