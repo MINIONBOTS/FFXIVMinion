@@ -618,7 +618,7 @@ function ffxivminion.SetMainVars()
 	gUseSprint = ffxivminion.GetSetting("gUseSprint",false)
 	gSprintDist = ffxivminion.GetSetting("gSprintDist",50)
 	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
-	FFXIV_Common_SmoothPathing = ffxivminion.GetSetting("FFXIV_Common_SmoothPathing",true)
+	FFXIV_Common_SmoothPathing = ffxivminion.GetSetting("FFXIV_Common_SmoothPathing",false)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	gUseExpManuals = ffxivminion.GetSetting("gUseExpManuals",true)
