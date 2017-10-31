@@ -327,7 +327,7 @@ function ml_navigation.ParseInstructions(data)
 					function () 	
 						if (not Player:IsMoving()) then
 							if (Player:Teleport(aetheryteid)) then
-								ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+								ml_global_information.Await(10000, function () return MIsLoading() end)
 								return true
 							end
 						else
@@ -346,7 +346,7 @@ function ml_navigation.ParseInstructions(data)
 							
 							if (returnHome and returnHome.isready) then
 								if (returnHome:Cast()) then
-									ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+									ml_global_information.Await(10000, function () return MIsLoading() end)
 									return true
 								end		
 							elseif (not returnHome) then
