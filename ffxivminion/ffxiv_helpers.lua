@@ -2697,25 +2697,20 @@ function CanUseCannon()
 	end
 	return false
 end
-function GetPathDistance(pos1,pos2)
+function GetPathDistance(pos1,pos2,threshold)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
+	local threshold = IsNull(threshold,100)
 	
-	local dist = nil
-	
-	local p1 = FindClosestMesh(pos1) or pos1
-	local p2 = FindClosestMesh(pos2) or pos2
-	
-	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-	if (table.valid(path)) then
-		local pathdist = PathDistance(path)
-		if (table.valid(pathdist)) then
-			dist = pathdist
+	local dist = math.distance3d(pos1,pos2)
+	if (dist < threshold) then
+		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		if (table.valid(path)) then
+			local pathdist = PathDistance(path)
+			if (table.valid(pathdist)) then
+				dist = pathdist
+			end
 		end
-	end	
-	
-	if (dist == nil) then
-		dist = Distance3DT(pos1,pos2)
 	end
 	
 	return dist
@@ -7050,4 +7045,58 @@ function GetRequiredPitch(pos,noadjustment)
 		end
 	end		
 	return 0
+end
+function IsNormalMap(mapid)
+	local maps = {
+		[134] = true,
+		[135] = true,
+		[137] = true,
+		[138] = true,
+		[139] = true,
+		[140] = true,
+		[141] = true,
+		[145] = true,
+		[146] = true,
+		[147] = true,
+		[148] = true,
+		[152] = true,
+		[153] = true,
+		[154] = true,
+		[155] = true,
+		[156] = true,
+		[180] = true,
+		[250] = true,
+		[130] = true,
+		[182] = true,
+		[131] = true,
+		[128] = true,
+		[181] = true,
+		[129] = true,
+		[132] = true,
+		[183] = true,
+		[133] = true,
+		[179] = true,
+		[178] = true,
+		[177] = true,
+		[144] = true,
+		[388] = true,
+		[397] = true,
+		[398] = true,
+		[399] = true,
+		[400] = true,
+		[401] = true,
+		[402] = true,
+		[418] = true,
+		[419] = true,
+		[478] = true, 
+		[612] = true,
+		[613] = true,
+		[614] = true,
+		[620] = true,
+		[621] = true,
+		[622] = true,
+		[628] = true,		
+		[635] = true,	
+	}
+	return maps[mapid] ~= nil
 end
