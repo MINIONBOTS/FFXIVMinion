@@ -246,6 +246,7 @@ function c_precastbuff:evaluate()
 		local useCordials = (gFishUseCordials)
 		local useFood = 0
 		local needsStealth = false
+		local taskType = "fishing"
 		
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
@@ -254,6 +255,7 @@ function c_precastbuff:evaluate()
 			minimumGP = IsNull(task.mingp,0)
 			useCordials = IsNull(task.usecordials,useCordials)
 			useFood = IsNull(task.food,0)
+			taskType = IsNull(task.type,"fishing")
 		elseif (table.valid(marker)) then
 			needsStealth = (marker.usestealth )
 		else
@@ -271,6 +273,10 @@ function c_precastbuff:evaluate()
 		end
 		if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
 			useFood = GUI_Get(useFood)
+		end
+		
+		if (taskType == "idle") then
+			return false
 		end
 		
 		local hasStealth = HasBuff(Player.id,47)
@@ -1540,6 +1546,8 @@ function c_fishnexttask:evaluate()
 		local lastShift = shifts.lastShift
 		local nextShift = shifts.nextShift
 		
+		local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
+		
 		if (not table.valid(currentTask)) then
 			fd("No current task, set invalid flag.")
 			invalid = true
@@ -1581,7 +1589,6 @@ function c_fishnexttask:evaluate()
 			
 			if (ffxiv_fish.attemptedCasts > 2) then
 				if (table.size(ffxiv_fish.currentTask.attemptedPositions) >= ffxiv_fish.currentTask.maxPositions) then
-					local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
 					ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 					invalid = true
 				else
@@ -1598,7 +1605,6 @@ function c_fishnexttask:evaluate()
 						return true
 					else
 						fd("Couldn't find a new location, maybe something went wrong.")
-						local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
 						ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 						invalid = true
 					end
@@ -1752,7 +1758,6 @@ function c_fishnexttask:evaluate()
 						end
 						
 						if (valid) then
-							local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
 							local lockout = ffxiv_fish.GetLockout(profileName,i)
 							if (lockout ~= 0) then
 								local lockoutTime = data.lockout or 300

@@ -1594,6 +1594,10 @@ function c_nodeprebuff:evaluate()
 		useFood = GUI_Get(useFood)
 	end
 	
+	if (taskType == "idle" or taskType == "") then
+		return false
+	end
+	
 	if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then -- fix later
 		if (SkillMgr.HasProfile(skillProfile)) then
 			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
@@ -2227,6 +2231,8 @@ function c_gathernexttask:evaluate()
 	local lastShift = shifts.lastShift
 	local nextShift = shifts.nextShift
 	
+	local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+	
 	if (not table.valid(currentTask)) then
 		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
 		invalid = true
@@ -2288,7 +2294,6 @@ function c_gathernexttask:evaluate()
 		end
 		
 		if (not invalid) then
-			local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
 			local lastGather = ffxiv_gather.GetLastGather(profileName,currentTaskIndex)
 			if (lastGather ~= 0) then
 				if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
