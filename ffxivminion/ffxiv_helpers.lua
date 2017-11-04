@@ -6508,8 +6508,6 @@ function TestConditions(conditions)
 							return false
 						end
 					else
-						d("condition [" ..tostring(condition).."] is not memoized")
-						
 						local startTime = os.clock()
 						local ok,ret;
 						if (type(condition) == "function") then

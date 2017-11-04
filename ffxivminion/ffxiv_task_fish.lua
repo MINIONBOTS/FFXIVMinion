@@ -1,6 +1,8 @@
 ffxiv_fish = {}
 ffxiv_fish.attemptedCasts = 0
 ffxiv_fish.biteDetected = 0
+ffxiv_fish.firstRun = nil
+ffxiv_fish.firstRunCompleted = false
 ffxiv_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfiles\]]
 ffxiv_fish.profiles = {}
 ffxiv_fish.profilesDisplay = {}
@@ -71,6 +73,7 @@ function ffxiv_task_fish.Create()
 	ffxiv_fish.currentTaskIndex = 0
 	ffxiv_fish.attemptedCasts = 0
 	ffxiv_fish.biteDetected = 0
+	ffxiv_fish.firstRunCompleted = false
 	
 	AddEvacPoint()
 	
@@ -1518,6 +1521,7 @@ function c_fishnexttask:evaluate()
 	if (not Player.alive or MIsLoading() or MIsCasting() or not table.valid(ffxiv_fish.profileData)) then
 		return false
 	end
+	
 	if ((gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex ~= 2)) then
 		return false
 	end
@@ -1554,6 +1558,7 @@ function c_fishnexttask:evaluate()
 		else
 			-- Pre-compile all the complete checks so we only have to loadstring once.			
 			if (currentTask.complete) then
+				fd("check currentTask completion")
 				local conditions = currentTask.complete
 				local complete = true
 				
@@ -1561,6 +1566,7 @@ function c_fishnexttask:evaluate()
 					local ok, ret = LoadString("return " .. condition)
 					if (ok and ret ~= nil) then
 						if (ret ~= value) then
+							fd("Task not complete [".. condition .. "] does not meet required value ["..tostring(value).."].")
 							complete = false
 						end
 					end
@@ -1575,7 +1581,7 @@ function c_fishnexttask:evaluate()
 				end
 			end
 			
-			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
+			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false) or currentTask.type == "idle" or IsNull(currentTask.idlepriority,false)) then
 				fd("Task marked interruptable or low priority.")
 				evaluate = true
 			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
@@ -1737,6 +1743,8 @@ function c_fishnexttask:evaluate()
 		end
 		
 		if (evaluate or invalid) then
+			fd("Evaluating tasks.")
+			
 			local profileData = ffxiv_fish.profileData
 			if (table.valid(profileData.tasks)) then
 				
@@ -1890,6 +1898,7 @@ function c_fishnexttask:evaluate()
 							break
 						end	
 					end
+					
 					d("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
 					c_fishnexttask.subsetExpiration = Now() + expirationDelay
 				end
@@ -1898,10 +1907,14 @@ function c_fishnexttask:evaluate()
 					local highPriority = {}
 					local normalPriority = {}
 					local lowPriority = {}
+					local idlePriority = {}
 					
 					for i,data in pairsByKeys(validTasks) do
 						-- Items with weather requirements go into high priority
-						if (data.highpriority) then
+						if (data.type == "idle" or data.idlepriority) then
+							fd("Added task at ["..tostring(i).."] to the idle queue.")
+							idlePriority[i] = data
+						elseif (data.highpriority) then
 							fd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
 						elseif (data.normalpriority) then
@@ -1934,7 +1947,7 @@ function c_fishnexttask:evaluate()
 						end
 					end
 					
-					if (not best and not currentTask.highpriority) then
+					if (not best and (invalid or currentTask.lowpriority or currentTask.idlepriority or currentTask.type == "idle")) then
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(normalPriority) do
@@ -1948,7 +1961,7 @@ function c_fishnexttask:evaluate()
 						end
 					end
 					
-					if (invalid and not best) then
+					if (not best and (invalid or currentTask.type == "idle" or currentTask.idlepriority)) then
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(lowPriority) do
@@ -1968,6 +1981,34 @@ function c_fishnexttask:evaluate()
 								if (not best or (best and i < lowestIndex)) then
 									
 									fd("[Low] Setting best task to ["..tostring(i).."]")
+									
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+					end
+					
+					if (not best and invalid) then
+						lowestIndex = 9999
+						best = nil
+						for i,data in pairsByKeys(idlePriority) do
+							if (i > currentTaskIndex) then
+								if (not best or (best and i < lowestIndex)) then
+									
+									fd("[Idle] Setting best task to ["..tostring(i).."]")
+									
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+						
+						if (not best) then
+							for i,data in pairsByKeys(idlePriority) do
+								if (not best or (best and i < lowestIndex)) then
+									
+									fd("[Idle] Setting best task to ["..tostring(i).."]")
 									
 									best = data
 									lowestIndex = i
@@ -2164,6 +2205,30 @@ function c_fishisloading:evaluate()
 end
 function e_fishisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
+end
+
+c_fishfirstrun = inheritsFrom( ml_cause )
+e_fishfirstrun = inheritsFrom( ml_effect )
+function c_fishfirstrun:evaluate()
+	local firstRun = ffxiv_fish.firstRun
+	local profileData = ffxiv_fish.profileData
+	if (table.valid(profileData) and table.valid(profileData.functions)) then
+		if (profileData.functions.firstrun and type(profileData.functions.firstrun) == "function") then
+			firstRun = profileData.functions.firstrun
+		end
+	end
+	
+	if (firstRun and type(firstRun) == "function" and not ffxiv_fish.firstRunCompleted) then
+		local ok, ret = pcall(ffxiv_fish.firstRun)
+		if (ok and ret ~= nil) then
+			ffxiv_fish.firstRunCompleted = ret
+		else
+			ffxiv_fish.firstRunCompleted = true
+		end
+	end
+end
+function e_fishfirstrun:execute()
+	fd("Executing fishing first run tasks.",2)
 end
 
 c_fishnoactivity = inheritsFrom( ml_cause )
@@ -2529,8 +2594,11 @@ function ffxiv_task_fish:Init()
     --init Process() cnes
 	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
     --self:add( ke_autoEquip, self.process_elements)
-	local ke_isLoading = ml_element:create( "IsLoading", c_fishisloading, e_fishisloading, 260 )
+	local ke_isLoading = ml_element:create( "IsLoading", c_fishisloading, e_fishisloading, 300 )
     self:add( ke_isLoading, self.process_elements)
+	
+	local ke_firstRun = ml_element:create( "FirstRun", c_fishfirstrun, e_fishfirstrun, 260 )
+    self:add( ke_firstRun, self.process_elements)
 	
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)
@@ -2637,6 +2705,7 @@ function ffxiv_task_fish:UIInit()
 		_G["gFishProfile"] = ffxiv_fish.profilesDisplay[gFishProfileIndex]
 	end
 	ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile] or {}
+	
 	
 	gFishDebug = ffxivminion.GetSetting("gFishDebug",false)
 	local debugLevels = { 1, 2, 3}
