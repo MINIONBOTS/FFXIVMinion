@@ -253,9 +253,17 @@ function GetNearestGrindAttackable()
 				
 			if (nearest) then
 				local actual = EntityList:Get(nearest.id)
-				if (actual) then
-					--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
-					return actual
+				if (actual.level <= Player.level + 2 and actual.level >= Player.level - 4) then 
+					if (actual) then
+						--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+						return actual
+					end
+				end
+				if (actual.level <= Player.level + 2) then 
+					if (actual) then
+						--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+						return actual
+					end
 				end
 			end
 		end
