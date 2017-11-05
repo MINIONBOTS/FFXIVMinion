@@ -6821,6 +6821,25 @@ function In(var,...)
 	
 	return false
 end
+function Between(var,low,high,inclusive)
+	local inclusive = IsNull(inclusive,true)
+	if (var and type(var) == "number" and low and type(low) == "number" and high and type(high) == "number") then
+		if (low < high) then
+			if (inclusive) then
+				return (low <= var and high >= var)
+			else
+				return (low < var and high > var)
+			end
+		elseif (low > high) then
+			if (inclusive) then
+				return (high <= var and low >= var)
+			else
+				return (high < var and low > var)
+			end
+		end
+	end
+	return false
+end
 function FindClosestMesh(pos,distance)
 	local minDist = IsNull(distance,10)
 	local p = NavigationManager:GetClosestPointOnMesh(pos)
@@ -6911,10 +6930,14 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
+
+
+
 function GetAetherCurrentData(mapid)
 	if (not IsControlOpen("AetherCurrent")) then
 		ActionList:Get(10,67):Cast()
 	end
+	
 	
 	local status = {}
 	local aeclist = Player:GetAetherCurrentsList()
@@ -7097,4 +7120,10 @@ function IsNormalMap(mapid)
 		[635] = true,	
 	}
 	return maps[mapid] ~= nil
+end
+function ValidPosition(pos)
+	if (table.valid(pos)) then
+		return (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil and type(pos.x) == "number" and type(pos.y) == "number" and type(pos.z) == "number")
+	end
+	return false
 end

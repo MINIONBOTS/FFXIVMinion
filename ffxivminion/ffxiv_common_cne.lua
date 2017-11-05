@@ -455,7 +455,7 @@ e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 function c_avoid:evaluate()	
-	if (not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
+	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
 	
@@ -524,11 +524,7 @@ function e_avoid:execute()
 	if (table.valid(newPos)) then
 		local ppos = Player.pos
 		local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
-		if (moveDist > 1.5) then
-			if (table.valid(obstacle)) then
-				--table.insert(ml_global_information.navObstacles,obstacle)
-				d("Adding nav obstacle.")
-			end
+		if (moveDist > 1) then
 			c_avoid.lastAvoid = c_avoid.newAvoid
 			local newTask = ffxiv_task_avoid.Create()
 			newTask.pos = newPos
@@ -541,6 +537,8 @@ function e_avoid:execute()
 			d("Adding avoidance task.")
 			
 			c_bettertargetsearch.postpone = Now() + 5000
+		else
+			d("Dodge distance is very close.")
 		end
 	else
 		d("Can't dodge, didn't find a valid position.")
@@ -1307,7 +1305,7 @@ function c_walktoentity:evaluate()
 	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
-			d("[WalkToEntity]: Pathing was started.")
+			ml_debug("[WalkToEntity]: Pathing was started.",3)
 		end
 		return true
 	else
@@ -1338,7 +1336,7 @@ function c_walktoentity:evaluate()
 			--]]
 		--else
 			if (ml_navigation:DisablePathing()) then
-				d("[WalkToEntity]: Pathing was stopped.")
+				ml_debug("[WalkToEntity]: Pathing was stopped.",3)
 			end
 		--end
 	end
