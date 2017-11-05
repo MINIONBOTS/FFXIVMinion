@@ -264,6 +264,8 @@ function GetNearestGrindAttackable()
 						--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
 						return actual
 					end
+				else
+					d("[GetNearestGrindAttackable]: No Mobs Attackable below level "..tostring(Player.level + 2).." within Grind range..")
 				end
 			end
 		end
