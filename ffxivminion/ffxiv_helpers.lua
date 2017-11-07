@@ -241,26 +241,32 @@ function GetNearestGrindAttackable()
 				end
 			end
 		end
-		
-		-- Last check, nearest non-filtered mob.
-		if (table.valid(notincombat)) then
-			local nearest, nearestDistance = nil, 1000
-			for i,e in pairs(notincombat) do
-				if (not nearest or (nearest and e.distance2d < nearestDistance)) then
-					nearest, nearestDistance = e, e.distance2d
-				end
-			end
-				
-			if (nearest) then
-				local actual = EntityList:Get(nearest.id)
-				if (actual) then
-					--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
-					return actual
+	end
+	-- Last check, nearest non-filtered mob.
+	if (table.valid(attackables)) then
+		local nearest, nearestDistance = nil, 1000
+		for i,e in pairs(attackables) do
+			if (not nearest or (nearest and e.distance2d < nearestDistance)) then
+				if (e.level <= (Player.level + 2)) then
+					if (e.level >= (Player.level - 4)) then
+						nearest, nearestDistance = e, e.distance2d
+					else
+						nearest, nearestDistance = e, e.distance2d
+					end
 				end
 			end
 		end
+			
+		if (nearest) then
+			local actual = EntityList:Get(nearest.id)
+			if (actual) then
+				--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
+				return actual
+			else
+				d("[GetNearestGrindAttackable]: No Mobs Attackable below level "..tostring(Player.level + 2).." within Grind range of "..tostring(radius))
+			end
+		end
 	end
-	
     return nil
 end
 
