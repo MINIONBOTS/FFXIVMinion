@@ -745,7 +745,6 @@ function c_bite:evaluate()
     return false
 end
 function e_bite:execute()
-d("Bite Execute")
 	if (ffxiv_fish.biteDetected == 0) then
 		ffxiv_fish.biteDetected = Now() + math.random(250,1000)
 		return
@@ -2510,7 +2509,10 @@ function c_syncadjust:evaluate()
 	
 	local fs = tonumber(Player:GetFishingState())
 	if( fs == 0 and ml_task_hub:CurrentTask().requiresAdjustment ) then -- FISHSTATE_BITE
-		return true
+		local currentTask = ffxiv_fish.currentTask
+		if currentTask.type ~= "idle" then
+			return true
+		end
 	end
     return false
 end
