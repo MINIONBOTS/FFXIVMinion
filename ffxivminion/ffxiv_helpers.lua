@@ -550,6 +550,26 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
+			el = MEntityList("alive,attackable,onmesh,maxdistance2d=50,contentid=6737")
+			if (table.valid(el)) then
+				for i,entity in pairs(el) do
+					if (entity.fateid == fate.id) then
+						local epos = entity.pos
+						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+						if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10))) then
+							local dist = entity.distance2d
+							if (not nearest or dist < nearestDistance) then
+								nearest, nearestDistance = entity, dist
+							end
+						end
+					end
+				end
+				if (nearest) then
+					return nearest
+				end
+			end	
+			
+			local nearest,nearestDistance = nil,0
 			el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance2d=10")
 			if (table.valid(el)) then
 				for i,entity in pairs(el) do
@@ -3105,29 +3125,20 @@ function Mount(id)
 	local mounts = ActionList:Get(13)
 	if (table.valid(mounts)) then
 		if (mountID == 0) then
-			
 			if (table.valid(mounts)) then
 				--First pass, look for our named mount.
 				for mountid,mountaction in pairsByKeys(mounts) do
-					if (mountaction.name == gMountName and (mountaction.canfly or not CanFlyInZone())) then
+					if (mountaction.name == gMountName and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 						if (mountaction:IsReady(Player.id)) then
 							mountaction:Cast()
 							return true
 						end
 					end
-				end
-				
-				--Second pass, look for any mount as backup.
-				for mountid,mountaction in pairsByKeys(mounts) do
-					if (mountaction:IsReady(Player.id) and (mountaction.canfly or not CanFlyInZone())) then
-						mountaction:Cast()
-						return true
-					end
-				end		
+				end	
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do
-				if (mountid == mountID) then
+				if (mountid == mountID and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 					if (mountaction:IsReady()) then
 						mountaction:Cast()
 						return true
@@ -3135,6 +3146,14 @@ function Mount(id)
 				end
 			end
 		end
+		
+		--Second pass, look for any mount as backup.
+		for mountid,mountaction in pairsByKeys(mounts) do
+			if (mountaction:IsReady(Player.id) and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+				mountaction:Cast()
+				return true
+			end
+		end	
 	end
 	
 	return false
