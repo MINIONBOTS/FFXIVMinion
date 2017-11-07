@@ -2262,7 +2262,7 @@ function c_gathernexttask:evaluate()
 			end
 		end
 		
-		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
+		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false) or currentTask.type == "idle" or IsNull(currentTask.idlepriority,false)) then
 			gd("[GatherNextTask]: Task is interruptable, set the flag.",3)
 			evaluate = true
 		elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
@@ -2534,7 +2534,10 @@ function c_gathernexttask:evaluate()
 				for i,data in pairsByKeys(validTasks) do
 					if (not data.lockout or Now() > data.lockout) then
 						-- Items with weather requirements go into high priority
-						if (data.highpriority) then
+						if (data.type == "idle" or data.idlepriority) then
+							gd("Added task at ["..tostring(i).."] to the idle priority queue.")
+							idlePriority[i] = data
+						elseif (data.highpriority) then
 							gd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
 						elseif (data.normalpriority) then
@@ -2543,9 +2546,6 @@ function c_gathernexttask:evaluate()
 						elseif (data.lowpriority) then
 							gd("Added task at ["..tostring(i).."] to the low priority queue.")
 							lowPriority[i] = data
-						elseif (data.idlepriority) then
-							gd("Added task at ["..tostring(i).."] to the idle priority queue.")
-							idlePriority[i] = data
 						elseif (data.weatherlast or data.weathernow or data.weathernext) then
 							gd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
@@ -2602,42 +2602,39 @@ function c_gathernexttask:evaluate()
 				end
 				
 				-- Normal priority section.
-				
-				if (not best) then
-					if (invalid or evaluate) then
-						gd("[GatherNextTask]: Check the normal priority tasks for higher ranked, differently grouped tasks.",3)
-						lowestIndex = 9999
-						for i,data in pairsByKeys(normalPriority) do
-							if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
-								end
+				if (not best and (invalid or currentTask.lowpriority or currentTask.idlepriority or currentTask.type == "idle")) then
+					gd("[GatherNextTask]: Check the normal priority tasks for higher ranked, differently grouped tasks.",3)
+					lowestIndex = 9999
+					for i,data in pairsByKeys(normalPriority) do
+						if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+							if (not best or (best and i < lowestIndex)) then
+								best = data
+								lowestIndex = i
 							end
 						end
-					
-						if (not best) then
-							gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks.",3)
-							if (invalid and currentTask.group) then
-								lowestIndex = 9999
+					end
+				
+					if (not best) then
+						gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks.",3)
+						if (invalid and currentTask.group) then
+							lowestIndex = 9999
+							for i,data in pairsByKeys(normalPriority) do
+								if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+							
+							if (not best) then
+								gd("[GatherNextTask]: Check the normal priority tasks for differently grouped tasks.",3)
+								lowestIndex = 9999	
 								for i,data in pairsByKeys(normalPriority) do
-									if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
+									if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
 										if (not best or (best and i < lowestIndex)) then
 											best = data
 											lowestIndex = i
-										end
-									end
-								end
-								
-								if (not best) then
-									gd("[GatherNextTask]: Check the normal priority tasks for differently grouped tasks.",3)
-									lowestIndex = 9999	
-									for i,data in pairsByKeys(normalPriority) do
-										if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-											if (not best or (best and i < lowestIndex)) then
-												best = data
-												lowestIndex = i
-											end
 										end
 									end
 								end
@@ -2647,7 +2644,7 @@ function c_gathernexttask:evaluate()
 				end
 				
 				-- Low priority section.
-				if (invalid and not best) then
+				if (not best and (invalid or currentTask.type == "idle" or currentTask.idlepriority)) then
 					gd("[GatherNextTask]: Check the low priority section since haven't found anything yet.",3)
 					if (IsNull(currentTask.set,"") ~= "") then
 						gd("[GatherNextTask]: Check for the next task in this set.",3)
@@ -2699,11 +2696,10 @@ function c_gathernexttask:evaluate()
 							end
 						end
 					end
-					
 				end
 				
 				-- Idle priority section.
-				if (invalid and not best) then
+				if (not best and invalid and currentTask.type ~= "idle" and currentTask.idlepriority) then
 					gd("[GatherNextTask]: Check the idle priority section since haven't found anything yet.",3)
 					if (IsNull(currentTask.set,"") ~= "") then
 						gd("[GatherNextTask]: Check for the next task in this set.",3)
