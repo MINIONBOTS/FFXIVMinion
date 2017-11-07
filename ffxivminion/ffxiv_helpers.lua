@@ -3128,7 +3128,7 @@ function Mount(id)
 			if (table.valid(mounts)) then
 				--First pass, look for our named mount.
 				for mountid,mountaction in pairsByKeys(mounts) do
-					if (mountaction.name == gMountName and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+					if (mountaction.name == gMountName and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 						if (mountaction:IsReady(Player.id)) then
 							mountaction:Cast()
 							return true
@@ -3138,7 +3138,7 @@ function Mount(id)
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do
-				if (mountid == mountID and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+				if (mountid == mountID and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 					if (mountaction:IsReady()) then
 						mountaction:Cast()
 						return true
@@ -3149,7 +3149,7 @@ function Mount(id)
 		
 		--Second pass, look for any mount as backup.
 		for mountid,mountaction in pairsByKeys(mounts) do
-			if (mountaction:IsReady(Player.id) and ((mountaction.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+			if (mountaction:IsReady(Player.id) and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 				mountaction:Cast()
 				return true
 			end
