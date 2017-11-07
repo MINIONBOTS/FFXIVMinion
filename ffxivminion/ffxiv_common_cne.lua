@@ -1654,15 +1654,25 @@ function c_mount:evaluate()
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
 		if (not ml_task_hub:CurrentTask().remainMounted and dismountDistance > 0 and dist3d <= dismountDistance) then
-			if (ml_task_hub:CurrentTask().dismountTimer == nil) then
-				ml_task_hub:CurrentTask().dismountTimer = 0
+			local needsMount = false
+			if (table.valid(ml_navigation.path)) then
+				for i, node in pairs(ml_navigation.path) do
+					if (node.type == "CUBE") then
+						needsMount = true
+					end
+				end		
 			end
-			if (not IsFlying() and Player.ismounted and not IsDismounting() and Now() > ml_task_hub:CurrentTask().dismountTimer) then
-				Dismount()
-				ml_task_hub:CurrentTask().dismountTimer = Now() + 500
-				return true
+			if (not needsMount) then
+				if (ml_task_hub:CurrentTask().dismountTimer == nil) then
+					ml_task_hub:CurrentTask().dismountTimer = 0
+				end
+				if (not IsFlying() and Player.ismounted and not IsDismounting() and Now() > ml_task_hub:CurrentTask().dismountTimer) then
+					Dismount()
+					ml_task_hub:CurrentTask().dismountTimer = Now() + 500
+					return true
+				end
+				return false
 			end
-			return false
 		end
 	end
 	
@@ -1718,7 +1728,7 @@ function c_mount:evaluate()
 			if (table.valid(mountlist)) then
 				--First pass, look for our named mount.
 				for id,acMount in pairsByKeys(mountlist) do
-					if (acMount.name == gMountName and (acMount.canfly or not CanFlyInZone())) then
+					if (acMount.name == gMountName and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 						if (acMount:IsReady(Player.id)) then
 							e_mount.id = acMount.id
 							return true
@@ -1728,7 +1738,7 @@ function c_mount:evaluate()
 				
 				--Second pass, look for any mount as backup.
 				for id,acMount in pairsByKeys(mountlist) do
-					if (acMount:IsReady(Player.id) and (acMount.canfly or not CanFlyInZone())) then
+					if (acMount:IsReady(Player.id) and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
 						e_mount.id = acMount.id
 						return true
 					end
