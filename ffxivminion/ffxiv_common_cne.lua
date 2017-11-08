@@ -537,6 +537,9 @@ function e_avoid:execute()
 			d("Adding avoidance task.")
 			
 			c_bettertargetsearch.postpone = Now() + 5000
+			if ((maxTime * 1000) > 5000) then
+				c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
+			end
 		else
 			d("Dodge distance is very close.")
 		end

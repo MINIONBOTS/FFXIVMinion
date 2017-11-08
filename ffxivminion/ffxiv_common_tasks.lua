@@ -1361,9 +1361,6 @@ function ffxiv_task_grindCombat:Init()
 	local ke_battleItem = ml_element:create( "BattleItem", c_battleitem, e_battleitem, 40 )
     self:add( ke_battleItem, self.overwatch_elements)
 		
-	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
-	self:add( ke_bettertargetsearch, self.process_elements)
-	
 	local ke_stuck = ml_element:create( "BattleStuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.process_elements)
 	
@@ -1381,6 +1378,9 @@ function ffxiv_task_grindCombat:Init()
 	
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
+	
+	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	self:add( ke_bettertargetsearch, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
