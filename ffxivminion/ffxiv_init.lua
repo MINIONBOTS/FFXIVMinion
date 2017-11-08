@@ -940,4 +940,10 @@ function DrawFateListUI(self)
 	end
 end
 
+function pd(strOut)
+	if (strOut) then
+		pcall(d,strOut)
+	end
+end
+
 RegisterEventHandler("Module.Initalize",ml_global_information.Init)

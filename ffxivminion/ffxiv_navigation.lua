@@ -858,7 +858,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		return true
 	else
 		if (ml_navigation:DisablePathing()) then
-			d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")			
+			--d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")			
 		end
 		return false
 	end
@@ -994,8 +994,7 @@ function ml_navigation.Navigate(event, ticks )
 		ml_navigation.lastupdate = ticks
 				
 		if ( ml_navigation.CanRun() and ml_navigation.canPath) then	
-			--ffnav.Trim()
-			
+		
 			--d("Can Path.")
 			local ppos = Player.pos
 			
@@ -1282,11 +1281,11 @@ function ml_navigation.Navigate(event, ticks )
 								local originalIndex = ml_navigation.pathindex + 1
 								local newIndex = originalIndex
 								if (FFXIV_Common_SmoothPathing) then
-									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 										local node = ml_navigation.path[i]
 										if (node) then
 											local dist3d = math.distance3d(node,ppos)
-											if (dist3d < 50 and string.contains(node.type,"CUBE")) then
+											if (dist3d < 100 and string.contains(node.type,"CUBE")) then
 												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 												if (not hit) then
 													--d("Bumped index to [" .. i .. "]")
@@ -1297,28 +1296,18 @@ function ml_navigation.Navigate(event, ticks )
 									end
 									if (newIndex > originalIndex) then
 										--d("Need to compact path.")
-										for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+										for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 											if (newIndex > i) then
 												 ml_navigation.path[i] = nil
 												 --d("Removing skipped node [" .. i .. "] from path.")
 											end
 										end
-										local newPath = {}
-										if (table.valid(ml_navigation.path)) then
-											for i,node in pairsByKeys(ml_navigation.path) do
-												if (i > 0) then
-													table.insert(newPath,node)
-												else
-													newPath[0] = node
-												end
-											end
-										end
-										ml_navigation.path = newPath
+										ffnav.CompactPath()
 										ml_navigation.ResetRenderPath()
 									end
 								end
 								
-								ml_navigation.pathindex = originalIndex			
+								ml_navigation.pathindex = originalIndex		
 							else			
 								--d("[Navigation]: Moving to next node")
 								-- We have not yet reached our node
@@ -1365,7 +1354,7 @@ function ml_navigation.Navigate(event, ticks )
 							if (not string.contains(nextnode.type,"CUBE")) then
 								
 								d("[Navigation]: Next node is not a flying node.")
-								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() < 0 or GetDiveHeight() > 2)) then
+								if ((not table.valid(nextnextnode) or not string.contains(nextnextnode.type,"CUBE")) and (not CanDiveInZone() or GetDiveHeight() <= 0 or GetDiveHeight() > 2)) then
 									d("[Navigation] - Landing...")
 									
 									local modifiedNode = { type = nextnode.type, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
@@ -1385,7 +1374,7 @@ function ml_navigation.Navigate(event, ticks )
 										ffnav.Await(3000, function () return Player:IsMoving() end)
 										return false
 									end
-									ffnav.Await(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end)
+									ffnav.AwaitSuccess(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end, function () Player:Stop() end)
 									return false									
 								end
 							end
@@ -1393,11 +1382,12 @@ function ml_navigation.Navigate(event, ticks )
 							local originalIndex = ml_navigation.pathindex + 1
 							local newIndex = originalIndex
 							if (FFXIV_Common_SmoothPathing) then
-								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+								for i = ml_navigation.pathindex + 2, table.size(ml_navigation.path) do
 									local node = ml_navigation.path[i]
 									if (node) then
 										local dist3d = math.distance3d(node,ppos)
-										if (dist3d < 50 and string.contains(node.type,"CUBE")) then
+										if (dist3d < 100 and string.contains(node.type,"CUBE")) then
+										--if (dist3d < 75) then
 											local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 											if (not hit) then
 												--d("Bumped index to [" .. i .. "]")
@@ -1408,23 +1398,13 @@ function ml_navigation.Navigate(event, ticks )
 								end
 								if (newIndex > originalIndex) then
 									--d("Need to compact path.")
-									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 5 do
+									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 										if (newIndex > i) then
 											 ml_navigation.path[i] = nil
 											 --d("Removing skipped node [" .. i .. "] from path.")
 										end
 									end
-									local newPath = {}
-									if (table.valid(ml_navigation.path)) then
-										for i,node in pairsByKeys(ml_navigation.path) do
-											if (i > 0) then
-												table.insert(newPath,node)
-											else
-												newPath[0] = node
-											end
-										end
-									end
-									ml_navigation.path = newPath
+									ffnav.CompactPath()
 									ml_navigation.ResetRenderPath()
 								end
 							end
@@ -1453,10 +1433,7 @@ function ml_navigation.Navigate(event, ticks )
 		-- Normal Navigation
 					else
 						--d("[Navigation]: Normal navigation..")
-						
-						local target = Player:GetTarget()
-						local forceDescent = (TimeSince(ffnav.forceDescent) < 5000)
-						if (string.contains(nextnode.type,"CUBE") and not forceDescent) then
+						if (string.contains(nextnode.type,"CUBE")) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
@@ -1468,13 +1445,14 @@ function ml_navigation.Navigate(event, ticks )
 							if (hit) then
 								ml_debug("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
 							end]]
-							if (IsSwimming() or nextnode.y < Player.pos.y) then
+							if (IsSwimming() or nextnode.y <= Player.pos.y) then
 								Player:StopMovement()
 								Player:Dive()
 								ffnav.Await(3000, function () return (MIsLoading() or IsDiving()) end)
 								return
 							elseif (not IsFlying() and CanFlyInZone()) then	-- it will start flying if we have enough space above our head, if not, it keels wwalking on the poly mesh towards the next cube node in the air until it has space to fly
 								if (Player.ismounted and not Player.mountcanfly) then
+									d("our mount cannot fly, dismount it.")
 									Dismount()
 									ffnav.Await(5000, function () return not Player.ismounted end)
 									return
@@ -1598,7 +1576,7 @@ end
 
 function ml_navigation.IsPathInvalid()
 	if (table.valid(ml_navigation.path)) then
-		if (Player.incombat and (not Player.ismounted or not Player.mountcanfly)) then
+		if (not IsDiving() and not IsSwimming() and Player.incombat and (not Player.ismounted or not Player.mountcanfly)) then
 			for i, node in pairs(ml_navigation.path) do
 				if (node.type == "CUBE") then
 					return true
@@ -1713,23 +1691,18 @@ ffnav.lastTrim = 0
 ffnav.forceDescent = 0
 ffnav.descentPos = {}
 
-function ffnav.Trim()
+function ffnav.CompactPath()
+	local newPath = {}
 	if (table.valid(ml_navigation.path)) then
-		if (TimeSince(ffnav.lastTrim) > 1000 and TimeSince(ml_navigation.pathlastupdated) < 1000) then
-			local ppos = Player.pos
-			local newIndex = 0
-			for i,node in pairsByKeys(ml_navigation.path) do
-				if (ml_navigation:IsGoalClose(ppos,node)) then
-					newIndex = i
-				end
+		for i,node in pairsByKeys(ml_navigation.path) do
+			if (table.size(newPath) > 0) then
+				table.insert(newPath,node)
+			else
+				newPath[0] = node
 			end
-			
-			if (newIndex ~= 0) then
-				ml_navigation.pathindex = newIndex
-			end			
-			ffnav.lastTrim = Now()
-		end		
+		end
 	end
+	ml_navigation.path = newPath
 end
 
 function ffnav.IsProcessing()

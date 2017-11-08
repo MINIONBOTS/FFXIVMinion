@@ -3296,9 +3296,9 @@ function c_dointeract:evaluate()
 			return true
 			--]]
 			
-			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.95 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
+			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.5 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
 				if (interactable.type == 5) then
-					if (interactable.distance2d <= 7) then
+					if (interactable.distance2d <= 6) then
 						if (not IsFlying()) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 

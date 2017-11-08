@@ -3008,13 +3008,17 @@ function InCombatRange(targetid)
 		return true
 	end
 	
-	local check = SkillMgr.CheckTestSkill(Player.job, target)
-	if (check ~= nil) then
-		return check
+	local attackRange = ml_global_information.AttackRange	
+	if (target.distance2d ~= 0 and target.distance2d <= (attackRange * .97)) then
+		local check = SkillMgr.CheckTestSkill(Player.job, target)
+		if (check ~= nil) then
+			return check
+		end
+		
+		return target.los
 	end
 	
-	local attackRange = ml_global_information.AttackRange	
-	return (target.los and target.distance2d ~= 0 and target.distance2d <= (attackRange * .98))
+	return false
 end
 function CanAttack(targetid,skillid,skilltype)
 	local target = {}
