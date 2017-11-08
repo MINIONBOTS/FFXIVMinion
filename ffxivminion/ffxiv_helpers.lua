@@ -550,7 +550,7 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
-			el = MEntityList("alive,attackable,onmesh,maxdistance2d=50,contentid=6737")
+			el = MEntityList("alive,attackable,onmesh,maxdistance2d=50,contentid=6737;6738")
 			if (table.valid(el)) then
 				for i,entity in pairs(el) do
 					if (entity.fateid == fate.id) then
