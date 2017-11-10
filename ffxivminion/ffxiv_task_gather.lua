@@ -2699,7 +2699,7 @@ function c_gathernexttask:evaluate()
 				end
 				
 				-- Idle priority section.
-				if (not best and invalid and currentTask.type ~= "idle" and currentTask.idlepriority) then
+				if (not best and invalid and currentTask.type ~= "idle" and not currentTask.idlepriority) then
 					gd("[GatherNextTask]: Check the idle priority section since haven't found anything yet.",3)
 					if (IsNull(currentTask.set,"") ~= "") then
 						gd("[GatherNextTask]: Check for the next task in this set.",3)
