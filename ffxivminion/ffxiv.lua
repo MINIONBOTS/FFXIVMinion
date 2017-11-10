@@ -1315,6 +1315,7 @@ Quest: Completes quests based on a questing profile.\
 						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 					end
 					
+		GUI:Separator()
 					--[[
 					GUI:PushItemWidth(width-80)
 					GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList, 
@@ -1342,14 +1343,12 @@ Quest: Completes quests based on a questing profile.\
 						end
 					end
 
-					GUI:BeginChild("##main-task-section",0,space,false)
 					local mainTask = ml_global_information.mainTask
 					if (mainTask) then
 						if (mainTask.Draw) then
 							mainTask:Draw()
 						end
 					end
-					GUI:EndChild()
 					
 					if (space == -100 or space == -75) then
 						local GatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
@@ -1523,6 +1522,11 @@ function ml_global_information.DrawSettings()
 					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
+					
+					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
+					GUI:SameLine(150)
+					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200); GUI:PopItemWidth()
+					
 					GUI_Capture(GUI:Checkbox(GetString("useMount"),gUseMount),"gUseMount", 
 						function ()
 							if (gMountName == GetString("none")) then
@@ -1533,6 +1537,9 @@ function ml_global_information.DrawSettings()
 					)
 					GUI:SameLine(150)
 					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("Mount Distance"),"gMountDist",5,10,0,200); GUI:PopItemWidth()
+					
+					
+					
 					GUI:PushItemWidth(200); GUI_Combo(GetString("Mount"), "gMountNameIndex", "gMountName", gMountNames); GUI:PopItemWidth()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
@@ -1547,9 +1554,6 @@ function ml_global_information.DrawSettings()
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
 					end
 					
-					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
-					GUI:SameLine(150)
-					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200); GUI:PopItemWidth()
 					GUI:PushItemWidth(200); GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods); GUI:PopItemWidth()
 					GUI:SameLine(275)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then

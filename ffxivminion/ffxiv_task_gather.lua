@@ -3357,6 +3357,22 @@ function ffxiv_task_gather:Draw()
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
 			end
 		end
+		GUI:Separator()
+		local TimeLeft = 0
+		local currentMarker = ml_marker_mgr.currentMarker
+		if (currentMarker ~= nil) then
+			TimeLeft = currentMarker:GetTimeRemaining()
+		end
+		GUI:Columns(2)
+		GUI:Spacing();
+		GUI:Text(GetString("Marker Time Remaning (s): "))
+		GUI:NextColumn()
+		
+		GUI:PushItemWidth(50)
+		GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		GUI:PopItemWidth()
+		GUI:Columns()
+		
 	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
 		GUI:SameLine()
@@ -3377,46 +3393,42 @@ function ffxiv_task_gather:Draw()
 				d("Please select/create a valid profile.")
 			end
 		end
+		GUI:Separator()
+		local profiletask = ffxiv_gather.currentTask
+		if table.valid(profiletask) then
+			local TimeLeft = 0
+			if profiletask.maxtime ~= nil then
+				if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
+					local TaskStarted = profiletask.taskStarted
+					if TaskStarted then
+						local TimeSince = TimeSince(profiletask.taskStarted) or 0
+						local MaxTime = profiletask.maxtime
+						TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
+						if TimeLeft < 0 then TimeLeft = 0 end
+					end
+				end
+			end
+			GUI:Columns(2)
+			GUI:Spacing();
+			GUI:Text(GetString("Task Time Remaning (s): "))
+			GUI:Spacing();
+			GUI:Text(GetString("Gather Task: "))
+			GUI:NextColumn()
+			
+			GUI:PushItemWidth(50)
+			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+			local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
+			GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
+			GUI:PopItemWidth()
+			GUI:Columns()
+		end
 	end
 	-- Gather Tabs.
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	-- Settings Tab.
 	if (tabname == GetString("Settings")) then
-		if (gGatherMarkerOrProfileIndex == 2) then
-			local profiletask = ffxiv_gather.currentTask
-			if table.valid(profiletask) then
-				local TimeLeft = 999
-				if profiletask.maxtime ~= nil then
-					if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
-						local TaskStarted = profiletask.taskStarted
-						if TaskStarted then
-							local TimeSince = TimeSince(profiletask.taskStarted) or 0
-							local MaxTime = profiletask.maxtime
-							TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
-							if TimeLeft < 0 then TimeLeft = 0 end
-						end
-					end
-				end
-				GUI:BeginChild("##header-Timers",-8,GUI_GetFrameHeight(2),true)	
-				GUI:Columns(2)
-				GUI:Spacing();
-				GUI:Text(GetString("Task Time Remaning (s): "))
-				GUI:Spacing();
-				GUI:Text(GetString("Gather Task: "))
-				GUI:NextColumn()
-				
-				GUI:PushItemWidth(50)
-				GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
-				local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
-				GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
-				GUI:PopItemWidth()
-				GUI:Columns()
-				GUI:EndChild()
-			end
-		end
 		
-		GUI:BeginChild("##header-status",-8,GUI_GetFrameHeight(5),true)
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then
@@ -3463,9 +3475,8 @@ function ffxiv_task_gather:Draw()
 		end
 		GUI:PopItemWidth()
 		GUI:Columns()
-		GUI:EndChild()
 		--Stealth Settings
-		GUI:BeginChild("##main-header-stealth",-8,GUI_GetFrameHeight(3),true)
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range")
 		if (GUI:IsItemHovered()) then
@@ -3496,7 +3507,7 @@ function ffxiv_task_gather:Draw()
 			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
 		end
 		GUI:Columns()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 	-- Collectable Tab
 	if (tabname == GetString("Collectable")) then
