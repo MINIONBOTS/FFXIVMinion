@@ -327,7 +327,6 @@ function c_precastbuff:evaluate()
 	return false
 end
 function e_precastbuff:execute()
-fd("e_precastbuff Execute",1)
 	ffxiv_fish.StopFishing()
 	
 	local activityitemid = c_precastbuff.itemid
@@ -445,7 +444,7 @@ function e_mooch2:execute()
     local mooch2 = SkillMgr.GetAction(268,1)
     if (mooch2 and mooch2:IsReady(Player.id)) then
         if (mooch2:Cast()) then
-		fd("Mooch2 Cast",1)
+		d("Mooch2 Cast",1)
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
@@ -716,7 +715,6 @@ function c_finishcast:evaluate()
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (not table.valid(task) or not table.valid(marker)) then
-	fd("needs stop 1",2)
 		needsStop = true
 	end
 	
@@ -724,14 +722,12 @@ function c_finishcast:evaluate()
     if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs ~= 0 and c_returntomarker:evaluate()) then
-	fd("needs stop 2",2)
             return true
         end
     end
     return false
 end
 function e_finishcast:execute()
-d("Stopfishing execute")
     ffxiv_fish.StopFishing()
 end
 
@@ -812,7 +808,6 @@ function e_bite:execute()
 				local doubleHook = SkillMgr.GetAction(269,1)
 				if (doubleHook and doubleHook:IsReady(Player.id)) then
 					doubleHook:Cast()
-				fd("double hook cast",1)
 					return true
 				end
 			end	
@@ -820,7 +815,6 @@ function e_bite:execute()
 			local bite = SkillMgr.GetAction(296,1)
 			if (bite and bite:IsReady(Player.id)) then
 				bite:Cast()
-				fd("bite cast",1)
 				return true
 			end
 		end
@@ -1064,6 +1058,7 @@ function c_patience:evaluate()
 			local patience2 = SkillMgr.GetAction(4106,1)
 			if (patience2 and patience2:IsReady(Player.id)) then	
 				if (patience2:Cast()) then
+					d("used patience")
 					ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
 				end
 				return true
@@ -1993,7 +1988,7 @@ function c_fishnexttask:evaluate()
 						end
 					end
 					
-					if (not best and invalid) then
+					if (not best and invalid and currentTask.type ~= "idle" and not currentTask.idlepriority) then
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(idlePriority) do

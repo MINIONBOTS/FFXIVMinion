@@ -6941,7 +6941,6 @@ function GetInteractableEntity(contentids,types)
 				for i,interact in pairs(validInteracts) do
 					local dist = interact.distance2d
 					if (not nearest or (nearest and dist < nearestDistance)) then
-						d("[GetInteractableEntity] - setting nearest to ["..interact.name.."]")
 						nearest, nearestDistance = interact, dist
 					end
 				end
@@ -6959,8 +6958,6 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
-
-
 
 function GetAetherCurrentData(mapid)
 	if (not IsControlOpen("AetherCurrent")) then
@@ -7155,4 +7152,13 @@ function ValidPosition(pos)
 		return (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil and type(pos.x) == "number" and type(pos.y) == "number" and type(pos.z) == "number")
 	end
 	return false
+end
+function GetUIValue()
+	local totalUI = 0
+	for i=0,165 do
+		if (GetUIPermission(i) == 1) then
+			totalUI = totalUI + i
+		end
+	end
+	return totalUI
 end

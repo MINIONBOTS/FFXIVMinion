@@ -537,7 +537,7 @@ function e_avoid:execute()
 			d("Adding avoidance task.")
 			
 			c_bettertargetsearch.postpone = Now() + 5000
-			if ((maxTime * 1000) > 5000) then
+			if ((newTask.maxTime * 1000) > 5000) then
 				c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
 			end
 		else
@@ -3039,6 +3039,13 @@ function c_buy:evaluate()
 	if (IsControlOpen("SelectYesno")) then
 		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
+		return true
+	end
+	
+	if (IsControlOpen("SelectYesnoCount")) then
+		UseControlAction("SelectYesnoCount","CheckAccept")
+		UseControlAction("SelectYesnoCount","Yes")
+		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesnoCount") end)
 		return true
 	end
 	
