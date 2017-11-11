@@ -834,29 +834,31 @@ function ffxiv_task_grind:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
-	GUI:Separator()
-		GUI:Separator()
-		local TimeLeft = 0
 		local currentMarker = ml_marker_mgr.currentMarker
 		if (currentMarker ~= nil) then
-			TimeLeft = currentMarker:GetTimeRemaining()
-		end
+		TimeLeft = currentMarker:GetTimeRemaining()
 		GUI:Columns(2)
 		GUI:Spacing();
 		GUI:Text(GetString("Marker Time Remaning (s): "))
 		GUI:NextColumn()
 		
 		GUI:PushItemWidth(50)
-		GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		if TimeLeft > 0 then
+			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		else
+			if (GUI:ImageButton("##grind-time",ml_global_information.path.."\\GUI\\UI_Textures\\recycle.png", 14, 14)) then
+		end
+		end
 		GUI:PopItemWidth()
 		GUI:Columns()
+		end
 		
 	if (tabname == GetString("Settings")) then
 		local settingschildsize = 5
 		if (gGrindDoFates) then
 			settingschildsize = 6
 		end
-		GUI:BeginChild("##header-grindmodes",0,GUI_GetFrameHeight(settingschildsize),true)
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("AutoLevelMode"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AutoLevelModeTooltip")) end
@@ -914,8 +916,7 @@ function ffxiv_task_grind:Draw()
 		);
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("AdvancedSettingsTooltip")) end
 		GUI:Columns()
-		GUI:EndChild()
-		GUI:BeginChild("##header-settings2",0,GUI_GetFrameHeight(2),true)
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("doAtma"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoAtmaTooltip")) end
@@ -939,10 +940,10 @@ function ffxiv_task_grind:Draw()
 		);
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoLuminousTooltip")) end
 		GUI:Columns()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 	if (tabname == GetString("Tweaks")) then
-		GUI:BeginChild("##header-tweaks",0,GUI_GetFrameHeight(7),true)
+		GUI:Separator()
 		GUI:Columns(3)
 		GUI:Text(GetString("FateType"))
 		GUI:NextColumn()
@@ -976,10 +977,10 @@ function ffxiv_task_grind:Draw()
 		GUI_DrawIntMinMax("##Escort Fates %","gFateEscortWaitPercent",1,5,0,99)
 		GUI:PopItemWidth()
 		GUI:Columns()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 	if (tabname == GetString("Mob Grinding")) then
-		GUI:BeginChild("##header-hunting",0,GUI_GetFrameHeight(3),true)
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("prioritizeClaims"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("prioritizeClaimsTooltip")) end
@@ -999,10 +1000,10 @@ function ffxiv_task_grind:Draw()
 		--GUI_DrawIntMinMax(GetString("combatRangePercent"),"gCombatRangePercent",1,5,25,100)
 		GUI:Columns()
 		GUI:PopItemWidth()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 	if (tabname == GetString("Advanced")) then
-		GUI:BeginChild("##header-advanced",0,GUI_GetFrameHeight(8),true)
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("MinFateLv"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("MinFateLvTooltip")) end
@@ -1038,10 +1039,10 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##"..GetString("##waitNearEvac"),gFateWaitNearEvac),"gFateWaitNearEvac")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("waitNearEvacTooltip")) end
 		GUI:Columns()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 	if (tabname == GetString("Debug")) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(2),true)	
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("GrindDebug"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("GrindDebugTooltip")) end
@@ -1057,6 +1058,6 @@ function ffxiv_task_grind:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("debugLevelTooltip")) end
 		GUI:PopItemWidth()
 		GUI:Columns()
-		GUI:EndChild()
+		GUI:Separator()
 	end
 end
