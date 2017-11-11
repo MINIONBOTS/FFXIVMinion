@@ -834,7 +834,23 @@ function ffxiv_task_grind:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
-	
+	GUI:Separator()
+		GUI:Separator()
+		local TimeLeft = 0
+		local currentMarker = ml_marker_mgr.currentMarker
+		if (currentMarker ~= nil) then
+			TimeLeft = currentMarker:GetTimeRemaining()
+		end
+		GUI:Columns(2)
+		GUI:Spacing();
+		GUI:Text(GetString("Marker Time Remaning (s): "))
+		GUI:NextColumn()
+		
+		GUI:PushItemWidth(50)
+		GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		GUI:PopItemWidth()
+		GUI:Columns()
+		
 	if (tabname == GetString("Settings")) then
 		local settingschildsize = 5
 		if (gGrindDoFates) then
