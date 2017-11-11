@@ -2188,6 +2188,14 @@ Do you have materials?"))
 					GUI:Text("Y: "..PlayerPos.y)
 					GUI:Text("Z: "..PlayerPos.z)
 					GUI:Separator()
+					GUI:Text("Class: "); GUI:SameLine();	GUI:Text(tostring(Player.job))
+					GUI:Text("Level: "); GUI:SameLine();	GUI:Text(tostring(Player.level))
+					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
+					if acrValid then
+						GUI:Text("ACR Profile: "); GUI:SameLine();	GUI:Text((tostring(gACRSelectedProfiles[Player.job])))
+					else
+						GUI:Text("Skill Profile: "); GUI:SameLine();	GUI:Text(tostring(gSkillProfile))
+					end
 					GUI:Text("Current Task: "); GUI:SameLine();	GUI:Text(FFXIV_Core_ActiveTaskName)
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
