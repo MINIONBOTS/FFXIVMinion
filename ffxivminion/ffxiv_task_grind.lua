@@ -846,8 +846,7 @@ function ffxiv_task_grind:Draw()
 		if TimeLeft > 0 then
 			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
 		else
-			if (GUI:ImageButton("##grind-time",ml_global_information.path.."\\GUI\\UI_Textures\\recycle.png", 14, 14)) then
-		end
+			GUI:InputText("##TimeLeft","Inf",GUI.InputTextFlags_ReadOnly) 
 		end
 		GUI:PopItemWidth()
 		GUI:Columns()

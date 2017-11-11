@@ -1099,7 +1099,8 @@ ffxiv_aethercurrent_data = {
 		{id = 401, aethid = 2006234, x = 616.023, y = -65.5365, z = -111.587}
 	},
 	[612] = {
-		{id = 612, aethid = 2007965, x = -487.266, y = 76.726, z = -249.561},
+		--https://i.imgur.com/vMM5T6h.jpg baseline
+		{id = 612, aethid = 2007965, x = -487.266, y = 76.726, z = -249.561}, --[6] https://i.imgur.com/2FGAQQK.jpg
 		{id = 612, aethid = 2007966, x = -106.523, y = 60.6825, z = -847.99},
 		{id = 612, aethid = 2007967, x = 179.126, y = 78.0766, z = -517.449},
 		{id = 612, aethid = 2007968, x = -592.615, y = 49.9769, z = 320.851},
