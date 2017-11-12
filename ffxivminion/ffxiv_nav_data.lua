@@ -1099,27 +1099,26 @@ ffxiv_aethercurrent_data = {
 		{id = 401, aethid = 2006234, x = 616.023, y = -65.5365, z = -111.587}
 	},
 	[612] = {
-		--https://i.imgur.com/vMM5T6h.jpg baseline
-		{id = 612, aethid = 2007965, x = -487.266, y = 76.726, z = -249.561}, --[6] https://i.imgur.com/2FGAQQK.jpg
-		{id = 612, aethid = 2007966, x = -106.523, y = 60.6825, z = -847.99}, --[7] https://i.imgur.com/I2PcQL1.jpg
-		{id = 612, aethid = 2007967, x = 179.126, y = 78.0766, z = -517.449}, --[8] https://i.imgur.com/ju3QOHv.jpg
-		{id = 612, aethid = 2007968, x = -592.615, y = 49.9769, z = 320.851}, --[9] https://i.imgur.com/f73AiGX.jpg
-		{id = 612, aethid = 2007969, x = -201.495, y = 20.9112, z = -316.213}, --[10] https://i.imgur.com/So8Hecs.jpg
+		{id = 612, aethid = 2007965, x = -487.266, y = 76.726, z = -249.561}, -- [6]
+		{id = 612, aethid = 2007966, x = -106.523, y = 60.6825, z = -847.99}, -- [7]
+		{id = 612, aethid = 2007967, x = 179.126, y = 78.0766, z = -517.449}, -- [8]
+		{id = 612, aethid = 2007968, x = -592.615, y = 49.9769, z = 320.851}, -- [9]
+		{id = 612, aethid = 2007969, x = -201.495, y = 20.9112, z = -316.213}, -- [10]
 		{id = 612, aethid = 2007970, x = 177.081, y = 54.5858, z = 237.14,
 			requires = function () return QuestCompleted(2530) end,
-		}, --[11] https://i.imgur.com/FJ2WdYD.jpg
+		}, -- [11] 
 		{id = 612, aethid = 2007971, x = 322.591, y = 88.9832, z = 10.5134,
 			requires = function () return QuestCompleted(2530) end,
-		}, --[12] https://i.imgur.com/bqAhM7x.jpg
+		}, -- [12] 
 		{id = 612, aethid = 2007972, x = 715.328, y = 174.403, z = -236.652,
 			requires = function () return QuestCompleted(2530) end,
-		}, [11] --https://i.imgur.com/9XPRrsO.jpg
+		}, -- [11] 
 		{id = 612, aethid = 2007973, x = 410.574, y = 59.5974, z = 369.68,
 			requires = function () return QuestCompleted(2530) end,
-		}, -- [14] https://i.imgur.com/mmD3BCv.jpg
+		}, -- [14] 
 		{id = 612, aethid = 2007974, x = 636.988, y = 78.4892, z = 430.167,
 			requires = function () return QuestCompleted(2530) end,
-		}, -- [15] https://i.imgur.com/o0vjWhK.jpg
+		}, -- [15]
 	},
 	[613] = {
 		{id = 613, aethid = 2007995, x = 425.711, y = 16.9188, z = 870.146},
