@@ -119,6 +119,8 @@ ffxivminion.AutoGrindDefault = [[
 			return 146 -- southern thanalan
 		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
 			return 147 -- northern thanalan
+		elseif (level >= 67 and CanAccessMap(622)) then
+			return 622 --The Azim Steppes
 		elseif (level >= 60 and CanAccessMap(612)) then
 			return 612 --The Fringes
 		elseif (level >= 58 and level < 60 and CanAccessMap(478) and CanAccessMap(399)) then
@@ -680,7 +682,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 	
 -- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20171014
+	ffxivminion.AutoGrindDefaultVersion = 20171113
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
 	
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
