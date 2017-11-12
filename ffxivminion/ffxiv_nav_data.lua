@@ -921,6 +921,13 @@ ffxiv_map_nav.data = {
 		[152] = {
 			{id = 152, cost = 1, x = -664.33, y = 130.00, z = -533.29, h = 0, g = 1019516},
 		},
+		[620] = {
+			{id = 620, cost = 1, x = 848.3, y = 86.1, z = 363.3, h = 1.03, 
+			requires = {
+					["GetQuestInfo(2534,'step') >= 3 or QuestCompleted(2534)"] = true,
+				},
+			},
+		},
 		[635] = {
 			{id = 635, cost = 1, x = 482.54, y = 61.65, z = -556.99, h = 2.01, },
 		},
@@ -960,8 +967,12 @@ ffxiv_map_nav.data = {
 	},
 	[620] =
 	{
-		[635] = {
-			{id = 635, cost = 1, x = -658.47, y = 50.87, z = -792.97, h = -2.08, },
+		[612] = {
+			{id = 612, cost = 1, x = -789.5, y = 297.4, z = 214.69, h = -1.6, 
+			requires = {
+					["GetQuestInfo(2534,'step') >= 3 or QuestCompleted(2534)"] = true,
+				},
+			},
 		},
 		[621] = {
 			{id = 621, cost = 1, x = 587.64, y = 344.09, z = 420.33, h = 1.60
@@ -969,6 +980,9 @@ ffxiv_map_nav.data = {
 					["GetQuestInfo(2548,'step') >= 3 or QuestCompleted(2548)"] = true,
 				},
 			},
+		},
+		[635] = {
+			{id = 635, cost = 1, x = -658.47, y = 50.87, z = -792.97, h = -2.08, },
 		},
 	},
 	[621] =
@@ -1130,7 +1144,9 @@ ffxiv_aethercurrent_data = {
 		{id = 613, aethid = 2008001, x = 62.4551, y = 6.47697, z = -877.501},
 		{id = 613, aethid = 2008002, x = 703.914, y = 38.2971, z = -46.6163},
 		{id = 613, aethid = 2008003, x = 499.016, y = 7.585, z = 180.011},
-		{id = 613, aethid = 2008004, x = -676.918, y = 27.4336, z = 374.133},
+		{id = 613, aethid = 2008004, x = -676.918, y = 27.4336, z = 374.133,
+			requires = function () return QuestCompleted(2484) end,
+		}, -- [15] -- swim required
 	},
 	[614] = {
 		{id = 614, aethid = 2008005, x = 894.499, y = 157.256, z = -38.285},
@@ -1150,11 +1166,21 @@ ffxiv_aethercurrent_data = {
 		{id = 620, aethid = 2007977, x = 711.269, y = 262.499, z = -489.83},
 		{id = 620, aethid = 2007978, x = -283.07, y = 127.531, z = -225.757},
 		{id = 620, aethid = 2007979, x = 302.01, y = 197.673, z = -31.2851},
-		{id = 620, aethid = 2007980, x = -661.982, y = 275.228, z = 553.795},
-		{id = 620, aethid = 2007981, x = -532.463, y = 304.567, z = 250.42},
-		{id = 620, aethid = 2007982, x = -238.025, y = 267.843, z = 523.064},
-		{id = 620, aethid = 2007983, x = -13.8095, y = 302.219, z = 28.1528},
-		{id = 620, aethid = 2007984, x = 120.256, y = 305.38, z = 521.141},
+		{id = 620, aethid = 2007980, x = -661.982, y = 275.228, z = 553.795,
+			requires = function () return HasQuest(2534) or QuestCompleted(2534) end,
+		}, --[11]
+		{id = 620, aethid = 2007981, x = -532.463, y = 304.567, z = 250.42,
+			requires = function () return HasQuest(2534) or QuestCompleted(2534) end,
+		}, --[12]
+		{id = 620, aethid = 2007982, x = -238.025, y = 267.843, z = 523.064,
+			requires = function () return HasQuest(2534) or QuestCompleted(2534) end,
+		}, --[13]
+		{id = 620, aethid = 2007983, x = -13.8095, y = 302.219, z = 28.1528,
+			requires = function () return QuestCompleted(2537) end,
+		}, --[14] -- gated
+		{id = 620, aethid = 2007984, x = 120.256, y = 305.38, z = 521.141,
+			requires = function () return QuestCompleted(2537) end,
+		},  --[15] -- gated
 	},
 	[621] = {
 		{id = 621, aethid = 2007985, x = -641.962, y = 64.3077, z = -291.188},
@@ -1173,7 +1199,9 @@ ffxiv_aethercurrent_data = {
 		{id = 622, aethid = 2008016, x = 742.701, y = -2.0423, z = -194.929},
 		{id = 622, aethid = 2008017, x = 282.856, y = 81.4797, z = -458.915},
 		{id = 622, aethid = 2008018, x = -267.346, y = 64.9846, z = -361.471},
-		{id = 622, aethid = 2008019, x = 105.608, y = 116.043, z = -49.6987},
+		{id = 622, aethid = 2008019, x = 105.608, y = 116.043, z = -49.6987, 
+			requires = function () return QuestCompleted(2507) end,
+		}, --[10]
 		{id = 622, aethid = 2008020, x = -410.025, y = 29.8629, z = -28.8243},
 		{id = 622, aethid = 2008021, x = -775.098, y = 13.7657, z = 347.003},
 		{id = 622, aethid = 2008022, x = -641.034, y = 6.11269, z = 702.88},
