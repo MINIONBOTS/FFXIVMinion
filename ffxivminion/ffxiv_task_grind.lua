@@ -842,7 +842,7 @@ function ffxiv_task_grind:Draw()
 		GUI:Text(GetString("Marker Time Remaning (s): "))
 		GUI:NextColumn()
 		
-		GUI:PushItemWidth(50)
+		GUI:PushItemWidth(150)
 		if TimeLeft > 0 then
 			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
 		else

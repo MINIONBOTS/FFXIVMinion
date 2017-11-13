@@ -2762,7 +2762,54 @@ end
 
 function ffxiv_task_fish:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
+	if FFXIV_Common_BotRunning then 
+		local currentMarker = ml_marker_mgr.currentMarker
+		if (currentMarker ~= nil) then
+		TimeLeft = currentMarker:GetTimeRemaining()
+		GUI:Columns(2)
+		GUI:Spacing();
+		GUI:Text(GetString("Marker Time Remaning (s): "))
+		GUI:NextColumn()
+		
+		GUI:PushItemWidth(150)
+		if TimeLeft > 0 then
+			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		else
+			GUI:InputText("##TimeLeft","Inf",GUI.InputTextFlags_ReadOnly) 
+		end
+		GUI:PopItemWidth()
+		GUI:Columns()
+		end
+		local profiletask = ffxiv_fish.currentTask
+		if table.valid(profiletask) then
+			local TimeLeft = 0
+			if profiletask.maxtime ~= nil then
+				if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
+					local TaskStarted = profiletask.taskStarted
+					if TaskStarted then
+						local TimeSince = TimeSince(profiletask.taskStarted) or 0
+						local MaxTime = profiletask.maxtime
+						TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
+						if TimeLeft < 0 then TimeLeft = Inf end
+					end
+				end
+			end
+			GUI:Columns(2)
+			GUI:Spacing();
+			GUI:Text(GetString("Task Time Remaning (s): "))
+			GUI:Spacing();
+			GUI:Text(GetString("Fish Task: "))
+			GUI:NextColumn()
+			
+			GUI:PushItemWidth(150)
+			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+			local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
+			GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
+			GUI:PopItemWidth()
+			GUI:Columns()
+		end	
 	GUI:Separator()
+	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Mode")
 	GUI:SameLine()
 	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
@@ -2798,21 +2845,6 @@ function ffxiv_task_fish:Draw()
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
 			end
 		end
-		GUI:Separator()
-		local TimeLeft = 0
-		local currentMarker = ml_marker_mgr.currentMarker
-		if (currentMarker ~= nil) then
-			TimeLeft = currentMarker:GetTimeRemaining()
-		end
-		GUI:Columns(2)
-		GUI:Spacing();
-		GUI:Text(GetString("Marker Time Remaning (s): "))
-		GUI:NextColumn()
-		
-		GUI:PushItemWidth(50)
-		GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
-		GUI:PopItemWidth()
-		GUI:Columns()
 	-- Profile Options
 	elseif gFishMarkerOrProfileIndex == 2 then
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
@@ -2832,35 +2864,6 @@ function ffxiv_task_fish:Draw()
 				ml_global_information:ToggleRun()
 				d("Please select/create a valid Profile.")
 			end
-		end
-		GUI:Separator()
-		local profiletask = ffxiv_fish.currentTask
-		if table.valid(profiletask) then
-			local TimeLeft = 999
-			if profiletask.maxtime ~= nil then
-				if (profiletask.maxtime > 0 and profiletask.maxtime ~= nil) then
-					local TastStarted = profiletask.taskStarted
-					local TimeSince = TimeSince(profiletask.taskStarted)
-					local MaxTime = profiletask.maxtime
-					TimeLeft = math.round(MaxTime-(TimeSince/1000),0)
-					if TimeLeft < 0 then TimeLeft = 0 end
-				end
-			end
-			GUI:BeginChild("##header-Timers",-8,GUI_GetFrameHeight(2),true)	
-			GUI:Columns(2)
-			GUI:Spacing()
-			GUI:Text(GetString("Task Time Remaning (s): "))
-			GUI:Spacing()
-			GUI:Text(GetString("Gather Task: "))
-			GUI:NextColumn()
-			
-			GUI:PushItemWidth(50)
-			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
-			local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
-			GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
-			GUI:PopItemWidth()
-			GUI:Columns()
-			GUI:EndChild()
 		end
 	end
 	-- Tabs
@@ -2966,17 +2969,6 @@ function ffxiv_task_fish:Draw()
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
 		if (modeChanged) then
 			ml_marker_mgr.UpdateMarkerSelector()
-		end
-		-- Task Time testing.
-		local marker = ml_marker_mgr.currentMarker
-		if table.valid(marker) then
-			local TimeLeft
-			if marker:GetTimeRemaining() > 0 then
-				TimeLeft = marker:GetTimeRemaining()
-			else
-				TimeLeft = 999
-			end
-			if TimeLeft ~= nil then GUI:Text("Task Time Remaning: "..TimeLeft.."s") end
 		end
 		GUI:PopItemWidth()
 		-- Marker List
