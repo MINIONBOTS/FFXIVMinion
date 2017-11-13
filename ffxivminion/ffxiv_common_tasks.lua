@@ -66,12 +66,13 @@ function ffxiv_task_movetopos:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 160 )
     self:add( ke_stuck, self.overwatch_elements)
 	
-	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 150 )
-    self:add( ke_useAethernet, self.process_elements)
-	
-	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 145 )
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 150 )
     self:add( ke_unlockAethernet, self.process_elements)
 	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 145 )
+    self:add( ke_useAethernet, self.process_elements)
+	c_useaethernet.used = false
+
 	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
     self:add( ke_teleportToMap, self.process_elements)
 			
@@ -457,11 +458,12 @@ function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
-	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 140 )
-    self:add( ke_useAethernet, self.process_elements)
-	
-	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 135 )
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 140 )
     self:add( ke_unlockAethernet, self.process_elements)
+	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 135 )
+    self:add( ke_useAethernet, self.process_elements)
+	c_useaethernet.used = false
 	
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
@@ -631,11 +633,12 @@ function ffxiv_task_movetomap:Init()
 	local ke_reachedMap = ml_element:create( "ReachedMap", c_reachedmap, e_reachedmap, 100)
     self:add( ke_reachedMap, self.overwatch_elements)
 	
-	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 70 )
-    self:add( ke_useAethernet, self.process_elements)
-	
-	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 65 )
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 70 )
     self:add( ke_unlockAethernet, self.process_elements)
+	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 65 )
+    self:add( ke_useAethernet, self.process_elements)
+	c_useaethernet.used = false
 	
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 60 )
     self:add( ke_teleportToMap, self.process_elements)

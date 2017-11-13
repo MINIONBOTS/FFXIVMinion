@@ -1473,6 +1473,7 @@ c_useaethernet = inheritsFrom( ml_cause )
 e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
+c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
@@ -1483,7 +1484,9 @@ function c_useaethernet:evaluate(mapid, pos)
 	e_useaethernet.nearest = nil
 	e_useaethernet.destination = nil
 	
-	if (not table.valid(gotoPos)) then
+	if (c_useaethernet.used) then
+		return false
+	elseif (not table.valid(gotoPos)) then
 		return false
 	elseif (table.valid(gotoPos) and Distance3DT(gotoPos,Player.pos) < 30 and destMapID == Player.localmapid) then
 		return false
@@ -1514,6 +1517,7 @@ function e_useaethernet:execute()
 			newTask.pos = e_useaethernet.nearest.pos
 			newTask.conversationstrings = e_useaethernet.destination.conversationstrings
 			newTask.useAethernet = true
+			c_useaethernet.used = true
 			
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
@@ -1539,12 +1543,13 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	
-	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
-	if (nearestAethernet) then
-		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
-			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
-			if (nearestDistance < 15 or nearestDistance < Distance3DT(Player.pos,gotoPos)) then
-				e_unlockaethernet.nearest = nearestAethernet
+	local nearestAethernetUnlocked,nearestDistanceUnlocked = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)		
+	local nearestAethernetLocked,nearestDistanceLocked = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
+	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
+		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
+			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernetLocked.id))
+			if (nearestDistanceLocked < 15 or nearestDistanceLocked < Distance3DT(Player.pos,gotoPos)) then
+				e_unlockaethernet.nearest = nearestAethernetLocked
 				return true
 			end
 		end
@@ -2756,14 +2761,23 @@ end
 
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
+e_recommendequip.lastEquip = {}
 function c_recommendequip:evaluate()
-	if (not gAutoEquip or Busy() or Player.incombat) then
+	if (not gAutoEquip or Busy() or Player.incombat or not IsNormalMap(Player.localmapid)) then
 		return false
 	end	
 	
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
 		ml_debug("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
 		return false
+	end
+	
+	-- Don't equip if we've already done it for this level.
+	-- Questing will automatically reset this as necessary if we receive gear.
+	if (table.valid(e_recommendequip.lastEquip)) then
+		if (e_recommendequip.lastEquip[Player.job] and e_recommendequip.lastEquip[Player.job] >= Player.level) then
+			return false
+		end	
 	end
 	
 	if (gBotMode == GetString("questMode")) then
@@ -2794,6 +2808,7 @@ function e_recommendequip:execute()
 					followall = function () 
 						ActionList:Get(10,2):Cast()
 						ml_global_information.lastEquip = Now()
+						e_recommendequip.lastEquip = { [Player.job] = Player.level }
 					end
 				}
 				ml_debug("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
@@ -3306,9 +3321,11 @@ function c_dointeract:evaluate()
 			return true
 			--]]
 			
-			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d and ydiff <= 4.5 and ydiff >= -1.3) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
+			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
 				if (interactable.type == 5) then
-					if (interactable.distance2d <= 6) then
+					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 6 and ydiff <= 4.7 and ydiff >= -1.3) or  
+						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2))
+					then
 						if (not IsFlying()) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
