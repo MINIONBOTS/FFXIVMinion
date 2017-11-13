@@ -1344,13 +1344,15 @@ Quest: Completes quests based on a questing profile.\
 							space = -100
 						end
 					end
-
+					
+					GUI:BeginChild("##main-task-section",0,space,false)
 					local mainTask = ml_global_information.mainTask
 					if (mainTask) then
 						if (mainTask.Draw) then
 							mainTask:Draw()
 						end
 					end
+					GUI:EndChild()
 					
 					if (space == -100 or space == -75) then
 						local GatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18

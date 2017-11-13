@@ -68,7 +68,7 @@ function ffxiv_craft.CanUseTea()
 		return false
 	end
 	
-	if (IsCrafter(Player.job) and MissingBuff(Player.id,49)) then
+	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,60)) then
 	
 		local tea, action = GetItem(19884)
 		if (tea and action and tea:IsReady(Player.id)) then
@@ -405,6 +405,7 @@ function c_precraftbuff:evaluate()
 			e_precraftbuff.requiresLogClose = true
 			return true
 		end
+		
 		local canUseTea,teaItem = ffxiv_craft.CanUseTea()
 		if (canUseTea and table.valid(teaItem)) then
 			d("[NodePreBuff]: Need to use a CP Tea.")
@@ -986,9 +987,6 @@ function ffxiv_task_craft:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Profile Tooltip")) end
 		GUI:SameLine()
 		
-		
-		
-		
 		local profileWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(profileWidth-68)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gCraftProfileIndex", "gCraftProfile", ffxiv_craft.profilesDisplay)
@@ -1056,6 +1054,7 @@ function ffxiv_task_craft:Draw()
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
+	
 	-- Orders List
 	if (tabname == GetString("Craft List")) then
 		
@@ -1107,6 +1106,7 @@ function ffxiv_task_craft:Draw()
 					ffxiv_task_craft.GUI.orders.open = true
 					GUI_SwitchTab(ffxiv_task_craft.GUI.orders.main_tabs,3)
 				end
+				
 				GUI:PopStyleColor(2)
 				GUI:NextColumn()
 				if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
@@ -1190,9 +1190,8 @@ function ffxiv_task_craft:Draw()
 				GUI:PopStyleColor(2)
 				GUI:NextColumn()
 			end
-			
-			GUI:Columns(1)
 		end
+		GUI:Columns(1)
 	end
 	
 	
@@ -1224,8 +1223,7 @@ function ffxiv_task_craft:Draw()
 		if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 			ffxivminion.FillFoodOptions()
 		end
-			
-		GUI:PopStyleColor()		
+		GUI:PopStyleColor(2)		
 		
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
