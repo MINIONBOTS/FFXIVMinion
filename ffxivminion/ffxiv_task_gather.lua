@@ -2784,7 +2784,7 @@ function e_gathernexttask:execute()
 	if (gBotMode == GetString("questMode")) then
 		gQuestStepType = "gather - ["..tostring(taskName).."]"
 	end
-	ml_marker_mgr.currentMarker = false
+	ml_marker_mgr.currentMarker = nil
 	gStatusMarkerName = ""
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_global_information.gatherid = 0
@@ -3325,21 +3325,21 @@ function ffxiv_task_gather:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	if FFXIV_Common_BotRunning then 
 		local currentMarker = ml_marker_mgr.currentMarker
-		if (currentMarker ~= nil) then
-		TimeLeft = currentMarker:GetTimeRemaining()
-		GUI:Columns(2)
-		GUI:Spacing();
-		GUI:Text(GetString("Marker Time Remaning (s): "))
-		GUI:NextColumn()
-		
-		GUI:PushItemWidth(150)
-		if TimeLeft > 0 then
-			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
-		else
-			GUI:InputText("##TimeLeft","Inf",GUI.InputTextFlags_ReadOnly) 
-		end
-		GUI:PopItemWidth()
-		GUI:Columns()
+		if (table.valid(currentMarker)) then
+			TimeLeft = currentMarker:GetTimeRemaining()
+			GUI:Columns(2)
+			GUI:Spacing();
+			GUI:Text(GetString("Marker Time Remaning (s): "))
+			GUI:NextColumn()
+			
+			GUI:PushItemWidth(150)
+			if TimeLeft > 0 then
+				GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+			else
+				GUI:InputText("##TimeLeft","Inf",GUI.InputTextFlags_ReadOnly) 
+			end
+			GUI:PopItemWidth()
+			GUI:Columns()
 		end
 		local profiletask = ffxiv_task_gather.currentTask
 		if table.valid(profiletask) then
@@ -3369,8 +3369,9 @@ function ffxiv_task_gather:Draw()
 			GUI:PopItemWidth()
 			GUI:Columns()
 		end	
-	GUI:Separator()
+		GUI:Separator()
 	end
+	
 	-- Gather Mode Selections.
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Mode")
