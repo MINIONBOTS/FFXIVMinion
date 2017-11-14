@@ -62,6 +62,8 @@ function ffxiv_task_grind.Create()
     newinst.targetid = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
+	ml_marker_mgr.currentMarker = nil
+	
 	newinst.filterLevel = true
 	newinst.correctMap = nil
 	newinst.correctMapFunction = nil -- Use this to trigger an always updating map.
@@ -75,8 +77,7 @@ function ffxiv_task_grind.Create()
 	
 	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
-	ml_marker_mgr.currentMarker = nil
-    
+	
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
@@ -834,8 +835,8 @@ function ffxiv_task_grind:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
-		local currentMarker = ml_marker_mgr.currentMarker
-		if (currentMarker ~= nil) then
+	local currentMarker = ml_marker_mgr.currentMarker
+	if (table.valid(currentMarker)) then
 		TimeLeft = currentMarker:GetTimeRemaining()
 		GUI:Columns(2)
 		GUI:Spacing();
@@ -850,7 +851,7 @@ function ffxiv_task_grind:Draw()
 		end
 		GUI:PopItemWidth()
 		GUI:Columns()
-		end
+	end
 		
 	if (tabname == GetString("Settings")) then
 		local settingschildsize = 5

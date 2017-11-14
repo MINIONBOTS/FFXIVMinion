@@ -1475,6 +1475,10 @@ e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
+	if (IsTransporting()) then
+		return false
+	end
+	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
 	if (destMapID == 0) then
@@ -1529,6 +1533,10 @@ e_unlockaethernet = inheritsFrom( ml_effect )
 e_unlockaethernet.nearest = nil
 e_unlockaethernet.destination = nil
 function c_unlockaethernet:evaluate(mapid, pos)
+	if (IsTransporting()) then
+		return false
+	end
+	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
 	if (destMapID == 0) then
@@ -1575,6 +1583,10 @@ c_usenavinteraction.blockOnly = false
 e_usenavinteraction.task = nil
 e_usenavinteraction.timer = 0
 function c_usenavinteraction:evaluate(pos)
+	if (IsTransporting()) then
+		return false
+	end
+	
 	local gotoPos = pos or ml_task_hub:ThisTask().pos
 	
 	e_usenavinteraction.task = nil
