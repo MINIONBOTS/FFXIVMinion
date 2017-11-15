@@ -1074,7 +1074,10 @@ function ffxiv_task_craft:Draw()
 		
 		local orders = ffxiv_craft.orders
 		if (table.valid(orders)) then
-			for id,order in pairs(orders) do
+			local sortfunc = function(orders,a,b) 
+				return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
+			end
+			for id,order in spairs(orders, sortfunc) do
 				GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
 				
 				itemcount = order["itemcount"]
