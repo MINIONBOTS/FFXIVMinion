@@ -1057,7 +1057,31 @@ function ffxiv_task_craft:Draw()
 	
 	-- Orders List
 	if (tabname == GetString("Craft List")) then
-		
+		if FFXIV_Common_BotRunning and (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
+			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().itemid ~= nil) then
+				local itemid = ml_task_hub:CurrentTask().itemid
+				local requiredItems = ml_task_hub:CurrentTask().requiredItems
+				local startingCount = ml_task_hub:CurrentTask().startingCount 
+				local requireHQ = ml_task_hub:CurrentTask().requireHQ
+				local countHQ = ml_task_hub:CurrentTask().countHQ
+				local itemcount = 0
+				if (requireHQ) then
+					itemcount = itemcount + ItemCount(itemid + 1000000)
+				elseif (countHQ) then
+					itemcount = itemcount + ItemCount(itemid,true)
+				else
+					itemcount = itemcount + ItemCount(itemid)
+				end
+				local remainingCount = 0
+				if (requiredItems > 0) then
+					remainingCount = (requiredItems - (itemcount - startingCount))
+				end
+				GUI:PushItemWidth(100)
+				GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##remainingCount",remainingCount,GUI.InputTextFlags_ReadOnly)
+				GUI:PopItemWidth()
+			end
+		end
+	
 		GUI:Separator();
 		GUI:Columns(7, "#craft-manage-orders", true)
 		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 275); GUI:SetColumnOffset(4, 325); GUI:SetColumnOffset(5, 370); GUI:SetColumnOffset(6, 430); GUI:SetColumnOffset(7, 500);
