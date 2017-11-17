@@ -1535,8 +1535,8 @@ function c_nodeprebuff:evaluate()
 		if (ShouldEat()) then
 			d("[NodePreBuff]: Need to eat.")
 			e_nodeprebuff.activity = "eat"
-			e_nodeprebuff.requirestop = true
-			e_nodeprebuff.requiredismount = true
+			e_nodeprebuff.requirestop = false
+			e_nodeprebuff.requiredismount = false
 			return true
 		end
 		
@@ -1631,8 +1631,8 @@ function c_nodeprebuff:evaluate()
 						d("[NodePreBuff]: Need to use a cordial.")
 						e_nodeprebuff.activity = "usecordial"
 						e_nodeprebuff.itemid = cordialItem.hqid
-						e_nodeprebuff.requirestop = true
-						e_nodeprebuff.requiredismount = true
+						e_nodeprebuff.requirestop = false
+						e_nodeprebuff.requiredismount = false
 						return true
 					end					
 				end
@@ -1676,8 +1676,8 @@ function c_nodeprebuff:evaluate()
 				if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
 					e_nodeprebuff.activity = "usefood"
 					e_nodeprebuff.itemid = food.hqid
-					e_nodeprebuff.requirestop = true
-					e_nodeprebuff.requiredismount = true
+					e_nodeprebuff.requirestop = false
+					e_nodeprebuff.requiredismount = false
 					return true
 				end
 			end
@@ -1742,7 +1742,7 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
 		if (GetGameRegion() ~= 1) then
-			e_nodeprebuff.requiredismount = true
+			e_nodeprebuff.requiredismount = false
 		end
 		return true
 	end
@@ -1756,7 +1756,7 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
 		if (GetGameRegion() ~= 1) then
-			e_nodeprebuff.requiredismount = true
+			e_nodeprebuff.requiredismount = false
 		end
 		return true
 	end		

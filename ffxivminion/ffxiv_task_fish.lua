@@ -228,11 +228,11 @@ function c_precastbuff:evaluate()
 	c_precastbuff.requiredismount = false
 		
 	local fs = tonumber(Player:GetFishingState())
-	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,764)) and fs == 4)) then
+	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,763) and MissingBuff(Player,764)) and fs == 4)) then
 		if (Player.job ~= FFXIV.JOBS.FISHER) then
 			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
 				c_precastbuff.activity = "switchclass"
-				c_precastbuff.requirestop = true
+				c_precastbuff.requirestop = false
 				c_precastbuff.requiredismount = false
 				return true
 			else
@@ -243,9 +243,10 @@ function c_precastbuff:evaluate()
 		end
 
 		if (ShouldEat()) then
+		d("should eat")
 			c_precastbuff.activity = "eat"
-			c_precastbuff.requirestop = true
-			c_precastbuff.requiredismount = true
+			c_precastbuff.requirestop = false
+			c_precastbuff.requiredismount = false
 			return true
 		end
 		
@@ -330,13 +331,13 @@ function c_precastbuff:evaluate()
 	return false
 end
 function e_precastbuff:execute()
-	ffxiv_fish.StopFishing()
+	--ffxiv_fish.StopFishing()
 	
 	local activityitemid = c_precastbuff.itemid
 	local requirestop = c_precastbuff.requirestop
 	local requiredismount = c_precastbuff.requiredismount
 	local activity = c_precastbuff.activity
-	
+				
 	if (requirestop and Player:IsMoving()) then
 		Player:PauseMovement()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
