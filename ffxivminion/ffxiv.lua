@@ -1164,7 +1164,7 @@ function ffxivminion.ClearAddons()
 			)
 		end
 		
-		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0) then
+		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0 and gTradeInviteMessage) then
 			if (ValidString(gTradeInviteMessages)) then
 				local messageTable = {}
 				for message in StringSplit(gTradeInviteMessages,";") do
