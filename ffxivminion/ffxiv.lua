@@ -1151,21 +1151,24 @@ function ffxivminion.ClearAddons()
 	--trade window
 	if (IsControlOpen("Trade") and not Player:IsMoving()) then
 		
-		if (Now() < ffxivminion.lastTradeDecline + 15000 and ffxivminion.tradeDeclines > 0 and gTradeInviteBusy) then
-			--Player:CheckTradeWindow()
+		if (Now() < ffxivminion.lastTradeDecline + 15000 and gTradeInviteBusy and (ffxivminion.tradeDeclines > 0 or not gTradeInviteMessage)) then
+			d("Trade window active, attempting to close then will go into busy.")
+			UseControlAction("Trade","Close")
 			ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
 			ffxivminion.lastTradeDecline = Now()
 			ml_global_information.Await(5000, 
 				function () return IsControlOpen("Trade") end, 
 				function () 
+					d("Trade window closed, doing into busy.")
 					SendTextCommand("/busy on")
 					ffxivminion.busyTimer = Now() + 60000
 				end
 			)
 		end
 		
-		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0 and gTradeInviteMessage) then
-			if (ValidString(gTradeInviteMessages)) then
+		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0) then
+			if (gTradeInviteMessage and ValidString(gTradeInviteMessages)) then
+				d("Trade window active, attepting to send chat message.")
 				local messageTable = {}
 				for message in StringSplit(gTradeInviteMessages,";") do
 					table.insert(messageTable,message)
@@ -1181,7 +1184,17 @@ function ffxivminion.ClearAddons()
 			end
 			ml_global_information.AwaitThen(math.random(2000,7000), 
 				function ()
-					--Player:CheckTradeWindow()
+					d("Trade window active, now closing window.")
+					UseControlAction("Trade","Close")
+					ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
+					ffxivminion.lastTradeDecline = Now()
+				end
+			)
+		elseif (ffxivminion.tradeDeclines > 0 and gTradeInviteMessage and not gTradeInviteBusy) then
+			ml_global_information.AwaitThen(math.random(2000,7000), 
+				function ()
+					d("Trade window recently closed, not sending chat message.")
+					UseControlAction("Trade","Close")
 					ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
 					ffxivminion.lastTradeDecline = Now()
 				end
