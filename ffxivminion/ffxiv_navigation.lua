@@ -1925,6 +1925,46 @@ function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
 	end
 end
 
+function ml_navigation.DrawPath(event, ticks)
+	--if ( ml_navigation.CanRun() ) then
+		-- Draw the Navpath in 3D
+		if ( gNavShowPath and table.size(ml_navigation.path) > 1 ) then
+			
+			local maxWidth, maxHeight = GUI:GetScreenSize()
+			GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
+			GUI:SetNextWindowSize(maxWidth,maxHeight,GUI.SetCond_Always) --set the next window size
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
+			flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+			GUI:Begin("Show Nav Space", true, flags)
+
+			-- Build the 3d object table	
+			-- The table is built in this way so that the draw is not dependent on keys being in order.  
+			-- Could use pairsByKeys too I guess, overall effect is probably non-existent.
+			local nodemap = {}
+			for id, node in pairsByKeys(ml_navigation.path) do	
+				local nodePos = RenderManager:WorldToScreen({ x = node.x, y = node.y, z = node.z })
+				if (table.valid(nodePos)) then
+					GUI:AddCircleFilled(nodePos.x,nodePos.y,7,GUI:ColorConvertFloat4ToU32(1,.2,.2,1))
+					table.insert(nodemap,nodePos)
+				end
+			end
+			
+			for i = 1,#nodemap do
+				local thisnode = nodemap[i]
+				local nextnode = nodemap[i+1]
+				if (thisnode and nextnode) then
+					GUI:AddLine(thisnode.x, thisnode.y, nextnode.x, nextnode.y, GUI:ColorConvertFloat4ToU32(.2,1,.2,1), 6)
+				end
+			end	
+		
+			GUI:End()
+			GUI:PopStyleColor()
+		end
+	--end
+end
+--RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawPath)
+
 
 
 
