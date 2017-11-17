@@ -1152,7 +1152,7 @@ function ffxivminion.ClearAddons()
 	if (IsControlOpen("Trade") and not Player:IsMoving()) then
 		
 		if (Now() < ffxivminion.lastTradeDecline + 15000 and ffxivminion.tradeDeclines > 0 and gTradeInviteBusy) then
-			Player:CheckTradeWindow()
+			--Player:CheckTradeWindow()
 			ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
 			ffxivminion.lastTradeDecline = Now()
 			ml_global_information.Await(5000, 
@@ -1164,7 +1164,7 @@ function ffxivminion.ClearAddons()
 			)
 		end
 		
-		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0) then
+		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0 and gTradeInviteMessage) then
 			if (ValidString(gTradeInviteMessages)) then
 				local messageTable = {}
 				for message in StringSplit(gTradeInviteMessages,";") do
@@ -1181,7 +1181,7 @@ function ffxivminion.ClearAddons()
 			end
 			ml_global_information.AwaitThen(math.random(2000,7000), 
 				function ()
-					Player:CheckTradeWindow()
+					--Player:CheckTradeWindow()
 					ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
 					ffxivminion.lastTradeDecline = Now()
 				end
