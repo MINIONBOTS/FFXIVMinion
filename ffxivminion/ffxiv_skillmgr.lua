@@ -1720,6 +1720,14 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.CULINARIAN] = IsNull(gSkillProfileValidCUL,false),
 	}
 	
+	if (table.valid(SkillMgr.ProfileRaw)) then
+		for k,v in pairs(SkillMgr.ProfileRaw) do
+			if (info[k] == nil) then
+				info[k] = v
+			end
+		end
+	end
+	
 	persistence.store(filename,info)
 end
 
