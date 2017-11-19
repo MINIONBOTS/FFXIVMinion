@@ -2210,6 +2210,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	end
 	
 	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
+		if (MIsLoading()) then
+			ml_global_information.Await(10000, function () return not Busy() end)
+		end
 		return true
 	elseif (self.unlockAethernet and AceLib.API.Map.HasAttunements(self.contentid)) then
 		return true
