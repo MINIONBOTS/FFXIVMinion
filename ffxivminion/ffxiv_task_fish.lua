@@ -31,6 +31,28 @@ ffxiv_fish.collectibles = {
     { name = AceLib.API.Items.GetNameByID(12767,47), id = 12767, alias = "Warmwater Bichir", minimum = 683 },
     { name = AceLib.API.Items.GetNameByID(12792,47), id = 12792, alias = "Weston Bowfin", minimum = 376 },
     { name = AceLib.API.Items.GetNameByID(12721,47), id = 12721, alias = "Whilom Catfish", minimum = 459 },
+	-- SB
+    { name = AceLib.API.Items.GetNameByID(20274,47), id = 20274, alias = "Deemster", minimum = 829 },
+    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Wraithfish", minimum = 50 },
+    { name = AceLib.API.Items.GetNameByID(20024,47), id = 20024, alias = "Sweatfish", minimum = 0 },
+    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Soul of the Stallion", minimum = 50 },
+    { name = AceLib.API.Items.GetNameByID(20019,47), id = 20019, alias = "Ala Mhigan Ribbon", minimum = 40 },
+    { name = AceLib.API.Items.GetNameByID(20021,47), id = 20021, alias = "Seraphim", minimum = 49 },
+    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Thousandfang", minimum = 50 },
+    { name = AceLib.API.Items.GetNameByID(20230,47), id = 20230, alias = "Fangshi", minimum = 303 },
+    { name = AceLib.API.Items.GetNameByID(20239,47), id = 20239, alias = "Mosasaur", minimum = 824 },
+    { name = AceLib.API.Items.GetNameByID(20233,47), id = 20233, alias = "Eternal Eye", minimum = 25 },
+    { name = AceLib.API.Items.GetNameByID(20210,47), id = 20210, alias = "Mitsuriku Shark", minimum = 819 },
+    { name = AceLib.API.Items.GetNameByID(20238,47), id = 20238, alias = "Silken Sunfish", minimum = 767 },
+    { name = AceLib.API.Items.GetNameByID(20220,47), id = 20220, alias = "Cherubfish", minimum = 21 },
+    { name = AceLib.API.Items.GetNameByID(20104,47), id = 20104, alias = "Daio Squid", minimum = 1034 },
+    { name = AceLib.API.Items.GetNameByID(20028,47), id = 20028, alias = "Samurai Fish", minimum = 14 },
+    { name = AceLib.API.Items.GetNameByID(20044,47), id = 20044, alias = "Tao Bitterling", minimum = 49 },
+    { name = AceLib.API.Items.GetNameByID(20036,47), id = 20036, alias = "Killifish", minimum = 9 },
+    { name = AceLib.API.Items.GetNameByID(20118,47), id = 20118, alias = "Yanxian Koi", minimum = 451 },
+    { name = AceLib.API.Items.GetNameByID(20098,47), id = 20098, alias = "Butterfly Fish", minimum = 115 },
+    { name = AceLib.API.Items.GetNameByID(20087,47), id = 20087, alias = "Velodyna Grass Carp", minimum = 690 },
+	
 }
 
 ffxiv_fish.GUI = {
