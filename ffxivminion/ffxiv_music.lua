@@ -156,23 +156,20 @@ end
 -- for information on calculating note frequencies.
 function ffxiv_music.DoAction(note, octave)
 	local actions = ffxiv_music.actions
-	if (table.valid(actions[octave])) then
-		if (actions[octave][note]) then
-			--d("Playing designated note [" .. note .. "], octave ["..tostring(octave).."]")
-			local action = ActionList:Get(28, actions[octave][note])
-			if (action and not action.isoncd) then
-				--action:Cast(Player.id)
-				action:Cast()
-				return true
-			end
+	if (table.valid(actions[octave]) and actions[octave][note]) then
+		--d("Playing designated note [" .. note .. "], octave ["..tostring(octave).."]")
+		local action = ActionList:Get(28, actions[octave][note])
+		if (action) then
+			--action:Cast(Player.id)
+			action:Cast()
+			return true
 		end
 	else
-		--d("couldn't find octave ["..tostring(octave).."]")
-		if (octave > -1) then
-			for i = octave, -1, -1 do
+		if (octave < -1) then
+			for i = octave, 2 do
 				if (actions[i] and actions[i][note]) then
 					local action = ActionList:Get(28, actions[i][note])
-					if (action and not action.isoncd) then
+					if (action) then
 						--d("Playing altered note [" .. note .. "], desired-octave ["..tostring(octave).."], played-octave ["..tostring(i).."]")
 						--action:Cast(Player.id)
 						action:Cast()
@@ -181,10 +178,10 @@ function ffxiv_music.DoAction(note, octave)
 				end
 			end
 		else
-			for i = octave, 2 do
+			for i = octave, -1, -1 do
 				if (actions[i] and actions[i][note]) then
 					local action = ActionList:Get(28, actions[i][note])
-					if (action and not action.isoncd) then
+					if (action) then
 						--d("Playing altered note [" .. note .. "], desired-octave ["..tostring(octave).."], played-octave ["..tostring(i).."]")
 						--action:Cast(Player.id)
 						action:Cast()
@@ -208,7 +205,7 @@ end
 -- Calculates how long a note is in seconds given a note fraction
 -- (quarter note = 4, half note = 2, etc.) and a tempo (in beats per minute).
 function ffxiv_music.CalculateNoteTime(notefrac, bpm)
-	return (240/notefrac) / bpm
+	return ((240/notefrac) / bpm * 1000)
 end
 
 function ffxiv_music.CalculateNote(note, outputType)
@@ -253,7 +250,7 @@ function ffxiv_music.ParseMML(str)
 	if not c then -- Probably bad syntax.
 		error("Malformed MML")
 	end
-
+	
 	ffxiv_music.position = pos + (newpos - 1)
 	--d("new position"..tostring(ffxiv_music.position))
 
@@ -273,8 +270,6 @@ function ffxiv_music.ParseMML(str)
 		else
 			delay = ffxiv_music.CalculateNoteTime(notelength, tempo)
 		end
-		
-		delay = (delay * 1000)
 		
 		--d("delay (ms):"..tostring(delay))
 		ffxiv_music.delay = Now() + delay
@@ -308,9 +303,9 @@ function ffxiv_music.ParseMML(str)
 		ffxiv_music.DoAction(note, octave)
 
 		local notetime
-		local len = string.match(args, "%d+")
-		if len then
-			notetime = ffxiv_music.CalculateNoteTime(tonumber(len), tempo)
+		local length = string.match(args, "%d+")
+		if length then
+			notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
 		else
 			notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
 		end
@@ -319,7 +314,6 @@ function ffxiv_music.ParseMML(str)
 		if string.find(args, "%.") then
 			notetime = notetime * 1.5
 		end
-		notetime = notetime * 1000
 		
 		--d("notetime (ms):"..tostring(notetime))
 		ffxiv_music.delay = Now() + notetime
