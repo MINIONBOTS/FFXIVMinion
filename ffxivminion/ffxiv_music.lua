@@ -49,7 +49,7 @@ ffxiv_music = {
 }
 
 function ffxiv_music.Reset()
-	ffxiv_music.octave = 0
+	ffxiv_music.octave = -1
 	ffxiv_music.tempo = 60
 	ffxiv_music.notelength = 4
 	ffxiv_music.volume = 10
@@ -59,8 +59,9 @@ end
 function ffxiv_music.Init()
 	ffxiv_music.UpdateFiles()
 	
+	gMusicText = ffxivminion.GetSetting("gMusicText","")
 	gMusicMML = ffxivminion.GetSetting("gMusicMML",GetString("None"))
-	gMusicMMLIndex = GetKeyByValue(gMusicMMLIndex,ffxiv_music.files) or 1
+	gMusicMMLIndex = GetKeyByValue(gMusicMML,ffxiv_music.files) or 1
 	if (ffxiv_music.files[gMusicMMLIndex] ~= gMusicMML) then
 		gMusicMML = ffxiv_music.files[gMusicMMLIndex] or GetString("None")
 	end
@@ -68,8 +69,7 @@ function ffxiv_music.Init()
 	if (gMusicMML ~= GetString("None")) then
 		ffxiv_music.LoadMML(gMusicMML)
 	end
-	
-	gMusicText = ffxivminion.GetSetting("gMusicText","")
+
 	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_Music", name = "Music", onClick = function() ffxiv_music.GUI.open = not ffxiv_music.GUI.open end, tooltip = "Open the Music editor."},"FFXIVMINION##MENU_HEADER")
 end
 
@@ -166,6 +166,7 @@ function ffxiv_music.DoAction(note, octave)
 		end
 	else
 		if (octave < -1) then
+			d("need an octave < -1")
 			for i = octave, 2 do
 				if (actions[i] and actions[i][note]) then
 					local action = ActionList:Get(28, actions[i][note])
