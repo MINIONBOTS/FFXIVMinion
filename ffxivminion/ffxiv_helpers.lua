@@ -1957,6 +1957,19 @@ function IsHealingSkill(skillID)
 		[3602] = true,
 		[3610] = true,
 		[3614] = true,
+		[7434] = true,
+		[7445] = true,
+		[8895] = true,
+		[8896] = true,
+		[8898] = true,
+		[8902] = true,
+		[8904] = true,
+		[8905] = true,
+		[8909] = true,
+		[8913] = true,
+		[8914] = true,
+		[8916] = true,
+		[10029] = true,
 	}
     if (cures[id]) then
         return true
@@ -1974,11 +1987,25 @@ function IsFriendlyBuff(skillID)
 		[2249] = true,
 		[3564] = true,
 		[3565] = true,
+		[3611] = true,
 		[3612] = true,
+		[7432] = true,
+		[8921] = true,
+		[8922] = true,
+		[8923] = true,
+		[8924] = true,
+		[9621] = true,
+		[9651] = true,
 	}
+	
     if (buffs[id]) then
         return true
     end
+	
+	if (id >= 4401 and id <= 4424) then
+		return true
+	end
+	
     return false
 end
 function IsMudraSkill(skillID)
