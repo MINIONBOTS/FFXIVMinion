@@ -3846,7 +3846,27 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			if (healTargets[trgstring]) then
 				local htarget = healTargets[trgstring]
 				if (tonumber(skill.hpriohp) > htarget.hp.percent) then
-					ally = htarget
+					
+					local buffCheckPassed = true
+					if (not IsNullString(skill.tbuff)) then
+						local owner = (skill.tbuffowner == "Player") and PID or nil
+						local duration = tonumber(skill.tbuffdura) or 0
+						if not HasBuffs(htarget, skill.tbuff, duration, owner) then 
+							buffCheckPassed = false
+						end 
+					end
+					
+					if (not IsNullString(skill.tnbuff)) then
+						local owner = (skill.tnbuffowner == "Player") and PID or nil
+						local duration = tonumber(skill.tnbuffdura) or 0
+						if not MissingBuffs(htarget, skill.tnbuff, duration, owner) then 
+							buffCheckPassed = false
+						end 
+					end	
+					
+					if (buffCheckPassed) then
+						ally = htarget
+					end
 				end
 			end
 			if (ally) then
