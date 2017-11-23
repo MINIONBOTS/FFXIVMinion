@@ -122,6 +122,7 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian",
 	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
+	[FFXIV.JOBS.REDMAGE] = "Redmage",
 }
 
 SkillMgr.ExtraProfiles = {
