@@ -266,9 +266,11 @@ function ffxiv_music.ParseMML(str)
 
 	elseif c == "r" or c == "p" then -- Rest
 		local delay
-		if args ~= "" then
-			delay = ffxiv_music.CalculateNoteTime( tonumber(args), tempo )
+		if (tonumber(args) ~= nil) then
+			--d("r delay args ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
+			delay = ffxiv_music.CalculateNoteTime(tonumber(args),tempo)
 		else
+			--d("r delay ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
 			delay = ffxiv_music.CalculateNoteTime(notelength, tempo)
 		end
 		
@@ -277,8 +279,11 @@ function ffxiv_music.ParseMML(str)
 		--coroutine.yield(nil, delay, nil)
 
 	elseif c == "l" then -- Set note length
-		ffxiv_music.notelength = tonumber(args)
-
+		if (tonumber(args) ~= nil) then
+			ffxiv_music.notelength = tonumber(args)
+		else
+			d("args @ ["..tostring(newpos).."] for length was invalid ["..tostring(args).."]")
+		end
 	elseif c == ">" then -- Increase octave
 		if (ffxiv_music.octave < 2) then
 			ffxiv_music.octave = octave + 1
@@ -305,9 +310,11 @@ function ffxiv_music.ParseMML(str)
 
 		local notetime
 		local length = string.match(args, "%d+")
-		if length then
+		if (tonumber(length) ~= nil) then
+			--d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
 			notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
 		else
+			--d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
 			notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
 		end
 
