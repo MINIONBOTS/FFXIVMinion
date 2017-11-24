@@ -5565,7 +5565,7 @@ function SkillMgr.AddDefaultConditions()
 		
 		if (Player:IsMoving() and not skill.ignoremoving) then
 			if (realskilldata.casttime > 0) then
-				if (not HasBuffs(Player,"167",1)) then
+				if (not HasBuffs(Player,"167+1249",1)) then
 					return true
 				end
 			else
