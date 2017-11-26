@@ -5565,7 +5565,7 @@ function SkillMgr.AddDefaultConditions()
 		
 		if (Player:IsMoving() and not skill.ignoremoving) then
 			if (realskilldata.casttime > 0) then
-				if (not HasBuffs(Player,"167+1249",1)) then
+				if (MissingBuffs(Player,"167+1249",1)) then
 					return true
 				end
 			else
@@ -5585,34 +5585,50 @@ function SkillMgr.AddDefaultConditions()
 		
 		for i = 1,4 do
 			local g = Player.gauge
+			
 			if (table.valid(g) and g[i] ~= nil and tonumber(g[i]) ~= nil) then
-				if (skill["gauge"..tostring(i).."lt"] ~= 0) then
-					if (g[i] > skill["gauge"..tostring(i).."lt"]) then
-						return true
-					end
-				end	
-				if (skill["gauge"..tostring(i).."gt"] ~= 0) then
-					if (g[i] < skill["gauge"..tostring(i).."gt"]) then
-						return true
-					end
-				end		
-				if (skill["gauge"..tostring(i).."eq"] ~= 0) then
-					if (g[i] ~= skill["gauge"..tostring(i).."eq"]) then
-						return true
-					end
-				end		
-				if (skill["gauge"..tostring(i).."or"] ~= "") then
-					local foundVal = false
-					for val in StringSplit(skill["gauge"..tostring(i).."or"],",") do
-						if (tonumber(val) == g[i]) then
-							foundVal = true
-							break
+				if (skill["gauge"..tostring(1).."or"] == "Gauge") or (skill["gauge"..tostring(2).."or"] == "Gauge") then
+					if (skill["gauge"..tostring(1).."or"] == "Gauge") then
+						if (g[1] > g[2]) then
+							--d(tostring(skill.name).." returned false because... Gauge 1 ["..tostring(g[1]).."] > Gauge 2 ["..tostring(g[2]).."]")
+							return true
 						end
-					end					
-					if (not foundVal) then
-						return true
 					end
-				end		
+					if (skill["gauge"..tostring(2).."or"] == "Gauge") then
+						if (g[2] > g[1]) then
+							--d(tostring(skill.name).." returned false because... Gauge 2 ["..tostring(g[2]).."] > Gauge 1 ["..tostring(g[1]).."]")
+							return true
+						end
+					end	
+				else
+					if (skill["gauge"..tostring(i).."lt"] ~= 0) then
+						if (g[i] > skill["gauge"..tostring(i).."lt"]) then
+							return true
+						end
+					end	
+					if (skill["gauge"..tostring(i).."gt"] ~= 0) then
+						if (g[i] < skill["gauge"..tostring(i).."gt"]) then
+							return true
+						end
+					end		
+					if (skill["gauge"..tostring(i).."eq"] ~= 0) then
+						if (g[i] ~= skill["gauge"..tostring(i).."eq"]) then
+							return true
+						end
+					end		
+					if (skill["gauge"..tostring(i).."or"] ~= "") then
+						local foundVal = false
+						for val in StringSplit(skill["gauge"..tostring(i).."or"],",") do
+							if (tonumber(val) == g[i]) then
+								foundVal = true
+								break
+							end
+						end					
+						if (not foundVal) then
+							return true
+						end
+					end		
+				end
 			end
 		end
 		
