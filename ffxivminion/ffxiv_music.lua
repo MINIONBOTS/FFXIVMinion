@@ -25,18 +25,20 @@ ffxiv_music = {
 	
 	actions = {
 		[-1] = {
-			["c"] = 1, ["c#"] = 2, ["d"] = 3, ["d#"] = 4, ["e-"] = 4, ["e"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a"] = 10, ["a#"] = 11, ["b-"] = 11, ["b"] = 12,
+			["c-"] = 1, ["c"] = 1, ["c#"] = 2, ["d-"] = 2, ["d"] = 3, ["d#"] = 4, ["e-"] = 4, ["e"] = 5, ["e#"] = 6, ["f-"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a-"] = 9, ["a"] = 10, ["a#"] = 11, ["b-"] = 11, ["b"] = 12,
 		},
 		[0] = {
-			["c"] = 13, ["c#"] = 14, ["d"] = 15, ["d#"] = 16, ["e-"] = 16, ["e"] = 17, ["f"] = 18, ["f#"] = 19, ["g"] = 20, ["g#"] = 21, ["a"] = 22, ["a#"] = 23, ["b-"] = 23, ["b"] = 24,
+			["c-"] = 12, ["c"] = 13, ["c#"] = 14, ["d-"] = 14, ["d"] = 15, ["d#"] = 16, ["e-"] = 16, ["e"] = 17, ["e#"] = 18, ["f"] = 18, ["f-"] = 17, ["f#"] = 19, ["g"] = 20, ["g#"] = 21, ["a-"] = 21, ["a"] = 22, ["a#"] = 23, ["b-"] = 23, ["b"] = 24,
 		},
 		[1] = {
-			["c"] = 25, ["c#"] = 26, ["d"] = 27, ["d#"] = 28, ["e-"] = 28, ["e"] = 29, ["f"] = 30, ["f#"] = 31, ["g"] = 32, ["g#"] = 33, ["a"] = 34, ["a#"] = 35, ["b-"] = 35, ["b"] = 36,
+			["c-"] = 24, ["c"] = 25, ["c#"] = 26, ["d-"] = 26, ["d"] = 27, ["d#"] = 28, ["e-"] = 28, ["e"] = 29, ["e#"] = 18, ["f"] = 30, ["f-"] = 29, ["f#"] = 31, ["g"] = 32, ["g#"] = 33, ["a-"] = 33, ["a"] = 34, ["a#"] = 35, ["b-"] = 35, ["b"] = 36,
 		},
 		[2] = {
-			["c"] = 37, --["c#"] = 39, ["d"] = 3, ["e-"] = 4, ["e"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a"] = 10, ["b-"] = 11, ["b"] = 12,
+			["c-"] = 36, ["c"] = 37, --["c#"] = 39, ["d"] = 3, ["e-"] = 4, ["e"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a"] = 10, ["b-"] = 11, ["b"] = 12,
 		},
 	},
+	
+	replay = {},
 	
 	GUI = {
 		open = false,
@@ -162,14 +164,17 @@ function ffxiv_music.DoAction(note, octave)
 		if (action) then
 			--local success = false
 			--repeat
-			action:Cast(Player.id)
+			if (action:Cast(Player.id)) then
 				--if (action:Cast()) then
 					--success = true
 				--end
 			--until (success == true)
-			return true
+				return true
+			end
+			return false
 		end
 	else
+		--d("check backup notes")
 		if (octave < -1) then
 			--d("need an octave < -1")
 			for i = octave, 2 do
@@ -179,34 +184,41 @@ function ffxiv_music.DoAction(note, octave)
 						--local success = false
 						--repeat
 						--d("Playing altered note [" .. note .. "], desired-octave ["..tostring(octave).."], played-octave ["..tostring(i).."]")
-						action:Cast(Player.id)
+						if (action:Cast()) then
 							--if (action:Cast()) then
 								--success = true
 							--end
 						--until (success == true)
-						return true
+							return true
+						end
+						return false
 					end
 				end
 			end
 		else
 			for i = octave, -1, -1 do
+				--d("checking octave ["..tostring(i).."]")
 				if (actions[i] and actions[i][note]) then
 					local action = ActionList:Get(28, actions[i][note])
 					if (action) then
 						--local success = false
 						--repeat
 						--d("Playing altered note [" .. note .. "], desired-octave ["..tostring(octave).."], played-octave ["..tostring(i).."]")
-						action:Cast(Player.id)
+						if (action:Cast()) then
 							--if (action:Cast()) then
 								--success = true
 							--end
 						--until (success == true)
-						return true
+							return true
+						end
+						return false
 					end
 				end
 			end
 		end
 	end
+	
+	return nil
 end
 
 function ffxiv_music.CalculateNoteFrequency(n)
@@ -241,6 +253,19 @@ function ffxiv_music.ParseMML(str)
 	if (Now() < ffxiv_music.delay) then
 		--d("delaying playback")
 		return false
+	end
+	
+	if (table.valid(ffxiv_music.replay)) then		
+		local ret = ffxiv_music.DoAction(ffxiv_music.replay.note, ffxiv_music.replay.octave)
+		--if (ret == false) then
+			--d("replaying note ["..tostring(ffxiv_music.replay.note).."], octave ["..tostring(ffxiv_music.replay.octave).."], notetime ["..tostring(ffxiv_music.replay.notetime).."]")
+			--ffxiv_music.replay = {notetime = ffxiv_music.replay.notetime, note = ffxiv_music.replay.note, octave = ffxiv_music.replay.octave}
+		--else
+			
+		--end	
+		ffxiv_music.delay = Now() + ffxiv_music.replay.notetime
+		ffxiv_music.replay = {}
+		return true
 	end
 	
 	local playedNote = false
@@ -303,7 +328,7 @@ function ffxiv_music.ParseMML(str)
 				delay = ffxiv_music.CalculateNoteTime(notelength, tempo)
 			end
 			
-			d("delay (ms):"..tostring(delay))
+			--d("delay (ms):"..tostring(delay))
 			ffxiv_music.delay = Now() + delay
 			--coroutine.yield(nil, delay, nil)
 			playedNote = true
@@ -334,11 +359,10 @@ function ffxiv_music.ParseMML(str)
 				note = c
 			end
 			
-			ffxiv_music.DoAction(note, octave)
-
 			local notetime
 			local length = string.match(args, "%d+")
 			if (tonumber(length) ~= nil) then
+				length = math.abs(length)
 				--d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
 				notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
 			else
@@ -351,8 +375,13 @@ function ffxiv_music.ParseMML(str)
 				notetime = notetime * 1.5
 			end
 			
-			d("note ["..tostring(note).."], octave ["..tostring(octave).."], notetime ["..tostring(notetime).."]")
-			
+			local ret = ffxiv_music.DoAction(note, octave)
+			if (ret == false) then
+				d("replaying note ["..tostring(note).."], octave ["..tostring(octave).."], notetime ["..tostring(notetime).."]")
+				ffxiv_music.replay = {notetime = notetime, note = note, octave = octave}
+				return false
+			end
+
 			--d("notetime (ms):"..tostring(notetime))
 			ffxiv_music.delay = Now() + notetime
 			playedNote = true
