@@ -1129,6 +1129,19 @@ function ffxiv_task_craft:Draw()
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
+					for i = 1,6 do
+						if (not order["hq"..tostring(i)]) then
+							_G["gCraftOrderEditHQIngredient"..tostring(i)] = 0
+							_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = 0
+							_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
+							ffxiv_craft.UpdateOrderElement()
+						else
+							_G["gCraftOrderEditHQIngredient"..tostring(i)] = IsNull(order["hq"..tostring(i)],0)
+							_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = IsNull(order["hq"..tostring(i).."min"],0)
+							_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = IsNull(order["hq"..tostring(i).."max"],false)
+						end
+					end
+							
 					ffxiv_craft.UpdateOrderElement()		
 					ffxiv_task_craft.GUI.orders.open = true
 					GUI_SwitchTab(ffxiv_task_craft.GUI.orders.main_tabs,3)
