@@ -8,7 +8,7 @@ if (not FileExists(ffxiv_combat_conjurer.optionsPath)) then
 		gRestMP = 30,
 		gPotionHP = 50,
 		gPotionMP = 0,
-		gFleeHP = 35,
+		gFleeHP = 20,
 		gFleeMP = 0,
 		gUseSprint = "1",
 	}

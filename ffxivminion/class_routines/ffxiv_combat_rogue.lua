@@ -8,7 +8,7 @@ if (not FileExists(ffxiv_combat_rogue.optionsPath)) then
 		gRestMP = 0,
 		gPotionHP = 50,
 		gPotionMP = 0,
-		gFleeHP = 35,
+		gFleeHP = 15,
 		gFleeMP = 0,
 		gUseSprint = "0",
 	}

@@ -8,7 +8,7 @@ if (not FileExists(ffxiv_combat_darkknight.optionsPath)) then
 		gRestMP = 0,
 		gPotionHP = 50,
 		gPotionMP = 0,
-		gFleeHP = 25,
+		gFleeHP = 10,
 		gFleeMP = 0,
 		gUseSprint = "0",
 	}
