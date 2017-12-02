@@ -914,7 +914,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftInspectIAmount6 = ""
 	gCraftInspectCanCraft = ""
 	gCraftInspectCraftable = ""
-	
+	--
 	for i = 1,6 do
 		_G["gCraftOrderAddHQIngredient"..tostring(i)] = 0
 		_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = 0
@@ -962,6 +962,8 @@ ffxiv_task_craft.GUI = {
 }
 
 function ffxiv_task_craft:Draw()
+	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
+	local tabs = self.GUI.main_tabs
 	-- Craft Mode Selections.
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Craft Mode")
@@ -978,8 +980,6 @@ function ffxiv_task_craft:Draw()
 		end
 	end
 	GUI:PopItemWidth()
-	
-	local tabs = self.GUI.main_tabs
 	
 	if  (gCraftMarkerOrProfileIndex == 1) then
 	
@@ -1051,9 +1051,6 @@ function ffxiv_task_craft:Draw()
 		end
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Creates a New Crafting Order profile.")) end
 	end
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
 	
 	-- Orders List
 	if (tabname == GetString("Craft List")) then

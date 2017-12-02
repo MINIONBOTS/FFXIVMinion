@@ -2190,6 +2190,7 @@ function c_fishnextprofilepos:evaluate()
 		local myPos = Player.pos
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
 		if (dist > 5 or ml_task_hub:CurrentTask().requiresRelocate) then
+			d("dist = "..tostring(dist))
 			return true
 		end
 	end
@@ -2892,9 +2893,6 @@ function ffxiv_task_fish:Draw()
 			end
 		end
 	end
-	-- Tabs
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs	
 	-- Settings
 	if (tabname == GetString("Settings")) then
 		

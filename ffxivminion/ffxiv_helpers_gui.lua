@@ -371,7 +371,7 @@ end
 function GUI_DrawTabs(tTabs)
 
 	local returnIndex,returnName;
-	local fontSize = GUI:GetWindowFontSize()
+	local fontSize = (GUI:GetWindowFontSize() + 4)
 	local windowPaddingY = ml_gui.style.current.windowpadding.y
 	local framePaddingY = ml_gui.style.current.framepadding.y
 

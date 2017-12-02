@@ -3427,9 +3427,6 @@ function ffxiv_task_gather:Draw()
 			end
 		end
 	end
-	-- Gather Tabs.
-	GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
 	-- Settings Tab.
 	if (tabname == GetString("Settings")) then
 		
