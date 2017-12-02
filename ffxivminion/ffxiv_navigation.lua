@@ -665,22 +665,22 @@ end
 function ml_navigation.GetClearance(nodepos)
 	local ppos = Player.pos
 	
-	local posBase = { x = ppos.x, y = ppos.y + 0.5, z = ppos.z }
+	--local posBase = { x = ppos.x, y = ppos.y + 0.5, z = ppos.z }
 	local posMid = { x = ppos.x, y = ppos.y + 1.5, z = ppos.z }
 	local posHigh = { x = ppos.x, y = ppos.y + 2.5, z = ppos.z }
 	
 	local nodeMid = { x = nodepos.x, y = nodepos.y + 1.5, z = nodepos.z }
 	local nodeHigh = { x = nodepos.x, y = nodepos.y + 2.5, z = nodepos.z }
 	
-	local castBaseHit, castBaseHitX, castBaseHitY, castBaseHitZ = RayCast(posBase.x,posBase.y,posBase.z,nodeHigh.x,nodeHigh.y,nodeHigh.z) 
+	--local castBaseHit, castBaseHitX, castBaseHitY, castBaseHitZ = RayCast(posBase.x,posBase.y,posBase.z,nodeHigh.x,nodeHigh.y,nodeHigh.z) 
 	local castMidHit, castMidHitX, castMidHitY, castMidHitZ = RayCast(posMid.x,posMid.y,posMid.z,nodeMid.x,nodeMid.y,nodeMid.z) 
 	local castHighHit, castHighHitX, castHighHitY, castHighHitZ = RayCast(posHigh.x,posHigh.y,posHigh.z,nodeHigh.x,nodeHigh.y,nodeHigh.z) 
 	
 	local lowest2d, lowest3d = 1000,1000
-	if (castBaseHit) then
-		lowest2d = math.distance2d(posBase.x, posBase.z , castBaseHitX, castBaseHitZ)
-		lowest3d = math.distance3d(posBase.x, posBase.y, posBase.z , castBaseHitX, castBaseHitY, castBaseHitZ)
-	end
+	--if (castBaseHit) then
+		--lowest2d = math.distance2d(posBase.x, posBase.z , castBaseHitX, castBaseHitZ)
+		--lowest3d = math.distance3d(posBase.x, posBase.y, posBase.z , castBaseHitX, castBaseHitY, castBaseHitZ)
+	--end
 	
 	if (castMidHit) then
 		local dist2d = math.distance2d(posMid.x, posMid.z , castMidHitX, castMidHitZ)
@@ -1004,9 +1004,6 @@ function ml_navigation.Navigate(event, ticks )
 				nextNodeDistance = 0,
 				lastAction = "",
 			}
-			
-			--d("ml_navigation.pathsettings.navigationmode:"..tostring(ml_navigation.pathsettings.navigationmode))
-			--d("is not processing:"..tostring(not ffnav.IsProcessing()))
 			
 			-- Normal Navigation Mode			
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
