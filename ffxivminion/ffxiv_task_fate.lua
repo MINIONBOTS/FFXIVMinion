@@ -960,14 +960,11 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 	local mapActivate = activate[mapid]
 	if (mapActivate) then
 		for activatefateid,activatefatedata in pairs(mapActivate) do
-		-- return data here
-			return true, activatefatedata
+			if (fateid == activatefateid) then
+		
+				return activatefatedata
+			end
 		end
 	end
-	return false
+	return nil
 end
-
-
-
-
-
