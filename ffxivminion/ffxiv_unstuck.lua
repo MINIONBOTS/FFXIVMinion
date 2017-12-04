@@ -76,7 +76,7 @@ function c_stuck:evaluate()
 		coarse.lastMeasure = Now()
 	end
 	
-	coarse.lastDist = PDistance3D(currentPos.x,currentPos.y,currentPos.z,coarse.lastPos.x,coarse.lastPos.y,coarse.lastPos.z)	
+	coarse.lastDist = math.distance3d(currentPos,coarse.lastPos)	
 	if ffxiv_unstuck.IsStalled() then
 		--d("Adding stalled tick:"..tostring(ffxiv_unstuck.State.STALLED.ticks + 1).." total.",nil,3)
 		ffxiv_unstuck.State.STALLED.ticks = ffxiv_unstuck.State.STALLED.ticks + 1

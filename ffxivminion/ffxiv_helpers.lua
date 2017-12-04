@@ -6985,7 +6985,19 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
-
+function HasAllCurrents(mapid)
+	local currentData = GetAetherCurrentData(mapid)
+	local tsize = table.size(currentData)
+	if (tsize > 0 and tsize < 20) then
+		for i = 1, tsize do
+			if (currentData[i] == false) then
+				return false
+			end
+		end
+		return true
+	end
+	return false
+end
 function GetAetherCurrentData(mapid)
 	local status = {}
 	local aeclist = Player:GetAetherCurrentsList()
@@ -6999,13 +7011,7 @@ function GetAetherCurrentData(mapid)
 			status = aeclist[mapid].status
 		end
 	end	
-		
-	--[[if (IsControlOpen("AetherCurrent")) then
-		local aeControl = GetControl("AetherCurrent")
-		if (aeControl) then
-			aeControl:Close()
-		end
-	end]]
+	
 	return status
 end
 function FindNearestCollectableAppraiser()
