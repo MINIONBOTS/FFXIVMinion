@@ -2564,15 +2564,6 @@ function c_gathernexttask:evaluate()
 				
 				-- High priority section.
 				
-				gd("[GatherNextTask]: Check the high priority tasks for differently grouped tasks.",3)
-				for i,data in pairsByKeys(highPriority) do
-					if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-						if (not best or (best and i < lowestIndex)) then
-							best = data
-							lowestIndex = i
-						end
-					end
-				end
 				
 				if (not best) then
 					if (invalid and currentTask.group) then
@@ -2599,23 +2590,23 @@ function c_gathernexttask:evaluate()
 							end
 						end
 					end
+					if (not best) then
+						gd("[GatherNextTask]: Check the high priority tasks for differently grouped tasks.",3)
+						for i,data in pairsByKeys(highPriority) do
+							if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+					end
 				end
 				
 				-- Normal priority section.
 				if (not best and (invalid or currentTask.lowpriority or currentTask.idlepriority or currentTask.type == "idle")) then
-					gd("[GatherNextTask]: Check the normal priority tasks for higher ranked, differently grouped tasks.",3)
-					lowestIndex = 9999
-					for i,data in pairsByKeys(normalPriority) do
-						if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-							if (not best or (best and i < lowestIndex)) then
-								best = data
-								lowestIndex = i
-							end
-						end
-					end
-				
 					if (not best) then
-						gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks.",3)
+						gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks 1.",3)
 						if (invalid and currentTask.group) then
 							lowestIndex = 9999
 							for i,data in pairsByKeys(normalPriority) do
@@ -2626,16 +2617,28 @@ function c_gathernexttask:evaluate()
 									end
 								end
 							end
-							
 							if (not best) then
-								gd("[GatherNextTask]: Check the normal priority tasks for differently grouped tasks.",3)
+								gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks 2.",3)
 								lowestIndex = 9999	
 								for i,data in pairsByKeys(normalPriority) do
-									if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+									if (IsNull(data.group,"") == currentTask.group) then
 										if (not best or (best and i < lowestIndex)) then
 											best = data
 											lowestIndex = i
 										end
+									end
+								end
+							end
+						end
+							
+						if (not best) then
+							gd("[GatherNextTask]: Check the normal priority tasks for higher ranked, differently grouped tasks.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(normalPriority) do
+								if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
 									end
 								end
 							end
@@ -2646,12 +2649,65 @@ function c_gathernexttask:evaluate()
 				-- Low priority section.
 				if (not best and (invalid or currentTask.type == "idle" or currentTask.idlepriority)) then
 					gd("[GatherNextTask]: Check the low priority section since haven't found anything yet.",3)
-					if (IsNull(currentTask.set,"") ~= "") then
-						gd("[GatherNextTask]: Check for the next task in this set.",3)
-						lowestIndex = 9999
-						for i,data in pairsByKeys(lowPriority) do
-							if (IsNull(data.set,"") == currentTask.set) then
-								
+				
+					if (not best) then
+						gd("[GatherNextTask]: Check the low priority tasks for matching grouped tasks 1.",3)
+						if (invalid and currentTask.group) then
+							lowestIndex = 9999
+							for i,data in pairsByKeys(lowPriority) do
+								if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+							if (not best) then
+								gd("[GatherNextTask]: Check the low priority tasks for matching grouped tasks 2.",3)
+								lowestIndex = 9999	
+								for i,data in pairsByKeys(lowPriority) do
+									if (IsNull(data.group,"") == currentTask.group) then
+										if (not best or (best and i < lowestIndex)) then
+											best = data
+											lowestIndex = i
+										end
+									end
+								end
+							end
+						end
+					end
+					if (not best) then
+						if (IsNull(currentTask.set,"") ~= "") then
+							gd("[GatherNextTask]: Check for the next task in this set.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(lowPriority) do
+								if (IsNull(data.set,"") == currentTask.set) then
+									
+									if (i > currentTaskIndex) then
+										if (not best or (best and i < lowestIndex)) then
+											best = data
+											lowestIndex = i
+										end
+									end
+								end
+							end
+							
+							if (not best) then
+								gd("[GatherNextTask]: Loop back around to check previous tasks in this set.",3)
+								lowestIndex = 9999
+								for i,data in pairsByKeys(lowPriority) do
+									if (IsNull(data.set,"") == currentTask.set) then
+										if (not best or (best and i < lowestIndex)) then
+											best = data
+											lowestIndex = i
+										end
+									end
+								end
+							end
+						else
+							gd("[GatherNextTask]: Check for the next task available for low priority.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(lowPriority) do
 								if (i > currentTaskIndex) then
 									if (not best or (best and i < lowestIndex)) then
 										best = data
@@ -2659,39 +2715,15 @@ function c_gathernexttask:evaluate()
 									end
 								end
 							end
-						end
-						
-						if (not best) then
-							gd("[GatherNextTask]: Loop back around to check previous tasks in this set.",3)
-							lowestIndex = 9999
-							for i,data in pairsByKeys(lowPriority) do
-								if (IsNull(data.set,"") == currentTask.set) then
+							
+							if (not best) then
+								gd("[GatherNextTask]: Still don't have anything, check previous low priority section tasks.",3)
+								lowestIndex = 9999
+								for i,data in pairsByKeys(lowPriority) do
 									if (not best or (best and i < lowestIndex)) then
 										best = data
 										lowestIndex = i
 									end
-								end
-							end
-						end
-					else
-						gd("[GatherNextTask]: Check for the next task available for low priority.",3)
-						lowestIndex = 9999
-						for i,data in pairsByKeys(lowPriority) do
-							if (i > currentTaskIndex) then
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
-								end
-							end
-						end
-						
-						if (not best) then
-							gd("[GatherNextTask]: Still don't have anything, check previous low priority section tasks.",3)
-							lowestIndex = 9999
-							for i,data in pairsByKeys(lowPriority) do
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
 								end
 							end
 						end
