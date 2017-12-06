@@ -128,7 +128,8 @@ function c_betterfatesearch:evaluate()
 		
 		local closestFate = GetClosestFate(myPos)
 		if (table.valid(closestFate) and thisFate.id ~= closestFate.id) then
-			if (closestFate.status == 2) then
+			local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, closestFate.id)))
+			if (closestFate.status == 2) or ((closestFate.status == 7) and activatable) then
 				if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or 
 					ffxiv_task_fate.IsHighPriority(Player.localmapid,closestFate.id)) 
 				then
@@ -142,13 +143,6 @@ function c_betterfatesearch:evaluate()
 					end
 				end
 			end
-			--[[
-			if (closestFate.status == 7) then
-				if  ffxiv_task_fate.Activateable(Player.localmapid,closestFate.id) then
-					e_betterfatesearch.fateid = closestFate.id
-					return true	
-				end
-			end]]
 		end
 	end
    
@@ -340,7 +334,8 @@ function c_movetofate:evaluate()
         local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 		
         if (table.valid(fate)) then
-			if (fate.status == 2) then
+			local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
+			if (fate.status == 2) or ((fate.status == 7) and activatable) then
 				local myPos = Player.pos
 				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 				if (distance > fate.radius) then				
@@ -489,6 +484,148 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
+c_startfate = inheritsFrom( ml_cause )
+e_startfate = inheritsFrom( ml_effect )
+function c_startfate:evaluate()
+	if IsInsideFate() then
+	local fatenpc = EntityList("type=3,chartype=5")
+		if (table.valid(fatenpc)) then
+			for i,entity in pairs(fatenpc) do
+				if entity.fateid ~= 0 then
+					local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, entity.fateid)))
+					if activatable and (GetFateByID(entity.fateid).status == 7) then
+						return true
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function e_startfate:execute()
+   if (IsControlOpen("SelectYesno")) then
+		PressYesNo(true)
+		return
+	end
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+    if (table.valid(fate)) then
+		local newTask = ffxiv_task_movetointeract.Create()
+		newTask.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+		local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+		newTask.pos = {x = npcpos.x, y = npcpos.y, z = npcpos.z}
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+--[[
+c_handoveritem = inheritsFrom( ml_cause )
+e_handoveritem = inheritsFrom( ml_effect )
+function c_handoveritem:evaluate()
+	if IsControlOpen("Request") then
+		return true
+	end
+	return false
+end
+function e_handoveritem:execute()
+	local inventories = {2004}
+	for _,invid in pairs(inventories) do
+		local bag = Inventory:Get(invid)
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot, item in pairs(ilist) do 
+					local result = item:HandOver()
+					if (result and (result == 1 or result == true or result == 65536)) then
+						ml_global_information.Await(math.random(800,1200))
+						return
+					end
+				end	
+			end
+		end
+	end
+	
+	if (UseControlAction("Request","HandOver",1)) then
+		ml_global_information.Await(math.random(1200,2000))
+	end
+end
+
+c_pickupItem = inheritsFrom( ml_cause )
+e_pickupItem = inheritsFrom( ml_effect )
+function c_pickupItem:evaluate()
+	if IsInsideFate() then
+		if not Player.incombat then
+			local fatenpc = EntityList("type=3,chartype=5")
+			if (table.valid(fatenpc)) then
+				for i,entity in pairs(fatenpc) do
+					if entity.fateid ~= 0 then
+						local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, entity.fateid)))
+						if gatherable and (GetFateByID(entity.fateid).status == 2) then
+							local pickupitem = EntityList("shortestpath,contentid="..tostring(ffxiv_task_fate.Gatherable(Player.localmapid, entity.fateid).itemid))
+							if (table.valid(pickupitem)) then
+								return true
+							end
+						end
+					end
+				end 
+			end
+		end 
+	end
+	return false
+end		
+
+function e_pickupItem:execute()
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+    if (table.valid(fate)) then
+		local pickupitem = EntityList("contentid="..tostring(ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).itemid))
+		if (table.valid(pickupitem)) then
+			for i,item in pairs(pickupitem) do
+				local newTask = ffxiv_task_movetointeract.Create()
+				newTask.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).itemid
+				newTask.pos = {x = item.pos.x, y = item.pos.y, z = item.pos.z}
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+end
+
+c_turninItem = inheritsFrom( ml_cause )
+e_turninItem = inheritsFrom( ml_effect )
+function c_turninItem:evaluate()
+	if IsInsideFate() then
+		if not Player.incombat then
+			local fatenpc = EntityList("type=3,chartype=5")
+			if (table.valid(fatenpc)) then
+				for i,entity in pairs(fatenpc) do
+					if entity.fateid ~= 0 then
+						local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, entity.fateid)))
+						if gatherable and (GetFateByID(entity.fateid).status == 2) then
+							local turninid = ffxiv_task_fate.Gatherable(Player.localmapid, entity.fateid).turninid
+							if ItemCount(turninid,2004) >= gFateGatherTurnCount then 
+								return true
+							end 
+						end 
+					end 
+				end 
+			end 
+		end 
+	end
+	return false
+end
+
+function e_turninItem:execute()
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+    if (table.valid(fate)) then
+	
+		local newTask = ffxiv_task_movetointeract.Create()
+		newTask.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+		local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+		newTask.pos = {x = npcpos.x, y = npcpos.y, z = npcpos.z}
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+]]
+
 c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
@@ -571,8 +708,22 @@ function ffxiv_task_fate:Init()
     local ke_addKillTarget = ml_element:create( "AddFateTarget", c_add_fatetarget, e_add_fatetarget, 60 )
     self:add(ke_addKillTarget, self.process_elements)
     
+	local ke_startFate = ml_element:create( "StartFate", c_startfate, e_startfate, 30 )
+    self:add( ke_startFate, self.process_elements)
+	--[[
+	local ke_turninItem = ml_element:create( "TurninItem", c_turninItem, e_turninItem, 100 )
+    self:add( ke_turninItem, self.process_elements)
+	
+	local ke_pickupItem = ml_element:create( "PickupItem", c_pickupItem, e_pickupItem, 60 )
+    self:add( ke_pickupItem, self.process_elements)
+	
+    local ke_handoveritem = ml_element:create( "HandoverItem", c_handoveritem, e_handoveritem, 90 )
+    self:add( ke_handoveritem, self.overwatch_elements)
+	]]
 	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 50 )
     self:add( ke_moveToFate, self.process_elements)
+	
+	
 	
     local ke_moveWithFate = ml_element:create( "MoveWithFate", c_movewithfate, e_movewithfate, 45 )
     self:add( ke_moveWithFate, self.process_elements)
@@ -601,7 +752,7 @@ function c_endfate:evaluate()
 	elseif (fate and (fate.completion > 99)) then
 		--d("Ending fate, fate completion:"..tostring(fate.completion))
 		return true
-	elseif (fate.status ~= 2) then
+	elseif (fate.status ~= 2) and (fate.status ~= 7) then
 		local foundTargetable = false
 		local el = EntityList("fateid="..tostring(fate.id))
 		if (table.valid(el)) then
@@ -641,6 +792,7 @@ function c_endfate:evaluate()
     
     return false
 end
+
 function e_endfate:execute()
 	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
 	if (isChain and not isLast and table.valid(nextFate)) then
@@ -754,101 +906,105 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 	
 	local activate = {
 		[134] = {
-			[225] = { id = 1355, pos = {99,64,-147 } },
-			[229] = { id = 1320, pos = {12,58,-303 } },
+			[225] = { id = 1355, pos = {x = 99, y = 64, z = -147 } },
+			[229] = { id = 1320, pos = {x = 12, y = 58, z = -303 } },
 		},
 			
 		[137] = {
-			[271] = { id = 1867, pos = {-75,44,403 } },
-			[334] = { id = 891, pos = {437,16,389 } },
+			[271] = { id = 1867, pos = {x = -75, y = 44, z = 403 } },
+			[334] = { id = 891, pos = {x = 437, y = 16, z = 389 } },
 		},
 			
 		[141] = {
-			[377] = { id = 1325, pos = {363,-17,-71 } },
+			[377] = { id = 1325, pos = {x = 363, y = -17, z = -71 } },
 		},
 		
 		
 		[145] = {
-			[195] = { id = 1255, pos = {118,-3,50 } },
+			[195] = { id = 1255, pos = {x = 118, y = -3, z = 50 } },
 		},
 			
 		[147] = {
-			[457] = { id = 1726, pos = {-95,83,-268 } },
-			[642] = { id = 1718, pos = {17,4,397 } },
+			[457] = { id = 1726, pos = {x = -95, y = 83, z = -268 } },
+			[556] = { id = 1726, pos = {x = 28, y = 35, z = 55 } },
+			[642] = { id = 1718, pos = {x = 17, y = 4, z = 397 } },
+			[643] = { id = 1512, pos = {x = 214, y = 24, z = 90 } },
+			[644] = { id = 1513, pos = {x = 252, y = 25, z = 2 } },
 		},
-		
 	
 		[148] = {
-			[601] = { id = 526, pos = {-335,62,-39 } },
+			[601] = { id = 526, pos = {x = -335, y = 62, z = -39 } },
 		},
 			
 		[153] = {
-			[166] = { id = 529, pos = {-200,9,-47 } },
-			[168] = { id = 526, pos = {371,0,21 } },
-			[172] = { id = 520, pos = {291,6,-25 } },
+			[166] = { id = 529, pos = {x = -200, y = 9, z = -47 } },
+			[168] = { id = 526, pos = {x = 371, y = 0, z = 21 } },
+			[172] = { id = 520, pos = {x = 291, y = 6, z = -25 } },
 		},
 		
 		[155] = {
-			[469] = { id = 1605, pos = {323,345,-520 } },
-			[482] = { id = 1582, pos = {-580,225,-100 } },
-			[486] = { id = 1603, pos = {-549,237,360 } },
-			[501] = { id = 1862, pos = {245,302,-281 } },
+			[469] = { id = 1605, pos = {x = 323, y = 345, z = -520 } },
+			[482] = { id = 1582, pos = {x = -580, y = 225, z = -100 } },
+			[486] = { id = 1603, pos = {x = -549, y = 237, z = 360 } },
+			[501] = { id = 1862, pos = {x = 245, y = 302, z = -281 } },
 		},
 			
 		[156] = {
-			[512] = { id = 1584, pos = {-122,-2,-628 } },
+			[512] = { id = 1584, pos = {x = -122, y = -2, z = -628 } },
 		},
 		
 		[398] = {
-			[821] = { id = 4254, pos = {519,-44,-147 } },
+			[821] = { id = 4254, pos = {x = 519, y = -44, z = -147 } },
 		},
 		
 		
 		[400] = {
-			[728] = { id = 3959, pos = {597,-9,-35 } },
-			[744] = { id = 3954, pos = {-422,40,-20 } },
-			[752] = { id = 3952, pos = {-177,-22,316 } },
-			[872] = { id = 3948, pos = {-470,40,111 } },
+			[728] = { id = 3959, pos = {x = 597, y = -9, z = -35 } },
+			[744] = { id = 3954, pos = {x = -422, y = 40, z = -20 } },
+			[752] = { id = 3952, pos = {x = -177, y = -22, z = 316 } },
+			[872] = { id = 3948, pos = {x = -470, y = 40, z = 111 } },
 		},
 			
 		[402] = {
-			[880] = { id = 4025, pos = {-208,-162,-199 } }, 
+			[880] = { id = 4025, pos = {x = -208, y = -162, z = -199 } }, 
 		},
 			
 		[612] = {
-			[1122] = { id = 5660, pos = {112,52,-512 } },
-			[1127] = { id = 6409, pos = {-501,53,23 } },
-			[1131] = { id = 5791, pos = {509,52,409 } },
-			[1133] = { id = 6417, pos = {295,43,191 } },
+			[1120] = { id = 5660, pos = {x = 360, y = 62, z = -471 } },
+			[1122] = { id = 5660, pos = {x = 112, y = 52, z = -512 } },
+			[1127] = { id = 6409, pos = {x = -501, y = 53, z = 23 } },
+			[1131] = { id = 5791, pos = {x = 509, y = 52, z = 409 } },
+			[1133] = { id = 6417, pos = {x = 295, y = 43, z = 191 } },
 		},
 			
 		[613] = {
-			[1149] = { id = 6476, pos = {376,0,-705 } },
-			[1152] = { id = 6479, pos = {-46,0,501 } },
-			[1167] = { id = 6494, pos = {-337,33,-819 } },
+			[1149] = { id = 6476, pos = {x = 376, y = 0, z = -705 } },
+			[1152] = { id = 6479, pos = {x = -46, y = 0, z = 501 } },
+			[1167] = { id = 6494, pos = {x = -337, y = 33, z = -819 } },
 		},
 			
 		[614] = {
-			[1110] = { id = 6292, pos = {-420,32,456 } },
-			[1111] = { id = 6291, pos = {-76,61,-700 } },
-			[1118] = { id = 6406, pos = {-482,82,-243 } },
-			[1120] = { id = 5660, pos = {360,62,-471 } },
-			[1136] = { id = 6735, pos = {647,82,230 } },
-			[1208] = { id = 6499, pos = {-169,14,507 } },
-			[1211] = { id = 6500, pos = {270,14,-635 } },
-			[1224] = { id = 6508, pos = {230,43,52 } },
+			[1110] = { id = 6292, pos = {x = -420, y = 32, z = 456 } },
+			[1111] = { id = 6291, pos = {x = -76, y = 61, z = -700 } },
+			[1118] = { id = 6406, pos = {x = -482, y = 82, z = -243 } },
+			[1120] = { id = 5660, pos = {x = 360, y = 62, z = -471 } },
+			[1136] = { id = 6735, pos = {x = 647, y = 82, z = 230 } },
+			[1208] = { id = 6499, pos = {x = -169, y = 14, z = 507 } },
+			[1211] = { id = 6500, pos = {x = 270, y = 14, z = -635 } },
+			[1224] = { id = 6508, pos = {x = 230, y = 43, z = 52 } },
 		},
 			
 		[620] = {
-			[1176] = { id = 6431, pos = {-307,60,-686 } },
-			[1186] = { id = 6439, pos = {211,311,371 } },
-			[1195] = { id = 6444, pos = {145,303,653 } },
+			[1176] = { id = 6431, pos = {x = -307, y = 60, z = -686 } },
+			[1186] = { id = 6439, pos = {x = 211, y = 311, z = 371 } },
+			[1195] = { id = 6444, pos = {x = 145, y = 303, z = 653 } },
 		},
 			
 		[622] = {
-			[1255] = { id = 6543, pos = {-210,83,-532 } },
-			[1261] = { id = 6547, pos = {460,-24,586 } },
-			[1269] = { id = 6554, pos = {166,34,-332 } },
+			[1250] = { id = 6541, pos = {x = 460, y = 11, z = -83 } },
+			[1255] = { id = 6543, pos = {x = -210, y = 83, z = -532 } },
+			[1261] = { id = 6547, pos = {x = 460, y = -24, z = 586 } },
+			[1269] = { id = 6554, pos = {x = 166, y = 34, z = -332 } },
 		},
 	}
 	
@@ -873,50 +1029,51 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		--[[
 		Npc = id
 		Pickup id = itemid
-		Turnin item = turnid
+		Turnin item = turninid
 		]]
 		[147] = {
-			[457] = { id = 1726,  pos = {-95,83,-268 }, itemid = 2001209, turnid = 2001052 },
+			[457] = { id = 1726,  pos = {x = -95, y = 83, z = -268 }, itemid = 2001209, turninid = 2001052 },
+			[556] = { id = 1726, pos = {x = 28, y = 35, z = 55 }, itemid = 2001221, turninid = 2000254 },
 		},
 			
 		[155] = {
-			[472] = { id = 1715, pos = {511,348,-695 }, itemid = 2001208, turnid = 2001051 },
+			[472] = { id = 1715, pos = {x = 511, y = 348, z = -695 }, itemid = 2001208, turninid = 2001051 },
 		},
 			
 		[153] = {
-			[168] = { id = 526, pos = {371,0,21 }, itemid = 2001213, turnid = 2000251 },
-			[172] = { id = 520, pos = {291,6,-25 }, itemid = 2001211, turnid = 2002287 }, 
+			[168] = { id = 526, pos = {x = 371, y = 0, z = 21 }, itemid = 2001213, turninid = 2000251 },
+			[172] = { id = 520, pos = {x = 291, y = 6, z = -25 }, itemid = 2001211, turninid = 2002287 }, 
 		},
 		
 		[154] = {
-			[180] = { id = 533, pos = {-247,-31,389 }, itemid = 2001212, turnid = 2000253 } ,
+			[180] = { id = 533, pos = {x = -247, y = -31, z = 389 }, itemid = 2001212, turninid = 2000253 } ,
 		},
 		
 		[398] = {
-			[821] = { id = 4254, pos = {519,-44,-147 }, itemid = 2006422, turnid = 2001885 },
+			[821] = { id = 4254, pos = {x = 519, y = -44, z = -147 }, itemid = 2006422, turninid = 2001885 },
 		},
 		
 		
 		[400] = {
-			[728] = { id = 3959, pos = {597,-9,-35 }, itemid = 2006126, turnid = 2001788 },
+			[728] = { id = 3959, pos = {x = 597, y = -9, z = -35 }, itemid = 2006126, turninid = 2001788 },
 		},
 			
 		[612] = {
-			[1133] = { id = 6417, pos = {295,43,191 }, itemid = 2008390, turnid = 2002234 },
+			[1133] = { id = 6417, pos = {x = 295, y = 43, z = 191 }, itemid = 2008390, turninid = 2002234 },
 		},
 			
 		[613] = {
-			[1149] = { id = 6476, pos = {376,0,-705 }, itemid = 2008954, turnid = 2002268 },
+			[1149] = { id = 6476, pos = {x = 376, y = 0, z = -705 }, itemid = 2008954, turninid = 2002268 },
 		},
 			
 		[614] = {
-				[1111] = { id = 6291, pos = {-76,61,-700 }, itemid = 2008613, turnid = 2002389 },
-				[1136] = { id = 6735, pos = {647,82,230 }, itemid = 2008959, turnid = 2002235 },
-				[1224] = { id = 6508, pos = {230,43,52 }, itemid = 2008751, turnid = 2002270 },
+				[1111] = { id = 6291, pos = {x = -76, y = 61, z = -700 }, itemid = 2008613, turninid = 2002389 },
+				[1136] = { id = 6735, pos = {x = 647, y = 82, z = 230 }, itemid = 2008959, turninid = 2002235 },
+				[1224] = { id = 6508, pos = {x = 230, y = 43, z = 52 }, itemid = 2008751, turninid = 2002270 },
 		},
 			
 		[620] = {
-			[1186] = { id = 6439, pos = {211,311,371 }, itemid = 2008956, turnid = 2002267 },
+			[1186] = { id = 6439, pos = {x = 211, y = 311, z = 371 }, itemid = 2008956, turninid = 2002267 },
 		},
 	}
 	

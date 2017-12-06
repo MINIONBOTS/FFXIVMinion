@@ -833,7 +833,6 @@ end
 
 function ffxiv_task_grind:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
-	local tabs = self.GUI.main_tabs
 	local currentMarker = ml_marker_mgr.currentMarker
 	if (table.valid(currentMarker)) then
 		TimeLeft = currentMarker:GetTimeRemaining()
