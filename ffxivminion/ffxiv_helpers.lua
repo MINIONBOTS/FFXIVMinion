@@ -2553,13 +2553,14 @@ function GetClosestFate(pos)
 				for k, fate in pairs(fateList) do
 					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
 					if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
-						if (fate.status == 2) then	
+						local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
+						if (fate.status == 2) or ((fate.status == 7) and activatable) then	
 							if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
 								table.insert(validFates,fate)
 							end
 						end
 					else
-						d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
+						--d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
 					end
 				end
 				
@@ -2567,11 +2568,12 @@ function GetClosestFate(pos)
 					for k, fate in pairs(fateList) do
 						local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
 						if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
-							if (fate.status == 2) then	
+							local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
+							if (fate.status == 2) or ((fate.status == 7) and activatable) then	
 								table.insert(validFates,fate)
 							end
 						else
-							d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
+							--d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
 						end
 					end
 				end
