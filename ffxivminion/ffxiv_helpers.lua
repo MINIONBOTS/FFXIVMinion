@@ -3,6 +3,8 @@ ff = {}
 ff.lastPos = {}
 ff.lastPath = 0
 ff.lastFail = 0
+ff.lastaetherCurrent = {}
+ff.aetherCurrent = {}
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
@@ -6987,6 +6989,7 @@ function Busy()
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
+
 function HasAllCurrents(mapid)
 	local currentData = GetAetherCurrentData(mapid)
 	local tsize = table.size(currentData)
@@ -7000,7 +7003,19 @@ function HasAllCurrents(mapid)
 	end
 	return false
 end
+
 function GetAetherCurrentData(mapid)
+	
+	if (table.valid(ff.lastaetherCurrent)) then
+		if ff.lastaetherCurrent[mapid] ~= nil  then 
+			if ff.lastaetherCurrent[mapid] > Now()  then 
+				d(ff.aetherCurrent[mapid])
+				d("Tabled Data")
+				return ff.aetherCurrent[mapid]
+			end
+		end
+	end
+	
 	local status = {}
 	local aeclist = Player:GetAetherCurrentsList()
 	if (not IsControlOpen("AetherCurrent")) then
@@ -7011,11 +7026,16 @@ function GetAetherCurrentData(mapid)
 	if (table.valid(aeclist)) then
 		if (aeclist[mapid]) then
 			status = aeclist[mapid].status
+			ff.aetherCurrent[mapid] = status
+			ff.lastaetherCurrent[mapid] = Now() + 300000
+			d("New Data")
+			d(status)
 		end
 	end	
-	
+		
 	return status
 end
+
 function FindNearestCollectableAppraiser()
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
