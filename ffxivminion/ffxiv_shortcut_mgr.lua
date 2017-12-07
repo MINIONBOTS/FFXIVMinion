@@ -17,10 +17,6 @@ sck.hotkeys = {
 		event = function () Unload() end
 	},
 	{
-		label = "Toggle Main Menu", mod1 = "SCK_ToggleMainMenu_Mod1", mod2 = "SCK_ToggleMainMenu_Mod2", key = "SCK_ToggleMainMenu_Key", mouse = "SCK_ToggleMainMenu_Mouse",
-		event = function () ml_gui.ui_mgr.menu.shown = not ml_gui.ui_mgr.menu.shown end
-	},
-	{
 		label = "Click-to-Move", mod1 = "SCK_ClickMove_Mod1", mod2 = "SCK_ClickMove_Mod2", key = "SCK_ClickMove_Mod3", mouse = "SCK_ClickMove_Mouse",
 		event = function ()
 			if (Player:IsMoving()) then

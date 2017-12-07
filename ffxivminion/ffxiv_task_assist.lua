@@ -4,7 +4,6 @@ ffxiv_assist.strings = {}
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
 ffxiv_task_assist.autoRolled = {}
-ffxiv_task_assist.lastTarget = 0
 function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
     
@@ -60,114 +59,106 @@ function ffxiv_task_assist:Init()
 end
 
 function ffxiv_task_assist:Process()
-	if (not gACRBypass) then
-		if (Player.alive and not MIsLoading()) then
-			local target = Player:GetTarget()
+	if (Player.alive and not MIsLoading()) then
+		local target = Player:GetTarget()
+		
+		if ( FFXIV_Assist_Mode ~= GetString("none") ) then
+			local newTarget = nil
 			
-			if ( FFXIV_Assist_Mode ~= GetString("none") ) then
-				local newTarget = nil
-				
-				if (FFXIV_Assist_Mode == GetString("Highest HP (AOE Only)")) then
-					if (not target or TimeSince(ffxiv_task_assist.lastTarget) > 1000) then
-						--local clustered = 
-					end			
-				elseif ( FFXIV_Assist_Priority == GetString("healer") ) then
-					newTarget = ffxiv_assist.GetHealingTarget()
-					if ( newTarget == nil ) then
-						newTarget = ffxiv_assist.GetAttackTarget()				
-					end		
+			if ( FFXIV_Assist_Priority == GetString("healer") ) then
+				newTarget = ffxiv_assist.GetHealingTarget()
+				if ( newTarget == nil ) then
+					newTarget = ffxiv_assist.GetAttackTarget()				
+				end		
 
-				elseif ( FFXIV_Assist_Priority == GetString("dps") ) then
-					newTarget = ffxiv_assist.GetAttackTarget()
-					if ( newTarget == nil ) then
-						newTarget = ffxiv_assist.GetHealingTarget()				
-					end			
-				end
-				
-				if ( newTarget ~= nil and (not target or newTarget.id ~= target.id)) then
-					target = newTarget
-					Player:SetTarget(target.id)  
-				end
+			elseif ( FFXIV_Assist_Priority == GetString("dps") ) then
+				newTarget = ffxiv_assist.GetAttackTarget()
+				if ( newTarget == nil ) then
+					newTarget = ffxiv_assist.GetHealingTarget()				
+				end			
 			end
+			
+			if ( newTarget ~= nil and (not target or newTarget.id ~= target.id)) then
+				target = newTarget
+				Player:SetTarget(target.id)  
+			end
+		end
 
-			local casted = false
-			if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
-				if (gStartCombat or (not gStartCombat and Player.incombat)) then
+		local casted = false
+		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
+			if (gStartCombat or (not gStartCombat and Player.incombat)) then
+				
+				if (gAssistFollowTarget ) then
+					local ppos = Player.pos
+					local pos = target.pos
 					
-					if (gAssistFollowTarget ) then
-						local ppos = Player.pos
-						local pos = target.pos
-						
-						if (ml_global_information.AttackRange > 5) then
-							if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
-								if (Now() > self.movementDelay) then
-									local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
-									self.movementDelay = Now() + 1000
+					if (ml_global_information.AttackRange > 5) then
+						if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
+							if (Now() > self.movementDelay) then
+								local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
+								self.movementDelay = Now() + 1000
+							end
+						end
+						if (InCombatRange(target.id)) then
+							if (Player.ismounted) then
+								Dismount()
+							end
+							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
+								Player:Stop()
+								if (IsCaster(Player.job)) then
+									return
 								end
 							end
-							if (InCombatRange(target.id)) then
-								if (Player.ismounted) then
-									Dismount()
-								end
-								if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
-									Player:Stop()
-									if (IsCaster(Player.job)) then
-										return
-									end
-								end
-								if (not EntityIsFrontTight(target)) then
-									Player:SetFacing(pos.x,pos.y,pos.z) 
-								end
-							end
-							if (InCombatRange(target.id) and target.attackable and target.alive) then
-								SkillMgr.Cast( target )
-							end
-						else
-							if (not InCombatRange(target.id) or not target.los) then
-								Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
-							end
-							if (target.distance2d <= 15) then
-								if (Player.ismounted) then
-									Dismount()
-								end
-							end
-							if (InCombatRange(target.id)) then
+							if (not EntityIsFrontTight(target)) then
 								Player:SetFacing(pos.x,pos.y,pos.z) 
-								if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
-									Player:Stop()
-								end
 							end
-							if (SkillMgr.Cast( target )) then
+						end
+						if (InCombatRange(target.id) and target.attackable and target.alive) then
+							SkillMgr.Cast( target )
+						end
+					else
+						if (not InCombatRange(target.id) or not target.los) then
+							Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
+						end
+						if (target.distance2d <= 15) then
+							if (Player.ismounted) then
+								Dismount()
+							end
+						end
+						if (InCombatRange(target.id)) then
+							Player:SetFacing(pos.x,pos.y,pos.z) 
+							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
 								Player:Stop()
 							end
 						end
-						
-					elseif (gAssistTrackTarget ) then
-						Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
+						if (SkillMgr.Cast( target )) then
+							Player:Stop()
+						end
 					end
 					
-					if (SkillMgr.Cast( target )) then
-						casted = true
-					end
+				elseif (gAssistTrackTarget ) then
+					Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
+				end
+				
+				if (SkillMgr.Cast( target )) then
+					casted = true
 				end
 			end
-			
-			if (not casted) then
-				SkillMgr.Cast( Player, true )
-			end
 		end
+		
+		if (not casted) then
+			SkillMgr.Cast( Player, true )
+		end
+	end
 	
-		if (TableSize(self.process_elements) > 0) then
-			ml_cne_hub.clear_queue()
-			ml_cne_hub.eval_elements(self.process_elements)
-			ml_cne_hub.queue_to_execute()
-			ml_cne_hub.execute()
-			return false
-		else
-			ml_debug("no elements in process table")
-		end
+    if (TableSize(self.process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(self.process_elements)
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
 	else
-		SkillMgr.Cast()
+		ml_debug("no elements in process table")
 	end
 end
 
