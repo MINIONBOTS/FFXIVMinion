@@ -674,14 +674,13 @@ function IsControlOpen(strControl)
 		memoize.opencontrols = {}
 	end
 	
-	local controls = GetControls()
-	if (table.valid(controls)) then
-		for id,e in pairs(controls) do
-			if (e.name == strControl) then
-				local isopen = e:IsOpen()
-				memoize.opencontrols[strControl] = isopen
-				return isopen
-			end				
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			local isopen = control:IsOpen()
+			memoize.opencontrols[strControl] = isopen
+			return isopen
 		end
 	end
 		
@@ -689,15 +688,16 @@ function IsControlOpen(strControl)
 end
 
 function GetControlData(strControl,strData)
-	local controls = GetControls()
-	if (table.valid(controls)) then
-		for id,control in pairs(controls) do
-			if (control.name == strControl) then
-				local data = control:GetData()
-				if (table.valid(data)) then
-					if (strData == nil) then
-						return data
-					else
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			local data = control:GetData()
+			if (data) then
+				if (strData == nil) then
+					return data
+				else
+					if (table.valid(data)) then
 						for dataid, dataval in pairs(data) do
 							if (dataid == strData) then
 								return dataval
@@ -712,19 +712,18 @@ function GetControlData(strControl,strData)
 end
 
 function GetControlStrings(strControl,numString)
-	local controls = GetControls()
-	if (table.valid(controls)) then
-		for id,control in pairs(controls) do
-			if (control.name == strControl) then
-				local strings = control:GetStrings()
-				if (table.valid(strings)) then
-					if (numString == nil) then
-						return strings
-					else
-						for stringid, stringval in pairs(strings) do
-							if (stringid == numString) then
-								return stringval
-							end
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			local strings = control:GetStrings()
+			if (table.valid(strings)) then
+				if (numString == nil) then
+					return strings
+				else
+					for stringid, stringval in pairs(strings) do
+						if (stringid == numString) then
+							return stringval
 						end
 					end
 				end
@@ -736,22 +735,21 @@ end
 
 function UseControlAction(strControl,strAction,actionArg)
 	local actionArg = IsNull(actionArg,0)
-	local controls = GetControls()
-	if (table.valid(controls)) then
-		for id,control in pairs(controls) do
-			if (control.name == strControl) then
-				if (strAction == "Close") then
-					control:Close()
-				elseif (strAction == "Destroy") then
-					control:Destroy()
-				else
-					local actions = control:GetActions()
-					if (table.valid(actions)) then
-						for aid, action in pairs(actions) do
-							if (action == strAction) then
-								if (control:Action(action,actionArg)) then
-									return true
-								end
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			if (strAction == "Close") then
+				control:Close()
+			elseif (strAction == "Destroy") then
+				control:Destroy()
+			else
+				local actions = control:GetActions()
+				if (table.valid(actions)) then
+					for aid, action in pairs(actions) do
+						if (action == strAction) then
+							if (control:Action(action,actionArg)) then
+								return true
 							end
 						end
 					end
@@ -774,12 +772,11 @@ end
 function GetControl(strControl,allControls)
 	local allControls = IsNull(allControls,false)
 	
-	local controls = GetControls()
-	if (table.valid(controls)) then
-		for id,e in pairs(controls) do
-			if (e.name == strControl) then
-				return e
-			end
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			return control
 		end
 	end
 	

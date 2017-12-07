@@ -27,6 +27,11 @@ function MGetControls()
 		return memoized
 	else
 		memoize.controls = GetControls()
+		if (table.valid(memoize.controls)) then
+			for id,e in pairs(memoize.controls) do
+				memoize.controls[e.name] = e
+			end
+		end
 		return memoize.controls
 	end
 end

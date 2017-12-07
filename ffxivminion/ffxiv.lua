@@ -339,11 +339,13 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	end
 end
 
+ml_global_information.throttleTick = 0
 function ml_global_information.InGameOnUpdate( event, tickcount )	
-	if (not Player) then
+	if ((ml_global_information.throttleTick > 0 and (tickcount - ml_global_information.throttleTick) < 35) or not Player) then
 		return false
 	end
-
+	ml_global_information.throttleTick = tickcount
+	
 	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		FFXIV_Common_BotRunning = false
