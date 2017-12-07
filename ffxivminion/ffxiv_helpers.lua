@@ -3848,6 +3848,43 @@ function GetUnattunedAetheryteList()
 	
 	return aethList
 end
+
+function GetUnattunedCurrents()
+	local currentList = {}
+	for map,currentdata in pairs(ffxiv_aethercurrent_data) do
+		for j,current in pairs(currentdata) do
+			local valid = true
+			local validmap = true
+			local requirement = current.requires
+			
+			if map ~= Player.localmapid then
+				validmap = false 
+			end
+			
+			if (requirement ~= nil and type(requirement) == "function") then
+				valid = IsNull(requirement(),false)
+			end
+			
+			if (valid) and (validmap) then
+				currentList[current.aethid] = current
+			end
+		end
+	end
+	
+	if (table.valid(currentList)) then
+		local attunedList = GetAetherCurrentData(Player.localmapid)
+		if (table.valid(attunedList)) then
+			for k,currents in pairs(currentList) do
+				if GetAetherCurrentData(Player.localmapid)[currents.id] == true then
+					currentList[currents.aethid] = nil
+				end
+			end
+		end
+	end
+	
+	return currentList
+end
+
 function GetHomepoint()
 	local homepoint = 0
 	
@@ -7009,8 +7046,9 @@ function GetAetherCurrentData(mapid)
 	if (table.valid(ff.lastaetherCurrent)) then
 		if ff.lastaetherCurrent[mapid] ~= nil  then 
 			if ff.lastaetherCurrent[mapid] > Now()  then 
-				d(ff.aetherCurrent[mapid])
-				d("Tabled Data")
+				if (IsControlOpen("AetherCurrent")) then
+					ActionList:Get(10,67):Cast()
+				end
 				return ff.aetherCurrent[mapid]
 			end
 		end
@@ -7028,8 +7066,6 @@ function GetAetherCurrentData(mapid)
 			status = aeclist[mapid].status
 			ff.aetherCurrent[mapid] = status
 			ff.lastaetherCurrent[mapid] = Now() + 300000
-			d("New Data")
-			d(status)
 		end
 	end	
 		

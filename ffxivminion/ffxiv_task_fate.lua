@@ -65,7 +65,7 @@ function c_turninItem:evaluate()
 						or (ItemCount(turninid,2004) >= 1 and (GetFateByID(fateid).duration < 120)) then 
 						
 							e_turninItem.itemid = turninid
-							e_turninItem.contentid = entity.contentid
+							e_turninItem.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fateid).id
 							e_turninItem.npcpos = { x = entity.pos.x , y = entity.pos.y , z = entity.pos.z }
 							return true
 						end 
@@ -537,10 +537,11 @@ function c_startfate:evaluate()
 		if (table.valid(fatenpc)) then
 			for i,entity in pairs(fatenpc) do
 				if entity.fateid ~= 0 then
+					local fateid = entity.fateid
 					local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, entity.fateid)))
 					if activatable and (GetFateByID(entity.fateid).status == 7) then
 						
-						e_startfate.contentid = entity.contentid
+						e_startfate.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fateid).id
 						e_startfate.npcpos = { x = entity.pos.x , y = entity.pos.y , z = entity.pos.z }
 						return true
 					end
