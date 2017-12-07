@@ -168,9 +168,8 @@ function MEntityList(elstring)
 		InitializeMemoize()
 		local el = EntityList(elstring)
 		if (table.valid(el)) then
-			local newEL = {}
-			SetMemoized(memString,newEL)
-			return newEL
+			SetMemoized(memString,el)
+			return el
 		end
 	end
 end
