@@ -736,10 +736,13 @@ function ffxiv_task_grind.SetModeOptions()
 	gGrindDoBattleFates = Settings.FFXIVMINION.gGrindDoBattleFates
 	gGrindDoBossFates = Settings.FFXIVMINION.gGrindDoBossFates
 	gGrindDoGrindFates = Settings.FFXIVMINION.gGrindDoGrindFates
+	gGrindDoGatherFates = Settings.FFXIVMINION.gGrindDoGatherFates
 	gGrindDoDefenseFates = Settings.FFXIVMINION.gGrindDoDefenseFates
 	gGrindDoEscortFates = Settings.FFXIVMINION.gGrindDoEscortFates
+	gFateGatherTurnCount = Settings.FFXIVMINION.gFateGatherTurnCount
 	gFateGrindWaitPercent = Settings.FFXIVMINION.gFateGrindWaitPercent
 	gFateBossWaitPercent = Settings.FFXIVMINION.gFateBossWaitPercent
+	gFateGatherWaitPercent = Settings.FFXIVMINION.gFateGatherWaitPercent
 	gFateDefenseWaitPercent = Settings.FFXIVMINION.gFateDefenseWaitPercent
 	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
@@ -802,12 +805,15 @@ function ffxiv_task_grind:UIInit()
 	gGrindDoBattleFates = ffxivminion.GetSetting("gGrindDoBattleFates",true)
 	gGrindDoBossFates = ffxivminion.GetSetting("gGrindDoBossFates",true)
 	gGrindDoGrindFates = ffxivminion.GetSetting("gGrindDoGrindFates",true)
+	gGrindDoGatherFates = ffxivminion.GetSetting("gGrindDoGatherFates",false)
+	gFateGatherTurnCount = ffxivminion.GetSetting("gFateGatherTurnCount",20)
 	gGrindDoDefenseFates = ffxivminion.GetSetting("gGrindDoDefenseFates",true)
 	gGrindDoEscortFates = ffxivminion.GetSetting("gGrindDoEscortFates",true)
 	
 	gFateChainWaitPercent = ffxivminion.GetSetting("gFateChainWaitPercent",0)
 	gFateBattleWaitPercent = ffxivminion.GetSetting("gFateBattleWaitPercent",0)
 	gFateBossWaitPercent = ffxivminion.GetSetting("gFateBossWaitPercent",1)
+	gFateGatherWaitPercent = ffxivminion.GetSetting("gFateGatherWaitPercent",0)
 	gFateGrindWaitPercent = ffxivminion.GetSetting("gFateGrindWaitPercent",0)
 	gFateDefenseWaitPercent = ffxivminion.GetSetting("gFateDefenseWaitPercent",0)
 	gFateEscortWaitPercent = ffxivminion.GetSetting("gFateEscortWaitPercent",0)
@@ -954,6 +960,10 @@ function ffxiv_task_grind:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Chain"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Battle"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Boss"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Gather"))
+		if gGrindDoGatherFates then
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Turn in Count"))
+		end
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Grind"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Defense"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Escort"))
@@ -961,6 +971,10 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##Chain Fates",gDoChainFates),"gDoChainFates");
 		GUI_Capture(GUI:Checkbox("##Battle Fates",gGrindDoBattleFates),"gGrindDoBattleFates");
 		GUI_Capture(GUI:Checkbox("##Boss Fates",gGrindDoBossFates),"gGrindDoBossFates");
+		GUI_Capture(GUI:Checkbox("##Gather Fates",gGrindDoGatherFates),"gGrindDoGatherFates");
+		if gGrindDoGatherFates then
+		GUI_DrawIntMinMax("##Turnincount","gFateGatherTurnCount",1,1,1,100)
+		end
 		GUI_Capture(GUI:Checkbox("##Grind Fates",gGrindDoGrindFates),"gGrindDoGrindFates");
 		GUI_Capture(GUI:Checkbox("##Defense Fates",gGrindDoDefenseFates),"gGrindDoDefenseFates");
 		GUI_Capture(GUI:Checkbox("##Escort Fates",gGrindDoEscortFates),"gGrindDoEscortFates");
@@ -970,6 +984,10 @@ function ffxiv_task_grind:Draw()
 		GUI_DrawIntMinMax("##Chain Fates %","gFateChainWaitPercent",1,5,0,99)
 		GUI_DrawIntMinMax("##Battle Fates %","gFateBattleWaitPercent",1,5,0,99)
 		GUI_DrawIntMinMax("##Boss Fates %","gFateBossWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax("##Gather Fates %","gFateGatherWaitPercent",1,5,0,99)
+		if gGrindDoGatherFates then
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString(""))
+		end
 		GUI_DrawIntMinMax("##Grind Fates %","gFateGrindWaitPercent",1,5,0,99)
 		GUI_DrawIntMinMax("##Defense Fates %","gFateDefenseWaitPercent",1,5,0,99)
 		GUI_DrawIntMinMax("##Escort Fates %","gFateEscortWaitPercent",1,5,0,99)

@@ -1,36 +1,6 @@
 pmemoize = {}
 pmemoize.loadedfunctions = {}
 
-function MGetGameState()
-	local memoized = memoize.gamestate
-	if (table.valid(memoized)) then
-		return memoized
-	else
-		memoize.gamestate = GetGameState()
-		return memoize.gamestate
-	end
-end
-
-function MGetEorzeaTime()
-	local memoized = memoize.etime
-	if (table.valid(memoized)) then
-		return memoized
-	else
-		memoize.etime = GetEorzeaTime()
-		return memoize.etime
-	end
-end
-
-function MGetControls()
-	local memoized = memoize.controls
-	if (table.valid(memoized)) then
-		return memoized
-	else
-		memoize.controls = GetControls()
-		return memoize.controls
-	end
-end
-
 function LoadString(str)
 	local ok, ret;
 	if (pmemoize.loadedfunctions[str] and type(pmemoize.loadedfunctions[str]) == "function") then
@@ -94,19 +64,6 @@ function MGetEntity(entityid)
 	end
 end
 
-function MIsMoving()
-	local memString = "MIsMoving"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local ret = Player:IsMoving()
-		SetMemoized(memString,ret)
-		return ret
-	end
-end
-
-
 function MIsLoading()
 	local memString = "MIsLoading"
 	local memoized = GetMemoized(memString)
@@ -168,8 +125,20 @@ function MEntityList(elstring)
 		InitializeMemoize()
 		local el = EntityList(elstring)
 		if (table.valid(el)) then
-			SetMemoized(memString,el)
-			return el
+			local newEL = {}
+			for i,e in pairs(el) do
+				if (memoize.entities and memoize.entities[i]) then
+					newEL[i] = memoize.entities[i]
+				else
+					local entity = EntityList:Get(i)
+					if (entity) then
+						newEL[i] = entity
+						memoize.entities[i] = entity
+					end
+				end
+			end
+			SetMemoized(memString,newEL)
+			return newEL
 		end
 	end
 end
