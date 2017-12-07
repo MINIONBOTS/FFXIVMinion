@@ -1,9 +1,4 @@
-﻿--if (Settings.minionlib.gCurrentLanguage == nil) then
-	--Settings.minionlib.gCurrentLanguage = "us"
---end
---gCurrentLanguage = Settings.minionlib.gCurrentLanguage
-
-strings =
+﻿strings =
 {	
 	-- bk: US
     ["us"] =
@@ -6457,54 +6452,31 @@ Tank Assist: Targets whatever your tank is targetting.",
     },                               
 }
 
---[[
-function SetLanguage(event, arg)
-	d("Switching language (FFXIVMINION)"..tostring(arg))	
-	if ( tonumber(arg) ~= nil ) then
-		if ( arg == "0" ) then 
-			gCurrentLanguage = "us"
-			GUI:SetLanguage(0)
-		elseif ( arg  ) then 
-			gCurrentLanguage = "cn" 
-			GUI:SetLanguage(1)
-		elseif ( arg == "2" ) then 
-			gCurrentLanguage = "jp" 
-			GUI:SetLanguage(2)
-		elseif ( arg == "3" ) then 
-			gCurrentLanguage = "de" 
-			GUI:SetLanguage(0)
-		elseif ( arg == "4" ) then 
-			gCurrentLanguage = "fr"
-			GUI:SetLanguage(0)
-        elseif ( arg == "5" ) then 
-			gCurrentLanguage = "ru"
-			GUI:SetLanguage(0)
-		elseif ( arg == "6" ) then 
-			gCurrentLanguage = "kr"
-			GUI:SetLanguage(6)
-		end
-	end	
-end
---]]
 
--- returns a string in the current language or an indicator that the string does not exist in the language file
--- fixpercent arg added because GUI:Text() and some other controls strips out % unless it is escaped with another %
-function GetString(stringName,fixpercent)
-	local fixpercent = IsNull(fixpercent,false)
+local missingTranslations = {}
+
+-- returns a localized string or an indicator that the string does not exist in the language file
+function GetString(key)
 	
-	local returnString = ""
-	if (not strings or strings[gCurrentLanguage] == nil or strings[gCurrentLanguage][stringName] == nil) then
-		returnString = stringName
+	-- build a list with missing translations 
+	if (missingTranslations[key] == nil) then
+		for language,data in pairs(strings) do
+			if ( language ~= "us" and strings[language][key] == nil ) then
+				if (missingTranslations[key] == nil) then missingTranslations[key] = {} end
+				missingTranslations[key][language] = true
+			end
+		end
+	end
+	
+	if strings[gCurrentLanguage][key] == nil then		
+		if (strings["us"][key] == nil )then -- this should also get deleted at some point ... 			
+			return key
+		else		
+			return strings["us"][key]
+		end
 	else
-		returnString = strings[gCurrentLanguage][stringName]
+		return strings[gCurrentLanguage][key]
 	end
-	
-	if (fixpercent and string.valid(returnString)) then
-		returnString = string.gsub(returnString,"%%%%","%%")
-		returnString = string.gsub(returnString,"%%","%%%%")
-	end
-	
-	return returnString
 end
 
 function GetUSString(stringName)
@@ -6542,18 +6514,23 @@ function Retranslate(translatedString)
 	return translatedString
 end
 
-function GetStringList(stringList,delimiter)
-	local outputString = ""
-	for k in StringSplit(stringList,delimiter) do
-		local addstring = GetString(k)
-		if (outputString == "") then
-			outputString = addstring
-		else
-			outputString = outputString..delimiter..addstring
+function SaveMissingTranslations()
+	local missing = {
+		["cn"] = {},
+		["jp"] = {},
+		["de"] = {},
+		["fr"] = {},
+		["ru"] = {},
+		["kr"] = {},
+	}
+	
+	if (table.valid(missingTranslations)) then
+		for key,data in pairs(missingTranslations) do
+			for language,_ in pairs(data) do
+				missing[language][key] = ""
+			end
 		end
 	end
-	
-	return outputString
-end
 
---RegisterEventHandler("MINION.setlanguage", SetLanguage)
+	FileSave(GetLuaModsPath() .. [[MissingTranslations.txt]],missing)
+end

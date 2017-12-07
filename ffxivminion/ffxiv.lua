@@ -8,6 +8,7 @@ ffxivminion.tradeDeclines = 0
 ffxivminion.declineTimer = 0
 ffxivminion.scripExchange = {}
 ffxivminion.lastScripExchangeUpdate = {}
+ffxivminion.gameRegion = GetGameRegion()
 
 ffxivminion.loginvars = {
 	reset = true,
@@ -17,13 +18,13 @@ ffxivminion.loginvars = {
 	charSelected = false,
 }
 
-if (GetGameRegion() == 1) then
+if (ffxivminion.gameRegion == 1) then
 	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos" }
 else
 	ffxivminion.logincenters = { "Main" }
 end
 
-if (GetGameRegion() == 1) then
+if (ffxivminion.gameRegion == 1) then
 	ffxivminion.loginservers = {
 		[1] = { "None" },
 		[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
@@ -209,7 +210,7 @@ end
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	
 	memoize = {}
 	if (ml_global_information.IsYielding()) then
@@ -237,7 +238,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 60000, function () return GetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
 		end	
 	end
@@ -248,12 +249,12 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
 		
-		if (GetGameRegion() == 1) then
+		if (ffxivminion.gameRegion == 1) then
 		
 			local serviceAccountList = GetConversationList()
 			if (table.valid(serviceAccountList)) then
 				if (SelectConversationLine(FFXIV_Login_ServiceAccount)) then
-					ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+					ml_global_information.Await(500, 5000, function () return MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
 				end
 			else
 				-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
@@ -276,7 +277,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 						end
 					else
 						if (UseControlAction("TitleDataCenter","Proceed",0) or UseControlAction("TitleDCWorldMap","Proceed",0)) then
-							ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+							ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
 							ffxivminion.loginvars.datacenterSelected = false
 						end
 					end
@@ -284,7 +285,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 			end
 		else
 			if (UseControlAction("_TitleMenu","Start")) then
-				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
 				ffxivminion.loginvars.datacenterSelected = true
 			end
 		end
@@ -362,16 +363,15 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					ml_global_information.Player_Aetherytes = GetAetheryteList(true)
 					Hacks:Disable3DRendering(gDisableDrawing)
 					ml_global_information.queueLoader = false
+					
+					local currentFile = NavigationManager.CurrentFile
+					currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
+					if (currentFile ~= FFXIV_Common_NavMesh) then
+						FFXIV_Common_NavMesh = currentFile
+						FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
+					end
 				end
 			end
-			
-			local currentFile = NavigationManager.CurrentFile
-			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
-			if (currentFile ~= FFXIV_Common_NavMesh) then
-				FFXIV_Common_NavMesh = currentFile
-				FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
-			end
-			
 		else
 			if (ml_global_information.queueLoader == false) then
 				Hacks:Disable3DRendering(false)
@@ -380,13 +380,15 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (c_skiptalk:evaluate()) then
-		e_skiptalk:execute()
-		--return false
-	end
-	if (c_skipcutscene:evaluate()) then
-		e_skipcutscene:execute()
-		--return false
+	if (FFXIV_Common_BotRunning) then
+		if (c_skiptalk:evaluate()) then
+			e_skiptalk:execute()
+			--return false
+		end
+		if (c_skipcutscene:evaluate()) then
+			e_skipcutscene:execute()
+			--return false
+		end
 	end
 	
 	if (IsControlOpen("MasterPieceSupply")) then
@@ -407,7 +409,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		return false
 	end
 	
-	local pulseTime = tonumber(gPulseTime) or 150
+	local pulseTime = gPulseTime or 150
 	if (TimeSince(ml_global_information.lastrun2) >= pulseTime) then
 		ml_global_information.lastrun2 = tickcount
 		SkillMgr.OnUpdate()
@@ -442,7 +444,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			FFXIV_Core_IdlePulseCount = ""
 		end
 		
-		local et = GetEorzeaTime()
+		local et = MGetEorzeaTime()
 		FFXIV_Common_EorzeaTime = tostring(et.bell)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		if (SkillMgr) then
@@ -495,7 +497,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 										local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
 										if (MissingBuffs(companion, buffString)) then
 											Player:PauseMovement()
-											ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+											ml_global_information.Await(1500, function () return not MIsMoving() end)
 											local newTask = ffxiv_task_useitem.Create()
 											newTask.itemid = itemid
 											--newTask.targetid = companion.id
@@ -1041,7 +1043,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-	if (Player:IsMoving() or table.valid(ml_navigation.path)) then
+	if (MIsMoving() or table.valid(ml_navigation.path)) then
 		Player:Stop()
 	end
 	SkillMgr.receivedMacro = {}
@@ -1223,7 +1225,7 @@ function ffxivminion.ClearAddons()
 end
 
 function ml_global_information.DrawMainFull()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then
 			if (ml_global_information.drawMode == 1) then
@@ -1441,7 +1443,7 @@ Quest: Completes quests based on a questing profile.\
 end
 
 function ml_global_information.DrawSmall()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then		
 			if (ml_global_information.drawMode ~= 1) then
@@ -1496,7 +1498,7 @@ function ml_global_information.DrawSmall()
 end
 
 function ml_global_information.DrawSettings()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.settings.open) then
 			GUI:SetNextWindowSize(600,500,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
@@ -1817,7 +1819,7 @@ function ml_global_information.DrawSettings()
 end
 
 function ml_global_information.DrawMiniButtons()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		local menu = ml_global_information.menu
 		local windows = menu.windows
@@ -1896,7 +1898,7 @@ end
 
 -- Login to the correct DataCenter.
 function ml_global_information.DrawLoginHandler()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate ~= FFXIV.GAMESTATE.INGAME or ffxivminion.GUI.login.open) then
 		
 		GUI:SetNextWindowSize(330,145,GUI.SetCond_Always) --set the next window size, only on first ever	
@@ -1994,7 +1996,7 @@ function ml_global_information.DrawLoginHandler()
 end
 
 function ml_global_information.DrawAutoGrindEditor()
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		
 		if (ffxivminion.GUI.autogrind.open) then
@@ -2057,7 +2059,7 @@ end
 
 
 function ml_global_information.DrawHelper() -- Helper Window
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.help.open) then
 			GUI:SetNextWindowSize(400,500,GUI.SetCond_Always) --set the next window size, only on first ever	
