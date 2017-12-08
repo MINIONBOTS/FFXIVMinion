@@ -52,24 +52,24 @@ e_turninItem.itemid = 0
 e_turninItem.contentid = 0
 e_turninItem.npcpos = {}
 function c_turninItem:evaluate()
-	if not Player.incombat then
-		local fatenpc = EntityList("targetable,type=3,chartype=5")
-		if (table.valid(fatenpc)) then
-			for i,entity in pairs(fatenpc) do
-				if entity.fateid ~= 0 then
-					local fateid = entity.fateid
-					local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, fateid)))
-					if (gatherable and (GetFateByID(fateid).status == 2) or (GetFateByID(fateid).status == 8)) then
-						local turninid = ffxiv_task_fate.Gatherable(Player.localmapid, fateid).turninid
-						if (ItemCount(turninid,2004) >= gFateGatherTurnCount) or (ItemCount(turninid,2004) >= 1 and (GetFateByID(fateid).status == 8))
-						or (ItemCount(turninid,2004) >= 1 and (GetFateByID(fateid).duration < 120)) then 
-						
-							e_turninItem.itemid = turninid
-							e_turninItem.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fateid).id
-							e_turninItem.npcpos = { x = entity.pos.x , y = entity.pos.y , z = entity.pos.z }
-							return true
-						end 
-					end 
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+	
+	if (table.valid(fate)) then
+		local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)))
+		if (gatherable and (fate.status == 2) or (fate.status == 8)) then
+			local npcid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).id
+			local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
+		
+			if (table.valid(fatenpc)) then
+				local turninid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).turninid
+				if (ItemCount(turninid,2004) >= gFateGatherTurnCount) or (ItemCount(turninid,2004) >= 1 and (fate.status == 8))
+					or (ItemCount(turninid,2004) >= 1 and (fate.duration < 120)) then 
+					local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+				
+					e_turninItem.itemid = turninid
+					e_turninItem.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).id
+					e_turninItem.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
+					return true
 				end 
 			end 
 		end 
@@ -532,20 +532,18 @@ e_startfate = inheritsFrom( ml_effect )
 e_startfate.contentid = 0
 e_startfate.npcpos = {}
 function c_startfate:evaluate()
-	if IsInsideFate() then
-	local fatenpc = EntityList("targetable,type=3,chartype=5")
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+	
+	if (table.valid(fate)) then
+		local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
+		if activatable and (fate.status == 7) then
+		local npcid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+		local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 		if (table.valid(fatenpc)) then
-			for i,entity in pairs(fatenpc) do
-				if entity.fateid ~= 0 then
-					local fateid = entity.fateid
-					local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, entity.fateid)))
-					if activatable and (GetFateByID(entity.fateid).status == 7) then
-						
-						e_startfate.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fateid).id
-						e_startfate.npcpos = { x = entity.pos.x , y = entity.pos.y , z = entity.pos.z }
-						return true
-					end
-				end
+				local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+				e_startfate.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+				e_startfate.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
+				return true
 			end
 		end
 	end
@@ -979,8 +977,12 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		},
 			
 		[137] = {
+			[267] = { id = 1720, pos = {x = 28, y = 54, z = 105 } },
 			[271] = { id = 1867, pos = {x = -75, y = 44, z = 403 } },
+			[272] = { id = 1855, pos = {x = -49, y = 38, z = 476 } },
+			[279] = { id = 1363, pos = {x = 519, y = 9, z = 152 } },
 			[334] = { id = 891, pos = {x = 437, y = 16, z = 389 } },
+			[562] = { id = 1659, pos = {x = -263, y = 46, z = 304 } },
 		},
 			
 		[141] = {
@@ -1100,6 +1102,12 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		Pickup id = itemid
 		Turnin item = turninid
 		]]
+		[137] = {
+			[272] = { id = 1855, pos = {x = -49, y = 38, z = 476 }, itemid = 2001226, turninid = 2001054 },
+			[279] = { id = 1363, pos = {x = 519, y = 9, z = 152 }, itemid = 2001761, turninid = 2000561 },
+			[562] = { id = 1659, pos = {x = -263, y = 46, z = 304 }, itemid = 2001207, turninid = 2001057 },
+		},
+		
 		[147] = {
 			[457] = { id = 1726,  pos = {x = -95, y = 83, z = -268 }, itemid = 2001209, turninid = 2001052 },
 			[556] = { id = 1726, pos = {x = 28, y = 35, z = 55 }, itemid = 2001221, turninid = 2000254 },
