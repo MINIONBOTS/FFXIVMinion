@@ -382,15 +382,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (FFXIV_Common_BotRunning) then
-		if (c_skiptalk:evaluate()) then
-			e_skiptalk:execute()
-			--return false
-		end
-		if (c_skipcutscene:evaluate()) then
-			e_skipcutscene:execute()
-			--return false
-		end
+	if (c_skiptalk:evaluate()) then
+		e_skiptalk:execute()
+		--return false
+	end
+	if (c_skipcutscene:evaluate()) then
+		e_skipcutscene:execute()
+		--return false
 	end
 	
 	if (IsControlOpen("MasterPieceSupply")) then
