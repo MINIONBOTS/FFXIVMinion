@@ -3861,6 +3861,7 @@ function GetUnattunedCurrents()
 		for j,current in pairs(currentdata) do
 			local valid = true
 			local validmap = true
+			local attuned = false
 			local requirement = current.requires
 			
 			if map ~= Player.localmapid then
@@ -3871,19 +3872,12 @@ function GetUnattunedCurrents()
 				valid = IsNull(requirement(),false)
 			end
 			
-			if (valid) and (validmap) then
-				currentList[current.aethid] = current
+			if GetAetherCurrentData(Player.localmapid)[current.id] == true then
+				attuned = true
 			end
-		end
-	end
-	
-	if (table.valid(currentList)) then
-		local attunedList = GetAetherCurrentData(Player.localmapid)
-		if (table.valid(attunedList)) then
-			for k,currents in pairs(currentList) do
-				if GetAetherCurrentData(Player.localmapid)[currents.id] == true then
-					currentList[currents.aethid] = nil
-				end
+			
+			if (valid) and (validmap) and (not attuned) then
+				currentList[current.aethid] = current
 			end
 		end
 	end
