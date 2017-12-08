@@ -992,6 +992,7 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		},
 		
 		[140] = {
+			[344] = { id = 1322,  pos = {x = -88, y = 52, z = 268 } },
 			[346] = { id = 1323,  pos = {x = -204, y = 32, z = 370 } },
 		},
 			
@@ -1044,10 +1045,15 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 			[512] = { id = 1584, pos = {x = -122, y = -2, z = -628 } },
 		},
 		
+		[397] = {
+			[788] = { id = 3976, pos = {x = 451, y = 167, z = 408 } },
+			[815] = { id = 4410, pos = {x = 426, y = 183, z = 508 } },
+			[817] = { id = 3967, pos = {x = -235, y = 121, z = -26 } },
+		},
+		
 		[398] = {
 			[821] = { id = 4254, pos = {x = 519, y = -44, z = -147 } },
 		},
-		
 		
 		[400] = {
 			[728] = { id = 3959, pos = {x = 597, y = -9, z = -35 } },
