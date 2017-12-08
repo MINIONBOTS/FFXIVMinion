@@ -64,7 +64,7 @@ function c_turninItem:evaluate()
 				local turninid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).turninid
 				if (ItemCount(turninid,2004) >= gFateGatherTurnCount) or (ItemCount(turninid,2004) >= 1 and (fate.status == 8))
 					or (ItemCount(turninid,2004) >= 1 and (fate.duration < 120)) then 
-					local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+					local npcpos = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).pos
 				
 					e_turninItem.itemid = turninid
 					e_turninItem.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).id
@@ -1108,6 +1108,10 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 			[562] = { id = 1659, pos = {x = -263, y = 46, z = 304 }, itemid = 2001207, turninid = 2001057 },
 		},
 		
+		[140] = {
+			[346] = { id = 1323,  pos = {x = -204, y = 32, z = 370 }, itemid = 2001221, turninid = 2000254 },
+		},
+			
 		[147] = {
 			[457] = { id = 1726,  pos = {x = -95, y = 83, z = -268 }, itemid = 2001209, turninid = 2001052 },
 			[556] = { id = 1726, pos = {x = 28, y = 35, z = 55 }, itemid = 2001221, turninid = 2000254 },
