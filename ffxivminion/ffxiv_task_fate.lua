@@ -920,6 +920,12 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 				{ id = 646, x = 255.6, y = 25, z = 10 },
 			},
 		},
+		[152] = {
+			[1] = {
+				{ id = 610, x = 338, y = -4, z = -58 },
+				{ id = 611, x = 280, y = -5, z = 12 },
+			},
+		},
 		[400] = {
 			[1] = {
 				{ id = 868, x = -214.5, y = 138.5, z = -644.5 },
@@ -984,6 +990,10 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 			[334] = { id = 891, pos = {x = 437, y = 16, z = 389 } },
 			[562] = { id = 1659, pos = {x = -263, y = 46, z = 304 } },
 		},
+		
+		[140] = {
+			[346] = { id = 1323,  pos = {x = -204, y = 32, z = 370 } },
+		},
 			
 		[141] = {
 			[377] = { id = 1325, pos = {x = 363, y = -17, z = -71 } },
@@ -992,6 +1002,10 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		
 		[145] = {
 			[195] = { id = 1255, pos = {x = 118, y = -3, z = 50 } },
+		},
+		
+		[146] = {
+			[434] = { id = 1343, pos = {x = -187, y = 3, z = -181 } },
 		},
 			
 		[147] = {
@@ -1004,9 +1018,16 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 	
 		[148] = {
 			[601] = { id = 526, pos = {x = -335, y = 62, z = -39 } },
+			[603] = { id = 2175, pos = {x = -448, y = 63, z = -249 } },
 		},
 			
+		[152] = {
+			[143] = { id = 524, pos = {x = -485, y = 8, z = 158 } },
+			[610] = { id = 1729, pos = {x = 338, y = -4, z = -58 } },
+		},
+		
 		[153] = {
+			[158] = { id = 526, pos = {x = 232, y = 6, z = -5 } },
 			[166] = { id = 529, pos = {x = -200, y = 9, z = -47 } },
 			[168] = { id = 526, pos = {x = 371, y = 0, z = 21 } },
 			[172] = { id = 520, pos = {x = 291, y = 6, z = -25 } },
@@ -1115,6 +1136,9 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		[147] = {
 			[457] = { id = 1726,  pos = {x = -95, y = 83, z = -268 }, itemid = 2001209, turninid = 2001052 },
 			[556] = { id = 1726, pos = {x = 28, y = 35, z = 55 }, itemid = 2001221, turninid = 2000254 },
+		},
+		[148] = {
+			[603] = { id = 2175, pos = {x = -448, y = 63, z = -249 }, itemid = 2001228, turninid = 2001056 },
 		},
 			
 		[155] = {

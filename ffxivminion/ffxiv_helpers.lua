@@ -2432,8 +2432,14 @@ function GetApprovedFates()
 	local fatelist = MFateList()
 	if (table.valid(fatelist)) then
 		for _,fate in pairs(fatelist) do
-			local minFateLevel = tonumber(gGrindFatesMinLevel) or 0
-			local maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
+			local minFateLevel = 70
+			local maxFateLevel = 3
+			
+			if gEnableAdvancedGrindSettings then
+				minFateLevel = tonumber(gGrindFatesMinLevel) or 0
+				maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
+			end
+			
 			--local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
