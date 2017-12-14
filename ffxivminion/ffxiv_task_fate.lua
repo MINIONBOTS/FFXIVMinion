@@ -1072,6 +1072,7 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		},
 			
 		[612] = {
+			[1112] = { id = 6396, pos = {x = -602, y = 115, z = -239 } },
 			[1120] = { id = 5660, pos = {x = 360, y = 62, z = -471 } },
 			[1122] = { id = 5660, pos = {x = 112, y = 52, z = -512 } },
 			[1127] = { id = 6409, pos = {x = -501, y = 53, z = 23 } },
