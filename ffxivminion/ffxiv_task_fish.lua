@@ -265,7 +265,6 @@ function c_precastbuff:evaluate()
 		end
 
 		if (ShouldEat()) then
-		d("should eat")
 			c_precastbuff.activity = "eat"
 			c_precastbuff.requirestop = false
 			c_precastbuff.requiredismount = false
@@ -286,7 +285,7 @@ function c_precastbuff:evaluate()
 			useFood = IsNull(task.food,0)
 			taskType = IsNull(task.type,"fishing")
 		elseif (table.valid(marker)) then
-			needsStealth = (marker.usestealth )
+			needsStealth = IsNull(marker.usestealth,false)
 		else
 			return false
 		end
@@ -395,6 +394,7 @@ function e_precastbuff:execute()
 	end
 	
 	if (activity == "stealth") then
+		d("started stealth task")
 		local newTask = ffxiv_task_stealth.Create()
 		newTask.addingStealth = true
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
@@ -2346,7 +2346,7 @@ function ffxiv_fish.NeedsStealth()
 		useStealth = GUI_Get(useStealth)
 	end
 	
-	if (useStealth) then		
+	if (useStealth) then	
 		local stealth = SkillMgr.GetAction(298,1)
 		if (stealth) then
 			local dangerousArea = false
@@ -2371,8 +2371,8 @@ function ffxiv_fish.NeedsStealth()
 				end
 			end
 			
-			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-			if (distance <= 6) then
+			local distance2d = Distance2D(myPos.x, myPos.z, destPos.x, destPos.z)
+			if (distance2d <= 10) then
 				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10))
 				if (table.valid(potentialAdds)) then
 					return true
@@ -2432,7 +2432,7 @@ function c_fishstealth:evaluate()
 	if (table.valid(task)) then
 		useStealth = IsNull(task.usestealth,false)
 	elseif (table.valid(marker)) then
-		useStealth = (marker.usestealth )
+		useStealth = IsNull(marker.usestealth,false)
 	end
 	
 	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
@@ -2517,7 +2517,7 @@ function e_fishstealth:execute()
 	else
 		newTask.addingStealth = true
 	end
-		fd("Stealth Cast",1)
+	
 	ml_task_hub:ThisTask().preserveSubtasks = true
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
@@ -2656,14 +2656,8 @@ function ffxiv_task_fish:Init()
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
 	
-    local ke_useStealth = ml_element:create( "UseStealth", c_fishstealth, e_fishstealth, 100 )
-    self:add( ke_useStealth, self.process_elements)
-	
 	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 90 )
     self:add(ke_setbait, self.process_elements)
-	
-	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
-	self:add(ke_syncadjust, self.process_elements)
 	
 	local ke_collect = ml_element:create( "Collect", c_usecollect, e_usecollect, 75 )
     self:add(ke_collect, self.process_elements)
@@ -2691,6 +2685,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_release = ml_element:create( "Release", c_release, e_release, 30 )
     self:add(ke_release, self.process_elements)	
+	
+	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 25)
+	self:add(ke_syncadjust, self.process_elements)
     
     local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 20 )
     self:add(ke_cast, self.process_elements)

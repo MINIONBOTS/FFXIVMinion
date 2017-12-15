@@ -2317,14 +2317,15 @@ function e_returntomarker:execute()
     local markerType = ml_marker_mgr.currentMarker.type
     newTask.pos = markerPos
     newTask.range = math.random(3,5)
+	
 	if (markerType == GetString("huntMarker") or
-		markerType == GetString("miningMarker") or
-		markerType == GetString("botanyMarker") or
+		markerType == "Mining" or
+		markerType == "Botany" or
 		markerType == GetString("grindMarker")) 
 	then
 		newTask.remainMounted = true
 	end
-    if (markerType == GetString("fishingMarker")) then
+    if (markerType == "Fishing") then
         newTask.pos.h = markerPos.h
         newTask.range = 0.5
         newTask.doFacing = true
@@ -2333,11 +2334,11 @@ function e_returntomarker:execute()
 		newTask.useTeleport = true
 	end
 	
-	if (markerType == GetString("miningMarker") or
-		markerType == GetString("botanyMarker"))
+	if (markerType == "Mining" or
+		markerType == "Botany")
 	then
 		newTask.stealthFunction = ffxiv_gather.NeedsStealth
-	elseif (markerType == GetString("fishingMarker")) then
+	elseif (markerType == "Fishing") then
 		newTask.stealthFunction = ffxiv_fish.NeedsStealth
 	end
 	

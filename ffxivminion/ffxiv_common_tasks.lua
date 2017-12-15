@@ -940,7 +940,8 @@ function ffxiv_task_stealth:task_complete_eval()
 	end
 	
 	if (action and not action.isoncd) then
-		if (action:Cast()) then
+		if (action:Cast(Player.id)) then
+			ml_global_information.Await(1000, function () return HasBuff(Player,47) end)
 			return true
 		end
     end
