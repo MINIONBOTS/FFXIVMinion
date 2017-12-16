@@ -1,6 +1,18 @@
 pmemoize = {}
 pmemoize.loadedfunctions = {}
 
+function MPlayerDriving()
+	local memString = "MPlayerDriving"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local driving = PlayerDriving()
+		SetMemoized(memString,driving)
+		return driving
+	end
+end
+
 function MGetGameState()
 	local memoized = memoize.gamestate
 	if (table.valid(memoized)) then

@@ -830,6 +830,13 @@ end
 -- Added misc debug codes to more easily help identify debug messages.
 function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff, newpathdistance, pathdeviationdistance)
 	
+	if (MPlayerDriving()) then
+		d("[NAVIGATION]: Releasing control to Player..")
+		ml_navigation.path = {}
+		ml_navigation.pathindex = 0
+		return false
+	end
+	
 	local buildNewPath = false
 	local newGoal = { x = x, y = y, z = z }
 	local newPath2d, newPath3d = ml_navigation.GetNewPathThresholds()
@@ -875,6 +882,13 @@ function Player:BuildPath(x, y, z, navpointreacheddistance, randompath, smoothtu
 	local cubesoff = IsNull(cubesoff,false)
 	local randompath = IsNull(randompath,false)
 	local smoothturns = IsNull(smoothturns,false)
+	
+	if (MPlayerDriving()) then
+		d("[NAVIGATION]: Releasing control to Player..")
+		ml_navigation.path = {}
+		ml_navigation.pathindex = 0
+		return -1337
+	end
 	
 	if ((Player.incombat and not Player.ismounted) or cubesoff or IsTransporting()) then
 		cubesoff = true
@@ -958,6 +972,10 @@ function Player:PauseMovement(param1, param2, param3, param4, param5)
 end
 
 function ml_navigation.IsHandlingInstructions(tickcount)
+	if (MPlayerDriving()) then
+		ml_navigation.receivedInstructions = {}
+	end
+	
 	if (ValidTable(ml_navigation.receivedInstructions)) then
 		--d("Running instruction set.")
 		if (Now() > ml_navigation.instructionThrottle) then
