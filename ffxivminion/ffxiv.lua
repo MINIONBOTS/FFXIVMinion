@@ -1664,7 +1664,7 @@ function ml_global_information.DrawSettings()
 					
 					GUI:EndChild()
 				end
-				
+			
 				if (tabindex == 4) then
 					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(5),true)
 					
@@ -1678,6 +1678,43 @@ function ml_global_information.DrawSettings()
 						ffxivminion.GUI.autogrind.error_text = ""
 					end
 					
+					GUI:EndChild()
+					
+					GUI:BeginChild("##main-header-behavior-stealth",0,GUI_GetFrameHeight(3),true)
+					
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range"); 
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Enemy range before applying Stealth.")
+					end
+					GUI:SameLine(200)
+					GUI:PushItemWidth(100);
+					GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Enemy range before applying Stealth.")
+					end
+					GUI:PopItemWidth()
+					--
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Remove Range")
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Enemy range before removing Stealth.")
+					end
+					GUI:SameLine(200)
+					GUI:PushItemWidth(100);
+					GUI_DrawIntMinMax("##Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Enemy range before removing Stealth.")
+					end
+					GUI:PopItemWidth()
+					--
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Smart Stealth")
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Uses visual detection range as stealth cues.")
+					end
+					GUI:SameLine(200)
+					GUI_Capture(GUI:Checkbox("##Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Uses visual detection range as stealth cues.")
+					end
 					GUI:EndChild()
 				end
 				
