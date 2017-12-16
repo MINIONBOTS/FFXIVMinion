@@ -46,49 +46,6 @@ end
 --FATEWAIT: If (detect new aggro) Then (kill mob)
 ---------------------------------------------------------------------------------------------
 
-c_turninItem = inheritsFrom( ml_cause )
-e_turninItem = inheritsFrom( ml_effect )
-e_turninItem.itemid = 0
-e_turninItem.contentid = 0
-e_turninItem.npcpos = {}
-function c_turninItem:evaluate()
-	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
-	
-	if (table.valid(fate)) then
-		local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)))
-		if (gatherable and (fate.status == 2) or (fate.status == 8)) then
-			local npcid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).id
-			local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
-		
-			if (table.valid(fatenpc)) then
-				local turninid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).turninid
-				if (ItemCount(turninid,2004) >= gFateGatherTurnCount) or (ItemCount(turninid,2004) >= 1 and (fate.status == 8))
-					or (ItemCount(turninid,2004) >= 1 and (fate.duration < 120)) then 
-					local npcpos = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).pos
-				
-					e_turninItem.itemid = turninid
-					e_turninItem.contentid = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).id
-					e_turninItem.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
-					return true
-				end 
-			end 
-		end 
-	end
-	return false
-end
-
-function e_turninItem:execute()
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-	
-    if (table.valid(fate)) then
-		
-		local newTask = ffxiv_task_movetointeract.Create()
-		newTask.contentid = e_turninItem.contentid
-		newTask.pos = e_turninItem.npcpos
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
-end
-
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 e_fatewait.pos = nil
@@ -527,6 +484,126 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
+c_startfate = inheritsFrom( ml_cause )
+e_startfate = inheritsFrom( ml_effect )
+e_startfate.contentid = 0
+e_startfate.npcpos = {}
+e_startfate.fateid = 0
+function c_startfate:evaluate()
+	-- Reset tempvars.
+	e_startfate.contentid = 0
+	e_startfate.npcpos = {}
+	e_startfate.fateid = 0
+					
+	local fateid = ml_task_hub:CurrentTask().fateid
+	local fate = MGetFateByID(fateid)
+	if (table.valid(fate)) then
+		local mapid = Player.localmapid
+		local activatable = ffxiv_task_fate.Activateable(mapid, fateid)
+		if (activatable and fate.status == 7) then
+			local npcid = activatable.id
+			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
+			if (table.valid(fatenpc)) then
+				local i,entity = next(fatenpc)
+				if (i and entity) then
+					e_startfate.contentid = npcid
+					e_startfate.npcpos = entity.pos
+					e_startfate.fateid = fateid
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function e_startfate:execute()
+   if (IsControlOpen("SelectYesno")) then
+		PressYesNo(true)
+		return
+	end	
+	
+	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.contentid = e_startfate.contentid
+	newTask.pos = e_startfate.npcpos
+	newTask.fateid =  e_startfate.fateid
+	
+	newTask.task_complete_eval = function (self)
+		-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
+		local fate = MGetFateByID(self.fateid)
+		if (not fate or fate.status == 2 or Busy() or self.startMap ~= Player.localmapid) then
+			return true
+		end
+		
+		local myTarget = MGetTarget()
+		local ppos = Player.pos
+		
+		local interactable = nil
+		if (self.interact ~= 0) then
+			interactable = EntityList:Get(self.interact)
+		end
+		
+		if (self.interact ~= 0) then
+			if (not interactable or not interactable.targetable) then
+				return true
+			end
+		else
+			local epos = self.pos
+			local dist = Distance3DT(ppos,epos)
+			if (dist <= 2) then
+				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
+				if (not table.valid(interacts)) then
+					return true
+				end
+			end			
+		end
+		
+		return false
+	end
+		
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_turninItem = inheritsFrom( ml_cause )
+e_turninItem = inheritsFrom( ml_effect )
+e_turninItem.contentid = 0
+e_turninItem.npcpos = {}
+function c_turninItem:evaluate()
+	-- Reset tempvars.
+	e_turninItem.contentid = 0
+	e_turninItem.npcpos = {}
+
+	local fateid = ml_task_hub:ThisTask().fateid
+	local fate = MGetFateByID(fateid)
+	if (table.valid(fate)) then
+		local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
+		if (gatherable and In(fate.status,2,8)) then
+			local npcid = gatherable.id
+			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
+			if (table.valid(fatenpc)) then
+				local turninid = gatherable.turninid
+				local currentcount = ItemCount(turninid,{2004})
+				if ((currentcount >= gFateGatherTurnCount) or (currentcount >= 1 and (fate.status == 8 or fate.duration < 120))) then
+					local npcpos = gatherable.pos
+				
+					e_turninItem.contentid = npcid
+					e_turninItem.npcpos = npcpos
+					return true
+				end 
+			end 
+		end 
+	end
+	return false
+end
+
+function e_turninItem:execute()
+	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.contentid = e_turninItem.contentid
+	newTask.pos = e_turninItem.npcpos
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 c_handoveritem = inheritsFrom( ml_cause )
 e_handoveritem = inheritsFrom( ml_effect )
 function c_handoveritem:evaluate()
@@ -560,84 +637,72 @@ end
 
 c_pickupItem = inheritsFrom( ml_cause )
 e_pickupItem = inheritsFrom( ml_effect )
-e_pickupItem.itemid = 0
 e_pickupItem.contentid = 0
 e_pickupItem.itempos = {}
-function ffxiv_task_fate.evaluateGatherPrio()
+function c_pickupItem:evaluate()
+	-- Tempvars reset.
+	e_pickupItem.contentid = 0
+	e_pickupItem.itempos = {}
 
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-    if (table.valid(fate)) then
+	local fateid = ml_task_hub:CurrentTask().fateid
+	local fate = MGetFateByID(fateid)
+    if (table.valid(fate) and fate.status == 2) then
 	
 		if IsInsideFate() and not Player.incombat then
-			if fate.status == 2 then
 				
-				local nearest,nearestDistance = nil,0
-				local el = MEntityList("alive,attackable,onmesh")
-				local myPos = Player.pos
-				if (table.valid(el)) then
-					for i,entity in pairs(el) do
-						if (entity.fateid == fate.id or entity.fateid > 10000) then
-							local epos = entity.pos
-							local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
-							if (fatedist <= fate.radius) then
-								local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
-								if (not nearest or dist3d < nearestDistance) then
-									nearest, nearestDistance = entity, dist3d
+			local nearest,nearestDistance = nil,0
+			local el = MEntityList("alive,attackable,onmesh")
+			local myPos = Player.pos
+			if (table.valid(el)) then
+				for i,entity in pairs(el) do
+					local efateid = entity.fateid
+					if (efateid == fateid or efateid == 0) then
+						local epos = entity.pos
+						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+						if (fatedist <= fate.radius) then
+							local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
+							if (not nearest or dist3d < nearestDistance) then
+								nearest, nearestDistance = entity, dist3d
+							end
+						end
+					end
+				end
+			end	
+			
+			local fatenpc = EntityList("targetable,type=3,chartype=5")
+			if (table.valid(fatenpc)) then
+				for i,entity in pairs(fatenpc) do
+					if entity.fateid == fateid then
+						local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
+						if (gatherable) then
+							local pickupitem = MEntityList("nearest,targetable,contentid="..tostring(gatherable.itemid))
+							if (table.valid(pickupitem)) then
+								for id,item in pairs(pickupitem) do
+									local ipos = item.pos
+									local dist3d = Distance3D(ipos.x,ipos.y,ipos.z,myPos.x,myPos.y,myPos.z)
+									if (not nearest or dist3d < nearestDistance) then
+										
+										e_pickupItem.contentid = item.contentid
+										e_pickupItem.itempos = ipos
+										return true
+									end
 								end
 							end
 						end
 					end
 				end	
-				local fatenpc = EntityList("targetable,type=3,chartype=5")
-				if (table.valid(fatenpc)) then
-					for i,entity in pairs(fatenpc) do
-						if entity.fateid == fate.id then
-							local gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)))
-							if gatherable then
-								local pickupitem = EntityList("nearest,targetable,contentid="..tostring(ffxiv_task_fate.Gatherable(Player.localmapid, entity.fateid).itemid))
-								if (table.valid(pickupitem)) then
-									for k,item in pairs(pickupitem) do
-										local ipos = item.pos
-										local dist3d = Distance3D(ipos.x,ipos.y,ipos.z,myPos.x,myPos.y,myPos.z)
-										if (not nearest or dist3d < nearestDistance) then
-											
-											e_pickupItem.contentid = item.contentid
-											e_pickupItem.itempos = { x = item.pos.x , y = item.pos.y , z = item.pos.z }
-											return true
-										end
-									end
-								end
-							end
-						end
-					end	
-				end
 			end
 		end	
-	end
-	return false
-end
-
-function c_pickupItem:evaluate()
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-    if (table.valid(fate)) then
-		if ffxiv_task_fate.evaluateGatherPrio() then
-			return true
-		end 
 	end
 	return false
 end		
 
 function e_pickupItem:execute()
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-    if (table.valid(fate)) then
-		
-		local newTask = ffxiv_task_movetointeract.Create()
-		newTask.contentid = e_pickupItem.contentid
-		newTask.pos = e_pickupItem.itempos
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
+	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.contentid = e_pickupItem.contentid
+	newTask.pos = e_pickupItem.itempos
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
-
 
 c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
@@ -687,48 +752,6 @@ function e_add_fatetarget:execute()
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
-
-c_startfate = inheritsFrom( ml_cause )
-e_startfate = inheritsFrom( ml_effect )
-e_startfate.contentid = 0
-e_startfate.npcpos = {}
-function c_startfate:evaluate()
-	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
-	
-	if (table.valid(fate)) then
-		local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
-		if activatable and (fate.status == 7) then
-		local npcid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
-		local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
-		if (table.valid(fatenpc)) then
-				local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
-				e_startfate.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
-				e_startfate.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
-				return true
-			end
-		end
-	end
-	
-	return false
-end
-
-function e_startfate:execute()
-
-   if (IsControlOpen("SelectYesno")) then
-		PressYesNo(true)
-		return
-	end	
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-	
-    if (table.valid(fate)) then
-			
-		local newTask = ffxiv_task_movetointeract.Create()
-		newTask.contentid = e_startfate.contentid
-		newTask.pos = e_startfate.npcpos
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
-end
-
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
@@ -805,22 +828,22 @@ function c_endfate:evaluate()
 	local turninitem = 0
 	local redeemable = false
     if (table.valid(fate)) then
-		gatherable = (table.valid(ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)))
-		if gatherable then
-			turninitem = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id).turninid
+		gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)
+		if (gatherable) then
+			redeemable = (ItemCount(gatherable.turninid,2004) >= 1)
 		end
-		redeemable = (ItemCount(turninitem,2004) >= 1)
 	end
+	
     if (not table.valid(fate)) then
 		--d("Ending fate, fate no longer exists.")
         return true
-	elseif (not gatherable or (gatherable and not redeemable)) and (fate and (fate.completion > 99)) then
+	elseif (not gatherable or not redeemable) and (fate and (fate.completion > 99)) then
 		d("Ending fate, fate completion:"..tostring(fate.completion))
 		return true
 		
 	elseif (fate.status ~= 2) and (fate.status ~= 7) then
 		local foundTargetable = false
-		local el = EntityList("fateid="..tostring(fate.id))
+		local el = MEntityList("fateid="..tostring(fate.id))
 		if (table.valid(el)) then
 			for i,e in pairs(el) do
 				if (e.targetable) then

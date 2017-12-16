@@ -679,18 +679,15 @@ function ffxivminion.SetMainVars()
 	
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip",true)	
 	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
-	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
-	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
+	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",32)
+	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",false)
 	-- Auto Grind Stuff
 	
--- Version number used to Auto update vaules. YYYYMMDD
+	-- Version number used to Auto update vaules. YYYYMMDD
 	ffxivminion.AutoGrindDefaultVersion = 20171113
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
-	
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
-	
-		
 		Settings.FFXIVMINION.gAutoGrindVersion = ffxivminion.AutoGrindDefaultVersion
 		Settings.FFXIVMINION.gAutoGrindCode = ffxivminion.AutoGrindDefault
 		gAutoGrindVersion = ffxivminion.AutoGrindDefaultVersion

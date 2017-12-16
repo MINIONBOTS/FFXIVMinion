@@ -2915,6 +2915,38 @@ function ffxiv_task_fish:Draw()
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
 		GUI:Columns()
+		--Stealth Settings
+		GUI:Separator()
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before applying Stealth.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Remove Range")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before removing Stealth.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Smart Stealth")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
+		end
+		GUI:NextColumn()
+		local StealthWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(StealthWidth)
+		GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before applying Stealth.")
+		end
+		GUI_DrawIntMinMax("##Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Enemy range before removing Stealth.")
+		end
+		GUI:PopItemWidth()
+		GUI_Capture(GUI:Checkbox("##Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
+		end
+		GUI:Columns()		
 		GUI:Separator()
 	end
 	-- Collectables
