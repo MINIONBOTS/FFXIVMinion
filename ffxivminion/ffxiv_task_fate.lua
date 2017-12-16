@@ -527,48 +527,6 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
-c_startfate = inheritsFrom( ml_cause )
-e_startfate = inheritsFrom( ml_effect )
-e_startfate.contentid = 0
-e_startfate.npcpos = {}
-function c_startfate:evaluate()
-	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
-	
-	if (table.valid(fate)) then
-		local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
-		if activatable and (fate.status == 7) then
-		local npcid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
-		local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
-		if (table.valid(fatenpc)) then
-				local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
-				e_startfate.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
-				e_startfate.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
-				return true
-			end
-		end
-	end
-	
-	return false
-end
-
-function e_startfate:execute()
-
-   if (IsControlOpen("SelectYesno")) then
-		PressYesNo(true)
-		return
-	end	
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
-	
-    if (table.valid(fate)) then
-			
-		local newTask = ffxiv_task_movetointeract.Create()
-		newTask.contentid = e_startfate.contentid
-		newTask.pos = e_startfate.npcpos
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
-end
-
-
 c_handoveritem = inheritsFrom( ml_cause )
 e_handoveritem = inheritsFrom( ml_effect )
 function c_handoveritem:evaluate()
@@ -729,6 +687,48 @@ function e_add_fatetarget:execute()
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
+
+c_startfate = inheritsFrom( ml_cause )
+e_startfate = inheritsFrom( ml_effect )
+e_startfate.contentid = 0
+e_startfate.npcpos = {}
+function c_startfate:evaluate()
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+	
+	if (table.valid(fate)) then
+		local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
+		if activatable and (fate.status == 7) then
+		local npcid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+		local fatenpc = EntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
+		if (table.valid(fatenpc)) then
+				local npcpos = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).pos
+				e_startfate.contentid = ffxiv_task_fate.Activateable(Player.localmapid, fate.id).id
+				e_startfate.npcpos = { x = npcpos.x , y = npcpos.y , z = npcpos.z }
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+function e_startfate:execute()
+
+   if (IsControlOpen("SelectYesno")) then
+		PressYesNo(true)
+		return
+	end	
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+	
+    if (table.valid(fate)) then
+			
+		local newTask = ffxiv_task_movetointeract.Create()
+		newTask.contentid = e_startfate.contentid
+		newTask.pos = e_startfate.npcpos
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
