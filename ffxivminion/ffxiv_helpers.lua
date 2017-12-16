@@ -7253,7 +7253,7 @@ function GetUIValue()
 	return totalUI
 end
 function PlayerDriving()
-	if (GUI:IsMouseDown(0) and GUI:IsMouseDown(1)) then
+	if ((GUI:IsMouseDown(0) and GUI:IsMouseDown(1)) or GUI:IsMouseDragging(1)) then
 		return true
 	end
 	return false
