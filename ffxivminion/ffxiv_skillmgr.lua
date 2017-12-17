@@ -650,8 +650,8 @@ SkillMgr.Variables = {
 	SKM_SingleUseCraft = { default = true, cast = "boolean", profile = "singleuseonly", section = "crafting"},
 	SKM_ConsecutiveUseCraft = { default = false, cast = "boolean", profile = "consecutiveuseonly", section = "crafting"},
 	
-	SKM_CLevelMin = { default = 0, cast = "number", profile = "playerlevelmin", section = "fighting", group = "", useData = "level" },
-	SKM_CLevelMax = { default = 0, cast = "number", profile = "playerlevelmax", section = "fighting", group = ""   },
+	SKM_CLevelMin = { default = 0, cast = "number", profile = "playerlevelmin", section = "crafting", group = "", useData = "level" },
+	SKM_CLevelMax = { default = 0, cast = "number", profile = "playerlevelmax", section = "crafting", group = ""   },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
