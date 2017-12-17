@@ -743,7 +743,7 @@ function cd(var,level)
 end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaLevel == "CP" or gCraftTeaLevel == "Any" then
+		if gCraftTeaLevel == GetString("CP") or gCraftTeaLevel == GetString("Any") then
 			local tea, action = GetItem(19884)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -753,7 +753,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaLevel == "Control" or gCraftTeaLevel == "Any" then
+		if gCraftTeaLevel == GetString("Control") or gCraftTeaLevel == GetString("Any") then
 			local tea, action = GetItem(19883)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -763,7 +763,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaLevel == "Craftmanship" or gCraftTeaLevel == "Any" then
+		if gCraftTeaLevel == GetString("Craftmanship") or gCraftTeaLevel == GetString("Any") then
 			local tea, action = GetItem(19882)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -1565,8 +1565,8 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderSelect = "CRP"
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 		
-	gTeaSelect = {GetString("CP"),GetString("Control"),GetString("Craftmanship"),"Any"}
-	gCraftTeaLevel = ffxivminion.GetSetting("gCraftTeaLevel","CP")
+	gTeaSelect = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
+	gCraftTeaLevel = ffxivminion.GetSetting("gCraftTeaLevel","none")
 	gCraftTeaLevelIndex = GetKeyByValue(gCraftTeaLevel,gTeaSelect)
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
