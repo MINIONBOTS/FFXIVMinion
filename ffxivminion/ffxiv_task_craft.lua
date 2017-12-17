@@ -89,12 +89,15 @@ function c_craftlimit:evaluate()
 			local recipe = ml_task_hub:CurrentTask().recipe
 			local itemid = ml_task_hub:CurrentTask().itemid
 			local requireHQ = ml_task_hub:CurrentTask().requireHQ
+			local requireCollect = ml_task_hub:CurrentTask().requireCollect
 			local countHQ = ml_task_hub:CurrentTask().countHQ
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
 			local itemcount = 0
-			if (requireHQ) then
+			if (requireCollect) then
+				itemcount = itemcount + ItemCount(itemid + 500000)
+			elseif (requireHQ) then
 				itemcount = itemcount + ItemCount(itemid + 1000000)
 			elseif (countHQ) then
 				itemcount = itemcount + ItemCount(itemid,true)
@@ -172,11 +175,14 @@ function c_startcraft:evaluate()
 				local minCP = ml_task_hub:CurrentTask().requiredCP
 				local itemid = ml_task_hub:CurrentTask().itemid
 				local requireHQ = ml_task_hub:CurrentTask().requireHQ
+				local requireCollect = ml_task_hub:CurrentTask().requireCollect
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 				
 				local itemcount = 0
-				if (requireHQ) then
+				if (requireCollect) then
+					itemcount = itemcount + ItemCount(itemid + 500000)
+				elseif (requireHQ) then
 					itemcount = itemcount + ItemCount(itemid + 1000000)
 				elseif (countHQ) then
 					itemcount = itemcount + ItemCount(itemid,true)
@@ -653,7 +659,9 @@ function e_selectcraft:execute()
 					
 					local itemid = order.item
 					local itemcount = 0
-					if (order.requirehq) then
+					if (order.collect) then
+						itemcount = itemcount + ItemCount(itemid + 500000)
+					elseif (order.requirehq) then
 						itemcount = itemcount + ItemCount(itemid + 1000000)
 					elseif (order.counthq) then
 						itemcount = itemcount + ItemCount(itemid,true)
@@ -666,6 +674,7 @@ function e_selectcraft:execute()
 					newTask.requiredItems = order.amount
 					cd("[SelectCraft]: Required Amount :"..tostring(order.amount)..".",3)
 					newTask.requireHQ = order.requirehq
+					newTask.requireCollect = order.collect
 					newTask.requiredCP = order.requiredcp
 					cd("[SelectCraft]: Required requiredcp :"..tostring(order.requiredcp)..".",2)
 					newTask.countHQ = order.counthq
@@ -732,6 +741,7 @@ function ffxiv_task_craftitems.Create()
 	newinst.requiredItems = 0
 	newinst.requiredCP = 0
 	newinst.requireHQ = false
+	newinst.requireCollect = false
 	newinst.countHQ = false
 	newinst.itemid = 0
 	newinst.useQuick = false
@@ -1058,11 +1068,14 @@ function ffxiv_task_craft:Draw()
 			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().itemid ~= nil) then
 				local itemid = ml_task_hub:CurrentTask().itemid
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
+				local requireCollect = ml_task_hub:CurrentTask().requireCollect
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				local requireHQ = ml_task_hub:CurrentTask().requireHQ
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local itemcount = 0
-				if (requireHQ) then
+				if (requireCollect) then
+					itemcount = itemcount + ItemCount(itemid + 500000)
+				elseif (requireHQ) then
 					itemcount = itemcount + ItemCount(itemid + 1000000)
 				elseif (countHQ) then
 					itemcount = itemcount + ItemCount(itemid,true)
@@ -1080,14 +1093,15 @@ function ffxiv_task_craft:Draw()
 		end
 	
 		GUI:Separator();
-		GUI:Columns(7, "#craft-manage-orders", true)
-		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 275); GUI:SetColumnOffset(4, 325); GUI:SetColumnOffset(5, 370); GUI:SetColumnOffset(6, 430); GUI:SetColumnOffset(7, 500);
+		GUI:Columns(8, "#craft-manage-orders", true)
+		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 275); GUI:SetColumnOffset(4, 325); GUI:SetColumnOffset(5, 370); GUI:SetColumnOffset(6, 415); GUI:SetColumnOffset(7, 475); GUI:SetColumnOffset(8, 535);
 		
 		
 		GUI:Text("Item"); GUI:NextColumn();
 		GUI:Text("Craft"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
 		GUI:Text("HQ"); GUI:NextColumn();
+		GUI:Text("COL"); GUI:NextColumn();
 		GUI:Text("Edit"); GUI:NextColumn();
 		GUI:Text("Remove"); GUI:NextColumn();
 		GUI:Text("Alert"); GUI:NextColumn();
@@ -1103,11 +1117,14 @@ function ffxiv_task_craft:Draw()
 				
 				itemcount = order["itemcount"]
 				itemcountHQ = order["itemcounthq"]
+				itemcountCollectable = order["itemcountcollectable"]
 				GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##amount",order.amount,GUI.InputTextFlags_ReadOnly) ; GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcount",itemcount,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcountHQ",itemcountHQ,GUI.InputTextFlags_ReadOnly) ; 
+				GUI:NextColumn()
+				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcountCollectable",itemcountCollectable,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
 				
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
@@ -1532,6 +1549,9 @@ function ffxiv_craft.UpdateAlertElement()
 				if order["itemcounthq"] == nil then
 					order["itemcounthq"] = 0
 				end
+				if order["itemcountcollectable"] == nil then
+					order["itemcountcollectable"] = 0
+				end
 				if order["skillprofile"] == nil then
 					order["skillprofile"] = GetString("none")
 				end
@@ -1559,15 +1579,19 @@ function ffxiv_craft.UpdateAlertElement()
 				local itemid = order.item
 				local itemcount = 0
 				local itemcountHQ = 0
+				local itemcountCollectable = 0
 				itemcount = itemcount + ItemCount(itemid,true)
 				itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
+				itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
 				end
 				if order["itemcounthq"] ~= itemcountHQ then
 					order["itemcounthq"]= itemcountHQ
 				end
-				
+				if order["itemcountcollectable"] ~= itemcountCollectable then
+					order["itemcountcollectable"]= itemcountCollectable
+				end
 			end
 		end
 		ffxiv_craft.SaveProfile()
