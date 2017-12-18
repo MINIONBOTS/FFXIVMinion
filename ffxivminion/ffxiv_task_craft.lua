@@ -1968,8 +1968,8 @@ function ffxiv_task_craft:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use CP Tea"))
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Tea Type"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Tea Boosts.")) end
 		GUI:NextColumn()
 		local CraftStatusWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CraftStatusWidth-8)
