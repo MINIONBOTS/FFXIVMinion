@@ -1388,7 +1388,6 @@ function e_selectcraft:execute()
 					newTask.useHQ = order.usehq
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.skillprofile
-					newTask.maxCount = order.maxcount
 					
 					for i = 1,6 do
 						newTask["hq"..tostring(i)] = IsNull(order["hq"..tostring(i)],0)
@@ -1445,10 +1444,9 @@ function ffxiv_task_craftitems.Create()
 	newinst.startingCount = 0
 	newinst.requiredItems = 0
 	newinst.requiredCP = 0
-	newinst.maxCount = 0
 	newinst.requireHQ = false
 	newinst.requireCollect = false
-	newinst.countHQ = false
+	newinst.countHQ = true
 	newinst.itemid = 0
 	newinst.useQuick = false
 	newinst.useCollect = false
@@ -1590,7 +1588,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderAddAmount = 1
 	gCraftOrderAddRequireHQ = false
 	gCraftOrderAddRequireCP = 0
-	gCraftOrderAddCountHQ = false
+	gCraftOrderAddCountHQ = true
 	gCraftOrderAddQuick = false
 	gCraftOrderAddCollect = false
 	gCraftOrderAddHQ = false
@@ -1602,7 +1600,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderEditAmount = 1
 	gCraftOrderEditRequireHQ = false
 	gCraftOrderEditRequiredCP = 0
-	gCraftOrderEditCountHQ = false
+	gCraftOrderEditCountHQ = true
 	gCraftOrderEditQuick = false
 	gCraftOrderEditCollect = false
 	gCraftOrderEditHQ = false
@@ -1801,14 +1799,10 @@ function ffxiv_task_craft:Draw()
 				else
 					local orders = ffxiv_craft.orders
 					if (table.valid(orders)) then
-						for id,order in pairs(orders) do
-							if id == ml_task_hub:CurrentTask().recipe.id then
-								local maxCount = order.maxcount
-								GUI:PushItemWidth(50)
-								GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
-								GUI:PopItemWidth()
-							end
-						end
+						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().recipe.id].maxcount,"Inf")
+						GUI:PushItemWidth(50)
+						GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
+						GUI:PopItemWidth()
 					end
 				end
 			end
@@ -2300,9 +2294,12 @@ function ffxiv_craft.UpdateAlertElement()
 				if order["maxcount"] == nil then
 					order["maxcount"] = 0
 				end
-						
-				
+					
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id)
+				if order["maxcount"] ~= maxAmount then
+					order["maxcount"]= maxAmount
+				end
+				
 				local okCP = (order["requiredcp"] ~= nil and (playercp >= order["requiredcp"])) or (order["usequick"] == true)
 				if order["skip"] == true then
 					order["uialert"] = "skip"
@@ -2323,10 +2320,6 @@ function ffxiv_craft.UpdateAlertElement()
 				itemcount = itemcount + ItemCount(itemid,true)
 				itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
 				itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
-				
-				if order["maxcount"] ~= maxAmount then
-					order["maxcount"]= maxAmount
-				end
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
 				end
