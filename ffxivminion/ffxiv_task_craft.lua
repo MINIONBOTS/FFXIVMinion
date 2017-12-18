@@ -2719,27 +2719,27 @@ function ffxiv_craft.Draw( event, ticks )
 				
 					GUI:Columns(2)
 					
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Amount to Craft"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Collect"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("skillProfile"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Required CP"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Require HQ"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Count HQ"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use QuickSynth"); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use HQ Items"); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Amount to Craft")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Required CP")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Require HQ")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Count HQ")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use QuickSynth")); 
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Items")); 
 					GUI:NextColumn()
 					
-					GUI:PushItemWidth(200)
+					GUI:PushItemWidth(250)
 					GUI_Capture(GUI:InputInt("##Amount to Craft",gCraftOrderAddAmount,0,0),"gCraftOrderAddAmount")
 					GUI:PopItemWidth()
 					GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderAddCollect),"gCraftOrderAddCollect")
 					if (not gCraftOrderAddQuick) then
-						GUI:PushItemWidth(200)
+						GUI:PushItemWidth(250)
 						GUI_Combo(GetString("##skillProfile1"), "gCraftOrderAddSkillProfileIndex", "gCraftOrderAddSkillProfile", SkillMgr.profiles)
 						GUI:PopItemWidth()
 					end
 					
-					GUI:PushItemWidth(200)
+					GUI:PushItemWidth(250)
 					GUI_Capture(GUI:InputInt("##RequiredCP",gCraftOrderAddRequireCP,0,0),"gCraftOrderAddRequireCP")
 					GUI_Capture(GUI:Checkbox("##Require HQ",gCraftOrderAddRequireHQ),"gCraftOrderAddRequireHQ")
 					GUI_Capture(GUI:Checkbox("##Count HQ",gCraftOrderAddCountHQ),"gCraftOrderAddCountHQ")
@@ -2845,7 +2845,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Separator()
 					GUI:Spacing()
 					
-					if (GUI:Button("Add to Profile",200,20)) then
+					if (GUI:Button("Add to Profile",250,20)) then
 						ffxiv_craft.AddToProfile()
 					end
 				end
@@ -2869,7 +2869,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Items"));  
 					GUI:NextColumn()
 					
-					GUI:PushItemWidth(200)
+					GUI:PushItemWidth(250)
 					
 							
 					
@@ -2889,7 +2889,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end
 					
 					if (not gCraftOrderEditQuick) then
-						GUI:PushItemWidth(200)
+						GUI:PushItemWidth(250)
 						GUI_Combo(GetString("##skillProfile"), "gCraftOrderEditSkillProfileIndex", "gCraftOrderEditSkillProfile", SkillMgr.profiles)
 						
 						GUI:PopItemWidth()
