@@ -33,7 +33,8 @@ ffxiv_craft.collectibles = {
 	-- Weekly
 	{ name = AceLib.API.Items.GetNameByID(20776), minimum = 167 }, -- Far Eastern Antique
 	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 }, -- Gyr Abanian Souvenir
-	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 55 }, -- Coerthan Souvenir
+	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 }, -- Orphanage Donation
+	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 }, -- Coerthan Souvenir
 	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 }, -- Near Eastern Antique
 	
 	-- Carpenter
