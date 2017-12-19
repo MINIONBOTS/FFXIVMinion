@@ -7073,16 +7073,19 @@ function GetAetherCurrentData(mapid)
 end
 
 function FindNearestCollectableAppraiser()
+	local idyllshire = { id = 1012300, aethid = 75, mapid = 478, pos = {x = -18.3, y = 206.5, z = 45.1} }
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
 	
 	if (Player.localmapid == morDhona.mapid) then
 		return morDhona
+	elseif (Player.localmapid == idyllshire.mapid) then
+		return idyllshire
 	elseif (Player.localmapid == rhalgr.mapid) then
 		return rhalgr
 	else
-		local hasRhalgr, hasMorDhona = false, false
-		local rhalgrCost, morDhonaCost = 0, 0
+		local hasIdyllshire, hasRhalgr, hasMorDhona = false, false, false
+		local idyllshireCost, rhalgrCost, morDhonaCost = 0, 0, 0
 		local gil = GilCount()
 		local attuned = GetAttunedAetheryteList(true)
 		if (table.valid(attuned)) then
@@ -7090,19 +7093,24 @@ function FindNearestCollectableAppraiser()
 				if (aetheryte.id == morDhona.aethid and gil >= aetheryte.price) then
 					hasMorDhona = true
 					morDhonaCost = aetheryte.price
+				elseif (aetheryte.id == idyllshire.aethid and gil >= aetheryte.price) then
+					hasIdyllshire = true
+					idyllshireCost = aetheryte.price
 				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
 					hasRhalgr = true
 					rhalgrCost = aetheryte.price
 				end
-				if (hasMorDhona and hasRhalgr) then
+				if (hasIdyllshire and hasMorDhona and hasRhalgr) then
 					break
 				end
 			end
 		end
-		if (hasMorDhona and hasRhalgr) then
-			if (morDhonaCost < rhalgrCost) then
+		if (hasIdyllshire and hasMorDhona and hasRhalgr) then
+			if (morDhonaCost < rhalgrCost and morDhonaCost < idyllshireCost) then
 				return morDhona
-			else
+			elseif (idyllshireCost < morDhonaCost and idyllshireCost < rhalgrCost) then
+				return idyllshire
+			elseif (rhalgrCost < morDhonaCost and rhalgrCost < idyllshireCost) then
 				return rhalgr
 			end
 		elseif (hasMorDhona) then

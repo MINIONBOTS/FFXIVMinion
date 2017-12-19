@@ -31,8 +31,12 @@ ffxiv_craft.collectors = {
 ffxiv_craft.collectibles = {
 
 	-- Weekly
+	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
+	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 }, -- M Tribe Sundries
+	{ name = AceLib.API.Items.GetNameByID(20777), minimum = 130 }, -- Gold Saucer Consolation Prize
 	{ name = AceLib.API.Items.GetNameByID(20776), minimum = 167 }, -- Far Eastern Antique
 	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 }, -- Gyr Abanian Souvenir
+	{ name = AceLib.API.Items.GetNameByID(20774), minimum = 1 }, -- Sunken Treasure Tank Trimmings
 	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 }, -- Orphanage Donation
 	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 }, -- Coerthan Souvenir
 	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 }, -- Near Eastern Antique
@@ -785,6 +789,18 @@ function ffxiv_craft.CanUseTea()
 	
 	return false, nil
 end
+
+function ffxiv_craft.CloseLog()
+	if (IsControlOpen("RecipeNote")) then
+		ffxiv_craft.ToggleCraftingLog()
+		ml_task_hub:CurrentTask().allowWindowOpen = true
+		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
+		return
+	end
+	
+	ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
+end
+
 c_craftlimit = inheritsFrom( ml_cause )
 e_craftlimit = inheritsFrom( ml_effect )
 function c_craftlimit:evaluate()
@@ -1044,7 +1060,7 @@ function e_startcraft:execute()
 					ml_global_information.Await(2500)
 					return
 				else
-					if (ml_task_hub:CurrentTask().failedAttempts < 20) then
+					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
 						cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
 						ml_global_information.Await(1000)
@@ -1339,8 +1355,8 @@ function c_selectcraft:evaluate()
 				end
 			end
 		end
-		
-		ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
+		ffxiv_craft.CloseLog()
+		--ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
 	else
 		return true
 	end
@@ -1802,6 +1818,8 @@ function ffxiv_task_craft:Draw()
 						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().recipe.id].maxcount,"Inf")
 						GUI:PushItemWidth(50)
 						GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
+						if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Based from total item count only.")) end
+				
 						GUI:PopItemWidth()
 					end
 				end
@@ -1810,16 +1828,16 @@ function ffxiv_task_craft:Draw()
 	
 		GUI:Separator();
 		GUI:Columns(8, "#craft-manage-orders", true)
-		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 275); GUI:SetColumnOffset(4, 325); GUI:SetColumnOffset(5, 370); GUI:SetColumnOffset(6, 415); GUI:SetColumnOffset(7, 475); GUI:SetColumnOffset(8, 535);
+		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 210); GUI:SetColumnOffset(3, 260); GUI:SetColumnOffset(4, 310); GUI:SetColumnOffset(5, 360); GUI:SetColumnOffset(6, 405); GUI:SetColumnOffset(7, 450); GUI:SetColumnOffset(8, 510);
 		
 		
 		GUI:Text("Item"); GUI:NextColumn();
-		GUI:Text("Craft"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
+		GUI:Text("Norm"); GUI:NextColumn();
 		GUI:Text("HQ"); GUI:NextColumn();
 		GUI:Text("COL"); GUI:NextColumn();
 		GUI:Text("Edit"); GUI:NextColumn();
-		GUI:Text("Remove"); GUI:NextColumn();
+		GUI:Text("Skip"); GUI:NextColumn();
 		GUI:Text("Alert"); GUI:NextColumn();
 		GUI:Separator();
 		
@@ -1832,11 +1850,13 @@ function ffxiv_task_craft:Draw()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
 				
 				itemcount = order["itemcount"]
+				itemcountNorm = order["itemcountnorm"]
 				itemcountHQ = order["itemcounthq"]
 				itemcountCollectable = order["itemcountcollectable"]
 				GUI:NextColumn()
-				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##amount",order.amount,GUI.InputTextFlags_ReadOnly) ; GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcount",itemcount,GUI.InputTextFlags_ReadOnly) ; 
+				GUI:NextColumn()
+				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcountNorm",itemcountNorm,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcountHQ",itemcountHQ,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
@@ -1879,8 +1899,16 @@ function ffxiv_task_craft:Draw()
 				
 				GUI:PopStyleColor(2)
 				GUI:NextColumn()
-				if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
-					ffxiv_craft.DeleteOrder(id)
+				--if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
+				--	ffxiv_craft.DeleteOrder(id)
+				--end
+				local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
+				if (changed) then
+					orders[id].skip = newVal
+					if orders[id].skip == true then
+						orders[id].uialert = skip
+					end
+					ffxiv_craft.tracking.measurementDelay = Now()
 				end
 				GUI:NextColumn()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
@@ -2276,6 +2304,9 @@ function ffxiv_craft.UpdateAlertElement()
 				if order["itemcount"] == nil then
 					order["itemcount"] = 0
 				end
+				if order["itemcountnorm"] == nil then
+					order["itemcountnorm"] = 0
+				end
 				if order["itemcounthq"] == nil then
 					order["itemcounthq"] = 0
 				end
@@ -2315,13 +2346,18 @@ function ffxiv_craft.UpdateAlertElement()
 				
 				local itemid = order.item
 				local itemcount = 0
+				local itemcountnorm = 0
 				local itemcountHQ = 0
 				local itemcountCollectable = 0
 				itemcount = itemcount + ItemCount(itemid,true)
+				itemcountnorm = itemcountnorm + ItemCount(itemid,false)
 				itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
 				itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
+				end
+				if order["itemcountnorm"] ~= itemcountnorm then
+					order["itemcountnorm"]= itemcountnorm
 				end
 				if order["itemcounthq"] ~= itemcountHQ then
 					order["itemcounthq"]= itemcountHQ
