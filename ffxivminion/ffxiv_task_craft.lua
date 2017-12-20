@@ -1993,6 +1993,7 @@ function ffxiv_task_craft:Draw()
 	if (tabname == GetString("Settings")) then
 		
 		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Current Active Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
@@ -2002,6 +2003,7 @@ function ffxiv_task_craft:Draw()
 		GUI:NextColumn()
 		local CraftStatusWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CraftStatusWidth-8)
+		GUI:InputText("##Current Active Food",gCraftFood,GUI.InputTextFlags_ReadOnly)
 		GUI_Combo("##food", "gCraftFoodIndex", "gCraftFood", gFoods)
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("This option will override any Profile food choice.")

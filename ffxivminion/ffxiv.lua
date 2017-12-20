@@ -34,13 +34,9 @@ if (ffxivminion.gameRegion == 1) then
 		[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
 		[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
 	}
-elseif (ffxivminion.gameRegion == 2) then
+else
 	ffxivminion.loginservers = {
 		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
-	}
-elseif (ffxivminion.gameRegion == 3) then
-	ffxivminion.loginservers = {
-		[1] = { "톤베리","모그리","초코보","카벙클" },
 	}
 end
 
@@ -1572,9 +1568,13 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox("Show Available Mounts Only",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
-					end
-					
-					GUI:PushItemWidth(200); GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods); GUI:PopItemWidth()
+					end	
+					GUI:PushItemWidth(200); 
+					GUI:InputText("##Current Active gFood",gFood,GUI.InputTextFlags_ReadOnly)
+					GUI:SameLine()
+					GUI:Text(GetString("Current Active Food"))
+					GUI:PushItemWidth(200); 
+					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods); GUI:PopItemWidth()
 					GUI:SameLine(275)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
