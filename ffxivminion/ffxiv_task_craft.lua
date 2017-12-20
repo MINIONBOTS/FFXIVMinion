@@ -1320,20 +1320,16 @@ function c_quicksynth:evaluate()
 	return IsControlOpen("SynthesisSimple")
 end
 function e_quicksynth:execute()
-	if (Player.action == 241) then
-		ffxiv_craft.tracking.quickTimer = Now() + 7000
-	end
-	
-	if (Now() >= ffxiv_craft.tracking.quickTimer) then
+	if (ml_task_hub:CurrentTask().quickTimer > 0 and TimeSince(ml_task_hub:CurrentTask().quickTimer) > 7000) then
 		if (UseControlAction("SynthesisSimple","Quit")) then
 			ml_global_information.Await(6000)
 			return true
 		end
 	end
 	
-	
-	
-	
+	if (Player.action == 241 or Player.action == 248) then
+		ml_task_hub:CurrentTask().quickTimer = Now()
+	end
 end
 
 c_selectcraft = inheritsFrom( ml_cause )
@@ -2757,7 +2753,9 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Amount to Craft")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect")); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
+					if (not gCraftOrderAddQuick) then
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
+					end
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Required CP")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Require HQ")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Count HQ")); 
