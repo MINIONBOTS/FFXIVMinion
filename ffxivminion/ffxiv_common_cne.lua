@@ -3451,6 +3451,9 @@ function c_scripexchange:evaluate()
 			return true
 		else
 			local item = GetItem(c_scripexchange.lastItem,{0,1,2,3})
+			if gSOEFilterArmory then 
+				item = GetItem(c_scripexchange.lastItem,{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
+			end
 			if (table.valid(item)) then
 				d("[ScripExchange]: Handing over item ["..tostring(c_scripexchange.lastItem).."]")
 				item:HandOver()
