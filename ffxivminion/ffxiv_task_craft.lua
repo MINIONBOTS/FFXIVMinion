@@ -1198,7 +1198,7 @@ function e_precraftbuff:execute()
 	elseif (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local jobRequired = recipe.class + 8
-		local gearset = _G["gCraftGearset"..tostring(jobRequired)]
+		local gearset = _G["gGearset"..tostring(jobRequired)]
 		cd("[PreCraftBuff]: Attempting to switch to gearset ["..tostring(gearset).."].",3)
 		local commandString = "/gearset change "..tostring(gearset)
 		SendTextCommand(commandString)
@@ -1581,9 +1581,9 @@ function ffxiv_task_craft:UIInit()
 	gCraftCollectable = ffxivminion.GetSetting("gCraftCollectable",false)
 	gCraftUseHQBackup = ffxivminion.GetSetting("gCraftUseHQBackup",false)
 	
-	for i = 8,15 do
-		_G["gCraftGearset"..tostring(i)] = ffxivminion.GetSetting("gCraftGearset"..tostring(i),0)
-	end
+	--for i = 8,15 do
+	--	_G["gGearset"..tostring(i)] = ffxivminion.GetSetting("gGearset"..tostring(i),0)
+	--end
 	
 	gCraftOrderSelectIndex = 1
 	gCraftOrderSelect = "CRP"
@@ -1873,7 +1873,7 @@ function ffxiv_task_craft:Draw()
 					gCraftOrderEditAmount = IsNull(order["amount"],0)
 					gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
 					gCraftOrderEditRequireHQ = IsNull(order["requirehq"],false)
-					gCraftOrderEditCountHQ = IsNull(order["counthq"],false)
+					gCraftOrderEditCountHQ = IsNull(order["counthq"],true)
 					gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					gCraftOrderEditCollect = IsNull(order["collect"],false)
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
@@ -2132,20 +2132,8 @@ function ffxiv_task_craft:Draw()
 	end
 	-- Class Gear Sets
 	if (tabname == GetString("Gearsets")) then
-		GUI:PushItemWidth(40)
-		local GearSetsColumnWidth = (GUI:GetContentRegionAvail()/2)-50
-		for i = 8,15 do
-			GUI:AlignFirstTextHeightToWidgets()
-			GUI:Text(gCrafts[i-7])
-			GUI:SameLine()
-			GUI:PushItemWidth(GearSetsColumnWidth)
-			GUI_Capture(GUI:InputInt("##craft-gearset"..tostring(i),_G["gCraftGearset"..tostring(i)],0,0),"gCraftGearset"..tostring(i))
-			GUI:PopItemWidth()
-			if (i ~= 9 and i ~= 11 and i ~= 13 and i ~= 15) then
-				GUI:SameLine()
-			end
-		end
-		GUI:PopItemWidth()
+		GUI:Separator();
+		GUI:Text("Please set Gearsets in Advanced Settings Auto-Equip Tab");
 	end
 	if (tabname == GetString("Debug")) then
 		GUI:Columns(2)
@@ -2522,7 +2510,7 @@ function ffxiv_craft.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gCraftDebug" or
 				k == "gCraftDebugLevel" or
 				string.contains(tostring(k),"gCraftCollectible") or
-				string.contains(tostring(k),"gCraftGearset"))				
+				string.contains(tostring(k),"gGearset"))				
 		then
             SafeSetVar(tostring(k),v)
 		elseif (k == "gCraftOrderSelect") then
@@ -2614,7 +2602,7 @@ function ffxiv_craft.Draw( event, ticks )
 							gCraftOrderEditCollect = IsNull(order["collect"],false)
 							gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
 							gCraftOrderEditRequireHQ = IsNull(order["requirehq"],false)
-							gCraftOrderEditCountHQ = IsNull(order["counthq"],false)
+							gCraftOrderEditCountHQ = IsNull(order["counthq"],true)
 							gCraftOrderEditQuick = IsNull(order["usequick"],false)
 							gCraftOrderEditHQ = IsNull(order["usehq"],false)
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
@@ -2742,7 +2730,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddCollect = false
 								gCraftOrderAddRequireHQ = false
 								gCraftOrderAddRequireCP = 0
-								gCraftOrderAddCountHQ = false
+								gCraftOrderAddCountHQ = true
 								gCraftOrderAddQuick = false
 								gCraftOrderAddHQ = false
 								gCraftOrderAddSkillProfileIndex = 1
