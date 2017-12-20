@@ -755,7 +755,7 @@ function cd(var,level)
 end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaLevel == GetString("CP") or gCraftTeaLevel == GetString("Any") then
+		if gCraftTeaList == GetString("CP") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19884)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -765,7 +765,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaLevel == GetString("Control") or gCraftTeaLevel == GetString("Any") then
+		if gCraftTeaList == GetString("Control") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19883)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -775,7 +775,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaLevel == GetString("Craftmanship") or gCraftTeaLevel == GetString("Any") then
+		if gCraftTeaList == GetString("Craftmanship") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19882)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -1589,9 +1589,9 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderSelect = "CRP"
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 		
-	gTeaSelect = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
-	gCraftTeaLevel = ffxivminion.GetSetting("gCraftTeaLevel",GetString("none"))
-	gCraftTeaLevelIndex = GetKeyByValue(gCraftTeaLevel,gTeaSelect)
+	gTeaSelection = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
+	gCraftTeaList = ffxivminion.GetSetting("gCraftTeaList",GetString("none"))
+	gCraftTeaTypeIndex = GetKeyByValue(gCraftTeaList,gTeaSelection)
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
 	gCraftFoodIndex = 1
@@ -2026,10 +2026,10 @@ function ffxiv_task_craft:Draw()
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
 		
-		if (gTeaSelect ~= gCraftTeaLevel) then
-			gCraftTeaLevel = gTeaSelect
+		if (gTeaSelection ~= gCraftTeaList) then
+			gCraftTeaList = gTeaSelection
 		end
-		GUI_Combo("##tea", "gCraftTeaLevelIndex", "gCraftTeaLevel", gTeaSelect)
+		GUI_Combo("##tea", "gCraftTeaTypeIndex", "gCraftTeaList", gTeaSelection)
 		
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
 		GUI:Columns()
