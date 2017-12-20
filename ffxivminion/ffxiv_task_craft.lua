@@ -1590,7 +1590,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 		
 	gTeaSelect = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
-	gCraftTeaLevel = ffxivminion.GetSetting("gCraftTeaLevel","none")
+	gCraftTeaLevel = ffxivminion.GetSetting("gCraftTeaLevel",GetString("none"))
 	gCraftTeaLevelIndex = GetKeyByValue(gCraftTeaLevel,gTeaSelect)
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
