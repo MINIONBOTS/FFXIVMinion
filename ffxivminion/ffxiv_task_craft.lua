@@ -755,7 +755,7 @@ function cd(var,level)
 end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaList == GetString("CP") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19884)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -765,7 +765,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaList == GetString("Control") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19883)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -775,7 +775,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaList == GetString("Craftmanship") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19882)
 			if (tea and action and tea:IsReady(Player.id)) then
 				return true, tea
@@ -1106,6 +1106,15 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
+		local canUseTea,teaItem = ffxiv_craft.CanUseTea()
+		if (canUseTea and table.valid(teaItem)) then
+			d("[NodePreBuff]: Need to use a Tea.")
+			e_precraftbuff.activity = "usetea"
+			e_precraftbuff.item = teaItem
+			e_precraftbuff.requiresLogClose = true
+			return true
+		end
+		
 		if (gCraftFood ~= GetString("none")) then
 			local foodDetails = ml_global_information.foods[gCraftFood]
 			if (foodDetails) then
@@ -1128,15 +1137,6 @@ function c_precraftbuff:evaluate()
 			d("[NodePreBuff]: Need to use an exp manual.")
 			e_precraftbuff.activity = "usemanual"
 			e_precraftbuff.item = manualItem
-			e_precraftbuff.requiresLogClose = true
-			return true
-		end
-		
-		local canUseTea,teaItem = ffxiv_craft.CanUseTea()
-		if (canUseTea and table.valid(teaItem)) then
-			d("[NodePreBuff]: Need to use a Tea.")
-			e_precraftbuff.activity = "usetea"
-			e_precraftbuff.item = teaItem
 			e_precraftbuff.requiresLogClose = true
 			return true
 		end
@@ -1193,7 +1193,7 @@ function e_precraftbuff:execute()
 			cd("[PreCraftBuff]: Attempting to eat.",3)
 			food:Cast(Player.id)
 			local castid = action.id
-			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
+			ml_global_information.AwaitSuccess(5000, function () return Player.castinginfo.lastcastid == castid end)
 		end	
 	elseif (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
@@ -1207,14 +1207,14 @@ function e_precraftbuff:execute()
 		local manual = activityItem
 		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
-			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
+			ml_global_information.AwaitSuccess(2000, 4000, function () return HasBuff(Player.id, 46) end)
 			return
 		end
 	elseif (activity == "usetea") then
 		local tea = activityItem
 		if (tea and tea:IsReady(Player.id)) then
 			tea:Cast(Player.id)
-			ml_global_information.Await(2000, 4000, function () return HasBuff(Player.id, 46) end)
+			ml_global_information.AwaitSuccess(2000, 4000, function () return HasBuff(Player.id, 49) end)
 			return
 		end
 	elseif (activity == "usecollect") then
@@ -1223,9 +1223,9 @@ function e_precraftbuff:execute()
 		if (collect and collect:IsReady(Player.id)) then
 			if (collect:Cast()) then
 				if (not hasCollect) then
-					ml_global_information.Await(2500, function () return HasBuff(Player.id,903) end)
+					ml_global_information.AwaitSuccess(2500, function () return HasBuff(Player.id,903) end)
 				else
-					ml_global_information.Await(2500, function () return MissingBuff(Player.id,903) end)
+					ml_global_information.AwaitSuccess(2500, function () return MissingBuff(Player.id,903) end)
 				end
 			end
 		end
