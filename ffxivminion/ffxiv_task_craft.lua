@@ -1940,6 +1940,19 @@ function ffxiv_task_craft:Draw()
 					GUI:PopStyleVar()
 					GUI:PopStyleVar()
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No Skill Profile Set.")) end
+				elseif uiAlert == "lowmats" then
+					local child_color = { r = .95, g = .69, b = .2, a = .75 }
+					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+					GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text("Mats")
+					GUI:EndChild()
+					GUI:PopStyleColor()
+					GUI:PopStyleVar()
+					GUI:PopStyleVar()
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Full Order not craftable. Will craft partial order.")) end
 				elseif uiAlert == "lowcp" then
 					local child_color = { r = .95, g = .69, b = .2, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
@@ -2317,6 +2330,15 @@ function ffxiv_craft.UpdateAlertElement()
 					order["maxcount"]= maxAmount
 				end
 				
+				local lowMats = false
+				if order.amount ~= 0 then
+					if maxAmount > 0 then
+						if maxAmount < order.amount then
+							lowMats = true
+						end
+					end
+				end
+					
 				local okCP = (order["requiredcp"] ~= nil and (playercp >= order["requiredcp"])) or (order["usequick"] == true)
 				if order["skip"] == true then
 					order["uialert"] = "skip"
@@ -2324,6 +2346,8 @@ function ffxiv_craft.UpdateAlertElement()
 					order["uialert"] = "skillprofile"
 				elseif not okCP then
 					order["uialert"] = "lowcp"
+					elseif lowMats then
+					order["uialert"] = "lowmats"
 				elseif not canCraft then
 					order["uialert"] = "cantCraft"
 				elseif canCraft then
@@ -2660,6 +2684,19 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:PopStyleVar()
 					GUI:PopStyleVar()
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No Skill Profile Set.")) end
+				elseif uiAlert == "lowmats" then
+					local child_color = { r = .95, g = .69, b = .2, a = .75 }
+					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+					GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text("Mats")
+					GUI:EndChild()
+					GUI:PopStyleColor()
+					GUI:PopStyleVar()
+					GUI:PopStyleVar()
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Full Order not craftable. Will craft partial order.")) end
 				elseif uiAlert == "lowcp" then
 					local child_color = { r = .95, g = .69, b = .2, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
