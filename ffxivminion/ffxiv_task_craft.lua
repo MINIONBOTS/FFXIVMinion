@@ -916,7 +916,7 @@ function c_startcraft:evaluate()
 				local quickCraft = ml_task_hub:CurrentTask().useQuick
 				if (canCraft) then
 					if (requiredItems == 0 or (requiredItems > 0 and itemcount < (requiredItems + startingCount))) then
-						if (Player.cp.max >= minCP) or quickCraft then
+						if (Player.cp.max >= minCP) or (quickCraft and not requireCollect)then
 							return true
 						else 
 							d("[StartCraft]: CP to Low for item ["..tostring(recipe.id).."].",2)
@@ -1028,10 +1028,10 @@ function e_startcraft:execute()
 				end				
 			else
 				if (Crafting:CanCraftSelectedItem()) then
-				--if (true) then
 					ml_task_hub:CurrentTask().failedAttempts = 0
 					local usequick = ml_task_hub:CurrentTask().useQuick
-					if (usequick) then
+					local requireCollect = ml_task_hub:CurrentTask().requireCollect
+					if (usequick and not requireCollect) then
 						local itemid = ml_task_hub:CurrentTask().itemid
 						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 						local wantedAmount = ml_task_hub:ThisTask().requiredItems
@@ -1359,6 +1359,7 @@ function c_selectcraft:evaluate()
 	return false
 end
 function e_selectcraft:execute()
+
 	local newTask = ffxiv_task_craftitems.Create()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local orders = ffxiv_craft.orders
@@ -1870,8 +1871,12 @@ function ffxiv_task_craft:Draw()
 					gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
 					gCraftOrderEditRequireHQ = IsNull(order["requirehq"],false)
 					gCraftOrderEditCountHQ = IsNull(order["counthq"],true)
-					gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					gCraftOrderEditCollect = IsNull(order["collect"],false)
+					if gCraftOrderEditCollect == true then
+						gCraftOrderEditQuick = false
+					else
+						gCraftOrderEditQuick = IsNull(order["usequick"],false)
+					end
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
@@ -2329,7 +2334,6 @@ function ffxiv_craft.UpdateAlertElement()
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
 				end
-				
 				local lowMats = false
 				if order.amount ~= 0 then
 					if maxAmount > 0 then
@@ -2625,7 +2629,11 @@ function ffxiv_craft.Draw( event, ticks )
 							gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
 							gCraftOrderEditRequireHQ = IsNull(order["requirehq"],false)
 							gCraftOrderEditCountHQ = IsNull(order["counthq"],true)
-							gCraftOrderEditQuick = IsNull(order["usequick"],false)
+							if gCraftOrderEditCollect == true then
+								gCraftOrderEditQuick = false
+							else
+								gCraftOrderEditQuick = IsNull(order["usequick"],false)
+							end
 							gCraftOrderEditHQ = IsNull(order["usehq"],false)
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
@@ -2816,6 +2824,9 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI_Capture(GUI:InputInt("##RequiredCP",gCraftOrderAddRequireCP,0,0),"gCraftOrderAddRequireCP")
 					GUI_Capture(GUI:Checkbox("##Require HQ",gCraftOrderAddRequireHQ),"gCraftOrderAddRequireHQ")
 					GUI_Capture(GUI:Checkbox("##Count HQ",gCraftOrderAddCountHQ),"gCraftOrderAddCountHQ")
+					if gCraftOrderAddCollect then 
+						gCraftOrderAddQuick = false
+					end
 					GUI_Capture(GUI:Checkbox("##Use QuickSynth",gCraftOrderAddQuick),"gCraftOrderAddQuick")
 					GUI_Capture(GUI:Checkbox("##Use HQ Items",gCraftOrderAddHQ),"gCraftOrderAddHQ")
 					GUI:PopItemWidth()
@@ -2920,6 +2931,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					if (GUI:Button("Add to Profile",250,20)) then
 						ffxiv_craft.AddToProfile()
+						ffxiv_craft.tracking.measurementDelay = Now()
 					end
 				end
 			end
@@ -2959,6 +2971,9 @@ function ffxiv_craft.Draw( event, ticks )
 					if (orders.collect ~= gCraftOrderEditCollect) then
 						orders.collect = gCraftOrderEditCollect
 						ffxiv_craft.UpdateOrderElement()
+					end
+					if gCraftOrderEditCollect == true then
+						gCraftOrderEditQuick = false
 					end
 					
 					if (not gCraftOrderEditQuick) then
