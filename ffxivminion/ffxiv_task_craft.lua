@@ -38,6 +38,8 @@ ffxiv_craft.collectibles = {
 	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 }, -- Gyr Abanian Souvenir
 	{ name = AceLib.API.Items.GetNameByID(20774), minimum = 1 }, -- Sunken Treasure Tank Trimmings
 	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 }, -- Orphanage Donation
+	{ name = AceLib.API.Items.GetNameByID(17552), minimum = 1 }, -- Heartfelt Gift
+	{ name = AceLib.API.Items.GetNameByID(17551), minimum = 59 }, -- Maelstrom Materiel
 	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 }, -- Coerthan Souvenir
 	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 }, -- Near Eastern Antique
 	
