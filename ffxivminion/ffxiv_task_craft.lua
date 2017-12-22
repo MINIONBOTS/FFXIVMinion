@@ -876,8 +876,14 @@ function e_craftlimit:execute()
 		
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
 		ml_task_hub:CurrentTask().completed = true
-	elseif gCraftMarkerOrProfileIndex ~= 1 then
-		ml_global_information:ToggleRun()
+	end
+	if gCraftMarkerOrProfileIndex == 2 then
+		if (IsControlOpen("RecipeNote")) then
+			ffxiv_craft.ToggleCraftingLog()
+			ml_task_hub:CurrentTask().allowWindowOpen = true
+			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
+		end
+			ml_global_information:ToggleRun()
 	end
 end
 
