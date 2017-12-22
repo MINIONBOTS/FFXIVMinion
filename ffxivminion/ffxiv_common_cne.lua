@@ -3644,13 +3644,6 @@ function c_inventoryfull:evaluate()
 end
 function e_inventoryfull:execute()
 	
-	if (IsControlOpen("RecipeNote")) then
-		ffxiv_craft.ToggleCraftingLog()
-		ml_task_hub:CurrentTask().allowWindowOpen = true
-		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
-		return
-	end
-	
 	if (FFXIV_Common_BotRunning) then
 		ffxiv_dialog_manager.IssueStopNotice("Inventory","Inventory is full, bot will stop.")
 	end

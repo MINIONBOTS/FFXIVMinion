@@ -790,15 +790,30 @@ function ffxiv_craft.CanUseTea()
 	return false, nil
 end
 
-function ffxiv_craft.CloseLog()
+c_closelog = inheritsFrom( ml_cause )
+e_closelog = inheritsFrom( ml_effect )
+function c_closelog:evaluate()
+	if (ml_task_hub:CurrentTask().allowWindowOpen ) then
+		return false
+	end
+	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or MIsLoading() or MIsCasting(true) or IsControlOpen("Talk") or IsControlOpen("Request"))then	
+		--d("Cannot clear inventory, basic reasons.")
+		return false
+	end
+	if (IsControlOpen("RecipeNote")) then
+		if (IsInventoryFull()) then
+			return true
+		end
+	end
+	return false
+end
+
+function e_closelog:execute()
 	if (IsControlOpen("RecipeNote")) then
 		ffxiv_craft.ToggleCraftingLog()
 		ml_task_hub:CurrentTask().allowWindowOpen = true
 		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
-		return
 	end
-	
-	ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
 end
 
 c_craftlimit = inheritsFrom( ml_cause )
@@ -1362,8 +1377,8 @@ function c_selectcraft:evaluate()
 				end
 			end
 		end
-		ffxiv_craft.CloseLog()
-		--ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
+		ffxiv_craft.ToggleCraftingLog()
+		ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
 	else
 		return true
 	end
@@ -1487,6 +1502,9 @@ function ffxiv_task_craftitems.Create()
 end
 
 function ffxiv_task_craftitems:Init()
+	local ke_closeLog = ml_element:create( "CloseLog", c_closelog, e_closelog, 200 )
+    self:add( ke_closeLog, self.process_elements)
+	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.process_elements)
 	
