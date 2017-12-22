@@ -672,6 +672,65 @@ function ffxivminion.SetMainVars()
 	gFleeMP = ffxivminion.GetSetting("gFleeMP",0)
 	gAutoEquip = ffxivminion.GetSetting("gAutoEquip",true)
 	
+	-- Role Skills
+	gRoleAutoset = ffxivminion.GetSetting("gRoleAutoset",false)
+	
+	gRoleRampart = ffxivminion.GetSetting("gRoleRampart",true)
+	gRoleLowBlow = ffxivminion.GetSetting("gRoleLowBlow",true)
+	gRoleProvoke = ffxivminion.GetSetting("gRoleProvoke",false)
+	gRoleConvalescence = ffxivminion.GetSetting("gRoleConvalescence",false)
+	gRoleAnticipation = ffxivminion.GetSetting("gRoleAnticipation",true)
+	gRoleReprisal = ffxivminion.GetSetting("gRoleReprisal",false)
+	gRoleAwareness = ffxivminion.GetSetting("gRoleAwareness",false)
+	gRoleInterject = ffxivminion.GetSetting("gRoleInterject",false)
+	gRoleUltimatum = ffxivminion.GetSetting("gRoleUltimatum",false)
+	gRoleShirk = ffxivminion.GetSetting("gRoleShirk",false)
+	
+	gRoleClericstance = ffxivminion.GetSetting("gRoleClericstance",false)
+	gRoleBreakSkill = ffxivminion.GetSetting("gRoleBreakSkill",false)
+	gRoleProtect = ffxivminion.GetSetting("gRoleProtect",true)
+	gRoleEsuna = ffxivminion.GetSetting("gRoleEsuna",true)
+	gRoleLucid = ffxivminion.GetSetting("gRoleLucid",true)
+	gRoleSwiftcast = ffxivminion.GetSetting("gRoleSwiftcast",true)
+	gRoleEye = ffxivminion.GetSetting("gRoleEye",false)
+	gRoleLargesse = ffxivminion.GetSetting("gRoleLargesse",false)
+	gRoleSurecast = ffxivminion.GetSetting("gRoleSurecast",false)
+	gRoleRescue = ffxivminion.GetSetting("gRoleRescue",false)
+	
+	gRoleCasterBreakSkill = ffxivminion.GetSetting("gRoleCasterBreakSkill",false)
+	gRoleCasterLucid = ffxivminion.GetSetting("gRoleCasterLucid",false)
+	gRoleCasterSwiftcast = ffxivminion.GetSetting("gRoleCasterSwiftcast",false)
+	gRoleCasterSurecast = ffxivminion.GetSetting("gRoleCasterSurecast",false)
+	gRoleAddle = ffxivminion.GetSetting("gRoleAddle",false)
+	gRoleDrain = ffxivminion.GetSetting("gRoleDrain",false)
+	gRoleDiversion = ffxivminion.GetSetting("gRoleDiversion",false)
+	gRoleApoc = ffxivminion.GetSetting("gRoleApoc",false)
+	gRoleMana = ffxivminion.GetSetting("gRoleMana",false)
+	gRoleErase = ffxivminion.GetSetting("gRoleErase",false)
+	
+	gRoleSecondWind = ffxivminion.GetSetting("gRoleSecondWind",true)
+	gRoleArmsLength = ffxivminion.GetSetting("gRoleArmsLength",false)
+	gRoleLegSweep = ffxivminion.GetSetting("gRoleLegSweep",true)
+	gRoleMeleeDiversion = ffxivminion.GetSetting("gRoleMeleeDiversion",false)
+	gRoleInvigorate = ffxivminion.GetSetting("gRoleInvigorate",true)
+	gRoleBloodbath = ffxivminion.GetSetting("gRoleBloodbath",true)
+	gRoleGoad = ffxivminion.GetSetting("gRoleGoad",false)
+	gRoleFeint = ffxivminion.GetSetting("gRoleFeint",false)
+	gRoleCrutch = ffxivminion.GetSetting("gRoleCrutch",false)
+	gRoleTrueNorth = ffxivminion.GetSetting("gRoleTrueNorth",true)
+	
+	gRoleRangedSecondWind = ffxivminion.GetSetting("gRoleRangedSecondWind",true)
+	gRoleFootGraze = ffxivminion.GetSetting("gRoleFootGraze",false)
+	gRoleLegGraze = ffxivminion.GetSetting("gRoleLegGraze",false)
+	gRolePeloton = ffxivminion.GetSetting("gRolePeloton",true)
+	gRoleRangedInvigorate = ffxivminion.GetSetting("gRoleRangedInvigorate",true)
+	gRoleTactician = ffxivminion.GetSetting("gRoleTactician",false)
+	gRoleRefresh = ffxivminion.GetSetting("gRoleRefresh",true)
+	gRoleHeadGraze = ffxivminion.GetSetting("gRoleHeadGraze",false)
+	gRoleArmGraze = ffxivminion.GetSetting("gRoleArmGraze",true)
+	gRolePalisade = ffxivminion.GetSetting("gRolePalisade",false)
+	
+	
 	for jobid,abrev in pairs(ffxivminion.classes) do
 		local str = "gGearset"..tostring(jobid)
 		_G[str] = ffxivminion.GetSetting(str,0)
@@ -1535,7 +1594,6 @@ function ml_global_information.DrawSettings()
 				end
 				
 				if (tabindex == 2) then
-					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
 					
@@ -1594,7 +1652,111 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Random Paths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
 					GUI_Capture(GUI:Checkbox(GetString("Smooth Pathing"),FFXIV_Common_SmoothPathing),"FFXIV_Common_SmoothPathing");
 					
-					GUI:EndChild()
+					GUI:Separator();
+					
+					GUI_Capture(GUI:Checkbox(GetString("Auto-set Role Skills. (For leveling new classes Only.)"),gRoleAutoset),"gRoleAutoset");
+					GUI:Separator();
+						
+						GUI_Capture(GUI:Checkbox(GetString("Rampart"),gRoleRampart),"gRoleRampart");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("LowBlow"),gRoleLowBlow),"gRoleLowBlow");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Provoke"),gRoleProvoke),"gRoleProvoke");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Convalescence"),gRoleConvalescence),"gRoleConvalescence");
+						GUI_Capture(GUI:Checkbox(GetString("Anticipation"),gRoleAnticipation),"gRoleAnticipation");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Reprisal"),gRoleReprisal),"gRoleReprisal");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Awareness"),gRoleAwareness),"gRoleAwareness");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Interject"),gRoleInterject),"gRoleInterject");
+						GUI_Capture(GUI:Checkbox(GetString("Ultimatum"),gRoleUltimatum),"gRoleUltimatum");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Shirk"),gRoleShirk),"gRoleShirk");
+					
+					GUI:Separator();
+					
+						GUI_Capture(GUI:Checkbox(GetString("Cleric Stance"),gRoleClericstance),"gRoleClericstance");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Break"),gRoleBreakSkill),"gRoleBreakSkill");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Protect"),gRoleProtect),"gRoleProtect");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Esuna"),gRoleEsuna),"gRoleEsuna");
+						GUI_Capture(GUI:Checkbox(GetString("Lucid Dreaming"),gRoleLucid),"gRoleLucid");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Swiftcast"),gRoleSwiftcast),"gRoleSwiftcast");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Eye for an Eye"),gRoleEye),"gRoleEye");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Largesse"),gRoleLargesse),"gRoleLargesse");
+						GUI_Capture(GUI:Checkbox(GetString("Surecast"),gRoleSurecast),"gRoleSurecast");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Rescue"),gRoleRescue),"gRoleRescue");
+						
+					GUI:Separator();
+					
+						GUI_Capture(GUI:Checkbox(GetString("Addle"),gRoleAddle),"gRoleAddle");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Break##Caster"),gRoleCasterBreakSkill),"gRoleCasterBreakSkill");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Drain"),gRoleDrain),"gRoleDrain");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Diversion"),gRoleDiversion),"gRoleDiversion");
+						GUI_Capture(GUI:Checkbox(GetString("Lucid Dreaming##Caster"),gRoleCasterLucid),"gRoleCasterLucid");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Swiftcast##Caster"),gRoleCasterSwiftcast),"gRoleCasterSwiftcast");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Mana Shift"),gRoleMana),"gRoleMana");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Apocatastasis"),gRoleApoc),"gRoleApoc");
+						GUI_Capture(GUI:Checkbox(GetString("Surecast##Caster"),gRoleCasterSurecast),"gRoleCasterSurecast");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Erase"),gRoleErase),"gRoleErase");
+						
+					GUI:Separator();
+					
+						GUI_Capture(GUI:Checkbox(GetString("Second Wind"),gRoleSecondWind),"gRoleSecondWind");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Arms Length"),gRoleArmsLength),"gRoleArmsLength");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Leg Sweep"),gRoleLegSweep),"gRoleLegSweep");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Diversion##Melee"),gRoleMeleeDiversion),"gRoleMeleeDiversion");
+						GUI_Capture(GUI:Checkbox(GetString("Invigorate"),gRoleInvigorate),"gRoleInvigorate");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Bloodbath"),gRoleBloodbath),"gRoleBloodbath");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Goad"),gRoleGoad),"gRoleGoad");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Feint"),gRoleFeint),"gRoleFeint");
+						GUI_Capture(GUI:Checkbox(GetString("Crutch"),gRoleCrutch),"gRoleCrutch");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("True North"),gRoleTrueNorth),"gRoleTrueNorth");
+						
+					GUI:Separator();
+					
+						GUI_Capture(GUI:Checkbox(GetString("Second Wind##Ranged"),gRoleRangedSecondWind),"gRoleRangedSecondWind");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Foot Graze"),gRoleFootGraze),"gRoleFootGraze");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Leg Graze"),gRoleLegGraze),"gRoleLegGraze");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Peloton"),gRolePeloton),"gRolePeloton");
+						GUI_Capture(GUI:Checkbox(GetString("Invigorate##Ranged"),gRoleRangedInvigorate),"gRoleRangedInvigorate");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Tactician"),gRoleTactician),"gRoleTactician");
+						GUI:SameLine(300)
+						GUI_Capture(GUI:Checkbox(GetString("Refresh"),gRoleRefresh),"gRoleRefresh");
+						GUI:SameLine(450)
+						GUI_Capture(GUI:Checkbox(GetString("Head Graze"),gRoleHeadGraze),"gRoleHeadGraze");
+						GUI_Capture(GUI:Checkbox(GetString("ArmGraze"),gRoleArmGraze),"gRoleArmGraze");
+						GUI:SameLine(150)
+						GUI_Capture(GUI:Checkbox(GetString("Palisade"),gRolePalisade),"gRolePalisade");
+						
+					GUI:Separator();
+					
 				end	
 				
 				if (tabindex == 3) then
@@ -2254,10 +2416,12 @@ Do you have materials?"))
 						GUI:Text("Skill Profile: "); GUI:SameLine();	GUI:Text(tostring(gSkillProfile))
 					end
 					GUI:Text("Current Task: "); GUI:SameLine();	GUI:Text(FFXIV_Core_ActiveTaskName)
+					GUI:Text("Eorzea Time: "); GUI:SameLine();	GUI:Text(FFXIV_Common_EorzeaTime)
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
 					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
 					GUI:Text("Can Use Cubes: "); GUI:SameLine(); GUI:Text(tostring(NavigationManager:CanUseCubes()))
+					GUI:Text("Can Fly on Map: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.canflyinzone))
 					GUI:Text("Mount Can Fly: "); GUI:SameLine(); GUI:Text(tostring(Player.mountcanfly))
 					GUI:Text("Is Flying: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.isflying))
 					GUI:Text("Is Diving: "); GUI:SameLine(); GUI:Text(tostring(Player.diving.isdiving))

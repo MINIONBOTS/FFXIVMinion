@@ -1383,6 +1383,10 @@ function ffxiv_task_grindCombat:Init()
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
 	
+    local ke_roleset = ml_element:create( "RoleSet", c_roleautoset, e_roleautoset, 200 )
+    self:add( ke_roleset, self.process_elements)
+	
+	
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.process_elements)
 	

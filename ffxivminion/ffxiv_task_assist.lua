@@ -56,6 +56,9 @@ function ffxiv_task_assist:Init()
 	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 16 )
     self:add( ke_eat, self.process_elements)
 	
+    local ke_roleset = ml_element:create( "RoleSet", c_roleautoset, e_roleautoset, 100 )
+    self:add( ke_roleset, self.process_elements)
+	
     self:AddTaskCheckCEs()
 end
 

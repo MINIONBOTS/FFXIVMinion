@@ -755,33 +755,33 @@ function cd(var,level)
 end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
+		if gCraftTeaList == GetString("CP") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19884)
-			if (tea and action and tea:IsReady(Player.id)) then
+			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
 			local teahq, action = GetItem(1019884)
-			if (teahq and action and teahq:IsReady(Player.id)) then
+			if (teahq and action and not action.isoncd) then
 				return true, teahq
 			end
 		end
-		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
+		if gCraftTeaList == GetString("Control") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19883)
-			if (tea and action and tea:IsReady(Player.id)) then
+			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
 			local teahq, action = GetItem(1019883)
-			if (teahq and action and teahq:IsReady(Player.id)) then
+			if (teahq and action and not action.isoncd) then
 				return true, teahq
 			end
 		end
-		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
+		if gCraftTeaList == GetString("Craftmanship") or gCraftTeaList == GetString("Any") then
 			local tea, action = GetItem(19882)
-			if (tea and action and tea:IsReady(Player.id)) then
+			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
 			local teahq, action = GetItem(1019882)
-			if (teahq and action and teahq:IsReady(Player.id)) then
+			if (teahq and action and  not action.isoncd) then
 				return true, teahq
 			end
 		end
@@ -1099,6 +1099,14 @@ function c_precraftbuff:evaluate()
 	e_precraftbuff.requiresLogClose = false
 	
 	if (not ffxiv_craft.IsCrafting()) then
+		
+		if Player.ismounted and not IsFlying() then
+			cd("[PreCraftBuff]: Need to Dismount.",3)
+			e_precraftbuff.activity = "dismount"
+			e_precraftbuff.requiresLogClose = false
+			return true
+		end
+		
 		if (NeedsRepair()) then
 			cd("[PreCraftBuff]: Need to repair.",3)
 			e_precraftbuff.activity = "repair"
@@ -1229,6 +1237,9 @@ function e_precraftbuff:execute()
 				end
 			end
 		end
+	elseif (activity == "dismount") then
+		Dismount()
+		ml_global_information.AwaitSuccess(2000, 4000, function () return not Player.ismounted end)
 	end
 end
 
@@ -1505,6 +1516,13 @@ function ffxiv_task_craftitems:task_complete_eval()
 end
 
 function ffxiv_task_craftitems:task_complete_execute()
+	if (IsControlOpen("RecipeNote")) then
+		ffxiv_craft.ToggleCraftingLog()
+		ml_task_hub:CurrentTask().allowWindowOpen = true
+		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
+	end
+	
+
 	self.completed = true
 end
 
