@@ -2235,7 +2235,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= rampart.level and (gRoleSwiftcast and not hasSwiftcast) or (not gRoleSwiftcast and hasSwiftcast) then
+			if Player.level >= swiftcast.level and (gRoleSwiftcast and not hasSwiftcast) or (not gRoleSwiftcast and hasSwiftcast) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[swiftcast.id] or (e_roleautoset.lastRole[swiftcast.id] and  e_roleautoset.lastRole[swiftcast.id] ~= Player.level))) then
 					e_roleautoset.lastRole[swiftcast.id] = Player.level 

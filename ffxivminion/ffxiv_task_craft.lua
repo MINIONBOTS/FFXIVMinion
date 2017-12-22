@@ -807,6 +807,10 @@ function c_closelog:evaluate()
 			return true
 		end
 	end
+	if gCraftMarkerOrProfileIndex ~= 1 and ml_task_hub:CurrentTask().attemptedStarts > 2 then
+		return true
+	end
+	
 	return false
 end
 
@@ -986,6 +990,8 @@ function c_startcraft:evaluate()
 				
 			if ( Crafting:CanCraftSelectedItem() ) then
 				return true
+			else
+				ml_task_hub:CurrentTask().attemptedStarts = 5
 			end
 		end
 	end	
