@@ -537,7 +537,7 @@ function c_nextgathermarker:evaluate()
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
-	if (gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1 then
+	if ((gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1) or (gBotMode ~= GetString("gatherMode")) then
 		return false
 	end
 	
