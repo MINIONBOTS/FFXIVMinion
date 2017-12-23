@@ -6490,9 +6490,11 @@ function Transport622(pos1,pos2)
 end
 
 function CanFlyInZone()
-	if (Player.flying) then
-		if (Player.flying.canflyinzone) then
-			return true
+	if GetGameRegion() ~= 3 then
+		if (Player.flying) then
+			if (Player.flying.canflyinzone) then
+				return true
+			end
 		end
 	end
 	return false
