@@ -34,6 +34,10 @@ if (ffxivminion.gameRegion == 1) then
 		[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
 		[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
 	}
+elseif (ffxivminion.gameRegion == 3) then
+    ffxivminion.loginservers = {
+        [1] = { "톤베리", "모그리", "초코보", "카벙클" },
+    }
 else
 	ffxivminion.loginservers = {
 		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
