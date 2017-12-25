@@ -853,6 +853,12 @@ function c_craftlimit:evaluate()
 					return true
 				end
 			end
+			
+			
+		elseif gCraftMarkerOrProfileIndex == 2 then
+			if ml_task_hub:ThisTask().attemptedStarts >= 5 then
+				return true
+			end
 		end
 	end
 	
@@ -987,6 +993,9 @@ function c_startcraft:evaluate()
 				
 			if ( Crafting:CanCraftSelectedItem() ) then
 				return true
+			else 
+				ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
+			
 			end
 		end
 	end	
