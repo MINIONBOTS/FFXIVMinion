@@ -807,10 +807,7 @@ function c_closelog:evaluate()
 			return true
 		end
 	end
-	if gCraftMarkerOrProfileIndex ~= 1 and ml_task_hub:CurrentTask().attemptedStarts > 2 then
-		return true
-	end
-	
+		
 	return false
 end
 
@@ -855,12 +852,6 @@ function c_craftlimit:evaluate()
 					cd("[CraftLimit]: Current item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."], no need to start more.",3)
 					return true
 				end
-			end
-		elseif gCraftMarkerOrProfileIndex ~= 1 then
-			if ((ml_task_hub:CurrentTask().maxItems > 0 and ml_task_hub:CurrentTask().itemsCrafted == ml_task_hub:CurrentTask().maxItems) or 
-				ml_task_hub:CurrentTask().attemptedStarts > 2)
-			then
-				return true
 			end
 		end
 	end
@@ -996,8 +987,6 @@ function c_startcraft:evaluate()
 				
 			if ( Crafting:CanCraftSelectedItem() ) then
 				return true
-			else
-				ml_task_hub:CurrentTask().attemptedStarts = 5
 			end
 		end
 	end	
@@ -1927,7 +1916,11 @@ function ffxiv_task_craft:Draw()
 					else
 						gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					end
-					gCraftOrderEditHQ = IsNull(order["usehq"],false)
+					if gCraftOrderEditQuick == true then
+						gCraftOrderEditHQ = false
+					else
+						gCraftOrderEditHQ = IsNull(order["usehq"],false)
+					end
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 					for i = 1,6 do
@@ -2684,7 +2677,11 @@ function ffxiv_craft.Draw( event, ticks )
 							else
 								gCraftOrderEditQuick = IsNull(order["usequick"],false)
 							end
-							gCraftOrderEditHQ = IsNull(order["usehq"],false)
+							if gCraftOrderEditQuick == true then
+								gCraftOrderEditHQ = false
+							else
+								gCraftOrderEditHQ = IsNull(order["usehq"],false)
+							end
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 														
@@ -3072,6 +3069,10 @@ function ffxiv_craft.Draw( event, ticks )
 						orders.usequick = gCraftOrderEditQuick
 						ffxiv_craft.UpdateOrderElement()
 					end
+					if gCraftOrderEditQuick == true then
+						gCraftOrderEditHQ = false
+					end
+					
 					GUI_Capture(GUI:Checkbox("##Use HQ Items",gCraftOrderEditHQ),"gCraftOrderEditHQ")
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Use Hq materials. (Advanced)")
