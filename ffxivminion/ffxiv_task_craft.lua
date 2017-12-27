@@ -856,7 +856,10 @@ function c_craftlimit:evaluate()
 			
 			
 		elseif gCraftMarkerOrProfileIndex == 2 then
-			if ml_task_hub:ThisTask().attemptedStarts >= 5 then
+			d("Max Items = "..tostring(ml_task_hub:CurrentTask().maxItems))
+			d("Craft Attempts = "..tostring(ml_task_hub:CurrentTask().itemsCrafted))
+			if ((ml_task_hub:CurrentTask().maxItems > 0 and ml_task_hub:CurrentTask().itemsCrafted == ml_task_hub:CurrentTask().maxItems) or 
+				ml_task_hub:CurrentTask().attemptedStarts > 5) then
 				return true
 			end
 		end
@@ -2106,8 +2109,8 @@ function ffxiv_task_craft:Draw()
 			GUI:Columns(2)
 			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Collectable"))
 			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Enable Collectable Synthesis")) end
-			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Craft Amount"))
-			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("How many crafts to complete before stopping.")) end
+			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Craft Attempts"))
+			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("How many crafts to complete, (or fail) before stopping.")) end
 			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Minimum CP"))
 			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("CP required before starting the craft. (Useful for CP food)")) end
 			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Mats"))
