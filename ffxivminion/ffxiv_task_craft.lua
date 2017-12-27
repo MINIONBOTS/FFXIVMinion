@@ -1211,6 +1211,7 @@ end
 function e_precraftbuff:execute()
 	local activityItem = e_precraftbuff.item
 	local activity = e_precraftbuff.activity
+	d(activity)
 	
 	if (e_precraftbuff.requiresLogClose) then
 		if (IsControlOpen("RecipeNote")) then
@@ -1237,7 +1238,7 @@ function e_precraftbuff:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local jobRequired = recipe.class + 8
 		local gearset = _G["gGearset"..tostring(jobRequired)]
-		cd("[PreCraftBuff]: Attempting to switch to gearset ["..tostring(gearset).."].",3)
+		d("[PreCraftBuff]: Attempting to switch to gearset ["..tostring(gearset).."].",3)
 		local commandString = "/gearset change "..tostring(gearset)
 		SendTextCommand(commandString)
 		ml_global_information.Await(3000)
