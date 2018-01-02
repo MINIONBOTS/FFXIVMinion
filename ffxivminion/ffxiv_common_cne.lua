@@ -4212,15 +4212,33 @@ function c_scripexchange:evaluate()
 			c_scripexchange.handoverComplete = false
 			return true
 		else
-			local item = GetItem(c_scripexchange.lastItem,{0,1,2,3})
+			local items = {}
 			if gSOEFilterArmory then 
-				item = GetItem(c_scripexchange.lastItem,{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
+				items = GetItem({c_scripexchange.lastItem},{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
+			else
+				items = GetItems({c_scripexchange.lastItem},{0,1,2,3})
 			end
-			if (table.valid(item)) then
-				d("[ScripExchange]: Handing over item ["..tostring(c_scripexchange.lastItem).."]")
-				item:HandOver()
-				c_scripexchange.handoverComplete = true
-				return true
+			
+			if (table.valid(items)) then
+				for hqid, itemdata in pairs(items) do
+					if (itemdata) then
+						local item = itemdata.item
+						if (item) then
+							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
+							if (isexchangeable) then
+								d("[ScripExchange]: Handing over item ["..tostring(item.name).."]")
+								local result = item:HandOver()
+								if (result and (result == 1 or result == true or result == 65536)) then
+									c_scripexchange.handoverComplete = true
+									ml_global_information.Await(math.random(800,1200))
+								end
+								return true
+							else
+								d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
+							end
+						end
+					end
+				end
 			else
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_scripexchange.lastItem).."]")
 			end
@@ -4238,10 +4256,10 @@ function c_scripexchange:evaluate()
 	local currentItems = GetControlData("MasterPieceSupply","items")
 	local checkedCategories = ml_task_hub:CurrentTask().categories
 	local currentCheck = 0
-	
 	for i = 0,10 do
 		if (checkedCategories[i] ~= true) then
 			currentCheck = i
+			break
 		end
 	end
 	
