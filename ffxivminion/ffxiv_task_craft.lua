@@ -1014,7 +1014,7 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
-			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
+			d("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
@@ -1062,6 +1062,7 @@ function e_startcraft:execute()
 					local usequick = ml_task_hub:CurrentTask().useQuick
 					local requireCollect = ml_task_hub:CurrentTask().requireCollect
 					if (usequick and not requireCollect) then
+					d("Attempting to start quick craft")
 						local itemid = ml_task_hub:CurrentTask().itemid
 						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 						local wantedAmount = ml_task_hub:ThisTask().requiredItems
@@ -1080,6 +1081,7 @@ function e_startcraft:execute()
 						SkillMgr.newCraft = true
 						ml_task_hub:CurrentTask().allowWindowOpen = false
 					else
+					d("Attempting to start normal craft")
 						Crafting:CraftSelectedItem()
 						if (IsControlOpen("RecipeNote")) then
 							ffxiv_craft.ToggleCraftingLog()
@@ -1091,8 +1093,10 @@ function e_startcraft:execute()
 					return
 				else
 					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
-						cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
+						d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
+						d("Setting mats to be reset")
+						ml_task_hub:CurrentTask().matsSet = false
 						ml_global_information.Await(1000)
 						return
 					else
