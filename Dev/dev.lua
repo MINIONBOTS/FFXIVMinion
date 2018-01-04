@@ -1365,6 +1365,12 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 			GUI:BulletText("Dist MeshPos-Player") GUI:SameLine(200)  GUI:InputFloat("##dev12m", 0,0,0,2)
 			GUI:BulletText("Dist to MeshPos") GUI:SameLine(200)  GUI:InputFloat("##dev13m", 0,0,0,2)			
 		end
+		local cubepos = c.cubepos
+		if( table.valid(cubepos)) then
+			GUI:BulletText("CubePosition") GUI:SameLine(200)  GUI:InputFloat3( "##deva14m", cubepos.x, cubepos.y, cubepos.z, 2, GUI.InputTextFlags_ReadOnly)
+			GUI:BulletText("Dist CubePos-Player") GUI:SameLine(200)  GUI:InputFloat("##deva15m", cubepos.distance,0,0,2)
+			GUI:BulletText("Dist to CubePos") GUI:SameLine(200)  GUI:InputFloat("##deva16m", cubepos.meshdistance,0,0,2)
+		end		
 		GUI:TreePop()
 	end	
 	if ( GUI:TreeNode("Misc Data") ) then
