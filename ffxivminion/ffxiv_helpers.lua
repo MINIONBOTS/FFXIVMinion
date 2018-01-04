@@ -4625,7 +4625,7 @@ function GetItems(hqids,inventories)
 						if (item) then
 							local hqid = item.hqid
 							if (searchables[hqid]) then
-								returnables[hqid] = { item = item, action = item:GetAction() }
+								table.insert(returnables,{ item = item, action = item:GetAction() })
 							end
 						end
 					end

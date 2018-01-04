@@ -4214,28 +4214,30 @@ function c_scripexchange:evaluate()
 		else
 			local items = {}
 			if gSOEFilterArmory then 
-				items = GetItem({c_scripexchange.lastItem},{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
+				items = GetItems({c_scripexchange.lastItem},{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
 			else
 				items = GetItems({c_scripexchange.lastItem},{0,1,2,3})
 			end
 			
 			if (table.valid(items)) then
-				for hqid, itemdata in pairs(items) do
+				d("[ScripExchange]: Found ["..tostring(table.size(items)).."] possible items.")
+				for i, itemdata in pairs(items) do
 					if (itemdata) then
 						local item = itemdata.item
 						if (item) then
-							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
-							if (isexchangeable) then
-								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."].")
+							--local isexchangeable = AceLib.API.Items.IsExchangeable(item)
+							--if (isexchangeable) then
+								
 								local result = item:HandOver()
-								if (result and (result == 1 or result == true or result == 65536)) then
+								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
+								if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
 									c_scripexchange.handoverComplete = true
 									ml_global_information.Await(math.random(800,1200))
+									return true
 								end
-								return true
-							else
-								d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
-							end
+							--else
+								--d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
+							--end
 						end
 					end
 				end
