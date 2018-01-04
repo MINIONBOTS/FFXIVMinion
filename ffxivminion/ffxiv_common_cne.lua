@@ -4226,7 +4226,7 @@ function c_scripexchange:evaluate()
 						if (item) then
 							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
 							if (isexchangeable) then
-								d("[ScripExchange]: Handing over item ["..tostring(item.name).."]")
+								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."].")
 								local result = item:HandOver()
 								if (result and (result == 1 or result == true or result == 65536)) then
 									c_scripexchange.handoverComplete = true
@@ -4243,6 +4243,7 @@ function c_scripexchange:evaluate()
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_scripexchange.lastItem).."]")
 			end
 		end
+		return false
 	end
 	
 	c_scripexchange.lastItem = 0
@@ -4266,7 +4267,7 @@ function c_scripexchange:evaluate()
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
 		UseControlAction("MasterPieceSupply","SelectCategory",currentCheck)
-		ml_global_information.Await(2000,function () return (GetControlData("MasterPieceSupply","category") == currentCheck and table.isa(GetControlData("MasterPieceSupply","items"))) end)
+		ml_global_information.Await(5000,function () return (GetControlData("MasterPieceSupply","category") == currentCheck and table.isa(GetControlData("MasterPieceSupply","items"))) end)
 		return true
 	else
 		if (table.isa(currentItems)) then
@@ -4280,7 +4281,7 @@ function c_scripexchange:evaluate()
 					c_scripexchange.lastItem = itemdata.itemid
 					c_scripexchange.handoverComplete = false
 					UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
-					ml_global_information.Await(2000, function () return IsControlOpen("Request") end)
+					ml_global_information.Await(5000, function () return IsControlOpen("Request") end)
 					return true
 				end
 			end
