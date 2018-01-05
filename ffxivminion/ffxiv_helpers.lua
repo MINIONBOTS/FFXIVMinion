@@ -6278,7 +6278,7 @@ function Transport614(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(108)) then	
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 108
@@ -6300,7 +6300,7 @@ function Transport614(pos1,pos2)
 								Dismount()
 								return
 							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(107)) then	
 									local newTask = ffxiv_task_teleport.Create()
 									newTask.aetheryte = 107
