@@ -4202,14 +4202,23 @@ end
 c_scripexchange = inheritsFrom( ml_cause )
 e_scripexchange = inheritsFrom( ml_effect )
 c_scripexchange.lastItem = 0
+c_scripexchange.lastComplete = 0
 c_scripexchange.handoverComplete = false
 function c_scripexchange:evaluate()
+	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange.lastComplete) < 5000) then
+		if (not IsControlOpen("_NotificationParty")) then
+			UseControlAction("SelectYesno","Yes")
+			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
+			return
+		end
+	end	
+	
 	if (IsControlOpen("Request")) then
 		if (c_scripexchange.handoverComplete) then
 			d("[ScripExchange]: Completing handover process.")
 			UseControlAction("Request","HandOver")
-			ml_global_information.Await(1500, function () return not IsControlOpen("Request") end)
 			c_scripexchange.handoverComplete = false
+			c_scripexchange.lastComplete = Now()
 			return true
 		else
 			local items = {}
@@ -4232,7 +4241,6 @@ function c_scripexchange:evaluate()
 								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
 								if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
 									c_scripexchange.handoverComplete = true
-									ml_global_information.Await(math.random(800,1200))
 									return true
 								end
 							--else
@@ -4269,7 +4277,6 @@ function c_scripexchange:evaluate()
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
 		UseControlAction("MasterPieceSupply","SelectCategory",currentCheck)
-		ml_global_information.Await(5000,function () return (GetControlData("MasterPieceSupply","category") == currentCheck and table.isa(GetControlData("MasterPieceSupply","items"))) end)
 		return true
 	else
 		if (table.isa(currentItems)) then
@@ -4282,8 +4289,7 @@ function c_scripexchange:evaluate()
 					local originalQuantity = itemdata.ownedquantity
 					c_scripexchange.lastItem = itemdata.itemid
 					c_scripexchange.handoverComplete = false
-					UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
-					ml_global_information.Await(5000, function () return IsControlOpen("Request") end)
+					local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
 					return true
 				end
 			end
