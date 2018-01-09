@@ -192,6 +192,12 @@ function dev.DrawCall(event, ticks )
 						end
 						GUI:TreePop()
 					end
+					
+					if ( GUI:TreeNode("Game Settings")) then
+                        local settings = Player.settings
+						GUI:BulletText("AutoFace: "..tostring(settings.autoface))
+						GUI:TreePop()
+					end
 				else
 					GUI:Text("Not Ingame...")
 				end
