@@ -196,6 +196,15 @@ function dev.DrawCall(event, ticks )
 					if ( GUI:TreeNode("Game Settings")) then
                         local settings = Player.settings
 						GUI:BulletText("AutoFace: "..tostring(settings.autoface))
+                        GUI:SameLine()
+                        if GUI:Button("Enable##enable_autoface") then Player:SetAutoFace(true) end
+                        GUI:SameLine()
+                        if GUI:Button("Disable##disable_autoface") then Player:SetAutoFace(false) end
+						GUI:BulletText("MoveMode: "..tostring(settings.movemode))
+                        GUI:SameLine()
+                        if GUI:Button("Set Standard") then Player:SetMoveMode(0) end
+                        GUI:SameLine()
+                        if GUI:Button("Set Legacy") then Player:SetMoveMode(1) end
 						GUI:TreePop()
 					end
 				else
