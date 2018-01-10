@@ -93,8 +93,23 @@ function dev.DrawCall(event, ticks )
 										
 										local ad = e:GetData()
 										if (table.valid(ad)) then
-											for key, value in pairs(ad) do												
-												GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))													
+											for key, value in pairs(ad) do	
+												if (type(value) == "table") then
+													GUI:BulletText(key)
+													for vk,vv in pairs(value) do
+														if (type(vv) == "table") then
+															GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
+															for vvk,vvv in pairs(vv) do
+																GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(vvv) GUI:SameLine(0,5)
+															end
+														else
+															GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
+														end
+														GUI:NewLine()
+													end
+												else
+													GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))
+												end
 											end										
 										end
 										
