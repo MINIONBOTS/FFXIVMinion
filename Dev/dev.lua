@@ -207,6 +207,21 @@ function dev.DrawCall(event, ticks )
 						end
 						GUI:TreePop()
 					end
+					
+					if ( GUI:TreeNode("Game Settings")) then
+                        local settings = Player.settings
+						GUI:BulletText("AutoFace: "..tostring(settings.autoface))
+                        GUI:SameLine()
+                        if GUI:Button("Enable##enable_autoface") then Player:SetAutoFace(true) end
+                        GUI:SameLine()
+                        if GUI:Button("Disable##disable_autoface") then Player:SetAutoFace(false) end
+						GUI:BulletText("MoveMode: "..tostring(settings.movemode))
+                        GUI:SameLine()
+                        if GUI:Button("Set Standard") then Player:SetMoveMode(0) end
+                        GUI:SameLine()
+                        if GUI:Button("Set Legacy") then Player:SetMoveMode(1) end
+						GUI:TreePop()
+					end
 				else
 					GUI:Text("Not Ingame...")
 				end
@@ -1029,6 +1044,10 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(e.onmesh))
 								local p = e.pos
 								GUI:BulletText(".pos") GUI:SameLine(200)  GUI:InputFloat3( "##devpa6", p.x, p.y, p.z, 2, GUI.InputTextFlags_ReadOnly)
+                                local h = e.hp
+                                GUI:BulletText(".hp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa7", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+                                h = e.mp
+                                GUI:BulletText(".mp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa8", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
 								GUI:TreePop()
 							end
 						end

@@ -361,6 +361,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire") 
 		
 		ml_mesh_mgr.SetDefaultMesh(554, "[PVP] - Fields of Glory (Shatter)")
+		ml_mesh_mgr.SetDefaultMesh(729, "[PVP] - Astragalos (Rival Wings)")
 		
 		ml_mesh_mgr.SetDefaultMesh(612, "The Fringes")
 		ml_mesh_mgr.SetDefaultMesh(613, "The Ruby Sea")
