@@ -43,6 +43,14 @@ ffxiv_craft.collectibles = {
 	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 }, -- Coerthan Souvenir
 	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 }, -- Near Eastern Antique
 	
+	{ name = AceLib.API.Items.GetNameByID(19928),  minimum = 625 }, --	Zelkova Lumber
+	{ name = AceLib.API.Items.GetNameByID(19947),  minimum = 625 }, --	Molybdenum Ingot
+	{ name = AceLib.API.Items.GetNameByID(19966),  minimum = 625 }, --	Imperial Jade
+	{ name = AceLib.API.Items.GetNameByID(19997),  minimum = 625 }, --	Gazelle Leather
+	{ name = AceLib.API.Items.GetNameByID(19987),  minimum = 625 }, --	Twinsilk
+	{ name = AceLib.API.Items.GetNameByID(19903),  minimum = 625 }, --	Enchanted Palladium Ink
+	{ name = AceLib.API.Items.GetNameByID(19821),  minimum = 625 }, --	Onigara-yaki
+	
 	-- Carpenter
 	{ name = AceLib.API.Items.GetNameByID(10608),  minimum = 320 }, --	Adamantite Spear
 	{ name = AceLib.API.Items.GetNameByID(10609),  minimum = 400 }, --	Adamantite Trident
