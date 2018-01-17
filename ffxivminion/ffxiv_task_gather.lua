@@ -340,23 +340,9 @@ function c_movetonode:evaluate()
 				end
 				if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 					useCordials = GUI_Get(useCordials)
-				end
-				--[[
-					if (useCordials) then
-						local canUse,cordialItem = CanUseCordial()
-						if (canUse and table.valid(cordialItem)) then
-							d("[NodePreBuff]: Need to use a cordial.")
-							e_nodeprebuff.activity = "usecordial"
-							e_nodeprebuff.itemid = cordialItem.hqid
-							e_nodeprebuff.requirestop = true
-							e_nodeprebuff.requiredismount = true
-							return true
-						end					
-					end
-				--]]
+				end				
 				
-				
-				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
+				if (not useCordials or noGPitem ~= "") then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
@@ -369,7 +355,7 @@ function c_movetonode:evaluate()
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
-				elseif (Player.gp.current < minimumGP) then
+				elseif (useCordials) then
 					local myTarget = MGetTarget()
 					if (myTarget and myTarget.id ~= gatherable.id) then
 						Player:SetTarget(gatherable.id)
@@ -400,7 +386,7 @@ function e_movetonode:execute()
 		
 		local ppos = Player.pos
 		if (table.valid(pos)) then
-			d("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
+			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
 			
 			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
