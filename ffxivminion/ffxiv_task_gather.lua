@@ -340,9 +340,9 @@ function c_movetonode:evaluate()
 				end
 				if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 					useCordials = GUI_Get(useCordials)
-				end				
+				end
 				
-				if (not useCordials or noGPitem ~= "") then
+				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
@@ -355,7 +355,7 @@ function c_movetonode:evaluate()
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
-				elseif (useCordials) then
+				elseif (Player.gp.current < minimumGP) then
 					local myTarget = MGetTarget()
 					if (myTarget and myTarget.id ~= gatherable.id) then
 						Player:SetTarget(gatherable.id)
@@ -1560,7 +1560,7 @@ function c_nodeprebuff:evaluate()
 			skillProfile = marker.skillprofile
 		end
 		useCordials = IsNull(marker.usecordials,useCordials)
-		--taskType = IsNull(marker.type,"")
+		taskType = IsNull(marker.type,"x")
 		useFavor = IsNull(marker.favor,0)
 		useFood = IsNull(marker.food,0)
 	else
