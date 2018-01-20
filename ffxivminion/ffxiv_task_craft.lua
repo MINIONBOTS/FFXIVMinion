@@ -765,7 +765,7 @@ function cd(var,level)
 end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaList == GetString("CP") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19884)
 			if (tea and action and not action.isoncd) then
 				return true, tea
@@ -775,7 +775,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaList == GetString("Control") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19883)
 			if (tea and action and not action.isoncd) then
 				return true, tea
@@ -785,7 +785,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaList == GetString("Craftmanship") or gCraftTeaList == GetString("Any") then
+		if gCraftTeaTypeIndex == 4 or gCraftTeaList == gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19882)
 			if (tea and action and not action.isoncd) then
 				return true, tea
