@@ -314,6 +314,9 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
+			if IsDiving() then
+				reachable = (gatherable.interactable and gatherable.distance <= 2)
+			end
 			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
@@ -417,7 +420,7 @@ function e_movetonode:execute()
 			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
-				if (dist3d > 8 or IsFlying()) then
+				if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
 					local alternateTask = ffxiv_task_movetopos.Create()
 					alternateTask.pos = pos
 					alternateTask.useTeleport = (gTeleportHack)
