@@ -314,9 +314,6 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5)
-			if IsDiving() then
-				reachable = (gatherable.interactable and gatherable.distance <= 2)
-			end
 			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
@@ -437,7 +434,9 @@ function e_movetonode:execute()
 			if (gTeleportHack and dist3d > 8) then
 				newTask.useTeleport = true
 			end
-			
+			if IsDiving() then
+				newTask.interactRange3d = 2
+			end
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
