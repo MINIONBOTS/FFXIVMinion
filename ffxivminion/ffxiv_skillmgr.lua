@@ -3088,7 +3088,7 @@ function SkillMgr.Craft()
 					local progressmax = synth.progressmax
 					local progress = synth.progress
 					local quality = synth.quality
-					local qualitypercent = synth.qualitypercent
+					local qualitypercent = synth.hqchance
 					
                     if ((tonumber(skill.stepmin) > 0 and synth.step < tonumber(skill.stepmin)) or
                         (tonumber(skill.stepmax) > 0 and synth.step >= tonumber(skill.stepmax)) or
