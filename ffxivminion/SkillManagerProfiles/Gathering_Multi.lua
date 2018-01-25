@@ -47,6 +47,7 @@ local obj1 = {
 		[4] = "";
 		[5] = "";
 	};
+	["mingp"] = 400;
 	["skills"] = {
 		[1] = {
 			["alias"] = "";
@@ -971,7 +972,7 @@ local obj1 = {
 			["frontalconeaoe"] = false;
 			["gatherattempts"] = 3;
 			["gatherattemptsmax"] = 0;
-			["gathermax"] = false;
+			["gathermax"] = true;
 			["gauge1eq"] = 0;
 			["gauge1gt"] = 0;
 			["gauge1lt"] = 0;
@@ -1244,7 +1245,7 @@ local obj1 = {
 			["collwearlt"] = 0;
 			["gatherattempts"] = 3;
 			["gatherattemptsmax"] = 0;
-			["gathermax"] = false;
+			["gathermax"] = true;
 			["gpbuff"] = "";
 			["gpmax"] = 0;
 			["gpmin"] = 0;
@@ -1848,6 +1849,5 @@ local obj1 = {
 		};
 	};
 	["version"] = 3;
-	["mingp"] = 400;
 }
 return obj1
