@@ -340,6 +340,11 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 				end
 			end
 		end
+	elseif (IsControlOpen("SelectOk")) then
+		if (UseControlAction("SelectOk","Yes",0)) then
+			d("Skipping sub time warning... You should resub :P")
+			ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
+		end
 	end
 end
 
