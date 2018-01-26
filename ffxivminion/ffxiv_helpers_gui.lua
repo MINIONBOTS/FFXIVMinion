@@ -312,6 +312,16 @@ function GUI_DrawFloatMinMax(label,varname,step,stepfast,precision,minval,maxval
 	end
 end
 
+function GUI_AlignedText(str,tooltip)
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString(str))
+	if (tooltip and type(tooltip) == "string") then
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip(GetString(tooltip)) 
+		end
+	end
+end
+
 function GUI_CreateTabs(strTabs,doTranslate)
 	local doTranslate = IsNull(doTranslate,false)
 	

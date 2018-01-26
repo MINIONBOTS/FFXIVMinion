@@ -199,9 +199,11 @@ function e_assistleader:execute()
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (Now() > c_assistleader.movementDelay) then
 					if (target.distance2d <= ml_global_information.AttackRange) then
-						Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z,1.5)
+						--Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
 					else
-						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1))
+						--Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
 					end
 					c_assistleader.movementDelay = Now() + 1000
 				end
@@ -1232,13 +1234,13 @@ function c_getmovementpath:evaluate()
 			
 				-- Attempt to get a path that doesn't require cubes for stealth pathing.
 				if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-					--d("rebuild non-cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
+					d("rebuild non-cube path")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1)
 				end
 				
 				if (pathLength <= 0) then
-					--d("rebuild cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
+					d("rebuild cube path")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
 				end
 				
 				if (pathLength > 0 or ml_navigation:HasPath()) then

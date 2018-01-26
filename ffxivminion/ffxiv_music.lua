@@ -13,9 +13,21 @@ ffxiv_music = {
 		g = -2
 	},
 	
-	mml = "",
+	tracks = {
+		[1] = {
+			octave = -1,
+			tempo = 60,
+			notelength = 4,
+			position = 1,
+			delay = 0,
+			mml = "",
+		},
+	},
 	
-	octave = 0,
+	last_wrap = 0,
+	
+	mml = "",
+	octave = -1,
 	tempo = 60,
 	notelength = 4,
 	volume = 10,
@@ -25,16 +37,49 @@ ffxiv_music = {
 	
 	actions = {
 		[-1] = {
-			["c-"] = 1, ["c"] = 1, ["c#"] = 2, ["d-"] = 2, ["d"] = 3, ["d#"] = 4, ["e-"] = 4, ["e"] = 5, ["e#"] = 6, ["f-"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a-"] = 9, ["a"] = 10, ["a#"] = 11, ["b-"] = 11, ["b"] = 12,
+			["b#"] = 1, ["c"] = 1, 
+			["c#"] = 2, ["d-"] = 2, 
+			["d"] = 3, 
+			["d#"] = 4, ["e-"] = 4, 
+			["e"] = 5, ["f-"] = 5, 
+			["e#"] = 6, ["f"] = 6, 
+			["f#"] = 7, ["g-"] = 7,
+			["g"] = 8, 
+			["g#"] = 9, ["a-"] = 9, 
+			["a"] = 10, 
+			["a#"] = 11, ["b-"] = 11, 
+			["b"] = 12, ["c-"] = 12, 
 		},
 		[0] = {
-			["c-"] = 12, ["c"] = 13, ["c#"] = 14, ["d-"] = 14, ["d"] = 15, ["d#"] = 16, ["e-"] = 16, ["e"] = 17, ["e#"] = 18, ["f"] = 18, ["f-"] = 17, ["f#"] = 19, ["g"] = 20, ["g#"] = 21, ["a-"] = 21, ["a"] = 22, ["a#"] = 23, ["b-"] = 23, ["b"] = 24,
+			["b#"] = 13, ["c"] = 13, 
+			["c#"] = 14, ["d-"] = 14, 
+			["d"] = 15, 
+			["d#"] = 16, ["e-"] = 16, 
+			["e"] = 17, ["f-"] = 17, 
+			["e#"] = 18, ["f"] = 18, 
+			["f#"] = 19, ["g-"] = 19,
+			["g"] = 20, 
+			["g#"] = 21, ["a-"] = 21, 
+			["a"] = 22, 
+			["a#"] = 23, ["b-"] = 23, 
+			["b"] = 24, ["c-"] = 24, 
 		},
 		[1] = {
-			["c-"] = 24, ["c"] = 25, ["c#"] = 26, ["d-"] = 26, ["d"] = 27, ["d#"] = 28, ["e-"] = 28, ["e"] = 29, ["e#"] = 18, ["f"] = 30, ["f-"] = 29, ["f#"] = 31, ["g"] = 32, ["g#"] = 33, ["a-"] = 33, ["a"] = 34, ["a#"] = 35, ["b-"] = 35, ["b"] = 36,
+			["b#"] = 25, ["c"] = 25, 
+			["c#"] = 26, ["d-"] = 26, 
+			["d"] = 27, 
+			["d#"] = 28, ["e-"] = 28, 
+			["e"] = 29, ["f-"] = 29, 
+			["e#"] = 30, ["f"] = 30, 
+			["f#"] = 31, ["g-"] = 31,
+			["g"] = 32, 
+			["g#"] = 33, ["a-"] = 33, 
+			["a"] = 34, 
+			["a#"] = 35, ["b-"] = 35, 
+			["b"] = 36, ["c-"] = 36, 
 		},
 		[2] = {
-			["c-"] = 36, ["c"] = 37, --["c#"] = 39, ["d"] = 3, ["e-"] = 4, ["e"] = 5, ["f"] = 6, ["f#"] = 7, ["g"] = 8, ["g#"] = 9, ["a"] = 10, ["b-"] = 11, ["b"] = 12,
+			["b#"] = 37, ["c"] = 37,
 		},
 	},
 	
@@ -56,6 +101,108 @@ function ffxiv_music.Reset()
 	ffxiv_music.notelength = 4
 	ffxiv_music.volume = 10
 	ffxiv_music.position = 1
+	
+	ffxiv_music.CreateTrack(1)
+end
+
+function ffxiv_music.SetTempo()
+	local tracks = ffxiv_music.tracks
+	if (table.valid(tracks)) then
+		local track = tracks[1]
+		if (track) then
+		
+			local temp = deepcopy(track)
+			local tempo = temp.tempo
+			
+			local pos = 1
+			local tempoFound = false
+			repeat
+				local pos = temp.position
+				local str = temp.mml
+				
+				local c, args, newpos = string.match(
+					string.sub(str, pos),
+					"^([%a<>])(%A-)%s-()[%a<>]"
+				)
+
+				if not c then -- Might be the last command in the string.
+					c, args = string.match(
+						string.sub(str, pos),
+						"^([%a<>])(%A-)"
+					)
+					newpos = 0
+				end
+
+				if c then 
+					temp.position = pos + (newpos - 1)
+					
+					if c == "t" then -- Set tempo
+						if (tonumber(args) ~= nil) then
+							tempo = tonumber(args)
+							tempoFound = true
+						end
+					elseif c == "r" or c == "p" then -- Rest
+						tempoFound = true
+					elseif c == "l" then -- Set note length
+						if (tonumber(args) ~= nil) then
+							--ffxiv_music.notelength = tonumber(args)
+							temp.notelength = tonumber(args)
+						end
+					elseif c == ">" then -- Increase octave
+						tempoFound = true
+					elseif c == "<" then
+						tempoFound = true
+					elseif c:find("[a-g]") then
+						tempoFound = true
+					end
+				end
+				
+				if (newpos == 0) then
+					tempoFound = false
+				end	
+			until (tempoFound == true)
+			
+			d("setting tempo to ["..tostring(tempo).."]")
+			
+			for i,track in pairs(tracks) do
+				if (i > 1) then
+					track.tempo = tempo
+				end
+			end		
+		end
+	end
+end
+
+function ffxiv_music.CreateTrack(i, mml)
+	local mml = IsNull(mml,"")
+	ffxiv_music.tracks[i] = {
+		playing = false,
+		octave = -1,
+		tempo = 60,
+		notelength = 4,
+		position = 1,
+		delay = 0,
+		mml = mml,
+	}
+end
+
+function ffxiv_music.StopPlayback()
+	if (table.valid(ffxiv_music.tracks)) then
+		for i,track in pairs(ffxiv_music.tracks) do
+			track.playing = false
+		end
+	end
+	ffxiv_music.is_playing = false
+end
+
+function ffxiv_music.StartPlayback()
+	if (table.valid(ffxiv_music.tracks)) then
+		for i,track in pairs(ffxiv_music.tracks) do
+			track.playing = true
+		end
+	end
+	ffxiv_music.SetTempo()
+	ffxiv_music.is_playing = true
 end
 
 function ffxiv_music.Init()
@@ -99,10 +246,50 @@ function ffxiv_music.LoadMML(filename)
 		end
 		local content = file:read "*a"
 		file:close()
-		--d("content type:"..tostring(type(content)))
-		--d("content:"..tostring(content))
 		gMusicText = content
 	end
+end
+
+--local test = wrapText("asfbererasdfawerawefasdfawefe",50)
+
+function wrapText(str,width)
+	local width = IsNull(width,0)
+	if (width > 0) then
+		local newstr = ""
+		
+		for line in string.split(str,"\n") do
+			local newline = line
+			local textlen = string.len(newline)
+			local i = 1
+			
+			local fulltextx = GUI:CalcTextSize(string.sub(newline,1))
+			--d("fulltextx:"..tostring(fulltextx)..",textx:"..tostring(textx))
+			if (fulltextx >= (width - 40)) then
+			
+				while i <= textlen do
+					local section = string.sub(newline,1,i)
+					local textx = GUI:CalcTextSize(string.sub(section,1,i))
+					
+					if (textx >= (width - 40)) then
+						newstr = newstr..section.."\n"
+						newline = string.sub(newline,i+1)
+						textlen = string.len(newline)
+			
+						i = 1
+					else
+						i = i + 1
+						if (i > textlen) then
+							newstr = newstr..section.."\n"
+						end
+					end
+				end
+			else
+				newstr = newstr..newline.."\n"
+			end
+		end
+		str = newstr
+	end
+	return str
 end
 
 function ffxiv_music.DrawCall(event, ticks )
@@ -124,19 +311,44 @@ function ffxiv_music.DrawCall(event, ticks )
 				GUI:Spacing(); GUI:Spacing()
 				
 				local availableWidth = GUI:GetContentRegionAvailWidth()
+				
+				--last_wrap
+				if (TimeSince(ffxiv_music.last_wrap) > 1500) then
+					gMusicText = wrapText(gMusicText,availableWidth)
+					ffxiv_music.last_wrap = Now()
+				end
 				gMusicText,changed = GUI:InputTextMultiline("##reaction-code-add", gMusicText, availableWidth, 250)
 				if (changed) then
+					local newText = wrapText(gMusicText,availableWidth)
+					gMusicText = newText
 					Settings.FFXIVMINION.gMusicText = gMusicText
 				end
 				if (ffxiv_music.is_playing) then
 					if (GUI:Button("Stop Playing")) then
-						ffxiv_music.is_playing = false
+						ffxiv_music.StopPlayback()
 					end
 				else
-					if (GUI:Button("Play Song")) then
-						ffxiv_music.mml = gMusicText
+					if (GUI:Button("Resume Playing")) then
+						ffxiv_music.StartPlayback()
+					end
+					GUI:SameLine(0,10)
+					if (GUI:Button("Play From Beginning")) then
 						ffxiv_music.Reset()
-						ffxiv_music.is_playing = true
+						
+						local i = 1
+						for track in string.split(gMusicText,",") do
+							if (i <= 3) then
+								if (string.valid(track)) then
+									ffxiv_music.CreateTrack(i, string.gsub(track,"\n",""))
+									d("create track:"..tostring(i)..","..tostring(track))
+								end
+							else
+								d("Only 2 tracks can be played simultaneously, results may vary.")
+								break
+							end
+							i = i + 1
+						end
+						ffxiv_music.StartPlayback()
 					end
 				end
 			end
@@ -146,10 +358,24 @@ function ffxiv_music.DrawCall(event, ticks )
 end
 
 function ffxiv_music.OnUpdate( event, tickcount )
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxiv_music.is_playing) then
-			ffxiv_music.ParseMML(str)
+			local tracks = ffxiv_music.tracks
+			if (table.valid(tracks)) then
+				local isPlaying = false
+				for i,track in pairsByKeys(tracks) do
+					if (track.playing) then
+						--d("Parse MML ["..tostring(i).."], ["..tostring(track.mml).."]")
+						isPlaying = true
+						ffxiv_music.currentTrack = i
+						ffxiv_music.ParseMML(track)
+					end
+				end
+				if (not isPlaying) then
+					ffxiv_music.is_playing = false
+				end				
+			end
 		end
 	end
 end
@@ -247,11 +473,10 @@ function ffxiv_music.CalculateNote(note, outputType)
 	end
 end
 
-function ffxiv_music.ParseMML(str)
-	local str = IsNull(str,ffxiv_music.mml)
+function ffxiv_music.ParseMML(track)
+	local str = IsNull(track.mml,"")
 	
-	if (Now() < ffxiv_music.delay) then
-		--d("delaying playback")
+	if (Now() < track.delay) then
 		return false
 	end
 	
@@ -271,12 +496,20 @@ function ffxiv_music.ParseMML(str)
 	local playedNote = false
 	
 	repeat
+		--[[
 		local octave = ffxiv_music.octave
 		local tempo = ffxiv_music.tempo
 		local notelength = ffxiv_music.notelength
 		local volume = ffxiv_music.volume
 
 		local pos = ffxiv_music.position
+		--]]
+		
+		local octave = track.octave
+		local tempo = track.tempo
+		local notelength = track.notelength
+		local volume = track.volume
+		local pos = track.position
 			
 		local c, args, newpos = string.match(
 			string.sub(str, pos),
@@ -291,104 +524,117 @@ function ffxiv_music.ParseMML(str)
 			newpos = 0
 		end
 
-		if not c then -- Probably bad syntax.
-			error("Malformed MML")
-		end
-		
-		ffxiv_music.position = pos + (newpos - 1)
-		--d("new position"..tostring(ffxiv_music.position))
+		if c then 
+			track.position = pos + (newpos - 1)
+			d("moving track ["..tostring(ffxiv_music.currentTrack).."] to position ["..tostring(track.position).."]")
+			--ffxiv_music.position = pos + (newpos - 1)
+			--d("new position"..tostring(ffxiv_music.position))
 
-		if c == "o" then -- Set octave
-			if (tonumber(args) ~= nil) then
-				local oct = tonumber(args)
-				if (oct > 2) then
-					d("cannot reach octave ["..tostring(oct).."], too high")
-					ffxiv_music.octave = 2
-				elseif (oct < -1) then
-					d("cannot reach octave ["..tostring(oct).."], too low")
-					ffxiv_music.octave = -1
+			if c == "o" then -- Set octave
+				if (tonumber(args) ~= nil) then
+					local oct = tonumber(args)
+					if (oct > 2) then
+						d("cannot reach octave ["..tostring(oct).."], too high")
+						--ffxiv_music.octave = 2
+						track.octave = 2
+					elseif (oct < -1) then
+						d("cannot reach octave ["..tostring(oct).."], too low")
+						--ffxiv_music.octave = -1
+						track.octave = -1
+					else
+						--ffxiv_music.octave = oct
+						track.octave = oct
+					end
+				end
+			elseif c == "t" then -- Set tempo
+				if (tonumber(args) ~= nil) then
+					--ffxiv_music.tempo = tonumber(args)
+					track.tempo = tonumber(args)
+				end
+			elseif c == "v" then -- Set volume (doesn't really do anything on ffxiv)
+				ffxiv_music.volume = tonumber(args)
+			elseif c == "r" or c == "p" then -- Rest
+				local delay
+				if (tonumber(args) ~= nil) then
+					--d("r delay args ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
+					delay = ffxiv_music.CalculateNoteTime(tonumber(args),tempo)
 				else
-					ffxiv_music.octave = oct
+					--d("r delay ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
+					delay = ffxiv_music.CalculateNoteTime(notelength, tempo)
 				end
-			end
-		elseif c == "t" then -- Set tempo
-			if (tonumber(args) ~= nil) then
-				ffxiv_music.tempo = tonumber(args)
-			end
-		elseif c == "v" then -- Set volume (doesn't really do anything on ffxiv)
-			ffxiv_music.volume = tonumber(args)
-
-		elseif c == "r" or c == "p" then -- Rest
-			local delay
-			if (tonumber(args) ~= nil) then
-				--d("r delay args ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
-				delay = ffxiv_music.CalculateNoteTime(tonumber(args),tempo)
-			else
-				--d("r delay ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
-				delay = ffxiv_music.CalculateNoteTime(notelength, tempo)
-			end
-			
-			--d("delay (ms):"..tostring(delay))
-			ffxiv_music.delay = Now() + delay
-			--coroutine.yield(nil, delay, nil)
-			playedNote = true
-		elseif c == "l" then -- Set note length
-			if (tonumber(args) ~= nil) then
-				ffxiv_music.notelength = tonumber(args)
-			else
-				d("args @ ["..tostring(newpos).."] for length was invalid ["..tostring(args).."]")
-			end
-		elseif c == ">" then -- Increase octave
-			if (ffxiv_music.octave < 2) then
-				ffxiv_music.octave = octave + 1
-			end
-		elseif c == "<" then -- Decrease octave
-			if (ffxiv_music.octave > -1) then
-				ffxiv_music.octave = octave - 1
-			end
-		elseif c:find("[a-g]") then -- Play note
-			local note
-			local mod = string.match(args, "[+#-]")
-			if mod then
-				if mod == "#" or mod == "+" then
-					note = c .. "#"
-				elseif mod == "-" then
-					note = c .. "-"
+				
+				--d("delay (ms):"..tostring(delay))
+				--ffxiv_music.delay = Now() + delay
+				track.delay = Now() + delay
+				--coroutine.yield(nil, delay, nil)
+				playedNote = true
+			elseif c == "l" then -- Set note length
+				if (tonumber(args) ~= nil) then
+					--ffxiv_music.notelength = tonumber(args)
+					track.notelength = tonumber(args)
+				else
+					d("args @ ["..tostring(newpos).."] for length was invalid ["..tostring(args).."]")
 				end
-			else
-				note = c
-			end
-			
-			local notetime
-			local length = string.match(args, "%d+")
-			if (tonumber(length) ~= nil) then
-				length = math.abs(length)
-				--d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
-				notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
-			else
-				--d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
-				notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
-			end
+			elseif c == ">" then -- Increase octave
+				if (track.octave < 2) then
+					track.octave = octave + 1
+				end
+				--if (ffxiv_music.octave < 2) then
+					--ffxiv_music.octave = octave + 1
+				--end
+			elseif c == "<" then -- Decrease octave
+				if (track.octave > -1) then
+					track.octave = octave - 1
+				end
+				--if (ffxiv_music.octave > -1) then
+					--ffxiv_music.octave = octave - 1
+				--end
+			elseif c:find("[a-g]") then -- Play note
+				local note
+				local mod = string.match(args, "[+#-]")
+				if mod then
+					if mod == "#" or mod == "+" then
+						note = c .. "#"
+					elseif mod == "-" then
+						note = c .. "-"
+					end
+				else
+					note = c
+				end
+				
+				local notetime
+				local length = string.match(args, "%d+")
+				if (tonumber(length) ~= nil) then
+					length = math.abs(length)
+					--d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
+					notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
+				else
+					--d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
+					notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
+				end
 
-			-- Dotted notes
-			if string.find(args, "%.") then
-				notetime = notetime * 1.5
-			end
-			
-			local ret = ffxiv_music.DoAction(note, octave)
-			if (ret == false) then
-				d("replaying note ["..tostring(note).."], octave ["..tostring(octave).."], notetime ["..tostring(notetime).."]")
-				ffxiv_music.replay = {notetime = notetime, note = note, octave = octave}
-				return false
-			end
+				-- Dotted notes
+				if string.find(args, "%.") then
+					notetime = notetime * 1.5
+				end
+				
+				local ret = ffxiv_music.DoAction(note, octave)
+				if (ret == false) then
+					d("replaying note ["..tostring(note).."], octave ["..tostring(octave).."], notetime ["..tostring(notetime).."]")
+					ffxiv_music.replay = {notetime = notetime, note = note, octave = octave}
+					return false
+				end
 
-			--d("notetime (ms):"..tostring(notetime))
-			ffxiv_music.delay = Now() + notetime
+				--d("notetime (ms):"..tostring(notetime))
+				track.delay = Now() + notetime
+				playedNote = true
+			end
+		else
 			playedNote = true
 		end
 		
 		if (newpos == 0) then
-			ffxiv_music.is_playing = false
+			track.playing = false
 		end	
 	
 	until (playedNote == true)

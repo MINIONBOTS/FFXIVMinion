@@ -57,6 +57,9 @@ function ffxiv_task_movetopos.Create()
 	newinst.alwaysMount = false
 	newinst.noFly = false
 	
+	NavigationManager:ResetPath()
+	NavigationManager.NavPathNode = 0
+	
 	ffxiv_unstuck.Reset()
     
     return newinst
@@ -1137,9 +1140,9 @@ function ffxiv_task_avoid:task_complete_eval()
 	end
 	
 	if (dist > 1) then
-		NavigationManager:UseCubes(false)
-		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
-		NavigationManager:UseCubes(true)
+		--NavigationManager:UseCubes(false)
+		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5)
+		--NavigationManager:UseCubes(true)
 	end
 	
 	if (dist < 1.5 and not Player:IsMoving()) then
@@ -1480,13 +1483,13 @@ function ffxiv_task_grindCombat:Process()
 						--d("Ranged class needs to move closer, fire moveto..")
 						--MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
 						if (target.distance2d <= (target.hitradius + 1)) then
-							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+							Player:MoveTo(pos.x,pos.y,pos.z, 1.5)
 						else
 							if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
-								NavigationManager:UseCubes(false)
+								--avigationManager:UseCubes(false)
 							end
-							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
-							NavigationManager:UseCubes(true)
+							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1))
+							--NavigationManager:UseCubes(true)
 						end
 						self.movementDelay = Now() + 1000
 					end
@@ -1537,12 +1540,12 @@ function ffxiv_task_grindCombat:Process()
 						end
 					else
 						if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
-							NavigationManager:UseCubes(false)
+							--NavigationManager:UseCubes(false)
 						end
 						--d("Melee class needs to move closer, fire moveto..")
-						Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z)
 						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
-						NavigationManager:UseCubes(true)
+						--NavigationManager:UseCubes(true)
 					end
 					local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
 					local dist2 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
@@ -1577,7 +1580,8 @@ function ffxiv_task_grindCombat:Process()
 							--d("using pullpos 2")
 							pullPos = self.pullPos2
 						end
-						Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
+						--Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
+						Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1)
 						self.pullTimer = Now() + 5000
 					end
 					if (self.attackThrottle) then
