@@ -4234,8 +4234,8 @@ function c_scripexchange:evaluate()
 					if (itemdata) then
 						local item = itemdata.item
 						if (item) then
-							--local isexchangeable = AceLib.API.Items.IsExchangeable(item)
-							--if (isexchangeable) then
+							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
+							if (isexchangeable) then
 								
 								local result = item:HandOver()
 								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
@@ -4243,9 +4243,9 @@ function c_scripexchange:evaluate()
 									c_scripexchange.handoverComplete = true
 									return true
 								end
-							--else
-								--d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
-							--end
+							else
+								d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
+							end
 						end
 					end
 				end
@@ -4282,15 +4282,20 @@ function c_scripexchange:evaluate()
 		if (table.isa(currentItems)) then
 			d("[ScripExchange]: Found items list.")
 			for index,itemdata in pairs(currentItems) do
+				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(item, currentCategory)
 				--[[
 					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
 				--]]
-				if (itemdata.ownedquantity >= itemdata.requiredquantity) then
-					local originalQuantity = itemdata.ownedquantity
-					c_scripexchange.lastItem = itemdata.itemid
-					c_scripexchange.handoverComplete = false
-					local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
-					return true
+				if ((currentamount + itemdata.scripreward) <= 2000) then
+					if (itemdata.ownedquantity >= itemdata.requiredquantity) then
+						local originalQuantity = itemdata.ownedquantity
+						c_scripexchange.lastItem = itemdata.itemid
+						c_scripexchange.handoverComplete = false
+						local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
+						return true
+					end
+				else
+					d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
 				end
 			end
 			ml_task_hub:CurrentTask().categories[currentCheck] = true
