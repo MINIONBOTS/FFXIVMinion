@@ -390,9 +390,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
 		
-		if (MIsLoading()) then
-			return false
-		end
+		--if (MIsLoading()) then
+			--return false
+		--end
 	end
 	
 	if (c_skiptalk:evaluate()) then
