@@ -4234,17 +4234,11 @@ function c_scripexchange:evaluate()
 					if (itemdata) then
 						local item = itemdata.item
 						if (item) then
-							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
-							if (isexchangeable) then
-								
-								local result = item:HandOver()
-								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
-								if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
-									c_scripexchange.handoverComplete = true
-									return true
-								end
-							else
-								d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
+							local result = item:HandOver()
+							d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
+							if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
+								c_scripexchange.handoverComplete = true
+								return true
 							end
 						end
 					end
