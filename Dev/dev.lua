@@ -121,7 +121,42 @@ function dev.DrawCall(event, ticks )
 												end										
 											end
 											GUI:TreePop()
-										end										
+										end	
+
+                                        if (GUI:TreeNode("RawData##"..tostring(id)) ) then
+                                            local datas = e:GetRawData()
+                                            if (table.valid(datas)) then	
+                                                GUI:Separator()                                            
+                                                GUI:Columns(3, "##RawDataDetails",true)
+                                                GUI:Text("Index"); GUI:NextColumn()
+                                                GUI:Text("Type"); GUI:NextColumn()
+                                                GUI:Text("Value"); GUI:NextColumn()
+                                                GUI:Separator()             
+												for index, data in pairs(datas) do			
+                                                    if (data.type ~= "0") then
+                                                        GUI:Text(tostring(index)) GUI:NextColumn()
+                                                        GUI:Text(tostring(data.type)) GUI:NextColumn()
+                                                        GUI:PushItemWidth(500)
+                                                        if (data.type == "int32") then
+                                                            GUI:Text(tostring(data.value))
+                                                        elseif (data.type == "bool") then
+                                                            GUI:Text(tostring(data.value))
+                                                        elseif (data.type == "string") then
+                                                            GUI:Text(data.value)
+                                                        elseif (data.type == "4bytes") then
+                                                            GUI:Text("A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D))
+                                                        else
+                                                            GUI:Text("")  
+                                                        end        
+                                                        GUI:NextColumn()  
+                                                        GUI:PopItemWidth()                                           
+                                                    end
+												end	
+                                                GUI:Separator()
+                                                GUI:Columns(1)		
+                                            end
+                                            GUI:TreePop()
+                                        end
 										
 										if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
 											if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
