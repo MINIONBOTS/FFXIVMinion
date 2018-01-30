@@ -63,7 +63,7 @@ function ffxiv_task_assist:Init()
 end
 
 function ffxiv_task_assist:Process()
-	if (not gACRBypass) then
+	--if (not gACRBypass) then
 		if (Player.alive and not MIsLoading()) then
 			local target = Player:GetTarget()
 			
@@ -169,9 +169,9 @@ function ffxiv_task_assist:Process()
 		else
 			ml_debug("no elements in process table")
 		end
-	else
-		SkillMgr.Cast()
-	end
+	--else
+		--SkillMgr.Cast()
+	--end
 end
 
 -- New GUI.
