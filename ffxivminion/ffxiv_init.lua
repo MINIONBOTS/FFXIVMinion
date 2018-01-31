@@ -375,6 +375,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(680, "ImOnABoatAgain")
 		ml_mesh_mgr.SetDefaultMesh(681, "The House of the Fierce")
 		ml_mesh_mgr.SetDefaultMesh(683, "First Alter of Djanan")
+		ml_mesh_mgr.SetDefaultMesh(744, "Kienkan")
+		ml_mesh_mgr.SetDefaultMesh(759, "Doman Enclave")
 		
 		
 		-- Dungeons
@@ -579,6 +581,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(671, "Duty_2528")
 		ml_mesh_mgr.SetDefaultMesh(686, "Duty_2549")
 		ml_mesh_mgr.SetDefaultMesh(684, "Duty_2550")
+		ml_mesh_mgr.SetDefaultMesh(757, "Duty_3024")
+		ml_mesh_mgr.SetDefaultMesh(634, "Duty_3027")
 	end
 	
 	-- General overrides.
