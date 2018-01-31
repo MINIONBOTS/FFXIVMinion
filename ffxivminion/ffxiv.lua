@@ -36,7 +36,7 @@ if (ffxivminion.gameRegion == 1) then
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
-		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
+		[1] = { "神意之地","延夏","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥", "红玉海" },
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
