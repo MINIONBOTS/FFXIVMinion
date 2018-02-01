@@ -7242,6 +7242,7 @@ function IsNormalMap(mapid)
 		[622] = true,
 		[628] = true,		
 		[635] = true,	
+		[759] = true,	
 	}
 	return maps[mapid] ~= nil
 end
