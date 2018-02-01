@@ -1209,6 +1209,8 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	
+	local autoface, movemode = ml_global_information.GetMovementInfo(true)
+	
 	if (not CannotMove()) then
 		if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
 			local gotoPos = nil

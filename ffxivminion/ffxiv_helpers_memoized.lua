@@ -1,6 +1,18 @@
 pmemoize = {}
 pmemoize.loadedfunctions = {}
 
+function MUsingAutoFace()
+	local memString = "MUsingAutoFace"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local using = UsingAutoFace()
+		SetMemoized(memString,using)
+		return using
+	end
+end
+
 function MPlayerDriving()
 	local memString = "MPlayerDriving"
 	local memoized = GetMemoized(memString)
