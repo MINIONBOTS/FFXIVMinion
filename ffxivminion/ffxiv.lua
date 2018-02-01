@@ -546,7 +546,8 @@ function ml_global_information.GetMovementInfo(afk)
 			Player:SetAutoFace(true)
 		end
 		
-		if (setAutoface or settings.autoface) then
+		--if (setAutoface or settings.autoface) then
+		if (setAutoface) then
 			Player:SetMoveMode(1)
 			return true, 1
 		else
