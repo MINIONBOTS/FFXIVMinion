@@ -65,6 +65,9 @@ end
 function ffxiv_task_assist:Process()
 	--if (not gACRBypass) then
 		if (Player.alive and not MIsLoading()) then
+			
+			local autoface, movemode = ml_global_information.GetMovementInfo(false)
+			
 			local target = Player:GetTarget()
 			
 			if ( FFXIV_Assist_Mode ~= GetString("none") ) then
@@ -247,7 +250,7 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option will set the game client's [Face Target on Attack] option on and also turn on Legacy movement mode.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")

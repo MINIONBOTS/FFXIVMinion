@@ -533,6 +533,28 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
     end
 end
 
+function ml_global_information.GetMovementInfo(afk)
+	local afk = IsNull(afk,false)
+	
+	local settings = Player.settings
+	if (afk) then
+		Player:SetMoveMode(0)
+		return settings.autoface, 0
+	else
+		local setAutoface = gAssistUseAutoFace
+		if (setAutoface) then
+			Player:SetAutoFace(true)
+		end
+		
+		if (setAutoface or settings.autoface) then
+			Player:SetMoveMode(1)
+			return true, 1
+		else
+			return false, settings.movemode
+		end
+	end
+end
+
 function ml_global_information.BuildMenu()
 	ml_global_information.menu = {}
 	ml_global_information.menu.windows = {}

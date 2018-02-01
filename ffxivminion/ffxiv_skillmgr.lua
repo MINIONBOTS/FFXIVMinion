@@ -4488,7 +4488,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata,gAssistUseAutoFace,target)) then
+		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)) then
 			return false
 		elseif (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
 			if (not realskilldata.isoncd) then
@@ -4500,7 +4500,7 @@ function SkillMgr.AddDefaultConditions()
 			return false
 		end
 		
-		SkillMgr.DebugOutput( skill.prio, "[ReadyCheck]: Target: ["..tostring(target.name).."], realskilldata.isready: ["..tostring(realskilldata.isready).."], IsFacing: ["..tostring(SkillMgr.IsFacing(realskilldata,gAssistUseAutoFace,target)).."]")
+		SkillMgr.DebugOutput( skill.prio, "[ReadyCheck]: Target: ["..tostring(target.name).."], realskilldata.isready: ["..tostring(realskilldata.isready).."], IsFacing: ["..tostring(SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)).."]")
 		return true
 	end
 	}

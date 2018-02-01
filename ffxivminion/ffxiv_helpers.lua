@@ -765,7 +765,7 @@ function IsValidHealTarget(e)
 		return (e.chartype == 4) or (e.id == Player.id) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
 			(e.chartype == 3 and e.type == 2) or
-			((e.chartype == 5 and e.type == 2) and (e.friendly or not e.attackable))
+			(((e.chartype == 5 or e.chartype == 9) and e.type == 2) and (e.friendly or not e.attackable))
 	end
 	
 	return false
@@ -7265,4 +7265,7 @@ function PlayerDriving()
 		return true
 	end
 	return false
+end
+function UsingAutoFace()
+	return Player.settings.autoface
 end
