@@ -371,7 +371,7 @@ function ffxiv_music.DoAction(note, octave)
 	if (control) then
 		local noteid = actions[note]
 		if (noteid) then
-			control:PushButton(23,noteid)
+			control:PushButton(23,noteid-1)
 		end
 	end
 	
