@@ -536,23 +536,19 @@ end
 function ml_global_information.GetMovementInfo(afk)
 	local afk = IsNull(afk,false)
 	
-	local settings = Player.settings
-	if (afk) then
+	if (afk or (ml_navigation:HasPath() and ml_navigation.CanRun())) then
 		Player:SetMoveMode(0)
-		return settings.autoface, 0
+		return Player.settings.autoface, 0
 	else
-		local setAutoface = gAssistUseAutoFace
-		if (setAutoface) then
+		if (gAssistUseAutoFace) then
 			Player:SetAutoFace(true)
 		end
-		
-		--if (setAutoface or settings.autoface) then
-		if (setAutoface) then
+		if (gAssistUseLegacy) then
 			Player:SetMoveMode(1)
-			return true, 1
-		else
-			return false, settings.movemode
 		end
+		
+		local settings = Player.settings
+		return settings.autoface, settings.movemode
 	end
 end
 

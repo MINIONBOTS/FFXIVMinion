@@ -1013,7 +1013,6 @@ function ml_navigation.Navigate(event, ticks )
 				
 		if ( ml_navigation.CanRun() and ml_navigation.canPath) then	
 		
-			--d("Can Path.")
 			local ppos = Player.pos
 			
 			ml_navigation.GUI = {
@@ -1025,7 +1024,9 @@ function ml_navigation.Navigate(event, ticks )
 			
 			-- Normal Navigation Mode			
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
-				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
+				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then
+
+					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 				
 					--d("pathindex:"..tostring(ml_navigation.pathindex)..", max nodes:"..tostring(table.size(ml_navigation.path)))
 					

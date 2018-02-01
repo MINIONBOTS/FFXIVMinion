@@ -183,6 +183,7 @@ function ffxiv_task_assist:UIInit()
 	gAssistConfirmDuty = ffxivminion.GetSetting("gAssistConfirmDuty",false)
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
 	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
+	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
 	gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	
@@ -210,7 +211,7 @@ function ffxiv_task_assist:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(8),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(9),true)
 	GUI:PushItemWidth(120)					
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Targeting Assist"))
@@ -225,8 +226,13 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Face Target"))
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\
 		Warning:  Dangerous if using Standard movement mode.")) end
+		
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Client Autoface"))
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
+	
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Set Legacy Movement"))
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option sets Legacy movement mode.")) end
+	
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Start Combat"))
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Auto-Confirm Duty"))
@@ -249,8 +255,14 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode.")) end
+	
+	
 	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option will set the game client's [Face Target on Attack] option on and also turn on Legacy movement mode.")) end
+	
+	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy")
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Sets Legacy movement mode automatically when using assist.")) end
+	
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
