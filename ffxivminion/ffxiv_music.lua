@@ -15,8 +15,8 @@ ffxiv_music = {
 	
 	tracks = {
 		[1] = {
-			octave = -1,
-			tempo = 60,
+			octave = 0,
+			tempo = 100,
 			notelength = 4,
 			position = 1,
 			delay = 0,
@@ -26,14 +26,16 @@ ffxiv_music = {
 	
 	last_wrap = 0,
 	
+	--[[
 	mml = "",
-	octave = -1,
-	tempo = 60,
+	octave = 0,
+	tempo = 100,
 	notelength = 4,
 	volume = 10,
 	position = 1,
-	is_playing = false,
 	delay = 0,
+	--]]
+	is_playing = false,
 	
 	actions = {
 		["b#"] = 1, ["c"] = 1, 
@@ -63,8 +65,8 @@ ffxiv_music = {
 }
 
 function ffxiv_music.Reset()
-	ffxiv_music.octave = -1
-	ffxiv_music.tempo = 60
+	ffxiv_music.octave = 0
+	ffxiv_music.tempo = 100
 	ffxiv_music.notelength = 4
 	ffxiv_music.volume = 10
 	ffxiv_music.position = 1
@@ -83,6 +85,7 @@ function ffxiv_music.SetTempo()
 			
 			local pos = 1
 			local tempoFound = false
+		
 			repeat
 				local pos = temp.position
 				local str = temp.mml
@@ -125,8 +128,9 @@ function ffxiv_music.SetTempo()
 				end
 				
 				if (newpos == 0) then
-					tempoFound = false
+					tempoFound = true
 				end	
+				
 			until (tempoFound == true)
 			
 			d("setting tempo to ["..tostring(tempo).."]")
@@ -144,8 +148,8 @@ function ffxiv_music.CreateTrack(i, mml)
 	local mml = IsNull(mml,"")
 	ffxiv_music.tracks[i] = {
 		playing = false,
-		octave = -1,
-		tempo = 60,
+		octave = 0,
+		tempo = 100,
 		notelength = 4,
 		position = 1,
 		delay = 0,
@@ -175,6 +179,7 @@ end
 function ffxiv_music.Init()
 	ffxiv_music.UpdateFiles()
 	
+	gMusicTrack = ffxivminion.GetSetting("gMusicTrack",1)
 	gMusicText = ffxivminion.GetSetting("gMusicText","")
 	gMusicMML = ffxivminion.GetSetting("gMusicMML",GetString("None"))
 	gMusicMMLIndex = GetKeyByValue(gMusicMML,ffxiv_music.files) or 1
@@ -280,6 +285,12 @@ function ffxiv_music.DrawCall(event, ticks )
 				
 				GUI:Spacing(); GUI:Spacing()
 				
+				GUI:PushItemWidth(80)
+				GUI_DrawIntMinMax("Track to Play","gMusicTrack",0,0)
+				GUI:PopItemWidth()
+				
+				GUI:Spacing(); GUI:Spacing()
+				
 				local availableWidth = GUI:GetContentRegionAvailWidth()
 				
 				--last_wrap
@@ -307,14 +318,9 @@ function ffxiv_music.DrawCall(event, ticks )
 						
 						local i = 1
 						for track in string.split(gMusicText,",") do
-							if (i <= 1) then
-								if (string.valid(track)) then
-									ffxiv_music.CreateTrack(i, string.gsub(track,"\n",""))
-									d("create track:"..tostring(i)..","..tostring(track))
-								end
-							else
-								d("Only 2 tracks can be played simultaneously, results may vary.")
-								break
+							if (string.valid(track)) then
+								ffxiv_music.CreateTrack(i, string.gsub(track,"\n",""))
+								d("create track:"..tostring(i)..","..tostring(track))
 							end
 							i = i + 1
 						end
@@ -331,47 +337,67 @@ function ffxiv_music.OnUpdate( event, tickcount )
 	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxiv_music.is_playing) then
-			local tracks = ffxiv_music.tracks
-			if (table.valid(tracks)) then
-				local isPlaying = false
-				for i,track in pairsByKeys(tracks) do
-					if (track.playing) then
-						--d("Parse MML ["..tostring(i).."], ["..tostring(track.mml).."]")
-						isPlaying = true
-						ffxiv_music.currentTrack = i
-						ffxiv_music.ParseMML(track)
+		
+			if (not ml_global_information.IsYielding()) then
+				local tracks = ffxiv_music.tracks
+				if (table.valid(tracks)) then
+					local isPlaying = false
+					if (table.size(tracks) >= gMusicTrack) then
+						local track = tracks[gMusicTrack]
+						if (track and track.playing) then
+							isPlaying = true
+							ffxiv_music.currentTrack = gMusicTrack
+							ffxiv_music.ParseMML(track)
+						end
+					elseif (tracks[1]) then
+						if (tracks[1].playing) then
+							isPlaying = true
+							ffxiv_music.currentTrack = 1
+							ffxiv_music.ParseMML(tracks[1])
+						end
 					end
+					if (not isPlaying) then
+						ffxiv_music.is_playing = false
+						KeyUp(16)
+						KeyUp(17)
+					end				
 				end
-				if (not isPlaying) then
-					ffxiv_music.is_playing = false
-					KeyUp(16)
-					KeyUp(17)
-				end				
 			end
 		end
 	end
 end
 
--- See http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
--- for information on calculating note frequencies.
-function ffxiv_music.DoAction(note, octave)
-	local actions = ffxiv_music.actions
+function ffxiv_music.ShiftOctave(octave)
 	if (octave < 0) then
 		KeyUp(16)
 		KeyDown(17)
+		ml_global_information.Await(10, function () return (GUI:IsKeyDown(17) and not GUI:IsKeyDown(16)) end)
 	elseif (octave == 0) then
 		KeyUp(16)
 		KeyUp(17)
+		ml_global_information.Await(10, function () return (not GUI:IsKeyDown(16) and not GUI:IsKeyDown(16)) end)
 	elseif (octave > 0) then
 		KeyUp(17)
 		KeyDown(16)
+		ml_global_information.Await(10, function () return (GUI:IsKeyDown(16) and not GUI:IsKeyDown(17)) end)
 	end
+end
+
+-- See http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
+-- for information on calculating note frequencies.
+function ffxiv_music.DoAction(note, octave)	
+	d("play note ["..tostring(note).."],["..tostring(octave).."]")
 	
+	local actions = ffxiv_music.actions
 	local control = GetControl("PerformanceMode")
 	if (control) then
-		local noteid = actions[note]
-		if (noteid) then
-			control:PushButton(23,noteid-1)
+		if (note == "c" and octave > 1) then
+			control:PushButton(23,12)
+		else
+			local noteid = actions[note]
+			if (noteid) then
+				control:PushButton(23,noteid-1)
+			end
 		end
 	end
 	
@@ -414,15 +440,6 @@ function ffxiv_music.ParseMML(track)
 	local playedNote = false
 	
 	repeat
-		--[[
-		local octave = ffxiv_music.octave
-		local tempo = ffxiv_music.tempo
-		local notelength = ffxiv_music.notelength
-		local volume = ffxiv_music.volume
-
-		local pos = ffxiv_music.position
-		--]]
-		
 		local octave = track.octave
 		local tempo = track.tempo
 		local notelength = track.notelength
@@ -444,7 +461,9 @@ function ffxiv_music.ParseMML(track)
 
 		if c then 
 			track.position = pos + (newpos - 1)
-			d("moving track ["..tostring(ffxiv_music.currentTrack).."] to position ["..tostring(track.position).."]")
+			args = string.gsub(args,"&","")
+			
+			d("moving track ["..tostring(ffxiv_music.currentTrack).."] to position ["..tostring(track.position).."] c ["..tostring(c).."] args ["..tostring(args).."]")
 			--ffxiv_music.position = pos + (newpos - 1)
 			--d("new position"..tostring(ffxiv_music.position))
 
@@ -496,17 +515,17 @@ function ffxiv_music.ParseMML(track)
 			elseif c == ">" then -- Increase octave
 				if (track.octave < 2) then
 					track.octave = octave + 1
+					d("shifting octave up")
+					ffxiv_music.ShiftOctave(track.octave)
+					return true
 				end
-				--if (ffxiv_music.octave < 2) then
-					--ffxiv_music.octave = octave + 1
-				--end
 			elseif c == "<" then -- Decrease octave
 				if (track.octave > -1) then
 					track.octave = octave - 1
+					d("shifting octave up")
+					ffxiv_music.ShiftOctave(track.octave)
+					return true
 				end
-				--if (ffxiv_music.octave > -1) then
-					--ffxiv_music.octave = octave - 1
-				--end
 			elseif c:find("[a-g]") then -- Play note
 				local note
 				local mod = string.match(args, "[+#-]")
@@ -538,7 +557,6 @@ function ffxiv_music.ParseMML(track)
 				
 				ffxiv_music.DoAction(note, octave)
 
-				--d("notetime (ms):"..tostring(notetime))
 				track.delay = Now() + notetime
 				playedNote = true
 			end
