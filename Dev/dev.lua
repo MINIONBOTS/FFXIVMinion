@@ -752,6 +752,139 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 --End GATHERING COLLECTABLE
+
+			-- cbk: Gold Saucer
+			if ( GUI:TreeNode("Gold Saucer")) then
+                GUI:PushItemWidth(200)
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+                    if ( GUI:TreeNode("Triple Triad")) then
+                        local ttinfo = Player:GetTripleTriadInfo()
+                        GUI:BulletText("Time Remaining") GUI:SameLine(200) GUI:InputText("##devgstt0", tostring(ttinfo.timeremaining))
+                        if (GUI:TreeNode("Card List")) then
+                            local cards = Player:GetGSCardList()
+                            GUI:Separator()                                            
+                            GUI:Columns(4, "##devgsttcardlist",true)
+                            GUI:Text("Id"); GUI:NextColumn()
+                            GUI:Text("Type"); GUI:NextColumn()
+                            GUI:Text("Rarity"); GUI:NextColumn()
+                            GUI:Text("Stats (T-B-L-R)"); GUI:NextColumn()
+                            GUI:Separator()             
+                            for id, data in pairs(cards) do		
+                                GUI:Text(tostring(id)) GUI:NextColumn()
+                                GUI:Text(tostring(data.type)) GUI:NextColumn()
+                                GUI:Text(tostring(data.rarity)) GUI:NextColumn()
+                                GUI:Text(tostring(data.top).." "..tostring(data.bottom).." "..tostring(data.left).." "..tostring(data.right)) GUI:NextColumn()
+                            end
+                            GUI:Separator()
+                            GUI:Columns(1)	
+                            GUI:TreePop()
+                        end
+                        if (GUI:TreeNode("Deck List")) then
+                            local decks = Player:GetGSDeckList()
+                            for deckidx, cards in pairs(decks) do
+                                if ( GUI:TreeNode("Deck #"..tostring(deckidx))) then
+                                    GUI:Separator()                                            
+                                    GUI:Columns(2, "##devgsttdeck"..tostring(deckidx),true)
+                                    GUI:Text("Slot"); GUI:NextColumn()
+                                    GUI:Text("CardId"); GUI:NextColumn()
+                                    GUI:Separator()             
+                                    for slot, cardid in pairs(cards) do		
+                                        GUI:Text(tostring(slot)) GUI:NextColumn()
+                                        GUI:Text(tostring(cardid)) GUI:NextColumn()
+                                    end
+                                    GUI:Separator()
+                                    GUI:Columns(1)	
+                                    GUI:TreePop()
+                                end
+                            end
+                            GUI:TreePop()
+                        end
+                        local ttcontrol = GetControl("TripleTriad")
+                        if ( ttcontrol ~= nil ) then
+                            GUI:BulletText("Team Turn") GUI:SameLine(200) GUI:InputText("##devgstt1", tostring(ttinfo.teamturn))	
+                            if (GUI:TreeNode("Blue Deck") and table.valid(ttinfo.decks[0])) then
+                                GUI:Separator()                                            
+                                GUI:Columns(6, "##devgsttdeckblue"..tostring(deckidx),true)
+                                GUI:Text("Slot"); GUI:NextColumn()
+                                GUI:Text("CardId"); GUI:NextColumn()
+                                GUI:Text("Team"); GUI:NextColumn()
+                                GUI:Text("Rarity"); GUI:NextColumn()
+                                GUI:Text("Type"); GUI:NextColumn()
+                                GUI:Text("Stats (T-B-L-R)"); GUI:NextColumn()
+                                for slot,data in pairs(ttinfo.decks[0]) do
+                                    GUI:Text(tostring(slot)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.id)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.team)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.rarity)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.type)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.top).." "..tostring(data.bottom).." "..tostring(data.left).." "..tostring(data.right)) GUI:NextColumn()
+                                end
+                                GUI:Separator()
+                                GUI:Columns(1)	
+                                GUI:TreePop()
+                            end
+                            if (GUI:TreeNode("Red Deck") and table.valid(ttinfo.decks[1])) then
+                                GUI:Separator()                                            
+                                GUI:Columns(6, "##devgsttdeckred"..tostring(deckidx),true)
+                                GUI:Text("Slot"); GUI:NextColumn()
+                                GUI:Text("CardId"); GUI:NextColumn()
+                                GUI:Text("Team"); GUI:NextColumn()
+                                GUI:Text("Rarity"); GUI:NextColumn()
+                                GUI:Text("Type"); GUI:NextColumn()
+                                GUI:Text("Stats (T-B-L-R)"); GUI:NextColumn()
+                                for slot,data in pairs(ttinfo.decks[1]) do
+                                    GUI:Text(tostring(slot)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.id)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.team)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.rarity)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.type)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.top).." "..tostring(data.bottom).." "..tostring(data.left).." "..tostring(data.right)) GUI:NextColumn()
+                                end
+                                GUI:Separator()
+                                GUI:Columns(1)	
+                                GUI:TreePop()
+                            end
+                            if (GUI:TreeNode("Board Cards") and table.valid(ttinfo.boardcards)) then
+                                GUI:Separator()                                            
+                                GUI:Columns(6, "##devgsttboardcards"..tostring(deckidx),true)
+                                GUI:Text("Slot"); GUI:NextColumn()
+                                GUI:Text("CardId"); GUI:NextColumn()
+                                GUI:Text("Team"); GUI:NextColumn()
+                                GUI:Text("Rarity"); GUI:NextColumn()
+                                GUI:Text("Type"); GUI:NextColumn()
+                                GUI:Text("Stats (T-B-L-R)"); GUI:NextColumn()
+                                for slot,data in pairs(ttinfo.boardcards) do
+                                    GUI:Text(tostring(slot)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.id)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.team)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.rarity)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.type)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.top).." "..tostring(data.bottom).." "..tostring(data.left).." "..tostring(data.right)) GUI:NextColumn()
+                                end
+                                GUI:Separator()
+                                GUI:Columns(1)	
+                                GUI:TreePop()
+                            end
+                            GUI:Separator()
+                            if (not dev.playcard_src) then dev.playcard_src = 1 end
+                            if (not dev.playcard_dst) then dev.playcard_dst = 1 end
+                            if (GUI:Button("Play Card")) then
+                                ttcontrol:Action("PlayCard", dev.playcard_src, dev.playcard_dst)
+                            end
+                            dev.playcard_src = GUI:InputInt("Deck slot##devgsttplaycardsrc", dev.playcard_src)
+                            dev.playcard_dst = GUI:InputInt("Board slot##devgsttplaycarddst", dev.playcard_dst)
+                        else
+                            GUI:Text("Start a game to see more data ...")
+                        end
+                        GUI:TreePop()
+                    end
+				else
+					GUI:Text("Not Ingame...")
+				end
+                GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+            --End Gold Saucer
 			
 			-- cbk: Hacks
 			if ( GUI:TreeNode("Hacks")) then
