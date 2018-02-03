@@ -760,6 +760,8 @@ function dev.DrawCall(event, ticks )
                     if ( GUI:TreeNode("Triple Triad")) then
                         local ttinfo = Player:GetTripleTriadInfo()
                         GUI:BulletText("Time Remaining") GUI:SameLine(200) GUI:InputText("##devgstt0", tostring(ttinfo.timeremaining))
+                        GUI:BulletText("Match Rule 1") GUI:SameLine(200) GUI:InputText("##devgstt1", tostring(ttinfo.matchrule1))
+                        GUI:BulletText("Match Rule 2") GUI:SameLine(200) GUI:InputText("##devgstt2", tostring(ttinfo.matchrule2))
                         if (GUI:TreeNode("Card List")) then
                             local cards = Player:GetGSCardList()
                             GUI:Separator()                                            
