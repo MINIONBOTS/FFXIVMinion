@@ -435,6 +435,9 @@ function e_movetonode:execute()
 				newTask.useTeleport = true
 			end
 			
+			if IsDiving() then
+				newTask.interactRange3d = 2
+			end
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
@@ -523,7 +526,7 @@ function c_nextgathermarker:evaluate()
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
-	if (gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1 then
+	if ((gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1) or (gBotMode ~= GetString("gatherMode")) then
 		return false
 	end
 	
