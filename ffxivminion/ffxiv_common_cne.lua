@@ -489,7 +489,6 @@ function c_avoid:evaluate()
 					
 					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
 					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-					return true
 				end
 			end
 		end
@@ -512,7 +511,6 @@ function c_avoid:evaluate()
 					
 					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
 					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-					return true
 				end
 			end
 		end
@@ -525,6 +523,7 @@ function c_avoid:evaluate()
 			local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
 			if (moveDist > 1) then
 				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
+				return true
 			else
 				d("Dodge distance is very close.")
 			end
