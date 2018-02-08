@@ -7270,3 +7270,12 @@ end
 function UsingAutoFace()
 	return Player.settings.autoface
 end
+function HQToID(id)
+	if (id >= 500000 and id < 600000) then
+		return (id - 500000)
+	elseif (id >= 1000000) then
+		return (id - 1000000)
+	else
+		return id
+	end
+end

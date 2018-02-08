@@ -36,7 +36,7 @@ if (ffxivminion.gameRegion == 1) then
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
-		[1] = { "神意之地","延夏","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥", "红玉海" },
+		[1] = { "延夏","红玉海","静语庄园","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥"},
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
@@ -411,7 +411,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if (table.valid(items)) then
 				ffxivminion.scripExchange[category] = {}
 				for i,item in pairs(items) do
-					ffxivminion.scripExchange[category][item.itemid] = true
+					ffxivminion.scripExchange[category][HQToID(item.itemid)] = true
 				end
 				ffxivminion.lastScripExchangeUpdate[category] = Now()
 			end
