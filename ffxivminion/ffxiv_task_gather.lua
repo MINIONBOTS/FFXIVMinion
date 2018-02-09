@@ -434,6 +434,7 @@ function e_movetonode:execute()
 			if (gTeleportHack and dist3d > 8) then
 				newTask.useTeleport = true
 			end
+			
 			if IsDiving() then
 				newTask.interactRange3d = 2
 			end
@@ -1692,9 +1693,17 @@ function c_nodeprebuff:evaluate()
 						return true
 					end
 				else
-					d("Cannot swap yet, but we have no choice, wait a second")
-					e_nodeprebuff.activity = "switchclasslegacy"
-					return true
+					local gsvar = "gGearset"..tostring(FFXIV.JOBS.BOTANIST)
+					if (_G[gsvar] ~= 0) then
+						e_nodeprebuff.activity = "switchclass"
+						e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+					else
+						d("Cannot swap yet, but we have no choice, wait a second")
+						e_nodeprebuff.activity = "switchclasslegacy"
+						return true
+					end
 				end
 			end
 		elseif (taskType == "mining") then
@@ -1716,9 +1725,17 @@ function c_nodeprebuff:evaluate()
 						return true
 					end
 				else
-					d("Cannot swap yet, but we have no choice, wait a second")
-					e_nodeprebuff.activity = "switchclasslegacy"
-					return true
+					local gsvar = "gGearset"..tostring(FFXIV.JOBS.MINER)
+					if (_G[gsvar] ~= 0) then
+						e_nodeprebuff.activity = "switchclass"
+						e_nodeprebuff.class = FFXIV.JOBS.MINER
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+					else
+						d("Cannot swap yet, but we have no choice, wait a second")
+						e_nodeprebuff.activity = "switchclasslegacy"
+						return true
+					end
 				end
 			end
 		end

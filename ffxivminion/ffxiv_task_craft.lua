@@ -851,7 +851,7 @@ function c_craftlimit:evaluate()
 				itemcount = itemcount + ItemCount(itemid)
 			end
 			
-			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)			
+			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 			if (not canCraft) then
 				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
 				return true
@@ -932,7 +932,7 @@ function c_startcraft:evaluate()
 				local requireHQ = ml_task_hub:CurrentTask().requireHQ
 				local requireCollect = ml_task_hub:CurrentTask().requireCollect
 				local countHQ = ml_task_hub:CurrentTask().countHQ
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 				
 				local itemcount = 0
 				if (requireCollect) then
@@ -1070,17 +1070,16 @@ function e_startcraft:execute()
 					local usequick = ml_task_hub:CurrentTask().useQuick
 					local requireCollect = ml_task_hub:CurrentTask().requireCollect
 					if (usequick and not requireCollect) then
-					d("Attempting to start quick craft")
 						local itemid = ml_task_hub:CurrentTask().itemid
-						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
+						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 						local wantedAmount = ml_task_hub:ThisTask().requiredItems
 						if (wantedAmount > 0 and wantedAmount <= maxAmount and wantedAmount <= 99) then
-							Crafting:CraftSelectedItem(wantedAmount)
+							Crafting:CraftSelectedItem(wantedAmount,ml_task_hub:CurrentTask().useHQ)
 						else
 							if (maxAmount > 99) then
-								Crafting:CraftSelectedItem(99)
+								Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
 							else
-								Crafting:CraftSelectedItem(maxAmount)
+								Crafting:CraftSelectedItem(maxAmount,ml_task_hub:CurrentTask().useHQ)
 							end
 						end
 						if (IsControlOpen("RecipeNote")) then
@@ -1089,7 +1088,6 @@ function e_startcraft:execute()
 						SkillMgr.newCraft = true
 						ml_task_hub:CurrentTask().allowWindowOpen = false
 					else
-					d("Attempting to start normal craft")
 						Crafting:CraftSelectedItem()
 						if (IsControlOpen("RecipeNote")) then
 							ffxiv_craft.ToggleCraftingLog()
@@ -1398,7 +1396,7 @@ function c_selectcraft:evaluate()
 				orders[id].completed = false
 			end
 			if (order.completed == false and order.skip ~= true) then
-				local canCraft = AceLib.API.Items.CanCraft(id)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
 				if (canCraft) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
@@ -1425,7 +1423,7 @@ function e_selectcraft:execute()
 		local foundSelection = false
 		for id,order in spairs(orders, sortfunc) do
 			if (not order.completed and not order.skip) then
-				local canCraft = AceLib.API.Items.CanCraft(id)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
 				if (canCraft) then
 					
 					local itemid = order.item
@@ -1941,11 +1939,7 @@ function ffxiv_task_craft:Draw()
 					else
 						gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					end
-					if gCraftOrderEditQuick == true then
-						gCraftOrderEditHQ = false
-					else
-						gCraftOrderEditHQ = IsNull(order["usehq"],false)
-					end
+					gCraftOrderEditHQ = IsNull(order["usehq"],false)
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 					for i = 1,6 do
@@ -2398,7 +2392,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["maxcount"] = 0
 				end
 					
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order["usehq"])
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
 				end
@@ -2420,9 +2414,9 @@ function ffxiv_craft.UpdateAlertElement()
 					order["uialert"] = "lowcp"
 					elseif lowMats then
 					order["uialert"] = "lowmats"
-				elseif not canCraft then
+				elseif maxAmount == 0 then
 					order["uialert"] = "cantCraft"
-				elseif canCraft then
+				elseif maxAmount > 0 then
 					order["uialert"] = "canCraft"
 				end
 				
@@ -2702,11 +2696,7 @@ function ffxiv_craft.Draw( event, ticks )
 							else
 								gCraftOrderEditQuick = IsNull(order["usequick"],false)
 							end
-							if gCraftOrderEditQuick == true then
-								gCraftOrderEditHQ = false
-							else
-								gCraftOrderEditHQ = IsNull(order["usehq"],false)
-							end
+							gCraftOrderEditHQ = IsNull(order["usehq"],false)
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 														
@@ -3093,9 +3083,6 @@ function ffxiv_craft.Draw( event, ticks )
 					if (orders.usequick ~= gCraftOrderEditQuick) then
 						orders.usequick = gCraftOrderEditQuick
 						ffxiv_craft.UpdateOrderElement()
-					end
-					if gCraftOrderEditQuick == true then
-						gCraftOrderEditHQ = false
 					end
 					
 					GUI_Capture(GUI:Checkbox("##Use HQ Items",gCraftOrderEditHQ),"gCraftOrderEditHQ")

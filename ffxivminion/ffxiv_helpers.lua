@@ -7242,6 +7242,7 @@ function IsNormalMap(mapid)
 		[622] = true,
 		[628] = true,		
 		[635] = true,	
+		[759] = true,	
 	}
 	return maps[mapid] ~= nil
 end
@@ -7265,4 +7266,16 @@ function PlayerDriving()
 		return true
 	end
 	return false
+end
+function UsingAutoFace()
+	return Player.settings.autoface
+end
+function HQToID(id)
+	if (id >= 500000 and id < 600000) then
+		return (id - 500000)
+	elseif (id >= 1000000) then
+		return (id - 1000000)
+	else
+		return id
+	end
 end

@@ -36,7 +36,7 @@ if (ffxivminion.gameRegion == 1) then
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
-		[1] = { "神意之地","延夏【新服】","静语庄园","萌芽池","幻影群岛","拉诺西亚","摩杜纳","紫水栈桥" },
+		[1] = { "延夏","红玉海","静语庄园","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥"},
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
@@ -390,9 +390,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
 		
-		if (MIsLoading()) then
-			return false
-		end
+		--if (MIsLoading()) then
+			--return false
+		--end
 	end
 	
 	if (c_skiptalk:evaluate()) then
@@ -411,7 +411,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if (table.valid(items)) then
 				ffxivminion.scripExchange[category] = {}
 				for i,item in pairs(items) do
-					ffxivminion.scripExchange[category][item.itemid] = true
+					ffxivminion.scripExchange[category][HQToID(item.itemid)] = true
 				end
 				ffxivminion.lastScripExchangeUpdate[category] = Now()
 			end
@@ -531,6 +531,25 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
     end
+end
+
+function ml_global_information.GetMovementInfo(afk)
+	local afk = IsNull(afk,false)
+	
+	if (afk or (ml_navigation:HasPath() and ml_navigation.CanRun())) then
+		Player:SetMoveMode(0)
+		return Player.settings.autoface, 0
+	else
+		if (gAssistUseAutoFace) then
+			Player:SetAutoFace(true)
+		end
+		if (gAssistUseLegacy) then
+			Player:SetMoveMode(1)
+		end
+		
+		local settings = Player.settings
+		return settings.autoface, settings.movemode
+	end
 end
 
 function ml_global_information.BuildMenu()

@@ -456,6 +456,7 @@ c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
+c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
@@ -470,6 +471,7 @@ function c_avoid:evaluate()
 	
 	--Reset tempvar.
 	c_avoid.newAvoid = {}
+	c_avoid.avoidDetails = {}
 	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
@@ -489,7 +491,6 @@ function c_avoid:evaluate()
 					
 					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
 					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-					return true
 				end
 			end
 		end
@@ -512,41 +513,53 @@ function c_avoid:evaluate()
 					
 					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
 					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-					return true
 				end
 			end
 		end
 	end
 	
-	return false
-end
-function e_avoid:execute() 			
-	local newPos,seconds,obstacle = AceLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
-	
-	if (table.valid(newPos)) then
-		local ppos = Player.pos
-		local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
-		if (moveDist > 1) then
-			c_avoid.lastAvoid = c_avoid.newAvoid
-			local newTask = ffxiv_task_avoid.Create()
-			newTask.pos = newPos
-			newTask.targetid = c_avoid.newAvoid.attacker.id
-			newTask.attackTarget = IsNull(ml_task_hub:ThisTask().targetid,0)
-			newTask.interruptCasting = true
-			newTask.maxTime = seconds
-			SetThisTaskProperty("preserveSubtasks",true)
-			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-			d("Adding avoidance task.")
-			
-			c_bettertargetsearch.postpone = Now() + 5000
-			if ((newTask.maxTime * 1000) > 5000) then
-				c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
+	if (table.valid(c_avoid.newAvoid)) then
+		local newPos,seconds,obstacle = AceLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
+		if (table.valid(newPos)) then
+			local ppos = Player.pos
+			local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
+			if (moveDist > 1) then
+				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
+				return true
+			else
+				d("Dodge distance is very close.")
 			end
 		else
-			d("Dodge distance is very close.")
+			d("Can't dodge, didn't find a valid position.")
 		end
-	else
-		d("Can't dodge, didn't find a valid position.")
+	end
+	
+	return false
+end
+function e_avoid:execute() 	
+	local details = c_avoid.avoidDetails
+	local tid = 0
+	local currentTarget = Player:GetTarget()
+	if (currentTarget) then
+		tid = currentTarget.id
+	elseif (ml_task_hub:ThisTask().targetid ~= 0) then
+		tid = ml_task_hub:ThisTask().targetid
+	end
+	
+	c_avoid.lastAvoid = c_avoid.newAvoid
+	local newTask = ffxiv_task_avoid.Create()
+	newTask.pos = details.pos
+	newTask.targetid = c_avoid.newAvoid.attacker.id
+	newTask.attackTarget = tid
+	newTask.interruptCasting = true
+	newTask.maxTime = details.seconds
+	SetThisTaskProperty("preserveSubtasks",true)
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	d("Adding avoidance task.")
+	
+	c_bettertargetsearch.postpone = Now() + 5000
+	if ((newTask.maxTime * 1000) > 5000) then
+		c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
 	end
 end
 
@@ -4236,17 +4249,11 @@ function c_scripexchange:evaluate()
 					if (itemdata) then
 						local item = itemdata.item
 						if (item) then
-							local isexchangeable = AceLib.API.Items.IsExchangeable(item)
-							if (isexchangeable) then
-								
-								local result = item:HandOver()
-								d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
-								if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
-									c_scripexchange.handoverComplete = true
-									return true
-								end
-							else
-								d("[ScripExchange]: Ignored non-exchangeable item, collectability was ["..tostring(item.collectability).."].")
+							local result = item:HandOver()
+							d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
+							if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
+								c_scripexchange.handoverComplete = true
+								return true
 							end
 						end
 					end
