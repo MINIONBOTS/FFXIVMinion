@@ -1249,6 +1249,10 @@ function c_getmovementpath:evaluate()
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
 				end
 				
+				if (ml_task_hub:CurrentTask().remainMounted and Player.ismounted and not IsFlying() and not IsDiving() and not Player.mountcanfly) then
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
+				end
+				
 				if (pathLength <= 0) then
 					--d("rebuild cube path")
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, true, nil, 1, false)
