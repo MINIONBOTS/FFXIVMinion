@@ -1906,8 +1906,12 @@ function ffxiv_task_craft:Draw()
 				return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
 			end
 			for id,order in spairs(orders, sortfunc) do
+			GUI:AlignFirstTextHeightToWidgets(); 
+			if order.collect then
+				GUI:Text("(C) " .. tostring(order.name));
+			else
 				GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
-				
+			end	
 				itemcount = order["itemcount"]
 				itemcountNorm = order["itemcountnorm"]
 				itemcountHQ = order["itemcounthq"]
@@ -2654,7 +2658,11 @@ function ffxiv_craft.Draw( event, ticks )
 						return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
 					end
 					for id,order in spairs(orders, sortfunc) do
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name); 
+						if order.collect then
+							GUI:Text("(C) " .. tostring(order.name));
+						else
+							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
+						end	
 						if (GUI:IsItemHovered()) then
 							GUI:BeginTooltip()
 							ffxiv_craft.InspectRecipe(id)
