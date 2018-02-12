@@ -864,8 +864,8 @@ function c_craftlimit:evaluate()
 			
 			
 		elseif gCraftMarkerOrProfileIndex == 2 then
-			d("Max Items = "..tostring(ml_task_hub:CurrentTask().maxItems))
-			d("Craft Attempts = "..tostring(ml_task_hub:CurrentTask().itemsCrafted))
+			cd("Max Items = "..tostring(ml_task_hub:CurrentTask().maxItems))
+			cd("Craft Attempts = "..tostring(ml_task_hub:CurrentTask().itemsCrafted))
 			if ((ml_task_hub:CurrentTask().maxItems > 0 and ml_task_hub:CurrentTask().itemsCrafted == ml_task_hub:CurrentTask().maxItems) or 
 				ml_task_hub:CurrentTask().attemptedStarts > 5) then
 				return true
@@ -1101,7 +1101,6 @@ function e_startcraft:execute()
 					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
 						d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-						d("Setting mats to be reset")
 						ml_task_hub:CurrentTask().matsSet = false
 						ml_global_information.Await(1000)
 						return
@@ -1221,7 +1220,6 @@ end
 function e_precraftbuff:execute()
 	local activityItem = e_precraftbuff.item
 	local activity = e_precraftbuff.activity
-	d(activity)
 	
 	if (e_precraftbuff.requiresLogClose) then
 		if (IsControlOpen("RecipeNote")) then
@@ -1720,7 +1718,7 @@ function ffxiv_task_craft:UIInit()
 		_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
 	end
 	
-	for k = 10,70,10 do
+	for k = 5,70,5 do
 		_G["gCraftDictionarySelectIndex"..tostring(k)] = 1
 		_G["gCraftDictionarySelect"..tostring(k)] = GetString("none")				
 	end
@@ -2547,7 +2545,7 @@ end
 
 function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 	local craftid = IsNull(craftid,0)
-	local maxattemptlevel = IsNull(maxattemptlevel,10)
+	local maxattemptlevel = IsNull(maxattemptlevel,5)
 	if (craftid == 0) then
 		local crafts = ffxiv_craft.crafts
 		craftid = crafts[gCraftOrderSelect]
@@ -2560,7 +2558,7 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 			end
 		end
 			
-		local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-9),maxattemptlevel)
+		local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-4),maxattemptlevel)
 		if (dictionary) then
 			if (not ffxiv_craft.dictionaries[craftid] or not not ffxiv_craft.dictionariesDisplay[craftid]) then
 				ffxiv_craft.dictionaries[craftid] = {}
@@ -2829,12 +2827,12 @@ function ffxiv_craft.Draw( event, ticks )
 				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
 				GUI:PopItemWidth()
 				
-				for k = 10,70,10 do
+				for k = 5,70,5 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
 					if (dictionary and dictionaryDisplay) then
 						--d("found dictionary for k = "..tostring(k))
 						GUI:PushItemWidth(300)
-						local selectionChanged = GUI_Combo(tostring(k-9).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
+						local selectionChanged = GUI_Combo(tostring(k-4).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
 						if (selectionChanged) then
 							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
 							if (thisRecipe) then
@@ -2849,7 +2847,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddSkillProfileIndex = 1
 								gCraftOrderAddSkillProfile = GetString("none")
 							end
-							for j = 10,70,10 do
+							for j = 5,70,5 do
 								if (j ~= k) then
 									_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
 									_G["gCraftDictionarySelect"..tostring(j)] = GetString("none")		
