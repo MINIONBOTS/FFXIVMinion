@@ -47,6 +47,7 @@ local obj1 = {
 		[4] = "";
 		[5] = "";
 	};
+	["mingp"] = 0;
 	["skills"] = {
 	};
 	["version"] = 3;
