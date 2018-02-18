@@ -188,7 +188,7 @@ function ffxiv_task_assist:UIInit()
 	gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
-	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("nearest"), GetString("tankAssist") }
+	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("highestHealth"), GetString("nearest"), GetString("tankAssist") }
 	FFXIV_Assist_ModeIndex = GetKeyByValue(FFXIV_Assist_Mode,FFXIV_Assist_Modes)
 	
 	FFXIV_Assist_Priority = ffxivminion.GetSetting("FFXIV_Assist_Priority", GetString("dps"))
@@ -217,6 +217,7 @@ function ffxiv_task_assist:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Targeting Assist"))
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.")) end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Priority"))
@@ -247,7 +248,7 @@ Tank Assist: Targets whatever your tank is targetting.")) end
 	local assistcolumn2width = GUI:GetContentRegionAvailWidth()
 	GUI:PushItemWidth(assistcolumn2width)
 	GUI_Combo("##"..GetString("assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\nLowest Health: Targets the lowest health target within range.\nNearest: Targets the closest target within range.\nTank Assist: Targets whatever your tank is targetting.")) end
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\nLowest Health: Targets the lowest health target within range.\nHighest Health: Targets the highest health target within range.\nNearest: Targets the closest target within range.\nTank Assist: Targets whatever your tank is targetting.")) end
 	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
 	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
 	GUI:PopItemWidth()
@@ -312,6 +313,14 @@ function ffxiv_assist.GetAttackTarget()
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
         local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
+        if ( table.valid(el) ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                target = e
+            end
+        end
+    elseif ( FFXIV_Assist_Mode == GetString("highestHealth")) then	
+        local el = EntityList("highesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

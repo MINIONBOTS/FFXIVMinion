@@ -405,6 +405,7 @@
         combatType                      = "Combat Type",
         nearest                         = "Nearest",
         lowestHealth                    = "Lowest Health",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "Priority 1",
         pvpTargetTwo                    = "Priority 2",
@@ -855,6 +856,7 @@ Current location has Lockout out due to fishing Limit?",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -1351,6 +1353,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "战斗类型",
         nearest                         = "最近",
         lowestHealth                    = "最低血",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "优先权 1",
         pvpTargetTwo                    = "优先权 2",
@@ -1807,6 +1810,7 @@ Tank Assist: Targets whatever your tank is targetting.",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -2288,6 +2292,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "Combat Type",
         nearest                         = "Nearest",
         lowestHealth                    = "Lowest Health",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "優先度1",
         pvpTargetTwo                    = "優先度2",
@@ -2711,6 +2716,7 @@ Tank Assist: Targets whatever your tank is targetting.",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -3192,6 +3198,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "Combat Type",
         nearest                         = "Nearest",
         lowestHealth                    = "Lowest Health",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "Priority 1",
         pvpTargetTwo                    = "Priority 2",
@@ -3617,6 +3624,7 @@ Current location has Lockout out due to fishing Limit?",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -4098,6 +4106,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "Combat Type",
         nearest                         = "Nearest",
         lowestHealth                    = "Lowest Health",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "Priority 1",
         pvpTargetTwo                    = "Priority 2",
@@ -4522,6 +4531,7 @@ Current location has Lockout out due to fishing Limit?",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -5002,6 +5012,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "Combat Type",
         nearest                         = "Nearest",
         lowestHealth                    = "Lowest Health",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "Priority 1",
         pvpTargetTwo                    = "Priority 2",
@@ -5426,6 +5437,7 @@ Current location has Lockout out due to fishing Limit?",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
@@ -5916,6 +5928,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         combatType                      = "전투 유형",
         nearest                         = "가까운",
         lowestHealth                    = "적은 체력",
+        highestHealth                   = "Highest Health",
 		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "우선순위 1",
         pvpTargetTwo                    = "우선순위 2",
@@ -6366,6 +6379,7 @@ Current location has Lockout out due to fishing Limit?",
 		-- Assist
 		assistTooltip = "None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
+Highest Health: Targets the highest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.",
 		assistPriorityTooltip = "Prioritize Damage or Healing.",
