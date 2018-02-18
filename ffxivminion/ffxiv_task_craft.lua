@@ -1038,6 +1038,7 @@ function e_startcraft:execute()
 		else
 			if (not ml_task_hub:CurrentTask().matsSet) then
 				local useHQ = ml_task_hub:CurrentTask().useHQ
+				local ifNecessary = ml_task_hub:CurrentTask().ifNecessary
 				local mats = Crafting:GetCraftingMats()
 				if (table.valid(mats)) then
 					if (useHQ) then
@@ -1046,13 +1047,24 @@ function e_startcraft:execute()
 							if (ingredient) then
 								local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
 								local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
-								if (hqAmount > 0) then
-									if (ingredient.inventoryhq >= hqAmount) then
-										Crafting:SetCraftingMats(i-1,hqAmount)
-									elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-										Crafting:SetCraftingMats(i-1,hqAmountMin)
-									elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
-										Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+								if not ifNecessary then
+									if (hqAmount > 0) then
+										if (ingredient.inventoryhq >= hqAmount) then
+											Crafting:SetCraftingMats(i-1,hqAmount)
+										elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
+											Crafting:SetCraftingMats(i-1,hqAmountMin)
+										elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
+											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+										else
+											d("Stop crafting item, not enough HQ.")
+											e_craftlimit:execute()
+											return false
+										end
+									end
+								else
+									
+									if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
+										Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
 									else
 										d("Stop crafting item, not enough HQ.")
 										e_craftlimit:execute()
@@ -1449,6 +1461,7 @@ function e_selectcraft:execute()
 					newTask.useQuick = order.usequick
 					newTask.useCollect = order.collect
 					newTask.useHQ = order.usehq
+					newTask.ifNecessary = order.ifnecessary
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.skillprofile
 					
@@ -1514,6 +1527,7 @@ function ffxiv_task_craftitems.Create()
 	newinst.useQuick = false
 	newinst.useCollect = false
 	newinst.useHQ = false
+	newinst.ifNecessary = false
 	newinst.recipe = {}
 	newinst.recipeSelected = false
 	newinst.matsSet = false
@@ -1665,6 +1679,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderAddQuick = false
 	gCraftOrderAddCollect = false
 	gCraftOrderAddHQ = false
+	gCraftOrderAddIfNecessary = false
 	gCraftOrderAddSkillProfileIndex = 1
 	gCraftOrderAddSkillProfile = GetString("none")
 	
@@ -1677,6 +1692,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderEditQuick = false
 	gCraftOrderEditCollect = false
 	gCraftOrderEditHQ = false
+	gCraftOrderEditIfNecessary = false
 	gCraftOrderEditSkillProfileIndex = 1
 	gCraftOrderEditSkillProfile = GetString("none")
 	
@@ -1942,6 +1958,7 @@ function ffxiv_task_craft:Draw()
 						gCraftOrderEditQuick = IsNull(order["usequick"],false)
 					end
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
+					gCraftOrderEditIfNecessary = IsNull(order["ifnecessary"],false)
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 					for i = 1,6 do
@@ -2125,7 +2142,7 @@ function ffxiv_task_craft:Draw()
 			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Mats"))
 			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow the use of HQ materials while crafting.")) end
 			if gCraftUseHQ then
-				GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Only If Necesssary"))
+				GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Only If Necessary"))
 				if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Only use HQ materials if there are no NQ materials left.")) end
 			end
 			GUI:NextColumn()
@@ -2313,6 +2330,7 @@ function ffxiv_craft.AddToProfile()
 				usequick = gCraftOrderAddQuick, 
 				collect = gCraftOrderAddCollect, 
 				usehq = gCraftOrderAddHQ, 
+				ifnecessary = gCraftOrderAddIfNecessary,
 				skillprofile = gCraftOrderAddSkillProfile,
 				requirehq = gCraftOrderAddRequireHQ, 
 				requiredcp = gCraftOrderAddRequireCP, 
@@ -2393,6 +2411,9 @@ function ffxiv_craft.UpdateAlertElement()
 				if order["maxcount"] == nil then
 					order["maxcount"] = 0
 				end
+				if order["ifnecessary"] == nil then
+					order["ifnecessary"] = false
+				end
 					
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order["usehq"])
 				if order["maxcount"] ~= maxAmount then
@@ -2463,6 +2484,7 @@ function ffxiv_craft.UpdateOrderElement()
 			thisOrder["usequick"] = gCraftOrderEditQuick
 			thisOrder["collect"] = gCraftOrderEditCollect
 			thisOrder["usehq"] = gCraftOrderEditHQ
+			thisOrder["ifnecessary"] = gCraftOrderEditIfNecessary
 			thisOrder["skillprofile"] = IsNull(gCraftOrderEditSkillProfile,GetString("none"))
 			
 			for i = 1,6 do
@@ -2703,6 +2725,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderEditQuick = IsNull(order["usequick"],false)
 							end
 							gCraftOrderEditHQ = IsNull(order["usehq"],false)
+							gCraftOrderEditIfNecessary = IsNull(order["ifnecessary"],false)
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 														
@@ -2844,6 +2867,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddCountHQ = true
 								gCraftOrderAddQuick = false
 								gCraftOrderAddHQ = false
+								gCraftOrderAddIfNecessary = false
 								gCraftOrderAddSkillProfileIndex = 1
 								gCraftOrderAddSkillProfile = GetString("none")
 							end
@@ -2876,6 +2900,9 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Count HQ")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use QuickSynth")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Items")); 
+					if gCraftOrderAddHQ then
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Only If Necessary")); 
+					end
 					GUI:NextColumn()
 					
 					GUI:PushItemWidth(250)
@@ -2898,8 +2925,16 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI_Capture(GUI:Checkbox("##Use QuickSynth",gCraftOrderAddQuick),"gCraftOrderAddQuick")
 					GUI_Capture(GUI:Checkbox("##Use HQ Items",gCraftOrderAddHQ),"gCraftOrderAddHQ")
 					GUI:PopItemWidth()
-					GUI:Columns()
 					if (gCraftOrderAddHQ) then						
+						
+						GUI_Capture(GUI:Checkbox("##AddIfNecessary",gCraftOrderAddIfNecessary),"gCraftOrderAddIfNecessary")
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Only use HQ materials if there are no NQ materials left."))
+						end
+					end	
+					
+					GUI:Columns()
+					if (gCraftOrderAddHQ) and not gCraftOrderAddIfNecessary then	
 						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddID)
 						if (recipeDetails) then
 							
@@ -3020,6 +3055,9 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Count HQ"));  
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use QuickSynth")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use HQ Items"));  
+					if (gCraftOrderEditHQ) then
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Only If Necessary")); 
+					end
 					GUI:NextColumn()
 					
 					GUI:PushItemWidth(250)
@@ -3099,9 +3137,21 @@ function ffxiv_craft.Draw( event, ticks )
 						orders.usehq = gCraftOrderEditHQ
 						ffxiv_craft.UpdateOrderElement()
 					end
-					GUI:Columns()
 					
 					if (gCraftOrderEditHQ) then
+					
+						GUI_Capture(GUI:Checkbox("##EditIfNecessary",gCraftOrderEditIfNecessary),"gCraftOrderEditIfNecessary")
+						if 	(GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Only use HQ materials if there are no NQ materials left."))
+						end
+						if (orders.ifnecessary ~= gCraftOrderEditIfNecessary) then
+							orders.ifnecessary = gCraftOrderEditIfNecessary
+							ffxiv_craft.UpdateOrderElement()
+						end
+					end
+					
+					GUI:Columns()
+					if (gCraftOrderEditHQ) and not gCraftOrderEditIfNecessary then
 						GUI:Separator()
 						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditID)
 						if (recipeDetails) then
