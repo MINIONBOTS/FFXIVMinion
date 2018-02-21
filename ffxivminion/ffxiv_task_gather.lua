@@ -2920,8 +2920,8 @@ function c_gatherstealth:evaluate()
 		useStealth = IsNull(task.usestealth,false)
 	elseif (table.valid(marker)) then
 		useStealth = (marker.usestealth )
-	else
-		return false
+	elseif gGatherMarkerOrProfileIndex == 3 then
+		useStealth = gSteathQuickMode
 	end
 	
 	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
@@ -2956,6 +2956,9 @@ function c_gatherstealth:evaluate()
 			elseif (table.valid(marker)) then
 				dangerousArea = marker.dangerousarea
 				destPos = marker:GetPosition()
+			elseif gGatherMarkerOrProfileIndex == 3 then
+				destPos = ml_task_hub:CurrentTask().pos
+				dangerousArea = gSteathDangerousQuickMode
 			end
 			
 			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
@@ -3064,6 +3067,8 @@ function ffxiv_gather.NeedsStealth()
 		useStealth = IsNull(task.usestealth,false)
 	elseif (table.valid(marker)) then
 		useStealth = (marker.usestealth )
+	elseif gGatherMarkerOrProfileIndex == 3 then
+		useStealth = gSteathQuickMode
 	end
 	
 	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
@@ -3088,6 +3093,8 @@ function ffxiv_gather.NeedsStealth()
 				dangerousArea = IsNull(task.dangerousarea,false)
 			elseif (table.valid(marker)) then
 				dangerousArea = marker.dangerousarea
+			elseif gGatherMarkerOrProfileIndex == 3 then
+				dangerousArea = gSteathDangerousQuickMode
 			end
 			
 			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
@@ -3327,6 +3334,8 @@ function ffxiv_task_gather:UIInit()
 	gQuickstartGardening = ffxivminion.GetSetting("gQuickstartGardening",false)
 	gQuickstartRares = ffxivminion.GetSetting("gQuickstartRares",false)
 	gQuickstartChocoboFood = ffxivminion.GetSetting("gQuickstartChocoboFood",false)
+	gSteathQuickMode = ffxivminion.GetSetting("gSteathQuickMode",true)
+	gSteathDangerousQuickMode = ffxivminion.GetSetting("gSteathDangerousQuickMode",false)
 	
 	local quickslot = { 1, 2, 3,4 ,5 ,6, 7, 8}
 	gGatherQuickSlot = ffxivminion.GetSetting("gGatherQuickSlot",1)
@@ -3688,7 +3697,7 @@ function ffxiv_task_gather:Draw()
 	end
 	if (tabname == GetString("Quick Start")) then
 		
-		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(5),true)
+		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(7),true)
 		GUI:Columns(2)
 		
 	
@@ -3712,6 +3721,14 @@ function ffxiv_task_gather:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Chocobo Food")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Stealth")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Stealth in Quick Start Mode.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Dangerous Area")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Uses Stealth at increased range.")
 		end
 		
 		GUI:NextColumn()
@@ -3743,6 +3760,14 @@ function ffxiv_task_gather:Draw()
 		GUI_Capture(GUI:Checkbox("##gQuickstartChocoboFood",gQuickstartChocoboFood),"gQuickstartChocoboFood")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
+		end
+		GUI_Capture(GUI:Checkbox("##QuickStealth",gSteathQuickMode),"gSteathQuickMode")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Stealth in Quick Start Mode.")
+		end
+		GUI_Capture(GUI:Checkbox("##QuickStealthDangerous",gSteathDangerousQuickMode),"gSteathDangerousQuickMode")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Uses Stealth at increased range.")
 		end
 		
 		GUI:Columns()
