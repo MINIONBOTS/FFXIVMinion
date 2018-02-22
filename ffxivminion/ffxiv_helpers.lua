@@ -3338,7 +3338,8 @@ function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 7715 and itemid <= 7767) 
 			or itemid == 8024
-			or itemid == 5365)
+			or itemid == 5365
+			or itemid == 7030)
 end
 -- Ixali hidden items have a max item count of 5.
 function IsIxaliRare(itemid)
