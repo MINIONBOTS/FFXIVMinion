@@ -477,7 +477,13 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".isfavpoint") GUI:SameLine(200) GUI:InputText("##devae7"..tostring(id),tostring(e.isfavpoint))
 								GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devae8"..tostring(id),tostring(e.price))
 								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devae9"..tostring(id),tostring(e.territory))
-								if (GUI:Button("Teleport##"..tostring(id),50,15) ) then d("Teleport Result: "..tostring(Player:Teleport(e.id))) end
+                                for k,levelId in pairs(e.levels) do
+                                    GUI:BulletText(".levels["..tostring(k).."]") GUI:SameLine(200) GUI:InputText("##devae10level"..tostring(id)..tostring(k),tostring(levelId))
+                                    GUI:SameLine() 
+                                    if (GUI:Button("Teleport##"..tostring(id)..tostring(k),70) ) then 
+                                        d("Teleport Result: "..tostring(Player:Teleport(e.id, levelId))) 
+                                    end
+                                end								
 								GUI:TreePop()
 							end
 						end
