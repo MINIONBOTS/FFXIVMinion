@@ -309,31 +309,55 @@ function ffxiv_assist.GetHealingTarget()
 end
 
 function ffxiv_assist.GetAttackTarget()
-	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or ml_global_information.AttackRange
+	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or 25
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
-        local el = EntityList("los,lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
+        local el = MEntityList("los,lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
             end
+		else
+			el = MEntityList("lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
+			if ( table.valid(el) ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					target = e
+				end
+			end
         end
     elseif ( FFXIV_Assist_Mode == GetString("highestHealth")) then	
-        local el = EntityList("los,highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
+        local el = MEntityList("los,highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
             end
+		else
+			el = MEntityList("highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
+			if ( table.valid(el) ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					target = e
+				end
+			end
         end
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
-        local el = EntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+        local el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
             end
+		else
+			el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+			if ( table.valid(el) ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					target = e
+				end
+			end
         end	
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then
 		local party = EntityList("myparty")
