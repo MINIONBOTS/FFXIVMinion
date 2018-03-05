@@ -920,7 +920,8 @@ function Player:Stop(resetpath)
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
 	NavigationManager:ResetPath()
-	
+	ml_navigation.pathindex = 0
+	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
 	ml_navigation:ResetOMCHandler()
@@ -1162,7 +1163,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Teleport OMC"
 							
 							if (gTeleportHack) then
-								Hacks:TeleportToXYZ(to.x,to.y,to.z,true)
+								Hacks:TeleportToXYZ(to_pos.x,to_pos.y,to_pos.z,true)
 							else
 								ffxiv_dialog_manager.IssueStopNotice("Teleport OMC","Teleport OMC's exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
 							end
@@ -1612,7 +1613,8 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > threshold) then			
 					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					
-					NavigationManager:UpdatePathStart()
+					--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
+					NavigationManager:ResetPath()
 					ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
 					return false
 				end
@@ -1624,7 +1626,8 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 				if (math.distancepointline(from, to, ppos2d) > threshold) then			
 					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
 					
-					NavigationManager:UpdatePathStart()
+					--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
+					NavigationManager:ResetPath()
 					ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
 					return false
 				end				
