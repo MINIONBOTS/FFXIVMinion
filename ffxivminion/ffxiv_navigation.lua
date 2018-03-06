@@ -891,8 +891,13 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	ml_navigation.targetposition = newGoal
 
 	local dist = math.distance3d(ppos,newGoal)
-	if (not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) then
+	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) or 
+		not CanFlyInZone())
+	then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
+	end
+	if (not CanDiveInZone()) then
+		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.WATER)
 	end
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
