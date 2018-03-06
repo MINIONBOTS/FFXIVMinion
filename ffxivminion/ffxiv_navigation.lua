@@ -871,7 +871,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	local floorfilters = IsNull(floorfilters,0)
 	local cubefilters = IsNull(cubefilters,0)
 	
-	d("buildPath:"..tostring(floorfilters)..","..tostring(cubefilters))
+	--d("buildPath:"..tostring(floorfilters)..","..tostring(cubefilters))
 
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
@@ -1026,6 +1026,8 @@ function ml_navigation.Navigate(event, ticks )
 				ml_navigation.pathindex = NavigationManager.NavPathNode
 		
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
+				
+					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 				
 					if (ml_navigation.IsPathInvalid() and table.valid(ml_navigation.targetposition)) then
 						--d("[Navigation]: Resetting path, need to pull a non-cube path.")

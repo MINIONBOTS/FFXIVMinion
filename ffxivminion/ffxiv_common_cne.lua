@@ -1247,12 +1247,12 @@ function c_getmovementpath:evaluate()
 			
 				-- Attempt to get a path that doesn't require cubes for stealth pathing.
 				if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-					d("rebuild non-cube path")
+					--d("rebuild non-cube path")
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1)
 				end
 				
 				if (pathLength <= 0) then
-					d("rebuild cube path")
+					--d("rebuild cube path")
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
 				end
 				
@@ -4052,7 +4052,7 @@ function c_dointeract:evaluate()
 		if (ml_task_hub:CurrentTask().useTargetPos) then
 			ml_task_hub:CurrentTask().pos = interactable.pos
 		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
-			if ( interactable.meshpos and not IsFlying() and not IsDiving()) then
+			if (interactable.meshpos and not IsFlying() and not IsDiving()) then
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
 					if (NavigationManager:IsReachable(meshpos)) then
