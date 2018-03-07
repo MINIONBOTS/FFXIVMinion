@@ -3999,15 +3999,16 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4725,5701) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4725,5701,3451) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
 					SelectConversationIndex(1)
 				end
 			else
-				KeyDown(27)
-				ml_global_information.Await(250,function () KeyUp(27) end)
+				PressKey(27)
+				--KeyDown(27)
+				--ml_global_information.Await(250,function () KeyUp(27) end)
 			end
 			return true
 		end
