@@ -1110,10 +1110,12 @@ function e_startcraft:execute()
 					ml_global_information.Await(2500)
 					return
 				else
-					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
+					if (ml_task_hub:CurrentTask().failedAttempts < 10) then
 						d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
+						d("Setting mats to be reset")
 						ml_task_hub:CurrentTask().matsSet = false
+						ml_task_hub:CurrentTask().recipeSelected = false
 						ml_global_information.Await(1000)
 						return
 					else
@@ -1384,6 +1386,7 @@ end
 function e_quicksynth:execute()
 	if (ml_task_hub:CurrentTask().quickTimer > 0 and TimeSince(ml_task_hub:CurrentTask().quickTimer) > 7000) then
 		if (UseControlAction("SynthesisSimple","Quit")) then
+			ml_task_hub:CurrentTask().quickTimer = 0
 			ml_global_information.Await(6000)
 			return true
 		end
