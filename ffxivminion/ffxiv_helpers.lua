@@ -1888,6 +1888,9 @@ end
 function GetFleeHP()
 	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
 	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
+	if IsOnMap(732) then
+		fleeHP = tonumber(gEurekaFleeHP) + (3 * attackingMobs)
+	end
 	return fleeHP
 end
 function HasInfiniteDuration(id)

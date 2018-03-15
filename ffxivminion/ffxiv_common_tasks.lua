@@ -1212,7 +1212,10 @@ function ffxiv_task_rest:task_complete_eval()
 		return false
 	end
 	
-    if ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
+    if not IsOnMap(732) and ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
+		return true
+	end
+	 if IsOnMap(732) and ((Player.hp.percent > math.random(90,95) or tonumber(gEurekaRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gEurekaRestMP) == 0)) then
 		return true
 	end
 	
@@ -1300,9 +1303,13 @@ function ffxiv_task_flee:task_complete_eval()
     end
 	
 	return (not Player.incombat or 
-		(tonumber(gRestHP) > tonumber(gFleeHP) and Player.hp.percent > tonumber(gRestHP) and tonumber(gRestMP) > tonumber(gFleeMP) and Player.mp.percent > tonumber(gRestMP)) or
+		(not IsOnMap(732) and (tonumber(gRestHP) > tonumber(gFleeHP) and Player.hp.percent > tonumber(gRestHP) and tonumber(gRestMP) > tonumber(gFleeMP) and Player.mp.percent > tonumber(gRestMP)) or
 		(tonumber(gFleeHP) > 0 and Player.hp.percent > tonumber(gPotionHP)) or
 		(tonumber(gFleeHP) > 0 and Player.hp.percent > 75))
+		or
+		(IsOnMap(732) and (tonumber(gEurekaRestHP) > tonumber(gEurekaFleeHP) and Player.hp.percent > tonumber(gEurekaRestHP) and tonumber(gEurekaRestMP) > tonumber(gEurekaFleeMP) and Player.mp.percent > tonumber(gEurekaRestMP)) or
+		(tonumber(gEurekaFleeHP) > 0 and Player.hp.percent > tonumber(gEurekaPotionHP)) or
+		(tonumber(gEurekaFleeHP) > 0 and Player.hp.percent > 75)))
 end
 
 function ffxiv_task_flee:task_complete_execute()

@@ -459,6 +459,9 @@ function c_avoid:evaluate()
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
+	if IsOnMap(732) and (tonumber(gEurekaAvoidHP) == 0 or tonumber(gEurekaAvoidHP) < Player.hp.percent) then
+		return false
+	end
 	
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" or 
 		ml_task_hub:CurrentTask().name == "MOVETOMAP" or
@@ -589,39 +592,56 @@ function c_autopotion:evaluate()
 	c_autopotion.item = nil
 	
 	if (Player.alive) then
-		local potions = c_autopotion.potions
-		if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
-			for k,itempair in pairsByKeys(potions) do
-				if (Player.level >= itempair.minlevel) then
-					local item = GetItem(tonumber(itempair.item))
-					if (item and item:IsReady(Player.id)) then
-						c_autopotion.item = item
-						return true
-					end
-					
-					local hqitem = GetItem(tonumber(itempair.item) + 1000000)
-					if (hqitem and hqitem:IsReady(Player.id)) then
-						c_autopotion.item = hqitem
-						return true
+		if IsOnMap(732) then
+			if (tonumber(gEurekaPotionHP) > 0 and Player.hp.percent < tonumber(gEurekaPotionHP)) then
+				local Eurekapotion, EurekapotionAction = GetItem(22306)
+				if (Eurekapotion and EurekapotionAction and not EurekapotionAction.isoncd) then
+					c_autopotion.item = Eurekapotion
+					return true
+				end
+			end
+			if gEurekaAntidote and (HasBuff(Player.buffs,18)) then
+				local EurekaAntidote, EurekaAntidoteAction = GetItem(4564)
+				if (EurekaAntidote and EurekaAntidoteAction and not EurekaAntidoteAction.isoncd) then
+					c_autopotion.item = EurekaAntidote
+					return true
+				end
+			end
+		else 
+			local potions = c_autopotion.potions
+			if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
+				for k,itempair in pairsByKeys(potions) do
+					if (Player.level >= itempair.minlevel) then
+						local item = GetItem(tonumber(itempair.item))
+						if (item and item:IsReady(Player.id)) then
+							c_autopotion.item = item
+							return true
+						end
+						
+						local hqitem = GetItem(tonumber(itempair.item) + 1000000)
+						if (hqitem and hqitem:IsReady(Player.id)) then
+							c_autopotion.item = hqitem
+							return true
+						end
 					end
 				end
 			end
-		end
-		
-		local ethers = c_autopotion.ethers
-		if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
-			for k,itempair in pairsByKeys(ethers) do
-				if (Player.level >= itempair.minlevel) then
-					local item = GetItem(tonumber(itempair.item))
-					if (item and item:IsReady(Player.id)) then
-						c_autopotion.item = item
-						return true
-					end
-					
-					local hqitem = GetItem(tonumber(itempair.item) + 1000000)
-					if (hqitem and hqitem:IsReady(Player.id)) then
-						c_autopotion.item = hqitem
-						return true
+			
+			local ethers = c_autopotion.ethers
+			if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
+				for k,itempair in pairsByKeys(ethers) do
+					if (Player.level >= itempair.minlevel) then
+						local item = GetItem(tonumber(itempair.item))
+						if (item and item:IsReady(Player.id)) then
+							c_autopotion.item = item
+							return true
+						end
+						
+						local hqitem = GetItem(tonumber(itempair.item) + 1000000)
+						if (hqitem and hqitem:IsReady(Player.id)) then
+							c_autopotion.item = hqitem
+							return true
+						end
 					end
 				end
 			end

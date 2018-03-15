@@ -704,6 +704,15 @@ function ffxivminion.SetMainVars()
 	gFleeMP = ffxivminion.GetSetting("gFleeMP",0)
 	gAutoEquip = ffxivminion.GetSetting("gAutoEquip",true)
 	
+	gEurekaAvoidHP = ffxivminion.GetSetting("gEurekaAvoidHP",100)
+	gEurekaRestHP = ffxivminion.GetSetting("gEurekaRestHP",70)
+	gEurekaRestMP = ffxivminion.GetSetting("gEurekaRestMP",0)
+	gEurekaPotionHP = ffxivminion.GetSetting("gEurekaPotionHP",75)
+	gEurekaPotionMP = ffxivminion.GetSetting("gEurekaPotionMP",0)
+	gEurekaFleeHP = ffxivminion.GetSetting("gEurekaFleeHP",25)
+	gEurekaFleeMP = ffxivminion.GetSetting("gEurekaFleeMP",0)
+	gEurekaAntidote = ffxivminion.GetSetting("gEurekaAntidote",false)
+	
 	-- Role Skills
 	gRoleAutoset = ffxivminion.GetSetting("gRoleAutoset",false)
 	
@@ -1944,6 +1953,21 @@ function ml_global_information.DrawSettings()
 					
 					GUI:PopItemWidth()
 					GUI:EndChild()
+					GUI:BeginChild("##Eureka-header-playerhpmptp",0,GUI_GetFrameHeight(7),true)
+					GUI:PushItemWidth(120)
+
+					GUI:Text("Eureka Only");
+					GUI_DrawIntMinMax(GetString("Avoid HP##Eureka"),"gEurekaAvoidHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaAvoidHP",gEurekaAvoidHP) end )
+					GUI_DrawIntMinMax(GetString("Rest HP##Eureka"),"gEurekaRestHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaRestHP",gEurekaRestHP) end)
+					GUI_DrawIntMinMax(GetString("Rest MP##Eureka"),"gEurekaRestMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaRestMP",gEurekaRestMP) end)
+					GUI_DrawIntMinMax(GetString("Potion HP##Eureka"),"gEurekaPotionHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaPotionHP",gEurekaPotionHP) end)
+					GUI_DrawIntMinMax(GetString("Flee HP##Eureka"),"gEurekaFleeHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaFleeHP",gEurekaFleeHP) end)
+					GUI_DrawIntMinMax(GetString("Flee MP##Eureka"),"gEurekaFleeMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaFleeMP",gEurekaFleeMP) end)
+					GUI_Capture(GUI:Checkbox(GetString("Antidote"),gEurekaAntidote),"gEurekaAntidote");
+					
+					GUI:PopItemWidth()
+					GUI:EndChild()
+					
 				end
 				
 				if (tabindex == 7) then
