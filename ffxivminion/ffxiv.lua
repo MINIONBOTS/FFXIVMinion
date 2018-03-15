@@ -1953,7 +1953,7 @@ function ml_global_information.DrawSettings()
 					
 					GUI:PopItemWidth()
 					GUI:EndChild()
-					GUI:BeginChild("##Eureka-header-playerhpmptp",0,GUI_GetFrameHeight(7),true)
+					GUI:BeginChild("##Eureka-header-playerhpmptp",0,GUI_GetFrameHeight(8),true)
 					GUI:PushItemWidth(120)
 
 					GUI:Text("Eureka Only");
