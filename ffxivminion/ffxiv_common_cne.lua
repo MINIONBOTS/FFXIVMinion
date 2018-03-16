@@ -2995,10 +2995,20 @@ function e_dead:execute()
 
 	if (Player.revivestate == 2) then
 		-- try raise first
-		if (UseControlAction("SelectYesno","Yes")) then
-			c_dead.timer = 0
-			ml_global_information.Await(20000, function () return Player.alive end)
-			return
+		if (IsOnMap(732)) then
+			if (HasBuffs(Player,"148,1140")) then
+				if (UseControlAction("SelectYesno","Yes")) then
+					c_dead.timer = 0
+					ml_global_information.Await(20000, function () return Player.alive end)
+					return
+				end
+			end
+		else
+			if (UseControlAction("SelectYesno","Yes")) then
+				c_dead.timer = 0
+				ml_global_information.Await(20000, function () return Player.alive end)
+				return
+			end
 		end
 	end
 end
