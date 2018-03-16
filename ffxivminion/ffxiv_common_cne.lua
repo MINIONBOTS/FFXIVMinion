@@ -4055,8 +4055,14 @@ function c_dointeract:evaluate()
 		ml_task_hub:CurrentTask().lastInteractableSearch = 0
 	end
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
-		if (ml_task_hub:CurrentTask().contentid ~= 0) then
+		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
 			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
+			if (nearestInteract) then
+				ml_task_hub:CurrentTask().interact = nearestInteract.id
+			end
+			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
+		elseif (IsNull(ml_task_hub:CurrentTask().contentids,"") ~= "") then
+			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentids)
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			end
