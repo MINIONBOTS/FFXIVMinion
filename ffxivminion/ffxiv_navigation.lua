@@ -603,7 +603,7 @@ end
 
 
 ml_navigation.CanRun = function() 
-	return (GetGameState() == FFXIV.GAMESTATE.INGAME)
+	return (GetGameState() == FFXIV.GAMESTATE.INGAME and Player and Player.alive)
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 
 ml_navigation.canPath = false
