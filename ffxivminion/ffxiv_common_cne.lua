@@ -4019,7 +4019,7 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4725,5701,3451) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4725,5701,3451,2628) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
@@ -4075,7 +4075,7 @@ function c_dointeract:evaluate()
 		if (ml_task_hub:CurrentTask().useTargetPos) then
 			ml_task_hub:CurrentTask().pos = interactable.pos
 		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
-			if ( interactable.meshpos and not IsFlying() and not IsDiving()) then
+			if (interactable.meshpos and not IsFlying() and not IsDiving()) then
 				if (not ml_task_hub:CurrentTask().pathChecked) then
 					local meshpos = interactable.meshpos
 					if (NavigationManager:IsReachable(meshpos)) then
