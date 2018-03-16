@@ -759,23 +759,14 @@ function e_gather:execute()
 		if (gatherMaps ~= "" and gatherMaps ~= false and gatherMaps ~= "None") then
 			local hasMap = false
 			
-			for x=0,3 do
-				local bag = Inventory:Get(x)
-				if (table.valid(bag)) then
-					local ilist = bag:GetList()
-					if (table.valid(ilist)) then
-						for slot,item in pairs(ilist) do
-							if (IsMap(item.id)) then
-								hasMap = true
-								break
-							end
-						end
-					end
+			
+			for i, item in pairs(list) do
+				if ((IsMap(item.id)) and ItemCount(item.id) > 0) then
+					hasMap = true
+					d("Has Map")
 				end
-			end
 				
-			if not hasMap then
-				for i, item in pairs(list) do
+				if not hasMap then
 					if (IsMap(item.id)) then
 						local attemptGather = false
 						if (gatherMaps == "Any" or gatherMaps == true) then
