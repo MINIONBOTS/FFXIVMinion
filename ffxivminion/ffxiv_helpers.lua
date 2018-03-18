@@ -7288,3 +7288,6 @@ function HQToID(id)
 		return id
 	end
 end
+function Time()
+	return IsNull(GetEorzeaTime().servertime,0)
+end
