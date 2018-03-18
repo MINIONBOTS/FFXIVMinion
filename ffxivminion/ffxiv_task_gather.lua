@@ -780,6 +780,12 @@ function e_gather:execute()
 							end
 						elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
 							attemptGather = true
+						elseif (gatherMaps == "Gazelleskin Only" and item.id == 17836) then
+							attemptGather = true
+						elseif (gatherMaps == "Gaganaskin Only" and item.id == 17835) then
+							attemptGather = true
+						elseif (gatherMaps == "Dragonskin Only" and item.id == 12243) then
+							attemptGather = true
 						elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
 							attemptGather = true
 						end
