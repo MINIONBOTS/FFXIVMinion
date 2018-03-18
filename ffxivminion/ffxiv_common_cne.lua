@@ -2796,7 +2796,7 @@ function c_rest:evaluate()
 		return false
 	end
 	
-	if (InInstance()) then
+	if (InInstance() and not IsOnMap(732)) then
 		return false
 	end
 	
@@ -2841,16 +2841,18 @@ function c_rest:evaluate()
 		
 		local aggrolist = EntityList("alive,aggro")
 		if (table.valid(aggrolist)) then
+			--d("Cannot rest, has aggro.")
 			return false
 		end
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
 		if (not gRestInFates) then
 			if (gBotMode == GetString("grindMode")) then
+			--d("Cannot rest, not Rest In Fates.")
 				return not IsInsideFate()
 			end
 		end
-	
+		
 		return true
 	end
     
