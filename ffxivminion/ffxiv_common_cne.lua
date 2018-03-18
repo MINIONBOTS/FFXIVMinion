@@ -2819,9 +2819,21 @@ function c_rest:evaluate()
 	local isDOL = (Player.job >= 16 and Player.job <= 18)
 	local isDOH = (Player.job >= 8 and Player.job <= 15)
 	
-	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
-		(( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)) and not isDOL and not isDOH))
-	then
+	local dorest = false
+	if IsOnMap(732) then
+		if (( tonumber(gEurekaRestHP) > 0 and Player.hp.percent < tonumber(gEurekaRestHP)) or
+		(( tonumber(gEurekaRestMP) > 0 and Player.mp.percent < tonumber(gEurekaRestMP)) and not isDOL and not isDOH)) then
+			dorest = true
+		end
+	else	
+		if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+		(( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)) and not isDOL and not isDOH)) then
+			dorest = true
+		end
+	end
+		
+		
+	if dorest then
 		if (Player.incombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
 			return false
