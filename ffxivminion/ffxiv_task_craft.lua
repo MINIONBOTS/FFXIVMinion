@@ -1004,7 +1004,7 @@ function c_startcraft:evaluate()
 				end
 			end	
 				
-			if ( Crafting:CanCraftSelectedItem() ) then
+			if ( Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick) ) then
 				return true
 			else 
 				ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
@@ -1100,7 +1100,7 @@ function e_startcraft:execute()
 					ml_task_hub:CurrentTask().matsSet = true
 				end				
 			else
-				if (Crafting:CanCraftSelectedItem()) then
+				if (Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick)) then
 					ml_task_hub:CurrentTask().failedAttempts = 0
 					local usequick = ml_task_hub:CurrentTask().useQuick
 					local requireCollect = ml_task_hub:CurrentTask().requireCollect
