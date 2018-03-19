@@ -600,7 +600,7 @@ function c_autopotion:evaluate()
 					return true
 				end
 			end
-			if gEurekaAntidote and (HasBuff(Player.buffs,18)) then
+			if gEurekaAntidote and (HasBuff(Player.id,18)) then
 				local EurekaAntidote, EurekaAntidoteAction = GetItem(4564)
 				if (EurekaAntidote and EurekaAntidoteAction and not EurekaAntidoteAction.isoncd) then
 					c_autopotion.item = EurekaAntidote
