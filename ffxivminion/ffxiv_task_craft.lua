@@ -1089,7 +1089,7 @@ function e_startcraft:execute()
 									if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
 										Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
 									else
-										d("Stop crafting item, not enough HQ.")
+										d("Stop crafting item, not enough materials including HQ.")
 										e_craftlimit:execute()
 										return false
 									end
@@ -2183,7 +2183,7 @@ function ffxiv_task_craft:Draw()
 			GUI_Capture(GUI:Checkbox("##"..GetString("Use HQ Mats"),gCraftUseHQ),"gCraftUseHQ")
 			if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow the use of HQ materials while crafting.")) end
 			if gCraftUseHQ then
-				GUI_Capture(GUI:Checkbox("##"..GetString("Only If Necesssary"),gCraftUseHQBackup),"gCraftUseHQBackup")
+				GUI_Capture(GUI:Checkbox("##"..GetString("Only If Necessary"),gCraftUseHQBackup),"gCraftUseHQBackup")
 				if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Only use HQ materials if there are no NQ materials left.")) end
 			end	
 			GUI:PopItemWidth()
