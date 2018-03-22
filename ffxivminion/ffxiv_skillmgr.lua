@@ -5007,17 +5007,17 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
+		local PlayerMap = Player.localmapid
 		
 		if (tonumber(skill.levelmin) > 0 and 
-			((tonumber(skill.levelmin) > Player.level) or (Player:GetSyncLevel() > 0 and (tonumber(skill.levelmin) > Player:GetSyncLevel()))))
+			((tonumber(skill.levelmin) > Player.level) or ((PlayerMap ~= 732) and Player:GetSyncLevel() > 0 and (tonumber(skill.levelmin) > Player:GetSyncLevel()))))
 		then
 			return true
 		elseif (tonumber(skill.levelmax) > 0 and
-			((tonumber(skill.levelmax) < Player.level) or (Player:GetSyncLevel() > 0 and (tonumber(skill.levelmax) < Player:GetSyncLevel()))))
+			((tonumber(skill.levelmax) < Player.level) or ((PlayerMap ~= 732) and Player:GetSyncLevel() > 0 and (tonumber(skill.levelmax) < Player:GetSyncLevel()))))
 		then
 			return true
 		end
-			
 		return false
 	end
 	}
