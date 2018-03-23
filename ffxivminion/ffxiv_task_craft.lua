@@ -951,7 +951,7 @@ function c_startcraft:evaluate()
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
 				local quickCraft = ml_task_hub:CurrentTask().useQuick
-				if (canCraft) then
+				if (canCraft) or (ml_task_hub:CurrentTask().ifNecessary) then
 					if (requiredItems == 0 or (requiredItems > 0 and itemcount < (requiredItems + startingCount))) then
 						if (Player.cp.max >= minCP) or (quickCraft and not requireCollect)then
 							return true
@@ -1024,25 +1024,6 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		
-		
-		if (IsControlOpen("RecipeNote")) then
-			local RecipeNoteData = GetControlData("RecipeNote")
-			if (RecipeNoteData) then
-				if RecipeNoteData.page == 5000 then
-					ml_task_hub:CurrentTask().recipeSelected = false
-					d("Resetting recipe. Stuck on favorites page.")
-				end
-			end
-			
-			if ffxiv_craft.tracking.lastSetRecipe > 0 then
-				if Now() >ffxiv_craft.tracking.lastSetRecipe + 7000 then
-					ml_task_hub:CurrentTask().recipeSelected = false
-					d("Resetting recipe. Idle to long.")
-				end
-			end
-		end
-		
-		
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
 			d("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
@@ -1078,6 +1059,12 @@ function e_startcraft:execute()
 											Crafting:SetCraftingMats(i-1,hqAmountMin)
 										elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
 											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+										elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
+											ml_task_hub:CurrentTask().matsSet = false
+											ml_task_hub:CurrentTask().recipeSelected = false
+											d("Resetting recipe AGAIN.")
+											ml_global_information.Await(1000)
+											return
 										else
 											d("Stop crafting item, not enough HQ.")
 											e_craftlimit:execute()
@@ -1085,11 +1072,16 @@ function e_startcraft:execute()
 										end
 									end
 								else
-									
 									if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
 										Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
+									elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
+										ml_task_hub:CurrentTask().matsSet = false
+										ml_task_hub:CurrentTask().recipeSelected = false
+										d("Resetting recipe AGAIN.")
+										ml_global_information.Await(1000)
+										return
 									else
-										d("Stop crafting item, not enough materials including HQ.")
+										d("Not enough materials including HQ.")
 										e_craftlimit:execute()
 										return false
 									end
@@ -1128,15 +1120,15 @@ function e_startcraft:execute()
 							ffxiv_craft.ToggleCraftingLog()
 						end
 						SkillMgr.newCraft = true
+						ml_task_hub:CurrentTask().matsSet = false
 						ml_task_hub:CurrentTask().allowWindowOpen = false
 					end
-					ml_global_information.Await(2500)
+					ml_global_information.Await(1000)
 					return
 				else
-					if (ml_task_hub:CurrentTask().failedAttempts < 10) then
+					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
 						d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-						d("Setting mats to be reset")
 						ml_task_hub:CurrentTask().matsSet = false
 						ml_task_hub:CurrentTask().recipeSelected = false
 						ml_global_information.Await(1000)
@@ -1156,7 +1148,7 @@ function e_startcraft:execute()
 		end
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
-		ml_global_information.Await(2500)
+		ml_global_information.Await(1000)
 		ml_task_hub:CurrentTask().allowWindowOpen = false
 	end
 end
@@ -1433,7 +1425,7 @@ function c_selectcraft:evaluate()
 			end
 			if (order.completed == false and order.skip ~= true) then
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
-				if (canCraft) then
+				if (canCraft) or (order.ifnecessary) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
 				end
@@ -1441,7 +1433,7 @@ function c_selectcraft:evaluate()
 		end
 		ffxiv_craft.ToggleCraftingLog()
 		ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
-	else
+	elseif  gCraftMarkerOrProfileIndex ~= 1 then
 		return true
 	end
 	return false
@@ -1460,7 +1452,7 @@ function e_selectcraft:execute()
 		for id,order in spairs(orders, sortfunc) do
 			if (not order.completed and not order.skip) then
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
-				if (canCraft) then
+				if (canCraft) or (order.ifnecessary) then
 					
 					local itemid = order.item
 					local itemcount = 0
