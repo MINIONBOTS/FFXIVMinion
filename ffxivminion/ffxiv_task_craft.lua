@@ -1063,7 +1063,7 @@ function e_startcraft:execute()
 											ml_task_hub:CurrentTask().matsSet = false
 											ml_task_hub:CurrentTask().recipeSelected = false
 											d("Resetting recipe AGAIN.")
-											ml_global_information.Await(1000)
+											ml_global_information.Await(2500)
 											return
 										else
 											d("Stop crafting item, not enough HQ.")
@@ -1078,7 +1078,7 @@ function e_startcraft:execute()
 										ml_task_hub:CurrentTask().matsSet = false
 										ml_task_hub:CurrentTask().recipeSelected = false
 										d("Resetting recipe AGAIN.")
-										ml_global_information.Await(1000)
+										ml_global_information.Await(2500)
 										return
 									else
 										d("Not enough materials including HQ.")
@@ -1100,13 +1100,15 @@ function e_startcraft:execute()
 						local itemid = ml_task_hub:CurrentTask().itemid
 						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 						local wantedAmount = ml_task_hub:ThisTask().requiredItems
-						if (wantedAmount > 0 and wantedAmount <= maxAmount and wantedAmount <= 99) then
-							Crafting:CraftSelectedItem(wantedAmount,ml_task_hub:CurrentTask().useHQ)
+						local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
+						local craftAmount = (wantedAmount / yield)
+						if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
+							Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
 						else
-							if (maxAmount > 99) then
+							if ((maxAmount / yield) > 99) then
 								Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
 							else
-								Crafting:CraftSelectedItem(maxAmount,ml_task_hub:CurrentTask().useHQ)
+								Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
 							end
 						end
 						if (IsControlOpen("RecipeNote")) then
@@ -1123,7 +1125,7 @@ function e_startcraft:execute()
 						ml_task_hub:CurrentTask().matsSet = false
 						ml_task_hub:CurrentTask().allowWindowOpen = false
 					end
-					ml_global_information.Await(1000)
+					ml_global_information.Await(2500)
 					return
 				else
 					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
@@ -1131,7 +1133,7 @@ function e_startcraft:execute()
 						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
 						ml_task_hub:CurrentTask().matsSet = false
 						ml_task_hub:CurrentTask().recipeSelected = false
-						ml_global_information.Await(1000)
+						ml_global_information.Await(2500)
 						return
 					else
 						cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."].",3)
@@ -1148,7 +1150,7 @@ function e_startcraft:execute()
 		end
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
-		ml_global_information.Await(1000)
+		ml_global_information.Await(2500)
 		ml_task_hub:CurrentTask().allowWindowOpen = false
 	end
 end
@@ -2434,13 +2436,14 @@ function ffxiv_craft.UpdateAlertElement()
 				end
 					
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order["usehq"])
+				local yield = AceLib.API.Items.GetRecipeDetails(id).yield
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
 				end
 				local lowMats = false
 				if order.amount ~= 0 then
 					if maxAmount > 0 then
-						if maxAmount < order.amount then
+						if (maxAmount * yield) < order.amount then
 							lowMats = true
 						end
 					end
