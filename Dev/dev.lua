@@ -886,7 +886,38 @@ function dev.DrawCall(event, ticks )
                         end
                         GUI:TreePop()
                     end
-				else
+                    
+                    if ( GUI:TreeNode("Chocobo Racing")) then
+                        local crinfo = Player:GetChocoboRacingInfo()
+                        if crinfo then
+                            GUI:BulletText("State") GUI:SameLine(200) GUI:InputText("##devgscr0", tostring(crinfo.state))
+                            GUI:BulletText("Completion %") GUI:SameLine(200) GUI:InputText("##devgscr1", tostring(crinfo.completion))
+                            GUI:BulletText("Time Elapsed") GUI:SameLine(200) GUI:InputText("##devgscr2", tostring(crinfo.elapsed))
+                            GUI:BulletText("Is Lathered") GUI:SameLine(200) GUI:InputText("##devgscr3", tostring(crinfo.lathered))
+                            
+                            if (GUI:TreeNode("Chocobos") and table.valid(crinfo.chocobos)) then
+                                GUI:Separator()                                            
+                                GUI:Columns(4, "##devgscrchocobos",true)
+                                GUI:Text("Slot"); GUI:NextColumn()
+                                GUI:Text("Object Id"); GUI:NextColumn()
+                                GUI:Text("Name"); GUI:NextColumn()
+                                GUI:Text("Stamina"); GUI:NextColumn()
+                                for slot,data in pairs(crinfo.chocobos) do
+                                    GUI:Text(tostring(slot)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.id)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.name)) GUI:NextColumn()
+                                    GUI:Text(tostring(data.stamina)) GUI:NextColumn()
+                                end
+                                GUI:Separator()
+                                GUI:Columns(1)	
+                                GUI:TreePop()
+                            end
+                        else
+                            GUI:Text("Not in a race ...")
+                        end
+                        GUI:TreePop()
+                    end
+                else
 					GUI:Text("Not Ingame...")
 				end
                 GUI:PopItemWidth()
@@ -1069,6 +1100,8 @@ function dev.DrawCall(event, ticks )
 													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Discard()##"..tostring(slot),100,15) ) then d("Discard Result: "..tostring(item:Discard())) end
+													GUI:SameLine(0,20)
+													if (GUI:Button("RetrieveMateria()##"..tostring(slot),100,15) ) then d("RetrieveMateria Result: "..tostring(item:RetrieveMateria())) end
 													
 													if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
 													GUI:SameLine(0,20)
@@ -1587,8 +1620,6 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("IsMounted") GUI:SameLine(200) GUI:InputText("##dev38", tostring(c.ismounted))
 		GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##dev21",tostring(c.job))
 		GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##dev22",tostring(c.level))
-		GUI:BulletText("EurekaLevel") GUI:SameLine(200) GUI:InputText("##dev222",tostring(c.eurekainfo.level))
-		GUI:BulletText("EurekaElement") GUI:SameLine(200) GUI:InputText("##dev2222",tostring(c.eurekainfo.element))
 		GUI:BulletText("GrandCompany") GUI:SameLine(200) GUI:InputText("##dev41",tostring(c.grandcompany))
 		GUI:BulletText("GrandCompanyRank") GUI:SameLine(200) GUI:InputText("##dev42",tostring(c.grandcompanyrank))
 		GUI:BulletText("Aggro") GUI:SameLine(200) GUI:InputText("##dev24",tostring(c.aggro))
