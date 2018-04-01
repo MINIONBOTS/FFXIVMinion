@@ -680,6 +680,49 @@ function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
 	return dist,dist2d
 end
 
+function ml_navigation.GetFlightAdjustment()
+	local verticalAdjustment = 0
+	
+	local ppos = Player.pos
+	local nextNode = ml_navigation.path[ml_global_information.pathindex]
+	local previousNode = ml_navigation.path[ml_global_information.pathindex-1]
+	
+	if (table.isa(nextNode) and table.isa(previousNode) and nextNode.is_cube) then
+		--local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+5,ppos.z,ppos.x,ppos.y,ppos.z) -- top to bottom			
+		--if ( not hit ) then
+			--hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+1,ppos.z, ppos.x,ppos.y+5,ppos.z) -- bottom to top
+		--end
+		--if (hit) then
+			--ml_debug("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+		--end
+		
+		local dist = math.distance3d(previousNode,ppos)
+		local playerPitch = GetRequiredPitch(ppos) 
+		
+		-- Basic process is this, get previous node to this point on the line, and from previous node to Player, get pitch to both positions.
+		-- If the pitch is lower to the player, adjust up to put the Player on course faster.
+		
+		-- Only measuring distance of 10, to prevent graphical issues screwing up the raycast.
+		local ratio = 1
+		if (dist > 1) then
+			ratio = (1 / dist)
+		end
+		
+		local newX = ppos.x + (ratio * (nextNode.x - ppos.x))
+		local newY = ppos.y + (ratio * (nextNode.y - ppos.y))
+		local newZ = ppos.z + (ratio * (nextNode.z - ppos.z))
+		local testPos = {x = newX, y = newY, z = newZ}
+		
+		if (toolow) then
+			verticalAdjustment = -.25
+		elseif (toohigh) then
+			verticalAdjustment = .25
+		end
+	end
+	
+	return verticalAdjustment
+end
+
 -- Performs some raycasting for awkward-edge encounters.
 function ml_navigation.GetClearance(nodepos)
 	local ppos = Player.pos
@@ -1511,11 +1554,15 @@ function ml_navigation.Navigate(event, ticks )
 								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 							end
 							
+							--local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y + 1), z = nextnode.z }
+							d("check pitch")
 							local pitch = GetRequiredPitch(nextnode)
+							--local pitch = GetRequiredPitch(modifiedNode)
 							Player:SetPitch(pitch)
 							
 							-- Move
 							if (not Player:IsMoving()) then
+								d("start forward movement")
 								Player:Move(FFXIV.MOVEMENT.FORWARD)	
 								ffnav.Await(2000, function () return Player:IsMoving() end)
 							end
@@ -1559,7 +1606,8 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
 										d("[Navigation] - Ascend for flight.")
-										Player:TakeOff()
+										Player:Jump()
+										ffnav.AwaitThen(500, 3000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
 										ffnav.isascending = true
 										return
 									end
@@ -2019,6 +2067,40 @@ function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
 			followsuccess = param4,
 			followfail = param5,
 		}
+	end
+end
+
+function ffnav.AwaitThen(param1, param2, param3, param4)
+	if (param1 and type(param1) == "number" and param2 and type(param2) == "number") then
+		if (param4 ~= nil and type(param4) == "function") then
+			ffnav.yield = {
+				mintimer = IIF(param1 ~= 0,Now() + param1,0),
+				maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+				evaluator = param3,
+				followall = param4,
+			}
+		else
+			ffnav.yield = {
+				mintimer = IIF(param1 ~= 0,Now() + param1,0),
+				maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+				followall = param3,
+			}
+		end
+	else
+		if (param3 ~= nil and type(param3) == "function") then
+			ffnav.yield = {
+				mintimer = 0,
+				maxtimer = Now() + param1,
+				evaluator = param2,
+				followall = param3,
+			}
+		else
+			ffnav.yield = {
+				mintimer = 0,
+				maxtimer = Now() + param1,
+				followall = param2,
+			}
+		end
 	end
 end
 

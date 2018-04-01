@@ -7166,12 +7166,31 @@ function GetRequiredPitch(pos,noadjustment)
 		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
 		if (hit) then
 			for i = 3, 15, 3 do
-				--d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
+				d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
 				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y-i,pos.z)
 				if (not hit) then
-					--d("New trajectory appears safe, use it.")
+					d("New trajectory appears safe, use it.")
 					pos = { x = pos.x, y = pos.y - i, z = pos.z }
 					break
+				end
+			end
+		end
+		
+		local nextNode = ml_navigation.path[ml_global_information.pathindex]
+		if (table.isa(nextNode) and nextNode.is_cube) then
+			-- Auto-adjust for feet-level impacts.
+			if (not hit) then
+				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y,pos.z) 
+				if (hit) then
+					for i = 3, 15, 3 do
+						d("Obstacle detected, adjust pitch up by [" .. i .. "]..")
+						hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y+i,pos.z)
+						if (not hit) then
+							d("New trajectory appears safe, use it.")
+							pos = { x = pos.x, y = pos.y + i, z = pos.z }
+							break
+						end
+					end
 				end
 			end
 		end
