@@ -3110,7 +3110,7 @@ function IsPositionLocked()
 	return (jump and not jump:IsReady(Player.id))
 end
 function IsLoading()
-	if (IsControlOpen("NowLoading")) then
+	if (IsControlOpen("FadeMiddle") or IsControlOpen("NowLoading")) then
 		--d("IsLoading [1] - Loading screen open.")
 		return true
 	elseif (Player.localmapid == 0) then
@@ -6549,7 +6549,7 @@ function GetDiveHeight()
 end
 
 function CannotMove()
-	return (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming())
+	return (IsControlOpen("FadeMiddle") or (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming()))
 end
 
 function DoWait(ms)
@@ -7022,7 +7022,7 @@ end
 -- Very general check for things that would prevent moving around
 function Busy()
 	local currentTask = ml_task_hub:CurrentTask()
-	return CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
+	return IsControlOpen("FadeMiddle") or CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end

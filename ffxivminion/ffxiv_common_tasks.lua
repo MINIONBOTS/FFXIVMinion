@@ -58,7 +58,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.noFly = false
 	
 	NavigationManager:ResetPath()
-	NavigationManager.NavPathNode = 0
+	--NavigationManager.NavPathNode = 0
 	
 	ffxiv_unstuck.Reset()
     
@@ -2112,6 +2112,7 @@ function ffxiv_task_moveaethernet.Create()
 	gSkipTalk = true
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
+	newinst.initiatedPos = {}
 	
 	ffxiv_unstuck.Reset()
 	
@@ -2193,6 +2194,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 						SelectConversationLine(selectindex)
+						self.initiatedPos = Player.pos
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
@@ -2205,6 +2207,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 							SelectConversationLine(selectindex)
+							self.initiatedPos = Player.pos
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
@@ -2212,23 +2215,26 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				end
 			elseif (self.conversationindex > 0) then
 				SelectConversationIndex(self.conversationindex)
+				self.initiatedPos = Player.pos
 				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 				return false
 			end
 		end
 	end
 	
+	local myTarget = MGetTarget()
+	local ppos = Player.pos
+	
 	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
 		if (MIsLoading()) then
-			ml_global_information.Await(10000, function () return not Busy() end)
+			local initiatedPos = self.initiatedPos
+			d("Triggering wait for full load-in.")
+			ml_global_information.Await(10000, function () return (Player and not Busy() and math.distance3d(initiatedPos,Player.pos) > 10) end)
 		end
 		return true
 	elseif (self.unlockAethernet and AceLib.API.Map.HasAttunements(self.contentid)) then
 		return true
 	end
-	
-	local myTarget = MGetTarget()
-	local ppos = Player.pos
 	
 	local interactable = nil
 	if (self.interact ~= 0) then

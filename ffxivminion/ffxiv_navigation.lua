@@ -867,6 +867,8 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters)
 	end
 end
 
+ml_navigation.lastpastlength = 0
+ml_navigation.pathchanged = false
 function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	local floorfilters = IsNull(floorfilters,0)
 	local cubefilters = IsNull(cubefilters,0)
@@ -1008,6 +1010,8 @@ end
 
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
+ml_navigation.lastpathindex = 0
+ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
@@ -1028,8 +1032,18 @@ function ml_navigation.Navigate(event, ticks )
 			-- Normal Navigation Mode			
 			if (not ffnav.IsProcessing()) then
 			
-				ml_navigation.pathindex = NavigationManager.NavPathNode
-		
+				local indexChanged = false
+			
+				if (ml_navigation.pathindex ~= NavigationManager.NavPathNode) then
+					ml_navigation.pathindex = NavigationManager.NavPathNode
+					indexChanged = true
+				end
+				
+				if (ml_navigation.pathindex ~= ml_navigation.lastpathindex) then
+					ml_navigation.lastpathindex = ml_navigation.pathindex
+					--d("[Navigation]: After Update ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
+				end
+				
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
 				
 					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
@@ -1046,6 +1060,7 @@ function ml_navigation.Navigate(event, ticks )
 						--Player:Stop()
 						return
 					end
+								
 					
 					if IsControlOpen("Talk") then
 						UseControlAction("Talk","Click")
@@ -1059,11 +1074,42 @@ function ml_navigation.Navigate(event, ticks )
 						return
 					end
 				
-					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
+					local nextnode = ml_navigation.path[ml_navigation.pathindex]
 					local nextnextnode = ml_navigation.path[ml_navigation.pathindex + 1]
 					
 					ml_navigation.TagNode(nextnode)
 					ml_navigation.TagNode(nextnextnode)
+					
+					local detectRewind = false
+					if (indexChanged) then
+						ml_navigation.lastindexgoal = nextnode
+						detectRewind = true
+					else
+						if (table.valid(ml_navigation.lastindexgoal)) then
+							local dist3d = math.distance3d(nextnode,ml_navigation.lastindexgoal)
+							if (dist3d > 0.1) then
+								detectRewind = true
+							end
+						end
+					end
+					
+					if (detectRewind) then
+						local rewindFixed = ffnav.FixRewind()
+						if (rewindFixed) then
+							nextnode = ml_navigation.path[ml_navigation.pathindex]
+							nextnextnode = ml_navigation.path[ml_navigation.pathindex + 1]
+						end
+					end
+					
+					
+				--if (ml_navigation.pathindex ~= NavigationManager.NavPathNode) then
+					--d("[Navigation]: Before Update ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
+					
+					--d("[Navigation]: After Rewind Fix ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
+				--end
+				
+				
+				
 					
 					--table.print(nextnode)
 					
@@ -1380,9 +1426,10 @@ function ml_navigation.Navigate(event, ticks )
 								end
 							end
 						end
+					end
 						
 			-- Cube Navigation		
-					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
+					if (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						--d("[Navigation]: Flying navigation.")
 						
 						ml_navigation.GUI.lastAction = "Flying to Node"
@@ -1474,7 +1521,9 @@ function ml_navigation.Navigate(event, ticks )
 							end
 						end
 		-- Normal Navigation
-					else
+					end
+					
+					if (not IsFlying() and not IsDiving()) then
 						--d("[Navigation]: Normal navigation..")
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
@@ -1664,10 +1713,12 @@ function ml_navigation:EnsurePosition()
 						
 		if ( dist > 0.5 and ml_navigation.omcteleportallowed ) then
 			Hacks:TeleportToXYZ(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z,true)
+			d("[Navigation]: [EnsurePosition] - Teleporting to correct location.")
 		end
 		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = ml_navigation.ensureposition.x-ppos.x, y = 0, z = ml_navigation.ensureposition.z-ppos.z})
 		if ( anglediff > 5 ) then 
 			Player:SetFacing(ml_navigation.ensureheading.x,ml_navigation.ensureheading.y,ml_navigation.ensureheading.z) -- face hard
+			d("[Navigation]: [EnsurePosition] - Hard facing toward position.")
 		end
 		return true
 	else	-- We waited long enough
@@ -1711,6 +1762,31 @@ ffnav.lastCubeSwap = 0
 ffnav.lastTrim = 0
 ffnav.forceDescent = 0
 ffnav.descentPos = {}
+
+function ffnav.FixRewind()
+	local path = ml_navigation.path
+	if (table.valid(path)) then
+		local currentIndex = NavigationManager.NavPathNode
+		local nextIndex = currentIndex + 1
+		
+		local currentNode = path[currentIndex]
+		local nextNode = path[nextIndex]
+		
+		if (table.isa(currentNode) and table.isa(nextNode)) then
+			local ppos = Player.pos
+			
+			local fulldist = math.distance3d(currentNode,nextNode)
+			local currentdist = math.distance3d(ppos,nextNode)
+			
+			if (currentdist < fulldist) then
+				NavigationManager.NavPathNode = NavigationManager.NavPathNode + 1
+				ml_navigation.pathindex = NavigationManager.NavPathNode
+				return true
+			end	
+		end
+	end
+	return false
+end
 
 function ffnav.CompactPath()
 	local newPath = {}
