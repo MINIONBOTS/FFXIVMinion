@@ -1369,7 +1369,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 						local target = Player:GetTarget()
 						if (target and target.los and target.distance2d < 15) then
-							if (target.interactable) or (target.distance3d < 2) then
+							if (target.interactable) or (target.distance < 2) then
 								Player:Stop()
 								return false
 							end
