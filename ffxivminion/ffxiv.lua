@@ -215,6 +215,7 @@ function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
 	local gamestate = MGetGameState()
+	
 	memoize = {}
 	if (ml_global_information.IsYielding()) then
 		--d("stuck in yield")
@@ -241,13 +242,9 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				local ErrorCode = GetControl("Dialogue"):GetStrings()[5]
-				if ErrorCode ~= nil then
-					d("Pressing OK on Error: "..ErrorCode)
-				end
-				ml_global_information.Await(1000, 5000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
-		end
+		end	
 	end
 end
 
@@ -255,15 +252,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
-		if (IsControlOpen("Dialogue")) then
-			if (UseControlAction("Dialogue","PressOK",0)) then
-				local ErrorCode = GetControl("Dialogue"):GetStrings()[5]
-				if ErrorCode ~= nil then
-					d("Pressing OK on Error: "..ErrorCode)
-				end
-				ml_global_information.Await(1000, 5000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
-			end
-		end
+		
 		if (ffxivminion.gameRegion == 1) then
 		
 			local serviceAccountList = GetConversationList()
@@ -353,7 +342,7 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 		end
 	elseif (IsControlOpen("SelectOk")) then
 		if (UseControlAction("SelectOk","Yes",0)) then
-			d("Skipping existing login or sub time warning... You should resub :P")
+			d("Skipping sub time warning... You should resub :P")
 			ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
 		end
 	end
