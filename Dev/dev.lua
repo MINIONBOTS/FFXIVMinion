@@ -201,10 +201,14 @@ function dev.DrawCall(event, ticks )
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player
 					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player found.") end
+                    local mapX, mapY, mapZ = WorldToMapCoords(c.localmapid, c.pos.x, c.pos.y, c.pos.z)
 					
 					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(c.localmapid))
 					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(c.localmapid))
-					GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
+					GUI:BulletText("Map X") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(mapX))
+					GUI:BulletText("Map Y") GUI:SameLine(200) GUI:InputText("##devuf5",tostring(mapY))
+					GUI:BulletText("Map Z") GUI:SameLine(200) GUI:InputText("##devuf6",tostring(mapZ))
+					GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf7",tostring(GetBotPerformance()))
 					
 					if ( GUI:TreeNode("Gauge Data") ) then
 						local g = Player.gauge
@@ -1108,6 +1112,7 @@ function dev.DrawCall(event, ticks )
 													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
+
 													
 													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then 
 														if ( item:CanCast(5, 5) ) then -- Can Cast check of Actiontype "General" , Action "desynthesis" on the item
@@ -1126,6 +1131,8 @@ function dev.DrawCall(event, ticks )
 															d("Convert Result: "..tostring(item:Convert())) 
 														end
 													end
+                                                    
+													if (GUI:Button("Transmute()##"..tostring(slot),100,15) ) then d("Transmute Result: "..tostring(item:Transmute())) end
 													
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
 
