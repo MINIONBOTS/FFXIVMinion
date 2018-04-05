@@ -26,38 +26,41 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
-	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
+	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 150 )
     self:add(ke_pressConfirm, self.process_elements)
 	
-	local ke_acceptQuest = ml_element:create( "AcceptQuest", c_acceptquest, e_acceptquest, 23 )
+	local ke_acceptQuest = ml_element:create( "AcceptQuest", c_acceptquest, e_acceptquest, 140 )
     self:add(ke_acceptQuest, self.process_elements)
 	
-	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 23 )
+	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 130 )
     self:add(ke_handoverQuest, self.process_elements)
 	
-	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
+	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 120 )
     self:add(ke_completeQuest, self.process_elements)
 	
-	local ke_yesnoAssist = ml_element:create( "QuestYesNo", c_assistyesno, e_assistyesno, 23 )
+	local ke_yesnoAssist = ml_element:create( "QuestYesNo", c_assistyesno, e_assistyesno, 110 )
     self:add(ke_yesnoAssist, self.process_elements)
 	
-	local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
+	local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 100)
 	self:add(ke_avoid, self.process_elements)
 	
-	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
+	local ke_roleset = ml_element:create( "RoleSet", c_roleautoset, e_roleautoset, 90 )
+    self:add( ke_roleset, self.process_elements)
+	
+	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 80)
 	self:add(ke_autoPotion, self.process_elements)
 	
-	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 18 )
+	local ke_fateSync = ml_element:create( "FateSync", c_assistsyncfatelevel, e_assistsyncfatelevel, 70 )
+    self:add( ke_fateSync, self.process_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 60 )
     self:add( ke_companion, self.process_elements)
 	
-	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 50 )
     self:add( ke_stance, self.process_elements)
 	
-	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 16 )
+	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 40 )
     self:add( ke_eat, self.process_elements)
-	
-    local ke_roleset = ml_element:create( "RoleSet", c_roleautoset, e_roleautoset, 100 )
-    self:add( ke_roleset, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
@@ -73,11 +76,7 @@ function ffxiv_task_assist:Process()
 			if ( FFXIV_Assist_Mode ~= GetString("none") ) then
 				local newTarget = nil
 				
-				if (FFXIV_Assist_Mode == GetString("Highest HP (AOE Only)")) then
-					if (not target or TimeSince(ffxiv_task_assist.lastTarget) > 1000) then
-						--local clustered = 
-					end			
-				elseif ( FFXIV_Assist_Priority == GetString("healer") ) then
+				if ( FFXIV_Assist_Priority == GetString("healer") ) then
 					newTarget = ffxiv_assist.GetHealingTarget()
 					if ( newTarget == nil ) then
 						newTarget = ffxiv_assist.GetAttackTarget()				
@@ -107,7 +106,7 @@ function ffxiv_task_assist:Process()
 						if (ml_global_information.AttackRange > 5) then
 							if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 								if (Now() > self.movementDelay) then
-									local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
+									local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1))
 									self.movementDelay = Now() + 1000
 								end
 							end
@@ -186,6 +185,7 @@ function ffxiv_task_assist:UIInit()
 	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
 	gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
+	gAssistSyncFate = ffxivminion.GetSetting("gAssistSyncFate",true)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
 	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("highestHealth"), GetString("nearest"), GetString("tankAssist") }
@@ -205,72 +205,71 @@ ffxiv_task_assist.GUI = {
 	width = 0,
 }
 
+function ffxiv_task_assist.StartElement(strText)
+	GUI:BeginGroup()
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString(strText))
+	GUI:SameLine(160)
+end
+
+function ffxiv_task_assist.EndElement(strTooltip)
+	GUI:EndGroup()
+	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString(strTooltip)) end
+	
+end
+
 function ffxiv_task_assist:Draw()
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = ml_gui.style.current.windowpadding.y
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(9),true)
-	GUI:PushItemWidth(120)					
-	GUI:Columns(2)
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Targeting Assist"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\
-Lowest Health: Targets the lowest health target within range.\
-Highest Health: Targets the highest health target within range.\
-Nearest: Targets the closest target within range.\
-Tank Assist: Targets whatever your tank is targetting.")) end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Priority"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Follow Target"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Face Target"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\
-		Warning:  Dangerous if using Standard movement mode.")) end
-		
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Client Autoface"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option should be turned on if you are using the game client's [Face Target on Attack] options.")) end
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(10),true)
+	GUI:PushItemWidth(120)
 	
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Set Legacy Movement"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option sets Legacy movement mode.")) end
-	
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Start Combat"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Auto-Confirm Duty"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("questHelpers"))
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")) end
-	
-	GUI:NextColumn()
-	
-	--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
-	
-	local assistcolumn2width = GUI:GetContentRegionAvailWidth()
-	GUI:PushItemWidth(assistcolumn2width)
+	ffxiv_task_assist.StartElement("Targeting Assist")
 	GUI_Combo("##"..GetString("assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("None: Use manual targetting.\nLowest Health: Targets the lowest health target within range.\nHighest Health: Targets the highest health target within range.\nNearest: Targets the closest target within range.\nTank Assist: Targets whatever your tank is targetting.")) end
+	ffxiv_task_assist.EndElement("None: Use manual targetting.\
+Lowest Health: Targets the lowest health target within range.\
+Nearest: Targets the closest target within range.\
+Tank Assist: Targets whatever your tank is targetting.")
+
+	ffxiv_task_assist.StartElement("Priority")
 	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Prioritize Damage or Healing.")) end
-	GUI:PopItemWidth()
+	ffxiv_task_assist.EndElement("Prioritize Damage or Healing.")
+	
+	ffxiv_task_assist.StartElement("Follow Target")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually follow the target (useful in PvP).")) end
+	ffxiv_task_assist.EndElement("Attempts to continually follow the target (useful in PvP).")
+	
+	ffxiv_task_assist.StartElement("Face Target")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Attempts to continually face the target.\nWarning:  Dangerous if using Standard movement mode.")) end
+	ffxiv_task_assist.EndElement("Attempts to continually face the target.\
+		Warning:  Dangerous if using Standard movement mode.")
 	
-	
+	ffxiv_task_assist.StartElement("Use Client Autoface")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("This option will set the game client's [Face Target on Attack] option on and also turn on Legacy movement mode.")) end
+	ffxiv_task_assist.EndElement("This option enables the client auto-face option.")
 	
+	ffxiv_task_assist.StartElement("Set Legacy Movement")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Sets Legacy movement mode automatically when using assist.")) end
+	ffxiv_task_assist.EndElement("This option sets Legacy movement mode.")
 	
+	ffxiv_task_assist.StartElement("Start Combat")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("If this option is off, the bot will not attack a mob that is not in combat already.")) end
+	ffxiv_task_assist.EndElement("If this option is off, the bot will not attack a mob that is not in combat already.")
+	
+	ffxiv_task_assist.StartElement("Auto-Confirm Duty")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Auto accepts Duty Queue.")) end
-	GUI_Capture(GUI:Checkbox("##"..GetString("questHelpers"),gQuestHelpers),"gQuestHelpers")
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")) end
-	GUI:Columns()
+	ffxiv_task_assist.EndElement("Auto accepts Duty confirmation.")
+	
+	ffxiv_task_assist.StartElement("Auto FATE Sync")
+	GUI_Capture(GUI:Checkbox("##"..GetString("Auto FATE Sync"),gAssistSyncFate),"gAssistSyncFate")
+	ffxiv_task_assist.EndElement("Automatically sync to FATE if necessary, requires a target.")
+	
+	ffxiv_task_assist.StartElement("Quest Helpers")
+	GUI_Capture(GUI:Checkbox("##"..GetString("Quest Helpers"),gQuestHelpers),"gQuestHelpers")
+	ffxiv_task_assist.EndElement("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
+	
 	GUI:PopItemWidth()
 	GUI:EndChild()
 end
@@ -291,6 +290,36 @@ end
 function e_assistyesno:execute()
 	PressYesNo(true)
 	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_assistsyncfatelevel = inheritsFrom( ml_cause )
+e_assistsyncfatelevel = inheritsFrom( ml_effect )
+function c_assistsyncfatelevel:evaluate()
+    if (not gAssistSyncFate or Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
+        return false
+    end
+	
+	local target = MGetTarget()
+	if (target and target.fateid ~= 0 and not Player.ismounted) then
+		local myPos = Player.pos
+		local fateID = target.fateid
+		local fate = MGetFateByID(fateID)
+		if ( table.valid(fate)) then
+			if (fate.maxlevel < Player.level) then
+			--if (AceLib.API.Fate.RequiresSync(fate.id)) then
+				local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+				if (distance <= fate.radius) then
+					Player:SyncLevel()
+					return true
+				end
+			end
+		end
+	end
+    return false
+end
+function e_assistsyncfatelevel:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_global_information.syncTimer = Now() + 1000
 end
 
 function ffxiv_assist.GetHealingTarget()
