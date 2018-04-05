@@ -242,7 +242,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 6000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
 		end	
 	end
@@ -252,6 +252,12 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
+		
+		if (IsControlOpen("Dialogue")) then
+			if (UseControlAction("Dialogue","PressOK",0)) then
+				ml_global_information.Await(1000, 6000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+			end
+		end	
 		
 		if (ffxivminion.gameRegion == 1) then
 		
