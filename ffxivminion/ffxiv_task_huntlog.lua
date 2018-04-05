@@ -201,7 +201,7 @@ c_quest_addhuntlogtask = inheritsFrom( ml_cause )
 e_quest_addhuntlogtask = inheritsFrom( ml_effect )
 c_quest_addhuntlogtask.target = nil
 function c_quest_addhuntlogtask:evaluate()
-	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked() or not IsFighter(Player.job)) then
+	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked() or not IsFighter(Player.job) or not gGrindDoHuntlog) then
 		return false
 	end
 	
