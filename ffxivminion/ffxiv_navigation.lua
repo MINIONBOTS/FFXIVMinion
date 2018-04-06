@@ -768,6 +768,18 @@ function ml_navigation:IsGoalClose(ppos,node)
 		end
 	end
 	
+	-- Floor2Cube connections have a radius inwhich the player (as soon as he is inside it) is allowed to traverse to the "other side" of the connection instead of walking to the same middle point each time ( this is ofc only for the connections that have not yet been removed due to stringpulling/shortening of the path
+	local navcon = nil
+	local navconradius = 0
+	if( node.navconnectionid and node.navconnectionid ~= 0) then
+		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
+		if ( navcon and navcon.type == 3 ) then -- Type 3 == Floor2Cube navconnection
+			-- substracing the radius from the remaining distance
+			goaldist = goaldist - navcon.radius
+			goaldist2d = goaldist2d - navcon.radius
+		end
+	end
+	
 	local nc, nc_close = nil, false
 	if (node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
