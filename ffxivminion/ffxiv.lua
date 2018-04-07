@@ -2318,7 +2318,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.help.open) then
-			GUI:SetNextWindowSize(400,500,GUI.SetCond_Once) --set the next window size, only on first ever	
+			GUI:SetNextWindowSize(400,550,GUI.SetCond_Always) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
@@ -2464,6 +2464,7 @@ Do you have materials?"))
 					GUI:Text("Z: "..PlayerPos.z)
 					GUI:Separator()
 					GUI:Text("Class: "); GUI:SameLine();	GUI:Text(tostring(Player.job))
+					GUI:SameLine(200);
 					GUI:Text("Level: "); GUI:SameLine();	GUI:Text(tostring(Player.level))
 					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
 					if acrValid then
@@ -2479,7 +2480,9 @@ Do you have materials?"))
 					GUI:Text("Can Fly on Map: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.canflyinzone))
 					GUI:Text("Mount Can Fly: "); GUI:SameLine(); GUI:Text(tostring(Player.mountcanfly))
 					GUI:Text("Is Flying: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.isflying))
+					GUI:SameLine(200);
 					GUI:Text("Is Diving: "); GUI:SameLine(); GUI:Text(tostring(Player.diving.isdiving))
+					GUI:Text("Is Position Locked: "); GUI:SameLine(); GUI:Text(tostring(IsPositionLocked()))
 					GUI:Separator()
 					if gBotMode == GetString("questMode") then
 						GUI:Text("Profile : "); GUI:SameLine(); GUI:Text(gQuestProfile)
