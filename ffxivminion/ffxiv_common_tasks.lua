@@ -1349,6 +1349,7 @@ function ffxiv_task_grindCombat.Create()
 	newinst.attackThrottle = false
 	newinst.attackThrottleTimer = 0
 	newinst.noFlee = false
+	newinst.fleeHandled = false
 	
 	newinst.attemptPull = false
 	newinst.pullTimer = 0
@@ -1392,7 +1393,6 @@ function ffxiv_task_grindCombat:Init()
 	
     local ke_roleset = ml_element:create( "RoleSet", c_roleautoset, e_roleautoset, 200 )
     self:add( ke_roleset, self.process_elements)
-	
 	
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.process_elements)
@@ -1655,7 +1655,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (not self.noFlee and c_flee:evaluate()) then
+	if (not self.noFlee and not self.fleeHandled and c_flee:evaluate()) then
 		d("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
