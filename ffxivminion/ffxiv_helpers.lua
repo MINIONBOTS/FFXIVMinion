@@ -3106,8 +3106,10 @@ function IsDismounting()
 	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
-	local jump = ActionList:Get(5,2)
-	return (jump and not jump:IsReady(Player.id))
+	if GetUIPermission(98) == 0 then
+		return true
+	end
+	return false
 end
 function IsLoading()
 	if (IsControlOpen("FadeMiddle") or IsControlOpen("NowLoading")) then
