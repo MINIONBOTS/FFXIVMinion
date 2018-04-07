@@ -33,6 +33,25 @@ function FilterByProximity(entities,center,radius,sortfield)
 	end
 end
 
+function FindRadarMarker(id)
+	local id = tonumber(id) or 0
+
+	local viable = {}
+	local info = GetControlData("_NaviMap")
+	if (table.valid(info)) then
+		if (table.valid(info.markers)) then
+			for i,k in pairs(info.markers) do
+				if k.id == id then
+					viable = {id = k.id, flags = k.flags, x = k.x, z = k.y}
+					return viable
+				end
+			end
+		end
+	end
+	
+	return nil
+end
+
 function GetNearestGrindAttackable()
 	local excludeString = ""
 	local huntString = ""
