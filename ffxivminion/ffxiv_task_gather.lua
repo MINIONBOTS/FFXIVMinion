@@ -1303,23 +1303,26 @@ function CanUseCordialSoon()
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordialSoon]: Returning cordial.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
 			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordialSoon]: Returning cordial.")
 				return true, cordialNormal
 			end
 		end
 		
 		if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+				d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
 			return true, cordialHigh
 		elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+				d("[CanUseCordialSoon]: Returning Deficit. Cordial.")
 			return true, cordialNormal
 		elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+				d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
 			return true, cordialQuick
 		end	
 		
@@ -1332,7 +1335,7 @@ function CanUseCordialSoon()
 			end
 		end
 	else
-		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
+		ml_debug("[CanUseCordialSoon]: Can't use cordials on this task.",2)
 	end
 	
 	return false, nil
@@ -1384,31 +1387,34 @@ function CanUseCordial()
 				
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuick:IsReady(Player.id)) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordial]: Returning cordial.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
 			if (cordialNormal and cordialNormal:IsReady(Player.id)) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordial]: Returning cordial.")
 				return true, cordialNormal
 			end
 		end
 		
 		if (gpDeficit >= 400 and cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
+				d("[CanUseCordial]: Returning Deficit. High cordial.")
 			return true, cordialHigh
 		elseif (gpDeficit >= 300 and cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
+				d("[CanUseCordial]: Returning Deficit. Cordial.")
 			return true, cordialNormal
 		elseif (gpDeficit >= 150 and cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
+				d("[CanUseCordial]: Returning Deficit. Quick cordial.")
 			return true, cordialQuick
 		end	
 		
 		local usedPatience = (IsFisher(Player.job) and MissingBuff(Player,764) and ffxiv_fish.NeedsPatienceCheck() and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+			if (cordialNormal and cordialNormalAction and cordialNormalAction:IsReady(Player.id)) then
 				return true, cordialNormal
-			elseif (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+			elseif (cordialHigh and cordialHighAction and cordialHighAction:IsReady(Player.id)) then
 				return true, cordialHigh
 			end
 		end
