@@ -959,6 +959,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
+	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z)
+	
+	--[[
 	local ret = 0;
 	if (NavigationManager:IsReachable(newGoal)) then
 		ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z)
@@ -966,13 +969,14 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	else
 		ret = -11
 	end
+	--]]
 	
 	if (ret <= 0) then
 		ml_navigation.path = {}
 		ml_navigation.pathindex = 0
 		NavigationManager.NavPathNode = ml_navigation.pathindex
-		return ret
 	end
+	return ret
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
@@ -1518,7 +1522,7 @@ function ml_navigation.Navigate(event, ticks )
 									ffnav.Await(3000, function () return Player:IsMoving() end)
 									return false
 								end
-								ffnav.AwaitSuccess(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end, function () Player:Stop() end)
+								ffnav.AwaitSuccess(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end, function () Player:StopMovement() end)
 								return false									
 							end
 							
