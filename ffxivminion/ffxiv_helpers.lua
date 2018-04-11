@@ -194,7 +194,10 @@ function GetNearestGrindAttackable()
 					elseif ((pet and (claimedbyid == pet.id or targetid == pet.id)) or (companion and (claimedbyid == companion.id or targetid == companion.id))) then
 						immediateaggro[eid] = cached
 					elseif (memberids[claimedbyid] or memberids[targetid]) then
-						partyaggro[eid] = cached					
+						partyaggro[eid] = cached	
+					elseif (not gClaimed and claimedbyid ~= 0) then
+						attackables[i] = nil
+						filtered[eid] = nil
 					end
 				end
 			end
@@ -263,6 +266,7 @@ function GetNearestGrindAttackable()
 			end
 		end
 	end
+	
 	-- Last check, nearest non-filtered mob.
 	if (table.valid(attackables)) then
 		local nearest, nearestDistance = nil, 1000
