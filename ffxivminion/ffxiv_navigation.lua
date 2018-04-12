@@ -1140,7 +1140,7 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.TagNode(nextnode)
 					ml_navigation.TagNode(nextnextnode)
 					
-					local detectRewind = false
+					--[[local detectRewind = false
 					if (indexChanged) then
 						ml_navigation.lastindexgoal = nextnode
 						detectRewind = true
@@ -1159,7 +1159,7 @@ function ml_navigation.Navigate(event, ticks )
 							nextnode = ml_navigation.path[ml_navigation.pathindex]
 							nextnextnode = ml_navigation.path[ml_navigation.pathindex + 1]
 						end
-					end
+					end--]]
 					
 					
 				--if (ml_navigation.pathindex ~= NavigationManager.NavPathNode) then
