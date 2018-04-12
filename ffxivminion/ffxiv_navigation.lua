@@ -1840,16 +1840,18 @@ function ffnav.FixRewind()
 		local nextNode = path[nextIndex]
 		
 		if (table.isa(currentNode) and table.isa(nextNode)) then
-			local ppos = Player.pos
-			
-			local fulldist = math.distance3d(currentNode,nextNode)
-			local currentdist = math.distance3d(ppos,nextNode)
-			
-			if (currentdist < fulldist) then
-				NavigationManager.NavPathNode = NavigationManager.NavPathNode + 1
-				ml_navigation.pathindex = NavigationManager.NavPathNode
-				return true
-			end	
+			if (IsNull(currentNode.navconnectionid,0) == 0) then
+				local ppos = Player.pos
+				
+				local fulldist = math.distance3d(currentNode,nextNode)
+				local currentdist = math.distance3d(ppos,nextNode)
+				
+				if (currentdist < fulldist) then
+					NavigationManager.NavPathNode = NavigationManager.NavPathNode + 1
+					ml_navigation.pathindex = NavigationManager.NavPathNode
+					return true
+				end	
+			end
 		end
 	end
 	return false
