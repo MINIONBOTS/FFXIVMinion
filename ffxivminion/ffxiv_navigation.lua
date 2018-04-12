@@ -816,7 +816,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 	local navconradius = 0
 	if( node.navconnectionid and node.navconnectionid ~= 0) then
 		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
-		if ( navcon and navcon.type == 3 ) then -- Type 3 == Floor2Cube navconnection
+		if ( navcon and navcon.type ~= 5 ) then -- Type 5 == MacroMesh
 			-- substracing the radius from the remaining distance
 			goaldist = goaldist - navcon.radius
 			goaldist2d = goaldist2d - navcon.radius
