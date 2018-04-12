@@ -899,6 +899,14 @@ function dev.DrawCall(event, ticks )
                             GUI:BulletText("Time Elapsed") GUI:SameLine(200) GUI:InputText("##devgscr2", tostring(crinfo.elapsed))
                             GUI:BulletText("Is Lathered") GUI:SameLine(200) GUI:InputText("##devgscr3", tostring(crinfo.lathered))
                             
+                            GUI:Separator()
+                            if (not dev.chocobo_move_event) then dev.chocobo_move_event = 16 end -- Jump
+                            if (GUI:Button("Send Move Event")) then
+                                Player:SendChocoboRacingMoveEvent(dev.chocobo_move_event)
+                            end
+                            GUI:SameLine()
+                            dev.chocobo_move_event = GUI:InputInt("Move Type##devgscrmoveinput", dev.chocobo_move_event)
+                            
                             if (GUI:TreeNode("Chocobos") and table.valid(crinfo.chocobos)) then
                                 GUI:Separator()                                            
                                 GUI:Columns(4, "##devgscrchocobos",true)
