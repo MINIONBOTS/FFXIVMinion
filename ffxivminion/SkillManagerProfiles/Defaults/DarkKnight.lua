@@ -6152,7 +6152,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 0;
-			["levelmin"] = 7532;
+			["levelmin"] = 10;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
@@ -6454,7 +6454,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 0;
-			["levelmin"] = 7532;
+			["levelmin"] = 10;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
@@ -7062,7 +7062,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 0;
-			["levelmin"] = 7532;
+			["levelmin"] = 10;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
@@ -7368,7 +7368,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 0;
-			["levelmin"] = 7532;
+			["levelmin"] = 10;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
