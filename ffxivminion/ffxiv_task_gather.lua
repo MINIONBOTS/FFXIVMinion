@@ -229,6 +229,8 @@ function c_findnode:evaluate()
 			basePos = marker:GetPosition()
 		elseif gGatherMarkerOrProfileIndex == 3 then
 			basePos = ml_task_hub:CurrentTask().pos
+			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,70)
+			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
 		end
 		
 		if (table.valid(basePos)) then
@@ -3341,6 +3343,8 @@ function ffxiv_task_gather:UIInit()
 	gSteathQuickMode = ffxivminion.GetSetting("gSteathQuickMode",true)
 	gSteathDangerousQuickMode = ffxivminion.GetSetting("gSteathDangerousQuickMode",false)
 	gQuickstartMinGp = ffxivminion.GetSetting("gQuickstartMinGp",0)
+	gQuickstartMinNodeLvl = ffxivminion.GetSetting("gQuickstartMinNodeLvl",1)
+	gQuickstartMaxNodeLvl = ffxivminion.GetSetting("gQuickstartMaxNodeLvl",70)
 	
 	local quickslot = { 1, 2, 3,4 ,5 ,6, 7, 8}
 	gGatherQuickSlot = ffxivminion.GetSetting("gGatherQuickSlot",1)
@@ -3739,6 +3743,14 @@ function ffxiv_task_gather:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Min GP to interact with node.")
 		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Node Min Level")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min node level to gather.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Node Max Level")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Max node level to gather.")
+		end
 		
 		GUI:NextColumn()
 		
@@ -3779,6 +3791,14 @@ function ffxiv_task_gather:Draw()
 			GUI:SetTooltip("Uses Stealth at increased range.")
 		end
 		GUI_DrawIntMinMax(GetString("##gQuickstartMinGp"),"gQuickstartMinGp",10,50,0,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP to interact with node.")
+		end
+		GUI_DrawIntMinMax(GetString("##gQuickstartMinNodeLvl"),"gQuickstartMinNodeLvl",1,5,1,70);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Min GP to interact with node.")
+		end
+		GUI_DrawIntMinMax(GetString("##gQuickstartMaxNodeLvl"),"gQuickstartMaxNodeLvl",1,5,1,70);
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Min GP to interact with node.")
 		end
