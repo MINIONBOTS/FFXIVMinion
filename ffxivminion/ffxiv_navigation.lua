@@ -1178,8 +1178,12 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.GUI.nextNodeDistance = math.distance3d(ppos,nextnode)
 					
 			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
-					if ( table.valid (ml_navigation.ensureposition) and ml_navigation:EnsurePosition(ppos) ) then						
-						return
+					if ( table.valid (ml_navigation.ensureposition) ) then
+						if (ml_navigation:EnsurePosition(ppos) ) then
+							return
+						else
+							ml_navigation:ResetOMCHandler()
+						end
 					end
 					
 					local nc = self.omc_details
@@ -1697,9 +1701,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 		if( nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
 			navcon = ml_mesh_mgr.navconnections[nextnode.navconnectionid]
 			if ( navcon and navcon.radius < 1.0 ) then
-				if ( not ml_navigation:SetEnsureStartPosition(nextnode, Player.pos, navcon) ) then
-					ml_navigation:ResetOMCHandler()
-				end				
+				ml_navigation:SetEnsureStartPosition(nextnode, Player.pos, navcon)
 			end
 		end		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
@@ -1847,7 +1849,13 @@ function ml_navigation:EnsurePosition(ppos)
 	else	-- We waited long enough
 		self:ResetOMCHandler()
 	end
-	return false
+	
+	-- Lets wait at least 250ms on each jump
+	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 250) then
+		return true	-- we are 'handling it still'
+	else
+		return false -- bot can continue
+	end
 end
 
 -- Resets all OMC related variables
