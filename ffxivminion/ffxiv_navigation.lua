@@ -1167,9 +1167,6 @@ function ml_navigation.Navigate(event, ticks )
 					
 					--d("[Navigation]: After Rewind Fix ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
 				--end
-				
-				
-				
 					
 					--table.print(nextnode)
 					
@@ -1190,9 +1187,18 @@ function ml_navigation.Navigate(event, ticks )
 					if ( self.omc_id ) then
 					
 						-- Find out which side of the NavCon we are at
+						-- Figure out the OMC direction, one time, reset by ResetOMCHandler.
 						local from_pos
-						local to_pos						
-						if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to) ) then
+						local to_pos
+						if (self.omc_direction == 0) then
+							if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to)) then
+								self.omc_direction = 1
+							else
+								self.omc_direction = 2
+							end
+						end
+						
+						if (self.omc_direction == 1) then
 							from_pos = nc.from
 							to_pos = nc.to
 						else
@@ -1871,6 +1877,7 @@ function ml_navigation:ResetOMCHandler(nc)
 	self.omc_details = {}
 	self.omc_traveldist = 0
 	self.omc_traveltimer = nil
+	self.omc_direction = 0
 	
 	if (nc) then
 		self.omc_id = nc.id
