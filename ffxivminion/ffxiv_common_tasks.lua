@@ -1961,7 +1961,21 @@ function ffxiv_misc_shopping:task_complete_execute()
 	if (shop and shop:IsOpen()) then
 		shop:Close()	
 		ml_global_information.Await(1500, function () return not IsControlOpen("Shop") end) 
-		return
+		return false
+	end
+	
+	local shopSelect = GetControl("SelectString")
+	if (shopSelect and shopSelect:IsOpen()) then
+		shopSelect:Close()	
+		ml_global_information.Await(1500, function () return not IsControlOpen("SelectString") end) 
+		return false
+	end
+	
+	local shopSelectIcon = GetControl("SelectIconString")
+	if (shopSelectIcon and shopSelectIcon:IsOpen()) then
+		shopSelectIcon:Close()	
+		ml_global_information.Await(1500, function () return not IsControlOpen("SelectIconString") end) 
+		return false
 	end
 	
 	self.completed = true
@@ -2159,7 +2173,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			if (self.useAethernet) then
 				local aethernet = {
 					us = "Aethernet",
-					de = "Ätheryten-Netz",
+					de = "Ätherytennetz",
 					fr = "Réseau de transport urbain éthéré",
 					jp = "都市転送網",
 					cn = "都市传送网",
