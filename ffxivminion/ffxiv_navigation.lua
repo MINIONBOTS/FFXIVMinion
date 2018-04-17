@@ -1177,16 +1177,24 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.GUI.currentIndex = ml_navigation.pathindex			
 					ml_navigation.GUI.nextNodeDistance = math.distance3d(ppos,nextnode)
 					
-			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise OMC bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
-					if ( table.valid (ml_navigation.ensureposition) and ml_navigation:EnsurePosition() ) then						
+			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
+					if ( table.valid (ml_navigation.ensureposition) and ml_navigation:EnsurePosition(ppos) ) then						
 						return
 					end
 					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
 					
-						local from_pos = nc.from
-						local to_pos = nc.to
+						-- Find out which side of the NavCon we are at
+						local from_pos
+						local to_pos						
+						if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to) ) then
+							from_pos = nc.from
+							to_pos = nc.to
+						else
+							from_pos = nc.to
+							to_pos = nc.from
+						end
 						
 						if (not MIsLocked()) then
 							if (ml_navigation.omc_traveltimer == nil) then
@@ -1201,57 +1209,64 @@ function ml_navigation.Navigate(event, ticks )
 									ml_navigation.omc_traveltimer = ticks
 								end
 							else
-								d("[Navigation] - Not getting closer to OMC END node. We are most likely stuck.")
+								d("[Navigation] - Not getting closer to NavConnection END node. We are most likely stuck.")
 								ml_navigation.StopMovement()
 								return
 							end
 						end
 							
 						-- Max Timer Check in case something unexpected happened
-						if (self.omc_starttimer == 0) then
-							self.omc_starttimer = ticks
-						else
-							if ( self.omc_starttimer ~= 0 and ticks - self.omc_starttimer > 10000 ) then
-								d("[Navigation] - Could not read OMC END in ~10 seconds, something went wrong..")
-								ml_navigation.StopMovement()
-								return
-							end
+						if ( ml_navigation.omc_starttimer ~= 0 and ticks - ml_navigation.omc_starttimer > 10000 ) then
+							d("[Navigation] - Could not read NavConnection END in ~10 seconds, something went wrong..")
+							ml_navigation.StopMovement()
+							return							
 						end
 								
-						-- OMC JUMP
+						-- NavConnection JUMP
 						if ( nc.subtype == 1 ) then
 							
-							ml_navigation.GUI.lastAction = "Jump OMC"
+							ml_navigation.GUI.lastAction = "Jump NavConnection"
 							
 							if ( Player:IsJumping()) then
-								d("[Navigation]: Jumping for OMC.")
+								d("[Navigation]: Jumping for NavConnection.")
 								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:StopMovement() end)
+							
 							else	 
+								-- Before the jump
 								if ( not ml_navigation.omc_startheight ) then
-									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = to_pos.x-ppos.x, y = 0, z = to_pos.z-ppos.z})
-									if ( anglediff > 0.3 ) then
-										Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
-									elseif ( ml_navigation.omc_starttimer == 0 ) then
+									-- Adjust facing
+									if ( nc.radius <= 0.5  ) then											
+										if ( ml_navigation:SetEnsureStartPosition(nextnode, ppos, nc) ) then											
+											return
+										end
+									else
+										local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = to_pos.x-ppos.x, y = 0, z = to_pos.z-ppos.z})
+										if ( anglediff > 0.3 ) then
+											Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+										end
+									end
+									
+									if ( ml_navigation.omc_starttimer == 0 ) then
 										ml_navigation.omc_starttimer = ticks	
 										if (not Player:IsMoving()) then
-											Player:Move(FFXIV.MOVEMENT.FORWARD)
+											Player:Move(FFXIV.MOVEMENT.FORWARD)											
 											ffnav.Await(1000, function () return Player:IsMoving() end)
 										end
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then	
 										ml_navigation.omc_startheight = ppos.y
-										Player:Jump()
-										d("[Navigation]: Jump for OMC.")
+										Player:Jump()										
+										d("[Navigation]: Starting Jump for NavConnection.")
 									end
+									
 								else
 									local todist,todist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,to_pos)
-									d("todist2d:"..tostring(todist2d))
+									--d("todist2d:"..tostring(todist2d))
 									if ( todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
 										if (nextnextnode) then
 											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
-										end
+										end										
 										ml_navigation.pathindex = ml_navigation.pathindex + 1
-										NavigationManager.NavPathNode = ml_navigation.pathindex		
-										ml_navigation:ResetOMCHandler()
+										NavigationManager.NavPathNode = ml_navigation.pathindex										
 									else									
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
 										Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
@@ -1263,21 +1278,22 @@ function ml_navigation.Navigate(event, ticks )
 						
 						-- OMC Walk								
 						if ( nc.subtype == 2 ) then
-						
-							ml_navigation.GUI.lastAction = "Walk OMC"
+							if (ml_navigation.omc_starttimer == 0 ) then
+								ml_navigation.omc_starttimer = ticks
+							end
+							ml_navigation.GUI.lastAction = "Walk NavConnection"
 							ml_navigation:NavigateToNode(ppos,nextnode,1000)
 							return
 						end
 						
 						-- OMC Teleport						
-						if ( nc.subtype == 3 ) then
-							
-							ml_navigation.GUI.lastAction = "Teleport OMC"
+						if ( nc.subtype == 3 ) then							
+							ml_navigation.GUI.lastAction = "Teleport NavConnection"
 							
 							if (gTeleportHack) then
 								Hacks:TeleportToXYZ(to_pos.x,to_pos.y,to_pos.z,true)
 							else
-								ffxiv_dialog_manager.IssueStopNotice("Teleport OMC","Teleport OMC's exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
+								ffxiv_dialog_manager.IssueStopNotice("Teleport NavConnection","Teleport NavConnection exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
@@ -1288,7 +1304,7 @@ function ml_navigation.Navigate(event, ticks )
 						-- OMC Interact	
 						if ( nc.subtype == 4 ) then
 							-- OMC Interact  I AM SO UNSURE IF THAT IS WORKING OR EVEN USED ANYMORE :D:D:D:D
-							ml_navigation.GUI.lastAction = "Interact OMC"
+							ml_navigation.GUI.lastAction = "Interact NavConnection"
 							if (Player:IsMoving()) then
 								Player:StopMovement()
 								ffnav.Await(1000, function () return not Player:IsMoving() end)
@@ -1677,6 +1693,15 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+		local navconradius = 0
+		if( nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
+			navcon = ml_mesh_mgr.navconnections[nextnode.navconnectionid]
+			if ( navcon and navcon.radius < 1.0 ) then
+				if ( not ml_navigation:SetEnsureStartPosition(nextnode, Player.pos, navcon) ) then
+					ml_navigation:ResetOMCHandler()
+				end				
+			end
+		end		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
 		NavigationManager.NavPathNode = ml_navigation.pathindex		
 	else						
@@ -1757,54 +1782,84 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 	return true
 end
 
--- Sets the position and heading which the main navigation call will make sure that it has "arrived", before continuing the movement
-function ml_navigation:SetEnsurePosition(node, isstartnode)
-	Player:StopMovement() -- stop just the player, not hte navpath!
-	ml_navigation.ensureposition = {x = node.x, y = node.y, z = node.z}										
-	if ( table.size(ml_navigation.path) > ml_navigation.pathindex+1 ) then
-		node = ml_navigation.path[ ml_navigation.pathindex+1 ]		
-		ml_navigation.ensureheading = {x = node.x, y = node.y, z = node.z}	-- Face Next Node
+-- Sets the position and heading which the main call will make sure that it has before continuing the movement. Used for NavConnections / OMC
+function ml_navigation:SetEnsureStartPosition(currentnode, playerpos, navconnection)	
+	self.ensureposition = {x = currentnode.x, y = currentnode.y, z = currentnode.z}
+	
+	-- Find out which side of the NavCon we are at
+	local nearside, farside
+	if (math.distance3d(playerpos, navconnection.from) < math.distance3d(playerpos, navconnection.to) ) then
+		nearside = navconnection.from
+		farside = navconnection.to
 	else
-		ml_navigation.ensureheading = {x = node.x, y = node.y, z = node.z}	-- Fallback case
+		nearside = navconnection.to
+		farside = navconnection.from
 	end
-	ml_navigation:EnsurePosition()
+	
+	if(nearside.hx ~= 0 ) then
+		self.ensureheading = nearside
+		self.ensureheadingtargetpos =  nil
+	else	
+		self.ensureheading = nil
+		self.ensureheadingtargetpos = {x = farside.x, y = farside.y, z = farside.z}
+	end	
+	return self:EnsurePosition(playerpos)
 end
 
--- Ensures that the player is really at a specific position, stopped and facing correctly
-function ml_navigation:EnsurePosition()
-	if ( not ml_navigation.ensurepositionstarttime ) then ml_navigation.ensurepositionstarttime = ml_global_information.Now end
-	if ( (ml_global_information.Now - ml_navigation.ensurepositionstarttime) < 750 ) then		
-		if ( Player:IsMoving () ) then Player:StopMovement() end
+-- Ensures that the player is really at a specific position, stopped and facing correctly. Used for NavConnections / OMC
+function ml_navigation:EnsurePosition(ppos)
+	if ( not self.ensurepositionstarttime ) then self.ensurepositionstarttime = ml_global_information.Now end
+	
+	local dist = self:GetRaycast_Player_Node_Distance(ppos,self.ensureposition)
+	
+	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 750) then
+	
+		if ( not Player:IsMoving () and dist > 0.5 and dist < 3.0 ) then
+			Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
+			d("[Navigation:EnsurePosition]: Teleporting to correct Start Position.")
+		end
+		
+		-- update pos after teleport
 		local ppos = Player.pos
-		local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,ml_navigation.ensureposition)
-						
-		if ( dist > 0.5 and ml_navigation.omcteleportallowed ) then
-			Hacks:TeleportToXYZ(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z,true)
-			d("[Navigation]: [EnsurePosition] - Teleporting to correct location.")
+		local anglediff = self.ensureheading and (ppos.h - self.ensureheading.hx)
+		local anglediff2= self.ensureheadingtargetpos and math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = self.ensureheadingtargetpos.x-ppos.x, y = 0, z = self.ensureheadingtargetpos.z-ppos.z})
+		
+		--d(tostring(anglediff).. " - " ..tostring(anglediff2))
+		if ( (self.ensureheading and (anglediff > 0.003 or anglediff < -0.003) ) or (self.ensureheadingtargetpos and (anglediff2 > 2 or anglediff2 < -2))) then
+			if ( Player:IsMoving () ) then Player:StopMovement() end			
+			local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,self.ensureposition)
+							
+			if ( dist > 0.5 ) then
+				Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z,true)
+				d("[Navigation]: [EnsurePosition] - Teleporting to correct location.")
+			end
+			
+			if ( anglediff and (anglediff > 0.003 or anglediff < -0.003) ) then
+				Player:SetFacing(self.ensureheading.hx) -- face hard
+				d("[Navigation]: [EnsurePosition] - Hard facing toward Heading.")
+								
+			elseif (anglediff2 and (anglediff2 > 2 or anglediff2 < -2)) then 
+				Player:SetFacing(self.ensureheadingtargetpos.x,self.ensureheadingtargetpos.y,self.ensureheadingtargetpos.z) -- face hard
+				d("[Navigation]: [EnsurePosition] - Hard facing toward Target position.")
+			end
+			return true
 		end
-		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = ml_navigation.ensureposition.x-ppos.x, y = 0, z = ml_navigation.ensureposition.z-ppos.z})
-		if ( anglediff > 5 ) then 
-			Player:SetFacing(ml_navigation.ensureheading.x,ml_navigation.ensureheading.y,ml_navigation.ensureheading.z) -- face hard
-			d("[Navigation]: [EnsurePosition] - Hard facing toward position.")
-		end
-		return true
 	else	-- We waited long enough
-		ml_navigation.ensureposition = nil
-		ml_navigation.ensureheading = nil
-		ml_navigation.ensurepositionstarttime = nil
+		self:ResetOMCHandler()
 	end
 	return false
 end
 
 -- Resets all OMC related variables
-function ml_navigation:ResetOMCHandler(nc)
-	self.omc_id = nil
-	self.omc_traveltimer = nil
+function ml_navigation:ResetOMCHandler(nc)	
 	self.ensureposition = nil
 	self.ensureheading = nil
+	self.ensureheadingtargetpos = nil
 	self.ensurepositionstarttime = nil
+	self.omc_id = nil
+	self.omc_traveltimer = nil
 	self.omc_starttimer = 0
-	self.omc_startheight = nil	
+	self.omc_startheight = nil
 	self.omc_details = {}
 	self.omc_traveldist = 0
 	self.omc_traveltimer = nil
