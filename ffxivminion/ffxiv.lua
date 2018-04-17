@@ -242,7 +242,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 6000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
 		end	
 	end
@@ -252,12 +252,6 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
-		
-		if (IsControlOpen("Dialogue")) then
-			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 6000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
-			end
-		end	
 		
 		if (ffxivminion.gameRegion == 1) then
 		
@@ -2324,7 +2318,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.help.open) then
-			GUI:SetNextWindowSize(400,500,GUI.SetCond_Once) --set the next window size, only on first ever	
+			GUI:SetNextWindowSize(400,550,GUI.SetCond_Always) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
@@ -2470,6 +2464,7 @@ Do you have materials?"))
 					GUI:Text("Z: "..PlayerPos.z)
 					GUI:Separator()
 					GUI:Text("Class: "); GUI:SameLine();	GUI:Text(tostring(Player.job))
+					GUI:SameLine(200);
 					GUI:Text("Level: "); GUI:SameLine();	GUI:Text(tostring(Player.level))
 					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
 					if acrValid then
@@ -2482,13 +2477,19 @@ Do you have materials?"))
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
 					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
-					GUI:Text("Can Use Cubes: "); GUI:SameLine(); GUI:Text(tostring(NavigationManager:CanUseCubes()))
 					GUI:Text("Can Fly on Map: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.canflyinzone))
 					GUI:Text("Mount Can Fly: "); GUI:SameLine(); GUI:Text(tostring(Player.mountcanfly))
 					GUI:Text("Is Flying: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.isflying))
+					GUI:SameLine(200);
 					GUI:Text("Is Diving: "); GUI:SameLine(); GUI:Text(tostring(Player.diving.isdiving))
+					GUI:Text("Is Position Locked: "); GUI:SameLine(); GUI:Text(tostring(IsPositionLocked()))
 					GUI:Separator()
 					if gBotMode == GetString("questMode") then
+						local questList = Quest:GetQuestList()
+						if (TableSize(questList) > 0) then
+							GUI:Text("Quest Journal size : "); GUI:SameLine(); GUI:Text(TableSize(questList))
+						end
+						
 						GUI:Text("Profile : "); GUI:SameLine(); GUI:Text(gQuestProfile)
 						if gCurrQuestID ~= "" then
 							GUI:Text("Quest ID : "); GUI:SameLine(); GUI:Text(gCurrQuestID)
