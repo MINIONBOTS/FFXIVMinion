@@ -811,7 +811,11 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (table.valid(pos) and pos.b) then
 						local details = {}
-						details.contentid = pos.b
+						if (type(pos.b) == "string") then
+							details.contentids = pos.b
+						elseif (type(pos.b) == "number") then
+							details.contentid = pos.b
+						end
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
