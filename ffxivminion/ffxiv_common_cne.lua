@@ -4344,7 +4344,8 @@ function c_scripexchange:evaluate()
 		if (table.isa(currentItems)) then
 			d("[ScripExchange]: Found items list.")
 			for index,itemdata in pairs(currentItems) do
-				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(item, currentCategory)
+				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
+				
 				--[[
 					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
 				--]]
