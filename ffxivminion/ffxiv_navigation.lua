@@ -823,7 +823,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		end
 	end
 	
-	local nc, nc_close = nil, false
+	local nc
 	if (node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
 			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
@@ -832,10 +832,16 @@ function ml_navigation:IsGoalClose(ppos,node)
 	
 	if (nc and In(nc.subtype,1,2,3,4)) then
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
-			self:ResetOMCHandler(nc)
+			self:ResetOMCHandler()				
+			self.omc_id = nc.id
+			self.omc_details = nc	
 			return true
 		end
-	elseif (Player.flying.isflying) then
+	else
+		ml_navigation:ResetOMCHandler()
+	end
+	
+	if (Player.flying.isflying) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
 			return true
@@ -984,8 +990,7 @@ function Player:Stop(resetpath)
 	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
-	
-	NavigationManager:ResetPath()
+		
 	ml_navigation.pathindex = 0
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
@@ -1175,17 +1180,13 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.GUI.nextNodeDistance = math.distance3d(ppos,nextnode)
 					
 			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
-					if ( table.valid (ml_navigation.ensureposition) ) then
-						if (ml_navigation:EnsurePosition(ppos) ) then
-							return
-						else
-							ml_navigation:ResetOMCHandler()
-						end
+					if ( table.valid (ml_navigation.ensureposition) and (ml_navigation:EnsurePosition(ppos) )) then
+						return
 					end
 					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
-					
+						-- Our current 'nextnode' is the END of the NavConnection !!
 						-- Find out which side of the NavCon we are at
 						-- Figure out the OMC direction, one time, reset by ResetOMCHandler.
 						local from_pos
@@ -1276,7 +1277,8 @@ function ml_navigation.Navigate(event, ticks )
 											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 										end										
 										ml_navigation.pathindex = ml_navigation.pathindex + 1
-										NavigationManager.NavPathNode = ml_navigation.pathindex										
+										NavigationManager.NavPathNode = ml_navigation.pathindex
+										ml_navigation:ResetOMCHandler()
 									else									
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
 										Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
@@ -1330,7 +1332,8 @@ function ml_navigation.Navigate(event, ticks )
 							if (MIsLoading()) then
 								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
-								NavigationManager.NavPathNode = ml_navigation.pathindex		
+								NavigationManager.NavPathNode = ml_navigation.pathindex
+								ml_navigation:ResetOMCHandler()
 								return
 							end
 							
@@ -1702,16 +1705,10 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
-		local navconradius = 0
-		if( nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
-			navcon = ml_mesh_mgr.navconnections[nextnode.navconnectionid]
-			if ( navcon and navcon.radius < 1.0 ) then
-				ml_navigation:SetEnsureStartPosition(nextnode, Player.pos, navcon)
-			end
-		end		
+		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
-		NavigationManager.NavPathNode = ml_navigation.pathindex		
+		NavigationManager.NavPathNode = ml_navigation.pathindex
+		
 	else						
 		ml_navigation.GUI.lastAction = "Walk to Node"
 		
@@ -1791,9 +1788,8 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 end
 
 -- Sets the position and heading which the main call will make sure that it has before continuing the movement. Used for NavConnections / OMC
-function ml_navigation:SetEnsureStartPosition(currentnode, playerpos, navconnection)	
-	self.ensureposition = {x = currentnode.x, y = currentnode.y, z = currentnode.z}
-	
+function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection)	
+		
 	-- Find out which side of the NavCon we are at
 	local nearside, farside
 	if (math.distance3d(playerpos, navconnection.from) < math.distance3d(playerpos, navconnection.to) ) then
@@ -1803,10 +1799,11 @@ function ml_navigation:SetEnsureStartPosition(currentnode, playerpos, navconnect
 		nearside = navconnection.to
 		farside = navconnection.from
 	end
-	
+		
+	self.ensureposition = {x = nearside.x, y = nearside.y, z = nearside.z}
+		
 	if(nearside.hx ~= 0 ) then
 		self.ensureheading = nearside
-		self.ensureheadingtargetpos =  nil
 	else	
 		self.ensureheading = nil
 		self.ensureheadingtargetpos = {x = farside.x, y = farside.y, z = farside.z}
@@ -1820,7 +1817,7 @@ function ml_navigation:EnsurePosition(ppos)
 	
 	local dist = self:GetRaycast_Player_Node_Distance(ppos,self.ensureposition)
 	
-	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 750) then
+	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 1000) then
 	
 		if ( not Player:IsMoving () and dist > 0.5 and dist < 3.0 ) then
 			Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
@@ -1844,16 +1841,18 @@ function ml_navigation:EnsurePosition(ppos)
 			
 			if ( anglediff and (anglediff > 0.003 or anglediff < -0.003) ) then
 				Player:SetFacing(self.ensureheading.hx) -- face hard
-				d("[Navigation]: [EnsurePosition] - Hard facing toward Heading.")
+				d("[Navigation]: [EnsurePosition] - Hard facing towards Heading.")
 								
 			elseif (anglediff2 and (anglediff2 > 2 or anglediff2 < -2)) then 
 				Player:SetFacing(self.ensureheadingtargetpos.x,self.ensureheadingtargetpos.y,self.ensureheadingtargetpos.z) -- face hard
-				d("[Navigation]: [EnsurePosition] - Hard facing toward Target position.")
+				d("[Navigation]: [EnsurePosition] - Hard facing towards Target position.")
 			end
 			return true
 		end
-	else	-- We waited long enough
+		
+	else	-- We waited long enough	
 		self:ResetOMCHandler()
+		return false
 	end
 	
 	-- Lets wait at least 250ms on each jump
@@ -1865,7 +1864,7 @@ function ml_navigation:EnsurePosition(ppos)
 end
 
 -- Resets all OMC related variables
-function ml_navigation:ResetOMCHandler(nc)	
+function ml_navigation:ResetOMCHandler()
 	self.ensureposition = nil
 	self.ensureheading = nil
 	self.ensureheadingtargetpos = nil
@@ -1878,11 +1877,6 @@ function ml_navigation:ResetOMCHandler(nc)
 	self.omc_traveldist = 0
 	self.omc_traveltimer = nil
 	self.omc_direction = 0
-	
-	if (nc) then
-		self.omc_id = nc.id
-		self.omc_details = nc
-	end
 end
 
 ffnav = {}
