@@ -1280,26 +1280,26 @@ function CanUseCordialSoon()
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= gwateredCordialsGP or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-			d("[CanUseCordialSoon]: Returning Min. cordialQuick.")
+			--d("[CanUseCordialSoon]: Returning Min. cordialQuick.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= gnormCordialsGP or (cordialHigh == nil))) then
 			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				d("[CanUseCordialSoon]: Returning Min cordial.")
+				--d("[CanUseCordialSoon]: Returning Min cordial.")
 				return true, cordialNormal
 			end
 		end
 		
 		if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-				d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
+				--d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
 			return true, cordialHigh
 		elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				d("[CanUseCordialSoon]: Returning Deficit. cordial.")
+				--d("[CanUseCordialSoon]: Returning Deficit. cordial.")
 			return true, cordialNormal
 		elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-				d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
+				--d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
 			return true, cordialQuick
 		end	
 		
