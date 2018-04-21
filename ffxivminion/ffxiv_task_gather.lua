@@ -1181,6 +1181,11 @@ function ffxiv_gather.CheckBuffs(item)
 	if (table.valid(task)) then
 		local collectables = task.collectables
 		collectCost = IsNull(task.collectGP,0)
+		if task.collectGP == "skillProfileDefined" then
+			if SkillMgr.ProfileRaw.mingp ~= nil then
+				collectCost = SkillMgr.ProfileRaw.mingp
+			end
+		end
 		
 		if (table.valid(collectables)) then
 			for identifier,minvalue in pairs(collectables) do
