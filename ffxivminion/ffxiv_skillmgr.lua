@@ -131,6 +131,7 @@ SkillMgr.ExtraProfiles = {
 	"Gathering_530",
 	"Gathering_Clusters",
 	"Gathering_Collectables",
+	"Gathering_Collectables_2",
 	"Gathering_Crystals",
 	"Gathering_Custom",
 	"Gathering_Favors",
