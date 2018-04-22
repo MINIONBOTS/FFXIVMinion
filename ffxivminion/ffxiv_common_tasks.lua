@@ -166,7 +166,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
 		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
-		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+		if Player.onmesh and ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 			return true
 		end
     end    
