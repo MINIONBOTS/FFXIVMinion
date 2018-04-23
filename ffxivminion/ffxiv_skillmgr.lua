@@ -142,6 +142,13 @@ SkillMgr.ExtraProfiles = {
 	"Gathering_Scrips",	
 	"Gathering_Shards",	
 	"Custom_Task",
+	
+	"[Craft] Leveling",
+	"[Craft] 30+ 1 Skill Complete",
+	"[Craft] 70+ 1 Skill Complete",
+	
+	"[Craft] 30+ 2 Skill Complete",
+	"[Craft] 70+ 2 Skill Complete",
 }
 
 function SkillMgr.CheckTestSkill(jobid, target, pvp)
