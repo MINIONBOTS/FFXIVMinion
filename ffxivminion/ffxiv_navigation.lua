@@ -1533,26 +1533,33 @@ function ml_navigation.Navigate(event, ticks )
 							
 							if (not nextnode.is_cube and nextnode.ground) then
 							
-								d("[Navigation]: Next node is not a flying node.")
-								local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
-								local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y,nextnode.z,nextnode.x,nextnode.y-5,nextnode.z)
-								if (hit) then
-									if (hity < modifiedNode.y) then
-										modifiedNode.y = hity - 1
+								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
+								-- May need more adjustments.
+								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0) then
+							
+									d("[Navigation]: Next node is not a flying node, dive a bit.")
+									local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
+									local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y,nextnode.z,nextnode.x,nextnode.y-5,nextnode.z)
+									if (hit) then
+										if (hity < modifiedNode.y) then
+											modifiedNode.y = hity - 1
+										end
+									end		
+																		
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									local pitch = GetRequiredPitch(modifiedNode,true) -- Pitch down a little further.
+									Player:SetPitch(pitch)
+									
+									if (not Player:IsMoving()) then
+										Player:Move(FFXIV.MOVEMENT.FORWARD)
+										ffnav.Await(3000, function () return Player:IsMoving() end)
+										return false
 									end
-								end		
-																	
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-								local pitch = GetRequiredPitch(modifiedNode) -- Pitch down a little further.
-								Player:SetPitch(pitch)
-								
-								if (not Player:IsMoving()) then
-									Player:Move(FFXIV.MOVEMENT.FORWARD)
-									ffnav.Await(3000, function () return Player:IsMoving() end)
-									return false
+									if (nextnode.is_omc or nextnode.navconnectionid ~= 0) then
+										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or GetDiveHeight() <= 0) end, function () Player:StopMovement() end)
+										return false
+									end
 								end
-								ffnav.AwaitSuccess(5000, function () return (not IsFlying() or GetDiveHeight() == 0) end, function () Player:StopMovement() end)
-								return false									
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
@@ -1601,7 +1608,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							
 							--local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y + 1), z = nextnode.z }
-							d("check pitch")
+							--d("check pitch")
 							local pitch = GetRequiredPitch(nextnode)
 							--local pitch = GetRequiredPitch(modifiedNode)
 							Player:SetPitch(pitch)
