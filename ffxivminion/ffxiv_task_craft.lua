@@ -1454,6 +1454,7 @@ function e_selectcraft:execute()
 		for id,order in spairs(orders, sortfunc) do
 			if (not order.completed and not order.skip) then
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
+
 				if (canCraft) or (order.ifnecessary) then
 					
 					local itemid = order.item
@@ -1979,6 +1980,7 @@ function ffxiv_task_craft:Draw()
 					end
 					gCraftOrderEditHQ = IsNull(order["usehq"],false)
 					gCraftOrderEditIfNecessary = IsNull(order["ifnecessary"],false)
+
 					gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 					gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
 					for i = 1,6 do
@@ -2437,6 +2439,7 @@ function ffxiv_craft.UpdateAlertElement()
 					
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order["usehq"])
 				local yield = AceLib.API.Items.GetRecipeDetails(id).yield
+
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
 				end

@@ -33,6 +33,25 @@ function FilterByProximity(entities,center,radius,sortfield)
 	end
 end
 
+function FindRadarMarker(id)
+	local id = tonumber(id) or 0
+
+	local viable = {}
+	local info = GetControlData("_NaviMap")
+	if (table.valid(info)) then
+		if (table.valid(info.markers)) then
+			for i,k in pairs(info.markers) do
+				if k.id == id then
+					viable = {id = k.id, flags = k.flags, x = k.x, z = k.y}
+					return viable
+				end
+			end
+		end
+	end
+	
+	return nil
+end
+
 function GetNearestGrindAttackable()
 	local excludeString = ""
 	local huntString = ""
@@ -175,7 +194,10 @@ function GetNearestGrindAttackable()
 					elseif ((pet and (claimedbyid == pet.id or targetid == pet.id)) or (companion and (claimedbyid == companion.id or targetid == companion.id))) then
 						immediateaggro[eid] = cached
 					elseif (memberids[claimedbyid] or memberids[targetid]) then
-						partyaggro[eid] = cached					
+						partyaggro[eid] = cached	
+					elseif (not gClaimed and claimedbyid ~= 0) then
+						attackables[i] = nil
+						filtered[eid] = nil
 					end
 				end
 			end
@@ -244,6 +266,7 @@ function GetNearestGrindAttackable()
 			end
 		end
 	end
+	
 	-- Last check, nearest non-filtered mob.
 	if (table.valid(attackables)) then
 		local nearest, nearestDistance = nil, 1000
@@ -3109,11 +3132,13 @@ function IsDismounting()
 	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
-	local jump = ActionList:Get(5,2)
-	return (jump and not jump:IsReady(Player.id))
+	if GetUIPermission(98) == 0 then
+		return true
+	end
+	return false
 end
 function IsLoading()
-	if (IsControlOpen("NowLoading")) then
+	if (IsControlOpen("FadeMiddle") or IsControlOpen("NowLoading")) then
 		--d("IsLoading [1] - Loading screen open.")
 		return true
 	elseif (Player.localmapid == 0) then
@@ -6558,7 +6583,7 @@ function GetDiveHeight()
 end
 
 function CannotMove()
-	return (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming())
+	return (IsControlOpen("FadeMiddle") or (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming()))
 end
 
 function DoWait(ms)
@@ -7031,7 +7056,7 @@ end
 -- Very general check for things that would prevent moving around
 function Busy()
 	local currentTask = ml_task_hub:CurrentTask()
-	return CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
+	return IsControlOpen("FadeMiddle") or CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
@@ -7175,12 +7200,31 @@ function GetRequiredPitch(pos,noadjustment)
 		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
 		if (hit) then
 			for i = 3, 15, 3 do
-				--d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
+				d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
 				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y-i,pos.z)
 				if (not hit) then
-					--d("New trajectory appears safe, use it.")
+					d("New trajectory appears safe, use it.")
 					pos = { x = pos.x, y = pos.y - i, z = pos.z }
 					break
+				end
+			end
+		end
+		
+		local nextNode = ml_navigation.path[ml_global_information.pathindex]
+		if (table.isa(nextNode) and nextNode.is_cube) then
+			-- Auto-adjust for feet-level impacts.
+			if (not hit) then
+				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y,pos.z) 
+				if (hit) then
+					for i = 3, 15, 3 do
+						d("Obstacle detected, adjust pitch up by [" .. i .. "]..")
+						hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y+i,pos.z)
+						if (not hit) then
+							d("New trajectory appears safe, use it.")
+							pos = { x = pos.x, y = pos.y + i, z = pos.z }
+							break
+						end
+					end
 				end
 			end
 		end

@@ -21,6 +21,8 @@ dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 function dev.Init()
 	gDevFilterActions = true	
 	gDevAddonTextFilter = ""
+	gDevAddonOpenFilter = false
+	gDevAddonClosedFilter = false
 	gDevHackMaxZoom = 20.0
 	gDevHackMinZoom = 1.5
 	gDevHackDisableCutscene = false
@@ -58,120 +60,127 @@ function dev.DrawCall(event, ticks )
 			
 			if ( GUI:TreeNode("AddonControls")) then
 				GUI:PushItemWidth(200); gDevAddonTextFilter = GUI:InputText("Filter by Name",gDevAddonTextFilter); GUI:PopItemWidth();
+				gDevAddonOpenFilter = GUI:Checkbox("Show Open Only",gDevAddonOpenFilter)
+				gDevAddonClosedFilter = GUI:Checkbox("Show Closed Only",gDevAddonClosedFilter)
+				
 				if ( GUI:TreeNode("Active Controls")) then
 					local controls = GetControls()
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
 							if (gDevAddonTextFilter == "" or string.contains(e.name,gDevAddonTextFilter)) then
-								GUI:PushItemWidth(150)
-								if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
-									GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
-									local isopen = e:IsOpen()
-									GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
-									if (isopen == false) then
-										if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
-										GUI:SameLine()
-										if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
-									else
-										if (GUI:Button("Close",100,15) ) then d("Closing Control Result: "..tostring(e:Close())) end
-										GUI:SameLine()
-										if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+								
+								local isopen = e:IsOpen()
+								if ((gDevAddonOpenFilter and isopen) or (gDevAddonClosedFilter and not isopen) or (not gDevAddonOpenFilter and not gDevAddonClosedFilter)) then
+									GUI:PushItemWidth(150)
+									if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
+										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 										
-										local ac = e:GetActions()
-										if (table.valid(ac)) then
-											GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Always)
-											if ( GUI:TreeNode("Control Actions##"..tostring(id)) ) then
-												for aid, action in pairs(ac) do
-													if (GUI:Button(action,150,15) ) then d("Action Result with arg "..tostring(dev.addoncontrolarg).." :" ..tostring(e:Action(action,dev.addoncontrolarg))) end
-													GUI:SameLine()
-													if (not dev.addoncontrolarg) then dev.addoncontrolarg = 0 end
-													dev.addoncontrolarg = GUI:InputInt("Arg 1##"..tostring(aid)..tostring(id), dev.addoncontrolarg)
+										GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
+										if (isopen == false) then
+											if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
+											GUI:SameLine()
+											if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+										else
+											if (GUI:Button("Close",100,15) ) then d("Closing Control Result: "..tostring(e:Close())) end
+											GUI:SameLine()
+											if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+											
+											local ac = e:GetActions()
+											if (table.valid(ac)) then
+												GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Always)
+												if ( GUI:TreeNode("Control Actions##"..tostring(id)) ) then
+													for aid, action in pairs(ac) do
+														if (GUI:Button(action,150,15) ) then d("Action Result with arg "..tostring(dev.addoncontrolarg).." :" ..tostring(e:Action(action,dev.addoncontrolarg))) end
+														GUI:SameLine()
+														if (not dev.addoncontrolarg) then dev.addoncontrolarg = 0 end
+														dev.addoncontrolarg = GUI:InputInt("Arg 1##"..tostring(aid)..tostring(id), dev.addoncontrolarg)
+													end
+													GUI:TreePop()
+												end
+											end
+
+											local ad = e:GetData()
+											if (table.valid(ad)) then
+												for key, value in pairs(ad) do	
+													if (type(value) == "table") then
+														GUI:BulletText(key)
+														for vk,vv in pairs(value) do
+															if (type(vv) == "table") then
+																GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
+																for vvk,vvv in pairs(vv) do
+																	GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(vvv) GUI:SameLine(0,5)
+																end
+															else
+																GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
+															end
+															GUI:NewLine()
+														end
+													else
+														GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))
+													end
+												end										
+											end
+                                        											
+											if ( GUI:TreeNode("Strings##"..tostring(id)) ) then
+												local str = e:GetStrings()
+												if (table.valid(str)) then
+													for key, value in pairs(str) do												
+														GUI:BulletText(tostring(key)) GUI:SameLine(200) GUI:InputText("##devcdatastr"..tostring(key),value)													
+													end										
+												end
+												GUI:TreePop()
+											end	
+
+											if (GUI:TreeNode("RawData##"..tostring(id)) ) then
+												local datas = e:GetRawData()
+												if (table.valid(datas)) then	
+													GUI:Separator()                                            
+													GUI:Columns(3, "##RawDataDetails",true)
+													GUI:Text("Index"); GUI:NextColumn()
+													GUI:Text("Type"); GUI:NextColumn()
+													GUI:Text("Value"); GUI:NextColumn()
+													GUI:Separator()             
+													for index, data in pairs(datas) do			
+														if (data.type ~= "0") then
+															GUI:Text(tostring(index)) GUI:NextColumn()
+															GUI:Text(tostring(data.type)) GUI:NextColumn()
+															GUI:PushItemWidth(500)
+															if (data.type == "int32") then
+																GUI:Text(tostring(data.value))
+															elseif (data.type == "bool") then
+																GUI:Text(tostring(data.value))
+															elseif (data.type == "string") then
+																GUI:Text(data.value)
+															elseif (data.type == "4bytes") then
+																GUI:Text("A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D))
+															else
+																GUI:Text("")  
+															end        
+															GUI:NextColumn()  
+															GUI:PopItemWidth()                                           
+														end
+													end	
+													GUI:Separator()
+													GUI:Columns(1)		
 												end
 												GUI:TreePop()
 											end
-										end
-										
-										local ad = e:GetData()
-										if (table.valid(ad)) then
-											for key, value in pairs(ad) do	
-												if (type(value) == "table") then
-													GUI:BulletText(key)
-													for vk,vv in pairs(value) do
-														if (type(vv) == "table") then
-															GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
-															for vvk,vvv in pairs(vv) do
-																GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(tostring(vvv)) GUI:SameLine(0,5)
-															end
-														else
-															GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
-														end
-														GUI:NewLine()
-													end
-												else
-													GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))
-												end
-											end										
-										end
-										
-										if ( GUI:TreeNode("Strings##"..tostring(id)) ) then
-											local str = e:GetStrings()
-											if (table.valid(str)) then
-												for key, value in pairs(str) do												
-													GUI:BulletText(tostring(key)) GUI:SameLine(200) GUI:InputText("##devcdatastr"..tostring(key),value)													
-												end										
+											
+											if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
+												if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
+												GUI:SameLine()										
+												if ( not dev.pushbuttonA or dev.pushbuttonA < 0) then dev.pushbuttonA = 0 end
+												dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1) 
+												GUI:SameLine()
+												if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
+												dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
+												GUI:TreePop()
 											end
-											GUI:TreePop()
-										end	
-
-                                        if (GUI:TreeNode("RawData##"..tostring(id)) ) then
-                                            local datas = e:GetRawData()
-                                            if (table.valid(datas)) then	
-                                                GUI:Separator()                                            
-                                                GUI:Columns(3, "##RawDataDetails",true)
-                                                GUI:Text("Index"); GUI:NextColumn()
-                                                GUI:Text("Type"); GUI:NextColumn()
-                                                GUI:Text("Value"); GUI:NextColumn()
-                                                GUI:Separator()             
-												for index, data in pairs(datas) do			
-                                                    if (data.type ~= "0") then
-                                                        GUI:Text(tostring(index)) GUI:NextColumn()
-                                                        GUI:Text(tostring(data.type)) GUI:NextColumn()
-                                                        GUI:PushItemWidth(500)
-                                                        if (data.type == "int32") then
-                                                            GUI:Text(tostring(data.value))
-                                                        elseif (data.type == "bool") then
-                                                            GUI:Text(tostring(data.value))
-                                                        elseif (data.type == "string") then
-                                                            GUI:Text(data.value)
-                                                        elseif (data.type == "4bytes") then
-                                                            GUI:Text("A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D))
-                                                        else
-                                                            GUI:Text("")  
-                                                        end        
-                                                        GUI:NextColumn()  
-                                                        GUI:PopItemWidth()                                           
-                                                    end
-												end	
-                                                GUI:Separator()
-                                                GUI:Columns(1)		
-                                            end
-                                            GUI:TreePop()
-                                        end
-										
-										if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
-											if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
-											GUI:SameLine()										
-											if ( not dev.pushbuttonA or dev.pushbuttonA < 0) then dev.pushbuttonA = 0 end
-											dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1) 
-											GUI:SameLine()
-											if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
-											dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
-											GUI:TreePop()
-										end
-									end								
-									GUI:TreePop()
-								end					
-								GUI:PopItemWidth()
+										end								
+										GUI:TreePop()
+									end					
+									GUI:PopItemWidth()
+								end
 							end
 						end
 					end
@@ -890,7 +899,7 @@ function dev.DrawCall(event, ticks )
                         end
                         GUI:TreePop()
                     end
-                    
+
                     if ( GUI:TreeNode("Chocobo Racing")) then
                         local crinfo = Player:GetChocoboRacingInfo()
                         if crinfo then

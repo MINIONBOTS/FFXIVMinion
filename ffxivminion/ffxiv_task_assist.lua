@@ -243,6 +243,7 @@ Tank Assist: Targets whatever your tank is targetting.")
 	
 	ffxiv_task_assist.StartElement("Face Target")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
+
 	ffxiv_task_assist.EndElement("Attempts to continually face the target.\
 		Warning:  Dangerous if using Standard movement mode.")
 	
@@ -255,6 +256,7 @@ Tank Assist: Targets whatever your tank is targetting.")
 	ffxiv_task_assist.EndElement("This option sets Legacy movement mode.")
 	
 	ffxiv_task_assist.StartElement("Start Combat")
+
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
 	ffxiv_task_assist.EndElement("If this option is off, the bot will not attack a mob that is not in combat already.")
 	

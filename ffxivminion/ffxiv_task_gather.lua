@@ -173,7 +173,8 @@ end
 c_findnode = inheritsFrom( ml_cause )
 e_findnode = inheritsFrom( ml_effect )
 function c_findnode:evaluate()
-	if (IsControlOpen("Gathering")) then
+	if (MIsLoading() or MIsCasting() or CannotMove() or 
+		IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece")) then
 		return false
 	end
 	
@@ -305,7 +306,8 @@ c_movetonode = inheritsFrom( ml_cause )
 e_movetonode = inheritsFrom( ml_effect )
 e_movetonode.blockOnly = false
 function c_movetonode:evaluate()
-	if (IsControlOpen("Gathering")) then
+	if (MIsLoading() or MIsCasting() or CannotMove() or 
+		IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece")) then
 		return false
 	end
 	
@@ -320,7 +322,7 @@ function c_movetonode:evaluate()
 			if (not reachable) then
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
-			elseif (reachable and IsFlying()) then
+			elseif (gatherable.interactable and IsFlying()) then
 				if (GetHoverHeight() < 2.5) then
 					Dismount()
 				else
@@ -394,6 +396,26 @@ function e_movetonode:execute()
 			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			local newTask = ffxiv_task_movetointeract.Create()
+			
+			local foundPos = false
+			local frontPos = GetPosFromDistanceHeading(pos, 3, pos.h)
+			if (frontPos) then
+				local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPos)
+				if (table.valid(closestmesh)) then
+					if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 3) then
+						pos = closestmesh
+						foundPos = true
+					end
+				end
+			end
+			
+			if (not foundPos) then
+				local meshpos = gatherable.meshpos
+				if (table.valid(meshpos) and NavigationManager:IsReachable(meshpos) and meshpos.meshdistance < 4) then
+					pos = shallowcopy(meshpos)
+				end
+			end
+			
 			newTask.pos = pos
 			newTask.useTeleport = false
 			
@@ -960,7 +982,8 @@ function e_gather:execute()
 		gd("Checking unknown item section.",2)
 		
 			-- Gather unknown items to unlock them.
-		if (Player.level < 70) then
+		--if (Player.level < 70) then
+		if (thisNode.contentid <= 4) then
 			for i,item in pairs(list) do
 				if (toboolean(item.isunknown)) then
 					return DoGathering(item)
@@ -1366,10 +1389,9 @@ function CanUseCordial()
 		end
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
-			
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= gwateredCordialsGP or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuickAction and cordialQuickAction:IsReady(Player.id)) then
-			d("[CanUseCordial]: Returning Min. Quick cordial.")
+				d("[CanUseCordial]: Returning Min. Quick cordial.")
 				return true, cordialQuick
 			end
 		end
