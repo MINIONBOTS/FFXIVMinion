@@ -77,24 +77,10 @@ function c_gotopostest:evaluate()
 end
 function e_gotopostest:execute()
 	local pos = c_gotopostest.pos
-	if (NavigationManager:IsReachable(pos)) then
-	
-		Player:MoveTo(pos.x,pos.y,pos.z)
-		
-		--d("NavPathNode:"..tostring(NavigationManager.NavPathNode))
-		--local path = NavigationManager:MoveTo(pos.x,pos.y,pos.z)
-		--d("path:"..tostring(table.size(path)))
-		--table.print(path)
-	--else
-		--NavigationManager:ResetPath()
-		--NavigationManager.NavPathNode
-		
-		--local newTask = ffxiv_task_movetopos.Create()
-		--newTask.pos = c_gotopostest.pos 
-		--newTask.range = 1
-		--newTask.remainMounted = true
-		--ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = c_gotopostest.pos 
+	newTask.range = 1
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_gotonpctest = inheritsFrom( ml_cause )

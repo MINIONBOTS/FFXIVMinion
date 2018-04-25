@@ -1157,9 +1157,9 @@ function e_followleader:execute()
 		end
 		
 		if (c_followleader.hasEntity and leader.los) then
-			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),true,false)))	
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range))))	
 		else
-			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),false,false)))	
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range))))	
 		end
 		if ( not Player:IsMoving()) then
 			if ( ml_global_information.AttackRange < 5 ) then
@@ -1275,13 +1275,14 @@ function c_getmovementpath:evaluate()
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1)
 				end
 				
-				if (ml_task_hub:CurrentTask().remainMounted and Player.ismounted and not IsFlying() and not IsDiving() and not Player.mountcanfly) then
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z), nil, nil, nil, 1, true)
-				end
-				
 				if (pathLength <= 0) then
-					--d("rebuild cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
+					-- attempt to get a path with no borders or avoidance first
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0)
+					
+					if (pathLength <= 0) then
+						--d("rebuild cube path")
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
+					end
 				end
 				
 				if (pathLength > 0 or ml_navigation:HasPath()) then

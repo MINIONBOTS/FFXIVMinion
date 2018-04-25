@@ -36,8 +36,8 @@ function c_stuck:evaluate()
 	c_stuck.blockOnly = false
 	
 	--if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
-	if (not Player.alive or CannotMove() or MIsLoading() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
-		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
+	if (not ffxiv_unstuck.IsPathing() or not Player.alive or Player:IsJumping() or MIsLocked() or MIsLoading() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
+		d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
 	
@@ -118,12 +118,14 @@ function c_stuck:evaluate()
 				d("Reached a stuck state for ["..tostring(state.name).."]")
 				return true
 			elseif state.ticks >= state.minticks then
+				e_stuck.state = state
 				if (name == "STUCK") then
 					if (TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
 						d("[Unstuck]: Performing corrective jump.")
 						Player:Jump()
 						ml_global_information.Await(3000, function () return not Player:IsJumping() end)
 						ffxiv_unstuck.lastCorrection = Now()
+						ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
 					end
 					c_stuck.blockOnly = true
 					return true
@@ -143,11 +145,11 @@ function c_stuck:evaluate()
 	end
 end
 function e_stuck:execute()
-	if (c_stuck.blockOnly) then
+	local state = e_stuck.state
+	
+	if (c_stuck.blockOnly and ffxiv_unstuck.State[state.name].stats < 3) then
 		return
 	end
-	
-	local state = e_stuck.state
 	
 	ffxiv_unstuck.State.STUCK.ticks = 0
 	ffxiv_unstuck.State.OFFMESH.ticks = 0
@@ -176,13 +178,21 @@ function e_stuck:execute()
 	end
 end
 
+function ffxiv_unstuck.IsPathing()
+	if (ml_navigation:HasPath() and ml_navigation.CanRun() and ml_navigation.canPath and not ffnav.IsProcessing()) then	
+		d("[Unstuck]: Navigation is pathing.")
+		return true
+	end
+	return false
+end
+
 function ffxiv_unstuck.IsStalled()
 	local requiredDist = 10
 	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967")
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.coarse.lastDist <= requiredDist and Player:IsMoving()) then
+	if (ffxiv_unstuck.coarse.lastDist <= requiredDist and ffxiv_unstuck.IsPathing() and not MIsLocked()) then
 		--d("[Unstuck_Stalled]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.coarse.lastDist).."].")
 		return true
 	else
@@ -198,10 +208,12 @@ function ffxiv_unstuck.IsStuck()
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving() and not MIsLocked() and not IsFlying()) then
+	if (ffxiv_unstuck.diffTotal <= requiredDist and ffxiv_unstuck.IsPathing() and not MIsLocked()) then
 		--d("[Unstuck_Stuck]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.diffTotal).."].")
 		return true
 	else
+		d("[Unstuck]: Navigation is not stuck.")
+		d("[Unstuck]: ["..tostring(ffxiv_unstuck.diffTotal).."], ["..tostring(ffxiv_unstuck.IsPathing()).."], ["..tostring(not MIsLocked()).."]")
 		--d("[Unstuck_Stuck]: Covered the minimum distance necessary.")
 		return false
 	end
