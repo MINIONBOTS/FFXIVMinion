@@ -1143,6 +1143,8 @@ function dev.DrawCall(event, ticks )
 													if (GUI:Button("Transmute()##"..tostring(slot),100,15) ) then d("Transmute Result: "..tostring(item:Transmute())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("SelectFeed()##"..tostring(slot),100,15) ) then d("SelectFeed Result: "..tostring(item:SelectFeed())) end
+													GUI:SameLine(0,20)
+													if (GUI:Button("Reward()##"..tostring(slot),100,15) ) then d("Reward Result: "..tostring(item:Reward())) end
 													
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
 
