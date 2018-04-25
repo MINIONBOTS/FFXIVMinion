@@ -830,46 +830,61 @@ function ml_navigation:IsGoalClose(ppos,node)
 		end
 	end
 	
-	if (nc and In(nc.subtype,1,2,3,4)) then
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
-			self:ResetOMCHandler()				
-			self.omc_id = nc.id
-			self.omc_details = nc	
-			return true
-		end
-	else
-		ml_navigation:ResetOMCHandler()
-	end
-	
 	if (Player.flying.isflying) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
+			self:ResetOMCHandler()
+			if ( nc and In(nc.subtype,1,2,3,4)) then				
+				self.omc_id = nc.id
+				self.omc_details = nc
+			end
 			return true
 		end
 	elseif (Player.diving.isdiving) then
 		--d("diving goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3ddive"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2ddive"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3ddive"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2ddive"]) then
+			self:ResetOMCHandler()
+			if ( nc and In(nc.subtype,1,2,3,4)) then				
+				self.omc_id = nc.id
+				self.omc_details = nc
+			end
 			return true
 		end
 	elseif (Player.diving.isswimming) then
 		--d("swimming goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dswim"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dswim"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dswim"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dswim"]) then
+			self:ResetOMCHandler()
+			if ( nc and In(nc.subtype,1,2,3,4)) then				
+				self.omc_id = nc.id
+				self.omc_details = nc
+			end
 			return true
 		end
 	elseif (Player.ismounted) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dmount"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dmount"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
+			self:ResetOMCHandler()
+			if ( nc and In(nc.subtype,1,2,3,4)) then				
+				self.omc_id = nc.id
+				self.omc_details = nc
+			end
 			return true
 		end
 	else
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dwalk"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dwalk"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+			self:ResetOMCHandler()
+			if ( nc and In(nc.subtype,1,2,3,4)) then				
+				self.omc_id = nc.id
+				self.omc_details = nc
+			end
 			return true
 		end
 	end
 	return false
 end
-
+	
+	
 function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local pos = Player.pos
 	if (not table.valid(pos2)) then
@@ -1272,7 +1287,7 @@ function ml_navigation.Navigate(event, ticks )
 								else
 									local todist,todist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,to_pos)
 									--d("todist2d:"..tostring(todist2d))
-									if ( todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+									if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
 										if (nextnextnode) then
 											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 										end										
