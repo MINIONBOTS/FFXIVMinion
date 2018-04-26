@@ -688,7 +688,7 @@ function ml_navigation.CheckObstacles()
 		local ppos = Player.pos
 		local nextNode = ml_navigation.path[ml_global_information.pathindex]
 		
-		if (table.isa(nextNode)) then
+		if (false and table.isa(nextNode)) then
 		
 			local h = ppos.h
 			
