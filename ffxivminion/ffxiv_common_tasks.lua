@@ -1143,9 +1143,7 @@ function ffxiv_task_avoid:task_complete_eval()
 	end
 	
 	if (dist > 1) then
-		--NavigationManager:UseCubes(false)
-		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5)
-		--NavigationManager:UseCubes(true)
+		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,0,1)
 	end
 	
 	if (dist < 1.5 and not Player:IsMoving()) then
@@ -1552,12 +1550,13 @@ function ffxiv_task_grindCombat:Process()
 						end
 					else
 						if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
-							--NavigationManager:UseCubes(false)
+							local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+							if (pathLength <= 0) then
+								Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
+							end
+						else
+							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 						end
-						--d("Melee class needs to move closer, fire moveto..")
-						Player:MoveTo(pos.x,pos.y,pos.z, 0, false, false, target.id)
-						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
-						--NavigationManager:UseCubes(true)
 					end
 					local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
 					local dist2 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
