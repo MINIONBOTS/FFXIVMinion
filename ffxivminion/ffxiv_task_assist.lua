@@ -106,7 +106,7 @@ function ffxiv_task_assist:Process()
 						if (ml_global_information.AttackRange > 5) then
 							if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 								if (Now() > self.movementDelay) then
-									local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1),  false, false, target.id)
+									local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1),  0, 0, target.id)
 									self.movementDelay = Now() + 1000
 								end
 							end
@@ -129,7 +129,10 @@ function ffxiv_task_assist:Process()
 							end
 						else
 							if (not InCombatRange(target.id) or not target.los) then
-								Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false, target.id)
+								local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+								if (pathLength <= 0) then
+									Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
+								end
 							end
 							if (target.distance2d <= 15) then
 								if (Player.ismounted) then

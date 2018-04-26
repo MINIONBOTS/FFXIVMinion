@@ -199,11 +199,9 @@ function e_assistleader:execute()
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (Now() > c_assistleader.movementDelay) then
 					if (target.distance2d <= ml_global_information.AttackRange) then
-						Player:MoveTo(pos.x,pos.y,pos.z,1.5, false, false, target.id)
-						--Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z,1.5, 0, 0, target.id)
 					else
-						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, target.id)
-						--Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 					end
 					c_assistleader.movementDelay = Now() + 1000
 				end
@@ -1157,9 +1155,9 @@ function e_followleader:execute()
 		end
 		
 		if (c_followleader.hasEntity and leader.los) then
-			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), false, false, leader.id)))	
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), 0, 0, leader.id)))	
 		else
-			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), false, false, leader.id)))	
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), 0, 0, leader.id)))	
 		end
 		if ( not Player:IsMoving()) then
 			if ( ml_global_information.AttackRange < 5 ) then

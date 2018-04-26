@@ -1491,15 +1491,17 @@ function ffxiv_task_grindCombat:Process()
 				else
 					if (Now() > self.movementDelay) then
 						--d("Ranged class needs to move closer, fire moveto..")
-						--MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
 						if (target.distance2d <= (target.hitradius + 1)) then
-							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, target.id)
+							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, 0, 0, target.id)
 						else
 							if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
-								--avigationManager:UseCubes(false)
+								local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+								if (pathLength <= 0) then
+									Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
+								end
+							else
+								Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 							end
-							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, target.id)
-							--NavigationManager:UseCubes(true)
 						end
 						self.movementDelay = Now() + 1000
 					end

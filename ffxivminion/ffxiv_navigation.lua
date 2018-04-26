@@ -998,13 +998,12 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 		if (ml_navigation:EnablePathing()) then
 			--d("[NAVIGATION: Started pathing [MOVETO3].")
 		end
-		return true
 	else
 		if (ml_navigation:DisablePathing()) then
 			--d("[NAVIGATION: Stopped pathing, path not valid [MOVETO4].")			
 		end
-		return false
 	end
+	return ret
 end
 
 ml_navigation.lastpastlength = 0
