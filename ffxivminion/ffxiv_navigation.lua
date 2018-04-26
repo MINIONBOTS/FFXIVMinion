@@ -680,6 +680,67 @@ function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
 	return dist,dist2d
 end
 
+-- So, basic, theory, try to steer VERY slightly left or right to avoid obstacles.
+ml_navigation.lastObstacleCheck = 0
+function ml_navigation.CheckObstacles()
+	
+	--if (TimeSince(ml_navigation.lastObstacleCheck) > 150) then
+		local ppos = Player.pos
+		local nextNode = ml_navigation.path[ml_global_information.pathindex]
+		
+		if (table.isa(nextNode)) then
+		
+			local h = ppos.h
+			
+			-- Using node heading to make sure we're following the path and not some wild correction vector.
+			local angle = AngleFromPos(Player.pos, nextNode)
+			local nodeHeading = DegreesToHeading(angle)
+			
+			local leftBaseHeading = ConvertHeading(nodeHeading + (math.pi/2))%(2*math.pi)
+			local rightBaseHeading = ConvertHeading(nodeHeading - (math.pi/2))%(2*math.pi)
+			local forwardHeading = ConvertHeading(nodeHeading)%(2*math.pi)
+			
+			local slightLeft = ConvertHeading(nodeHeading + (math.pi * .04))%(2*math.pi)
+			local slightRight = ConvertHeading(nodeHeading - (math.pi * .04))%(2*math.pi)
+			
+			local leftBase = GetPosFromDistanceHeading(ppos, 0.5, leftBaseHeading)
+			local rightBase = GetPosFromDistanceHeading(ppos, 0.5, rightBaseHeading)
+			local leftBaseExtended = GetPosFromDistanceHeading(ppos, 2, leftBaseHeading)
+			local rightBaseExtended = GetPosFromDistanceHeading(ppos, 2, rightBaseHeading)	
+			local leftTest = GetPosFromDistanceHeading(leftBase, 1, nodeHeading)
+			local rightTest = GetPosFromDistanceHeading(rightBase, 1, nodeHeading)
+			local straightTest = GetPosFromDistanceHeading(ppos, 1, nodeHeading)
+		
+			local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,leftBaseExtended.x,leftBaseExtended.y+0.5,leftBaseExtended.z) 
+			local rbe_hit, rbe_hitx, rbe_hity, rbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,rightBaseExtended.x,rightBaseExtended.y+0.5,rightBaseExtended.z) 
+			local lblt_hit, lblt_hitx, lblt_hity, lblt_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,leftTest.x,leftTest.y+0.5,leftTest.z) 
+			local rbrt_hit, rbrt_hitx, rbrt_hity, rbrt_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,rightTest.x,rightTest.y+0.5,rightTest.z) 
+			local st_hit, st_hitx, st_hity, st_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+			local lbst_hit, lbst_hitx, lbst_hity, lbst_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+			local rbst_hit, rbst_hitx, rbst_hity, rbst_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+			
+			if (st_hit) then
+				if (lbst_hit or lblt_hit) then
+					d("slight left")
+					return slightLeft	
+				elseif (rbst_hit or rbrt_hit) then
+					d("slight right")
+					return slightRight
+				end			
+			elseif (lbe_hit and lblt_hit) then
+				d("slight left")
+				return slightLeft	
+			elseif (rbe_hit and rbrt_hit) then
+				d("slight right")
+				return slightRight
+			end
+		end
+		ml_navigation.lastObstacleCheck = Now()
+	--end
+	
+	return 0
+end
+
 function ml_navigation.GetFlightAdjustment()
 	local verticalAdjustment = 0
 	
@@ -816,6 +877,8 @@ function ml_navigation:IsGoalClose(ppos,node)
 	local navconradius = 0
 	if( node.navconnectionid and node.navconnectionid ~= 0) then
 		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
+		--table.print(navcon)
+		--table.print(node)
 		if ( navcon and navcon.type ~= 5 ) then -- Type 5 == MacroMesh
 			-- substracing the radius from the remaining distance
 			goaldist = goaldist - navcon.radius
@@ -1199,7 +1262,7 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.GUI.nextNodeDistance = math.distance3d(ppos,nextnode)
 					
 			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
-					if ( table.valid (ml_navigation.ensureposition) and (ml_navigation:EnsurePosition(ppos) )) then
+					if (adjustedHeading == 0 and table.valid (ml_navigation.ensureposition) and (ml_navigation:EnsurePosition(ppos) )) then
 						return
 					end
 					
@@ -1447,11 +1510,16 @@ function ml_navigation.Navigate(event, ticks )
 							-- If we're close, we need to just fly directly.  The cubes make it an impossible task to try to do this via the actual path.
 							local tpos = target.pos
 							local dist3D = math.distance3d(tpos,ppos)
-							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
-							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-								Player:SetFacing(tpos.x,tpos.y,tpos.z, true) -- smooth facing
+							
+							if (adjustedHeading ~= 0) then
+								Player:SetFacing(adjustedHeading)
 							else
-								Player:SetFacing(tpos.x,tpos.y,tpos.z)
+								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
+								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+									Player:SetFacing(tpos.x,tpos.y,tpos.z, true) -- smooth facing
+								else
+									Player:SetFacing(tpos.x,tpos.y,tpos.z)
+								end
 							end
 							
 							local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = tpos.x, y = (tpos.y - 2), z = tpos.z }
@@ -1517,11 +1585,15 @@ function ml_navigation.Navigate(event, ticks )
 								--d("[Navigation]: Moving to next node")
 								-- We have not yet reached our node
 								-- Face next node
-								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
-								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+								if (adjustedHeading ~= 0) then
+									Player:SetFacing(adjustedHeading)
 								else
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+									if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+									else
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									end
 								end
 								
 								local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
@@ -1562,6 +1634,8 @@ function ml_navigation.Navigate(event, ticks )
 								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0) then
 							
 									d("[Navigation]: Next node is not a flying node, dive a bit.")
+									--table.print(nextnode)
+									--table.print(nextnextnode)
 									local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
 									local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y,nextnode.z,nextnode.x,nextnode.y-5,nextnode.z)
 									if (hit) then
@@ -1569,8 +1643,13 @@ function ml_navigation.Navigate(event, ticks )
 											modifiedNode.y = hity - 1
 										end
 									end		
-																		
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									
+									if (adjustedHeading ~= 0) then
+										Player:SetFacing(adjustedHeading)
+									else
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									end
+									
 									local pitch = GetRequiredPitch(modifiedNode,true) -- Pitch down a little further.
 									Player:SetPitch(pitch)
 									
@@ -1624,11 +1703,15 @@ function ml_navigation.Navigate(event, ticks )
 							--ml_debug("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
 							-- Face next node
-							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
-							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+							if (adjustedHeading ~= 0) then
+								Player:SetFacing(adjustedHeading)
 							else
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+								else
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								end
 							end
 							
 							--local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y + 1), z = nextnode.z }
@@ -1692,7 +1775,7 @@ function ml_navigation.Navigate(event, ticks )
 							end						
 						end
 						
-						--d("[Navigation]: Navigate to node.")
+						d("[Navigation]: Navigate to node.")
 						ml_navigation:NavigateToNode(ppos,nextnode)	
 					end
 				
@@ -1722,8 +1805,9 @@ end
 RegisterEventHandler("Gameloop.Draw", ml_navigation.DebugDraw)
 
 -- Used by multiple places in the Navigate() function above, so I'll put it here ...no redudant code...
-function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
-
+function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adjustedHeading)
+	local adjustedHeading = IsNull(adjustedHeading,0)
+	
 	-- Check if we left our path
 	if ( stillonpaththreshold ) then
 		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
@@ -1744,11 +1828,15 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 		ml_navigation.GUI.lastAction = "Walk to Node"
 		
 		-- We have not yet reached our node
-		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})														
-		if ( anglediff < 35 and nodedist > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z,true)
+		if (adjustedHeading ~= 0) then
+			Player:SetFacing(adjustedHeading)
 		else
-			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+			local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})											
+			if ( anglediff < 35 and nodedist > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+				Player:SetFacing(nextnode.x,nextnode.y,nextnode.z,true)
+			else
+				Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+			end
 		end
 		
 		if (IsDiving()) then
