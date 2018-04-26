@@ -1198,6 +1198,11 @@ function ml_navigation.Navigate(event, ticks )
 						return
 					end
 					
+					local navcon
+					if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
+						navcon = ml_mesh_mgr.navconnections[nextnode.navconnectionid]
+					end
+					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
 						-- Our current 'nextnode' is the END of the NavConnection !!
@@ -1569,7 +1574,7 @@ function ml_navigation.Navigate(event, ticks )
 										ffnav.Await(3000, function () return Player:IsMoving() end)
 										return false
 									end
-									if (nextnode.is_omc or nextnode.navconnectionid ~= 0) then
+									if (navcon and navcon.radius <= 0.5) then
 										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or GetDiveHeight() <= 0) end, function () Player:StopMovement() end)
 										return false
 									end
@@ -1638,8 +1643,8 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (not IsFlying() and not IsDiving()) then
-						--d("[Navigation]: Normal navigation..")
-						if (nextnode.type == GLOBAL.NODETYPE.CUBE) then
+						d("[Navigation]: Normal navigation..")
+						if (nextnode.type == GLOBAL.NODETYPE.CUBE or (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
