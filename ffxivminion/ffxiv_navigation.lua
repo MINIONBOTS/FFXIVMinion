@@ -954,8 +954,8 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 		return false
 	end
 	
-	local floorfilters = IsNull(floorfilters,0)
-	local cubefilters = IsNull(cubefilters,0)
+	local floorfilters = IsNull(floorfilters,0,true)
+	local cubefilters = IsNull(cubefilters,0,true)
 	
 	if (not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
@@ -982,8 +982,8 @@ end
 -- Added misc debug codes to more easily help identify debug messages.
 -- Added targetid since that is totally needed for any moving enemy, espeically in pvp. Else the bot likes to move backwards the path he came from, due to cached paths.
 function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
-	local floorfilters = IsNull(floorfilters,0)
-	local cubefilters = IsNull(cubefilters,0)
+	local floorfilters = IsNull(floorfilters,0,true)
+	local cubefilters = IsNull(cubefilters,0,true)
 	
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
@@ -1009,8 +1009,8 @@ end
 ml_navigation.lastpastlength = 0
 ml_navigation.pathchanged = false
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
-	local floorfilters = IsNull(floorfilters,0)
-	local cubefilters = IsNull(cubefilters,0)
+	local floorfilters = IsNull(floorfilters,0,true)
+	local cubefilters = IsNull(cubefilters,0,true)
 	
 	--d("buildPath:"..tostring(floorfilters)..","..tostring(cubefilters))
 

@@ -5108,7 +5108,7 @@ function GameRegion()
 	end
 	return 1
 end
-function IsNull(variant,default)
+function IsNull(variant,default,typecheck)
 	if (variant == nil) then
 		if (default == nil) then
 			return true
@@ -5116,7 +5116,11 @@ function IsNull(variant,default)
 			return default
 		end
 	else
-		return variant
+		if (default ~= nil and typecheck == true and type(variant) ~= type(default)) then
+			return default
+		else
+			return variant
+		end
 	end
 end
 function IIF(test,truepart,falsepart)
