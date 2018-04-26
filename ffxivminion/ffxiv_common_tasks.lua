@@ -1490,12 +1490,12 @@ function ffxiv_task_grindCombat:Process()
 						--d("Ranged class needs to move closer, fire moveto..")
 						--MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
 						if (target.distance2d <= (target.hitradius + 1)) then
-							Player:MoveTo(pos.x,pos.y,pos.z, 1.5)
+							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, target.id)
 						else
 							if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
 								--avigationManager:UseCubes(false)
 							end
-							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1))
+							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, target.id)
 							--NavigationManager:UseCubes(true)
 						end
 						self.movementDelay = Now() + 1000
@@ -1550,7 +1550,7 @@ function ffxiv_task_grindCombat:Process()
 							--NavigationManager:UseCubes(false)
 						end
 						--d("Melee class needs to move closer, fire moveto..")
-						Player:MoveTo(pos.x,pos.y,pos.z)
+						Player:MoveTo(pos.x,pos.y,pos.z, 0, false, false, target.id)
 						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
 						--NavigationManager:UseCubes(true)
 					end

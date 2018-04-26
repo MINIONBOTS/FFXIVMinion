@@ -917,7 +917,8 @@ end
 -- MoveTo will now only build a path if one does not exist or the one it wants to use is not compatible.
 -- Ideally, BuildPath should be called before this but there maybe legacy situations/tasks not updated where we don't want to just break them.
 -- Added misc debug codes to more easily help identify debug messages.
-function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters)
+-- Added targetid since that is totally needed for any moving enemy, espeically in pvp. Else the bot likes to move backwards the path he came from, due to cached paths.
+function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 	local floorfilters = IsNull(floorfilters,0)
 	local cubefilters = IsNull(cubefilters,0)
 	
@@ -929,7 +930,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters)
 		return false
 	end
 	
-	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters)	
+	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
 			--d("[NAVIGATION: Started pathing [MOVETO3].")
@@ -945,7 +946,7 @@ end
 
 ml_navigation.lastpastlength = 0
 ml_navigation.pathchanged = false
-function Player:BuildPath(x, y, z, floorfilters, cubefilters)
+function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local floorfilters = IsNull(floorfilters,0)
 	local cubefilters = IsNull(cubefilters,0)
 	
@@ -980,7 +981,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
-	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z)
+	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	
 	--[[
 	local ret = 0;
