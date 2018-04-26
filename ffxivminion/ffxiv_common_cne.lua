@@ -1243,6 +1243,8 @@ end
 -- This part will build the path, and walktopos will only need to check if one exists and enable pathing.
 c_getmovementpath = inheritsFrom( ml_cause )
 e_getmovementpath = inheritsFrom( ml_effect )
+c_getmovementpath.lastFallback = 0
+c_getmovementpath.lastGoal = {}
 function c_getmovementpath:evaluate()
 	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
 		return false
@@ -1277,11 +1279,15 @@ function c_getmovementpath:evaluate()
 				
 				if (pathLength <= 0) then
 					-- attempt to get a path with no borders or avoidance first
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0)
+					if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0)
+					end
 					
 					if (pathLength <= 0) then
 						--d("rebuild cube path")
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
+						c_getmovementpath.lastFallback = Now()
+						c_getmovementpath.lastGoal = gotoPos
 					end
 				end
 				

@@ -37,7 +37,7 @@ function c_stuck:evaluate()
 	
 	--if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
 	if (not ffxiv_unstuck.IsPathing() or not Player.alive or Player:IsJumping() or MIsLocked() or MIsLoading() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
-		d("[Unstuck]: We're locked, loading, or nav status is not operational.")
+		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
 	
@@ -180,7 +180,7 @@ end
 
 function ffxiv_unstuck.IsPathing()
 	if (ml_navigation:HasPath() and ml_navigation.CanRun() and ml_navigation.canPath and not ffnav.IsProcessing()) then	
-		d("[Unstuck]: Navigation is pathing.")
+		--d("[Unstuck]: Navigation is pathing.")
 		return true
 	end
 	return false
@@ -212,8 +212,8 @@ function ffxiv_unstuck.IsStuck()
 		--d("[Unstuck_Stuck]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.diffTotal).."].")
 		return true
 	else
-		d("[Unstuck]: Navigation is not stuck.")
-		d("[Unstuck]: ["..tostring(ffxiv_unstuck.diffTotal).."], ["..tostring(ffxiv_unstuck.IsPathing()).."], ["..tostring(not MIsLocked()).."]")
+		--d("[Unstuck]: Navigation is not stuck.")
+		--d("[Unstuck]: ["..tostring(ffxiv_unstuck.diffTotal).."], ["..tostring(ffxiv_unstuck.IsPathing()).."], ["..tostring(not MIsLocked()).."]")
 		--d("[Unstuck_Stuck]: Covered the minimum distance necessary.")
 		return false
 	end
