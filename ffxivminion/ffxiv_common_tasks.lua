@@ -559,6 +559,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (not interactable or not interactable.targetable) then
 			return true
 		end
+		if (interactable.interactable and interactable.distance <= 2.5) then
+			return true
+		end
 	else
 		local epos = self.pos
 		local dist = Distance3DT(ppos,epos)
