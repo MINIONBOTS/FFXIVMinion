@@ -120,7 +120,7 @@ function c_stuck:evaluate()
 			elseif state.ticks >= state.minticks then
 				e_stuck.state = state
 				if (name == "STUCK") then
-					if (TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
+					if (not IsFlying() and not IsDiving() and TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
 						d("[Unstuck]: Performing corrective jump.")
 						Player:Jump()
 						ml_global_information.Await(3000, function () return not Player:IsJumping() end)
@@ -220,7 +220,7 @@ function ffxiv_unstuck.IsStuck()
 end
 
 function ffxiv_unstuck.IsOffMesh()
-	if (IsFlying() or MIsLocked() or Player.incombat) then
+	if (IsFlying() or IsDiving() or MIsLocked() or Player.incombat) then
 		return false
 	end
 	if (not FFXIV_Common_NavMesh or FFXIV_Common_NavMesh == "" or FFXIV_Common_NavMesh == GetString("none") or MIsLoading()) then

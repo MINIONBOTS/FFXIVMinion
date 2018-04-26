@@ -1064,7 +1064,7 @@ function ml_navigation.IsHandlingOMC(tickcount)
 end
 
 function ml_navigation.TagNode(node)
-	if (table.valid(node)) then
+	if (table.valid(node) and not node.is_tagged) then
 		node.is_start = (bit.band(node.type2, 1) ~= 0)
 		node.is_end = (bit.band(node.type2, 2) ~= 0)
 		node.is_omc = (bit.band(node.type2, 4) ~= 0)
@@ -1085,6 +1085,7 @@ function ml_navigation.TagNode(node)
 			node.water = (bit.band(flags, GLOBAL.CUBE.WATER) ~= 0)
 			node.air_avoid = (bit.band(flags, GLOBAL.CUBE.AVOID) ~= 0)
 		end
+		node.is_tagged = true
 	end
 end
 
@@ -1127,7 +1128,7 @@ function ml_navigation.Navigate(event, ticks )
 				
 					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 				
-					if (ml_navigation.IsPathInvalid() and table.valid(ml_navigation.targetposition)) then
+					--if (ml_navigation.IsPathInvalid() and table.valid(ml_navigation.targetposition)) then
 						--d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
 						
@@ -1137,9 +1138,13 @@ function ml_navigation.Navigate(event, ticks )
 						--NavigationManager:UseCubes(true)
 						
 						--Player:Stop()
-						return
+						--return
+					--end
+					
+					local adjustedHeading = ml_navigation.CheckObstacles()
+					if (adjustedHeading ~= 0) then
+						d("[Navigation]: Found an obstacle, adjust heading to ["..tostring(adjustedHeading).."].")
 					end
-								
 					
 					if IsControlOpen("Talk") then
 						UseControlAction("Talk","Click")
@@ -1783,30 +1788,38 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 			threshold = ml_navigation.PathDeviationDistances[deviationthreshold]
 		end
 		
-		if ( not Player:IsJumping()) then
-			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
-			if ((IsFlying() or IsDiving()) and string.contains(ml_navigation.path[ml_navigation.pathindex],"CUBE")) then --if the node we goto is on the floor (underwater!) use 2D, it happens that recast just points to the next node which is pathing through U or A shaped terrain.
-				if (math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > threshold) then			
-					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
-					
-					--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
-					NavigationManager:ResetPath()
-					ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
-					return false
+		local lastnode = ml_navigation.path[ml_navigation.pathindex - 1]
+		local nextnode = ml_navigation.path[ml_navigation.pathindex]
+		
+		if (lastnode and nextnode) then
+			ml_navigation.TagNode(nextnode)
+			if ( not Player:IsJumping()) then
+				-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
+				if ((IsFlying() or IsDiving()) and nextnode.is_cube) then --if the node we goto is on the floor (underwater!) use 2D, it happens that recast just points to the next node which is pathing through U or A shaped terrain.
+					local distline = math.distancepointline(lastnode,nextnode,ppos)
+					if (distline > threshold) then			
+						d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						
+						--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
+						NavigationManager:ResetPath()
+						ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
+						return false
+					end
+				else
+					-- only use 2D 
+					local from = { x = lastnode.x, y = 0, z = lastnode.z }
+					local to = { x = nextnode.x, y = 0, z = nextnode.z }
+					local ppos2d = { x = ppos.x, y = 0, z = ppos.z }
+					local distline = math.distancepointline(from, to, ppos2d)
+					if (distline > threshold) then			
+						d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						
+						--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
+						NavigationManager:ResetPath()
+						ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
+						return false
+					end				
 				end
-			else
-				-- only use 2D 
-				local from = { x = ml_navigation.path[ml_navigation.pathindex-1].x, y = 0, z = ml_navigation.path[ml_navigation.pathindex-1].z }
-				local to = { x = ml_navigation.path[ml_navigation.pathindex].x, y = 0, z = ml_navigation.path[ml_navigation.pathindex].z }
-				local ppos2d = { x = ppos.x, y = 0, z = ppos.z }
-				if (math.distancepointline(from, to, ppos2d) > threshold) then			
-					d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(threshold))
-					
-					--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
-					NavigationManager:ResetPath()
-					ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
-					return false
-				end				
 			end
 		end
 	end

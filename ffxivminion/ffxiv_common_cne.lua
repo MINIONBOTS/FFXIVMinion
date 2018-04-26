@@ -1727,7 +1727,8 @@ function c_mount:evaluate()
 			local needsMount = false
 			if (table.valid(ml_navigation.path)) then
 				for i, node in pairs(ml_navigation.path) do
-					if (node.type == "CUBE") then
+					ml_navigation.TagNode(node)
+					if (node.air or node.air_avoid) then
 						needsMount = true
 					end
 				end		
@@ -3223,7 +3224,8 @@ function c_dostealth:evaluate()
 	local needsStealth = ml_global_information.needsStealth
 	local hasStealth = HasBuff(Player.id,47)
 	local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
-	if (needsStealth and nextnode and string.contains(nextnode.type,"CUBE")) then
+	ml_navigation.TagNode(nextnode)
+	if (needsStealth and nextnode and nextnode.is_cube) then
 		-- If we have stealth, we could actually walk up to a cube node to some degree sometimes, but this may not be needed, so keeping it simple for now.
 		-- Not going to remove stealth in this cne because mounting should take care of it for us and be safer.
 		d("[DoStealth]: Next node type is a cube, we won't be able to stealth to it.")
