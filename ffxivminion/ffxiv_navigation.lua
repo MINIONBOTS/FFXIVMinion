@@ -1650,14 +1650,14 @@ function ml_navigation.Navigate(event, ticks )
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
-							if (IsSwimming() or bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0) then
+							if (IsSwimming() or ( bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0 and nextnode.y < ppos.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
 								Player:StopMovement()
 								Player:Dive()
 								ffnav.Await(3000, function () return (MIsLoading() or IsDiving()) end)
 								return
 							elseif (not IsFlying() and CanFlyInZone()) then
 								if (Player.ismounted and not Player.mountcanfly and bit.band(nextnode.flags, GLOBAL.CUBE.AIR) ~= 0) then
-									d("our mount cannot fly, dismount it.")
+									d("[Navigation] - Our mount cannot fly, dismount it.")
 									Dismount()
 									ffnav.Await(5000, function () return not Player.ismounted end)
 									return
@@ -1688,7 +1688,7 @@ function ml_navigation.Navigate(event, ticks )
 							end						
 						end
 						
-						--d("[Navigation]: Navigate to node.")
+						d("[Navigation]: Navigate to node.")
 						ml_navigation:NavigateToNode(ppos,nextnode)	
 					end
 				
