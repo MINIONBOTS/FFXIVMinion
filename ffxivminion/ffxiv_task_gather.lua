@@ -441,20 +441,21 @@ function e_movetonode:execute()
 			end
 			
 			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
-			
-			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
-				if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
-					local alternateTask = ffxiv_task_movetopos.Create()
-					alternateTask.pos = pos
-					alternateTask.useTeleport = (gTeleportHack)
-					alternateTask.range = 2.5
-					alternateTask.remainMounted = true
-					alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
-					ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-					gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
+			if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and not MIsLocked()) then
+				if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
+					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
+						local alternateTask = ffxiv_task_movetopos.Create()
+						alternateTask.pos = pos
+						alternateTask.useTeleport = (gTeleportHack)
+						alternateTask.range = 2.5
+						alternateTask.remainMounted = true
+						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
+						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+						gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
+					end
+					d("Need to use cordial, manual, or wait for GP. ",2)
+					return
 				end
-				gd("Need to use cordial, manual, or wait for GP. ",2)
-				return
 			end
 			
 			if (gTeleportHack and dist3d > 8) then
@@ -499,10 +500,10 @@ function c_returntobase:evaluate()
 			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
-		local p = FindClosestMesh(basePos)
-		if (p and NavigationManager:IsReachable(p)) then
-			basePos = p
-		end
+		--local p = FindClosestMesh(basePos)
+		--if (p and NavigationManager:IsReachable(p)) then
+		--	basePos = p
+		--end
 
 		if (table.valid(basePos)) then
 			local myPos = Player.pos
@@ -1265,6 +1266,12 @@ function CanUseCordialSoon()
 	local minimumGP = GetMinGP()
 	local useCordials = false
 	
+	local useDeficit = true
+	
+	if minimumGP > 0 then
+		useDeficit = false
+	end
+	
 	local profile, task;
 	if (IsFisher(Player.job)) then
 		profile = ffxiv_fish.profileData
@@ -1321,16 +1328,18 @@ function CanUseCordialSoon()
 			end
 		end
 		
-		if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-				--d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
-			return true, cordialHigh
-		elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				--d("[CanUseCordialSoon]: Returning Deficit. cordial.")
-			return true, cordialNormal
-		elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-				--d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
-			return true, cordialQuick
-		end	
+		if useDeficit then
+			if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+					--d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
+				return true, cordialHigh
+			elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+					--d("[CanUseCordialSoon]: Returning Deficit. cordial.")
+				return true, cordialNormal
+			elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+					--d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
+				return true, cordialQuick
+			end	
+		end
 		
 		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
 		if (usedPatience) then
@@ -1351,6 +1360,12 @@ function CanUseCordial()
 	local minimumGP = GetMinGP()
 	local useCordials = false
 	
+	local useDeficit = true
+	
+	if minimumGP > 0 then
+		useDeficit = false
+	end
+		
 	local profile, task;
 	if (IsFisher(Player.job)) then
 		profile = ffxiv_fish.profileData
@@ -1391,35 +1406,37 @@ function CanUseCordial()
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= gwateredCordialsGP or (cordialNormal == nil and cordialHigh == nil))) then
-			if (cordialQuick and cordialQuickAction and cordialQuickAction:IsReady(Player.id)) then
+			if (cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
 				d("[CanUseCordial]: Returning Min. Quick cordial.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= gnormCordialsGP or (cordialHigh == nil))) then
-			if (cordialNormal and cordialNormalAction and cordialNormalAction:IsReady(Player.id)) then
+			if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
 				d("[CanUseCordial]: Returning Min. cordial.")
 				return true, cordialNormal
 			end
 		end		
 		
-		if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and cordialHighAction:IsReady(Player.id)) then
-				d("[CanUseCordial]: Returning Deficit. High cordial.")
-			return true, cordialHigh
-		elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and cordialNormalAction:IsReady(Player.id)) then
-				d("[CanUseCordial]: Returning Deficit. cordial.")
-			return true, cordialNormal
-		elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and cordialQuickAction:IsReady(Player.id)) then
-				d("[CanUseCordial]: Returning Deficit. Quick cordial.")
-			return true, cordialQuick
-		end	
+		if useDeficit then
+			if (gpDeficit >= ghighCordialsGP and cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
+					d("[CanUseCordial]: Returning Deficit. High cordial.")
+				return true, cordialHigh
+			elseif (gpDeficit >= gnormCordialsGP and cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
+					d("[CanUseCordial]: Returning Deficit. cordial.")
+				return true, cordialNormal
+			elseif (gpDeficit >= gwateredCordialsGP and cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
+					d("[CanUseCordial]: Returning Deficit. Quick cordial.")
+				return true, cordialQuick
+			end	
+		end
 		
 		local usedPatience = (IsFisher(Player.job) and MissingBuff(Player,764) and ffxiv_fish.NeedsPatienceCheck() and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and cordialNormalAction and cordialNormalAction:IsReady(Player.id)) then
+			if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
 				return true, cordialNormal
-			elseif (cordialHigh and cordialHighAction and cordialHighAction:IsReady(Player.id)) then
+			elseif (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 				return true, cordialHigh
 			end
 		end
@@ -1642,9 +1659,7 @@ function c_nodeprebuff:evaluate()
 		end
 	end
 	
-	if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and 
-		not MIsLocked() and not IsFlying()) 
-	then
+	if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and not MIsLocked()) then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			if (gatherable.distance <= 15) then
@@ -1879,7 +1894,7 @@ function e_nodeprebuff:execute()
 	
 	if (activity == "usecordial") then
 		local cordial, action = GetItem(activityitemid)
-		if (cordial and action and cordial:IsReady(Player.id)) then
+		if (cordial and action and not action.isoncd) then
 			cordial:Cast(Player.id)
 			local castid = action.id
 			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
