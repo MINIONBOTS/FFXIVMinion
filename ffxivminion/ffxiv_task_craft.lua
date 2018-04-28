@@ -1024,7 +1024,7 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		
-		if (not ml_task_hub:CurrentTask().recipeSelected) then
+		if (Crafting:GetSelectedCraftInfo(recipe.id).iscorrectindex ~= true) then --(not ml_task_hub:CurrentTask().recipeSelected) then
 			d("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
 			ml_task_hub:CurrentTask().recipeSelected = true

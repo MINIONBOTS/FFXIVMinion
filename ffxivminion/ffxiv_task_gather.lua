@@ -442,18 +442,46 @@ function e_movetonode:execute()
 			
 			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
 			if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and not MIsLocked()) then
-				if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
+				if CanUseCordial() then
 					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
 						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = 2.5
-						alternateTask.remainMounted = true
+						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-						gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
+						d("Starting alternate MOVETOPOS task to use a cordial.",2)
 					end
-					d("Need to use cordial, manual, or wait for GP. ",2)
+					d("Need to use cordial. ",2)
+					return
+				end
+				if CanUseExpManual() then
+					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
+						local alternateTask = ffxiv_task_movetopos.Create()
+						alternateTask.pos = pos
+						alternateTask.useTeleport = (gTeleportHack)
+						alternateTask.range = 2.5
+						alternateTask.remainMounted = false
+						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
+						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+						d("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
+					end
+					d("Need to use manual. ",2)
+					return
+				end
+				if (Player.gp.current < newTask.minGP) then
+					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
+						local alternateTask = ffxiv_task_movetopos.Create()
+						alternateTask.pos = pos
+						alternateTask.useTeleport = (gTeleportHack)
+						alternateTask.range = 2.5
+						alternateTask.remainMounted = false
+						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
+						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+						d("Starting alternate MOVETOPOS task to wait for GP.",2)
+					end
+					d("Need to wait for GP. ",2)
 					return
 				end
 			end
@@ -1669,8 +1697,8 @@ function c_nodeprebuff:evaluate()
 						d("[NodePreBuff]: Need to use a cordial.")
 						e_nodeprebuff.activity = "usecordial"
 						e_nodeprebuff.itemid = cordialItem.hqid
-						e_nodeprebuff.requirestop = false
-						e_nodeprebuff.requiredismount = false
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = true
 						return true
 					end					
 				end
