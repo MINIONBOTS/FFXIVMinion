@@ -2884,6 +2884,7 @@ function c_gathernexttask:evaluate()
 					if (ffxiv_gather.currentTaskIndex ~= lowestIndex) then
 						ffxiv_gather.currentTaskIndex = lowestIndex
 						ffxiv_gather.currentTask = best
+						d("New task id = "..tostring(lowestIndex))
 						return true
 					else
 						gd("[GatherNextTask]: Found a task, but it is the current task, so do nothing.",3)
@@ -3302,6 +3303,43 @@ function e_gathernoactivity:execute()
 	-- Do nothing here, but there's no point in continuing to process and eat CPU.
 end
 
+c_resettask = inheritsFrom( ml_cause )
+e_resettask = inheritsFrom( ml_effect )
+function c_resettask:evaluate()
+
+	if (IsControlOpen("Gathering") or not ffxiv_gather.HasDirective()) then
+		return false
+	end
+	
+	local resetTask = false
+	local task = ffxiv_task_gather.currentTask
+	local ids = ""
+	
+	if (table.valid(task)) then
+		resetTask = IsNull(task.evaluate,false)
+		ids = IsNull(task.ids,"")
+		if (task.mapid ~= Player.localmapid) then
+			--d("[flag reset]: Not on correct map yet.",3)
+			return false
+		end
+	end
+	
+	if (type(ids) == "string" and GUI_Get(ids) ~= nil) then
+		ids = GUI_Get(ids)
+	end
+	
+	if (resetTask and ids ~= "" and FindRadarMarker(ids) ~= nil) then
+		if (tonumber(ids) ~= nil and tonumber(ids) == FindRadarMarker(ids).id) then
+			return true
+		end
+	end
+	
+	return false
+end
+
+function e_resettask:execute()
+	c_gathernexttask:evaluate()
+end
 function ffxiv_task_gather:Init()
 	--[[ Overwatch Elements ]]
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 150 )
@@ -3318,6 +3356,9 @@ function ffxiv_task_gather:Init()
 	
 	local ke_nodePreBuff = ml_element:create( "NodePreBuff", c_nodeprebuff, e_nodeprebuff, 90 )
     self:add( ke_nodePreBuff, self.overwatch_elements)
+	
+	local ke_resetTask = ml_element:create( "ResetTask", c_resettask, e_resettask, 180 )
+    self:add( ke_resetTask, self.overwatch_elements)
 	
 	--[[ Process Elements ]]
 	

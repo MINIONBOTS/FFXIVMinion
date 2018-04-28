@@ -1023,42 +1023,59 @@ function e_startcraft:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
+		local indexInfo = Crafting:GetSelectedCraftInfo(recipe.id)
 		
-		if (Crafting:GetSelectedCraftInfo(recipe.id).iscorrectindex ~= true) then --(not ml_task_hub:CurrentTask().recipeSelected) then
-			d("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
-			Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
-			ml_task_hub:CurrentTask().recipeSelected = true
-			ffxiv_craft.tracking.lastSetRecipe = Now()
-			
-			local skillProfile = ml_task_hub:CurrentTask().skillProfile
-			if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
-				if (SkillMgr.HasProfile(skillProfile)) then
-					SkillMgr.UseProfile(skillProfile)
+		if (table.valid(indexInfo)) then
+			if indexInfo.iscorrectindex ~= true then 
+				d("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
+				Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
+				ml_task_hub:CurrentTask().recipeSelected = true
+				ffxiv_craft.tracking.lastSetRecipe = Now()
+				
+				local skillProfile = ml_task_hub:CurrentTask().skillProfile
+				if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
+					if (SkillMgr.HasProfile(skillProfile)) then
+						SkillMgr.UseProfile(skillProfile)
+					end
 				end
-			end
-			
-			ml_global_information.Await(1000)
-			return
-		else
-			if (not ml_task_hub:CurrentTask().matsSet) then
-				local useHQ = ml_task_hub:CurrentTask().useHQ
-				local ifNecessary = ml_task_hub:CurrentTask().ifNecessary
-				local mats = Crafting:GetCraftingMats()
-				if (table.valid(mats)) then
-					if (useHQ) then
-						for i = 1,6 do
-							local ingredient = mats[i]
-							if (ingredient) then
-								local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
-								local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
-								if not ifNecessary then
-									if (hqAmount > 0) then
-										if (ingredient.inventoryhq >= hqAmount) then
-											Crafting:SetCraftingMats(i-1,hqAmount)
-										elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-											Crafting:SetCraftingMats(i-1,hqAmountMin)
-										elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
-											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+				
+				ml_global_information.Await(1000)
+				return
+			else
+				if (not ml_task_hub:CurrentTask().matsSet) then
+					local useHQ = ml_task_hub:CurrentTask().useHQ
+					local ifNecessary = ml_task_hub:CurrentTask().ifNecessary
+					local mats = Crafting:GetCraftingMats()
+					if (table.valid(mats)) then
+						if (useHQ) then
+							for i = 1,6 do
+								local ingredient = mats[i]
+								if (ingredient) then
+									local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+									local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
+									if not ifNecessary then
+										if (hqAmount > 0) then
+											if (ingredient.inventoryhq >= hqAmount) then
+												Crafting:SetCraftingMats(i-1,hqAmount)
+											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
+												Crafting:SetCraftingMats(i-1,hqAmountMin)
+											elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
+												Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+											elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
+												ml_task_hub:CurrentTask().matsSet = false
+												ml_task_hub:CurrentTask().recipeSelected = false
+												d("Resetting recipe AGAIN.")
+												ml_global_information.Await(2500)
+												return
+											else
+												d("Stop crafting item, not enough HQ.")
+												e_craftlimit:execute()
+												return false
+											end
+										end
+									else
+										if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
+											Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
 										elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
 											ml_task_hub:CurrentTask().matsSet = false
 											ml_task_hub:CurrentTask().recipeSelected = false
@@ -1066,81 +1083,67 @@ function e_startcraft:execute()
 											ml_global_information.Await(2500)
 											return
 										else
-											d("Stop crafting item, not enough HQ.")
+											d("Not enough materials including HQ.")
 											e_craftlimit:execute()
 											return false
 										end
 									end
-								else
-									if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
-										Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
-									elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
-										ml_task_hub:CurrentTask().matsSet = false
-										ml_task_hub:CurrentTask().recipeSelected = false
-										d("Resetting recipe AGAIN.")
-										ml_global_information.Await(2500)
-										return
-									else
-										d("Not enough materials including HQ.")
-										e_craftlimit:execute()
-										return false
-									end
 								end
 							end
 						end
-					end
-					ml_task_hub:CurrentTask().matsSet = true
-				end				
-			else
-				if (Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick)) then
-					ml_task_hub:CurrentTask().failedAttempts = 0
-					local usequick = ml_task_hub:CurrentTask().useQuick
-					local requireCollect = ml_task_hub:CurrentTask().requireCollect
-					if (usequick and not requireCollect) then
-						local itemid = ml_task_hub:CurrentTask().itemid
-						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
-						local wantedAmount = ml_task_hub:ThisTask().requiredItems
-						local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
-						local craftAmount = (wantedAmount / yield)
-						if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
-							Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
-						else
-							if ((maxAmount / yield) > 99) then
-								Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
-							else
-								Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
-							end
-						end
-						if (IsControlOpen("RecipeNote")) then
-							ffxiv_craft.ToggleCraftingLog()
-						end
-						SkillMgr.newCraft = true
-						ml_task_hub:CurrentTask().allowWindowOpen = false
-					else
-						Crafting:CraftSelectedItem()
-						if (IsControlOpen("RecipeNote")) then
-							ffxiv_craft.ToggleCraftingLog()
-						end
-						SkillMgr.newCraft = true
-						ml_task_hub:CurrentTask().matsSet = false
-						ml_task_hub:CurrentTask().allowWindowOpen = false
-					end
-					ml_global_information.Await(2500)
-					return
+						ml_task_hub:CurrentTask().matsSet = true
+					end				
 				else
-					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
-						d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
-						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-						ml_task_hub:CurrentTask().matsSet = false
-						ml_task_hub:CurrentTask().recipeSelected = false
+					if (Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick)) then
+						ml_task_hub:CurrentTask().failedAttempts = 0
+						local usequick = ml_task_hub:CurrentTask().useQuick
+						local requireCollect = ml_task_hub:CurrentTask().requireCollect
+						if (usequick and not requireCollect) then
+							local itemid = ml_task_hub:CurrentTask().itemid
+							local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
+							local wantedAmount = ml_task_hub:ThisTask().requiredItems
+							local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
+							local craftAmount = (wantedAmount / yield)
+							if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
+								Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
+							else
+								if ((maxAmount / yield) > 99) then
+									Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
+								else
+									Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
+								end
+							end
+							if (IsControlOpen("RecipeNote")) then
+								ffxiv_craft.ToggleCraftingLog()
+							end
+							SkillMgr.newCraft = true
+							ml_task_hub:CurrentTask().allowWindowOpen = false
+						else
+							Crafting:CraftSelectedItem()
+							if (IsControlOpen("RecipeNote")) then
+								ffxiv_craft.ToggleCraftingLog()
+							end
+							SkillMgr.newCraft = true
+							ml_task_hub:CurrentTask().matsSet = false
+							ml_task_hub:CurrentTask().allowWindowOpen = false
+						end
 						ml_global_information.Await(2500)
 						return
 					else
-						cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."].",3)
-						ffxiv_craft.orders[recipe.id].completed = true
-						ml_task_hub:CurrentTask().completed = true
-					end
-				end			
+						if (ml_task_hub:CurrentTask().failedAttempts < 2) then
+							d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
+							ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
+							ml_task_hub:CurrentTask().matsSet = false
+							ml_task_hub:CurrentTask().recipeSelected = false
+							ml_global_information.Await(2500)
+							return
+						else
+							cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."].",3)
+							ffxiv_craft.orders[recipe.id].completed = true
+							ml_task_hub:CurrentTask().completed = true
+						end
+					end			
+				end
 			end
 		end
 	elseif gCraftMarkerOrProfileIndex ~= 1 then				
