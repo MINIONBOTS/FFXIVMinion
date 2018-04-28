@@ -6975,13 +6975,31 @@ function Between(var,low,high,inclusive)
 	end
 	return false
 end
-function FindClosestMesh(pos,distance)
+function FindClosestMesh(pos,distance,checkcubes)
+	local checkcubes = IsNull(checkcubes,true)
 	local minDist = IsNull(distance,10)
+	
+	local closest,closestDistance = nil, 100
+	if (checkcubes) then
+		local p = NavigationManager:GetClosestPointInCubes(pos)
+		if (table.valid(p)) then
+			if (p.distance <= minDist) then
+				closest = p
+			end
+		end
+	end
+	
 	local p = NavigationManager:GetClosestPointOnMesh(pos)
 	if (table.valid(p)) then
 		if (p.distance <= minDist) then
-			return p
+			if (p.distance < closestDistance) then
+				closest = p
+			end
 		end
+	end
+	
+	if (closest) then
+		return closest
 	end
 	
 	local y1 = pos.y

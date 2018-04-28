@@ -2338,10 +2338,16 @@ function c_gathernexttask:evaluate()
 		end
 		
 		if (not invalid) then
-			if (currentTask.minlevel and Player.level < currentTask.minlevel) then
+			local plevel = Player.level
+			if (currentTask.type == "botany") then
+				plevel = Player.levels[FFXIV.JOBS.BOTANIST]
+			elseif (currentTask.type == "mining") then
+				plevel = Player.levels[FFXIV.JOBS.MINER]
+			end
+			if (currentTask.minlevel and plevel < currentTask.minlevel) then
 				gd("[GatherNextTask]: Level is too low for the task, invalidate.",3)
 				invalid = true
-			elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
+			elseif (currentTask.maxlevel and plevel > currentTask.maxlevel) then
 				gd("[GatherNextTask]: Level is too high for the task, invalidate.",3)
 				invalid = true
 			end
@@ -2473,11 +2479,18 @@ function c_gathernexttask:evaluate()
 						valid = false
 						gd("Task ["..tostring(i).."] not enabled.",3)
 					end
+					
+					local plevel = Player.level
+					if (currentTask.type == "botany") then
+						plevel = Player.levels[FFXIV.JOBS.BOTANIST]
+					elseif (currentTask.type == "mining") then
+						plevel = Player.levels[FFXIV.JOBS.MINER]
+					end
 
-					if (data.minlevel and Player.level < tonumber(data.minlevel)) then
+					if (data.minlevel and plevel < tonumber(data.minlevel)) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to min level requirement.",3)
-					elseif (data.maxlevel and Player.level > tonumber(data.maxlevel)) then
+					elseif (data.maxlevel and plevel > tonumber(data.maxlevel)) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
