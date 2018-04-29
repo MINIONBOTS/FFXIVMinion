@@ -1387,10 +1387,10 @@ function CanUseCordialSoon()
 		
 		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				return true, cordialNormal
-			elseif (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+			if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 				return true, cordialHigh
+			elseif (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+				return true, cordialNormal
 			end
 		end
 	else
@@ -1492,10 +1492,10 @@ function CanUseCordial()
 		
 		local usedPatience = (IsFisher(Player.job) and MissingBuff(Player,764) and ffxiv_fish.NeedsPatienceCheck() and gpDeficit > 200)
 		if (usedPatience) then
-			if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-				return true, cordialNormal
-			elseif (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
+			if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 				return true, cordialHigh
+			elseif (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
+				return true, cordialNormal
 			end
 		end
 	else
