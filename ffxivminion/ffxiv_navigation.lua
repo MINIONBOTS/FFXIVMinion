@@ -1011,6 +1011,9 @@ ml_navigation.pathchanged = false
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
+	if (targetid == 0) then
+		targetid = nil
+	end
 	
 	--d("buildPath:"..tostring(floorfilters)..","..tostring(cubefilters))
 

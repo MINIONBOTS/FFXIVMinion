@@ -1268,23 +1268,25 @@ function c_getmovementpath:evaluate()
 				end
 				
 				local pathLength = 0
-			
+				
+				local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
+				
 				-- Attempt to get a path that doesn't require cubes for stealth pathing.
 				if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
 					--d("rebuild non-cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1)
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1,navid)
 				end
 				
 				if (pathLength <= 0) then
 					-- attempt to get a path with no borders or avoidance first
 					if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
-						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0)
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0,navid)
 						--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					end
 					
 					if (pathLength <= 0) then
 						--d("rebuild cube path")
-						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0)
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0,navid)
 						c_getmovementpath.lastFallback = Now()
 						c_getmovementpath.lastGoal = gotoPos
 					end

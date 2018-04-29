@@ -428,6 +428,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.started = Now()
 	newinst.contentid = 0
 	newinst.interact = 0
+	newinst.navid = 0
 	
 	newinst.pos = false
 	newinst.range = nil

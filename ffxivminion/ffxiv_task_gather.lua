@@ -494,6 +494,7 @@ function e_movetonode:execute()
 				newTask.interactRange3d = 2
 			end
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
+			newTask.navid = ml_task_hub:CurrentTask().gatherid
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)
