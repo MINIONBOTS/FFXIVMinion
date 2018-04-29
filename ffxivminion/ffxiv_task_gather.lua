@@ -159,14 +159,15 @@ function GetMinGP()
 			else
 				minimumGP = 0
 			end
-		elseif (table.valid(marker)) then
-			minimumGP = IsNull(marker.mingp,0)
 		end
+	elseif (table.valid(marker)) then
+		minimumGP = IsNull(marker.mingp,0)
+	end
 		
 		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
 			minimumGP = GUI_Get(minimumGP)
 		end
-	end
+		minimumGP = tonumber(minimumGP)
 	return minimumGP
 end
 
