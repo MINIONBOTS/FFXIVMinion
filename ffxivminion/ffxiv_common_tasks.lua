@@ -333,7 +333,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						
 						local selection = options[math.random(1,TableSize(options))]
 						if (table.valid(selection)) then
-							local p = FindClosestMesh(selection)
+							local p = FindClosestMesh(selection,15,false)
 							if (table.valid(p)) then
 								newPos = p
 							end
@@ -347,7 +347,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			if (not table.valid(newPos)) then
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
 				if (table.valid(randomPoint)) then
-					local p = FindClosestMesh(randomPoint)
+					local p = FindClosestMesh(randomPoint,10,false)
 					if (table.valid(p)) then
 						newPos = p
 					end
@@ -355,7 +355,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			end
 			
 			if (not table.valid(newPos)) then
-				local p = FindClosestMesh(self.pos)
+				local p = FindClosestMesh(self.pos,10,false)
 				if (table.valid(p)) then
 					newPos = p
 				end
@@ -1481,7 +1481,7 @@ function ffxiv_task_grindCombat:Process()
 			if (not InCombatRange(target.id) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
-					local p = FindClosestMesh(telePos)
+					local p = FindClosestMesh(telePos,10,false)
 					if (table.valid(p)) then
 						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z),true)
 						self.teleportThrottle = Now() + 1500
@@ -1543,7 +1543,7 @@ function ffxiv_task_grindCombat:Process()
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
-						local p = FindClosestMesh(telePos)
+						local p = FindClosestMesh(telePos,10,false)
 						if (table.valid(p)) then
 							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z),true)
 							self.teleportThrottle = Now() + 1500

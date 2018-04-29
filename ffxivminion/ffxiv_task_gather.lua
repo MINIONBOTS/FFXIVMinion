@@ -95,7 +95,7 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 			end
 			
 			if (table.valid(newPos)) then
-				local randPosition = FindClosestMesh(newPos)
+				local randPosition = FindClosestMesh(newPos,10,false)
 				if (randPosition) then
 					pos = randPosition
 					break
@@ -1981,7 +1981,7 @@ function c_gatherflee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p = FindClosestMesh(newPos)
+				local p = FindClosestMesh(newPos,30,false)
 				if (p and ml_navigation:CheckPath(p,true)) then
 					e_gatherflee.fleePos = p
 					return true

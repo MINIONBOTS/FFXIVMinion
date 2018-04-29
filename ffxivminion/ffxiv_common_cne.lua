@@ -1261,7 +1261,7 @@ function c_getmovementpath:evaluate()
 			
 			if (table.valid(gotoPos)) then
 				if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-					local meshpos = FindClosestMesh(gotoPos)
+					local meshpos = FindClosestMesh(gotoPos,6,true)
 					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
 						ml_task_hub:CurrentTask().gatePos = meshpos
 					end
@@ -1279,6 +1279,7 @@ function c_getmovementpath:evaluate()
 					-- attempt to get a path with no borders or avoidance first
 					if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0)
+						--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					end
 					
 					if (pathLength <= 0) then
@@ -2913,7 +2914,7 @@ function c_flee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p = FindClosestMesh(newPos)
+				local p = FindClosestMesh(newPos,20,false)
 				if (p and ml_navigation:CheckPath(p,true)) then
 					e_flee.fleePos = p
 					return true
@@ -3360,8 +3361,8 @@ function c_teleporttopos:evaluate()
 			properPos = ml_task_hub:CurrentTask().pos
 		else
 			properPos = ml_task_hub:CurrentTask().pos
-			local p = FindClosestMesh(properPos)
-			if (p and p.distance ~= 0) then
+			local p = FindClosestMesh(properPos,10,false)
+			if (p) then
 				properPos = p
 			end
 		end

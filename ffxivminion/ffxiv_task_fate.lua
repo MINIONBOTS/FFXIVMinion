@@ -201,7 +201,7 @@ function c_teletofate:evaluate()
 					end
 				end
 	
-				local dest = FindClosestMesh(fatePos)
+				local dest = FindClosestMesh(fatePos,15,false)
 				if (dest and dest.distance ~= 0 and dest.distance < 10) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.radius = fate.radius
@@ -218,7 +218,7 @@ end
 function e_teletofate:execute()
 	local dest = c_teletofate.pos
 	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,c_teletofate.radius,(c_teletofate.radius + 15))
-	local newdest = FindClosestMesh(newPos)
+	local newdest = FindClosestMesh(newPos,15,false)
 	
 	Player:Stop()
 	if (newdest) then
