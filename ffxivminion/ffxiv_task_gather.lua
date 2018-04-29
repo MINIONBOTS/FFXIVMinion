@@ -2510,9 +2510,9 @@ function c_gathernexttask:evaluate()
 					end
 					
 					local plevel = Player.level
-					if (currentTask.type == "botany") then
+					if (data.type == "botany") then
 						plevel = Player.levels[FFXIV.JOBS.BOTANIST]
-					elseif (currentTask.type == "mining") then
+					elseif (data.type == "mining") then
 						plevel = Player.levels[FFXIV.JOBS.MINER]
 					end
 
