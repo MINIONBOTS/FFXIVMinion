@@ -879,7 +879,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
 		--table.print(navcon)
 		--table.print(node)
-		if ( navcon and navcon.type ~= 5 ) then -- Type 5 == MacroMesh
+		if ( navcon and navcon.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
 			-- substracing the radius from the remaining distance
 			goaldist = goaldist - navcon.radius
 			goaldist2d = goaldist2d - navcon.radius
@@ -987,9 +987,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 	
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
-		ml_navigation.path = {}
-		ml_navigation.pathindex = 0
-		NavigationManager.NavPathNode = ml_navigation.pathindex
+		ml_navigation:ResetCurrentPath()
 		return false
 	end
 	
@@ -1019,9 +1017,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
-		ml_navigation.path = {}
-		ml_navigation.pathindex = 0
-		NavigationManager.NavPathNode = ml_navigation.pathindex
+		ml_navigation:ResetCurrentPath()
 		return -1337
 	end
 	
@@ -1032,8 +1028,11 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local ppos = Player.pos	
 	local newGoal = { x = x, y = y, z = z }
-	ml_navigation.targetposition = newGoal
-
+	if (not Player.onmesh and table.valid(ml_navigation.path)) then
+		d("[NAVIGATION]: Ran off-mesh, return previous path, errors may be encountered here.")
+		return table.size(ml_navigation.path)
+	end
+	
 	local dist = math.distance3d(ppos,newGoal)
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) or 
 		not CanFlyInZone())
@@ -1059,10 +1058,17 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	--]]
 	
 	if (ret <= 0) then
-		ml_navigation.path = {}
-		ml_navigation.pathindex = 0
-		NavigationManager.NavPathNode = ml_navigation.pathindex
+		if ((IsFlying() or IsDiving()) and table.valid(ml_navigation.path) and 
+			table.valid(newGoal) and table.valid(ml_navigation.targetposition) and math.distance3d(newGoal,ml_navigation.targetposition) < 1) 
+		then
+			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
+			return table.size(ml_navigation.path)
+		else
+			ml_navigation:ResetCurrentPath()
+		end
 	end
+	
+	ml_navigation.targetposition = newGoal
 	return ret
 end
 
@@ -1071,8 +1077,7 @@ function Player:Stop(resetpath)
 	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
-		
-	ml_navigation.pathindex = 0
+	
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
