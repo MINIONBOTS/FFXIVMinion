@@ -1248,7 +1248,7 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	
-	if (not CannotMove()) then
+	if (not MIsLocked()) then
 		if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
 			local gotoPos = nil
 			if (ml_task_hub:CurrentTask().gatePos) then
