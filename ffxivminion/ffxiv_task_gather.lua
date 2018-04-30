@@ -1453,7 +1453,7 @@ function CanUseCordial()
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		
 		if ((minimumGP - Player.gp.current) >= 100) then		
-			if cordialHigh and ((gpDeficit >= (cordialHighRecovery - 50)) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
+			if cordialHigh and ((gpDeficit >= 350) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
 				if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 					d("[CanUseCordial]: Returning Min. High cordial.")
 					return true, cordialHigh
