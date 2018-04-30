@@ -879,7 +879,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
 		--table.print(navcon)
 		--table.print(node)
-		if ( navcon and navcon.type ~= 5 ) then -- Type 5 == MacroMesh
+		if ( navcon and navcon.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
 			-- substracing the radius from the remaining distance
 			goaldist = goaldist - navcon.radius
 			goaldist2d = goaldist2d - navcon.radius
