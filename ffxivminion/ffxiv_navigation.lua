@@ -620,7 +620,7 @@ end
 -- this is mostly because many things like stealth, mount, flight, etc, require not only knowing if they are needed but if they are possible (mesh exists, path exists, etc)
 
 ml_navigation.CanRun = function() 
-	return (GetGameState() == FFXIV.GAMESTATE.INGAME and not MIsLoading())
+	return (GetGameState() == FFXIV.GAMESTATE.INGAME and not MIsLoading() and Player.alive)
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 
 ml_navigation.canPath = false
@@ -1497,6 +1497,10 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation:NavigateToNode(ppos,nextnode,1500)	
 							return							
 						end
+					end
+					
+					if (MIsLocked()) then
+						return
 					end
 					
 			-- Cube Navigation
