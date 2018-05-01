@@ -7138,6 +7138,7 @@ function GetRequiredPitch(pos,noadjustment)
 	if (table.valid(pos)) then
 		local ppos = Player.pos
 		
+		--[[
 		-- The path is conputed at the feet, so it is possible to get stuck on objects at the head level.
 		-- This code attempts to angle the player down a bit if such an object is found.
 		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
@@ -7171,6 +7172,7 @@ function GetRequiredPitch(pos,noadjustment)
 				end
 			end
 		end
+		--]]
 		
 		local currentPitch = math.round(Player.flying.pitch,3)
 		local minVector = math.normalize(math.vectorize(ppos,pos))

@@ -873,23 +873,25 @@ function ml_navigation:IsGoalClose(ppos,node)
 	end
 	
 	-- Floor2Cube connections have a radius inwhich the player (as soon as he is inside it) is allowed to traverse to the "other side" of the connection instead of walking to the same middle point each time ( this is ofc only for the connections that have not yet been removed due to stringpulling/shortening of the path
-	local navcon = nil
-	local navconradius = 0
-	if( node.navconnectionid and node.navconnectionid ~= 0) then
-		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
-		--table.print(navcon)
-		--table.print(node)
-		if ( navcon and navcon.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
-			-- substracing the radius from the remaining distance
-			goaldist = goaldist - navcon.radius
-			goaldist2d = goaldist2d - navcon.radius
-		end
-	end
 	
 	local nc
-	if (node.navconnectionid ~= 0) then
+	if (node.navconnectionid ~= 0 and node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
 			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
+			
+			if ( nc and nc.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
+				-- substracing the radius from the remaining distance
+				
+				if (node.navconnectionid ~= ml_navigation.lastconnectionid) then
+				
+				else
+					d("traveling along a connection, forget radius")
+				end
+				
+				-- note: temporarily disabled, this needs some rework
+				--goaldist = goaldist - nc.radius
+				--goaldist2d = goaldist2d - nc.radius
+			end
 		end
 	end
 	
@@ -947,6 +949,24 @@ function ml_navigation:IsGoalClose(ppos,node)
 	return false
 end
 	
+function ml_navigation:IsUsingConnection()
+	local lastnode = self.path[self.pathindex - 1]
+	if (table.valid(lastnode)) then
+		local nc
+		if (lastnode.navconnectionid ~= 0) then
+			if (table.valid(ml_mesh_mgr.navconnections)) then
+				nc = ml_mesh_mgr.navconnections[lastnode.navconnectionid]
+				
+				if ( nc and nc.type == 1 ) then -- Type 5 == MacroMesh
+					return true
+				end
+			end
+		else
+			d("lastconnectionid:"..tostring(lastnode.navconnectionid))
+		end
+	end
+	return false
+end
 	
 function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local pos = Player.pos
@@ -1028,9 +1048,18 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local ppos = Player.pos	
 	local newGoal = { x = x, y = y, z = z }
-	if (not Player.onmesh and table.valid(ml_navigation.path)) then
+	
+	local hasCurrentPath = table.valid(ml_navigation.path)
+	local currentPathSize = table.size(ml_navigation.path)
+	
+	if (not Player.onmesh and hasCurrentPath) then
 		d("[NAVIGATION]: Ran off-mesh, return previous path, errors may be encountered here.")
-		return table.size(ml_navigation.path)
+		return currentPathSize
+	end
+	
+	local hasPreviousPath = (hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and math.distance3d(newGoal,ml_navigation.targetposition) < 1)
+	if (hasPreviousPath and ml_navigation.lastconnectiond ~= 0) then
+		return currentPathSize
 	end
 	
 	local dist = math.distance3d(ppos,newGoal)
@@ -1058,13 +1087,18 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	--]]
 	
 	if (ret <= 0) then
-		if ((IsFlying() or IsDiving()) and table.valid(ml_navigation.path) and 
-			table.valid(newGoal) and table.valid(ml_navigation.targetposition) and math.distance3d(newGoal,ml_navigation.targetposition) < 1) 
-		then
+		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
 			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
-			return table.size(ml_navigation.path)
+			
+			return currentPathSize
 		else
 			ml_navigation:ResetCurrentPath()
+		end
+	end
+	
+	if (ret > 0 and hasCurrentPath) then
+		for _,node in pairs(ml_navigation.path) do
+			ml_navigation.TagNode(node)
 		end
 	end
 	
@@ -1078,6 +1112,7 @@ function Player:Stop(resetpath)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
+	ml_navigation.lastconnectionid = 0
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
@@ -1162,6 +1197,7 @@ end
 
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
+ml_navigation.lastconnectionid = 0
 ml_navigation.lastpathindex = 0
 ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
@@ -1370,7 +1406,7 @@ function ml_navigation.Navigate(event, ticks )
 									if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
 										if (nextnextnode) then
 											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
-										end										
+										end
 										ml_navigation.pathindex = ml_navigation.pathindex + 1
 										NavigationManager.NavPathNode = ml_navigation.pathindex
 										ml_navigation:ResetOMCHandler()
@@ -1591,6 +1627,7 @@ function ml_navigation.Navigate(event, ticks )
 								end
 								--]]
 								
+								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.pathindex = originalIndex	
 								NavigationManager.NavPathNode = ml_navigation.pathindex								
 							else			
@@ -1709,6 +1746,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							--]]
 							
+							ml_navigation.lastconnectionid = nextnode.navconnectionid
 							ml_navigation.pathindex = originalIndex	
 							NavigationManager.NavPathNode = ml_navigation.pathindex		
 						else			
@@ -1832,10 +1870,11 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adju
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")		
+		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+		
+		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
 		NavigationManager.NavPathNode = ml_navigation.pathindex
-		
 	else						
 		ml_navigation.GUI.lastAction = "Walk to Node"
 		
@@ -1890,6 +1929,15 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 		
 		local lastnode = ml_navigation.path[ml_navigation.pathindex - 1]
 		local nextnode = ml_navigation.path[ml_navigation.pathindex]
+		
+		local radius = 0
+		if (ml_navigation.lastconnectionid ~= 0) then
+			local navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
+			if (navcon) then -- Type 5
+				radius = navcon.radius
+				threshold = threshold + radius
+			end
+		end
 		
 		if (lastnode and nextnode) then
 			ml_navigation.TagNode(nextnode)

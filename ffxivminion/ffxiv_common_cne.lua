@@ -1244,7 +1244,7 @@ e_getmovementpath = inheritsFrom( ml_effect )
 c_getmovementpath.lastFallback = 0
 c_getmovementpath.lastGoal = {}
 function c_getmovementpath:evaluate()
-	if (MIsLoading() and not ffnav.IsProcessing() and not ffnav.isascending) then
+	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing() or ffnav.isascending) then
 		return false
 	end
 	
@@ -1713,7 +1713,7 @@ e_mount.lastPathPos = {}
 c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
-	if ((MIsLocked() and not IsDiving()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
+	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
 		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
 	then
 		return false
