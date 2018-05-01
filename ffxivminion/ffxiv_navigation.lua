@@ -875,11 +875,10 @@ function ml_navigation:IsGoalClose(ppos,node)
 	-- Floor2Cube connections have a radius inwhich the player (as soon as he is inside it) is allowed to traverse to the "other side" of the connection instead of walking to the same middle point each time ( this is ofc only for the connections that have not yet been removed due to stringpulling/shortening of the path
 	
 	local nc
-	if (node.navconnectionid ~= 0 and node.navconnectionid ~= 0) then
+	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
 			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
-			
-			if ( nc and nc.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
+			if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
 				-- substracing the radius from the remaining distance
 				goaldist = goaldist - nc.radius
 				goaldist2d = goaldist2d - nc.radius
