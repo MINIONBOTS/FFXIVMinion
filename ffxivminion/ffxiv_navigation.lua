@@ -881,16 +881,8 @@ function ml_navigation:IsGoalClose(ppos,node)
 			
 			if ( nc and nc.type ~= 5 and not IsFlying() and not IsDiving()) then -- Type 5 == MacroMesh
 				-- substracing the radius from the remaining distance
-				
-				if (node.navconnectionid ~= ml_navigation.lastconnectionid) then
-				
-				else
-					d("traveling along a connection, forget radius")
-				end
-				
-				-- note: temporarily disabled, this needs some rework
-				--goaldist = goaldist - nc.radius
-				--goaldist2d = goaldist2d - nc.radius
+				goaldist = goaldist - nc.radius
+				goaldist2d = goaldist2d - nc.radius
 			end
 		end
 	end
@@ -957,12 +949,11 @@ function ml_navigation:IsUsingConnection()
 			if (table.valid(ml_mesh_mgr.navconnections)) then
 				nc = ml_mesh_mgr.navconnections[lastnode.navconnectionid]
 				
-				if ( nc and nc.type == 1 ) then -- Type 5 == MacroMesh
+				-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
+				if ( nc and nc.type == 1 ) then
 					return true
 				end
 			end
-		else
-			d("lastconnectionid:"..tostring(lastnode.navconnectionid))
 		end
 	end
 	return false
