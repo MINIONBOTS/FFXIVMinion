@@ -1092,7 +1092,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
 			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
-			
 			return currentPathSize
 		else
 			ml_navigation:ResetCurrentPath()
@@ -1670,14 +1669,12 @@ function ml_navigation.Navigate(event, ticks )
 						
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						-- Check if we left our path
-						if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,"3dfly") ) then return end
+						if (not ml_navigation:IsStillOnPath(ppos,"3dfly") ) then return end
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 						
-							ffnav.isascending = nil
-							
 							if (not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
 							
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
@@ -1823,7 +1820,6 @@ function ml_navigation.Navigate(event, ticks )
 										d("[Navigation] - Ascend for flight.")
 										Player:Jump()
 										ffnav.AwaitThen(500, 3000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
-										ffnav.isascending = true
 										return
 									end
 								end

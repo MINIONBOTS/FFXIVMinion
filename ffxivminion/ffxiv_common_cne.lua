@@ -1244,64 +1244,62 @@ e_getmovementpath = inheritsFrom( ml_effect )
 c_getmovementpath.lastFallback = 0
 c_getmovementpath.lastGoal = {}
 function c_getmovementpath:evaluate()
-	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing() or ffnav.isascending) then
+	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing()) then
 		return false
 	end
 	
-	if (not MIsLocked()) then
-		if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
-			local gotoPos = nil
-			if (ml_task_hub:CurrentTask().gatePos) then
-				gotoPos = ml_task_hub:CurrentTask().gatePos
-				ml_debug("[c_getmovementpath]: Position adjusted to gate position.", "gLogCNE", 3)
-			else
-				gotoPos = ml_task_hub:CurrentTask().pos
-				ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
+	if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
+		local gotoPos = nil
+		if (ml_task_hub:CurrentTask().gatePos) then
+			gotoPos = ml_task_hub:CurrentTask().gatePos
+			ml_debug("[c_getmovementpath]: Position adjusted to gate position.", "gLogCNE", 3)
+		else
+			gotoPos = ml_task_hub:CurrentTask().pos
+			ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
+		end
+		
+		if (table.valid(gotoPos)) then
+			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+				local meshpos = FindClosestMesh(gotoPos,6,true)
+				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
+					ml_task_hub:CurrentTask().gatePos = meshpos
+				end
 			end
 			
-			if (table.valid(gotoPos)) then
-				if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-					local meshpos = FindClosestMesh(gotoPos,6,true)
-					if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
-						ml_task_hub:CurrentTask().gatePos = meshpos
-					end
-				end
-				
-				local pathLength = 0
-				
-				local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
-				
-				-- Attempt to get a path that doesn't require cubes for stealth pathing.
-				if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-					--d("rebuild non-cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1,navid)
+			local pathLength = 0
+			
+			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
+			
+			-- Attempt to get a path that doesn't require cubes for stealth pathing.
+			if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+				--d("rebuild non-cube path")
+				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,1,navid)
+			end
+			
+			if (pathLength <= 0) then
+				-- attempt to get a path with no borders or avoidance first
+				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0,navid)
+					--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 				end
 				
 				if (pathLength <= 0) then
-					-- attempt to get a path with no borders or avoidance first
-					if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
-						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),0,navid)
-						--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
-					end
-					
-					if (pathLength <= 0) then
-						--d("rebuild cube path")
-						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0,navid)
-						c_getmovementpath.lastFallback = Now()
-						c_getmovementpath.lastGoal = gotoPos
-					end
+					--d("rebuild cube path")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0,navid)
+					c_getmovementpath.lastFallback = Now()
+					c_getmovementpath.lastGoal = gotoPos
 				end
-				
-				if (pathLength > 0 or ml_navigation:HasPath()) then
-					ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
-					return false
-				end
-			else
-				d("no valid gotopos")
+			end
+			
+			if (pathLength > 0 or ml_navigation:HasPath()) then
+				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
+				return false
 			end
 		else
-			d("didn't have a valid position")
+			d("no valid gotopos")
 		end
+	else
+		d("didn't have a valid position")
 	end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")
