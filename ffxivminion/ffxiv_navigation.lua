@@ -1060,7 +1060,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	end
 	
 	local hasPreviousPath = (hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and math.distance3d(newGoal,ml_navigation.targetposition) < 1)
-	if (hasPreviousPath and ml_navigation.lastconnectiond ~= 0) then
+	if (hasPreviousPath and ml_navigation.lastconnectionid ~= 0) then
+		d("[NAVIGATION]: Using a connection, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
 	
