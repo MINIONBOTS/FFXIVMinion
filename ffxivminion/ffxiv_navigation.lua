@@ -939,7 +939,19 @@ function ml_navigation:IsGoalClose(ppos,node)
 	end
 	return false
 end
-	
+
+function ml_navigation:CanContinueFlying()
+	if (table.valid(self.path)) then
+		local pathsize = table.size(self.path)
+		for index,node in pairsByKeys(self.path) do
+			if (index > self.pathindex and ((node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) or (pathsize - index) > 1)) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function ml_navigation:IsUsingConnection()
 	local lastnode = self.path[self.pathindex - 1]
 	if (table.valid(lastnode)) then
@@ -1576,7 +1588,7 @@ function ml_navigation.Navigate(event, ticks )
 						else
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 							-- Check if we left our path
-							if ( not ml_navigation:IsStillOnPath(ppos,"3ddive") ) then 
+							if (not ml_navigation:IsStillOnPath(ppos,"3ddive")) then 
 								d("we have left the path")
 								return 
 							end
@@ -1587,14 +1599,14 @@ function ml_navigation.Navigate(event, ticks )
 								-- We reached the node
 								--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")	
 								local originalIndex = ml_navigation.pathindex + 1
-								--[[
+								
 								local newIndex = originalIndex
 								if (FFXIV_Common_SmoothPathing) then
 									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 										local node = ml_navigation.path[i]
 										if (node) then
 											local dist3d = math.distance3d(node,ppos)
-											if (dist3d < 100 and string.contains(node.type,"CUBE")) then
+											if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
 												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 												if (not hit) then
 													--d("Bumped index to [" .. i .. "]")
@@ -1612,10 +1624,9 @@ function ml_navigation.Navigate(event, ticks )
 											end
 										end
 										ffnav.CompactPath()
-										ml_navigation.ResetRenderPath()
+										--ml_navigation.ResetRenderPath()
 									end
 								end
-								--]]
 								
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.pathindex = originalIndex	
@@ -1666,7 +1677,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 							ffnav.isascending = nil
 							
-							if (not nextnode.is_cube and nextnode.ground) then
+							if (not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
 							
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
 								-- May need more adjustments.
@@ -1705,15 +1716,14 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
-							--[[
+							
 							local newIndex = originalIndex
 							if (FFXIV_Common_SmoothPathing) then
-								for i = ml_navigation.pathindex + 2, table.size(ml_navigation.path) do
+								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 									local node = ml_navigation.path[i]
 									if (node) then
 										local dist3d = math.distance3d(node,ppos)
-										if (dist3d < 100 and string.contains(node.type,"CUBE")) then
-										--if (dist3d < 75) then
+										if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
 											local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 											if (not hit) then
 												--d("Bumped index to [" .. i .. "]")
@@ -1731,10 +1741,9 @@ function ml_navigation.Navigate(event, ticks )
 										end
 									end
 									ffnav.CompactPath()
-									ml_navigation.ResetRenderPath()
+									--ml_navigation.ResetRenderPath()
 								end
 							end
-							--]]
 							
 							ml_navigation.lastconnectionid = nextnode.navconnectionid
 							ml_navigation.pathindex = originalIndex	
@@ -1754,9 +1763,14 @@ function ml_navigation.Navigate(event, ticks )
 								end
 							end
 							
+							local targetnode = shallowcopy(nextnode)
+							if (not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
+								targetnode.y = targetnode.y + 1.5
+							end
+							
 							--local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y + 1), z = nextnode.z }
 							--d("check pitch")
-							local pitch = GetRequiredPitch(nextnode)
+							local pitch = GetRequiredPitch(targetnode)
 							--local pitch = GetRequiredPitch(modifiedNode)
 							Player:SetPitch(pitch)
 							
