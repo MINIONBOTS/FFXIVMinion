@@ -940,6 +940,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 	return false
 end
 
+-- What is this doing ?? COMMET STUFF PLEASE !
 function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
 		local pathsize = table.size(self.path)
@@ -952,6 +953,7 @@ function ml_navigation:CanContinueFlying()
 	return false
 end
 
+-- What is this doing ?? COMMET STUFF PLEASE !
 function ml_navigation:IsUsingConnection()
 	local lastnode = self.path[self.pathindex - 1]
 	if (table.valid(lastnode)) then
@@ -969,7 +971,8 @@ function ml_navigation:IsUsingConnection()
 	end
 	return false
 end
-	
+
+
 function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local pos = Player.pos
 	if (not table.valid(pos2)) then
@@ -1058,8 +1061,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		d("[NAVIGATION]: Ran off-mesh, return previous path, errors may be encountered here.")
 		return currentPathSize
 	end
-	
-	local hasPreviousPath = (hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and math.distance3d(newGoal,ml_navigation.targetposition) < 1)
+	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
+	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	if (hasPreviousPath and ml_navigation.lastconnectionid ~= 0) then
 		d("[NAVIGATION]: Using a connection, wait until we finish to pull a new path.")
 		return currentPathSize
@@ -1092,6 +1095,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
 			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
+		--THIS WILL NOT WORK, because you called above already MoveTo() which updates the whole path that ml_navigation holds...
 			return currentPathSize
 		else
 			ml_navigation:ResetCurrentPath()
@@ -1105,6 +1109,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	end
 	
 	ml_navigation.targetposition = newGoal
+	ml_navigation.lasttargetid = targetid
 	return ret
 end
 
@@ -1920,7 +1925,7 @@ function ml_navigation.IsPathInvalid()
 end
 
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
-	if ( ml_navigation.pathindex > 1 ) then
+	if ( ml_navigation.pathindex > 1 and not ml_navigation.omc_details) then -- disable the isstillonpath for navcons , it keeps resetting the path / movement sometimes .. ?
 		local threshold = ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
 		if (type(deviationthreshold) == "number") then
 			threshold = deviationthreshold
