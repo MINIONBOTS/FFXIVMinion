@@ -741,49 +741,6 @@ function ml_navigation.CheckObstacles()
 	return 0
 end
 
-function ml_navigation.GetFlightAdjustment()
-	local verticalAdjustment = 0
-	
-	local ppos = Player.pos
-	local nextNode = ml_navigation.path[ml_global_information.pathindex]
-	local previousNode = ml_navigation.path[ml_global_information.pathindex-1]
-	
-	if (table.isa(nextNode) and table.isa(previousNode) and nextNode.is_cube) then
-		--local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+5,ppos.z,ppos.x,ppos.y,ppos.z) -- top to bottom			
-		--if ( not hit ) then
-			--hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+1,ppos.z, ppos.x,ppos.y+5,ppos.z) -- bottom to top
-		--end
-		--if (hit) then
-			--ml_debug("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
-		--end
-		
-		local dist = math.distance3d(previousNode,ppos)
-		local playerPitch = GetRequiredPitch(ppos) 
-		
-		-- Basic process is this, get previous node to this point on the line, and from previous node to Player, get pitch to both positions.
-		-- If the pitch is lower to the player, adjust up to put the Player on course faster.
-		
-		-- Only measuring distance of 10, to prevent graphical issues screwing up the raycast.
-		local ratio = 1
-		if (dist > 1) then
-			ratio = (1 / dist)
-		end
-		
-		local newX = ppos.x + (ratio * (nextNode.x - ppos.x))
-		local newY = ppos.y + (ratio * (nextNode.y - ppos.y))
-		local newZ = ppos.z + (ratio * (nextNode.z - ppos.z))
-		local testPos = {x = newX, y = newY, z = newZ}
-		
-		if (toolow) then
-			verticalAdjustment = -.25
-		elseif (toohigh) then
-			verticalAdjustment = .25
-		end
-	end
-	
-	return verticalAdjustment
-end
-
 -- Performs some raycasting for awkward-edge encounters.
 function ml_navigation.GetClearance(nodepos)
 	local ppos = Player.pos
@@ -940,7 +897,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 	return false
 end
 
--- What is this doing ?? COMMET STUFF PLEASE !
+-- Are there more flying nodes so we can continue flying instead of landing uselessly?
 function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
 		local pathsize = table.size(self.path)
@@ -953,7 +910,7 @@ function ml_navigation:CanContinueFlying()
 	return false
 end
 
--- What is this doing ?? COMMET STUFF PLEASE !
+-- Are we using a connection?
 function ml_navigation:IsUsingConnection()
 	local lastnode = self.path[self.pathindex - 1]
 	if (table.valid(lastnode)) then
@@ -971,7 +928,6 @@ function ml_navigation:IsUsingConnection()
 	end
 	return false
 end
-
 
 function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local pos = Player.pos
@@ -1061,6 +1017,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		d("[NAVIGATION]: Ran off-mesh, return previous path, errors may be encountered here.")
 		return currentPathSize
 	end
+	
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	if (hasPreviousPath and ml_navigation.lastconnectionid ~= 0) then
@@ -1070,7 +1027,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local dist = math.distance3d(ppos,newGoal)
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) or 
-		not CanFlyInZone() or (ml_task_hub:CurrentTask().remainMounted and not Player.mountcanfly))
+		not CanFlyInZone() or (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted and not Player.mountcanfly))
 	then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
 	end
@@ -1082,20 +1039,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	
-	--[[
-	local ret = 0;
-	if (NavigationManager:IsReachable(newGoal)) then
-		ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z)
-		return ret
-	else
-		ret = -11
-	end
-	--]]
-	
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
 			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
-		--THIS WILL NOT WORK, because you called above already MoveTo() which updates the whole path that ml_navigation holds...
 			return currentPathSize
 		else
 			ml_navigation:ResetCurrentPath()
@@ -1120,6 +1066,7 @@ function Player:Stop(resetpath)
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
 	ml_navigation.lastconnectionid = 0
+	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
@@ -1205,6 +1152,7 @@ end
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
 ml_navigation.lastconnectionid = 0
+ml_navigation.lasttargetid = nil
 ml_navigation.lastpathindex = 0
 ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
@@ -1606,7 +1554,7 @@ function ml_navigation.Navigate(event, ticks )
 								local originalIndex = ml_navigation.pathindex + 1
 								
 								local newIndex = originalIndex
-								if (FFXIV_Common_SmoothPathing) then
+								if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0) then
 									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 										local node = ml_navigation.path[i]
 										if (node) then
@@ -1629,7 +1577,6 @@ function ml_navigation.Navigate(event, ticks )
 											end
 										end
 										ffnav.CompactPath()
-										--ml_navigation.ResetRenderPath()
 									end
 								end
 								
@@ -1721,7 +1668,7 @@ function ml_navigation.Navigate(event, ticks )
 							local originalIndex = ml_navigation.pathindex + 1
 							
 							local newIndex = originalIndex
-							if (FFXIV_Common_SmoothPathing) then
+							if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0) then
 								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 									local node = ml_navigation.path[i]
 									if (node) then
@@ -1744,7 +1691,6 @@ function ml_navigation.Navigate(event, ticks )
 										end
 									end
 									ffnav.CompactPath()
-									--ml_navigation.ResetRenderPath()
 								end
 							end
 							
@@ -1952,11 +1898,14 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 				if ((IsFlying() or IsDiving()) and nextnode.is_cube) then --if the node we goto is on the floor (underwater!) use 2D, it happens that recast just points to the next node which is pathing through U or A shaped terrain.
 					local distline = math.distancepointline(lastnode,nextnode,ppos)
 					if (distline > threshold) then			
-						d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						d("[Navigation] - Player not on path anymore (3D). - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						d("[Navigation] - Last Node ["..tostring(ml_navigation.pathindex - 1).."]: x = "..tostring(lastnode.x)..",y = "..tostring(lastnode.y)..",z = "..tostring(lastnode.z))
+						d("[Navigation] - Next Node ["..tostring(ml_navigation.pathindex).."]: x = "..tostring(nextnode.x)..",y = "..tostring(nextnode.y)..",z = "..tostring(nextnode.z))
 						
 						--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
-						NavigationManager:ResetPath()
-						ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
+						--NavigationManager:ResetPath()
+						Player:Stop()
+						--ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
 						return false
 					end
 				else
@@ -1966,11 +1915,14 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 					local ppos2d = { x = ppos.x, y = 0, z = ppos.z }
 					local distline = math.distancepointline(from, to, ppos2d)
 					if (distline > threshold) then			
-						d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						d("[Navigation] - Player not on path anymore (2D). - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+						d("[Navigation] - Last Node ["..tostring(ml_navigation.pathindex - 1).."]: x = "..tostring(lastnode.x)..",y = "..tostring(lastnode.y)..",z = "..tostring(lastnode.z))
+						d("[Navigation] - Next Node ["..tostring(ml_navigation.pathindex).."]: x = "..tostring(nextnode.x)..",y = "..tostring(nextnode.y)..",z = "..tostring(nextnode.z))
 						
 						--NavigationManager:UpdatePathStart()  -- this seems to cause some weird twitching loops sometimes..not sure why
-						NavigationManager:ResetPath()
-						ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
+						--NavigationManager:ResetPath()
+						Player:Stop()
+						--ml_navigation:MoveTo(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, ml_navigation.targetid)
 						return false
 					end				
 				end
