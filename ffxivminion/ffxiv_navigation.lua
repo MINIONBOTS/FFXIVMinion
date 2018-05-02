@@ -2377,6 +2377,136 @@ function ffnav.AwaitThen(param1, param2, param3, param4)
 	end
 end
 
+function ml_navigation.DrawObstacleFinder(event, ticks)
+	-- testing code
+	if (false) then 
+		local maxWidth, maxHeight = GUI:GetScreenSize()
+		GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
+		GUI:SetNextWindowSize(maxWidth,maxHeight,GUI.SetCond_Always) --set the next window size
+		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
+		flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+		GUI:Begin("Show Nav Space", true, flags)
+		
+		local ppos = Player.pos
+		if (IsFlying()) then
+			ppos.y = ppos.y + 0.65
+		else
+			ppos.y = ppos.y + 0.10
+		end
+		local h = ppos.h
+		local forwardHeading = ConvertHeading(h)%(2*math.pi)
+		local straightTest = GetPosFromDistanceHeading(ppos, 1, forwardHeading)
+		local straightTestAngled = GetPosFromDistanceHeading({x = ppos.x, y = ppos.y + .5, z = ppos.z}, 1, forwardHeading)
+				
+		-- Using node heading to make sure we're following the path and not some wild correction vector.
+		local angle = AngleFromPos(Player.pos, straightTest)
+		local nodeHeading = DegreesToHeading(angle)
+				
+		local leftBaseHeading = ConvertHeading(nodeHeading + (math.pi/2))%(2*math.pi)
+		local rightBaseHeading = ConvertHeading(nodeHeading - (math.pi/2))%(2*math.pi)
+				
+		local slightLeft = ConvertHeading(nodeHeading + (math.pi * .04))%(2*math.pi)
+		local slightRight = ConvertHeading(nodeHeading - (math.pi * .04))%(2*math.pi)
+				
+		local leftBase = GetPosFromDistanceHeading(ppos, 1, leftBaseHeading)
+		local rightBase = GetPosFromDistanceHeading(ppos, 1, rightBaseHeading)
+		local leftBaseExtended = GetPosFromDistanceHeading(ppos, 1, leftBaseHeading)
+		local rightBaseExtended = GetPosFromDistanceHeading(ppos, 1, rightBaseHeading)	
+		local leftTest = GetPosFromDistanceHeading(leftBase, 1, nodeHeading)
+		local leftTestAngled = GetPosFromDistanceHeading({x = leftBase.x, y = leftBase.y + .5, z = leftBase.z}, 1, nodeHeading)
+		local rightTest = GetPosFromDistanceHeading(rightBase, 1, nodeHeading)
+		local rightTestAngled = GetPosFromDistanceHeading({x = rightBase.x, y = rightBase.y + .5, z = rightBase.z}, 1, nodeHeading)
+		--local straightTest = GetPosFromDistanceHeading(ppos, 1, nodeHeading)
+		
+		local nodeCircles = {}
+		
+		local rPos = RenderManager:WorldToScreen({ x = ppos.x, y = ppos.y, z = ppos.z })
+		if (table.valid(rPos)) then
+			GUI:AddCircleFilled(rPos.x,rPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,rPos)
+		end
+		
+		local stPos = RenderManager:WorldToScreen({ x = straightTest.x, y = straightTest.y, z = straightTest.z })
+		if (table.valid(stPos)) then
+			GUI:AddCircleFilled(stPos.x,stPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,stPos)
+		end
+		
+		local staPos = RenderManager:WorldToScreen({ x = straightTestAngled.x, y = straightTestAngled.y, z = straightTestAngled.z })
+		if (table.valid(staPos)) then
+			GUI:AddCircleFilled(staPos.x,staPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,staPos)
+		end
+		
+		local ltPos = RenderManager:WorldToScreen({ x = leftBase.x, y = leftBase.y, z = leftBase.z })
+		if (table.valid(ltPos)) then
+			GUI:AddCircleFilled(ltPos.x,ltPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,ltPos)
+		end
+		
+		local lt2Pos = RenderManager:WorldToScreen({ x = leftTest.x, y = leftTest.y, z = leftTest.z })
+		if (table.valid(lt2Pos)) then
+			GUI:AddCircleFilled(lt2Pos.x,lt2Pos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,lt2Pos)
+		end
+		
+		local lt2aPos = RenderManager:WorldToScreen({ x = leftTestAngled.x, y = leftTestAngled.y, z = leftTestAngled.z })
+		if (table.valid(lt2aPos)) then
+			GUI:AddCircleFilled(lt2aPos.x,lt2aPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,lt2aPos)
+		end
+		
+		local rtPos = RenderManager:WorldToScreen({ x = rightBase.x, y = rightBase.y, z = rightBase.z })
+		if (table.valid(rtPos)) then
+			GUI:AddCircleFilled(rtPos.x,rtPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,rtPos)
+		end
+		
+		local rt2Pos = RenderManager:WorldToScreen({ x = rightTest.x, y = rightTest.y, z = rightTest.z })
+		if (table.valid(rt2Pos)) then
+			GUI:AddCircleFilled(rt2Pos.x,rt2Pos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,rt2Pos)
+		end
+		
+		local rt2aPos = RenderManager:WorldToScreen({ x = rightTestAngled.x, y = rightTestAngled.y, z = rightTestAngled.z })
+		if (table.valid(rt2aPos)) then
+			GUI:AddCircleFilled(rt2aPos.x,rt2aPos.y,7,GUI:ColorConvertFloat4ToU32(.2,1,.2,1))
+			table.insert(nodeCircles,rt2aPos)
+		end
+		
+		local connections = {
+			{ a = rPos, b = stPos, ad = ppos, bd = straightTest},
+			{ a = rPos, b = staPos, ad = ppos, bd = straightTestAngled},
+			{ a = rPos, b = ltPos, ad = ppos, bd = leftBase },
+			{ a = rPos, b = rtPos, ad = ppos, bd = rightBase },
+			{ a = rPos, b = lt2Pos, ad = ppos, bd = leftTest },
+			{ a = rPos, b = rt2Pos, ad = ppos, bd = rightTest },
+			{ a = rPos, b = lt2aPos, ad = ppos, bd = leftTestAngled },
+			{ a = rPos, b = rt2aPos, ad = ppos, bd = rightTestAngled },
+		}
+		
+		for _,connection in pairs(connections) do
+			if (connection and table.valid(connection.a) and table.valid(connection.b) and table.valid(connection.ad) and table.valid(connection.bd)) then
+				local a, b, ad, bd = connection.a, connection.b, connection.ad, connection.bd
+				local hit, hitx, hity, hitz = RayCast(ad.x,ad.y,ad.z,bd.x,bd.y,bd.z)
+				if (not hit) then
+					GUI:AddLine(a.x, a.y, b.x, b.y, GUI:ColorConvertFloat4ToU32(.2,1,.2,1), 6)
+				else
+					local bPos = RenderManager:WorldToScreen({ x = hitx, y = hity, z = hitz })
+					if (table.valid(bPos)) then
+						GUI:AddLine(a.x, a.y, bPos.x, bPos.y, GUI:ColorConvertFloat4ToU32(1,.2,.2,1), 6)
+						GUI:AddCircleFilled(bPos.x,bPos.y,7,GUI:ColorConvertFloat4ToU32(1,.2,.2,1))
+					end
+				end
+			end
+		end
+
+		GUI:End()
+		GUI:PopStyleColor()
+	end
+end
+
 function ml_navigation.DrawPath(event, ticks)
 	--if ( ml_navigation.CanRun() ) then
 		-- Draw the Navpath in 3D
@@ -2416,6 +2546,7 @@ function ml_navigation.DrawPath(event, ticks)
 	--end
 end
 --RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawPath)
+RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawObstacleFinder)
 
 
 
