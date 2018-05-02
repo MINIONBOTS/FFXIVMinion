@@ -557,6 +557,24 @@ function dev.DrawCall(event, ticks )
 					end
 					GUI:TreePop()
 				end	
+				if ( GUI:TreeNode("Selected Craft Info")) then
+					if (not dev.craftrecipe) then dev.craftrecipe = 0 end
+					GUI:BulletText("Craft Recipe Id") GUI:SameLine(200) dev.craftrecipe = GUI:InputInt("##devci2",dev.craftrecipe) 
+					
+					--GUI:SameLine()
+					-- Takes in no args for just the list, or a recipe id to compare if its the correct index
+					local ciList = Crafting:GetSelectedCraftInfo(dev.craftrecipe)
+					if(ciList ~= nil) then 
+						GUI:BulletText(".class") GUI:SameLine(200) GUI:InputText("##deCIL0"..tostring(id),tostring(ciList.class))
+						GUI:BulletText(".page") GUI:SameLine(200) GUI:InputText("##deCIL1"..tostring(id),tostring(ciList.page))
+						GUI:BulletText(".selectedindex") GUI:SameLine(200) GUI:InputText("##deCIL2"..tostring(id),tostring(ciList.selectedindex))
+						GUI:BulletText(".iscorrectindex") GUI:SameLine(200) GUI:InputText("##deCIL3"..tostring(id),tostring(ciList.iscorrectindex))
+						GUI:TreePop()
+					end
+
+
+					GUI:TreePop()
+				end	
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
