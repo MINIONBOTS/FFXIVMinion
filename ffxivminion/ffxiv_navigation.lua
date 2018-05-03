@@ -1027,7 +1027,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local dist = math.distance3d(ppos,newGoal)
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) or 
-		not CanFlyInZone() or (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted and not Player.mountcanfly))
+		not CanFlyInZone() or (Player.ismounted and ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted and not Player.mountcanfly))
 	then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
 	end
