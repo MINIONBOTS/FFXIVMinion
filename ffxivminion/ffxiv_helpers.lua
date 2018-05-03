@@ -6996,11 +6996,19 @@ function GetInteractableEntity(contentids,types)
 	end
 	return nil
 end
+
 -- Very general check for things that would prevent moving around
 function Busy()
 	local currentTask = ml_task_hub:CurrentTask()
-	return IsControlOpen("FadeMiddle") or CannotMove() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
+	return MIsLocked() or (MIsCasting() and (currentTask == nil or IsNull(currentTask.interruptCasting,false) == false)) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or Player:GetFishingState() ~= 0 or not Player.alive or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
+		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
+end
+
+-- Various windows that we should not move around in while open.
+function HasInteractWindows()
+	return IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
+		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
 

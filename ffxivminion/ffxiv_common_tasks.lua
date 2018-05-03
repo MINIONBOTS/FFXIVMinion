@@ -110,11 +110,11 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if ((MIsLoading() or MIsLocked()) and ml_navigation:IsUsingConnection()) then
+	if ((MIsLoading() or (MIsLocked() and not HasInteractWindows())) and ml_navigation:IsUsingConnection()) then
 		return false
 	end
 	
-	if (MIsLocked() or self.startMap ~= Player.localmapid) then
+	if (Busy() or self.startMap ~= Player.localmapid) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -543,11 +543,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
-	if ((MIsLoading() or MIsLocked()) and ml_navigation:IsUsingConnection()) then
+	if ((MIsLoading() or (MIsLocked() and not HasInteractWindows())) and ml_navigation:IsUsingConnection()) then
 		return false
 	end
 	
-	if (MIsLocked() or self.startMap ~= Player.localmapid) then
+	if (Busy() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
