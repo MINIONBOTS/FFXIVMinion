@@ -1367,12 +1367,12 @@ function CanUseCordialSoon()
 		end
 		
 		if useDeficit then
-			if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
+			if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or ((gpDeficit >= 300) and (cordialQuickAction == nil and cordialNormalAction == nil)) or ((gpDeficit >= 150) and (cordialQuickAction == nil))) then
 				if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 					--d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
 					return true, cordialHigh
 				end
-			elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or (cordialQuickAction == nil)) then
+			elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or ((gpDeficit >= 100) and (cordialQuickAction == nil))) then
 				if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 					--d("[CanUseCordialSoon]: Returning Deficit. Cordial.")
 					return true, cordialNormal
@@ -1472,12 +1472,12 @@ function CanUseCordial()
 		end
 		
 		if useDeficit then
-			if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
+			if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or ((gpDeficit >= 300) and (cordialQuickAction == nil and cordialNormalAction == nil)) or ((gpDeficit >= 150) and (cordialQuickAction == nil))) then
 				if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 					d("[CanUseCordial]: Returning Deficit. High cordial.")
 					return true, cordialHigh
 				end
-			elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or (cordialQuickAction == nil)) then
+			elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or ((gpDeficit >= 100) and (cordialQuickAction == nil))) then
 				if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
 					d("[CanUseCordial]: Returning Deficit. Cordial.")
 					return true, cordialNormal
