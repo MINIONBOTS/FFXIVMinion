@@ -1013,11 +1013,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local hasCurrentPath = table.valid(ml_navigation.path)
 	local currentPathSize = table.size(ml_navigation.path)
 	
-	if (not Player.onmesh and hasCurrentPath) then
-		d("[NAVIGATION]: Ran off-mesh, return previous path, errors may be encountered here.")
-		return currentPathSize
-	end
-	
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	if (hasPreviousPath and ml_navigation.lastconnectionid ~= 0) then
