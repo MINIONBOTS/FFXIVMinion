@@ -6007,12 +6007,12 @@ end
 
 function SkillMgr.DrawBattleEditor()
 	
-	if (GUI:CollapsingHeader("Basic","battle-basic-header",true,true)) then
+	if (GUI:CollapsingHeader("Basic","battle-basic-header")) then
 		GUI:Columns(2,"#battle-basic-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		--GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
-		SkillMgr.DrawLineItem{control = "combobox", name = "Combat Status", variable = "SKM_Combat", indexvar = "gSMBattleStatusIndex", tablevar = gSMBattleStatuses, width = 200}
+		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
+		--SkillMgr.DrawLineItem{control = "combobox", name = "Combat Status", variable = "SKM_Combat", indexvar = "gSMBattleStatusIndex", tablevar = gSMBattleStatuses, width = 200}
 		
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("skmCHARGE")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When selected, this skill will be considered a 'gap closer', like Shoulder Tackle or Plunge.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHARGE",SKM_CHARGE),"SKM_CHARGE"); GUI:NextColumn();
 		GUI:AlignFirstTextHeightToWidgets(); GUI:Text(GetString("appliesBuff")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Check this box if the skill applies a Buff or Debuff.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_DOBUFF",SKM_DOBUFF),"SKM_DOBUFF"); GUI:NextColumn();
@@ -6044,7 +6044,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader("Chain","battle-chain-header",true,true)) then
+	if (GUI:CollapsingHeader("Chain","battle-chain-header")) then
 		GUI:Columns(2,"#battle-chain-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6055,7 +6055,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader("Other Skill Checks","battle-otherskills-header",true,true)) then
+	if (GUI:CollapsingHeader("Other Skill Checks","battle-otherskills-header")) then
 		GUI:Columns(2,"#battle-otherskills-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6069,7 +6069,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-playerhp-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"battle-playerhp-header")) then
 		GUI:Columns(2,"#battle-playerhp-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6090,7 +6090,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("party"),"battle-party-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("party"),"battle-party-header")) then
 		GUI:Columns(2,"#battle-party-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6108,7 +6108,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("target"),"battle-target-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("target"),"battle-target-header")) then
 		GUI:Columns(2,"#battle-target-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6135,7 +6135,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("Gauges"),"battle-gauges-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("Gauges"),"battle-gauges-header")) then
 		GUI:Columns(2,"#battle-gauges-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6154,7 +6154,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header")) then
 		GUI:Columns(2,"#battle-casting-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		GUI:Text(GetString("skmTCASTID")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must be channelling one of the listed spell IDs (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCASTID",SKM_TCASTID),"SKM_TCASTID"); GUI:NextColumn();
@@ -6163,7 +6163,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("healPriority"),"battle-healPriority-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("healPriority"),"battle-healPriority-header")) then
 		GUI:Columns(2,"#battle-healPriority-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6178,7 +6178,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("aoe"),"battle-aoe-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("aoe"),"battle-aoe-header")) then
 		GUI:Columns(2,"#battle-aoe-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6200,7 +6200,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("playerBuffs"),"battle-playerbuffs-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("playerBuffs"),"battle-playerbuffs-header")) then
 		GUI:Columns(2,"#battle-playerbuffs-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6214,7 +6214,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("targetBuffs"),"battle-targetbuffs-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("targetBuffs"),"battle-targetbuffs-header")) then
 		GUI:Columns(2,"#battle-targetbuffs-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6230,7 +6230,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("Pet Buffs"),"battle-petbuffs-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("Pet Buffs"),"battle-petbuffs-header")) then
 		GUI:Columns(2,"#battle-petbuffs-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6244,7 +6244,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("advancedSettings"),"battle-advanced-header",true,true)) then
+	if (GUI:CollapsingHeader(GetString("advancedSettings"),"battle-advanced-header")) then
 		GUI:Columns(2,"#battle-advanced-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6269,7 +6269,7 @@ end
 
 function SkillMgr.DrawCraftEditor()
 	
-	if (GUI:CollapsingHeader("Crafting","crafting-header",true,true)) then
+	if (GUI:CollapsingHeader("Crafting","crafting-header")) then
 		GUI:Columns(2,"#craft-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,500);
 		
@@ -6340,7 +6340,7 @@ function SkillMgr.DrawCraftEditor()
 end
 
 function SkillMgr.DrawGatherEditor()
-	if (GUI:CollapsingHeader("Gathering","gathering-header",true,true)) then
+	if (GUI:CollapsingHeader("Gathering","gathering-header")) then
 		GUI:Columns(2,"#gathering-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 		
@@ -6390,7 +6390,7 @@ function SkillMgr.DrawManager()
 			local tabs = SkillMgr.GUI.manager.main_tabs
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
-				if (GUI:CollapsingHeader("Valid Classes","classes-header",true,false)) then
+				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
 					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
@@ -6424,12 +6424,12 @@ function SkillMgr.DrawManager()
 					GUI:NewLine();
 					GUI:Spacing(2)
 				end
-				if (GUI:CollapsingHeader("Extra Filters","filters-header",true,false)) then
+				if (GUI:CollapsingHeader("Extra Filters","filters-header")) then
 					for i = 1, 5 do
 						SkillMgr.Capture(GUI:InputText("Filter "..tostring(i),_G["gSkillManagerFilter"..tostring(i)]),"gSkillManagerFilter"..tostring(i))
 					end
 				end
-				if (GUI:CollapsingHeader("Profile Skills","skills-header",true,true)) then
+				if (GUI:CollapsingHeader("Profile Skills","skills-header")) then
 					local skills = SkillMgr.SkillProfile
 					if (table.valid(skills)) then
 						for prio,skill in pairsByKeys(skills) do
