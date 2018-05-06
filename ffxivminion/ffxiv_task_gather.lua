@@ -110,8 +110,12 @@ end
 function ffxiv_gather.GetCurrentTaskPos()
 	local pos = {}
 	
+	
 	if (table.valid(ffxiv_gather.currentTask)) then
 		local task = ffxiv_gather.currentTask
+		local taskPos = task.pos
+		local taskFlightPos = task.flightpos
+		
 		if (task.maxPositions > 0) then
 			local currentPosition = task.currentPosition
 			if (table.valid(currentPosition)) then
@@ -137,14 +141,14 @@ function ffxiv_gather.GetCurrentTaskPos()
 					end
 				end
 			end
+		elseif ((table.valid(taskFlightPos)) and (IsOnMap(task.mapid) and CanFlyInZone())) then
+				pos = taskFlightPos
 		else
-			local taskPos = task.pos
 			if (table.valid(taskPos)) then
 				pos = taskPos
 			end
 		end
 	end
-
 	return pos
 end
 
@@ -1520,39 +1524,22 @@ function CanUseExpManual()
 		end
 		
 		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,46)) then
-			if (Player.level >= 15 and Player.level < 25) then
-				local manual1, action = GetItem(4633)
-				if (manual1 and action and manual1:IsReady(Player.id)) then
-					return true, manual1
-				end
-			end
+			local commercial, action = GetItem(12668)
+			local manual2, action = GetItem(4635)
+			local manual1, action = GetItem(4633)
 			
-			if (Player.level >= 25 and Player.level < 45) then
-				local manual2, action = GetItem(4635)
-				if (manual2 and action and manual2:IsReady(Player.id)) then
-					return true, manual2
-				end
-				
-				local manual1, action = GetItem(4633)
-				if (manual1 and action and manual1:IsReady(Player.id)) then
-					return true, manual1
-				end
-			end
-
-			if (Player.level >= 45) then
-				local commercial, action = GetItem(12668)
+			
+			if (Player.level >= 45) and commercial then
 				if (commercial and action and commercial:IsReady(Player.id)) then
 					--d("Can use commercial manual.")
 					return true, commercial
 				end
-				
-				local manual2, action = GetItem(4635)
+			elseif (Player.level >= 25) and manual2 then 
 				if (manual2 and action and manual2:IsReady(Player.id)) then
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
-				
-				local manual1, action = GetItem(4633)
+			elseif (Player.level >= 15) and manual1 then 
 				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
@@ -1574,32 +1561,25 @@ function CanUseExpManual()
 					return true, manual1
 				end
 			end
+		end
 			
-			if (Player.level >= 25 and Player.level < 45) then
-				local manual2, action = GetItem(4634)
-				if (manual2 and action and not action.isoncd) then
-					return true, manual2
-				end
-				
-				local manual1, action = GetItem(4632)
-				if (manual1 and action and not action.isoncd) then
-					return true, manual1
-				end
-			end
-
-			if (Player.level >= 45) then
-				local commercial, action = GetItem(12667)
-				if (commercial and action and not action.isoncd) then
+		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,46)) then
+			local commercial, action = GetItem(12667)
+			local manual2, action = GetItem(4634)
+			local manual1, action = GetItem(4632)
+			
+			if (Player.level >= 45) and commercial then
+				if (commercial and action and commercial:IsReady(Player.id)) then
+					--d("Can use commercial manual.")
 					return true, commercial
 				end
-				
-				local manual2, action = GetItem(4634)
-				if (manual2 and action and not action.isoncd) then
+			elseif (Player.level >= 25) and manual2 then 
+				if (manual2 and action and manual2:IsReady(Player.id)) then
+					--d("Can use level 2 manual.")
 					return true, manual2
 				end
-				
-				local manual1, action = GetItem(4632)
-				if (manual1 and action and not action.isoncd) then
+			elseif (Player.level >= 15) and manual1 then 
+				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
@@ -3088,7 +3068,7 @@ function c_gatherstealth:evaluate()
 		
 			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 				local dest = ml_task_hub:CurrentTask().pos
-				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 75) then
+				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 30) then
 					if (HasBuff(Player.id, 47)) then
 						return true
 					else
@@ -3225,7 +3205,7 @@ function ffxiv_gather.NeedsStealth()
 			if (destPos) then
 				if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 					local dist = PDistance3D(myPos.x,myPos.y,myPos.z,destPos.x,destPos.y,destPos.z)
-					if (dist > 75) then
+					if (dist > 30) then
 						--d("Too far from destination to use stealth.")
 						return false
 					end
