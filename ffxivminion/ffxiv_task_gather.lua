@@ -116,7 +116,7 @@ function ffxiv_gather.GetCurrentTaskPos()
 		local taskPos = task.pos
 		local taskFlightPos = task.flightpos
 		
-		if (task.maxPositions > 0) then
+		if (task.maxPositions ~= nil) and (task.maxPositions > 0) then
 			local currentPosition = task.currentPosition
 			if (table.valid(currentPosition)) then
 				pos = currentPosition
@@ -3317,15 +3317,16 @@ c_resettask = inheritsFrom( ml_cause )
 e_resettask = inheritsFrom( ml_effect )
 function c_resettask:evaluate()
 
-	if (IsControlOpen("Gathering") or not ffxiv_gather.HasDirective()) then
+	if IsControlOpen("Gathering") then
 		return false
 	end
 	
 	local resetTask = false
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	local ids = ""
 	
 	if (table.valid(task)) then
+	
 		resetTask = IsNull(task.evaluate,false)
 		ids = IsNull(task.ids,"")
 		if (task.mapid ~= Player.localmapid) then
@@ -3334,13 +3335,12 @@ function c_resettask:evaluate()
 		end
 	end
 	
-	if (type(ids) == "string" and GUI_Get(ids) ~= nil) then
-		ids = GUI_Get(ids)
-	end
-	
-	if (resetTask and ids ~= "" and FindRadarMarker(ids) ~= nil) then
-		if (tonumber(ids) ~= nil and tonumber(ids) == FindRadarMarker(ids).id) then
-			return true
+	if resetTask then
+		if (ids ~= "" and FindRadarMarker(ids) ~= nil) then
+			if (tonumber(ids) ~= nil and tonumber(ids) == FindRadarMarker(ids).id) then
+				d("[flag reset]: Radar Flag, Reset.")
+				return true
+			end
 		end
 	end
 	
@@ -3531,7 +3531,7 @@ function ffxiv_task_gather:Draw()
 			GUI:PopItemWidth()
 			GUI:Columns()
 		end
-		local profiletask = ffxiv_task_gather.currentTask
+		local profiletask = ffxiv_gather.currentTask
 		if table.valid(profiletask) then
 			local TimeLeft = 0
 			if profiletask.maxtime ~= nil then
@@ -3554,7 +3554,7 @@ function ffxiv_task_gather:Draw()
 			
 			GUI:PushItemWidth(150)
 			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
-			local taskName = ffxiv_task_gather.currentTask.name or ffxiv_task_gather.currentTaskIndex
+			local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
 			GUI:InputText("##taskName",taskName,GUI.InputTextFlags_ReadOnly)
 			GUI:PopItemWidth()
 			GUI:Columns()
