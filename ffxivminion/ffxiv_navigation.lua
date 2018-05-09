@@ -1729,7 +1729,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (not IsFlying() and not IsDiving()) then
-						d("[Navigation]: Normal navigation..")
+						--d("[Navigation]: Normal navigation..")
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
 							
@@ -1772,7 +1772,7 @@ function ml_navigation.Navigate(event, ticks )
 							end						
 						end
 						
-						d("[Navigation]: Navigate to node.")
+						--d("[Navigation]: Navigate to node.")
 						ml_navigation:NavigateToNode(ppos,nextnode)	
 					end
 				

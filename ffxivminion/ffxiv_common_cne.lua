@@ -1279,13 +1279,13 @@ function c_getmovementpath:evaluate()
 			if (pathLength <= 0) then
 				-- attempt to get a path with no borders or avoidance first
 				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),GLOBAL.CUBE.AVOID,navid)
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),(GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID) + IsNull(ml_task_hub:CurrentTask().floorfilters,0),GLOBAL.CUBE.AVOID + IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 					--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 				end
 				
 				if (pathLength <= 0) then
 					--d("rebuild cube path")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,0,navid)
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 					c_getmovementpath.lastFallback = Now()
 					c_getmovementpath.lastGoal = gotoPos
 				end

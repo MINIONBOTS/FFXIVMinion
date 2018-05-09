@@ -2793,7 +2793,8 @@ function GetPathDistance(pos1,pos2,threshold)
 	
 	local dist = math.distance3d(pos1,pos2)
 	if (dist < threshold) then
-		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		local path = NavigationManager:MoveTo(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		--local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (table.valid(path)) then
 			local pathdist = PathDistance(path)
 			if (table.valid(pathdist)) then

@@ -79,6 +79,7 @@ function e_gotopostest:execute()
 	local pos = c_gotopostest.pos
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_gotopostest.pos 
+	newTask.cubefilters = gTestNoFly and 1 or 0
 	newTask.range = 1
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
