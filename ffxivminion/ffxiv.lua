@@ -679,8 +679,6 @@ function ffxivminion.SetMainVars()
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing",false)
 	gRepair = ffxivminion.GetSetting("gRepair",true)
 	gRepairRunningOnly = ffxivminion.GetSetting("gRepairRunningOnly",false)
-	gPermaSprint = ffxivminion.GetSetting("gPermaSprint",false)
-	FFXIV_Common_PermaSwift = ffxivminion.GetSetting("FFXIV_Common_PermaSwift",false)
 	gChocoAssist = ffxivminion.GetSetting("gChocoAssist",false)
 	gChocoGrind = ffxivminion.GetSetting("gChocoGrind",true)
 	gChocoQuest = ffxivminion.GetSetting("gChocoQuest",true)
@@ -805,7 +803,6 @@ function ffxivminion.SetMainVars()
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
 	Hacks:SkipCutscene(gSkipCutscene)
-	Hacks:SetPermaSprint(gPermaSprint)
 end
 
 -- Module Event Handler
@@ -1983,7 +1980,6 @@ function ml_global_information.DrawSettings()
 					)
 
 					GUI_Capture(GUI:Checkbox(GetString("Paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
-					GUI_Capture(GUI:Checkbox(GetString("Perma Sprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
 					GUI_Capture(GUI:Checkbox(GetString("Skip Cutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
 					GUI_Capture(GUI:Checkbox(GetString("Skip Dialogue"),gSkipTalk),"gSkipTalk"); GUI:SameLine(0,15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##skiptalk",gSkipTalkRunningOnly),"gSkipTalkRunningOnly")
