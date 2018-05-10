@@ -4057,7 +4057,7 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4725,5701,3451,2628) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4725,5701,3451,2628,2626,2893) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
