@@ -1554,7 +1554,7 @@ function CanUseExpManual()
 			end
 		end
 					
-		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,46)) then
+		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,45)) then
 			local commercial, action = GetItem(12667)
 			local manual2, action2 = GetItem(4634)
 			local manual1, action1 = GetItem(4632)
