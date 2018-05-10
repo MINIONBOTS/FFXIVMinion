@@ -6066,7 +6066,8 @@ function Transport399(pos1,pos2)
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
-		if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
+		local libraryDist = math.distance3d(Player.pos,{x = 295, y = 232, z = 768 })
+		if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2) and libraryDist > 300) then
 			return true, function()
 				local newTask = ffxiv_task_movetomap.Create()
 				newTask.destMapID = 478

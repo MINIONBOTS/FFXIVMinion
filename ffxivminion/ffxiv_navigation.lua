@@ -902,7 +902,8 @@ function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
 		local pathsize = table.size(self.path)
 		for index,node in pairsByKeys(self.path) do
-			if (index > self.pathindex and ((node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) or (pathsize - index) > 1)) then
+			local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
+			if (index > self.pathindex and dist > 15 and ((node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) or (pathsize - index) > 1)) then
 				return true
 			end
 		end
