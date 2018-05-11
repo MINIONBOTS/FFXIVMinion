@@ -352,7 +352,7 @@ function c_precastbuff:evaluate()
 	return false
 end
 function e_precastbuff:execute()
-	--ffxiv_fish.StopFishing()
+	ffxiv_fish.StopFishing()
 	
 	local activityitemid = c_precastbuff.itemid
 	local requirestop = c_precastbuff.requirestop
