@@ -911,6 +911,19 @@ function ml_navigation:CanContinueFlying()
 	return false
 end
 
+-- Get connection details for a specific node, maybe with some helper tagging.
+function ml_navigation:GetConnection(node)
+	local navcon
+	if (node.navconnectionid and node.navconnectionid ~= 0) then
+		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
+	end
+	
+	-- type = 0: disabled, 1: cube-cube, 2: floor-floor, 3: floor-cube, 4: custom omc, 5: macromesh
+	-- subtype = 1: jump, 2: walk, 3: teleport, 4: interact, 5: portal, 6: custom code
+	
+	return navcon
+end
+
 -- Are we using a connection?
 function ml_navigation:IsUsingConnection()
 	local lastnode = self.path[self.pathindex - 1]
@@ -1263,10 +1276,7 @@ function ml_navigation.Navigate(event, ticks )
 						return
 					end
 					
-					local navcon
-					if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
-						navcon = ml_mesh_mgr.navconnections[nextnode.navconnectionid]
-					end
+					local navcon = ml_navigation:GetConnection(nextnode)
 					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
@@ -1501,7 +1511,7 @@ function ml_navigation.Navigate(event, ticks )
 					if (IsDiving()) then
 						--d("[Navigation]: Underwater navigation.")
 						
-						local target = Player:GetTarget()
+						local target = Player:GetTarget()						
 						if (target and target.los and target.distance2d < 15) then
 							if (target.interactable) and (target.distance < 2.5) then
 								Player:Stop()
@@ -1524,6 +1534,11 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							
 							local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = tpos.x, y = (tpos.y - 2), z = tpos.z }
+							-- modifying position down helps mostly here, but do a quick raycheck to make sure we aren't hitting a low obstacle
+							local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,modifiedNode.x,modifiedNode.y,modifiedNode.z)
+							if (hit) then
+								modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = tpos.x, y = tpos.y, z = tpos.z }
+							end
 							
 							-- Set Pitch							
 							local currentPitch = math.round(Player.flying.pitch,3)
@@ -1540,7 +1555,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 							-- Check if we left our path
 							if (not ml_navigation:IsStillOnPath(ppos,"3ddive")) then 
-								d("we have left the path")
+								--d("we have left the path")
 								return 
 							end
 															
@@ -1552,16 +1567,19 @@ function ml_navigation.Navigate(event, ticks )
 								local originalIndex = ml_navigation.pathindex + 1
 								
 								local newIndex = originalIndex
-								if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0) then
+								if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
 									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 										local node = ml_navigation.path[i]
 										if (node) then
-											local dist3d = math.distance3d(node,ppos)
-											if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
-												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
-												if (not hit) then
-													--d("Bumped index to [" .. i .. "]")
-													newIndex = i
+											local nc = ml_navigation:GetConnection(node)
+											if (not nc or not In(nc.type,0,5)) then
+												local dist3d = math.distance3d(node,ppos)
+												if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
+													local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
+													if (not hit) then
+														--d("Bumped index to [" .. i .. "]")
+														newIndex = i
+													end
 												end
 											end
 										end
@@ -1597,6 +1615,11 @@ function ml_navigation.Navigate(event, ticks )
 								end
 								
 								local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
+								-- modifying position down helps mostly here, but do a quick raycheck to make sure we aren't hitting a low obstacle
+								local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,modifiedNode.x,modifiedNode.y,modifiedNode.z)
+								if (hit) then
+									modifiedNode = nextnode
+								end
 								
 								-- Set Pitch							
 								local currentPitch = math.round(Player.flying.pitch,3)
@@ -1624,12 +1647,12 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-						
+							
 							if (not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
 							
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
 								-- May need more adjustments.
-								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0) then
+								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
 							
 									d("[Navigation]: Next node is not a flying node, dive a bit.")
 									--table.print(nextnode)
@@ -1660,22 +1683,25 @@ function ml_navigation.Navigate(event, ticks )
 										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or GetDiveHeight() <= 0) end, function () Player:StopMovement() end)
 										return false
 									end
-								end
+								end								
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
 							
 							local newIndex = originalIndex
-							if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0) then
+							if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
 								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
 									local node = ml_navigation.path[i]
 									if (node) then
-										local dist3d = math.distance3d(node,ppos)
-										if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
-											local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
-											if (not hit) then
-												--d("Bumped index to [" .. i .. "]")
-												newIndex = i
+										local nc = ml_navigation:GetConnection(node)
+										if (not nc or not In(nc.type,0,5)) then
+											local dist3d = math.distance3d(node,ppos)
+											if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
+												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
+												if (not hit) then
+													--d("Bumped index to [" .. i .. "]")
+													newIndex = i
+												end
 											end
 										end
 									end
@@ -1742,6 +1768,10 @@ function ml_navigation.Navigate(event, ticks )
 								Player:StopMovement()
 								Player:Dive()
 								ffnav.Await(3000, function () return (MIsLoading() or IsDiving()) end)
+								return
+							elseif (bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0 or (navcon and navcon.type == 3 and (nextnextnode and bit.band(nextnextnode.flags, GLOBAL.CUBE.WATER) ~= 0))) then
+								-- For connecting to the weird tunnel exists in underwater towns.
+								ml_navigation:NavigateToNode(ppos,nextnode)	
 								return
 							elseif (not IsFlying() and CanFlyInZone()) then
 								if (Player.ismounted and not Player.mountcanfly and bit.band(nextnode.flags, GLOBAL.CUBE.AIR) ~= 0) then
