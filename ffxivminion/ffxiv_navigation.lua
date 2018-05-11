@@ -1642,7 +1642,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						-- Check if we left our path
-						if (not ml_navigation:IsStillOnPath(ppos,"3dfly") ) then return end
+						if (not ml_navigation:IsStillOnPath(ppos,"3dfly")) then return end
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
@@ -1680,10 +1680,14 @@ function ml_navigation.Navigate(event, ticks )
 										return false
 									end
 									if (navcon and navcon.radius <= 0.5) then
-										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or GetDiveHeight() <= 0) end, function () Player:StopMovement() end)
-										return false
+										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or (GetDiveHeight() <= 0 and CanDiveInZone())) end, function () Player:StopMovement() end)
 									end
-								end								
+									
+									d("[Navigation]: Prevent continuation until landing is completed.")
+									return false -- ideally, we don't want to move to the next node until we have fully landed
+								else
+									d("[Navigation]: Prevent from landing over water and diving by accident.")
+								end
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
