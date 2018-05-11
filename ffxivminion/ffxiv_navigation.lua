@@ -1149,6 +1149,8 @@ end
 -- Also handles OMCs
 ml_navigation.lastconnectionid = 0
 ml_navigation.lasttargetid = nil
+ml_navigation.path = {}
+ml_navigation.pathindex = 0
 ml_navigation.lastpathindex = 0
 ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
