@@ -1333,7 +1333,7 @@ function ffxiv_task_flee:task_complete_execute()
 end
 
 function ffxiv_task_flee:task_fail_eval()
-	return (not Player.alive)
+	return (not Player.alive) or (Player.incombat and math.distance3d(Player.pos,self.pos) < 2)
 end
 
 --=======================GRIND COMBAT TASK=========================-
