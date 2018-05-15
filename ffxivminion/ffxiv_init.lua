@@ -929,7 +929,7 @@ function DrawFateListUI(self)
 			if (GUI:Button(GetString("Add Entry"),200,24)) then
 				local details = { name = fate.name, mapid = fate.mapid, id = fate.id }
 				self:AddEntry(details)
-				vars.temptext = "Added ["..tostring(fate.id).." : "..tostring(fate.name).."] to the blacklist."
+				vars.temptext = "Added ["..tostring(fate.id).." : "..tostring(fate.name).."] to the list."
 				vars.temptimer = Now() + 2000
 			end
 
