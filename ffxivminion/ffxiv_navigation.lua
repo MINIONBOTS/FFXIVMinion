@@ -999,7 +999,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 	return ret
 end
 
-ml_navigation.lastpastlength = 0
+ml_navigation.lastPathUpdate = 0
 ml_navigation.pathchanged = false
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local floorfilters = IsNull(floorfilters,0,true)
@@ -1007,8 +1007,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	if (targetid == 0) then
 		targetid = nil
 	end
-	
-	--d("buildPath:"..tostring(floorfilters)..","..tostring(cubefilters))
 
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
@@ -1047,6 +1045,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
+	ml_navigation.lastPathUpdate = Now()
 	
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
@@ -1197,7 +1196,7 @@ function ml_navigation.Navigate(event, ticks )
 					--d("[Navigation]: After Update ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
 				end
 				
-				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
+				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then
 				
 					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 				
@@ -1213,6 +1212,11 @@ function ml_navigation.Navigate(event, ticks )
 						--Player:Stop()
 						--return
 					--end
+					
+					if (TimeSince(ml_navigation.lastPathUpdate) >= 500) then
+						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
+						ml_navigation.lastPathUpdate = Now()
+					end
 					
 					local adjustedHeading = ml_navigation.CheckObstacles()
 					if (adjustedHeading ~= 0) then

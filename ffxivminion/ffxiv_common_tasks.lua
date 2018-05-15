@@ -1487,7 +1487,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then			
-			if (not InCombatRange(target.id) and not MIsCasting()) then
+			if (IsFlying() or (not InCombatRange(target.id) and not MIsCasting())) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p = FindClosestMesh(telePos,10,false)
@@ -1496,29 +1496,28 @@ function ffxiv_task_grindCombat:Process()
 						self.teleportThrottle = Now() + 1500
 					end
 				else
-					if (Now() > self.movementDelay) then
-						--d("Ranged class needs to move closer, fire moveto..")
-						if (target.distance2d <= (target.hitradius + 1)) then
-							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, 0, 0, target.id)
-						else
-							if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
-								local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
-								if (pathLength <= 0) then
-									Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
-								end
-							else
+					if (IsFlying() or target.distance2d <= (target.hitradius + 1)) then
+						Player:MoveTo(pos.x,pos.y,pos.z, 1.5, 0, 0, target.id)
+					else
+						if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
+							local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+							if (pathLength <= 0) then
 								Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 							end
+						else
+							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 						end
-						self.movementDelay = Now() + 1000
 					end
 				end
 			end
 			
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
-					--d("Need to dismount if we are close.")
-					Dismount()
+					if (IsFlying() and GetHoverHeight() >= 2.5) then
+						Descend()
+					else
+						Dismount()
+					end
 				end
 				if (Player:IsMoving() and not IsFlying()) then
 					Player:Stop()
@@ -1532,23 +1531,24 @@ function ffxiv_task_grindCombat:Process()
 					Player:SetFacing(pos.x,pos.y,pos.z) 
 				end
 			end
+			
 			--d("Checking if we are in combat range and the target was attackable.")
-			if (InCombatRange(target.id) and target.attackable and target.alive) then
-				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
-					--d("FIRE AWAY")
-					SkillMgr.Cast( target )
-					if (self.attackThrottle) then
-						if (Player.level > target.level) then
-							self.attackThrottleTimer = Now() + 2900
+			if (not IsFlying()) then
+				if (InCombatRange(target.id) and target.attackable and target.alive) then
+					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+						--d("FIRE AWAY")
+						SkillMgr.Cast( target )
+						if (self.attackThrottle) then
+							if (Player.level > target.level) then
+								self.attackThrottleTimer = Now() + 2900
+							end
 						end
 					end
 				end
-			else
-				--d("Not in combat range or target is not attackable or alive.")
 			end
 		else
 			--d("Melee class, check if we're in combat range and such..")
-			if (not InCombatRange(target.id)) then
+			if (IsFlying() or not InCombatRange(target.id)) then
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
@@ -1578,7 +1578,11 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (target.distance2d <= 15) then
 				if (Player.ismounted) then
-					Dismount()
+					if (IsFlying() and GetHoverHeight() >= 2.5) then
+						Descend()
+					else
+						Dismount()
+					end
 				end
 			end
 			if (InCombatRange(target.id) and not IsFlying()) then
@@ -1586,7 +1590,6 @@ function ffxiv_task_grindCombat:Process()
 				if (Player:IsMoving()) then
 					Player:Stop()
 				end
-				
 				-- Check for combat range before executing.
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 					if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
