@@ -15,6 +15,7 @@ ffxiv_music = {
 	
 	tracks = {
 		[1] = {
+			extension = false,
 			octave = 0,
 			tempo = 100,
 			notelength = 4,
@@ -65,6 +66,7 @@ ffxiv_music = {
 }
 
 function ffxiv_music.Reset()
+	ffxiv_music.extension = false
 	ffxiv_music.octave = 0
 	ffxiv_music.tempo = 100
 	ffxiv_music.notelength = 4
@@ -148,6 +150,7 @@ function ffxiv_music.CreateTrack(i, mml)
 	local mml = IsNull(mml,"")
 	ffxiv_music.tracks[i] = {
 		playing = false,
+		extension = false,
 		octave = 0,
 		tempo = 100,
 		notelength = 4,
@@ -460,10 +463,8 @@ function ffxiv_music.ParseMML(track)
 		end
 
 		if c then 
-			track.position = pos + (newpos - 1)
-			args = string.gsub(args,"&","")
-			
-			d("moving track ["..tostring(ffxiv_music.currentTrack).."] to position ["..tostring(track.position).."] c ["..tostring(c).."] args ["..tostring(args).."]")
+			track.position = pos + (newpos - 1)			
+			--d("moving track ["..tostring(ffxiv_music.currentTrack).."] to position ["..tostring(track.position).."] c ["..tostring(c).."] args ["..tostring(args).."]")
 			--ffxiv_music.position = pos + (newpos - 1)
 			--d("new position"..tostring(ffxiv_music.position))
 
@@ -527,16 +528,20 @@ function ffxiv_music.ParseMML(track)
 					return true
 				end
 			elseif c:find("[a-g]") then -- Play note
-				local note
-				local mod = string.match(args, "[+#-]")
-				if mod then
-					if mod == "#" or mod == "+" then
-						note = c .. "#"
-					elseif mod == "-" then
-						note = c .. "-"
+				if (not track.extension) then
+					local note
+					local mod = string.match(args, "[+#-]")
+					if mod then
+						if mod == "#" or mod == "+" then
+							note = c .. "#"
+						elseif mod == "-" then
+							note = c .. "-"
+						end
+					else
+						note = c
 					end
-				else
-					note = c
+					
+					ffxiv_music.DoAction(note, octave)
 				end
 				
 				local notetime
@@ -554,10 +559,16 @@ function ffxiv_music.ParseMML(track)
 				if string.find(args, "%.") then
 					notetime = notetime * 1.5
 				end
-				
-				ffxiv_music.DoAction(note, octave)
 
 				track.delay = Now() + notetime
+				
+				local extend = string.match(args,"[&]")
+				if (extend ~= nil) then
+					track.extension = true
+				else
+					track.extension = false
+				end
+				
 				playedNote = true
 			end
 		else
