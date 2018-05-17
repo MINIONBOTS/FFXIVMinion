@@ -2005,7 +2005,7 @@ function e_gatherflee:execute()
 			end
 		newTask.task_fail_eval = 
 			function ()
-				return not Player.alive
+				return (not Player.alive) or (Player.incombat and math.distance3d(Player.pos,self.pos) < 2)
 			end
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
