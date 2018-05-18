@@ -6970,30 +6970,34 @@ function GetInteractableEntity(contentids,types)
 	local contentids = IsNull(tostring(contentids),"")
 	local types = IsNull(types,{0,2,3,5,6,7})
 	
+	local interacts;
 	if (string.valid(contentids)) then
-		local interacts = MEntityList("targetable,contentid="..contentids..",maxdistance2d=30")
-		if (table.valid(interacts)) then
-			local validInteracts = {}
-			for i,entity in pairs(interacts) do
-				for _,typeid in pairs(types) do
-					if (typeid == entity.type) then
-						validInteracts[i] = entity
-					end
+		interacts = MEntityList("targetable,contentid="..contentids..",maxdistance2d=30")
+	else
+		interacts = MEntityList("targetable,maxdistance2d=15")
+	end
+	
+	if (table.valid(interacts)) then
+		local validInteracts = {}
+		for i,entity in pairs(interacts) do
+			for _,typeid in pairs(types) do
+				if (typeid == entity.type) then
+					validInteracts[i] = entity
+				end
+			end
+		end
+		
+		if (table.valid(validInteracts)) then
+			local ppos = Player.pos
+			local nearest, nearestDistance = nil, math.huge
+			for i,interact in pairs(validInteracts) do
+				local dist = interact.distance2d
+				if (not nearest or (nearest and dist < nearestDistance)) then
+					nearest, nearestDistance = interact, dist
 				end
 			end
 			
-			if (table.valid(validInteracts)) then
-				local ppos = Player.pos
-				local nearest, nearestDistance = nil, math.huge
-				for i,interact in pairs(validInteracts) do
-					local dist = interact.distance2d
-					if (not nearest or (nearest and dist < nearestDistance)) then
-						nearest, nearestDistance = interact, dist
-					end
-				end
-				
-				return nearest
-			end
+			return nearest
 		end
 	end
 	return nil
@@ -7289,4 +7293,8 @@ function HQToID(id)
 end
 function Time()
 	return IsNull(GetEorzeaTime().servertime,0)
+end
+function CleanConvoLine(line)
+	local clean = string.gsub(line,"[()-/\x02\x16\x01\x03]","")
+	return clean
 end

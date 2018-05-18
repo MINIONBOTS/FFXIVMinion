@@ -783,9 +783,9 @@ function e_interactgate:execute()
 			if (table.valid(convoList)) then
 				if (table.valid(conversationstrings)) then
 					for selectindex,convo in pairs(convoList) do
-						local cleanedline = string.gsub(convo,"[()-/]","")
+						local cleanedline = CleanConvoLine(convo)
 						for k,v in pairs(conversationstrings) do
-							local cleanedv = string.gsub(v,"[()-/]","")
+							local cleanedv = CleanConvoLine(v)
 							if (string.contains(cleanedline,cleanedv)) then
 								d("Use conversation line ["..tostring(convo).."]")
 								SelectConversationLine(selectindex)
@@ -3683,9 +3683,9 @@ function e_selectconvindex:execute()
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			for selectindex,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo,"[()-/]","")
+				local cleanedline = CleanConvoLine(convo)
 				for k,v in pairs(conversationstrings) do
-					local cleanedv = string.gsub(v,"[()-/]","")
+					local cleanedv = CleanConvoLine(v)
 					if (string.contains(cleanedline,cleanedv)) then
 						d("Use conversation line ["..tostring(convo).."]")
 						SelectConversationLine(selectindex)
@@ -4101,6 +4101,14 @@ function c_dointeract:evaluate()
 			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
 		elseif (IsNull(ml_task_hub:CurrentTask().contentids,"") ~= "") then
 			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentids)
+			if (nearestInteract) then
+				ml_task_hub:CurrentTask().interact = nearestInteract.id
+			end
+			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
+		end
+		
+		if (math.distance2d(Player.pos,ml_task_hub:CurrentTask().pos) < 1.5 and math.distance3d(Player.pos,ml_task_hub:CurrentTask().pos) < 4) then
+			local nearestInteract = GetInteractableEntity()
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			end

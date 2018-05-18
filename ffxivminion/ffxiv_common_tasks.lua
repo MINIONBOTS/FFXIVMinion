@@ -512,8 +512,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
 				for selectindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo,"[()-/]","")
-					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
+					local cleanedline = CleanConvoLine(convo)
+					local cleanedv = CleanConvoLine(self.conversationstring)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(convo).."]")
 						SelectConversationLine(selectindex)
@@ -523,9 +523,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				end
 			elseif (table.valid(self.conversationstrings)) then
 				for selectindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo,"[()-/]","")
+					local cleanedline = CleanConvoLine(convo)
 					for k,v in pairs(self.conversationstrings) do
-						local cleanedv = string.gsub(v,"[()-/]","")
+						local cleanedv = CleanConvoLine(v)
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 							d("Use conversation line ["..tostring(convo).."]")
 							SelectConversationLine(selectindex)
@@ -826,9 +826,9 @@ function ffxiv_task_teleport:task_complete_eval()
 			}
 
 			for selectindex,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo,"[()-/]","")
+				local cleanedline = CleanConvoLine(convo)
 				for k,v in pairs(conversationstrings) do
-					local cleanedv = string.gsub(v,"[()-/]","")
+					local cleanedv = CleanConvoLine(v)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(convo).."]")
 						SelectConversationLine(selectindex)
@@ -2211,9 +2211,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				}
 				
 				for selectindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo,"[()-/]","")
+					local cleanedline = CleanConvoLine(convo)
 					for language,astring in pairs(aethernet) do
-						local cleanedastring = string.gsub(astring,"[()-/]","")
+						local cleanedastring = CleanConvoLine(astring)
 						if (string.contains(cleanedline,cleanedastring) and not string.contains(cleanedline,residential[language])) then
 							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
 							SelectConversationLine(selectindex)
@@ -2226,8 +2226,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			
 			if (string.valid(self.conversationstring)) then
 				for selectindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo,"[()-/]","")
-					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
+					local cleanedline = CleanConvoLine(convo)
+					local cleanedv = CleanConvoLine(self.conversationstring)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 						SelectConversationLine(selectindex)
@@ -2238,9 +2238,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				end
 			elseif (table.valid(self.conversationstrings)) then
 				for selectindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo,"[()-/]","")
+					local cleanedline = CleanConvoLine(convo)
 					for k,v in pairs(self.conversationstrings) do
-						local cleanedv = string.gsub(v,"[()-/]","")
+						local cleanedv = CleanConvoLine(v)
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 							SelectConversationLine(selectindex)
