@@ -1463,7 +1463,7 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
-	if (gBotMode == GetString("fishMode")) and gFishMarkerOrProfileIndex ~= 1 then
+	if (gBotMode ~= GetString("fishMode")) or (gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex ~= 1) then
 		return false
 	end
 	
