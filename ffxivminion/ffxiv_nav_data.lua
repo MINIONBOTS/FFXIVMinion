@@ -602,7 +602,7 @@ ffxiv_map_nav.data = {
 	[137] =
 	{
 		[129] = {
-			{id = 129, cost = 3, x = 606.901, y = 11.6, z = 391.991, h = -1, b = 1003585, i = 1
+			{id = 129, cost = 3, x = 606.901, y = 11.6, z = 391.991, h = -1, b = "1003585;1005420", i = 1
 				, requires = {
 					["Player.level >= 30"] = true,
 					["CanUseAirship()"] = true,
