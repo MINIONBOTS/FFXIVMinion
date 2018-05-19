@@ -1669,7 +1669,7 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (not invalid) then
-				local weather = weatherAll[Player.localmapid] or { last = "", now = "", next = "" }
+				local weather = weatherAll[currentTask.mapid] or { last = "", now = "", next = "" }
 				local weatherLast = weather.last or ""
 				local weatherNow = weather.now or ""
 				local weatherNext = weather.next or ""
