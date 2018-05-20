@@ -286,8 +286,6 @@ function c_precastbuff:evaluate()
 			taskType = IsNull(task.type,"fishing")
 		elseif (table.valid(marker)) then
 			needsStealth = IsNull(marker.usestealth,false)
-		else
-			return false
 		end
 		
 		if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then

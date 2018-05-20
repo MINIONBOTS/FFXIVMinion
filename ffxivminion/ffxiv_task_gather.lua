@@ -1323,8 +1323,6 @@ function CanUseCordialSoon()
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker)) then
 		useCordials = IsNull(marker.usecordials,useCordials)
-	else
-		return false
 	end
 
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
@@ -1430,8 +1428,6 @@ function CanUseCordial()
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker)) then
 		useCordials = IsNull(marker.usecordials,useCordials)
-	else
-		return false
 	end
 	
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
@@ -1503,7 +1499,7 @@ function CanUseCordial()
 			end
 		end
 	else
-		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
+		fd("[CanUseCordials]: Can't use cordials on this task.",1)
 	end
 	
 	return false, nil
@@ -1646,8 +1642,6 @@ function c_nodeprebuff:evaluate()
 		taskType = IsNull(marker.type,"x")
 		useFavor = IsNull(marker.favor,0)
 		useFood = IsNull(marker.food,0)
-	else
-		return false
 	end
 							
 	if (type(skillProfile) == "string" and GUI_Get(skillProfile) ~= nil) then
