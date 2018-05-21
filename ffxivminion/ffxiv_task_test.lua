@@ -80,7 +80,8 @@ function e_gotopostest:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_gotopostest.pos 
 	newTask.cubefilters = gTestNoFly and 1 or 0
-	newTask.range = 1
+	newTask.range = gTestNavRange
+	newTask.remainMounted = gTestRemainMounted
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -175,6 +176,8 @@ function ffxiv_task_test:UIInit()
 	gTestMapY = ffxivminion.GetSetting("gTestMapY","")
 	gTestMapZ = ffxivminion.GetSetting("gTestMapZ","")
 	gTestNoFly = ffxivminion.GetSetting("gTestNoFly",false)
+	gTestNavRange = ffxivminion.GetSetting("gTestNavRange",1)
+	gTestRemainMounted = ffxivminion.GetSetting("gTestRemainMounted",true)
 end
 
 ffxiv_task_test.GUI = {
@@ -195,9 +198,11 @@ function ffxiv_task_test:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(7),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(9),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Nav Range")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Map ID")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("X")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Y")
@@ -206,6 +211,8 @@ function ffxiv_task_test:Draw()
 	local ColumnWidth = GUI:GetContentRegionAvail()
 	GUI:PushItemWidth(ColumnWidth)
 	GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
+	GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
+	GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
 	GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
 	GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
 	GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");

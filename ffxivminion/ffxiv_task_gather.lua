@@ -1818,9 +1818,6 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.activity = "uselocator"
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
-		if (GetGameRegion() ~= 1) then
-			e_nodeprebuff.requiredismount = false
-		end
 		return true
 	end
 	
@@ -1832,9 +1829,6 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.activity = "useunspoiledfinder"
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
-		if (GetGameRegion() ~= 1) then
-			e_nodeprebuff.requiredismount = false
-		end
 		return true
 	end		
 	

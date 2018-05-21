@@ -6017,10 +6017,6 @@ function Transport398(pos1,pos2)
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 								return
 							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(76)) then
 									local newTask = ffxiv_task_teleport.Create()
@@ -6037,10 +6033,6 @@ function Transport398(pos1,pos2)
 							if (Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
 								return
 							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
@@ -6094,10 +6086,6 @@ function Transport401(pos1,pos2)
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 								return
 							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(72)) then	
 									local newTask = ffxiv_task_teleport.Create()
@@ -6114,10 +6102,6 @@ function Transport401(pos1,pos2)
 							if (Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
 								return
 							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
@@ -6156,10 +6140,6 @@ function Transport612(pos1,pos2)
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 								return
 							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(98)) then	
 								--d("teleport 98")
@@ -6186,10 +6166,6 @@ function Transport612(pos1,pos2)
 							if (Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
 								return
 							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
@@ -6235,10 +6211,6 @@ function Transport614(pos1,pos2)
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 								return
 							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
-								return
-							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(108)) then	
 									local newTask = ffxiv_task_teleport.Create()
@@ -6255,10 +6227,6 @@ function Transport614(pos1,pos2)
 							if (Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (Player.ismounted and GetGameRegion() ~= 1) then
-								Dismount()
 								return
 							end
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
@@ -6303,10 +6271,6 @@ function Transport620(pos1,pos2)
 									ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 									return
 								end
-								if (Player.ismounted and GetGameRegion() ~= 1) then
-									Dismount()
-									return
-								end
 								if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 									if (Player:Teleport(100)) then	
 										local newTask = ffxiv_task_teleport.Create()
@@ -6327,10 +6291,6 @@ function Transport620(pos1,pos2)
 								if (Player:IsMoving()) then
 									Player:Stop()
 									ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-									return
-								end
-								if (Player.ismounted and GetGameRegion() ~= 1) then
-									Dismount()
 									return
 								end
 								if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then

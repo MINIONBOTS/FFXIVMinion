@@ -32,7 +32,7 @@ function ffxiv_task_movetopos.Create()
     newinst.doFacing = false
     newinst.pauseTimer = 0
     newinst.gatherRange = 0.0
-    newinst.remainMounted = false
+    newinst.remainMounted = true
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
 	newinst.customSearch = ""
@@ -170,8 +170,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
 		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
-		if Player.onmesh and ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
-			return true
+		if (self.remainMounted or not IsFlying()) then
+			if Player.onmesh and ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+				return true
+			end
 		end
     end    
     return false
@@ -564,22 +566,24 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		--d("[NAVIGATION]: Interactable Pos ["..tostring(interactable.pos.x)..","..tostring(interactable.pos.y)..","..tostring(interactable.pos.z).."]")
 	--end
 	
-	if (self.interact ~= 0) then
-		if (not interactable or not interactable.targetable) then
-			return true
-		end
-		if (interactable.interactable and interactable.distance <= 2.5) then
-			return true
-		end
-	else
-		local epos = self.pos
-		local dist = Distance3DT(ppos,epos)
-		if (dist <= 2) then
-			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-			if (not table.valid(interacts)) then
+	if (not IsFlying()) then
+		if (self.interact ~= 0) then
+			if (not interactable or not interactable.targetable) then
 				return true
 			end
-		end			
+			if (interactable.interactable and interactable.distance <= 2.5) then
+				return true
+			end
+		else
+			local epos = self.pos
+			local dist = Distance3DT(ppos,epos)
+			if (dist <= 2) then
+				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
+				if (not table.valid(interacts)) then
+					return true
+				end
+			end			
+		end
 	end
 	
 	return false
@@ -1024,7 +1028,7 @@ function ffxiv_task_useitem:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_useitem:task_complete_eval()
+function ffxiv_task_useitem:task_complete_eval()	
 	local itemcount = ItemCount(self.itemid) or 0
 	if (not self.setup) then
 		self.startingCount = itemcount
@@ -1037,6 +1041,10 @@ function ffxiv_task_useitem:task_complete_eval()
 	
 	if (Now() > self.maxTime) then
 		return true
+	end
+	
+	if (IsFlying()) then
+		return false
 	end
 	
 	if (Player.ismounted) then

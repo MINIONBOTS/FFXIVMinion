@@ -1361,36 +1361,9 @@ function c_walktoentity:evaluate()
 		end
 		return true
 	else
-		--if (IsFlying()) then
-			--[[
-			-- First make sure there is somewhere to land so we don't fly into deep space.
-			local ppos = Player.pos
-			local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y-15,ppos.z)
-			if (hit) then
-				d("[WalkToEntity]: Attempt to land.")
-				
-				-- Basically just aim down and try to land.
-				-- If this doesn't work we are probably SOL anyway.
-				Player:SetPitch(1.377) 
-				if (not Player:IsMoving()) then
-					Player:Move(FFXIV.MOVEMENT.FORWARD)
-					ffnav.Await(3000, function () return Player:IsMoving() end)
-					return true
-				end
-				ffnav.Await(5000, function () return not IsFlying() end)
-				return true
-				
-			else
-				if (ml_navigation:DisablePathing()) then
-					d("[WalkToEntity]: Pathing was stopped, while in flight, because no landing area was detected.")
-				end
-			end
-			--]]
-		--else
-			if (ml_navigation:DisablePathing()) then
-				ml_debug("[WalkToEntity]: Pathing was stopped.",3)
-			end
-		--end
+		if (ml_navigation:DisablePathing()) then
+			ml_debug("[WalkToEntity]: Pathing was stopped.",3)
+		end
 	end
 	
     return false
