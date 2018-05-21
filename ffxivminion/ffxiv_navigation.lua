@@ -1213,7 +1213,7 @@ function ml_navigation.Navigate(event, ticks )
 						--return
 					--end
 					
-					if (TimeSince(ml_navigation.lastPathUpdate) >= 1500) then
+					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 1500) then
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
 						ml_navigation.lastPathUpdate = Now()
 					end
