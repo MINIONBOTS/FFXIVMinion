@@ -1109,8 +1109,12 @@ end
 c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
-	if (IsControlOpen("SelectYesNoCountItem")) then
-		local info = GetControlData("SelectYesNoCountItem")
+	local addonName = "SelectYesno"
+	if (ffxivminion.gameRegion ~= 1) then
+		addonName = "SelectYesNoCountItem"
+	end
+	if (IsControlOpen(addonName)) then
+		local info = GetControlData(addonName)
 		if (table.valid(info)) then
 			validCollectible = false
 			
@@ -1165,15 +1169,14 @@ function c_collectibleaddonfish:evaluate()
 			end
 			
 			-- needs to be removed
-			--ml_global_information:ToggleRun()
 			if (not validCollectible) then
 				gd("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
-				UseControlAction("SelectYesNoCountItem","No")
+				UseControlAction(addonName,"No")
 			else
 				gd("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
-				UseControlAction("SelectYesNoCountItem","Yes")
+				UseControlAction(addonName,"Yes")
 			end
-			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
+			ml_global_information.Await(3000, function () return not IsControlOpen(addonName) end)	
 			return true
 		end
 	end

@@ -2179,8 +2179,12 @@ end
 c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
-	if (IsControlOpen("SelectYesNoCountItem")) then
-		local info = GetControlData("SelectYesNoCountItem")
+	local addonName = "SelectYesno"
+	if (ffxivminion.gameRegion ~= 1) then
+		addonName = "SelectYesNoCountItem"
+	end
+	if (IsControlOpen(addonName)) then
+		local info = GetControlData(addonName)
 		if (table.valid(info)) then
 			local validCollectible = false
 			if (table.valid(gGatherCollectablePresets)) then
@@ -2251,12 +2255,12 @@ function c_collectibleaddongather:evaluate()
 			
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.")
-				UseControlAction("SelectYesNoCountItem","No")
+				UseControlAction(addonName,"No")
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.")
-				UseControlAction("SelectYesNoCountItem","Yes")
+				UseControlAction(addonName,"Yes")
 			end
-			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
+			ml_global_information.Await(3000, function () return not IsControlOpen(addonName) end)				
 			return true
 		end
 	end

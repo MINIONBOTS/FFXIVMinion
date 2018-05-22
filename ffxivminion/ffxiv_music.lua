@@ -36,6 +36,7 @@ ffxiv_music = {
 	position = 1,
 	delay = 0,
 	--]]
+	last_note = 0,
 	is_playing = false,
 	
 	actions = {
@@ -176,6 +177,7 @@ function ffxiv_music.StartPlayback()
 		end
 	end
 	ffxiv_music.SetTempo()
+	ffxiv_music.last_note = 0
 	ffxiv_music.is_playing = true
 end
 
@@ -395,11 +397,15 @@ function ffxiv_music.DoAction(note, octave)
 	local control = GetControl("PerformanceMode")
 	if (control) then
 		if (note == "c" and octave > 1) then
+			control:PushButton(24,ffxiv_music.last_note)
 			control:PushButton(23,12)
+			ffxiv_music.last_note = 12
 		else
 			local noteid = actions[note]
 			if (noteid) then
+				control:PushButton(24,ffxiv_music.last_note)
 				control:PushButton(23,noteid-1)
+				ffxiv_music.last_note = (noteid-1)
 			end
 		end
 	end
@@ -437,7 +443,7 @@ function ffxiv_music.ParseMML(track)
 	local str = IsNull(track.mml,"")
 	
 	if (Now() < track.delay) then
-		return false
+		return false		
 	end
 	
 	local playedNote = false

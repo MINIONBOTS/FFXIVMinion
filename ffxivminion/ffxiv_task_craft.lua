@@ -1345,8 +1345,12 @@ end
 c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
-	if (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) then
-		local info = GetControlData("SelectYesNoCountItem")
+	local addonName = "SelectYesno"
+	if (ffxivminion.gameRegion ~= 1) then
+		addonName = "SelectYesNoCountItem"
+	end
+	if (IsControlOpen("SelectYesNoItem") or IsControlOpen(addonName)) then
+		local info = GetControlData(addonName)
 		if (table.valid(info)) then
 			local validCollectible = false
 			
@@ -1379,16 +1383,16 @@ function c_collectibleaddoncraft:evaluate()
 						break
 					end
 				end
-			end	
-			
-			if (not validCollectible) then
-				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",1)
-				UseControlAction("SelectYesNoCountItem","No")
-			else
-				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",1)
-				UseControlAction("SelectYesNoCountItem","Yes")
 			end
-			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
+
+			if (not validCollectible) then
+				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				UseControlAction(addonName,"No")
+			else
+				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				UseControlAction(addonName,"Yes")
+			end
+			ml_global_information.Await(3000, function () return not IsControlOpen(addonName) end)						
 			return true
 		end
 	end
