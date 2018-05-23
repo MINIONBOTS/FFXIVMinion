@@ -2180,10 +2180,13 @@ end
 
 c_fishnextprofilepos = inheritsFrom( ml_cause )
 e_fishnextprofilepos = inheritsFrom( ml_effect )
+c_fishnextprofilepos.blockOnly = false
 function c_fishnextprofilepos:evaluate()
     if (not table.valid(ffxiv_fish.currentTask)) then
 		return false
 	end
+	
+	c_fishnextprofilepos.blockOnly = false
     
 	local task = ffxiv_fish.currentTask
 	if (task.mapid == Player.localmapid) then
@@ -2193,12 +2196,20 @@ function c_fishnextprofilepos:evaluate()
 		if (dist > 5 or ml_task_hub:CurrentTask().requiresRelocate) then
 			d("dist = "..tostring(dist))
 			return true
+		elseif (Player.ismounted) then
+			Dismount()
+			c_fishnextprofilepos.blockOnly = true
+			return true
 		end
 	end
     
     return false
 end
 function e_fishnextprofilepos:execute()
+	if (c_fishnextprofilepos.blockOnly) then
+		return true
+	end
+	
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
 		local finishcast = SkillMgr.GetAction(299,1)

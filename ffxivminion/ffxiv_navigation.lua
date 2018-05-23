@@ -903,7 +903,7 @@ function ml_navigation:CanContinueFlying()
 		local pathsize = table.size(self.path)
 		for index,node in pairsByKeys(self.path) do
 			local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
-			if (index > self.pathindex and dist > 15 and ((node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) or (pathsize - index) > 1)) then
+			if (index > self.pathindex and dist > 15 and (node.type == GLOBAL.NODETYPE.CUBE) and (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0)) then
 				return true
 			end
 		end
@@ -1578,7 +1578,7 @@ function ml_navigation.Navigate(event, ticks )
 											local nc = ml_navigation:GetConnection(node)
 											if (not nc or not In(nc.type,0,5)) then
 												local dist3d = math.distance3d(node,ppos)
-												if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
+												if (dist3d < 100 and (node.type == GLOBAL.NODETYPE.CUBE) and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
 													local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 													if (not hit) then
 														--d("Bumped index to [" .. i .. "]")
@@ -1692,6 +1692,8 @@ function ml_navigation.Navigate(event, ticks )
 								else
 									d("[Navigation]: Prevent from landing over water and diving by accident.")
 								end
+							else
+								d("[Navigation]: Prevent landing for optimal pathing.")
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
@@ -1704,10 +1706,10 @@ function ml_navigation.Navigate(event, ticks )
 										local nc = ml_navigation:GetConnection(node)
 										if (not nc or not In(nc.type,0,5)) then
 											local dist3d = math.distance3d(node,ppos)
-											if (dist3d < 100 and node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
+											if (dist3d < 100 and node.flags and (node.type == GLOBAL.NODETYPE.CUBE) and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
 												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
 												if (not hit) then
-													--d("Bumped index to [" .. i .. "]")
+													d("Bumped index to [" .. i .. "]")
 													newIndex = i
 												end
 											end
