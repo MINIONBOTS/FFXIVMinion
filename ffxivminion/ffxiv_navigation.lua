@@ -1144,12 +1144,14 @@ function ml_navigation.TagNode(node)
 		
 		node.ground, node.ground_water, node.ground_border, node.ground_avoid, node.air, node.water, node.air_avoid = false, false, false, false, false, false, false
 		if (node.is_floor) then
-			node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0)
+			--node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0)  -- doesn't work, due to flags sometimes returning 0, needs c++ fix
+			node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0 or flags == 0)
 			node.ground_water = (bit.band(flags, GLOBAL.FLOOR.WATER) ~= 0)
 			node.ground_border = (bit.band(flags, GLOBAL.FLOOR.BORDER) ~= 0)
 			node.ground_avoid = (bit.band(flags, GLOBAL.FLOOR.AVOID) ~= 0)
 		elseif (node.is_cube) then
-			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0)
+			--node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0)   -- doesn't work, due to flags sometimes returning 0, needs c++ fix
+			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0 or flags == 0)
 			node.water = (bit.band(flags, GLOBAL.CUBE.WATER) ~= 0)
 			node.air_avoid = (bit.band(flags, GLOBAL.CUBE.AVOID) ~= 0)
 		end
@@ -1693,7 +1695,7 @@ function ml_navigation.Navigate(event, ticks )
 									d("[Navigation]: Prevent from landing over water and diving by accident.")
 								end
 							else
-								d("[Navigation]: Prevent landing for optimal pathing.")
+								--d("[Navigation]: Prevent landing for optimal pathing, nextnode.is_cube:"..tostring(nextnode.is_cube)..",nextnode.ground:"..tostring(nextnode.ground)..", cancontinueflying:"..tostring(ml_navigation:CanContinueFlying())..",flags:"..tostring(nextnode.flags))
 							end
 							
 							local originalIndex = ml_navigation.pathindex + 1
