@@ -1747,6 +1747,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 					GUI:BulletText("IsDebuff") GUI:SameLine(200) GUI:InputText("##devb6", tostring(b.isdebuff))
 					GUI:BulletText("Stacks") GUI:SameLine(200) GUI:InputText("##devb7", tostring(b.stacks))
 					GUI:BulletText("Slot") GUI:SameLine(200) GUI:InputText("##devb2", tostring(b.slot))
+					GUI:BulletText("Dispellable") GUI:SameLine(200) GUI:InputText("##devb10", tostring(b.dispellable))
 					GUI:TreePop()
 				end
 			end
