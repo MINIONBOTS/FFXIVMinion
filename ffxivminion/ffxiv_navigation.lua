@@ -830,13 +830,14 @@ function ml_navigation:IsGoalClose(ppos,node)
 	end
 	
 	-- Floor2Cube connections have a radius inwhich the player (as soon as he is inside it) is allowed to traverse to the "other side" of the connection instead of walking to the same middle point each time ( this is ofc only for the connections that have not yet been removed due to stringpulling/shortening of the path
+	--type = 0: disabled, 1: cube-cube, 2: floor-floor, 3: floor-cube, 4: custom omc, 5: macromesh
 	
 	local nc
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
 			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
-			if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
-				-- substracing the radius from the remaining distance
+			if (nc and nc.type ~= 5 and (nc.type ~= 3 or not Player.flying.isflying)) then -- Type 5 == MacroMesh
+				--d("substracing the radius from the remaining distance")
 				goaldist = goaldist - nc.radius
 				goaldist2d = goaldist2d - nc.radius
 			end
@@ -844,13 +845,14 @@ function ml_navigation:IsGoalClose(ppos,node)
 	end
 	
 	if (Player.flying.isflying) then
-		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
+		--d("index = "..tostring(ml_navigation.pathindex)..", y = "..tostring(node.y)..",goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
 			self:ResetOMCHandler()
 			if ( nc and In(nc.subtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
+			--d("close enough, flying")
 			return true
 		end
 	elseif (Player.diving.isdiving) then
@@ -881,6 +883,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
+			--d("close enough, mounted")
 			return true
 		end
 	else
@@ -891,6 +894,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
+			--d("close enough, walking")
 			return true
 		end
 	end
@@ -902,9 +906,11 @@ function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
 		local pathsize = table.size(self.path)
 		for index,node in pairsByKeys(self.path) do
-			local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
-			if (index > self.pathindex and dist > 15 and (node.type == GLOBAL.NODETYPE.CUBE) and (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0)) then
-				return true
+			if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0)) then
+				local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
+				if (dist > 15) then
+					return true
+				end
 			end
 		end
 	end
@@ -1062,6 +1068,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		end
 	end
 	
+	--table.print(ml_navigation.path)
+	
 	ml_navigation.targetposition = newGoal
 	ml_navigation.lasttargetid = targetid
 	return ret
@@ -1073,6 +1081,7 @@ function Player:Stop(resetpath)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
+	ffnav.isascending = false
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
@@ -1187,7 +1196,14 @@ function ml_navigation.Navigate(event, ticks )
 			if (not ffnav.IsProcessing()) then
 			
 				local indexChanged = false
-			
+				
+				if (ffnav.isascending and IsFlying()) then
+					ffnav.isascending = false
+					ml_navigation.pathindex = ml_navigation.pathindex + 1
+					NavigationManager.NavPathNode = ml_navigation.pathindex
+					d("finished ascending, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
+				end
+				
 				if (ml_navigation.pathindex ~= NavigationManager.NavPathNode) then
 					ml_navigation.pathindex = NavigationManager.NavPathNode
 					indexChanged = true
@@ -1654,12 +1670,10 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-														
 							if (not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
-								
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
 								-- May need more adjustments.
-								if (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
+								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
 							
 									d("[Navigation]: Next node is not a flying node, dive a bit.")
 									--table.print(nextnode)									
@@ -1771,11 +1785,17 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (not IsFlying() and not IsDiving()) then
+						ffnav.isascending = false
+						
 						--d("[Navigation]: Normal navigation..")
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))) then
 							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
+							
+							if (navcon) then
+								ml_navigation.lastconnectionid = nextnode.navconnectionid
+							end
 							
 							if (IsSwimming() or ( bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0 and nextnode.y < ppos.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
 								Player:StopMovement()
@@ -1810,16 +1830,17 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
 										d("[Navigation] - Ascend for flight.")
+										ffnav.isascending = true
 										Player:Jump()
 										ffnav.AwaitThen(500, 3000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
 										return
 									end
 								end
-							end						
+							end
+						else
+							d("[Navigation]: Navigate to node.")
+							ml_navigation:NavigateToNode(ppos,nextnode)	
 						end
-						
-						--d("[Navigation]: Navigate to node.")
-						ml_navigation:NavigateToNode(ppos,nextnode)	
 					end
 				
 				else
@@ -2079,6 +2100,7 @@ ffnav.lastCubeSwap = 0
 ffnav.lastTrim = 0
 ffnav.forceDescent = 0
 ffnav.descentPos = {}
+ffnav.isascending = false
 
 function ffnav.FixRewind()
 	local path = ml_navigation.path
