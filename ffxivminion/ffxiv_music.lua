@@ -36,7 +36,7 @@ ffxiv_music = {
 	position = 1,
 	delay = 0,
 	--]]
-	last_note = 0,
+	last_note = -1,
 	is_playing = false,
 	
 	actions = {
@@ -177,7 +177,7 @@ function ffxiv_music.StartPlayback()
 		end
 	end
 	ffxiv_music.SetTempo()
-	ffxiv_music.last_note = 0
+	ffxiv_music.last_note = -1
 	ffxiv_music.is_playing = true
 end
 
@@ -397,13 +397,11 @@ function ffxiv_music.DoAction(note, octave)
 	local control = GetControl("PerformanceMode")
 	if (control) then
 		if (note == "c" and octave > 1) then
-			control:PushButton(24,ffxiv_music.last_note)
 			control:PushButton(23,12)
 			ffxiv_music.last_note = 12
 		else
 			local noteid = actions[note]
 			if (noteid) then
-				control:PushButton(24,ffxiv_music.last_note)
 				control:PushButton(23,noteid-1)
 				ffxiv_music.last_note = (noteid-1)
 			end
@@ -443,6 +441,13 @@ function ffxiv_music.ParseMML(track)
 	local str = IsNull(track.mml,"")
 	
 	if (Now() < track.delay) then
+		if (Now() + 10 >= track.delay and ffxiv_music.last_note ~= -1) then
+			local control = GetControl("PerformanceMode")
+			if (control) then
+				control:PushButton(24,ffxiv_music.last_note)
+				ffxiv_music.last_note = -1
+			end
+		end
 		return false		
 	end
 	
@@ -565,7 +570,7 @@ function ffxiv_music.ParseMML(track)
 				if string.find(args, "%.") then
 					notetime = notetime * 1.5
 				end
-
+				
 				track.delay = Now() + notetime
 				
 				local extend = string.match(args,"[&]")
@@ -583,6 +588,11 @@ function ffxiv_music.ParseMML(track)
 		
 		if (newpos == 0) then
 			track.playing = false
+			local control = GetControl("PerformanceMode")
+			if (control) then
+				control:PushButton(24,ffxiv_music.last_note)
+				ffxiv_music.last_note = -1
+			end
 		end	
 	
 	until (playedNote == true)
