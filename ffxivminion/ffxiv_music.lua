@@ -441,7 +441,7 @@ function ffxiv_music.ParseMML(track)
 	local str = IsNull(track.mml,"")
 	
 	if (Now() < track.delay) then
-		if (Now() + 10 >= track.delay and ffxiv_music.last_note ~= -1) then
+		if (Now() + 10 >= track.delay and ffxiv_music.last_note ~= -1 and not track.extension) then
 			local control = GetControl("PerformanceMode")
 			if (control) then
 				control:PushButton(24,ffxiv_music.last_note)
