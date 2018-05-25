@@ -580,40 +580,93 @@ function dev.DrawCall(event, ticks )
 			end
 --  END CRAFTING	
 
-			-- cbk: Duty List
-			if ( GUI:TreeNode("Duty List")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					GUI:PushItemWidth(200)
-					GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
-					GUI:BulletText("GetQueueStatus") GUI:SameLine(200) GUI:InputText("##devDLx2",tostring(Duty:GetQueueStatus()))
-					GUI:BulletText("GetDutyTimeRemaining") GUI:SameLine(200) GUI:InputText("##devDLx3",tostring(Duty:GetDutyTimeRemaining()))
-					local dList = Duty:GetDutyList()
-					if (table.valid(dList)) then
-						for id, e in pairs(dList) do
-							if ( GUI:TreeNode(e.name) ) then
-								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devDL0"..tostring(id),tostring(string.format( "%X",e.ptr)))
-								GUI:BulletText(".ptr2") GUI:SameLine(200) GUI:InputText("##devDL7"..tostring(id),tostring(string.format( "%X",e.ptr2)))
-								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
-								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devDL7"..tostring(id),tostring(e.type))
-								GUI:BulletText(".internalid") GUI:SameLine(200) GUI:InputText("##devDL8"..tostring(id),tostring(e.internalid))
-								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
-								GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
-								GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4"..tostring(id),tostring(e.requiredlevel))
-								GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5"..tostring(id),tostring(e.synclevel))
-								GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6"..tostring(id),tostring(e.partysize))
-								GUI:TreePop()
-							end
-						end
+
+			if ( GUI:TreeNode("Duty Info")) then
+			
+			
+				GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
+				GUI:BulletText("GetQueueStatus") GUI:SameLine(200) GUI:InputText("##devDLx2",tostring(Duty:GetQueueStatus()))
+				
+				if GUI:TreeNode("GetActiveDutyInfo") then
+					local info = Duty:GetActiveDutyInfo()
+					if (table.valid(info)) then
+						GUI:PushItemWidth(200)
+						GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dutyinfo_name",tostring(info.name))
+						GUI:BulletText(".timer") GUI:SameLine(200) GUI:InputText("##dutyinfo_timer",tostring(info.timer))
+						GUI:PopItemWidth()	
 					else
-						GUI:Text("Duty Finder Not Open...")
+						GUI:Text("Not in duty ...")
 					end	
-					GUI:PopItemWidth()
-				else
-					GUI:Text("Not Ingame...")
-				end				
+					GUI:TreePop()
+				end
+
+				-- cbk: Duty List v2
+				if ( GUI:TreeNode("Duty List (v2)")) then
+					if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+						GUI:PushItemWidth(200)
+						local dList = Duty:GetCompleteDutyList()
+						if (table.valid(dList)) then
+							for id, e in pairs(dList) do
+								if ( GUI:TreeNode(string.format("[%d.%d] - %s", e.type, e.id, e.name)) ) then
+									local uniqName = tostring(e.type).."_"..tostring(e.id)
+									GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDLv21"..uniqName,tostring(e.id))
+									GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devDLv27"..uniqName,tostring(e.type))
+									GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDLv22"..uniqName,tostring(e.mapid))
+									GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDLv24"..uniqName,tostring(e.requiredlevel))
+									GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDLv25"..uniqName,tostring(e.synclevel))
+									GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDLv26"..uniqName,tostring(e.partysize))
+									if GUI:Button("Join duty##"..uniqName) then
+										-- Can take multiple parameters to queue multiple duty (only for duty type 2)
+										-- ex: JoinDuty(type, id1, id2, ...)
+										Duty:JoinDuty(e.type, e.id) 
+									end
+									GUI:TreePop()
+								end
+							end
+						else
+							GUI:Text("No duties found...")
+						end	
+						GUI:PopItemWidth()
+					else
+						GUI:Text("Not Ingame...")
+					end				
+					GUI:TreePop()
+				end	
+				
+				
+				-- cbk: Duty List
+				if ( GUI:TreeNode("Duty List")) then
+					if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+						GUI:PushItemWidth(200)
+						local dList = Duty:GetDutyList()
+						if (table.valid(dList)) then
+							for id, e in pairs(dList) do
+								if ( GUI:TreeNode(e.name) ) then
+									GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devDL0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+									GUI:BulletText(".ptr2") GUI:SameLine(200) GUI:InputText("##devDL7"..tostring(id),tostring(string.format( "%X",e.ptr2)))
+									GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
+									GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devDL7"..tostring(id),tostring(e.type))
+									GUI:BulletText(".internalid") GUI:SameLine(200) GUI:InputText("##devDL8"..tostring(id),tostring(e.internalid))
+									GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
+									GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
+									GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4"..tostring(id),tostring(e.requiredlevel))
+									GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5"..tostring(id),tostring(e.synclevel))
+									GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6"..tostring(id),tostring(e.partysize))
+									GUI:TreePop()
+								end
+							end
+						else
+							GUI:Text("Duty Finder Not Open...")
+						end	
+						GUI:PopItemWidth()
+					else
+						GUI:Text("Not Ingame...")
+					end				
+					GUI:TreePop()
+				end
+					
 				GUI:TreePop()
 			end
--- END DUTY LIST
 			
 			-- cbk: EnmityList
 			if ( GUI:TreeNode("EnmityList")) then
