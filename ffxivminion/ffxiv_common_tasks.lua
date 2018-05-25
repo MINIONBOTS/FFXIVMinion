@@ -32,7 +32,7 @@ function ffxiv_task_movetopos.Create()
     newinst.doFacing = false
     newinst.pauseTimer = 0
     newinst.gatherRange = 0.0
-    newinst.remainMounted = true
+    newinst.remainMounted = false
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
 	newinst.customSearch = ""

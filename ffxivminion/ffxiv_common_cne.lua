@@ -1693,15 +1693,18 @@ function c_mount:evaluate()
 	local myPos = Player.pos
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	if (table.valid(gotoPos)) then
+		local dist2d = math.distance2d(myPos, gotoPos)
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
-		if (not ml_task_hub:CurrentTask().remainMounted and dismountDistance > 0 and dist3d <= dismountDistance) then
+		if (not ml_task_hub:CurrentTask().remainMounted and dismountDistance > 0 and dist2d <= dismountDistance and dist3d <= (dismountDistance + 3)) then
 			local needsMount = false
 			if (table.valid(ml_navigation.path)) then
 				for i, node in pairs(ml_navigation.path) do
-					ml_navigation.TagNode(node)
-					if (node.air or node.air_avoid) then
-						needsMount = true
+					if (i >= ml_navigation.pathindex) then
+						ml_navigation.TagNode(node)
+						if (node.air or node.air_avoid) then
+							needsMount = true
+						end
 					end
 				end		
 			end
@@ -1716,6 +1719,8 @@ function c_mount:evaluate()
 				end
 				return false
 			end
+		else
+			--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 		end
 	end
 	
@@ -3133,6 +3138,7 @@ function e_returntomarker:execute()
 	then
 		newTask.remainMounted = true
 	end
+	
     if (markerType == "Fishing") then
         newTask.pos.h = markerPos.h
         newTask.range = 0.5
