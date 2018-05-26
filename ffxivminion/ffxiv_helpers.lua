@@ -7183,12 +7183,8 @@ function GetRequiredPitch(pos,noadjustment)
 		--]]
 		
 		local currentPitch = math.round(Player.flying.pitch,3)
-		local vector = math.vectorize({ x = ppos.x, y = ppos.y, z = ppos.z},{ x = pos.x, y = pos.y, z = pos.z })
-		if (math.magnitude(vector) >= 1) then
-			vector = math.normalize(vector)
-		end
+		local vector = math.normalize(math.vectorize(ppos,pos))
 		
-		table.print(vector)
 		ffxivminion.lastVector = vector
 		
 		local pitch = math.asin(-1 * vector.y)
