@@ -1675,8 +1675,11 @@ function ml_navigation.Navigate(event, ticks )
 										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or (GetDiveHeight() <= 0 and CanDiveInZone())) end, function () Player:StopMovement() end)
 									end
 									
+									--d(nextnode)
+									--table.print(ml_navigation.path)
+									
 									d("[Navigation]: Prevent continuation until landing is completed.")
-									return false -- ideally, we don't want to move to the next node until we have fully landed
+									--return false -- ideally, we don't want to move to the next node until we have fully landed
 								else
 									d("[Navigation]: Prevent from landing over water and diving by accident.")
 								end

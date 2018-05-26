@@ -717,6 +717,9 @@ SkillMgr.Variables = {
 	SKM_HasItem = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_IsItem = { default = "", cast = "string", profile = "isitem", section = "gathering"},
 	SKM_UNSP = { default = false, cast = "boolean", profile = "isunspoiled", section = "gathering"},
+	SKM_EPHE = { default = false, cast = "boolean", profile = "isephemeral", section = "gathering"},
+	SKM_LGND = { default = false, cast = "boolean", profile = "islegendary", section = "gathering"},
+	SKM_CNCLD = { default = false, cast = "boolean", profile = "isconcealed", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
 	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
@@ -3374,6 +3377,23 @@ function SkillMgr.Gather(item)
 								castable = false
 							end
 						end
+					end
+					
+					if (toboolean(skill.isunspoiled) and not IsUnspoiled(node.contentid)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unspoiled status.")
+						castable = false
+					end
+					if (toboolean(skill.isephemeral) and not IsEphemeral(node.contentid)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's ephemeral status.")
+						castable = false
+					end
+					if (toboolean(skill.islegendary) and not IsLegendary(node.contentid)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's legendary status.")
+						castable = false
+					end
+					if (toboolean(skill.isconcealed) and not IsConcealed(node.contentid)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's concealed status.")
+						castable = false
 					end
 					
 					if (tonumber(skill.gpmin) > 0 and Player.gp.current < tonumber(skill.gpmin)) then 
@@ -6346,6 +6366,9 @@ function SkillMgr.DrawGatherEditor()
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
 		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
+		GUI:Text(GetString("Ephemeral Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EPHE",SKM_EPHE),"SKM_EPHE"); GUI:NextColumn();	
+		GUI:Text(GetString("Legendary Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_LGND",SKM_LGND),"SKM_LGND"); GUI:NextColumn();	
+		GUI:Text(GetString("Concealed Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CNCLD",SKM_CNCLD),"SKM_CNCLD"); GUI:NextColumn();	
 		GUI:Separator();
 		GUI:Text(GetString("Gather Attempts Full")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_GatherMax",SKM_GatherMax),"SKM_GatherMax"); GUI:NextColumn();
 		GUI:Text(GetString("Gather Attempts >")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	

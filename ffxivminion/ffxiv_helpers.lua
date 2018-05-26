@@ -3378,8 +3378,32 @@ function IsRareItemSpecial(itemid)
 	return superRare[itemid]
 end
 function IsUnspoiled(contentid)
-	contentid = IsNull(contentid,0)
-	return (contentid >= 5 and contentid <= 8)
+	local contid = IsNull(contentid,0)
+	if (type(contentid) == "table") then
+		contid = contentid.contentid
+	end
+	return (contid >= 5 and contid <= 8)
+end
+function IsEphemeral(contentid)
+	local contid = IsNull(contentid,0)
+	if (type(contentid) == "table") then
+		contid = contentid.contentid
+	end
+	return (contid >= 9 and contid <= 12)
+end
+function IsLegendary(contentid)
+	local contid = IsNull(contentid,0)
+	if (type(contentid) == "table") then
+		contid = contentid.contentid
+	end
+	return (contid >= 13 and contid <= 16)
+end
+function IsConcealed(contentid)
+	local contid = IsNull(contentid,0)
+	if (type(contentid) == "table") then
+		contid = contentid.contentid
+	end
+	return (contid >= 17 and contid <= 20)
 end
 --===========================
 --Class/Role Helpers
@@ -7114,6 +7138,9 @@ function GetHoverHeight()
 	end
 	return 10
 end
+
+ffxivminion.lastPitchCalc = 0
+ffxivminion.lastVector = {}
 function GetRequiredPitch(pos,noadjustment)
 	local noadjustment = IsNull(noadjustment,false)
 	if (table.valid(pos)) then
@@ -7156,15 +7183,25 @@ function GetRequiredPitch(pos,noadjustment)
 		--]]
 		
 		local currentPitch = math.round(Player.flying.pitch,3)
-		local minVector = math.normalize(math.vectorize(ppos,pos))
-		local pitch = math.asin(-1 * minVector.y)
+		local vector = math.vectorize({ x = ppos.x, y = ppos.y, z = ppos.z},{ x = pos.x, y = pos.y, z = pos.z })
+		if (math.magnitude(vector) >= 1) then
+			vector = math.normalize(vector)
+		end
+		
+		table.print(vector)
+		ffxivminion.lastVector = vector
+		
+		local pitch = math.asin(-1 * vector.y)
 		if (pitch > 1.4835) then
 			--d("Required pitch was too high (downward) ["..tostring(pitch).."], shifted down to max.")
+			ffxivminion.lastPitchCalc = 1.4835
 			return 1.4835
 		elseif (pitch < -0.7599) then
 			--d("Required pitch was too low (upward) ["..tostring(pitch).."], shifted up to max.")
+			ffxivminion.lastPitchCalc = -0.7599
 			return pitch -0.7599
 		else
+			ffxivminion.lastPitchCalc = pitch
 			return pitch
 		end
 	end		
