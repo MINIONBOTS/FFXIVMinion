@@ -7265,3 +7265,14 @@ function CleanConvoLine(line)
 	local clean = string.gsub(line,"[()-/\x02\x16\x01\x03]","")
 	return clean
 end
+function IsDutyCompleted(ctype,id)
+	local dutyList = Duty:GetCompleteDutyList()
+	if (table.valid(dutyList)) then
+		for i,duty in pairs(dutyList) do
+			if (duty.type == ctype and duty.id == id) then
+				return duty.completed
+			end
+		end
+	end
+	return false
+end

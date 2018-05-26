@@ -391,17 +391,19 @@ end
 -- See http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
 -- for information on calculating note frequencies.
 function ffxiv_music.DoAction(note, octave)	
-	d("play note ["..tostring(note).."],["..tostring(octave).."]")
+	--d("play note ["..tostring(note).."],["..tostring(octave).."]")
 	
 	local actions = ffxiv_music.actions
 	local control = GetControl("PerformanceMode")
 	if (control) then
 		if (note == "c" and octave > 1) then
+			control:PushButton(24,12)
 			control:PushButton(23,12)
 			ffxiv_music.last_note = 12
 		else
 			local noteid = actions[note]
 			if (noteid) then
+				control:PushButton(24,ffxiv_music.last_note)
 				control:PushButton(23,noteid-1)
 				ffxiv_music.last_note = (noteid-1)
 			end
@@ -441,13 +443,15 @@ function ffxiv_music.ParseMML(track)
 	local str = IsNull(track.mml,"")
 	
 	if (Now() < track.delay) then
-		if (Now() + 10 >= track.delay and ffxiv_music.last_note ~= -1 and not track.extension) then
+		--[[
+		if (Now() + 3 >= track.delay and ffxiv_music.last_note ~= -1 and not track.extension) then
 			local control = GetControl("PerformanceMode")
 			if (control) then
-				control:PushButton(24,ffxiv_music.last_note)
-				ffxiv_music.last_note = -1
+				--control:PushButton(24,ffxiv_music.last_note)
+				--ffxiv_music.last_note = -1
 			end
 		end
+		--]]
 		return false		
 	end
 	
@@ -593,6 +597,7 @@ function ffxiv_music.ParseMML(track)
 				control:PushButton(24,ffxiv_music.last_note)
 				ffxiv_music.last_note = -1
 			end
+			ffxiv_music.ShiftOctave(0)
 		end	
 	
 	until (playedNote == true)

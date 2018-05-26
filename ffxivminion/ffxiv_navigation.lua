@@ -836,10 +836,18 @@ function ml_navigation:IsGoalClose(ppos,node)
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		if (table.valid(ml_mesh_mgr.navconnections)) then
 			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
-			if (nc and nc.type ~= 5 and (nc.type ~= 3 or not Player.flying.isflying)) then -- Type 5 == MacroMesh
-				--d("substracing the radius from the remaining distance")
-				goaldist = goaldist - nc.radius
-				goaldist2d = goaldist2d - nc.radius
+			if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
+				
+				if (nc.type == 3 and Player.flying.isflying) then
+					goaldist2d = goaldist2d - nc.radius
+					if (math.abs(ppos.y-node.y) < 3) then -- some of the connection radius' are too big, don't want a full on sphere
+						goaldist = goaldist - nc.radius
+					end
+				else
+					--d("substracing the radius from the remaining distance")
+					goaldist = goaldist - nc.radius
+					goaldist2d = goaldist2d - nc.radius
+				end
 			end
 		end
 	end
