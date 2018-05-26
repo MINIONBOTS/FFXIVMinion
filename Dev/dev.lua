@@ -603,24 +603,31 @@ function dev.DrawCall(event, ticks )
 				-- cbk: Duty List v2
 				if ( GUI:TreeNode("Duty List (v2)")) then
 					if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+						if dev.dl_hide_unjoinable == nil then dev.dl_hide_unjoinable = true end
+						dev.dl_hide_unjoinable = GUI:Checkbox("Hide unjoinable duty",dev.dl_hide_unjoinable)
+						
 						GUI:PushItemWidth(200)
 						local dList = Duty:GetCompleteDutyList()
 						if (table.valid(dList)) then
 							for id, e in pairs(dList) do
-								if ( GUI:TreeNode(string.format("[%d.%d] - %s", e.type, e.id, e.name)) ) then
-									local uniqName = tostring(e.type).."_"..tostring(e.id)
-									GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDLv21"..uniqName,tostring(e.id))
-									GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devDLv27"..uniqName,tostring(e.type))
-									GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDLv22"..uniqName,tostring(e.mapid))
-									GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDLv24"..uniqName,tostring(e.requiredlevel))
-									GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDLv25"..uniqName,tostring(e.synclevel))
-									GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDLv26"..uniqName,tostring(e.partysize))
-									if GUI:Button("Join duty##"..uniqName) then
-										-- Can take multiple parameters to queue multiple duty (only for duty type 2)
-										-- ex: JoinDuty(type, id1, id2, ...)
-										Duty:JoinDuty(e.type, e.id) 
+								if e.canjoin or not dev.dl_hide_unjoinable then
+									if ( GUI:TreeNode(string.format("[%d.%d] - %s", e.type, e.id, e.name)) ) then
+										local uniqName = tostring(e.type).."_"..tostring(e.id)
+										GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDLv21"..uniqName,tostring(e.id))
+										GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devDLv27"..uniqName,tostring(e.type))
+										GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDLv22"..uniqName,tostring(e.mapid))
+										GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDLv24"..uniqName,tostring(e.requiredlevel))
+										GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDLv25"..uniqName,tostring(e.synclevel))
+										GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDLv26"..uniqName,tostring(e.partysize))
+										GUI:BulletText(".canjoin") GUI:SameLine(200) GUI:InputText("##devDLv27"..uniqName,tostring(e.canjoin))
+										GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##devDLv28"..uniqName,tostring(e.completed))
+										if GUI:Button("Join duty##"..uniqName) then
+											-- Can take multiple parameters to queue multiple duty (only for duty type 2)
+											-- ex: JoinDuty(type, id1, id2, ...)
+											Duty:JoinDuty(e.type, e.id) 
+										end
+										GUI:TreePop()
 									end
-									GUI:TreePop()
 								end
 							end
 						else
