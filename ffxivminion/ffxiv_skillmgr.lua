@@ -151,9 +151,15 @@ SkillMgr.ExtraProfiles = {
 	"[Craft] 70+ 2 Skill Complete",
 }
 
+SkillMgr.lastCheckDetails = {}
+SkillMgr.lastCheckTime = 0
 function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	local jobid = IsNull(jobid,Player.job)
 	local pvp = IsNull(pvp,false)
+	if (not target) then
+		return false
+	end
+	
 	local targetid = target.id
 	
 	local testSkills = {}
@@ -219,7 +225,12 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	if (testSkill) then
 		if (type(testSkill) == "number") then
 			local action = ActionList:Get(1,testSkill)
-			if (action and (action:IsReady(targetid) or target.distance2d < action.range and target.los)) then
+			if (action and (action:IsReady(targetid) or (target.distance2d < action.range and target.los))) then
+				SkillMgr.lastCheckDetails = {
+					tpos = target.pos,
+					ppos = Player.pos,
+				}
+				SkillMgr.lastCheckTime = Now()
 				return true
 			elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
 				return false
@@ -228,7 +239,12 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			local found = false
 			for i = 1,table.size(testSkill) do
 				local action = ActionList:Get(1,testSkill[i])
-				if (action and (action:IsReady(targetid) or target.distance2d < action.range and target.los)) then
+				if (action and (action:IsReady(targetid) or (target.distance2d < action.range and target.los))) then
+					SkillMgr.lastCheckDetails = {
+						tpos = target.pos,
+						ppos = Player.pos,
+					}
+					SkillMgr.lastCheckTime = Now()
 					return true
 				elseif (action and action.usable and not action.isoncd and not action:IsReady(targetid)) then
 					found = true
@@ -240,6 +256,15 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 		end
 	end
 	
+	if (TimeSince(SkillMgr.lastCheckTime) < 3000 and table.valid(SkillMgr.lastCheckDetails) and table.valid(SkillMgr.lastCheckDetails.tpos) and table.valid(SkillMgr.lastCheckDetails.ppos)) then
+		local details = SkillMgr.lastCheckDetails
+		if (math.distance(Player.pos,details.ppos) < 1 and math.distance(target.pos,details.tpos) < 1) then
+			return true
+		else
+			d("target or player has moved too far, cannot equivocate")
+		end
+	end
+			
 	return nil
 end
 

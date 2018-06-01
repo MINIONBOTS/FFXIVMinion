@@ -829,11 +829,7 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (table.valid(pos) and pos.b) then
 						local details = {}
-						if (type(pos.b) == "string") then
-							details.contentids = pos.b
-						elseif (type(pos.b) == "number") then
-							details.contentid = pos.b
-						end
+						details.contentid = pos.b
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
@@ -4073,20 +4069,17 @@ function c_dointeract:evaluate()
 	end
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
+			d("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]")
 			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
-			end
-			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
-		elseif (IsNull(ml_task_hub:CurrentTask().contentids,"") ~= "") then
-			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentids)
-			if (nearestInteract) then
-				ml_task_hub:CurrentTask().interact = nearestInteract.id
+			else
+				d("[DoInteract]: Didn't find any matching entities.")
 			end
 			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
 		end
 		
-		if (math.distance2d(Player.pos,ml_task_hub:CurrentTask().pos) < 1.5 and math.distance3d(Player.pos,ml_task_hub:CurrentTask().pos) < 4) then
+		if (math.distance2d(Player.pos,ml_task_hub:CurrentTask().pos) < 3 and math.distance3d(Player.pos,ml_task_hub:CurrentTask().pos) < 4) then
 			local nearestInteract = GetInteractableEntity()
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id

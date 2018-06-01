@@ -1534,10 +1534,10 @@ function ffxiv_task_grindCombat:Process()
 						return
 					end
 				end
-				if (not EntityIsFrontTight(target)) then
+				--if (not EntityIsFrontTight(target)) then
 					--d("Need to face the enemy so we can cast.")
 					Player:SetFacing(pos.x,pos.y,pos.z) 
-				end
+				--end
 			end
 			
 			--d("Checking if we are in combat range and the target was attackable.")
