@@ -288,7 +288,7 @@ function c_add_fate:evaluate()
 	
 	c_add_fate.fate = {}
     
-    if (gGrindDoFates ) then
+    if (gGrindDoFates) then
 		local fate = GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
 			c_add_fate.fate = fate
@@ -4265,6 +4265,8 @@ c_scripexchange = inheritsFrom( ml_cause )
 e_scripexchange = inheritsFrom( ml_effect )
 c_scripexchange.lastItem = 0
 c_scripexchange.lastComplete = 0
+c_scripexchange.lastSwitch = 0
+c_scripexchange.lastOpen = 0
 c_scripexchange.handoverComplete = false
 function c_scripexchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange.lastComplete) < 5000) then
@@ -4333,13 +4335,13 @@ function c_scripexchange:evaluate()
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
 		UseControlAction("MasterPieceSupply","SelectCategory",currentCheck)
+		c_scripexchange.lastSwitch = Now()
 		return true
 	else
 		if (table.isa(currentItems)) then
 			d("[ScripExchange]: Found items list.")
 			for index,itemdata in pairs(currentItems) do
 				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
-				
 				--[[
 					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
 				--]]
@@ -4355,7 +4357,10 @@ function c_scripexchange:evaluate()
 					d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
 				end
 			end
-			ml_task_hub:CurrentTask().categories[currentCheck] = true
+			
+			if (TimeSince(c_scripexchange.lastSwitch) > 500) then
+				ml_task_hub:CurrentTask().categories[currentCheck] = true
+			end
 			return true
 		end
 	end
