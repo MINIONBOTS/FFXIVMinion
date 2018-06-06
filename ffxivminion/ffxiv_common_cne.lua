@@ -1681,7 +1681,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming() or Player.ismounted or Player.incombat)
 	then
 		return false
 	end
@@ -1718,10 +1718,6 @@ function c_mount:evaluate()
 		else
 			--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 		end
-	end
-	
-	if (Player.ismounted or Player.incombat) then
-		return false
 	end
 	
 	if (IsMounting()) then
@@ -1796,26 +1792,24 @@ end
 function e_mount:execute()
 	if (Player:IsMoving()) then
 		Player:PauseMovement()
-		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+		ml_global_information.AwaitDo(1000, function () return not Player:IsMoving() end, function () Player:PauseMovement() end)
 		return
 	end
 	
 	if (IsMounting() or UsingBattleItem()) then
-		--d("Adding a wait.")
-		if (CanFlyInZone()) then
-			ml_global_information.Await(2000)
-		end
 		return
 	end
 	
-    if (Mount(e_mount.id)) then
-		ml_global_information.Await(5000, function () return Player.ismounted end)
+	if (Mount(e_mount.id)) then
+		ml_global_information.AwaitSuccess(500, 
+			function () 
+				return (IsMounting() or UsingBattleItem())
+			end,
+			function ()
+				ml_global_information.Await(3000, function () return Player.ismounted end)
+			end
+		)
 	end
-	
-	--ml_global_information.Await(500)
-	--c_mount.reattempt = Now() + 10000
-	--local ppos = Player.pos
-	--c_mount.attemptPos = { x = round(ppos.x,1), y = round(ppos.y,1), z = round(ppos.z,1) }
 end
 
 c_battlemount = inheritsFrom( ml_cause )

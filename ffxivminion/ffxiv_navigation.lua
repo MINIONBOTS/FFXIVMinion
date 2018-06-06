@@ -1041,7 +1041,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
-	if (hasPreviousPath and ml_navigation.lastconnectionid ~= 0) then
+	--if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending or TimeSince(ml_navigation.lastPathUpdate) < 2000)) then
+	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending)) then
 		d("[NAVIGATION]: Using a connection, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
@@ -1163,7 +1164,7 @@ function ml_navigation.TagNode(node)
 		node.ground, node.ground_water, node.ground_border, node.ground_avoid, node.air, node.water, node.air_avoid = false, false, false, false, false, false, false
 		if (node.is_floor) then
 			--node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0)  -- doesn't work, due to flags sometimes returning 0, needs c++ fix
-			node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0 or flags == 0)
+			node.ground = (bit.band(flags, GLOBAL.FLOOR.GROUND) ~= 0 or (flags == 0 and (not node.is_start or not IsFlying())))
 			node.ground_water = (bit.band(flags, GLOBAL.FLOOR.WATER) ~= 0)
 			node.ground_border = (bit.band(flags, GLOBAL.FLOOR.BORDER) ~= 0)
 			node.ground_avoid = (bit.band(flags, GLOBAL.FLOOR.AVOID) ~= 0)
@@ -1234,7 +1235,7 @@ function ml_navigation.Navigate(event, ticks )
 				
 					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 					
-					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 1500) then
+					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
 						ml_navigation.lastPathUpdate = Now()
 						return -- needed here, or you can check again for navpath / index valid ...your choice
@@ -1643,11 +1644,18 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
 						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-							if (not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
+							
+							local canLand = true
+							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
+							if (not hit) then
+								canLand = false
+							end	
+						
+							if (canLand and not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
 								-- May need more adjustments.
 								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
-							
+									
 									d("[Navigation]: Next node is not a flying node, dive a bit.")
 									local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - .5), z = nextnode.z }
 									local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+.5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z)
@@ -1664,7 +1672,11 @@ function ml_navigation.Navigate(event, ticks )
 									end
 									
 									local pitch = GetRequiredPitch(modifiedNode,true) -- Pitch down a little further.
-									Player:SetPitch(pitch)
+									if (nextnode.is_end) then
+										Player:SetPitch(1.4835)
+									else
+										Player:SetPitch(pitch)
+									end
 									
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
@@ -1759,59 +1771,80 @@ function ml_navigation.Navigate(event, ticks )
 						ffnav.isdescending = false
 						
 						--d("[Navigation]: Normal navigation..")
+						
+						--d("index:"..tostring(ml_navigation.pathindex)..",nextnode:"..tostring(nextnode.type))
+						--table.print(ml_navigation.path)
+						
 						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then
-							--d("nextnode : "..tostring(nextnode.x).." - "..tostring(nextnode.y).." - " ..tostring(nextnode.z))
-							
-							ml_navigation.GUI.lastAction = "Walk to Cube Node"
-							
+						
+							--d("isCubeCon:"..tostring(isCubeCon))
+						
 							if (navcon) then
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 							end
 							
-							if (IsSwimming() or ( bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0 and nextnode.y < ppos.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
+							ml_navigation.GUI.lastAction = "Walk to Cube Node"
+							
+							if (IsSwimming() or (nextnode.water and nextnode.y < ppos.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
+								d("[Navigation] - Dive into water, using connection ["..tostring(isCubeCon).."].")
 								ffnav.isdescending = isCubeCon
 								Player:StopMovement()
 								Player:Dive()
-								ffnav.Await(3000, function () return (MIsLoading() or IsDiving()) end)
+								ffnav.AwaitDo(3000, 
+									function () 
+										return (MIsLoading() or IsDiving()) 
+									end, 
+									function () 
+										Player:StopMovement()
+										Player:Dive()
+									end
+								)
 								return
-							elseif (bit.band(nextnode.flags, GLOBAL.CUBE.WATER) ~= 0 or (navcon and navcon.type == 3 and (nextnextnode and bit.band(nextnextnode.flags, GLOBAL.CUBE.WATER) ~= 0))) then
+							elseif (nextnode.water or (navcon and navcon.type == 3 and (nextnextnode and nextnextnode.water))) then
 								-- For connecting to the weird tunnel exists in underwater towns.
 								ml_navigation:NavigateToNode(ppos,nextnode)	
 								return
 							elseif (not IsFlying() and CanFlyInZone()) then
-								if (Player.ismounted and not Player.mountcanfly and bit.band(nextnode.flags, GLOBAL.CUBE.AIR) ~= 0) then
+								if (Player.ismounted and not Player.mountcanfly and (nextnode.air or nextnode.air_avoid)) then
 									d("[Navigation] - Our mount cannot fly, dismount it.")
 									Dismount()
-									ffnav.Await(5000, function () return not Player.ismounted end)
 									return
 								elseif (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									if (Player:IsMoving()) then
 										Player:StopMovement()
-										ffnav.Await(3000, function () return not Player:IsMoving() end)
+										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
-										Mount()
-										ffnav.Await(5000, function () return Player.ismounted end)
+										if (Mount()) then
+											ffnav.AwaitSuccess(500, 
+												function () 
+													return (IsMounting() or UsingBattleItem())
+												end,
+												function ()
+													ffnav.Await(3000, function () d("checking for mounted") return Player.ismounted end)
+												end
+											)
+										end
 										return
 									end							
 								else
 									if (Player:IsMoving()) then
 										Player:StopMovement()
-										ffnav.Await(3000, function () return not Player:IsMoving() end)
+										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
-										d("[Navigation] - Ascend for flight.")
-										ffnav.isascending = isCubeCon
+										d("[Navigation] - Ascend for flight, using connection ["..tostring(isCubeCon).."].")
+										ffnav.isascending = isCubeCon 
 										Player:Jump()
-										ffnav.AwaitThen(500, 3000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
+										ffnav.AwaitSuccess(500, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
 										return
 									end
 								end
 							end
 						else
-							d("[Navigation]: Navigate to node.")
+							--d("[Navigation]: Navigate to node, backup.")
 							ml_navigation:NavigateToNode(ppos,nextnode)	
 						end
 					end

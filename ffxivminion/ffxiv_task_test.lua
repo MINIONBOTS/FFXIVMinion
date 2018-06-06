@@ -60,7 +60,7 @@ function c_gotopostest:evaluate()
 	c_gotopostest.path = {}
 
 	local mapID = tonumber(gTestMapID)
-	if (Player.localmapid == mapID) then
+	if (Player.localmapid == mapID and gTestNPCID == 0) then
 		local ppos = Player.pos
 		local pos = {}
 		pos.x = tonumber(gTestMapX)
@@ -92,13 +92,12 @@ function c_gotonpctest:evaluate()
 	c_gotonpctest.pos = {}
 	c_gotonpctest.path = {}
 
-	local mapID = 397
-	if (Player.localmapid == mapID) then
-		local ppos = Player.pos
+	local mapID = tonumber(gTestMapID)
+	if (Player.localmapid == mapID and gTestNPCID ~= 0) then
 		local pos = {}
-		pos.x = 474.8
-		pos.y = 217.9
-		pos.z = 708.5
+		pos.x = tonumber(gTestMapX)
+		pos.y = tonumber(gTestMapY)
+		pos.z = tonumber(gTestMapZ)
 		
 		c_gotonpctest.pos = pos
 		return true
@@ -107,7 +106,8 @@ function c_gotonpctest:evaluate()
 end
 function e_gotonpctest:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
-	newTask.contentid = 71
+	newTask.interact = gTestNPCID
+	newTask.navid = gTestNPCID
 	newTask.pos = c_gotonpctest.pos
 	--newTask.interactRange = 1
 	
@@ -159,8 +159,8 @@ function ffxiv_task_test:Init()
 	local ke_startMapTest = ml_element:create( "GoToMapTest", c_gotomaptest, e_gotomaptest, 20 )
     self:add(ke_startMapTest, self.process_elements)
 	
-	--local ke_startMoveTest = ml_element:create( "GoToNPCTest", c_gotonpctest, e_gotonpctest, 15 )
-    --self:add(ke_startMoveTest, self.process_elements)
+	local ke_startMoveTest = ml_element:create( "GoToNPCTest", c_gotonpctest, e_gotonpctest, 15 )
+    self:add(ke_startMoveTest, self.process_elements)
 	
 	local ke_startMoveTest = ml_element:create( "GoToPosTest", c_gotopostest, e_gotopostest, 15 )
     self:add(ke_startMoveTest, self.process_elements)
@@ -172,6 +172,7 @@ end
 -- New GUI.
 function ffxiv_task_test:UIInit()	
 	gTestMapID = ffxivminion.GetSetting("gTestMapID","")
+	gTestNPCID = ffxivminion.GetSetting("gTestNPCID",0)
 	gTestMapX = ffxivminion.GetSetting("gTestMapX","")
 	gTestMapY = ffxivminion.GetSetting("gTestMapY","")
 	gTestMapZ = ffxivminion.GetSetting("gTestMapZ","")
@@ -198,12 +199,13 @@ function ffxiv_task_test:Draw()
 	local framePaddingY = ml_gui.style.current.framepadding.y
 	local itemSpacingY = ml_gui.style.current.itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(9),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(11),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Nav Range")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Map ID")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("NPC ID")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("X")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Y")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Z")
@@ -214,6 +216,7 @@ function ffxiv_task_test:Draw()
 	GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
 	GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
 	GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
+	GUI_Capture(GUI:InputText("##NPC ID",gTestNPCID),"gTestNPCID");
 	GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
 	GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
 	GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
@@ -222,6 +225,9 @@ function ffxiv_task_test:Draw()
 	local FullWidth = GUI:GetContentRegionAvail()
 	if (GUI:Button("Get Current Pos",FullWidth,20)) then
 		ffxiv_task_test.GetCurrentPosition()
+	end
+	if (GUI:Button("Get Target Pos",FullWidth,20)) then
+		ffxiv_task_test.GetTargetPosition()
 	end
 	if (GUI:Button("Get Random Pos",FullWidth,20)) then
 		ffxiv_task_test.GetRandomPosition()
@@ -239,9 +245,30 @@ function ffxiv_task_test.GetCurrentPosition()
 	gTestMapID = mapid
 	
 	GUI_Set("gTestMapID",gTestMapID)
+	GUI_Set("gTestNPCID",0)
 	GUI_Set("gTestMapX",gTestMapX)
 	GUI_Set("gTestMapY",gTestMapY)
 	GUI_Set("gTestMapZ",gTestMapZ)
+end
+
+function ffxiv_task_test.GetTargetPosition()
+	local target = Player:GetTarget()
+	if (target) then
+		local mapid = Player.localmapid
+		local pos = target.pos
+		
+		gTestNPCID = target.id
+		gTestMapX = pos.x
+		gTestMapY = pos.y
+		gTestMapZ = pos.z
+		gTestMapID = mapid
+		
+		GUI_Set("gTestMapID",gTestMapID)
+		GUI_Set("gTestNPCID",gTestNPCID)
+		GUI_Set("gTestMapX",gTestMapX)
+		GUI_Set("gTestMapY",gTestMapY)
+		GUI_Set("gTestMapZ",gTestMapZ)
+	end
 end
 
 function ffxiv_task_test.GetRandomPosition()
