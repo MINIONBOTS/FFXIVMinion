@@ -1162,6 +1162,18 @@ function dev.DrawCall(event, ticks )
 														GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devbag24"..tostring(slot),tostring(item:IsReady(tar.id)))
 													end
 													
+													local materias = item.materias
+													if table.valid(materias) and GUI:TreeNode("Materias##devbag_mats"..tostring(slot)) then
+														for i,v in ipairs(materias) do
+															GUI:Text("Materia #"..tostring(i))
+															GUI:BulletText(" ItemId") GUI:SameLine(200) GUI:InputText("##devbag_mat_itemid"..tostring(slot)..tostring(i),tostring(v.itemid))
+															GUI:BulletText(" Name") GUI:SameLine(200) GUI:InputText("##devbag_mat_name"..tostring(slot)..tostring(i),tostring(v.name))
+															GUI:BulletText(" Attribute") GUI:SameLine(200) GUI:InputText("##devbag_mat_attr"..tostring(slot)..tostring(i),tostring(v.attribute))
+															GUI:BulletText(" Value") GUI:SameLine(200) GUI:InputText("##devbag_mat_value"..tostring(slot)..tostring(i),tostring(v.value))
+														end
+														GUI:TreePop()
+													end
+													
 																										
 													local action = item:GetAction()
 													if (table.valid(action)) then
