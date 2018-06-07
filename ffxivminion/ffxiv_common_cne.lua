@@ -1681,7 +1681,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming() or Player.ismounted or Player.incombat)
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
 	then
 		return false
 	end
@@ -1718,6 +1718,10 @@ function c_mount:evaluate()
 		else
 			--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 		end
+	end
+	
+	if (Player.ismounted or Player.incombat) then
+		return false
 	end
 	
 	if (IsMounting()) then
