@@ -1032,10 +1032,8 @@ function e_startcraft:execute()
 				Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
 				ml_task_hub:CurrentTask().recipeSelected = true
 				ffxiv_craft.tracking.lastSetRecipe = Now()
-				
-				ml_global_information.Await(1000)
-				return
-			else if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
+								
+				if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
 					if (SkillMgr.HasProfile(skillProfile)) then
 						SkillMgr.UseProfile(skillProfile)
 					end
