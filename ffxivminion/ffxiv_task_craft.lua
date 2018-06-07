@@ -1024,6 +1024,7 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		local indexInfo = Crafting:GetSelectedCraftInfo(recipe.id)
+		local skillProfile = ml_task_hub:CurrentTask().skillProfile
 		
 		if (table.valid(indexInfo)) then
 			if indexInfo.iscorrectindex ~= true then 
@@ -1032,8 +1033,9 @@ function e_startcraft:execute()
 				ml_task_hub:CurrentTask().recipeSelected = true
 				ffxiv_craft.tracking.lastSetRecipe = Now()
 				
-				local skillProfile = ml_task_hub:CurrentTask().skillProfile
-				if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
+				ml_global_information.Await(1000)
+				return
+			elseif (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
 					if (SkillMgr.HasProfile(skillProfile)) then
 						SkillMgr.UseProfile(skillProfile)
 					end
