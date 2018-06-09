@@ -60,7 +60,7 @@ function c_gotopostest:evaluate()
 	c_gotopostest.path = {}
 
 	local mapID = tonumber(gTestMapID)
-	if (Player.localmapid == mapID and gTestNPCID == 0) then
+	if (Player.localmapid == mapID and tonumber(gTestNPCID) == 0) then
 		local ppos = Player.pos
 		local pos = {}
 		pos.x = tonumber(gTestMapX)
@@ -93,7 +93,7 @@ function c_gotonpctest:evaluate()
 	c_gotonpctest.path = {}
 
 	local mapID = tonumber(gTestMapID)
-	if (Player.localmapid == mapID and gTestNPCID ~= 0) then
+	if (Player.localmapid == mapID and tonumber(gTestNPCID) ~= 0) then
 		local pos = {}
 		pos.x = tonumber(gTestMapX)
 		pos.y = tonumber(gTestMapY)

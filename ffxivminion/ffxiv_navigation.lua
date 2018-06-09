@@ -1838,7 +1838,7 @@ function ml_navigation.Navigate(event, ticks )
 										d("[Navigation] - Ascend for flight, using connection ["..tostring(isCubeCon).."].")
 										ffnav.isascending = isCubeCon 
 										Player:Jump()
-										ffnav.AwaitSuccess(500, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
+										ffnav.AwaitSuccess(500, 2000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
 										return
 									end
 								end

@@ -497,7 +497,7 @@ function e_movetonode:execute()
 			end
 			
 			if IsDiving() then
-				newTask.interactRange3d = 2
+				newTask.interactRange3d = 2.99
 			end
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.navid = ml_task_hub:CurrentTask().gatherid
