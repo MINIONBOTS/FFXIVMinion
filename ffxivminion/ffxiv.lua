@@ -211,12 +211,28 @@ function ml_global_information.ResetLoginVars()
 	end
 end
 
+ml_global_information.preparers = {}
+function ml_global_information.PreUpdate( event, tickcount )
+	memoize = {}
+	
+	-- if other addons/code need to prepare for update, it should be added to the preparers table as a function
+	if (table.valid(ml_global_information.preparers)) then
+		for _,prep in pairs(ml_global_information.preparers) do
+			if (prep and type(prep) == "function") then
+				prep()
+			end
+		end
+	end
+end
+
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
 	local gamestate = MGetGameState()
 	
 	memoize = {}
+	
+	ml_global_information.Queueables()
 	if (ml_global_information.IsYielding()) then
 		--d("stuck in yield")
 		return false

@@ -284,6 +284,42 @@ function ml_global_information.AwaitThen(param1, param2, param3, param4)
 	end
 end
 
+-- code for delayed queueables, use to execute miscellaneous delayed actions/lua
+ml_global_information.queueables = {}
+
+-- add a function to be executed after a time specified by delay "timer" in ms, or earlyout function "earlyout"
+function ml_global_information.Queue(timer,func,earlyout)
+	local queueable = { timer = Now() + timer, executor = func, earlyout = earlyout }
+	table.insert(ml_global_information.queueables,queueable)
+end
+
+function ml_global_information.Queueables()
+	if (table.valid(ml_global_information.queueables)) then
+		for k,v in pairsByKeys(ml_global_information.queueables) do
+			if (Now() >= v.timer or (v.earlyout and type(v.earlyout) == "function" and v.earlyout() == true)) then
+				if (v.executor and type(v.executor) == "function") then
+					v.executor()
+					ml_global_information.queueables[k] = nil
+				end
+			end
+		end
+	end
+end
+
+function ml_global_information.TestQueue()
+	SendTextCommand("/echo reset")
+	ml_global_information.Queue(5000,
+		function() 
+			SendTextCommand("/echo first") 
+			ml_global_information.Queue(1000,
+				function() 
+					SendTextCommand("/echo second") 
+				end
+			)
+		end
+	)
+end
+
 function ml_global_information.Init()
 	-- Update default meshes.
 	do
