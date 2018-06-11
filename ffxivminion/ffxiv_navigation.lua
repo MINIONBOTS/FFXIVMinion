@@ -990,7 +990,7 @@ end
 -- Ideally, BuildPath should be called before this but there maybe legacy situations/tasks not updated where we don't want to just break them.
 -- Added misc debug codes to more easily help identify debug messages.
 -- Added targetid since that is totally needed for any moving enemy, espeically in pvp. Else the bot likes to move backwards the path he came from, due to cached paths.
-function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
+function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)	
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
 	
@@ -1016,6 +1016,7 @@ end
 ml_navigation.lastPathUpdate = 0
 ml_navigation.pathchanged = false
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
+	ml_navigation.debug = nil -- this is just for being able to click "Get Path to target" in the navmanager, so you see the current path and can check  the nodes / manually optimize that path without actually start flying
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
 	if (targetid == 0) then
@@ -1191,7 +1192,7 @@ function ml_navigation.Navigate(event, ticks )
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 				
-		if ( ml_navigation.CanRun() and ml_navigation.canPath) then	
+		if ( ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug) then	
 		
 			local ppos = Player.pos
 			
