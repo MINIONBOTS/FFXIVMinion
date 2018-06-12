@@ -5806,7 +5806,7 @@ function Transport137(pos1,pos2)
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 607.8, y = 11.6, z = 391.8}
 					--newTask.contentid = 1003585
-					newTask.contentids = "1003585;1005420"
+					newTask.contentid = "1003585;1005420"
 					newTask.conversationstrings = {
 						["us"] = "Board the Rhotano privateer",
 						de = "Zum Großen Schoner",

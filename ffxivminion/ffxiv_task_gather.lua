@@ -2125,9 +2125,8 @@ function e_collectiblegame:execute()
 			(info.rarity == info.raritymax) or
 			(info.wear == 30)))
 		then
-			if (UseControlAction("GatheringMasterpiece","Collect")) then
-				e_collectiblegame.timer = Now() + 500
-			end
+			UseControlAction("GatheringMasterpiece","Collect")
+			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 			return
 		else
 			if (SkillMgr.Gather()) then

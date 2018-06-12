@@ -230,8 +230,6 @@ function ml_global_information.OnUpdate( event, tickcount )
 	
 	local gamestate = MGetGameState()
 	
-	memoize = {}
-	
 	ml_global_information.Queueables()
 	if (ml_global_information.IsYielding()) then
 		--d("stuck in yield")
