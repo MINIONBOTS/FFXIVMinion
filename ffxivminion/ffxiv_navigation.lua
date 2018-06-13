@@ -1044,7 +1044,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	--if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending or TimeSince(ml_navigation.lastPathUpdate) < 2000)) then
 	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending)) then
-		d("[NAVIGATION]: Using a connection, wait until we finish to pull a new path.")
+		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
 	
@@ -1070,6 +1070,12 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		else
 			ml_navigation:ResetCurrentPath()
 		end
+		ml_navigation.targetposition = { x=0, y=0, z=0 }
+		ml_navigation.lasttargetid = nil
+		
+	else
+		ml_navigation.targetposition = newGoal
+		ml_navigation.lasttargetid = targetid	
 	end
 	
 	if (ret > 0 and hasCurrentPath) then
@@ -1080,8 +1086,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	--table.print(ml_navigation.path)
 	
-	ml_navigation.targetposition = newGoal
-	ml_navigation.lasttargetid = targetid
 	return ret
 end
 
@@ -1092,7 +1096,7 @@ function Player:Stop(resetpath)
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
 	
 	ffnav.isascending = false
-	ffnav.isdescending = false
+	ffnav.isdescending = false	
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
@@ -1185,7 +1189,6 @@ ml_navigation.lastconnectionid = 0
 ml_navigation.lasttargetid = nil
 ml_navigation.path = {}
 ml_navigation.pathindex = 0
-ml_navigation.lastpathindex = 0
 ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
 	local self = ml_navigation
@@ -1205,38 +1208,15 @@ function ml_navigation.Navigate(event, ticks )
 			
 			-- Normal Navigation Mode			
 			if (not ffnav.IsProcessing()) then
-			
-				local indexChanged = false
-				
-				if (ffnav.isascending and IsFlying()) then
-					ffnav.isascending = false
-					ml_navigation.pathindex = ml_navigation.pathindex + 1
-					NavigationManager.NavPathNode = ml_navigation.pathindex
-					d("finished ascending, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
-				end
-				
-				if (ffnav.isdescending and IsDiving()) then
-					ffnav.isdescending = false
-					ml_navigation.pathindex = ml_navigation.pathindex + 1
-					NavigationManager.NavPathNode = ml_navigation.pathindex
-					d("finished diving, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
-				end
-				
-				if (ml_navigation.pathindex ~= NavigationManager.NavPathNode) then
-					ml_navigation.pathindex = NavigationManager.NavPathNode
-					indexChanged = true
-				end
-				
-				if (ml_navigation.pathindex ~= ml_navigation.lastpathindex) then
-					ml_navigation.lastpathindex = ml_navigation.pathindex
-					--d("[Navigation]: After Update ["..tostring(ticks).."] - Current path index:"..tostring(ml_navigation.pathindex)..", path node:"..tostring(NavigationManager.NavPathNode)..", path has "..tostring(table.size(ml_navigation.path)).. " nodes.")
-				end
-				
+						
+								
+				ml_navigation.pathindex = NavigationManager.NavPathNode
+								
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then
 				
-					local autoface, movemode = ml_global_information.GetMovementInfo(true) -- force standard movement for nav
+					ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 					
-					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
+					if (not ml_navigation:IsUsingConnection()  and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
 						ml_navigation.lastPathUpdate = Now()
 						return -- needed here, or you can check again for navpath / index valid ...your choice
@@ -1562,7 +1542,10 @@ function ml_navigation.Navigate(event, ticks )
 							if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
 								-- We reached the node
 								--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")	
-								local originalIndex = ml_navigation.pathindex + 1
+								
+								-- C++ is already optimizing / shortening the path wherever possible. You tried to do here the same thing with just one recast, where c++ has full access to cube n recast data and uses about 6 raycasts around the player object.
+								
+								--[[local originalIndex = ml_navigation.pathindex + 1
 								
 								local newIndex = originalIndex
 								if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
@@ -1596,7 +1579,14 @@ function ml_navigation.Navigate(event, ticks )
 								
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.pathindex = originalIndex	
-								NavigationManager.NavPathNode = ml_navigation.pathindex								
+								NavigationManager.NavPathNode = ml_navigation.pathindex
+								]]
+								
+								ml_navigation.lastconnectionid = nextnode.navconnectionid
+								ml_navigation.pathindex = ml_navigation.pathindex + 1
+								NavigationManager.NavPathNode = ml_navigation.pathindex
+								
+								
 							else			
 								--d("[Navigation]: Moving to next node")
 								-- We have not yet reached our node
@@ -1644,8 +1634,8 @@ function ml_navigation.Navigate(event, ticks )
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-							
+						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then  -- THIS SETS self.omc !!! so the code below that should "manually land" is executed only ONCE and if (not Player:IsMoving()) then ... return false.   <-- that's for sure conflicting here ...issnt it ?
+																						
 							local canLand = true
 							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
 							if (not hit) then
@@ -1653,6 +1643,7 @@ function ml_navigation.Navigate(event, ticks )
 							end	
 						
 							if (canLand and not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
+								
 								-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
 								-- May need more adjustments.
 								if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
@@ -1678,7 +1669,7 @@ function ml_navigation.Navigate(event, ticks )
 									else
 										Player:SetPitch(pitch)
 									end
-									
+																		
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
 										ffnav.Await(3000, function () return Player:IsMoving() end)
@@ -1692,15 +1683,21 @@ function ml_navigation.Navigate(event, ticks )
 									--table.print(ml_navigation.path)
 									
 									d("[Navigation]: Prevent continuation until landing is completed.")
-									--return false -- ideally, we don't want to move to the next node until we have fully landed
+									return false -- ideally, we don't want to move to the next node until we have fully landed
+								
+								
 								else
+								
+									-- THIS HERE IS THE LAST SHIT CASE where I saw it fucing up. IT was aalready on the floor but then kept saying this line once and running straight ahead into the wall, because it was not flying or flying anymore.
 									d("[Navigation]: Prevent from landing over water and diving by accident.")
 								end
+								
 							else
 								--d("[Navigation]: Prevent landing for optimal pathing, nextnode.is_cube:"..tostring(nextnode.is_cube)..",nextnode.ground:"..tostring(nextnode.ground)..", cancontinueflying:"..tostring(ml_navigation:CanContinueFlying())..",flags:"..tostring(nextnode.flags))
 							end
 							
-							local originalIndex = ml_navigation.pathindex + 1
+							-- Dont do the same thing that I do in c++, it will just cause chaotic stucks when it does not have the full info if it can shorten a path
+							--[[local originalIndex = ml_navigation.pathindex + 1
 							
 							local newIndex = originalIndex
 							if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
@@ -1734,7 +1731,14 @@ function ml_navigation.Navigate(event, ticks )
 							
 							ml_navigation.lastconnectionid = nextnode.navconnectionid
 							ml_navigation.pathindex = originalIndex	
-							NavigationManager.NavPathNode = ml_navigation.pathindex		
+							NavigationManager.NavPathNode = ml_navigation.pathindex
+							]]
+							
+							-- We landed now and can continue our path..
+							ml_navigation.lastconnectionid = nextnode.navconnectionid		
+							ml_navigation.pathindex = ml_navigation.pathindex + 1
+							NavigationManager.NavPathNode = ml_navigation.pathindex			
+							
 						else			
 							--ml_debug("[Navigation]: Moving to next node")
 							-- We have not yet reached our node
@@ -1775,13 +1779,12 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("index:"..tostring(ml_navigation.pathindex)..",nextnode:"..tostring(nextnode.type))
 						--table.print(ml_navigation.path)
-						
 						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))
-						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then
+						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
 							--d("isCubeCon:"..tostring(isCubeCon))
-						
-							if (navcon) then
+							-- We reached the nextnode that hodls a navconnection, here we want to always iterate our path so path[1] holds the navconnection
+							if ( navcon ) then
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 							end
 							
@@ -1794,7 +1797,14 @@ function ml_navigation.Navigate(event, ticks )
 								Player:Dive()
 								ffnav.AwaitDo(3000, 
 									function () 
-										return (MIsLoading() or IsDiving()) 
+										local descending = MIsLoading() or IsDiving()
+										if (ffnav.isdescending and descending) then -- we are using a navconnection , therefore have to iterate the currentindex to the navconnection end-cube-node. If the next node is 'only' a cube instead, we don't iterate, we dive and move towards it where then the index is iterated
+											ffnav.isdescending = false
+											ml_navigation.pathindex = ml_navigation.pathindex + 1
+											NavigationManager.NavPathNode = ml_navigation.pathindex
+											d("[Navigation]: finished diving, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
+										end
+										return descending
 									end, 
 									function () 
 										Player:StopMovement()
@@ -1802,21 +1812,25 @@ function ml_navigation.Navigate(event, ticks )
 									end
 								)
 								return
+								
 							elseif (nextnode.water or (navcon and navcon.type == 3 and (nextnextnode and nextnextnode.water))) then
 								-- For connecting to the weird tunnel exists in underwater towns.
 								ml_navigation:NavigateToNode(ppos,nextnode)	
 								return
+								
 							elseif (not IsFlying() and CanFlyInZone()) then
 								if (Player.ismounted and not Player.mountcanfly and (nextnode.air or nextnode.air_avoid)) then
 									d("[Navigation] - Our mount cannot fly, dismount it.")
 									Dismount()
 									return
+									
 								elseif (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									if (Player:IsMoving()) then
 										Player:StopMovement()
 										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
+										
 									else
 										if (Mount()) then
 											ffnav.AwaitSuccess(500, 
@@ -1824,22 +1838,34 @@ function ml_navigation.Navigate(event, ticks )
 													return (IsMounting() or UsingBattleItem())
 												end,
 												function ()
-													ffnav.Await(3000, function () d("checking for mounted") return Player.ismounted end)
+													ffnav.Await(3000, function () d("[Navigation] - Checking for Player.ismounted") return Player.ismounted end)
 												end
 											)
 										end
 										return
-									end							
+									end
+									
 								else
 									if (Player:IsMoving()) then
 										Player:StopMovement()
 										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
+										
 									else
 										d("[Navigation] - Ascend for flight, using connection ["..tostring(isCubeCon).."].")
 										ffnav.isascending = isCubeCon 
 										Player:Jump()
-										ffnav.AwaitSuccess(500, 2000, function () return (Player:IsJumping() or IsFlying()) end, function () Player:TakeOff() end)
+										ffnav.AwaitSuccess(500, 2000, function () 
+											local ascended = Player:IsJumping() or IsFlying()
+											if (ffnav.isascending and ascended) then-- we are using a navconnection , therefore have to iterate the currentindex to the navconnection end-cube-node. If the next node is 'only' a cube instead, we don't iterate, we ascend and move towards it where then the index is iterated
+												ffnav.isascending = false
+												ml_navigation.pathindex = ml_navigation.pathindex + 1
+												NavigationManager.NavPathNode = ml_navigation.pathindex
+												d("[Navigation]: finished ascending, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
+											end
+											return ascended
+										end, function () Player:TakeOff() end)
+										
 										return
 									end
 								end
@@ -1896,6 +1922,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adju
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
 		NavigationManager.NavPathNode = ml_navigation.pathindex
+		
 	else						
 		ml_navigation.GUI.lastAction = "Walk to Node"
 		
