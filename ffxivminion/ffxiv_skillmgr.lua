@@ -258,7 +258,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	
 	if (TimeSince(SkillMgr.lastCheckTime) < 3000 and table.valid(SkillMgr.lastCheckDetails) and table.valid(SkillMgr.lastCheckDetails.tpos) and table.valid(SkillMgr.lastCheckDetails.ppos)) then
 		local details = SkillMgr.lastCheckDetails
-		if (math.distance(Player.pos,details.ppos) < 1 and math.distance(target.pos,details.tpos) < 1) then
+		if (math.distance3d(Player.pos,details.ppos) < 1 and math.distance3d(target.pos,details.tpos) < 1) then
 			return true
 		else
 			d("target or player has moved too far, cannot equivocate")
