@@ -1309,17 +1309,12 @@ function ml_navigation.Navigate(event, ticks )
 						if ( nc.subtype == 1 ) then
 							
 							ml_navigation.GUI.lastAction = "Jump NavConnection"
-							
-							if ( Player:IsJumping()) then
-								d("[Navigation]: Jumping for NavConnection.")
-								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:StopMovement() end)
-							
-							else	 
-								-- Before the jump
+																					
+							-- Before the jump
 								if ( not ml_navigation.omc_startheight ) then
 									-- Adjust facing
 									if ( nc.radius <= 0.5  ) then											
-										if ( ml_navigation:SetEnsureStartPosition(nextnode, ppos, nc) ) then											
+										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc) ) then											
 											return
 										end
 									else
@@ -1336,27 +1331,58 @@ function ml_navigation.Navigate(event, ticks )
 											ffnav.Await(1000, function () return Player:IsMoving() end)
 										end
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then	
-										ml_navigation.omc_startheight = ppos.y
-										Player:Jump()										
-										d("[Navigation]: Starting Jump for NavConnection.")
+										ml_navigation.omc_startheight = ppos.y										
+		                                Player:Jump()
+										d("[Navigation]: Starting to Jump for NavConnection.")
 									end
+									
 									
 								else
 									local todist,todist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,to_pos)
-									--d("todist2d:"..tostring(todist2d))
+									--d("[Navigation]: Jumping towards Targetpos, Dist2d:"..tostring(todist2d).." - " ..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]))
 									if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
+										-- We reached our target node...
+										Player:StopMovement()
+										if ( nc.radius <= 0.5  ) then
+											-- let's cheat for precission :D
+											Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z, true)
+											d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
+										end
+										
 										if (nextnextnode) then
 											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 										end
 										ml_navigation.pathindex = ml_navigation.pathindex + 1
 										NavigationManager.NavPathNode = ml_navigation.pathindex
 										ml_navigation:ResetOMCHandler()
-									else									
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
-										Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+																				
+									else
+										-- if we felt below start and landing pos, we will never make it to the goal anyway now
+										if ( from_pos.y > (ppos.y + 1)  and to_pos.y > (ppos.y + 1) ) then
+											if ( nc.radius <= 0.5  ) then												
+												Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z, true)
+												d("[Navigation]: [Jumping] - TP to End of Navconnection.")
+												ml_navigation.pathindex = ml_navigation.pathindex + 1
+												NavigationManager.NavPathNode = ml_navigation.pathindex
+												ml_navigation:ResetOMCHandler()
+												Player:StopMovement()
+												if (nextnextnode) then
+													Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+												end
+												
+											else
+												d("[Navigation]: [Jumping] - Failed to Reach End of Navconnection.")
+												Player:Stop()
+												
+											end
+											
+										else
+										
+											Player:Move(FFXIV.MOVEMENT.FORWARD)
+											Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+										end
 									end
 								end
-							end
 							return
 						end
 						
@@ -1374,6 +1400,7 @@ function ml_navigation.Navigate(event, ticks )
 						if ( nc.subtype == 3 ) then							
 							ml_navigation.GUI.lastAction = "Teleport NavConnection"
 							
+							Player:StopMovement()
 							if (gTeleportHack) then
 								Hacks:TeleportToXYZ(to_pos.x,to_pos.y,to_pos.z,true)
 							else
@@ -1917,7 +1944,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adju
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+		d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 		
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
@@ -2062,7 +2089,7 @@ function ml_navigation:EnsurePosition(ppos)
 	
 		if ( not Player:IsMoving () and dist > 0.5 and dist < 3.0 ) then
 			Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
-			d("[Navigation:EnsurePosition]: Teleporting to correct Start Position.")
+			d("[Navigation:EnsurePosition]: TP to correct Start Position.")
 		end
 		
 		-- update pos after teleport
@@ -2077,7 +2104,7 @@ function ml_navigation:EnsurePosition(ppos)
 							
 			if ( dist > 0.5 ) then
 				Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z,true)
-				d("[Navigation]: [EnsurePosition] - Teleporting to correct location.")
+				d("[Navigation]: [EnsurePosition] - TP to correct location.")
 			end
 			
 			if ( anglediff and (anglediff > 0.003 or anglediff < -0.003) ) then
@@ -2091,15 +2118,17 @@ function ml_navigation:EnsurePosition(ppos)
 			return true
 		end
 		
-	else	-- We waited long enough	
+	else	-- We waited long enough
+		d("[Navigation]: [EnsurePosition] - ResetOMCHandler, we waited longer than 2 seconds..")
 		self:ResetOMCHandler()
 		return false
 	end
 	
 	-- Lets wait at least 250ms on each jump
-	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 250) then
+	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 400) then
 		return true	-- we are 'handling it still'
 	else
+		self.ensureposition = nil
 		return false -- bot can continue
 	end
 end
