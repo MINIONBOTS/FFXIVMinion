@@ -151,6 +151,8 @@ function dev.DrawCall(event, ticks )
 																GUI:Text(tostring(data.value))
 															elseif (data.type == "string") then
 																GUI:Text(data.value)
+															elseif (data.type == "float") then
+																GUI:Text(tostring(data.value))
 															elseif (data.type == "4bytes") then
 																GUI:Text("A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D))
 															else
