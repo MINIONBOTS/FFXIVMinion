@@ -1689,6 +1689,8 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Status") GUI:SameLine(200) GUI:InputText("##dev5a",tostring(c.status))
 		if (ispet) then
 			GUI:BulletText("PetType") GUI:SameLine(200) GUI:InputText("##objpettype",tostring(c.pettype))
+			GUI:BulletText("PetState") GUI:SameLine(200) GUI:InputInt2( "##objpetstate", c.petstate[1], c.petstate[2], GUI.InputTextFlags_ReadOnly)
+			GUI:BulletText("ChocoboState") GUI:SameLine(200) GUI:InputText("##objchocobostate",tostring(c.chocobostate))
 		end
 		GUI:BulletText("CharType") GUI:SameLine(200) GUI:InputText("##dev6",tostring(c.chartype))
 		GUI:BulletText("TargetID") GUI:SameLine(200) GUI:InputText("##dev7",tostring(c.targetid))
@@ -1760,6 +1762,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Alive") GUI:SameLine(200) GUI:InputText("##dev31", tostring(c.alive))
 		GUI:BulletText("Gatherable") GUI:SameLine(200) GUI:InputText("##dev32", tostring(c.cangather))
 		GUI:BulletText("Spear Fish State") GUI:SameLine(200) GUI:InputText("##dev33", tostring(c.spearfishstate))
+		GUI:BulletText("Marker") GUI:SameLine(200) GUI:InputText("##dev36", tostring(c.marker))
 			-- SpearFishing
 			--SPEARFISHSTATE_NOTFISHNODE = -1,
 			--SPEARFISHSTATE_NONE = 0,
@@ -1771,8 +1774,8 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 			--SPEARFISHSTATE_GOTAWAY = 7,
 			--SPEARFISHSTATE_NOTAVAIL = 9,
 		if ( c.cangather ) then
-			GUI:BulletText("GatherAttempts") GUI:SameLine(200) GUI:InputText("##dev33", tostring(c.gatherattempts))
-			GUI:BulletText("GatherAttemptsMax") GUI:SameLine(200) GUI:InputText("##dev34", tostring(c.gatherattemptsmax))
+			GUI:BulletText("GatherAttempts") GUI:SameLine(200) GUI:InputText("##dev34", tostring(c.gatherattempts))
+			GUI:BulletText("GatherAttemptsMax") GUI:SameLine(200) GUI:InputText("##dev35", tostring(c.gatherattemptsmax))
 		end
 		GUI:TreePop()
 	end
