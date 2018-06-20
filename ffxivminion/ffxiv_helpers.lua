@@ -7309,3 +7309,46 @@ function IsDutyCompleted(ctype,id)
 	end
 	return false
 end
+function IsInCombat(includepet,includecompanion)
+	local includepet = IsNull(includepet,true)
+	local includecompanion = IsNull(includecompanion,true)
+	
+	if (Player.incombat) then
+		return true
+	elseif (includepet or includecompanion) then
+		--local el = MEntityList("alive,attackable,incombat")  leaving this out for now, may be necessary, but hopefully not
+		if (includepet) then
+			if (Player.pet) then
+				if (Player.pet.incombat) then
+					return true
+				end
+				--[[
+				if (table.valid(el)) then
+					for i,entity in pairs(el) do
+						if (In(Player.pet.id,entity.targetid,entity.claimedbyid)) then
+							return true
+						end
+					end
+				end
+				--]]
+			end
+		elseif (includecompanion) then
+			local companion = GetCompanionEntity()
+			if (companion) then
+				if (companion.alive and companion.incombat) then
+					return true
+				end
+				--[[
+				if (table.valid(el)) then
+					for i,entity in pairs(el) do
+						if (In(companion.id,entity.targetid,entity.claimedbyid)) then
+							return true
+						end
+					end
+				end
+				--]]
+			end
+		end
+	end
+	return false
+end

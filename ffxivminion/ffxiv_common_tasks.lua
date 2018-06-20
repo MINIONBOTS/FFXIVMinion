@@ -566,26 +566,21 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		--d("[NAVIGATION]: Interactable Pos ["..tostring(interactable.pos.x)..","..tostring(interactable.pos.y)..","..tostring(interactable.pos.z).."]")
 	--end
 	
-	if (not IsFlying()) then
-		if (self.interact ~= 0) then
+	--if (not IsFlying()) then
+		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
+		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
 				return true
 			end
-			-- Don't know why this is here.
-			--if (interactable.interactable and interactable.distance <= 2.5) then
-				--return true
-			--end
 		else
-			local epos = self.pos
-			local dist = Distance3DT(ppos,epos)
-			if (dist <= 2) then
+			if (dist2d <= 5) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
 					return true
 				end
 			end			
 		end
-	end
+	--end
 	
 	return false
 end

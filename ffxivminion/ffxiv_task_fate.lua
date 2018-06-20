@@ -504,10 +504,18 @@ function c_startfate:evaluate()
 			local npcid = activatable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
-				local i,entity = next(fatenpc)
-				if (i and entity) then
-					e_startfate.contentid = npcid
-					e_startfate.npcpos = entity.pos
+				local closest,closestDistance = nil,100
+				for i,entity in pairs(fatenpc) do
+					local dist = math.distance3d(entity.pos,activatable.pos)
+					if (not closest or dist < closestDistance) then
+						closest = entity
+						closestDistance = dist
+					end
+				end
+				if (closest) then
+					e_startfate.interact = closest.id
+					e_startfate.contentid = closest.contentid
+					e_startfate.pos = closest.pos
 					e_startfate.fateid = fateid
 					return true
 				end
@@ -525,8 +533,9 @@ function e_startfate:execute()
 	end	
 	
 	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.interact = e_startfate.interact
 	newTask.contentid = e_startfate.contentid
-	newTask.pos = e_startfate.npcpos
+	newTask.pos = e_startfate.pos
 	newTask.fateid =  e_startfate.fateid
 	
 	newTask.task_complete_eval = function (self)
@@ -544,14 +553,13 @@ function e_startfate:execute()
 			interactable = EntityList:Get(self.interact)
 		end
 		
-		if (self.interact ~= 0) then
+		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
+		if (self.interact ~= 0 and dist2d < 50 and dist2d < fate.radius and dist3d < fate.radius) then
 			if (not interactable or not interactable.targetable) then
 				return true
 			end
 		else
-			local epos = self.pos
-			local dist = Distance3DT(ppos,epos)
-			if (dist <= 2) then
+			if (dist2d <= 5) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
 					return true
@@ -1059,7 +1067,7 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		
 		[155] = {
 			[469] = { id = 1605, pos = {x = 323, y = 345, z = -520 } },
-			[482] = { id = 1582, pos = {x = -580, y = 225, z = -100 } },
+			[482] = { id = 1582, pos = {x = -580.7, y = 225.21, z = -100.3 } },
 			[486] = { id = 1603, pos = {x = -549, y = 237, z = 360 } },
 			[501] = { id = 1862, pos = {x = 245, y = 302, z = -281 } },
 		},

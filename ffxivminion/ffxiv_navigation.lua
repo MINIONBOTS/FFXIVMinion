@@ -137,9 +137,11 @@ function ml_navigation.ParseInstructions(data)
 					function () 
 						if (IsFlying()) then
 							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
-								Dismount()
+								--Dismount()
+								Player:Move(FFXIV.MOVEMENT.DOWN)
+								ml_global_information.Await(1000, function () return Player:IsMoving(FFXIV.MOVEMENT.DOWN) end)
 							end
-							ml_global_information.Await(1000, function () return not IsFlying() end)
+							ml_global_information.Await(500, function () return not IsFlying() end)
 							return false
 						else
 							return true

@@ -1568,6 +1568,7 @@ function c_fishnexttask:evaluate()
 		
 		local eTime = GetEorzeaTime()
 		local eHour = eTime.bell
+		local precedingHour = SubtractHours(eHour,1)
 		local eMinute = eTime.minute
 		local plevel = Player.level
 		
@@ -1737,7 +1738,7 @@ function c_fishnexttask:evaluate()
 					local validHour = false
 					local i = currentTask.eorzeaminhour
 					while (i ~= currentTask.eorzeamaxhour) do
-						if (i == eHour) then	
+						if (i == eHour or (i == precedingHour and eMinute >= 45)) then
 							validHour = true
 							i = currentTask.eorzeamaxhour
 						else
@@ -1885,7 +1886,7 @@ function c_fishnexttask:evaluate()
 								local validHour = false
 								local i = data.eorzeaminhour
 								while (i ~= data.eorzeamaxhour) do
-									if (i == eHour) then
+									if (i == eHour or (i == precedingHour and eMinute >= 45)) then
 										validHour = true
 										i = data.eorzeamaxhour
 									else

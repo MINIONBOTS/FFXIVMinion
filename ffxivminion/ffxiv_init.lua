@@ -774,23 +774,34 @@ function GetControlStrings(strControl,numString)
 	return nil
 end
 
-function UseControlAction(strControl,strAction,actionArg)
-	local actionArg = IsNull(actionArg,0)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			if (strAction == "Close") then
-				control:Close()
-			elseif (strAction == "Destroy") then
-				control:Destroy()
-			else
-				local actions = control:GetActions()
-				if (table.valid(actions)) then
-					for aid, action in pairs(actions) do
-						if (action == strAction) then
-							if (control:Action(action,actionArg)) then
-								return true
+function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,ignoreOpen)
+	local preDelay = IsNull(preDelay,0)
+	local postDelay = IsNull(postDelay,0)
+	if (preDelay ~= 0) then
+		ml_global_information.Queue(preDelay,function () UseControlAction(strControl,strAction,actionArg,0,postDelay,ignoreOpen) end)
+	else
+		local ignoreOpen = IsNull(ignoreOpen,false)
+		local actionArg = IsNull(actionArg,0)
+		local controls = MGetControls()
+		if (controls) then
+			local control = controls[strControl]
+			if (control and (control:IsOpen() or ignoreOpen)) then
+				if (strAction == "Close") then
+					control:Close()
+				elseif (strAction == "Destroy") then
+					control:Destroy()
+				else
+					local actions = control:GetActions()
+					if (table.valid(actions)) then
+						for aid, action in pairs(actions) do
+							if (action == strAction) then
+								if (postDelay ~= 0) then
+									ml_global_information.Await(postDelay)
+								end
+								if (control:Action(action,actionArg)) then
+									return true
+								end
+								return false
 							end
 						end
 					end
