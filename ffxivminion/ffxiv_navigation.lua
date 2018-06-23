@@ -1059,6 +1059,14 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	if (not CanDiveInZone()) then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.WATER)
 	end
+	
+	-- Unfilter things that we need or nav will complain and do nothing
+	if (IsDiving() and bit.band(cubefilters, GLOBAL.CUBE.WATER) ~= 0) then
+		cubefilters = bit.bxor(cubefilters, GLOBAL.CUBE.WATER)
+	elseif (IsFlying() and bit.band(cubefilters, GLOBAL.CUBE.AIR) ~= 0) then
+		cubefilters = bit.bxor(cubefilters, GLOBAL.CUBE.AIR)
+	end
+	
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	

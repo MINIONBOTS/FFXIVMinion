@@ -6519,11 +6519,51 @@ function Stop()
 	ml_navigation.ParseInstructions(instructions)
 end
 
-function Descend()
-	local instructions = {
-		{"Descend", {}},
-	}
-	ml_navigation.ParseInstructions(instructions)
+function Descend(incnode)
+	--local instructions = {
+		--{"Descend", {}},
+	--}
+	--ml_navigation.ParseInstructions(instructions)
+	
+	if (IsFlying()) then
+		local incnode = IsNull(incnode,false)
+		
+		local _trackDown, _dismount
+		_trackDown = function ()
+			--d("[Descend]: Start tracking.")
+			local startHeight = Player.pos.y
+			
+			ffnav.AwaitSuccessFail(100, 250, 
+				function () return Player.pos.y < startHeight end, nil, 
+				_trackDown, 
+				function () 
+					d("[Descend]: End descent process.")
+					if (incnode) then
+						ml_navigation.pathindex = ml_navigation.pathindex + 1
+						NavigationManager.NavPathNode = ml_navigation.pathindex
+					end
+				end
+			)
+			ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+		end
+		
+		_dismount = function ()
+			local dismount = ActionList:Get(13,Player.mountid)
+			if (dismount and dismount:IsReady(Player.id)) then
+				local startHeight = Player.pos.y
+				
+				d("[Descend]: Start descend.")
+				dismount:Cast(Player.id)
+				ffnav.AwaitSuccess(100, 250, 
+					function () return Player.pos.y < startHeight end, 
+					_trackDown
+				)
+				ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+			end
+		end
+		
+		_dismount()
+	end
 end
 
 function UsingBattleItem()
@@ -6747,7 +6787,7 @@ function IsReadying()
 	return Duty:GetQueueStatus() == 3
 end
 function InInstance()
-	return Duty:GetQueueStatus() == 4
+	return (Duty:GetQueueStatus() == 4 and Duty:GetDutyTimeRemaining() > 0)
 end
 function GetVersion()
 	if (GUI_NewWindow) then
@@ -6889,8 +6929,9 @@ function Between(var,low,high,inclusive)
 	end
 	return false
 end
-function FindClosestMesh(pos,distance,checkcubes)
+function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 	local checkcubes = IsNull(checkcubes,true)
+	local cubesonly = IsNull(cubesonly,false)
 	local minDist = IsNull(distance,10)
 	
 	local closest,closestDistance = nil, 100
@@ -6899,15 +6940,18 @@ function FindClosestMesh(pos,distance,checkcubes)
 		if (table.valid(p)) then
 			if (p.distance <= minDist) then
 				closest = p
+				closestDistance = p.distance
 			end
 		end
 	end
 	
-	local p = NavigationManager:GetClosestPointOnMesh(pos)
-	if (table.valid(p)) then
-		if (p.distance <= minDist) then
-			if (p.distance < closestDistance) then
-				closest = p
+	if (not cubesonly) then
+		local p = NavigationManager:GetClosestPointOnMesh(pos)
+		if (table.valid(p)) then
+			if (p.distance <= minDist) then
+				if (p.distance < closestDistance) then
+					closest = p
+				end
 			end
 		end
 	end

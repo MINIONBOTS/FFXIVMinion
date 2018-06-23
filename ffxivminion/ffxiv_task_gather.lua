@@ -330,11 +330,7 @@ function c_movetonode:evaluate()
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			elseif (gatherable.interactable and IsFlying()) then
-				if (GetHoverHeight() < 2.5) then
-					Dismount()
-				else
-					Descend()
-				end
+				Descend()
 				return true
 			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
@@ -404,23 +400,50 @@ function e_movetonode:execute()
 			
 			local newTask = ffxiv_task_movetointeract.Create()
 			
+			--[[
 			local foundPos = false
-			local frontPos = GetPosFromDistanceHeading(pos, 3, pos.h)
-			if (frontPos) then
-				local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPos)
+			local frontPosFar = GetPosFromDistanceHeading(pos, 5, pos.h)
+			if (frontPosFar) then
+				local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPosFar)
 				if (table.valid(closestmesh)) then
-					if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 3) then
+					if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 7) then
+						d("used estimated position 1")
 						pos = closestmesh
 						foundPos = true
+					else
+						d("closestmesh.distance:"..tostring(closestmesh.distance))
 					end
 				end
 			end
 			
 			if (not foundPos) then
+				local frontPos = GetPosFromDistanceHeading(pos, 3, pos.h)
+				if (frontPos) then
+					local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPos)
+					if (table.valid(closestmesh)) then
+						if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 5) then
+							d("used estimated position 2")
+							pos = closestmesh
+							foundPos = true
+						else
+							d("closestmesh.distance2:"..tostring(closestmesh.distance))
+						end
+					end
+				end
+			end
+			--]]
+			
+			if (not foundPos) then
 				local meshpos = gatherable.meshpos
 				if (table.valid(meshpos) and NavigationManager:IsReachable(meshpos) and meshpos.meshdistance < 4) then
+					d("used estimated position 3, meshdistance is ["..tostring(meshpos.meshdistance).."]")
 					pos = shallowcopy(meshpos)
+					foundPos = true
 				end
+			end
+			
+			if (not foundPos) then
+				d("found no estimated position")
 			end
 			
 			newTask.pos = pos
@@ -528,6 +551,15 @@ function c_returntobase:evaluate()
 			if (task.mapid ~= Player.localmapid) then
 				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
+			end
+			if (CanFlyInZone()) then
+				local basePosCube = FindClosestMesh(basePos,20,true,true)
+				if (basePosCube) then
+					--d("using cube pos for marker")
+					basePos = basePosCube
+				else
+					--d("didn't find a cube pos")
+				end
 			end
 		elseif (table.valid(marker)) then
 			basePos = marker:GetPosition()

@@ -378,6 +378,90 @@ function GUI_SwitchTab(tTabs,iTab)
 	end
 end
 
+function GUI_DrawVerticalTabs(tTabs,name)
+	local returnIndex,returnName;
+	
+	local tabName = IsNull(name,"##main-tabs")
+	local fontSize = (GUI:GetWindowFontSize())
+	local windowPaddingY = ml_gui.style.current.windowpadding.y
+	local framePaddingY = ml_gui.style.current.framepadding.y
+
+	local counter = 1;
+	
+	local events = tTabs.events
+	local tabs = tTabs.tabs
+	
+	for i,tab in pairsByKeys(tabs) do
+		if (table.valid(tab)) then
+			local selected_color = { r = .05, g = .05, b = .05, a = 1 }
+			local hovered_color = { r = .2, g = .2, b = .2, a = 1 }
+			local normal_color = { r = .1, g = .1, b = .1, a = 1 }
+			
+			hovered = tab.hovered
+			selected = tab.selected
+			normal = tab.normal
+			
+			GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,4)
+			if (tab.isselected) then
+				GUI:PushStyleColor(GUI.Col_ChildWindowBg, selected_color.r, selected_color.g, selected_color.b, selected_color.a)
+				GUI:BeginChild("##vertical-tab-"..selected.name,-8,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,.4,selected.a,selected.name)
+				GUI:EndChild()
+				GUI:PopStyleColor()
+				
+				returnIndex, returnName = i, selected.name
+			elseif (tab.ishovered) then
+				GUI:PushStyleColor(GUI.Col_ChildWindowBg, hovered_color.r, hovered_color.g, hovered_color.b, hovered_color.a)
+				GUI:BeginChild("##vertical-tab-"..hovered.name,0,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,.7,hovered.a,hovered.name)
+				GUI:EndChild()
+				GUI:PopStyleColor()
+			else
+				GUI:PushStyleColor(GUI.Col_ChildWindowBg, normal_color.r, normal_color.g, normal_color.b, normal_color.a)
+				GUI:BeginChild("##vertical-tab-"..normal.name,0,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,1,normal.a,normal.name)
+				GUI:EndChild()
+				GUI:PopStyleColor()
+			end
+			GUI:PopStyleVar()
+			
+			tabs[i].ishovered = GUI:IsItemHovered()
+			if (tab.ishovered) then
+				if (events.onHover and type(events.onHover) == "function") then
+					events.onHover()
+				end	
+				if (tab.onHover and type(tab.onHover) == "function") then
+					tab.onHover()
+				end					
+				if (GUI:IsMouseClicked(0,false)) then
+					if (not tabs[i].isselected) then
+						if (events.onChange and type(events.onChange) == "function") then
+							events.onChange()
+						end
+					end
+					if (events.onClick and type(events.onClick) == "function") then
+						events.onClick()
+					end
+					if (tab.onClick and type(tab.onClick) == "function") then
+						tab.onClick()
+					end
+					tabs[i].isselected = true
+					
+					for k,tab2 in pairs(tabs) do
+						if (i ~= k and tab2.isselected) then
+							tabs[k].isselected = false
+						end
+					end
+				end
+			end
+		end
+	end
+
+	GUI:Spacing()
+	
+	return returnIndex,returnName
+end
+
 function GUI_DrawTabs(tTabs)
 
 	local returnIndex,returnName;

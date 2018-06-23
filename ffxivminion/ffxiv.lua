@@ -1617,8 +1617,16 @@ function ml_global_information.DrawSettings()
 			ffxivminion.GUI.settings.visible, ffxivminion.GUI.settings.open = GUI:Begin(ffxivminion.GUI.settings.name, ffxivminion.GUI.settings.open)
 			if ( ffxivminion.GUI.settings.visible ) then 
 				
-				local tabindex, tabname = GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
-				local tabs = ffxivminion.GUI.settings.main_tabs
+				GUI:BeginChild("main-sidebar",150,0,true)
+				local tabindex, tabname = GUI_DrawVerticalTabs(ffxivminion.GUI.settings.main_tabs)
+				GUI:EndChild()
+		
+				GUI:SameLine(170)
+
+				GUI:BeginChild("main-content",0,0,false)
+				
+				--local tabindex, tabname = GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
+				--local tabs = ffxivminion.GUI.settings.main_tabs
 				
 				if (tabindex == 1) then
 					GUI:BeginChild("##main-header-botstatus",0,GUI_GetFrameHeight(10),true)
@@ -2075,6 +2083,8 @@ function ml_global_information.DrawSettings()
 					)
 					GUI:PopItemWidth()
 				end
+			
+				GUI:EndChild()
 			end
 
 			GUI:End()
