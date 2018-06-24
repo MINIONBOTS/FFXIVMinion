@@ -3150,8 +3150,17 @@ function Mount(id)
 	return false
 end
 function Dismount()
-	local isflying = IsFlying()
+	if (Player.ismounted) then
+		local dismount = ActionList:Get(13,Player.mountid)
+		if (dismount and dismount:IsReady(Player.id)) then
+			dismount:Cast(Player.id)
+			if (IsFlying()) then
+				Descend()
+			end
+		end
+	end
 	
+	--[[
 	if (Player.ismounted and (not isflying or (isflying and not Player:IsMoving()))) then
 		local dismount = ActionList:Get(5,23)
 		if (dismount and dismount:IsReady(Player.id)) then
@@ -3160,6 +3169,7 @@ function Dismount()
 			SendTextCommand("/mount")
 		end
 	end
+	--]]
 end
 function Repair()
 	if (gRepair) then

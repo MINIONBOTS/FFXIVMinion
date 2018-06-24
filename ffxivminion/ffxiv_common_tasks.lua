@@ -1517,7 +1517,7 @@ function ffxiv_task_grindCombat:Process()
 			
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
-					if (IsFlying() and GetHoverHeight() >= 2.5) then
+					if (IsFlying()) then
 						Descend()
 					else
 						Dismount()
@@ -1582,7 +1582,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (target.distance2d <= 15) then
 				if (Player.ismounted) then
-					if (IsFlying() and GetHoverHeight() >= 2.5) then
+					if (IsFlying()) then
 						Descend()
 					else
 						Dismount()

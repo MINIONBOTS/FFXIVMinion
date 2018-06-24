@@ -4185,8 +4185,9 @@ function c_dointeract:evaluate()
 							c_dointeract.lastInteract = Now()
 							return false
 						else
+							--Dismount()
 							Descend()
-							ml_global_information.Queue(1000,Dismount)
+							--ml_global_information.Queue(1000,Dismount)
 							return true
 						end
 					end
@@ -4226,8 +4227,9 @@ function c_dointeract:evaluate()
 							end
 							return false
 						else
+							--Dismount()
 							Descend()
-							ml_global_information.Queue(1000,Dismount)
+							--ml_global_information.Queue(1000,Dismount)
 							return true
 						end
 					end
