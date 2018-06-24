@@ -3006,7 +3006,7 @@ function SkillMgr.Craft()
 	SkillMgr.CheckMonitor()
 	
     local synth = GetControlData("Synthesis")
-    if ( table.valid(synth) and table.valid(SkillMgr.SkillProfile)) then
+    if ( synth and Between(IsNull(synth.progress,-1),0,100) and table.valid(SkillMgr.SkillProfile)) then -- added a little more sanity checking here
 		
 		if (SkillMgr.newCraft) then
 			SkillMgr.currentSHStack = 0

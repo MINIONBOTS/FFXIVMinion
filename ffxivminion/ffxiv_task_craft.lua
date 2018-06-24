@@ -899,7 +899,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if (MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
+	if (MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen or MIsLocked()) then
 		return false
 	end
 	

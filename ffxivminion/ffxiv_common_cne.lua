@@ -1915,8 +1915,18 @@ e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
     if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or 
 		Player.ismounted or IsMounting() or IsDismounting() or
-		IsCompanionSummoned() or InInstance() or Player.castinginfo.lastcastid == 851) 
+		IsCompanionSummoned() or InInstance() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
 	then
+		--[[
+		d("1:"..tostring(ffxiv_task_quest.noCompanion))
+		d("2:"..tostring(gBotMode == GetString("pvpMode")))
+		d("3:"..tostring(Player.ismounted))
+		d("4:"..tostring(IsMounting()))
+		d("5:"..tostring(IsDismounting()))
+		d("6:"..tostring(IsCompanionSummoned()))
+		d("7:"..tostring(InInstance()))
+		d("8:"..tostring((Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)))
+		--]]
         return false
     end
 
@@ -3875,6 +3885,7 @@ e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
 function c_buy:evaluate()
 	if (IsControlOpen("SelectYesno")) then
+		UseControlAction("SelectYesno","CheckAccept")
 		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
 		return true
