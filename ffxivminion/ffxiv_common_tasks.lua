@@ -573,7 +573,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				return true
 			end
 		else
-			if (dist2d <= 5) then
+			if (dist2d <= 5 and dist3d <= 10) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
 					return true
@@ -2282,21 +2282,20 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		interactable = EntityList:Get(self.interact)
 	end
 	
-	if (self.interact ~= 0) then
+	local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
+	if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 		if (not interactable or not interactable.targetable) then
 			return true
 		end
 	else
-		local epos = self.pos
-		local dist = Distance3DT(ppos,epos)
-		if (dist <= 2) then
+		if (dist2d <= 5 and dist3d <= 10) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 			if (not table.valid(interacts)) then
 				return true
 			end
 		end			
 	end
-
+	
 	return false
 end
 
