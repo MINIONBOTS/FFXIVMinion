@@ -396,8 +396,6 @@ function e_movetonode:execute()
 		if (table.valid(pos)) then
 			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
 			
-			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-			
 			local newTask = ffxiv_task_movetointeract.Create()
 			
 			--[[
@@ -448,6 +446,8 @@ function e_movetonode:execute()
 			
 			newTask.pos = pos
 			newTask.useTeleport = false
+			
+			local dist3d = math.distance3d(ppos,pos)
 			
 			local minimumGP = GetMinGP()
 			local task = ffxiv_gather.currentTask
