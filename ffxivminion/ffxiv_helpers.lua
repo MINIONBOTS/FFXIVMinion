@@ -33,16 +33,23 @@ function FilterByProximity(entities,center,radius,sortfield)
 	end
 end
 
-function FindRadarMarker(id)
+function FindRadarMarker(id,flag,both)
 	local id = tonumber(id) or 0
+	local flag = tonumber(flag) or 0
+	local both = IsNull(both,false)
 
 	local viable = {}
 	local info = GetControlData("_NaviMap")
 	if (table.valid(info)) then
 		if (table.valid(info.markers)) then
-			for i,k in pairs(info.markers) do
-				if k.id == id then
-					viable = {id = k.id, flags = k.flags, x = k.x, z = k.y}
+			for k,marker in pairs(info.markers) do
+				if (id ~= 0 and marker.id == id) then
+					d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+					viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+					return viable
+				elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
+					d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
+					viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 					return viable
 				end
 			end
@@ -3153,7 +3160,14 @@ function Dismount()
 	if (Player.ismounted) then
 		local dismount = ActionList:Get(13,Player.mountid)
 		if (dismount and dismount:IsReady(Player.id)) then
+			d("[Dismount]: Used primary method.")
 			dismount:Cast(Player.id)
+			if (IsFlying()) then
+				Descend()
+			end
+		else
+			d("[Dismount]: Used secondary method.")
+			SendTextCommand("/mount")
 			if (IsFlying()) then
 				Descend()
 			end

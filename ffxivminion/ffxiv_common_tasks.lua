@@ -170,9 +170,15 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
 		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
-		if (self.remainMounted or not IsFlying()) then
-			if Player.onmesh and ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
-				return true
+		if (Player.onmesh or IsFlying()) then
+			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+				Player:Stop()
+				if (not self.remainMounted and Player.ismounted) then
+					Dismount()
+					return false
+				else
+					return true
+				end
 			end
 		end
     end    
@@ -180,13 +186,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
-    Player:Stop()
+	Player:Stop()
 	if (self.doFacing) then
 		Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
     end
-	if (not self.remainMounted) then
-		Dismount()
-	end
     self.completed = true
 	ml_debug("[MOVETOPOS]: Task completing.")
 end

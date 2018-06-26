@@ -1679,6 +1679,7 @@ e_mount.lastPathCheck = 0
 e_mount.lastPathPos = {}
 c_mount.reattempt = 0
 c_mount.attemptPos = nil
+c_mount.blockOnly = true
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
 		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
@@ -1686,35 +1687,28 @@ function c_mount:evaluate()
 		return false
 	end
 	
+	c_mount.blockOnly = false
+	
 	local myPos = Player.pos
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	if (table.valid(gotoPos)) then
 		local dist2d = math.distance2d(myPos, gotoPos)
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
-		if (not ml_task_hub:CurrentTask().remainMounted and dismountDistance > 0 and dist2d <= dismountDistance and dist3d <= (dismountDistance + 3)) then
-			local needsMount = false
-			if (table.valid(ml_navigation.path)) then
-				for i, node in pairs(ml_navigation.path) do
-					if (i >= ml_navigation.pathindex) then
-						ml_navigation.TagNode(node)
-						if (node.air or node.air_avoid) then
-							needsMount = true
-						end
-					end
-				end		
+		
+		if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
+			local doDismount = false
+			if (dismountDistance > 0 and dist2d <= dismountDistance and (dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10))) and not IsDismounting()) then
+				doDismount = true
 			end
-			if (not needsMount) then
-				if (ml_task_hub:CurrentTask().dismountTimer == nil) then
-					ml_task_hub:CurrentTask().dismountTimer = 0
-				end
-				if (not IsFlying() and Player.ismounted and not IsDismounting() and Now() > ml_task_hub:CurrentTask().dismountTimer) then
-					Dismount()
-					ml_task_hub:CurrentTask().dismountTimer = Now() + 500
-					return true
-				end
-				return false
+			
+			if (doDismount) then
+				d("don't want to remain mounted, end task")
+				Dismount()
+				c_mount.blockOnly = true
+				return true
 			end
+			return false
 		else
 			--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 		end
@@ -1794,6 +1788,10 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
+	if (c_mount.blockOnly) then
+		return false
+	end
+	
 	if (Player:IsMoving()) then
 		Player:PauseMovement()
 		ml_global_information.AwaitDo(1000, function () return not Player:IsMoving() end, function () Player:PauseMovement() end)

@@ -323,33 +323,32 @@ function c_movetonode:evaluate()
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			local gpos = gatherable.pos
-			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
-			local reachable = (gatherable.interactable and gatherable.distance <= 2.5)
+			local ppos = Player.pos
+			local minimumGP = GetMinGP()	
 			
+			local noGPitem = ""
+			local task = ffxiv_gather.currentTask
+			if (table.valid(task)) then
+				noGPitem = IsNull(task.nogpitem,"")
+			end
+			
+			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
+			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5 and gatherable.distance <= 4)
 			if (not reachable) then
+			
+				-- Might stop just out of range to wait for GP, don't need to be super accurate
+				if (Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
+					ml_global_information.Await(500)
+					e_movetonode.blockOnly = true
+				end
+				
 				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			elseif (gatherable.interactable and IsFlying()) then
 				Descend()
 				return true
 			else	
-				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
-				local minimumGP = GetMinGP()	
-				local useCordials = (gGatherUseCordials)
-				local noGPitem = ""
-				
-				local task = ffxiv_gather.currentTask
-				local marker = ml_marker_mgr.currentMarker
-				if (table.valid(task)) then
-					noGPitem = IsNull(task.nogpitem,"")
-					useCordials = IsNull(task.usecordials,useCordials)
-				elseif (table.valid(marker)) then
-					useCordials = IsNull(marker.usecordials,useCordials)
-				end
-				if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
-					useCordials = GUI_Get(useCordials)
-				end
-				
+				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)				
 				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
@@ -391,7 +390,6 @@ function e_movetonode:execute()
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (table.valid(gatherable)) then
 		local pos = gatherable.pos
-		
 		local ppos = Player.pos
 		if (table.valid(pos)) then
 			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
@@ -480,9 +478,9 @@ function e_movetonode:execute()
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-						d("Starting alternate MOVETOPOS task to use a cordial.",2)
+						d("[MoveToNode]: Starting alternate MOVETOPOS task to use a cordial.")
 					end
-					d("Need to use cordial. ",2)
+					d("[MoveToNode]: Need to use cordial. ")
 					return
 				end
 				if CanUseExpManual() then
@@ -494,9 +492,9 @@ function e_movetonode:execute()
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-						d("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
+						d("[MoveToNode]: Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.")
 					end
-					d("Need to use manual. ",2)
+					d("[MoveToNode]: Need to use manual. ")
 					return
 				end
 				if (Player.gp.current < newTask.minGP) then
@@ -508,9 +506,9 @@ function e_movetonode:execute()
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
-						d("Starting alternate MOVETOPOS task to wait for GP.",2)
+						d("[MoveToNode]: Starting alternate MOVETOPOS task to wait for GP.")
 					end
-					d("Need to wait for GP. ",2)
+					d("[MoveToNode]: Need to wait for GP. ")
 					return
 				end
 			end
