@@ -5832,7 +5832,7 @@ function Transport137(pos1,pos2)
 					--newTask.contentid = 1003585
 					newTask.contentid = "1003585;1005420"
 					newTask.conversationstrings = {
-						["us"] = "Board the Rhotano privateer",
+						["en"] = "Board the Rhotano privateer",
 						de = "Zum Großen Schoner",
 						fr = "Aller à bord du navire au large",
 						jp = "「洋上の大型船」へ行く",

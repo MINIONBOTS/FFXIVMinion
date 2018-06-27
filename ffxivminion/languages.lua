@@ -1,7 +1,8 @@
-﻿strings =
+﻿gCurrentLanguage = "en"
+ffxiv_strings =
 {	
-	-- bk: US
-    ["us"] =
+	-- bk: EN
+    ["en"] =
     {
         startStop                       = "StartStop",
         doPulse                         = "Pulse(Debug)",
@@ -6466,85 +6467,31 @@ Tank Assist: Targets whatever your tank is targetting.",
     },                               
 }
 
-
-local missingTranslations = {}
-
--- returns a localized string or an indicator that the string does not exist in the language file
-function GetString(key)
-	
-	-- build a list with missing translations 
-	if (missingTranslations[key] == nil) then
-		for language,data in pairs(strings) do
-			if ( language ~= "us" and strings[language][key] == nil ) then
-				if (missingTranslations[key] == nil) then missingTranslations[key] = {} end
-				missingTranslations[key][language] = true
+-- merge  the minionlib strings with our ffxiv strings
+for language,data in pairs(ffxiv_strings) do
+	if ( ml_strings[language] ) then
+		for skey,str in pairs(data) do
+			if ( ml_strings[language][skey] == nil ) then
+				ml_strings[language][skey] = str
+			else
+				--d("Not adding dupliocate string :"..skey)
 			end
 		end
 	end
 	
-	if strings[gCurrentLanguage][key] == nil then		
-		if (strings["us"][key] == nil )then -- this should also get deleted at some point ... 			
-			return key
-		else		
-			return strings["us"][key]
+	-- add them to the new ml_miniondbstrings as well
+	for skey,str in pairs(data) do
+		if ( ml_miniondbstrings[skey] == nil ) then
+			ml_miniondbstrings[skey] = { [language] = str }
+			
+		else
+			if ( ml_miniondbstrings[skey][language] == nil ) then
+				ml_miniondbstrings[skey][language] = str
+			end
 		end
-	else
-		return strings[gCurrentLanguage][key]
-	end
+	end	
 end
 
 function GetUSString(stringName)
-	if strings["us"][stringName] == nil then
-		return stringName
-	else
-		return strings["us"][stringName]
-	end
-end
-
-function GetStringKey(translatedString)
-	local strings = strings
-	for language,data in pairs(strings) do
-		for skey,s in pairs(data) do
-			if (s == translatedString) then
-				return skey
-			end
-		end
-	end
-	
-	return ""
-end
-
-function Retranslate(translatedString)
-	local stringTable = strings
-	for language,data in pairs(stringTable) do
-		for skey,s in pairs(data) do
-			if (s == translatedString) then
-				return GetString(skey)
-			end
-		end
-	end
-	
-	d("Could not find a translation for ["..translatedString.."].")
-	return translatedString
-end
-
-function SaveMissingTranslations()
-	local missing = {
-		["cn"] = {},
-		["jp"] = {},
-		["de"] = {},
-		["fr"] = {},
-		["ru"] = {},
-		["kr"] = {},
-	}
-	
-	if (table.valid(missingTranslations)) then
-		for key,data in pairs(missingTranslations) do
-			for language,_ in pairs(data) do
-				missing[language][key] = ""
-			end
-		end
-	end
-
-	FileSave(GetLuaModsPath() .. [[MissingTranslations.txt]],missing)
+	return GetStringByLang(stringName,"en")
 end
