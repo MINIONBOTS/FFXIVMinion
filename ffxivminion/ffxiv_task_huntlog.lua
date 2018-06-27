@@ -476,7 +476,7 @@ function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
 end
 function ffxiv_task_huntlog.UIInit()
 	--[[
-	ffxivminion.Windows.HuntLog = { id = strings["us"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.HuntLog = { id = strings["en"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.HuntLog)
 	
 	local winName = GetString("huntlogMode")
