@@ -601,6 +601,32 @@ function dev.DrawCall(event, ticks )
 					end	
 					GUI:TreePop()
 				end
+				
+				if GUI:TreeNode("GetActiveDutyObjectives") then
+					local objectives = Duty:GetActiveDutyObjectives()
+					if (table.valid(objectives)) then
+						GUI:PushItemWidth(200)
+						GUI:Separator()                                            
+						GUI:Columns(4, "##devdutyobjectives",true)
+						GUI:Text("Name"); GUI:NextColumn()
+						GUI:Text("Type"); GUI:NextColumn()
+						GUI:Text("Values"); GUI:NextColumn()
+						GUI:Text("Completed"); GUI:NextColumn()
+						GUI:Separator()             
+						for idx, data in ipairs(objectives) do		
+							GUI:Text(tostring(data.name)) GUI:NextColumn()
+							GUI:Text(tostring(data.type)) GUI:NextColumn()
+							GUI:Text(tostring(data.values[1]).." / "..tostring(data.values[2])) GUI:NextColumn()
+							GUI:Text(tostring(data.completed)) GUI:NextColumn()
+						end
+						GUI:Separator()
+						GUI:Columns(1)	
+						GUI:PopItemWidth()	
+					else
+						GUI:Text("Not in duty ...")
+					end	
+					GUI:TreePop()
+				end
 
 				-- cbk: Duty List v2
 				if ( GUI:TreeNode("Duty List (v2)")) then
