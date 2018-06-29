@@ -4726,6 +4726,20 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 	elseif (type(includehqArg) == "boolean") then
 		includehq = includehqArg
 	end
+	
+	if (memoize.itemcount == nil) then
+		memoize.itemcount = {}
+	end
+	
+	if (memoize.itemcount[hqid]) then
+		if (includehq) then
+			--d("returning HQ memoized count for ["..tostring(hqid).."], ["..tostring((memoize.itemcount[hqid].count + memoize.itemcount[hqid].counthq)).."]")
+			return (memoize.itemcount[hqid].count + memoize.itemcount[hqid + 1000000].count)
+		else
+			--d("returning memoized count for ["..tostring(hqid).."], ["..tostring((memoize.itemcount[hqid].count + memoize.itemcount[hqid].counthq)).."]")
+			return (memoize.itemcount[hqid].count)
+		end
+	end
 
 	local itemcount = 0
 	
@@ -4739,8 +4753,18 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 						local item = bag:GetItem(i)
 						if (item) then
 							local ihqid = item.hqid -- maybe a bit overkill, but it does take away 1 call at least
-							if (ihqid == hqid or (includehq and (ihqid == hqid + 1000000))) then
+							if (ihqid == hqid) then
 								itemcount = itemcount + item.count
+								if (memoize.itemcount[hqid] == nil) then
+									memoize.itemcount[hqid] = { count = 0 }
+								end
+								memoize.itemcount[hqid].count = itemcount
+							elseif (includehq and (ihqid == hqid + 1000000)) then
+								itemcount = itemcount + item.count
+								if (memoize.itemcount[ihqid] == nil) then
+									memoize.itemcount[ihqid] = { count = 0 }
+								end
+								memoize.itemcount[ihqid].count = itemcount
 							end
 						end
 					end
@@ -4753,17 +4777,52 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 end
 
 function ItemCounts(hqids,inventoriesArg,includehqArg)
-	
 	local hqids = IsNull(hqids,{})
 	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	local includehq = false
+	
+	if (type(inventoriesArg) == "table") then
+		inventories = inventoriesArg
+	elseif (type(inventoriesArg) == "boolean") then
+		includehq = inventoriesArg
+	end
+	if (type(includehqArg) == "table") then
+		inventories = includehqArg
+	elseif (type(includehqArg) == "boolean") then
+		includehq = includehqArg
+	end
+	
+	if (memoize.itemcount == nil) then
+		memoize.itemcount = {}
+	end
 	
 	local returnables = {}
+	
 	if (table.isa(hqids)) then
+		local allhqids = {}
 		for i = 1,#hqids do 
 			local hqid = hqids[i]
-			returnables[hqid] = { id = hqid, count = 0 }
+			
+			allhqids[hqid] = { count = 0 }
+			local hqcounterpart = 0
+			if (includehq and hqid < 500000) then
+				hqcounterpart = hqid + 1000000
+				allhqids[hqcounterpart] = { count = 0 }
+			end
 		end
-	
+		
+		for hqid,_ in pairs(allhqids) do
+			if (memoize.itemcount[hqid]) then
+				--d("removing entry for ["..tostring(hqid).."]")
+				returnables[hqid] = { id = hqid, count = IsNull(memoize.itemcount[hqid].count,0) }
+				allhqids[hqid] = nil
+			else
+				--d("creating entry for ["..tostring(hqid).."]")
+				memoize.itemcount[hqid] = { count = 0 }
+				returnables[hqid] = { id = hqid, count = 0 }
+			end
+		end
+		
 		if (table.isa(inventories)) then
 			for _,invid in pairs(inventories) do
 				local bag = Inventory:Get(invid)
@@ -4772,21 +4831,26 @@ function ItemCounts(hqids,inventoriesArg,includehqArg)
 					for i = 0,bagSize-1 do
 						local item = bag:GetItem(i)
 						if (item) then
-							local itemid = 0
-							if (includehq) then
-								itemid = item.id
-							else
-								itemid = item.hqid
-							end
-							if (returnables[itemid]) then
-								local thisItem = returnables[itemid]
-								if (thisItem == nil) then
-									returnables[itemid] = { id = itemid, count = item.count }
-								else
-									returnables[itemid].count = thisItem.count + item.count
-								end
+							local itemid = item.hqid
+							if (allhqids[itemid]) then
+								allhqids[itemid].count = allhqids[itemid].count + item.count
+								memoize.itemcount[itemid].count = allhqids[itemid].count
+								returnables[itemid] = { id = itemid, count = IsNull(memoize.itemcount[itemid].count,0) }
 							end
 						end
+					end
+				end
+			end
+		end
+		
+		if (table.valid(allhqids)) then
+			for hqid,info in pairs(allhqids) do
+				if (includehq and hqid >= 1000000) then
+					local nqid = (hqid - 1000000)
+					if (returnables[nqid]) then
+						returnables[nqid].count = (returnables[nqid].count + info.count)
+					else
+						returnables[nqid] = { id = hqid, count = info.count }
 					end
 				end
 			end

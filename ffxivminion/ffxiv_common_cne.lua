@@ -1696,14 +1696,14 @@ function c_mount:evaluate()
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
 		
-		if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
+		if (dismountDistance > 0 and dist2d <= dismountDistance and 
+			(dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10)))) 
+		then
 			local doDismount = false
-			if (dismountDistance > 0 and dist2d <= dismountDistance and (dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10))) and not IsDismounting()) then
+			if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
 				doDismount = true
 			end
-			
-			if (doDismount) then
-				d("don't want to remain mounted, end task")
+			if (doDismount and not IsDismounting()) then
 				Dismount()
 				c_mount.blockOnly = true
 				return true
