@@ -1585,19 +1585,19 @@ function c_fishnexttask:evaluate()
 		else
 			-- Pre-compile all the complete checks so we only have to loadstring once.			
 			if (currentTask.complete) then
-				fd("check currentTask completion")
+				d("check currentTask completion")
 				local conditions = currentTask.complete
-				local complete = true
+				local complete = false
 				
 				for condition,value in pairs(conditions) do
 					local ok, ret = LoadString("return " .. condition)
 					if (ok and ret ~= nil) then
-						if (ret ~= value) then
-							fd("Task not complete [".. condition .. "] does not meet required value ["..tostring(value).."].")
-							complete = false
+						if (ret == value) then
+							d("Task not complete [".. condition .. "] does not meet required value ["..tostring(value).."].")
+							complete = true
 						end
 					end
-					if (not complete) then
+					if (complete) then
 						break
 					end
 				end
@@ -1605,19 +1605,20 @@ function c_fishnexttask:evaluate()
 				if (complete) then
 					invalid = true
 					completed = true
+					d("Complete")
 				end
 			end
 			
 			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false) or currentTask.type == "idle" or IsNull(currentTask.idlepriority,false)) then
-				fd("Task marked interruptable or low priority.")
+				d("Task marked interruptable or low priority.")
 				evaluate = true
-			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
-					 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
+			elseif (not currentTask.weatherlast and not currentTask.weathernow and not currentTask.weathernext and not currentTask.highpriority and
+					 not currentTask.eorzeaminhour and not currentTask.eorzeamaxhour and not currentTask.normalpriority)
 			then
-				fd("Task has no high/normal priority markings, allow re-evaluation.")
+				d("Task has no high/normal priority markings, allow re-evaluation.")
 				evaluate = true
 			else
-				fd("Task didn't fall into an always evaluate.")
+				d("Task didn't fall into an always evaluate.")
 			end
 			
 			if (ffxiv_fish.attemptedCasts > 2) then
@@ -1965,9 +1966,15 @@ function c_fishnexttask:evaluate()
 					local lowestIndex = 9999
 					local best = nil
 					for i,data in pairsByKeys(highPriority) do
-						if (not best or (best and i < lowestIndex)) then
 						
-							fd("[High] Setting best task to ["..tostring(i).."]")
+						
+						if ((not best or (best and i < lowestIndex)) and (Player.localmapid == data.mapid)) then
+							d("[High] Setting best task to ["..tostring(i).."] due to same map")
+							best = data
+							lowestIndex = i
+						elseif (not best or (best and i < lowestIndex)) then
+						
+							d("[High] Setting best task to ["..tostring(i).."]")
 							
 							best = data
 							lowestIndex = i
@@ -1975,12 +1982,19 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (not best and (invalid or currentTask.lowpriority or currentTask.idlepriority or currentTask.type == "idle")) then
-						lowestIndex = 9999
-						best = nil
+						
 						for i,data in pairsByKeys(normalPriority) do
-							if (not best or (best and i < lowestIndex)) then
+							if ((not best or (best and i < lowestIndex)) and (Player.localmapid == data.mapid)) then
 							
-								fd("[Normal] Setting best task to ["..tostring(i).."]")
+								d("[Normal] Setting best task to ["..tostring(i).."]")
+								
+								best = data
+								lowestIndex = i
+							
+							
+							elseif (not best or (best and i < lowestIndex)) then
+							
+								d("[Normal] Setting best task to ["..tostring(i).."]")
 								
 								best = data
 								lowestIndex = i
@@ -1989,13 +2003,12 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (not best and (invalid or currentTask.type == "idle" or currentTask.idlepriority)) then
-						lowestIndex = 9999
-						best = nil
+						
 						for i,data in pairsByKeys(lowPriority) do
 							if (i > currentTaskIndex) then
 								if (not best or (best and i < lowestIndex)) then
 									
-									fd("[Low] Setting best task to ["..tostring(i).."]")
+									d("[Low] Setting best task to ["..tostring(i).."]")
 									
 									best = data
 									lowestIndex = i
@@ -2007,7 +2020,7 @@ function c_fishnexttask:evaluate()
 							for i,data in pairsByKeys(lowPriority) do
 								if (not best or (best and i < lowestIndex)) then
 									
-									fd("[Low] Setting best task to ["..tostring(i).."]")
+									d("[Low] Setting best task to ["..tostring(i).."]")
 									
 									best = data
 									lowestIndex = i
@@ -2017,13 +2030,12 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (not best and invalid and currentTask.type ~= "idle" and not currentTask.idlepriority) then
-						lowestIndex = 9999
-						best = nil
+						
 						for i,data in pairsByKeys(idlePriority) do
 							if (i > currentTaskIndex) then
 								if (not best or (best and i < lowestIndex)) then
 									
-									fd("[Idle] Setting best task to ["..tostring(i).."]")
+									d("[Idle] Setting best task to ["..tostring(i).."]")
 									
 									best = data
 									lowestIndex = i
@@ -2035,7 +2047,7 @@ function c_fishnexttask:evaluate()
 							for i,data in pairsByKeys(idlePriority) do
 								if (not best or (best and i < lowestIndex)) then
 									
-									fd("[Idle] Setting best task to ["..tostring(i).."]")
+									d("[Idle] Setting best task to ["..tostring(i).."]")
 									
 									best = data
 									lowestIndex = i
@@ -2046,7 +2058,7 @@ function c_fishnexttask:evaluate()
 					
 					if (best) then
 						if (ffxiv_fish.currentTaskIndex ~= lowestIndex) then
-							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
+							d("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
 							
 							local fs = tonumber(Player:GetFishingState())
 							if (fs ~= 0) then
@@ -2060,6 +2072,7 @@ function c_fishnexttask:evaluate()
 							
 							ffxiv_fish.currentTaskIndex = lowestIndex
 							ffxiv_fish.currentTask = best
+							d("New task id = "..tostring(lowestIndex))
 							return true
 						else
 							fd("[FishNextTask] Current index is already set to the lowest index.")
