@@ -2624,9 +2624,6 @@ function ffxiv_task_fish:Init()
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 150 )
     self:add( ke_dead, self.overwatch_elements)
 	
-	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 140 )
-    self:add( ke_collectible, self.overwatch_elements)
-	
 	local ke_flee = ml_element:create( "Flee", c_gatherflee, e_gatherflee, 130 )
     self:add( ke_flee, self.overwatch_elements)
 	
@@ -2638,6 +2635,9 @@ function ffxiv_task_fish:Init()
     --self:add( ke_autoEquip, self.process_elements)
 	local ke_isLoading = ml_element:create( "IsLoading", c_fishisloading, e_fishisloading, 300 )
     self:add( ke_isLoading, self.process_elements)
+	
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 280 )
+    self:add( ke_collectible, self.process_elements)
 	
 	local ke_firstRun = ml_element:create( "FirstRun", c_fishfirstrun, e_fishfirstrun, 260 )
     self:add( ke_firstRun, self.process_elements)
