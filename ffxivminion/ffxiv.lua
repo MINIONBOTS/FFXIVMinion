@@ -554,12 +554,15 @@ function ml_global_information.GetMovementInfo(afk)
 		Player:SetMoveMode(0)
 		return Player.settings.autoface, 0
 	else
-
 		if (gAssistUseAutoFace and not settings.autoface) then
 			Player:SetAutoFace(true)
+		elseif (not gAssistUseAutoFace and settings.autoface) then
+			Player:SetAutoFace(false)
 		end
 		if (gAssistUseLegacy and settings.movemode == 0) then
 			Player:SetMoveMode(1)
+		elseif (not gAssistUseLegacy and settings.movemode == 1) then
+			Player:SetMoveMode(0)
 		end
 		return settings.autoface, settings.movemode
 	end

@@ -251,11 +251,11 @@ Tank Assist: Targets whatever your tank is targetting.")
 		Warning:  Dangerous if using Standard movement mode.")
 	
 	ffxiv_task_assist.StartElement("Use Client Autoface")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace")
+	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace", function () ml_global_information.GetMovementInfo(false) end)
 	ffxiv_task_assist.EndElement("This option enables the client auto-face option.")
 	
 	ffxiv_task_assist.StartElement("Set Legacy Movement")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy")
+	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy", function () ml_global_information.GetMovementInfo(false) end)
 	ffxiv_task_assist.EndElement("This option sets Legacy movement mode.")
 	
 	ffxiv_task_assist.StartElement("Start Combat")
