@@ -835,7 +835,7 @@ function ffxivminion.HandleInit()
 
 	-- Build bottom menu for new GUI addons.
 	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
-	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Help,FAQ,Report",true)
+	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ",true)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
 	
@@ -2348,7 +2348,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.help.open) then
-			GUI:SetNextWindowSize(400,550,GUI.SetCond_Always) --set the next window size, only on first ever	
+			GUI:SetNextWindowSize(400,700,GUI.SetCond_Always) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
@@ -2375,7 +2375,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
 				local tabs = ffxivminion.GUI.help.main_tabs
 				-- Help tab.
-				if (tabs.tabs[1].isselected) then
+				if (tabs.tabs[2].isselected) then
 					if (gBotMode == GetString("assistMode")) then
 						GUI:Text(GetString("Assist Mode will... \
 \
@@ -2435,7 +2435,7 @@ Craft Mode is Only as Good as the Skill Profile!!"))
 					end
 				end
 				-- FAQ tab.
-				if (tabs.tabs[2].isselected) then
+				if (tabs.tabs[3].isselected) then
 					if (gBotMode == GetString("assistMode")) then
 						GUI:Text(GetString("My Bot Wont attack? \
 \
@@ -2476,18 +2476,26 @@ Do you have materials?"))
 					end
 				end
 				-- Report tab.
-				if (tabs.tabs[3].isselected) then
+				if (tabs.tabs[1].isselected) then
 					GUI:Text("Report issues in the Forum or Discord Channel.")
 					GUI:Spacing();
-					GUI:TextWrapped("We need enough info to reproduce the issue or we cant fix it.")
+					GUI:TextWrapped("Provide enough information to reproduce the issue.")
+					GUI:TextWrapped("If we cant reproduce it, we can't fix it.")
 					GUI:Spacing();
 					GUI:Spacing();
-					GUI:Text("Please provide a screenshot with any issues")
+					GUI:Text("Please provide : ")
+					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("This tab must be included in the image.")
+					GUI:Spacing();
+					GUI:Spacing();
+					GUI:Text("If the console has error messages :")
+					GUI:Text("Please provide an image of the console.")
+					GUI:Text("The image must show the full error.")
 					GUI:Separator()
 					GUI:Text("Navmesh:")
 					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
-					GUI:Text("POS:")
+					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
 					GUI:Text("X: "..PlayerPos.x)
 					GUI:Text("Y: "..PlayerPos.y)
@@ -2507,6 +2515,25 @@ Do you have materials?"))
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
 					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
+					
+					if CanAccessMap(635) then
+						GUI:Text("Can Access all maps");
+					elseif CanAccessMap(622) and not CanAccessMap(621) then
+						GUI:Text("Can Access Azim Steppes");
+					elseif CanAccessMap(614) and not CanAccessMap(622) then
+						GUI:Text("Can Access Yanxia");
+					elseif CanAccessMap(613) and not CanAccessMap(614) then
+						GUI:Text("Can Access The Ruby Sea");
+					elseif CanAccessMap(612) and not CanAccessMap(613) then
+						GUI:Text("Can Access The Fringes");
+					elseif CanAccessMap(399) and not CanAccessMap(612) then
+						GUI:Text("Can Access Dravanian Hinterlands ");
+					elseif CanAccessMap(397) and not CanAccessMap(399) then
+						GUI:Text("Can Access The Fringes");
+					elseif not CanAccessMap(397) then
+						GUI:Text("Can NOT Access Heavensward");
+					end
+					
 					GUI:Text("Can Fly on Map: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.canflyinzone))
 					GUI:Text("Mount Can Fly: "); GUI:SameLine(); GUI:Text(tostring(Player.mountcanfly))
 					GUI:Text("Is Flying: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.isflying))
