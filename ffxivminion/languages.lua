@@ -1,5 +1,4 @@
-﻿gCurrentLanguage = "en"
-ffxiv_strings =
+﻿ffxiv_strings =
 {	
 	-- bk: EN
     ["en"] =
