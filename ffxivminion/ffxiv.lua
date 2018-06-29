@@ -188,6 +188,14 @@ ffxivminion.GUI = {
 		open = false,
 		visible = true,
 	},
+	informational = {
+		name = "Information Window",
+		open = false,
+		visible = true,
+		message = "",
+		open_until = 0,
+		colors = { r = 1, g = 1, b = 1, a = 1 },
+	},
 	current_tab = 1,
 	draw_mode = 1,
 }
@@ -2538,6 +2546,56 @@ Do you have materials?"))
 	end
 end
 
+function ml_global_information.ShowInformation(message, timer, r, g, b, a)
+	ffxivminion.GUI.informational.open_until = Now() + IsNull(timer,5000)
+	if (type(message) == "string") then
+		ffxivminion.GUI.informational.message = message
+		ffxivminion.GUI.informational.messagelines = {}
+	elseif (type(message) == "table") then
+		ffxivminion.GUI.informational.messagelines = message
+		ffxivminion.GUI.informational.message = ""
+	end
+	ffxivminion.GUI.informational.colors = {
+		r = IsNull(r,.5), g = IsNull(g,.1), b = IsNull(b,.1), a = IsNull(a,.75)
+	}
+	ffxivminion.GUI.informational.open = true
+end
+
+function ml_global_information.DrawInformationPopup() -- Helper Window
+	local gamestate = MGetGameState()
+	if (gamestate == FFXIV.GAMESTATE.INGAME) then
+		local drawSegment = ffxivminion.GUI.informational
+		if (drawSegment.open) then
+			if (Now() > drawSegment.open_until) then
+				drawSegment.open = false
+			else
+				local maxWidth, maxHeight = GUI:GetScreenSize()
+				GUI:SetNextWindowPos((maxWidth/2 - 250),(maxHeight/2 + 200), GUI.SetCond_Always)
+				if (table.valid(drawSegment.messagelines)) then
+					GUI:SetNextWindowSize(500,GUI_GetFrameHeight(table.size(drawSegment.messagelines)),GUI.SetCond_Always)
+				else
+					GUI:SetNextWindowSize(500,GUI_GetFrameHeight(1),GUI.SetCond_Always)
+				end
+				
+				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]				
+				GUI:PushStyleColor(GUI.Col_WindowBg, drawSegment.colors.r, drawSegment.colors.g, drawSegment.colors.b, drawSegment.colors.a)
+				flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+				drawSegment.visible, drawSegment.open = GUI:Begin(drawSegment.name, drawSegment.open, flags)
+				if ( drawSegment.visible ) then 
+					if (table.valid(drawSegment.messagelines)) then
+						for i,message in pairsByKeys(drawSegment.messagelines) do
+							GUI:Text(message)	
+						end
+					else
+						GUI:Text(drawSegment.message)	
+					end
+				end
+				GUI:PopStyleColor()
+				GUI:End()
+			end
+		end
+	end
+end
 
 function ml_global_information.Draw( event, ticks ) 
 	-- Main "mode" window.
@@ -2550,6 +2608,7 @@ function ml_global_information.Draw( event, ticks )
 	ml_global_information.DrawLoginHandler()
 	ml_global_information.DrawAutoGrindEditor()
 	ml_global_information.DrawHelper()
+	ml_global_information.DrawInformationPopup()
 end
 
 -- Register Event Handlers
