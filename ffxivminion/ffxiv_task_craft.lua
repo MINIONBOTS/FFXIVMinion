@@ -801,13 +801,30 @@ function ffxiv_craft.CanUseTea()
 	return false, nil
 end
 
+c_waitlog = inheritsFrom( ml_cause )
+e_waitlog = inheritsFrom( ml_effect )
+function c_waitlog:evaluate()
+	if (IsControlOpen("RecipeNote")) then
+		local logData = GetControlData("RecipeNote")
+		if (logData and IsNull(logData.class,-1) < 0) then
+			ml_global_information.Await(1000)
+			return true
+		end
+	end
+		
+	return false
+end
+
+function e_waitlog:execute()
+end
+
 c_closelog = inheritsFrom( ml_cause )
 e_closelog = inheritsFrom( ml_effect )
 function c_closelog:evaluate()
 	if (ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
-	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or MIsLoading() or MIsCasting(true) or IsControlOpen("Talk") or IsControlOpen("Request"))then	
+	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") or MIsLoading() or IsControlOpen("Talk") or IsControlOpen("Request")) then	
 		--d("Cannot clear inventory, basic reasons.")
 		return false
 	end
@@ -824,7 +841,6 @@ function e_closelog:execute()
 	if (IsControlOpen("RecipeNote")) then
 		ffxiv_craft.ToggleCraftingLog()
 		ml_task_hub:CurrentTask().allowWindowOpen = true
-		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 	end
 end
 
@@ -890,9 +906,8 @@ function e_craftlimit:execute()
 		if (IsControlOpen("RecipeNote")) then
 			ffxiv_craft.ToggleCraftingLog()
 			ml_task_hub:CurrentTask().allowWindowOpen = true
-			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 		end
-			ml_global_information:ToggleRun()
+		ml_global_information:ToggleRun()
 	end
 end
 
@@ -920,8 +935,9 @@ end
 
 c_startcraft = inheritsFrom( ml_cause )
 e_startcraft = inheritsFrom( ml_effect )
+e_startcraft.blocktime = 0
 function c_startcraft:evaluate()
-		
+	e_startcraft.blocktime = 0
 	if (not ffxiv_craft.IsCrafting() and IsControlOpen("RecipeNote")) then
 		
 		if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
@@ -953,7 +969,7 @@ function c_startcraft:evaluate()
 				local quickCraft = ml_task_hub:CurrentTask().useQuick
 				if (canCraft) or (ml_task_hub:CurrentTask().ifNecessary) then
 					if (requiredItems == 0 or (requiredItems > 0 and itemcount < (requiredItems + startingCount))) then
-						if (Player.cp.max >= minCP) or (quickCraft and not requireCollect)then
+						if (Player.cp.max >= minCP) or (quickCraft and not requireCollect) then
 							return true
 						else 
 							d("[StartCraft]: CP to Low for item ["..tostring(recipe.id).."].",2)
@@ -969,8 +985,8 @@ function c_startcraft:evaluate()
 		elseif gCraftMarkerOrProfileIndex ~= 1 then
 			local minCP = tonumber(gCraftMinCP) or 0
 			if (Player.cp.max < minCP) then
-					d("[StartCraft]: Current CP < Minimum CP.")
-					ml_global_information:ToggleRun()
+				d("[StartCraft]: Current CP < Minimum CP.")
+				ml_global_information:ToggleRun()
 				return false
 			end
 			
@@ -980,18 +996,29 @@ function c_startcraft:evaluate()
 					local ingredient = mats[i]
 					if (ingredient) then
 						if (gCraftUseHQ) then
-							if (not gCraftUseHQBackup) then
-								if (ingredient.needed <= ingredient.inventoryhq) then
-									Crafting:SetCraftingMats(i-1,ingredient.needed)
-								else
-									Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+							if (gCraftUseHQBackup) then
+								if ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
+									if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
+										d("[Craft]: This craft requires use of ["..tostring((ingredient.needed - ingredient.inventorynq)).."] HQ of ["..ingredient.name.."] to have enough materials.")
+										Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
+										e_startcraft.blocktime = math.random(150,300)
+										return true
+									else
+										ffxiv_dialog_manager.IssueStopNotice("Need More Items", "Cannot craft this item, not enough materials.", "okonly")
+										return false
+									end
 								end
 							else
-								if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
-									Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
-								else
-									ffxiv_dialog_manager.IssueStopNotice("Need More Items", "Cannot craft this item, not enough materials.", "okonly")
-									return false
+								if (ingredient.needed <= ingredient.inventoryhq and (ingredient.selectedhq < ingredient.needed)) then
+									d("[Craft]: This craft prefers the use of ["..tostring(ingredient.needed).."] HQ of ["..ingredient.name.."], per options.")
+									Crafting:SetCraftingMats(i-1,ingredient.needed)
+									e_startcraft.blocktime = math.random(150,300)
+									return true
+								elseif (ingredient.needed > ingredient.inventoryhq and ingredient.selectedhq < ingredient.inventoryhq) then
+									d("[Craft]: This craft will use ["..tostring(ingredient.needed).."] HQ of ["..ingredient.name.."], since we can't use 100% HQ.")
+									Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+									e_startcraft.blocktime = math.random(150,300)
+									return true
 								end
 							end
 						else
@@ -1002,13 +1029,15 @@ function c_startcraft:evaluate()
 						end
 					end
 				end
+			else
+				d("[Craft]: Need to wait for materials control feedback.")
+				return false
 			end	
 				
 			if ( Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick) ) then
 				return true
 			else 
 				ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
-			
 			end
 		end
 	end	
@@ -1017,6 +1046,12 @@ function c_startcraft:evaluate()
 end
 
 function e_startcraft:execute()
+	if (e_startcraft.blocktime > 0) then
+		d("blocking")
+		ml_global_information.Await(e_startcraft.blocktime)
+		return false
+	end
+
 	SkillMgr.prevSkillList = {}
 	SkillMgr.tempPrevSkillList = {}
 	
@@ -1032,6 +1067,7 @@ function e_startcraft:execute()
 				Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
 				ml_task_hub:CurrentTask().recipeSelected = true
 				ffxiv_craft.tracking.lastSetRecipe = Now()
+				ml_task_hub:CurrentTask().matsSet = false
 				
 				ml_global_information.Await(1000)
 				return
@@ -1056,43 +1092,43 @@ function e_startcraft:execute()
 									local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
 									if not ifNecessary then
 										if (hqAmount > 0) then
-											if (ingredient.inventoryhq >= hqAmount) then
+											if (ingredient.inventoryhq >= hqAmount and ingredient.selectedhq < hqAmount) then
+												d("[Craft]: Order is set to prefer ["..tostring(hqAmount).."] HQ of ["..ingredient.name.."].")
 												Crafting:SetCraftingMats(i-1,hqAmount)
-											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-												Crafting:SetCraftingMats(i-1,hqAmountMin)
-											elseif (hqAmountMin == 0 and (ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then
-												Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
-											elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
-												ml_task_hub:CurrentTask().matsSet = false
-												ml_task_hub:CurrentTask().recipeSelected = false
-												d("Resetting recipe AGAIN.")
-												ml_global_information.Await(2500)
+												ml_global_information.Await(math.random(150,300))
 												return
-											else
-												d("Stop crafting item, not enough HQ.")
+											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and ingredient.selectedhq < hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
+												d("[Craft]: Order is set to require at least ["..tostring(hqAmountMin).."] HQ of ["..ingredient.name.."].")
+												Crafting:SetCraftingMats(i-1,hqAmountMin)
+												ml_global_information.Await(math.random(150,300))
+												return
+											elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
+												d("[Craft]: Stop crafting item, not enough HQ.")
 												e_craftlimit:execute()
 												return false
 											end
 										end
 									else
-										if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed) then
-											Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
-										elseif (Now() >= ffxiv_craft.tracking.lastSetRecipe + 5000) then
-											ml_task_hub:CurrentTask().matsSet = false
-											ml_task_hub:CurrentTask().recipeSelected = false
-											d("Resetting recipe AGAIN.")
-											ml_global_information.Await(2500)
-											return
-										else
-											d("Not enough materials including HQ.")
-											e_craftlimit:execute()
-											return false
+										if ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
+											if ((ingredient.inventorynq + ingredient.inventoryhq) >= ingredient.needed and ingredient.selectedhq < (ingredient.needed - ingredient.selectednq)) then
+												d("[Craft]: Order is set to use HQ mats if necessary, need ["..tostring((ingredient.needed - ingredient.inventorynq)).."] of ["..ingredient.name.."].")
+												Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
+												ml_global_information.Await(math.random(150,300))
+												return
+											else
+												d("[Craft]: Not enough materials including HQ.")
+												e_craftlimit:execute()
+												return false
+											end
 										end
 									end
 								end
 							end
 						end
 						ml_task_hub:CurrentTask().matsSet = true
+					else
+						d("[Craft]: Need to wait for materials control feedback.")
+						return false
 					end				
 				else
 					if (Crafting:CanCraftSelectedItem(ml_task_hub:CurrentTask().useQuick)) then
@@ -1109,9 +1145,13 @@ function e_startcraft:execute()
 								Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
 							else
 								if ((maxAmount / yield) > 99) then
-									Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
+									ml_global_information.Await(math.random(1000,2000), function () 
+										Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
+									end)
 								else
-									Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
+									ml_global_information.Await(math.random(1000,2000), function () 
+										Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
+									end)
 								end
 							end
 							if (IsControlOpen("RecipeNote")) then
@@ -1120,6 +1160,11 @@ function e_startcraft:execute()
 							SkillMgr.newCraft = true
 							ml_task_hub:CurrentTask().allowWindowOpen = false
 						else
+							ml_global_information.Await(math.random(1000,2000), function () 
+								Crafting:CraftSelectedItem()
+								ml_global_information.Await(2000, function () return (IsControlOpen("Synthesis") and IsControlOpen("RecipeNote")) end, ffxiv_craft.ToggleCraftingLog())
+							end)
+									
 							Crafting:CraftSelectedItem()
 							if (IsControlOpen("RecipeNote")) then
 								ffxiv_craft.ToggleCraftingLog()
@@ -1260,7 +1305,6 @@ function e_precraftbuff:execute()
 		if (IsControlOpen("RecipeNote")) then
 			ffxiv_craft.ToggleCraftingLog()
 			ml_task_hub:CurrentTask().allowWindowOpen = true
-			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 			return
 		end
 	end
@@ -1317,13 +1361,28 @@ function e_precraftbuff:execute()
 	end
 end
 
+c_craftend = inheritsFrom( ml_cause )
+e_craftend = inheritsFrom( ml_effect )
+function c_craftend:evaluate()
+	if (IsControlOpen("Synthesis")) then
+		local synthData = GetControlData("Synthesis")
+		if (synthData and synthData.progress == synthData.progressmax) then
+			ml_global_information.AwaitSuccess(1000, 3000, function () return IsControlOpen("RecipeNote") end)
+			return true
+		end
+	end
+    return false
+end
+function e_craftend:execute()
+end
+
 c_craft = inheritsFrom( ml_cause )
 e_craft = inheritsFrom( ml_effect )
 function c_craft:evaluate()
-	if ( ffxiv_craft.IsCrafting() or IsControlOpen("Synthesis")) then	
+	if ( ffxiv_craft.IsCrafting() ) then	
 		if (IsControlOpen("Synthesis")) then
 			local synthData = GetControlData("Synthesis")
-			if (synthData) then
+			if (synthData and IsNull(synthData.itemid,0) ~= 0 and IsNull(synthData.name,"") ~= "") then
 				ffxiv_craft.lastCraft = { id = synthData.itemid, name = synthData.name }
 			end
 		end	
@@ -1352,7 +1411,7 @@ function c_collectibleaddoncraft:evaluate()
 	end
 	if (IsControlOpen("SelectYesNoItem") or IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
-		if (table.valid(info)) then
+		if (info and IsNull(info.collectability,-1) >= 0) then
 			local validCollectible = false
 			
 			local job = Player.job
@@ -1393,7 +1452,7 @@ function c_collectibleaddoncraft:evaluate()
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
 				UseControlAction(addonName,"Yes")
 			end
-			ml_global_information.Await(3000, function () return not IsControlOpen(addonName) end)						
+			ml_global_information.Await(2000, 3000, function () return not IsControlOpen("Synthesis") end)						
 			return true
 		end
 	end
@@ -1425,6 +1484,9 @@ end
 c_selectcraft = inheritsFrom( ml_cause )
 e_selectcraft = inheritsFrom( ml_effect )
 function c_selectcraft:evaluate()
+	if ( ffxiv_craft.IsCrafting() ) then	
+		return false
+	end
 	
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local orders = ffxiv_craft.orders
@@ -1438,6 +1500,8 @@ function c_selectcraft:evaluate()
 				if (canCraft) or (order.ifnecessary) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
+				else
+					d("canCraft:"..tostring(canCraft))
 				end
 			end
 		end
@@ -1569,8 +1633,14 @@ function ffxiv_task_craftitems.Create()
 end
 
 function ffxiv_task_craftitems:Init()
-	local ke_closeLog = ml_element:create( "CloseLog", c_closelog, e_closelog, 200 )
+	local ke_badLog = ml_element:create( "BadLogState", c_waitlog, e_waitlog, 170 )
+    self:add( ke_badLog, self.process_elements)
+
+	local ke_closeLog = ml_element:create( "CloseLog", c_closelog, e_closelog, 160 )
     self:add( ke_closeLog, self.process_elements)
+	
+	local ke_craftend = ml_element:create( "CraftComplete", c_craftend, e_craftend, 61 )
+    self:add(ke_craftend, self.process_elements)  
 	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.process_elements)
@@ -1604,10 +1674,8 @@ function ffxiv_task_craftitems:task_complete_execute()
 	if (IsControlOpen("RecipeNote")) then
 		ffxiv_craft.ToggleCraftingLog()
 		ml_task_hub:CurrentTask().allowWindowOpen = true
-		ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 	end
 	
-
 	self.completed = true
 end
 
@@ -1890,6 +1958,8 @@ function ffxiv_task_craft:Draw()
 	
 	-- Orders List
 	if (tabname == GetString("Craft List")) then
+		ffxiv_craft.UpdateAlertElement()
+		
 		if FFXIV_Common_BotRunning and (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().itemid ~= nil) then
 				local itemid = ml_task_hub:CurrentTask().itemid
@@ -1931,7 +2001,6 @@ function ffxiv_task_craft:Draw()
 		GUI:Separator();
 		GUI:Columns(8, "#craft-manage-orders", true)
 		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 210); GUI:SetColumnOffset(3, 260); GUI:SetColumnOffset(4, 310); GUI:SetColumnOffset(5, 360); GUI:SetColumnOffset(6, 405); GUI:SetColumnOffset(7, 450); GUI:SetColumnOffset(8, 510);
-		
 		
 		GUI:Text("Item"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
@@ -2026,7 +2095,7 @@ function ffxiv_task_craft:Draw()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-				ffxiv_craft.UpdateAlertElement()
+				--ffxiv_craft.UpdateAlertElement()
 				
 				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 				
@@ -2294,14 +2363,15 @@ end
 function ffxiv_craft.ToggleCraftingLog()
 	if (IsControlOpen("RecipeNote")) then
 		if (UseControlAction("RecipeNote","Close")) then
+			ml_global_information.Await(1000, 3000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 			return true
 		end
 	else
 		local logOpen = ActionList:Get(10,9)
 		if (logOpen and logOpen.usable) then
-			if (logOpen:Cast(Player.id)) then
-				ml_global_information.Await(1000, 1500, function () return IsControlOpen("RecipeNote") end)
-			end
+			logOpen:Cast(Player.id)
+			ml_global_information.Await(1000, 3000, function () return IsControlOpen("RecipeNote") end)
+			return true
 		end
 	end
 end
@@ -2344,7 +2414,6 @@ end
 
 function ffxiv_craft.AddToProfile()
 	local recipeid = tonumber(gCraftOrderAddID) or 0
-	
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
 		if (orders[recipeid] == nil) then
@@ -2400,8 +2469,10 @@ function ffxiv_craft.DeleteOrder(key)
 end
 	
 function ffxiv_craft.UpdateAlertElement()
-	
-	if (gBotMode == GetString("craftMode") and gCraftMarkerOrProfileIndex ~= 1) or gBotMode ~= GetString("craftMode") or (Now() < ffxiv_craft.tracking.measurementDelay) then
+	if (ffxiv_craft.IsCrafting() or (gBotMode == GetString("craftMode") and gCraftMarkerOrProfileIndex ~= 1) or 
+		gBotMode ~= GetString("craftMode") or 
+		(Now() < ffxiv_craft.tracking.measurementDelay))
+	then
 		return false
 	end
 	
@@ -2410,10 +2481,21 @@ function ffxiv_craft.UpdateAlertElement()
 		local orders = ffxiv_craft.orders
 		local foundSelection = false
 		if (table.valid(orders)) then
-		
-			
+			local getcounts = {}
 			for id,order in pairs(orders) do
-				
+				local itemid = order.item
+				getcounts[itemid] = true
+				getcounts[itemid + 1000000] = true
+				getcounts[itemid + 500000] = true
+			end
+			
+			local getcountsorted = {}
+			for itemid,_ in pairs(getcounts) do
+				table.insert(getcountsorted,itemid)
+			end
+			
+			local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+			for id,order in pairs(orders) do
 				if order["uialert"] == nil then
 					order["uialert"] = "None"
 				end
@@ -2445,8 +2527,8 @@ function ffxiv_craft.UpdateAlertElement()
 					order["ifnecessary"] = false
 				end
 					
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order["usehq"])
-				local yield = AceLib.API.Items.GetRecipeDetails(id).yield
+				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(id,order["usehq"])
+				--local yield = AceLib.API.Items.GetRecipeDetails(id).yield
 
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
@@ -2467,7 +2549,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["uialert"] = "skillprofile"
 				elseif not okCP then
 					order["uialert"] = "lowcp"
-					elseif lowMats then
+				elseif lowMats then
 					order["uialert"] = "lowmats"
 				elseif maxAmount == 0 then
 					order["uialert"] = "cantCraft"
@@ -2476,14 +2558,16 @@ function ffxiv_craft.UpdateAlertElement()
 				end
 				
 				local itemid = order.item
-				local itemcount = 0
-				local itemcountnorm = 0
-				local itemcountHQ = 0
-				local itemcountCollectable = 0
-				itemcount = itemcount + ItemCount(itemid,true)
-				itemcountnorm = itemcountnorm + ItemCount(itemid,false)
-				itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
-				itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
+				
+				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
+				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
+				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
+				
+				--itemcount = itemcount + ItemCount(itemid,true)
+				--itemcountnorm = itemcountnorm + ItemCount(itemid,false)
+				--itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
+				--itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
 				end
@@ -2672,7 +2756,6 @@ end
 --]]
 
 function ffxiv_craft.Draw( event, ticks ) 
-	ffxiv_craft.UpdateAlertElement()
 	if (ffxiv_task_craft.GUI.orders.open) then
 		GUI:SetNextWindowSize(500,200,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
@@ -2687,9 +2770,10 @@ function ffxiv_craft.Draw( event, ticks )
 			local tabs = ffxiv_task_craft.GUI.orders.main_tabs
 			
 			if (tabs.tabs[1].isselected) then
+				ffxiv_craft.UpdateAlertElement()
+				
 				local width, height = GUI:GetWindowSize()		
 				local cwidth, cheight = GUI:GetContentRegionAvail()
-				
 				
 				local orders = ffxiv_craft.orders
 				if (table.valid(orders)) then
@@ -2726,7 +2810,7 @@ function ffxiv_craft.Draw( event, ticks )
 						
 						if (order.skip == nil) then
 							orders[id].skip = false
-							ffxiv_craft.SaveProfile()
+							--ffxiv_craft.SaveProfile()
 						end
 						
 						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
@@ -2760,7 +2844,7 @@ function ffxiv_craft.Draw( event, ticks )
 							gCraftOrderEditIfNecessary = IsNull(order["ifnecessary"],false)
 							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("none"))
 							gCraftOrderEditSkillProfileIndex = GetKeyByValue(gCraftOrderEditSkillProfile,SkillMgr.profiles)
-														
+
 							for i = 1,6 do
 								if (not order["hq"..tostring(i)]) then
 									_G["gCraftOrderEditHQIngredient"..tostring(i)] = 0
@@ -2776,100 +2860,102 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI_SwitchTab(ffxiv_task_craft.GUI.orders.main_tabs,3)
 						end
+						
 						GUI:NextColumn()
 						if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
 							ffxiv_craft.DeleteOrder(id)
 						end
-						GUI:NextColumn()
-				GUI:PopStyleColor(2)
-				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
-				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-				ffxiv_craft.UpdateAlertElement()
-				
-				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
-				
-				if uiAlert == "skip" then
-					local child_color = { r = 1, g = .90, b = .33, a = .0 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skip")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
-				elseif uiAlert == "skillprofile" then
-					local child_color = { r = 1, g = .90, b = .33, a = .75 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##skillprofile-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skill")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No Skill Profile Set.")) end
-				elseif uiAlert == "lowmats" then
-					local child_color = { r = .95, g = .69, b = .2, a = .75 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Mats")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Full Order not craftable. Will craft partial order.")) end
-				elseif uiAlert == "lowcp" then
-					local child_color = { r = .95, g = .69, b = .2, a = .75 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##lowcp-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("CP")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. CP Below Task Requirement.")) end
-				elseif uiAlert == "cantCraft" then
-					local child_color = { r = .50, g = 0.05, b = .2, a = .75 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##cantCraft-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Alert")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. May be missing materials or level to low.")) end
-				elseif uiAlert == "canCraft" then
-					local child_color = { r = .02, g = .79, b = .24, a = .75 }
-					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
-					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
-					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-					GUI:BeginChild("##canCraft-"..tostring(id),50,20,true)
-					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("OK")
-					GUI:EndChild()
-					GUI:PopStyleColor()
-					GUI:PopStyleVar()
-					GUI:PopStyleVar()
-					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Craftable.")) end
-				end
 						
-				GUI:PopStyleColor(2)
+						GUI:NextColumn()
+						
+						GUI:PopStyleColor(2)
+						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+						--ffxiv_craft.UpdateAlertElement()
+						
+						local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
+						if uiAlert == "skip" then
+							local child_color = { r = 1, g = .90, b = .33, a = .0 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##skip-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("Skip")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
+						elseif uiAlert == "skillprofile" then
+							local child_color = { r = 1, g = .90, b = .33, a = .75 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##skillprofile-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("Skill")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("No Skill Profile Set.")) end
+						elseif uiAlert == "lowmats" then
+							local child_color = { r = .95, g = .69, b = .2, a = .75 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("Mats")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Full Order not craftable. Will craft partial order.")) end
+						elseif uiAlert == "lowcp" then
+							local child_color = { r = .95, g = .69, b = .2, a = .75 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##lowcp-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("CP")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. CP Below Task Requirement.")) end
+						elseif uiAlert == "cantCraft" then
+							local child_color = { r = .50, g = 0.05, b = .2, a = .75 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##cantCraft-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("Alert")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Not Craftable. May be missing materials or level to low.")) end
+						elseif uiAlert == "canCraft" then
+							local child_color = { r = .02, g = .79, b = .24, a = .75 }
+							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
+							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
+							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+							GUI:BeginChild("##canCraft-"..tostring(id),50,20,true)
+							GUI:AlignFirstTextHeightToWidgets()
+							GUI:Text("OK")
+							GUI:EndChild()
+							GUI:PopStyleColor()
+							GUI:PopStyleVar()
+							GUI:PopStyleVar()
+							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Craftable.")) end
+						end
+							
+						GUI:PopStyleColor(2)
 						GUI:NextColumn()
 					end
 					
