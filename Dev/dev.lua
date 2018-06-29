@@ -553,6 +553,8 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".inventoryhq") GUI:SameLine(200) GUI:InputText("##deCML2"..tostring(id),tostring(e.inventoryhq))
 								GUI:BulletText(".inventorynq") GUI:SameLine(200) GUI:InputText("##deCML3"..tostring(id),tostring(e.inventorynq))
 								GUI:BulletText(".needed") GUI:SameLine(200) GUI:InputText("##deCML4"..tostring(id),tostring(e.needed))
+								GUI:BulletText(".selectedhq") GUI:SameLine(200) GUI:InputText("##deCML5"..tostring(id),tostring(e.selectedhq))
+								GUI:BulletText(".selectednq") GUI:SameLine(200) GUI:InputText("##deCML6"..tostring(id),tostring(e.selectednq))
 								GUI:TreePop()
 							end
 						end
