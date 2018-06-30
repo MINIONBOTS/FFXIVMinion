@@ -458,7 +458,9 @@ function ffxiv_task_movetointeract.Create()
 	newinst.interactAttempts = 0
 	newinst.maxAttempts = 0
 	
+	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true
+	
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
@@ -595,6 +597,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
+	gSkipTalk = self.skipTalkVal
 	self.completed = true
 end
 
@@ -618,6 +621,7 @@ function ffxiv_task_movetointeract:task_fail_eval()
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
+	gSkipTalk = self.skipTalkVal
     self.valid = false
 end
 
@@ -1711,6 +1715,7 @@ function ffxiv_mesh_interact.Create()
 	newinst.interact = 0
     newinst.interactLatency = 0
 	
+	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true
     return newinst
 end
@@ -1774,6 +1779,7 @@ end
 function ffxiv_mesh_interact:task_complete_execute()
 	d("Mesh interact task completed normally.")
 	ml_mesh_mgr.ResetOMC()
+	gSkipTalk = self.skipTalkVal
 	self.completed = true
 end
 
@@ -1788,6 +1794,7 @@ end
 function ffxiv_mesh_interact:task_fail_execute()
 	d("Mesh interact task failed.")
 	ml_mesh_mgr.ResetOMC()
+	gSkipTalk = self.skipTalkVal
     self.valid = false
 end
 
@@ -1831,9 +1838,10 @@ function ffxiv_nav_interact.Create()
 	newinst.dismountDistance = 15
 	newinst.killParent = false
 	newinst.abort = nil
-	
-	gSkipTalk = true
 	newinst.alwaysMount = false
+	
+	newinst.skipTalkVal = gSkipTalk
+	gSkipTalk = true
 	
     return newinst
 end
@@ -2148,12 +2156,12 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.useAethernet = false
 	newinst.unlockAethernet = false
 	newinst.blockExecution = false
-	
 	newinst.detectedMovement = false
-	
 	newinst.stealthFunction = nil
 	
+	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true
+	
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	newinst.initiatedPos = {}

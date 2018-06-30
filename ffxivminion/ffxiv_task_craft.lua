@@ -1762,7 +1762,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftTeaTypeIndex = GetKeyByValue(gCraftTeaList,gTeaSelection)
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
-	gCraftFoodIndex = 1
+	gCraftFoodIndex = IsNull(GetKeyByValue(gCraftFood,gFoods),1)
 	glastAlertUpdate = 0
 	gUseCPTea = ffxivminion.GetSetting("gUseCPTea",false)
 	-- Order Stuff
@@ -1818,7 +1818,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftInspectIAmount6 = ""
 	gCraftInspectCanCraft = ""
 	gCraftInspectCraftable = ""
-	--
+	
 	for i = 1,6 do
 		_G["gCraftOrderAddHQIngredient"..tostring(i)] = 0
 		_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = 0
@@ -1836,19 +1836,16 @@ function ffxiv_task_craft:UIInit()
 		_G["gCraftDictionarySelect"..tostring(k)] = GetString("none")				
 	end
 	
-	
-	
 	-- New Marker/Profile Settings
 	gCraftMarkerOrProfileOptions = { GetString("Profile"), GetString("Quick Start Mode") }
 	gCraftMarkerOrProfile = ffxivminion.GetSetting("gCraftMarkerOrProfile",GetString("Markers"))
 	gCraftMarkerOrProfileIndex = ffxivminion.GetSetting("gCraftMarkerOrProfileIndex",1)
 	
 	if gCraftMarkerOrProfileIndex == 1 then
-			self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
-		elseif gCraftMarkerOrProfileIndex == 2 then
-			self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
-		end
-	
+		self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
+	elseif gCraftMarkerOrProfileIndex == 2 then
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
+	end
 end
 
 ffxiv_task_craft.GUI = {
@@ -2190,6 +2187,7 @@ function ffxiv_task_craft:Draw()
 	-- Crafting Settings
 	if (tabname == GetString("Settings")) then
 		
+		-- Label Column
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Current Active Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
@@ -2199,8 +2197,11 @@ function ffxiv_task_craft:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Tea Type"))
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Tea Boosts.")) end
 		GUI:NextColumn()
+		
+		-- Data column
 		local CraftStatusWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CraftStatusWidth-8)
+		
 		GUI:InputText("##Current Active Food",gCraftFood,GUI.InputTextFlags_ReadOnly)
 		GUI_Combo("##food", "gCraftFoodIndex", "gCraftFood", gFoods)
 		if (GUI:IsItemHovered()) then
@@ -2211,11 +2212,13 @@ function ffxiv_task_craft:Draw()
 			GUI:SetTooltip("If this option is on, only available items will be shown.")
 		end
 		GUI:SameLine(0,5)
+		
+		
 		local buttonBG = ml_gui.style.current.colors[GUI.Col_Button]
 		GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 		GUI:PushStyleColor(GUI.Col_ButtonActive, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 		if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
-			ffxivminion.FillFoodOptions()
+			ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 		end
 		GUI:PopStyleColor(2)		
 		
@@ -2226,9 +2229,10 @@ function ffxiv_task_craft:Draw()
 			gCraftTeaList = gTeaSelection
 		end
 		GUI_Combo("##tea", "gCraftTeaTypeIndex", "gCraftTeaList", gTeaSelection)
-		
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
+		
 		GUI:Columns()
+		
 		GUI:Separator()
 		if gCraftMarkerOrProfileIndex ~= 1 then
 			GUI:Columns(2)
