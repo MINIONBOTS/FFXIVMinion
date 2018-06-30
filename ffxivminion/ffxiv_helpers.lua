@@ -4732,7 +4732,7 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 	end
 	
 	if (memoize.itemcount[hqid]) then
-		if (includehq) then
+		if (includehq and memoize.itemcount[hqid + 1000000]) then
 			--d("returning HQ memoized count for ["..tostring(hqid).."], ["..tostring((memoize.itemcount[hqid].count + memoize.itemcount[hqid].counthq)).."]")
 			return (memoize.itemcount[hqid].count + memoize.itemcount[hqid + 1000000].count)
 		else

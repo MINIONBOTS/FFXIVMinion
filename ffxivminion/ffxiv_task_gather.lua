@@ -2214,7 +2214,7 @@ function c_collectibleaddongather:evaluate()
 	end
 	if (IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
-		if (table.valid(info)) then
+		if (info and info.collectability ~= nil) then
 			local validCollectible = false
 			if (table.valid(gGatherCollectablePresets)) then
 				for i,collectable in pairsByKeys(gGatherCollectablePresets) do

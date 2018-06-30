@@ -1115,7 +1115,7 @@ function c_collectibleaddonfish:evaluate()
 	end
 	if (IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
-		if (table.valid(info)) then
+		if (info and info.collectability ~= nil) then
 			validCollectible = false
 			
 			if (table.valid(gFishCollectablePresets)) then
