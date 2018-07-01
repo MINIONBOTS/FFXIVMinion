@@ -232,6 +232,87 @@ function GetNextTaskPos()
 	return newIndex, newPos
 end
 
+c_usecordials = inheritsFrom( ml_cause )
+e_usecordials = inheritsFrom( ml_effect )
+c_usecordials.activity = ""
+c_usecordials.item = nil
+c_usecordials.itemid = 0
+
+function c_usecordials:evaluate()
+	if (MIsLoading() or MIsCasting() or IsFlying()) then
+		return false
+	end
+	
+	c_usecordials.activity = ""
+	c_usecordials.itemid = 0
+	c_usecordials.requirestop = false
+	c_usecordials.requiredismount = false
+		
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 4) then
+		return false
+	end
+		
+		
+	local useCordials = (gFishUseCordials)
+	local useFood = 0
+	local needsStealth = false
+	local taskType = "fishing"
+	
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		needsStealth = IsNull(task.usestealth,false)
+		minimumGP = IsNull(task.mingp,0)
+		useCordials = IsNull(task.usecordials,useCordials)
+		useFood = IsNull(task.food,0)
+		taskType = IsNull(task.type,"fishing")
+	elseif (table.valid(marker)) then
+		needsStealth = IsNull(marker.usestealth,false)
+	end
+	
+	if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
+		needsStealth = GUI_Get(needsStealth)
+	end
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
+	end
+	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+		minimumGP = GUI_Get(minimumGP)
+	end
+	if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
+		useFood = GUI_Get(useFood)
+	end
+		
+	if (useCordials) then
+		local canUse,cordialItem = CanUseCordial()
+		if (canUse and table.valid(cordialItem)) then
+			d("[PreCastBuff]: Need to use a cordial.")
+			c_usecordials.activity = "usecordial"
+			c_usecordials.itemid = cordialItem.hqid
+			c_usecordials.requirestop = false
+			c_usecordials.requiredismount = false
+			return true
+		end					
+	end
+	
+	return false
+end
+function e_usecordials:execute()
+	
+	local activityitemid = c_usecordials.itemid
+	local activity = c_usecordials.activity
+	
+	if (activity == "usecordial") then
+		local cordial, action = GetItem(activityitemid)
+		if (cordial and action and cordial:IsReady(Player.id)) then
+			cordial:Cast(Player.id)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
+			return
+		end
+	end
+end
 c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
 c_precastbuff.activity = ""
@@ -1220,9 +1301,6 @@ c_buybait = inheritsFrom( ml_cause )
 e_buybait = inheritsFrom( ml_effect )
 e_buybait.rebuy = {}
 function c_buybait:evaluate()
-	if (Player.ismounted) then
-		return false
-	end
 	
 	e_buybait.rebuy = {}
 	
@@ -1247,6 +1325,7 @@ function c_buybait:evaluate()
 		end
 		
 		local foundSuitable = false
+		local lowbait = false
 		local baitIDs = {}
 		if (baitChoice ~= "") then
 			for bait in StringSplit(baitChoice,",") do
@@ -1264,6 +1343,9 @@ function c_buybait:evaluate()
 						local item = GetItem(thisID,{0,1,2,3})
 						if (item) then
 							foundSuitable = true
+							if (fs == 0 and ItemCount(thisID) < 10) then
+								lowbait = true
+							end
 							break
 						end
 					end
@@ -1271,7 +1353,7 @@ function c_buybait:evaluate()
 			end
 		end
 		
-		if (not foundSuitable) then
+		if (not foundSuitable) or lowbait then
 			fd("Need to go buy something.",2)
 			
 			if (table.valid(rebuy)) then
@@ -2702,6 +2784,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 45 )
     self:add(ke_precast, self.process_elements)
+	
+	local ke_usecordial = ml_element:create( "UseCordial", c_usecordials, e_usecordials, 45 )
+    self:add(ke_usecordial, self.process_elements)
 	
 	local ke_mooch2 = ml_element:create( "Mooch2", c_mooch2, e_mooch2, 42 )
     self:add(ke_mooch2, self.process_elements)
