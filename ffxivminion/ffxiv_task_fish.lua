@@ -414,18 +414,6 @@ function c_precastbuff:evaluate()
 			c_precastbuff.requiredismount = true
 			return true
 		end
-		
-		if (useCordials) then
-			local canUse,cordialItem = CanUseCordial()
-			if (canUse and table.valid(cordialItem)) then
-				d("[PreCastBuff]: Need to use a cordial.")
-				c_precastbuff.activity = "usecordial"
-				c_precastbuff.itemid = cordialItem.hqid
-				c_precastbuff.requirestop = false
-				c_precastbuff.requiredismount = false
-				return true
-			end					
-		end
 	end
 	
 	return false
@@ -480,16 +468,6 @@ function e_precastbuff:execute()
 		ml_global_information.Await(2000)
 		return
 	end
-	
-	if (activity == "usecordial") then
-		local cordial, action = GetItem(activityitemid)
-		if (cordial and action and cordial:IsReady(Player.id)) then
-			cordial:Cast(Player.id)
-			local castid = action.id
-			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
-			return
-		end
-	end
 end
 
 c_mooch2 = inheritsFrom( ml_cause )
@@ -500,10 +478,14 @@ function c_mooch2:evaluate()
 	end
 	
 	local useMooch2 = false
+	local MoochWithIntuition = true
+	local MoochWithoutIntuition = true
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
 		useMooch2 = IsNull(task.usemooch2,false)
+		MoochWithIntuition = IsNull(task.moochwithintuition,true)
+		MoochWithoutIntuition = IsNull(task.moochwithoutintuition,true)
 	elseif (table.valid(marker)) then
 		useMooch2 = IsNull(marker.usemooch2,false)
 	elseif gFishMarkerOrProfileIndex == 3 then
@@ -515,28 +497,31 @@ function c_mooch2:evaluate()
 	if (type(useMooch2) == "string" and GUI_Get(useMooch2) ~= nil) then
 		useMooch2 = GUI_Get(useMooch2)
 	end
+	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-			local mooch2 = SkillMgr.GetAction(268,1)
-			if (useMooch2 and mooch2 and mooch2:IsReady(Player.id)) then
-				local moochables2 = ""
-				if (table.valid(task)) then
-					if (task.moochables2) then
-						moochables2 = task.moochables2
+			if (useMooch2 and ((HasBuffs(Player,568) and MoochWithIntuition) or (MissingBuffs(Player,568) and MoochWithoutIntuition))) then
+				local mooch2 = SkillMgr.GetAction(268,1)
+				if (mooch2 and mooch2:IsReady(Player.id)) then
+					local moochables2 = ""
+					if (table.valid(task)) then
+						if (task.moochables2) then
+							moochables2 = task.moochables2
+						end
+					elseif (table.valid(marker)) then
+						moochables2 = IsNull(marker.moochables2,"")
 					end
-				elseif (table.valid(marker)) then
-					moochables2 = IsNull(marker.moochables2,"")
-				end
-				
-				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-				if (not lastCatch or moochables2 == "") then
-					return true
-				elseif (lastCatch and moochables2 ~= "") then
-					for moochables2 in StringSplit(moochables2,",") do
-						if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
-							return true
+					
+					local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+					if (not lastCatch or moochables2 == "") then
+						return true
+					elseif (lastCatch and moochables2 ~= "") then
+						for moochables2 in StringSplit(moochables2,",") do
+							if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
+								return true
+							end
 						end
 					end
 				end
@@ -564,10 +549,14 @@ function c_mooch:evaluate()
 	end
 	
 	local useMooch = false
+	local MoochWithIntuition = true
+	local MoochWithoutIntuition = true
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
 		useMooch = IsNull(task.usemooch,false)
+		MoochWithIntuition = IsNull(task.moochwithintuition,true)
+		MoochWithoutIntuition = IsNull(task.moochwithoutintuition,true)
 	elseif (table.valid(marker)) then
 		useMooch = IsNull(marker.usemooch,false)
 	elseif gFishMarkerOrProfileIndex == 3 then
@@ -579,29 +568,30 @@ function c_mooch:evaluate()
 	if (type(useMooch) == "string" and GUI_Get(useMooch) ~= nil) then
 		useMooch = GUI_Get(useMooch)
 	end
-	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-			local mooch = SkillMgr.GetAction(297,1)
-			if (useMooch and mooch and mooch:IsReady(Player.id)) then
-				local moochables = ""
-				if (table.valid(task)) then
-					if (task.moochables) then
-						moochables = task.moochables
+			if (useMooch and ((HasBuffs(Player,568) and MoochWithIntuition) or (MissingBuffs(Player,568) and MoochWithoutIntuition))) then
+				local mooch = SkillMgr.GetAction(297,1)
+				if (mooch and mooch:IsReady(Player.id)) then
+					local moochables = ""
+					if (table.valid(task)) then
+						if (task.moochables) then
+							moochables = task.moochables
+						end
+					elseif (table.valid(marker)) then
+						moochables = IsNull(marker.moochables,"")
 					end
-				elseif (table.valid(marker)) then
-					moochables = IsNull(marker.moochables,"")
-				end
-				
-				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-				if (not lastCatch or moochables == "") then
-					return true
-				elseif (lastCatch and moochables ~= "") then
-					for moochable in StringSplit(moochables,",") do
-						if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
-							return true
+					
+					local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+					if (not lastCatch or moochables == "") then
+						return true
+					elseif (lastCatch and moochables ~= "") then
+						for moochable in StringSplit(moochables,",") do
+							if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
+								return true
+							end
 						end
 					end
 				end
@@ -938,11 +928,14 @@ function c_chum:evaluate()
 		
 		local useChum = false
 		local useEyes = false
+		local UseChumWithIntuition = true
+		local UseChumWithoutIntuition = true
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
-			useChum = IsNull(task.usechum,false)
-			useEyes = IsNull(task.usefisheyes,false)
+			useChum = IsNull(task.usechum,false )
+			UseChumWithIntuition = IsNull(task.usechumwithintuition,true)
+			UseChumWithoutIntuition = IsNull(task.usechumwithoutintuition,true)
 		elseif (table.valid(marker)) then
 			useChum = IsNull(marker.usechum,false )
 			useEyes = IsNull(marker.usefisheyes,false)
@@ -959,12 +952,14 @@ function c_chum:evaluate()
 		end
 		
 		if (useChum) then
-			local chum = SkillMgr.GetAction(4104,1)
-			if (chum and chum:IsReady(Player.id)) then	
-				if (MissingBuffs(Player,"763") and ((useEyes and HasBuffs(Player,"762")) or not useEyes)) then
-					if (chum:Cast()) then
-						ml_global_information.Await(3000, function () return (HasBuffs(Player,"763")) end)
-						return true
+			if ((HasBuffs(Player,568) and UseChumWithIntuition) or (MissingBuffs(Player,568) and UseChumWithoutIntuition)) then
+				local chum = SkillMgr.GetAction(4104,1)
+				if (chum and chum:IsReady(Player.id)) then	
+					if (MissingBuffs(Player,"763") and ((useEyes and HasBuffs(Player,"762")) or not useEyes)) then
+						if (chum:Cast()) then
+							ml_global_information.Await(3000, function () return (HasBuffs(Player,"763")) end)
+							return true
+						end
 					end
 				end
 			end
@@ -988,20 +983,25 @@ function c_fisheyes:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
+		local UseEyesWithIntuition = true
+		local UseEyesWithoutIntuition = true
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			useBuff = IsNull(task.usefisheyes,false)
+			UseEyesWithIntuition = IsNull(task.useeyeswithintuition,true)
+			UseEyesWithoutIntuition = IsNull(task.useeyeswithoutintuition,true)
 		elseif (table.valid(marker)) then
 			useBuff = IsNull(marker.usefisheyes,false)
 		elseif gFishMarkerOrProfileIndex == 3 then
 			useBuff = gQuickstartFishEyes
 		end
-
+		
 		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
 			useBuff = GUI_Get(useBuff)
 		end
-		if (useBuff) then
+		
+		if (useBuff and ((HasBuffs(Player,568) and UseEyesWithIntuition) or (MissingBuffs(Player,568) and UseEyesWithoutIntuition))) then
 			local fisheyes = SkillMgr.GetAction(4105,1)
 			if (fisheyes and fisheyes:IsReady(Player.id)) then
 				if (MissingBuffs(Player,"762")) then
@@ -1031,10 +1031,14 @@ function c_snagging:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
+		local SnagWithIntuition = true
+		local SnagWithoutIntuition = true
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
 		if (table.valid(task)) then
 			useBuff = IsNull(task.usesnagging,false)
+			SnagWithIntuition = IsNull(task.snagwithintuition,true)
+			SnagWithoutIntuition = IsNull(task.snagwithoutintuition,true)
 		elseif (table.valid(marker)) then
 			useBuff = IsNull(marker.usesnagging,false)
 		elseif gFishMarkerOrProfileIndex == 3 then
@@ -1045,9 +1049,9 @@ function c_snagging:evaluate()
 		end
 		
 
-		local snagging = SkillMgr.GetAction(4100,1)
-		if (snagging and snagging:IsReady(Player.id)) then
-			if (useBuff) then
+		if (useBuff and ((HasBuffs(Player,568) and SnagWithIntuition) or (MissingBuffs(Player,568) and SnagWithoutIntuition))) then
+			local snagging = SkillMgr.GetAction(4100,1)
+			if (snagging and snagging:IsReady(Player.id)) then
 				if (MissingBuffs(Player,"761")) then
 					if (snagging:Cast()) then
 						ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
@@ -1128,6 +1132,8 @@ function c_patience:evaluate()
 		
 		local usePatience = false
 		local usePatience2 = false
+		local PatienceWithIntuition = true
+		local PatienceWithoutIntuition = true
 		
 		local task = ffxiv_fish.currentTask
 		local marker = ml_marker_mgr.currentMarker
@@ -1143,6 +1149,8 @@ function c_patience:evaluate()
 			else
 				usePatience = IsNull(task.usepatience,false)
 				usePatience2 = IsNull(task.usepatience2,false)
+				PatienceWithIntuition = IsNull(task.patiencewithintuition,true)
+				PatienceWithoutIntuition = IsNull(task.patiencewithoutintuition,true)
 			end
 		elseif (table.valid(marker)) then
 			usePatience = IsNull(marker.usepatience,false)
@@ -1159,24 +1167,26 @@ function c_patience:evaluate()
 			usePatience2 = GUI_Get(usePatience2)
 		end
 		
-		if (usePatience2) then
-			local patience2 = SkillMgr.GetAction(4106,1)
-			if (patience2 and patience2:IsReady(Player.id)) then	
-				if (patience2:Cast()) then
-					d("used patience")
-					ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+		if ((HasBuffs(Player,568) and PatienceWithIntuition) or (MissingBuffs(Player,568) and PatienceWithoutIntuition)) then
+			
+			if (usePatience2) then
+				local patience2 = SkillMgr.GetAction(4106,1)
+				if (patience2 and patience2:IsReady(Player.id)) then	
+					if (patience2:Cast()) then
+						ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+					end
+					return true
 				end
-				return true
 			end
-		end
-		
-		if (usePatience) then
-			local patience = SkillMgr.GetAction(4102,1)
-			if (patience and patience:IsReady(Player.id)) then	
-				if (patience:Cast()) then
-					ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+			
+			if (usePatience) then
+				local patience = SkillMgr.GetAction(4102,1)
+				if (patience and patience:IsReady(Player.id)) then	
+					if (patience:Cast()) then
+						ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
+					end
+					return true
 				end
-				return true
 			end
 		end
 	end
@@ -1316,6 +1326,8 @@ function c_buybait:evaluate()
 				if (_G[baitVar] ~= nil) then
 					baitChoice = _G[baitVar]
 				end
+			elseif (HasBuffs(Player,568) and IsNull(task.intuitionbaitname,"") ~= "") then
+				baitChoice = task.intuitionbaitname
 			else
 				baitChoice = IsNull(task.baitname,"")
 			end
@@ -1325,7 +1337,7 @@ function c_buybait:evaluate()
 		end
 		
 		local foundSuitable = false
-		local lowbait = false
+		local lowstartingbait = false
 		local baitIDs = {}
 		if (baitChoice ~= "") then
 			for bait in StringSplit(baitChoice,",") do
@@ -1343,8 +1355,8 @@ function c_buybait:evaluate()
 						local item = GetItem(thisID,{0,1,2,3})
 						if (item) then
 							foundSuitable = true
-							if (fs == 0 and ItemCount(thisID) < 10) then
-								lowbait = true
+							if (fs == 0 and ItemCount(thisID) < 5) then
+								lowstartingbait = true
 							end
 							break
 						end
@@ -1353,7 +1365,7 @@ function c_buybait:evaluate()
 			end
 		end
 		
-		if (not foundSuitable) or lowbait then
+		if (not foundSuitable) or lowstartingbait then
 			fd("Need to go buy something.",2)
 			
 			if (table.valid(rebuy)) then
@@ -1433,6 +1445,8 @@ function c_setbait:evaluate()
 				if (_G[baitVar] ~= nil) then
 					baitChoice = _G[baitVar]
 				end
+			elseif (HasBuffs(Player,568) and IsNull(task.intuitionbaitname,"") ~= "") then
+				baitChoice = task.intuitionbaitname
 			else
 				baitChoice = IsNull(task.baitname,"")
 			end
@@ -1506,6 +1520,8 @@ function e_setbait:execute()
 			if (_G[baitVar] ~= nil) then
 				baitChoice = _G[baitVar]
 			end
+		elseif (HasBuffs(Player,568) and IsNull(task.intuitionbaitname,"") ~= "") then
+			baitChoice = task.intuitionbaitname
 		else
 			baitChoice = IsNull(task.baitname,"")
 		end
@@ -1742,6 +1758,14 @@ function c_fishnexttask:evaluate()
 					if (not HasBaits(baitChoice)) then
 						invalid = true
 					end
+					
+					local IntuitionBaitName = IsNull(currentTask.intuitionbaitname,"")
+					if IntuitionBaitName ~= "" then
+						if (not HasBaits(IntuitionBaitName)) then
+						d("Missing bait for for intuition stage of task")
+							invalid = true
+						end
+					end
 				end
 			end
 			
@@ -1903,8 +1927,16 @@ function c_fishnexttask:evaluate()
 								end
 								
 								if (not HasBaits(baitChoice)) then
-									fd("no valid bait",1)
+									fd("Task ["..tostring(i).."] is missing bait",1)
 									valid = false
+								end
+								
+								local IntuitionBaitName = IsNull(currentTask.intuitionbaitname,"")
+								if IntuitionBaitName ~= "" then
+									if (not HasBaits(IntuitionBaitName)) then
+									d("Task ["..tostring(i).."] is missing bait for intuition stage of fishing")
+										valid = false
+									end
 								end
 							end
 						end
@@ -2048,9 +2080,12 @@ function c_fishnexttask:evaluate()
 					local lowestIndex = 9999
 					local best = nil
 					for i,data in pairsByKeys(highPriority) do
+						if ((not best or (best and i < lowestIndex)) and (data.prioritize)) then
+							d("[High] Setting best task to ["..tostring(i).."] due to prioritize flag")
+							best = data
+							lowestIndex = i
 						
-						
-						if ((not best or (best and i < lowestIndex)) and (Player.localmapid == data.mapid)) then
+						elseif ((not best or (best and i < lowestIndex)) and (Player.localmapid == data.mapid)) then
 							d("[High] Setting best task to ["..tostring(i).."] due to same map")
 							best = data
 							lowestIndex = i
@@ -2405,6 +2440,8 @@ end
 function ffxiv_fish.NeedsPatienceCheck()
 	local usePatience = false
 	local usePatience2 = false
+		local PatienceWithIntuition = true
+		local PatienceWithoutIntuition = true
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -2420,6 +2457,8 @@ function ffxiv_fish.NeedsPatienceCheck()
 		else
 			usePatience = IsNull(task.usepatience,false)
 			usePatience2 = IsNull(task.usepatience2,false)
+			PatienceWithIntuition = IsNull(task.moochwithintuition,true)
+			PatienceWithoutIntuition = IsNull(task.moochwithoutintuition,true)
 		end
 	elseif (table.valid(marker)) then
 		usePatience = IsNull(marker.usepatience,false)
@@ -2432,8 +2471,13 @@ function ffxiv_fish.NeedsPatienceCheck()
 	if (type(usePatience2) == "string" and GUI_Get(usePatience2) ~= nil) then
 		usePatience2 = GUI_Get(usePatience2)
 	end
-	
-	return (usePatience or usePatience2)
+	if (usePatience or usePatience2) then
+		if ((HasBuffs(Player,568) and MoochWithIntuition) or (MissingBuffs(Player,568) and MoochWithoutIntuition)) then
+			return true
+		end
+	end
+			
+	return false
 end
 
 function ffxiv_fish.NeedsStealth()
@@ -2636,6 +2680,13 @@ function c_syncadjust:evaluate()
 	if (Player.ismounted) then
 		return false
 	end
+	
+	local cast = SkillMgr.GetAction(289,1)
+	if (cast and cast:IsReady(Player.id)) then
+		return false
+	end
+	
+	
 	
 	local fs = tonumber(Player:GetFishingState())
 	if( fs == 0 and ml_task_hub:CurrentTask().requiresAdjustment ) then -- FISHSTATE_BITE
