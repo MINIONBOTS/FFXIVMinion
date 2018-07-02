@@ -237,7 +237,6 @@ e_usecordials = inheritsFrom( ml_effect )
 c_usecordials.activity = ""
 c_usecordials.item = nil
 c_usecordials.itemid = 0
-
 function c_usecordials:evaluate()
 	if (MIsLoading() or MIsCasting() or IsFlying()) then
 		return false
@@ -313,6 +312,7 @@ function e_usecordials:execute()
 		end
 	end
 end
+
 c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
 c_precastbuff.activity = ""
@@ -495,10 +495,6 @@ end
 c_mooch2 = inheritsFrom( ml_cause )
 e_mooch2 = inheritsFrom( ml_effect )
 function c_mooch2:evaluate()
-	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
-		return false
-	end
-	
 	local useMooch2 = false
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
@@ -515,54 +511,47 @@ function c_mooch2:evaluate()
 	if (type(useMooch2) == "string" and GUI_Get(useMooch2) ~= nil) then
 		useMooch2 = GUI_Get(useMooch2)
 	end
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-			local mooch2 = SkillMgr.GetAction(268,1)
-			if (useMooch2 and mooch2 and mooch2:IsReady(Player.id)) then
-				local moochables2 = ""
-				if (table.valid(task)) then
-					if (task.moochables2) then
-						moochables2 = task.moochables2
-					end
-				elseif (table.valid(marker)) then
-					moochables2 = IsNull(marker.moochables2,"")
+	local fs = Player:GetFishingState()
+	if (fs == 0 or fs == 4) then
+		local mooch2 = SkillMgr.GetAction(268,1)
+		if (useMooch2 and mooch2 and mooch2:IsReady(Player.id)) then
+			local moochables2 = ""
+			if (table.valid(task)) then
+				if (task.moochables2) then
+					moochables2 = task.moochables2
 				end
-				
-				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-				if (not lastCatch or moochables2 == "") then
-					return true
-				elseif (lastCatch and moochables2 ~= "") then
-					for moochables2 in StringSplit(moochables2,",") do
-						if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
-							return true
-						end
+			elseif (table.valid(marker)) then
+				moochables2 = IsNull(marker.moochables2,"")
+			end
+			
+			local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+			if (not lastCatch or moochables2 == "") then
+				return true
+			elseif (lastCatch and moochables2 ~= "") then
+				for moochables2 in StringSplit(moochables2,",") do
+					if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
+						return true
 					end
 				end
 			end
-        end
-    end
+		end
+	end
     return false
 end
 function e_mooch2:execute()
     local mooch2 = SkillMgr.GetAction(268,1)
     if (mooch2 and mooch2:IsReady(Player.id)) then
         if (mooch2:Cast()) then
-		d("Mooch2 Cast",1)
+			fd("Mooch2 Cast",1)
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
 end
 
 c_mooch = inheritsFrom( ml_cause )
 e_mooch = inheritsFrom( ml_effect )
 function c_mooch:evaluate()
-	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
-		return false
-	end
-	
 	local useMooch = false
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
@@ -580,149 +569,143 @@ function c_mooch:evaluate()
 		useMooch = GUI_Get(useMooch)
 	end
 	
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-			local mooch = SkillMgr.GetAction(297,1)
-			if (useMooch and mooch and mooch:IsReady(Player.id)) then
-				local moochables = ""
-				if (table.valid(task)) then
-					if (task.moochables) then
-						moochables = task.moochables
-					end
-				elseif (table.valid(marker)) then
-					moochables = IsNull(marker.moochables,"")
+	local fs = Player:GetFishingState()
+	if (fs == 0 or fs == 4) then
+		local mooch = SkillMgr.GetAction(297,1)
+		if (useMooch and mooch and mooch:IsReady(Player.id)) then
+			local moochables = ""
+			if (table.valid(task)) then
+				if (task.moochables) then
+					moochables = task.moochables
 				end
-				
-				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-				if (not lastCatch or moochables == "") then
-					return true
-				elseif (lastCatch and moochables ~= "") then
-					for moochable in StringSplit(moochables,",") do
-						if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
-							return true
-						end
+			elseif (table.valid(marker)) then
+				moochables = IsNull(marker.moochables,"")
+			end
+			
+			local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+			if (not lastCatch or moochables == "") then
+				return true
+			elseif (lastCatch and moochables ~= "") then
+				for moochable in StringSplit(moochables,",") do
+					if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
+						return true
 					end
 				end
 			end
-        end
-    end
+		end
+	end
     return false
 end
 function e_mooch:execute()
     local mooch = SkillMgr.GetAction(297,1)
     if (mooch and mooch:IsReady(Player.id)) then
         if (mooch:Cast()) then
-		fd("Mooch Cast",1)
+			fd("Mooch Cast",1)
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
 end
 
 c_release = inheritsFrom( ml_cause )
 e_release = inheritsFrom( ml_effect )
 function c_release:evaluate()
-	if (Now() < ml_task_hub:CurrentTask().networkLatency or not ffxiv_fish.HasDirective()) then
+	if (not ffxiv_fish.HasDirective()) then
 		return false
 	end
 	
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-			local release = SkillMgr.GetAction(300,1)
-			if (release and release:IsReady(Player.id)) then
-				
-				local whitelist = ""
-				local whitelistHQ = ""
-				local blacklist = ""
-				local blacklistHQ = ""
-				
-				local task = ffxiv_fish.currentTask
-				local marker = ml_marker_mgr.currentMarker
-				if (table.valid(task)) then
-					whitelist = IsNull(task.whitelist,"")
-					whitelistHQ = IsNull(task.whitelisthq,"")
-					blacklist = IsNull(task.blacklist,"")
-					blacklistHQ = IsNull(task.blacklisthq,"")
-				elseif (table.valid(marker)) then
-					whitelist = IsNull(marker.whitelist,"")
-					whitelistHQ = IsNull(marker.whitelistHQ,"")
-					blacklist = IsNull(marker.blacklist,"")
-					blacklistHQ = IsNull(marker.blacklistHQ,"")
-				end
+	local fs = Player:GetFishingState()
+	if (fs == 0 or fs == 4) then
+		local release = SkillMgr.GetAction(300,1)
+		if (release and release:IsReady(Player.id)) then
+			
+			local whitelist = ""
+			local whitelistHQ = ""
+			local blacklist = ""
+			local blacklistHQ = ""
+			
+			local task = ffxiv_fish.currentTask
+			local marker = ml_marker_mgr.currentMarker
+			if (table.valid(task)) then
+				whitelist = IsNull(task.whitelist,"")
+				whitelistHQ = IsNull(task.whitelisthq,"")
+				blacklist = IsNull(task.blacklist,"")
+				blacklistHQ = IsNull(task.blacklisthq,"")
+			elseif (table.valid(marker)) then
+				whitelist = IsNull(marker.whitelist,"")
+				whitelistHQ = IsNull(marker.whitelistHQ,"")
+				blacklist = IsNull(marker.blacklist,"")
+				blacklistHQ = IsNull(marker.blacklistHQ,"")
+			end
 					
-				local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-				if (lastCatch) then
-					fd("[Release]: Last Catch :["..tostring(lastCatch).."], HQ: ["..tostring(hq).."].", 3)
-					if (hq) then
-						if (whitelistHQ and whitelistHQ ~= "") then
-							fd("[Release]: HQ Whitelist :["..tostring(whitelistHQ).."].",3)
-							local release = true
-							for mustkeep in StringSplit(whitelistHQ,",") do
-								local mustkeepid = 0
-								if (tonumber(mustkeep) ~= nil) then
-									mustkeepid = tonumber(mustkeep)
-								else
-									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
-								end
-								
-								if (mustkeepid == lastCatch) then
-									release = false
-								end
+			local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+			if (lastCatch) then
+				fd("[Release]: Last Catch :["..tostring(lastCatch).."], HQ: ["..tostring(hq).."].", 3)
+				if (hq) then
+					if (whitelistHQ and whitelistHQ ~= "") then
+						fd("[Release]: HQ Whitelist :["..tostring(whitelistHQ).."].",3)
+						local release = true
+						for mustkeep in StringSplit(whitelistHQ,",") do
+							local mustkeepid = 0
+							if (tonumber(mustkeep) ~= nil) then
+								mustkeepid = tonumber(mustkeep)
+							else
+								mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
 							end
-							if (release) then
-								return true
-							end
-						elseif (blacklistHQ and blacklistHQ ~= "") then
-							fd("[Release]: HQ Blacklist :["..tostring(blacklistHQ).."].",3)
-							for throwaway in StringSplit(blacklistHQ,",") do
-								local throwawayid = 0
-								if (tonumber(throwaway) ~= nil) then
-									throwawayid = tonumber(throwaway)
-								else
-									throwawayid = AceLib.API.Items.GetIDByName(throwaway)
-								end
-								
-								if (throwawayid == lastCatch) then
-									return true
-								end
+							
+							if (mustkeepid == lastCatch) then
+								release = false
 							end
 						end
-					else
-						if (whitelist and whitelist ~= "") then
-							fd("[Release]: NQ Whitelist :["..tostring(whitelist).."].",3)
-							local release = true
-							for mustkeep in StringSplit(whitelist,",") do
-								local mustkeepid = 0
-								if (tonumber(mustkeep) ~= nil) then
-									mustkeepid = tonumber(mustkeep)
-								else
-									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
-								end
-								
-								if (mustkeepid == lastCatch) then
-									release = false
-								end
+						if (release) then
+							return true
+						end
+					elseif (blacklistHQ and blacklistHQ ~= "") then
+						fd("[Release]: HQ Blacklist :["..tostring(blacklistHQ).."].",3)
+						for throwaway in StringSplit(blacklistHQ,",") do
+							local throwawayid = 0
+							if (tonumber(throwaway) ~= nil) then
+								throwawayid = tonumber(throwaway)
+							else
+								throwawayid = AceLib.API.Items.GetIDByName(throwaway)
 							end
-							if (release) then
+							
+							if (throwawayid == lastCatch) then
 								return true
 							end
-						elseif (blacklist and blacklist ~= "") then
-							fd("[Release]: NQ Blacklist :["..tostring(blacklist).."].",3)
-							for throwaway in StringSplit(blacklist,",") do
-								local throwawayid = 0
-								if (tonumber(throwaway) ~= nil) then
-									throwawayid = tonumber(throwaway)
-								else
-									throwawayid = AceLib.API.Items.GetIDByName(throwaway)
-								end
-								
-								if (throwawayid == lastCatch) then
-									return true
-								end
+						end
+					end
+				else
+					if (whitelist and whitelist ~= "") then
+						fd("[Release]: NQ Whitelist :["..tostring(whitelist).."].",3)
+						local release = true
+						for mustkeep in StringSplit(whitelist,",") do
+							local mustkeepid = 0
+							if (tonumber(mustkeep) ~= nil) then
+								mustkeepid = tonumber(mustkeep)
+							else
+								mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
+							end
+							
+							if (mustkeepid == lastCatch) then
+								release = false
+							end
+						end
+						if (release) then
+							return true
+						end
+					elseif (blacklist and blacklist ~= "") then
+						fd("[Release]: NQ Blacklist :["..tostring(blacklist).."].",3)
+						for throwaway in StringSplit(blacklist,",") do
+							local throwawayid = 0
+							if (tonumber(throwaway) ~= nil) then
+								throwawayid = tonumber(throwaway)
+							else
+								throwawayid = AceLib.API.Items.GetIDByName(throwaway)
+							end
+							
+							if (throwawayid == lastCatch) then
+								return true
 							end
 						end
 					end
@@ -738,32 +721,25 @@ function e_release:execute()
         if (release:Cast()) then
 			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+		ml_global_information.Await(1500)
     end
 end
 
 c_cast = inheritsFrom( ml_cause )
 e_cast = inheritsFrom( ml_effect )
 function c_cast:evaluate()
-	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
-		return false
-	end
-	
 	local currentBait = IsNull(Player:GetBait(),0)
 	if (currentBait == 0) then
 		return false
 	end
 	
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-			local cast = SkillMgr.GetAction(289,1)
-			if (cast and cast:IsReady(Player.id)) then
-				return true
-			end
-        end
-    end
+	local fs = Player:GetFishingState()
+	if (fs == 0 or fs == 4) then
+		local cast = SkillMgr.GetAction(289,1)
+		if (cast and cast:IsReady(Player.id)) then
+			return true
+		end
+	end
     return false
 end
 function e_cast:execute()
@@ -779,7 +755,7 @@ function e_cast:execute()
 		end
 		ffxiv_fish.attemptedCasts = ffxiv_fish.attemptedCasts + 1
 		d("[Cast]: Attempt #"..tostring(ffxiv_fish.attemptedCasts))
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
 	end
 end
 
@@ -823,13 +799,10 @@ function c_finishcast:evaluate()
 		needsStop = true
 	end
 	
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (ml_global_information.Now > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs ~= 0 and c_returntomarker:evaluate()) then
-            return true
-        end
-    end
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0 and c_returntomarker:evaluate()) then
+		return true
+	end
     return false
 end
 function e_finishcast:execute()
@@ -933,40 +906,36 @@ function c_chum:evaluate()
 		return false
 	end
 
-	local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-		
-		local useChum = false
-		local useEyes = false
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			useChum = IsNull(task.usechum,false)
-			useEyes = IsNull(task.usefisheyes,false)
-		elseif (table.valid(marker)) then
-			useChum = IsNull(marker.usechum,false )
-			useEyes = IsNull(marker.usefisheyes,false)
-		elseif gFishMarkerOrProfileIndex == 3 then
-			useChum = gQuickstartChum
-			useEyes = gQuickstartFishEyes
-		end
-		
-		if (type(useChum) == "string" and GUI_Get(useChum) ~= nil) then
-			useChum = GUI_Get(useChum)
-		end
-		if (type(useEyes) == "string" and GUI_Get(useEyes) ~= nil) then
-			useEyes = GUI_Get(useEyes)
-		end
-		
-		if (useChum) then
-			local chum = SkillMgr.GetAction(4104,1)
-			if (chum and chum:IsReady(Player.id)) then	
-				if (MissingBuffs(Player,"763") and ((useEyes and HasBuffs(Player,"762")) or not useEyes)) then
-					if (chum:Cast()) then
-						ml_global_information.Await(3000, function () return (HasBuffs(Player,"763")) end)
-						return true
-					end
+	local useChum = false
+	local useEyes = false
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		useChum = IsNull(task.usechum,false)
+		useEyes = IsNull(task.usefisheyes,false)
+	elseif (table.valid(marker)) then
+		useChum = IsNull(marker.usechum,false )
+		useEyes = IsNull(marker.usefisheyes,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		useChum = gQuickstartChum
+		useEyes = gQuickstartFishEyes
+	end
+	
+	if (type(useChum) == "string" and GUI_Get(useChum) ~= nil) then
+		useChum = GUI_Get(useChum)
+	end
+	if (type(useEyes) == "string" and GUI_Get(useEyes) ~= nil) then
+		useEyes = GUI_Get(useEyes)
+	end
+	
+	if (useChum) then
+		local chum = SkillMgr.GetAction(4104,1)
+		if (chum and chum:IsReady(Player.id)) then	
+			if (MissingBuffs(Player,"763") and ((useEyes and HasBuffs(Player,"762")) or not useEyes)) then
+				if (chum:Cast()) then
+					ml_global_information.Await(3000, function () return (HasBuffs(Player,"763")) end)
 				end
+				return true
 			end
 		end
 	end
@@ -974,7 +943,7 @@ function c_chum:evaluate()
     return false
 end
 function e_chum:execute()
-		fd("Chum Cast",1)
+	fd("Chum Cast",1)
 end
 
 c_fisheyes = inheritsFrom( ml_cause )
@@ -984,32 +953,28 @@ function c_fisheyes:evaluate()
 		return false
 	end
 
-	local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-		
-		local useBuff = false
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			useBuff = IsNull(task.usefisheyes,false)
-		elseif (table.valid(marker)) then
-			useBuff = IsNull(marker.usefisheyes,false)
-		elseif gFishMarkerOrProfileIndex == 3 then
-			useBuff = gQuickstartFishEyes
-		end
+	local useBuff = false
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		useBuff = IsNull(task.usefisheyes,false)
+	elseif (table.valid(marker)) then
+		useBuff = IsNull(marker.usefisheyes,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		useBuff = gQuickstartFishEyes
+	end
 
-		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
-			useBuff = GUI_Get(useBuff)
-		end
-		if (useBuff) then
-			local fisheyes = SkillMgr.GetAction(4105,1)
-			if (fisheyes and fisheyes:IsReady(Player.id)) then
-				if (MissingBuffs(Player,"762")) then
-					if (fisheyes:Cast()) then
-						ml_global_information.Await(3000, function () return (HasBuffs(Player,"762")) end)
-					end
-					return true
+	if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
+		useBuff = GUI_Get(useBuff)
+	end
+	if (useBuff) then
+		local fisheyes = SkillMgr.GetAction(4105,1)
+		if (fisheyes and fisheyes:IsReady(Player.id)) then
+			if (MissingBuffs(Player,"762")) then
+				if (fisheyes:Cast()) then
+					ml_global_information.Await(3000, function () return (HasBuffs(Player,"762")) end)
 				end
+				return true
 			end
 		end
 	end
@@ -1017,7 +982,7 @@ function c_fisheyes:evaluate()
     return false
 end
 function e_fisheyes:execute()
-		fd("Fisheyes Cast",1)
+	fd("Fisheyes Cast",1)
 end
 
 c_snagging = inheritsFrom( ml_cause )
@@ -1027,40 +992,36 @@ function c_snagging:evaluate()
 		return false
 	end
 	
-	local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-		
-		local useBuff = false
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			useBuff = IsNull(task.usesnagging,false)
-		elseif (table.valid(marker)) then
-			useBuff = IsNull(marker.usesnagging,false)
-		elseif gFishMarkerOrProfileIndex == 3 then
-			useBuff = gQuickstartSnagging
-		end
-		if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
-			useBuff = GUI_Get(useBuff)
-		end
-		
+	local useBuff = false
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		useBuff = IsNull(task.usesnagging,false)
+	elseif (table.valid(marker)) then
+		useBuff = IsNull(marker.usesnagging,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		useBuff = gQuickstartSnagging
+	end
+	if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
+		useBuff = GUI_Get(useBuff)
+	end
+	
 
-		local snagging = SkillMgr.GetAction(4100,1)
-		if (snagging and snagging:IsReady(Player.id)) then
-			if (useBuff) then
-				if (MissingBuffs(Player,"761")) then
-					if (snagging:Cast()) then
-						ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
-					end
-					return true
+	local snagging = SkillMgr.GetAction(4100,1)
+	if (snagging and snagging:IsReady(Player.id)) then
+		if (useBuff) then
+			if (MissingBuffs(Player,"761")) then
+				if (snagging:Cast()) then
+					ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
 				end
-			else
-				if (HasBuffs(Player,"761")) then
-					if (snagging:Cast()) then
-						ml_global_information.Await(3000, function () return (MissingBuffs(Player,"761")) end)
-					end
-					return true
+				return true
+			end
+		else
+			if (HasBuffs(Player,"761")) then
+				if (snagging:Cast()) then
+					ml_global_information.Await(3000, function () return (MissingBuffs(Player,"761")) end)
 				end
+				return true
 			end
 		end
 	end
@@ -1068,40 +1029,36 @@ function c_snagging:evaluate()
     return false
 end
 function e_snagging:execute()
-		fd("Snagging Cast",1)
+	fd("Snagging Cast",1)
 end
 
 c_usecollect = inheritsFrom( ml_cause )
 e_usecollect = inheritsFrom( ml_effect )
 function c_usecollect:evaluate()
-	local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
+	local useBuff = false
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
 		
-		local useBuff = false
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			
-			local collect = SkillMgr.GetAction(4101,1)
-			if (collect and collect:IsReady(Player.id)) then
-				useBuff = IsNull(task.usecollect,false)
-				if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
-					useBuff = GUI_Get(useBuff)
+		local collect = SkillMgr.GetAction(4101,1)
+		if (collect and collect:IsReady(Player.id)) then
+			useBuff = IsNull(task.usecollect,false)
+			if (type(useBuff) == "string" and GUI_Get(useBuff) ~= nil) then
+				useBuff = GUI_Get(useBuff)
+			end
+			if (useBuff) then
+				if (MissingBuffs(Player,"805")) then
+					if (collect:Cast(Player.id)) then
+						ml_global_information.Await(3000, function () return (HasBuffs(Player,"805")) end)
+					end						
+					return true
 				end
-				if (useBuff) then
-					if (MissingBuffs(Player,"805")) then
-						if (collect:Cast(Player.id)) then
-							ml_global_information.Await(3000, function () return (HasBuffs(Player,"805")) end)
-						end						
-						return true
-					end
-				else
-					if (HasBuffs(Player,"805")) then
-						if (collect:Cast(Player.id)) then
-							ml_global_information.Await(3000, function () return (MissingBuffs(Player,"805")) end)
-						end						
-						return true
-					end
+			else
+				if (HasBuffs(Player,"805")) then
+					if (collect:Cast(Player.id)) then
+						ml_global_information.Await(3000, function () return (MissingBuffs(Player,"805")) end)
+					end						
+					return true
 				end
 			end
 		end
@@ -1123,68 +1080,64 @@ function c_patience:evaluate()
 		return false
 	end
 	
-	local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (Now() > castTimer) then
-		
-		local usePatience = false
-		local usePatience2 = false
-		
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			local patienceVar = IsNull(task.patiencevar,"")
-			if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
-				patienceVar = _G[patienceVar]
-				if (patienceVar == "Patience") then
-					usePatience = true
-				elseif (patienceVar == "Patience II") then
-					usePatience2 = true
-				end
-			else
-				usePatience = IsNull(task.usepatience,false)
-				usePatience2 = IsNull(task.usepatience2,false)
+	local usePatience = false
+	local usePatience2 = false
+	
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		local patienceVar = IsNull(task.patiencevar,"")
+		if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
+			patienceVar = _G[patienceVar]
+			if (patienceVar == "Patience") then
+				usePatience = true
+			elseif (patienceVar == "Patience II") then
+				usePatience2 = true
 			end
-		elseif (table.valid(marker)) then
-			usePatience = IsNull(marker.usepatience,false)
-			usePatience2 = IsNull(marker.usepatience2,false)
-		elseif gFishMarkerOrProfileIndex == 3 then
-			usePatience = gQuickstartPatience
-			usePatience2 = gQuickstartPatience2
+		else
+			usePatience = IsNull(task.usepatience,false)
+			usePatience2 = IsNull(task.usepatience2,false)
 		end
-		
-		if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
-			usePatience = GUI_Get(usePatience)
-		end
-		if (type(usePatience2) == "string" and GUI_Get(usePatience2) ~= nil) then
-			usePatience2 = GUI_Get(usePatience2)
-		end
-		
-		if (usePatience2) then
-			local patience2 = SkillMgr.GetAction(4106,1)
-			if (patience2 and patience2:IsReady(Player.id)) then	
-				if (patience2:Cast()) then
-					d("used patience")
-					ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
-				end
-				return true
+	elseif (table.valid(marker)) then
+		usePatience = IsNull(marker.usepatience,false)
+		usePatience2 = IsNull(marker.usepatience2,false)
+	elseif gFishMarkerOrProfileIndex == 3 then
+		usePatience = gQuickstartPatience
+		usePatience2 = gQuickstartPatience2
+	end
+	
+	if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
+		usePatience = GUI_Get(usePatience)
+	end
+	if (type(usePatience2) == "string" and GUI_Get(usePatience2) ~= nil) then
+		usePatience2 = GUI_Get(usePatience2)
+	end
+	
+	if (usePatience2) then
+		local patience2 = SkillMgr.GetAction(4106,1)
+		if (patience2 and patience2:IsReady(Player.id)) then	
+			if (patience2:Cast()) then
+				d("used patience")
+				ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
 			end
+			return true
 		end
-		
-		if (usePatience) then
-			local patience = SkillMgr.GetAction(4102,1)
-			if (patience and patience:IsReady(Player.id)) then	
-				if (patience:Cast()) then
-					ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
-				end
-				return true
+	end
+	
+	if (usePatience) then
+		local patience = SkillMgr.GetAction(4102,1)
+		if (patience and patience:IsReady(Player.id)) then	
+			if (patience:Cast()) then
+				ml_global_information.Await(3000, function () return HasBuff(Player,764) end)
 			end
+			return true
 		end
 	end
 	
     return false
 end
 function e_patience:execute() 
-		fd("Patience Cast",1)
+	fd("Patience Cast",1)
 end
 
 c_collectibleaddonfish = inheritsFrom( ml_cause )
@@ -1353,7 +1306,8 @@ function c_buybait:evaluate()
 			end
 		end
 		
-		if (not foundSuitable) or lowbait then
+		if (not foundSuitable) then
+		--if (not foundSuitable) or lowbait then -- can't use, will trigger even on expensive baits, needs separation
 			fd("Need to go buy something.",2)
 			
 			if (table.valid(rebuy)) then
@@ -2785,8 +2739,8 @@ function ffxiv_task_fish:Init()
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 45 )
     self:add(ke_precast, self.process_elements)
 	
-	local ke_usecordial = ml_element:create( "UseCordial", c_usecordials, e_usecordials, 45 )
-    self:add(ke_usecordial, self.process_elements)
+	--local ke_usecordial = ml_element:create( "UseCordial", c_usecordials, e_usecordials, 45 )
+	--self:add(ke_usecordial, self.process_elements)
 	
 	local ke_mooch2 = ml_element:create( "Mooch2", c_mooch2, e_mooch2, 42 )
     self:add(ke_mooch2, self.process_elements)
