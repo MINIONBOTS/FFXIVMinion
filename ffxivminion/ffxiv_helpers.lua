@@ -3159,14 +3159,21 @@ end
 function Dismount()
 	if (Player.ismounted) then
 		local dismount = ActionList:Get(13,Player.mountid)
+		local dismountMain = ActionList:Get(5,23)
 		if (dismount and dismount:IsReady(Player.id)) then
 			d("[Dismount]: Used primary method.")
 			dismount:Cast(Player.id)
 			if (IsFlying()) then
 				Descend()
 			end
-		else
+		elseif (dismountMain and dismountMain:IsReady(Player.id)) then
 			d("[Dismount]: Used secondary method.")
+			dismountMain:Cast(Player.id)
+			if (IsFlying()) then
+				Descend()
+			end
+		else
+			d("[Dismount]: Used backup method.")
 			SendTextCommand("/mount")
 			if (IsFlying()) then
 				Descend()
@@ -6637,6 +6644,7 @@ function Descend(incnode)
 		
 		_dismount = function ()
 			local dismount = ActionList:Get(13,Player.mountid)
+			local dismountMain = ActionList:Get(5,23)
 			if (dismount and dismount:IsReady(Player.id)) then
 				local startHeight = Player.pos.y
 				
@@ -6647,6 +6655,18 @@ function Descend(incnode)
 					_trackDown
 				)
 				ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+				
+			elseif (dismountMain and dismountMain:IsReady(Player.id)) then
+				local startHeight = Player.pos.y
+				
+				d("[Descend]: Start descend, used secondary cast.")
+				dismountMain:Cast(Player.id)
+				ffnav.AwaitSuccess(100, 250, 
+					function () return Player.pos.y < startHeight end, 
+					_trackDown
+				)
+				ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+				
 			end
 		end
 		

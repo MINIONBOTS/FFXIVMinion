@@ -1712,121 +1712,14 @@ function ml_navigation.Navigate(event, ticks )
 							end	
 					
 							if (canLand and not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
-							
-							-- Check that the next node is not at nearly the exact same level to allow gliding on top of water instead of accidental dives.
-							-- May need more adjustments.
-								--if not (nextnextnode and not nextnextnode.is_omc and not nextnextnode.is_cube and (nextnextnode.ground or nextnextnode.water) and math.abs(nextnextnode.y - nextnode.y) < .1 and GetDiveHeight() <= 0 and CanDiveInZone()) then
 								
-									--[=[
-									d("[Navigation]: Next node is not a flying node, dive a bit.")
-									local modifiedNode = { type = nextnode.type, type2 = nextnode.type2, flags = nextnode.flags, x = nextnode.x, y = (nextnode.y - .5), z = nextnode.z }
-									local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+.5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z)
-									if (hit) then
-										if (hity < modifiedNode.y) then
-											modifiedNode.y = (hity - .5)
-										end
-									end		
-									
-									if (adjustedHeading ~= 0) then
-										Player:SetFacing(adjustedHeading)
-									else
-										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-									end
-									
-									local pitch = GetRequiredPitch(modifiedNode,true) -- Pitch down a little further.
-									if (nextnode.is_end) then
-										Player:SetPitch(1.4835)
-									else
-										Player:SetPitch(pitch)
-									end
-																		
-									if (not Player:IsMoving()) then
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
-										ffnav.Await(3000, function () return Player:IsMoving() end)
-										return false
-									end
-									if (navcon and navcon.radius <= 0.5) then
-										ffnav.AwaitSuccess(1000, function () return (not IsFlying() or (GetDiveHeight() <= 0 and CanDiveInZone())) end, function () Player:StopMovement() end)
-									end
-									
-									--d(nextnode)
-									--table.print(ml_navigation.path)
-									
-									d("[Navigation]: Prevent continuation until landing is completed.")
-									--]=]
-									
-									Descend(true)
-								
-									--[=[
-									local dismount = ActionList:Get(13,Player.mountid)
-									if (dismount and dismount:IsReady(Player.id)) then
-										dismount:Cast(Player.id)
-										
-										local _trackDown = function ()
-											local startHeight = Player.pos.y
-											
-											ffnav.AwaitSuccessFail(100, 500, 
-												function () return Player.pos.y < startHeight end, nil, 
-												_trackDown, 
-												function () 
-													ml_navigation.pathindex = ml_navigation.pathindex + 1
-													NavigationManager.NavPathNode = ml_navigation.pathindex
-												end
-											)
-										end
-										
-										-- waits for downward progress, then uses the recursive tracking function to keep tracking until no more progress is made
-										local startHeight = Player.pos.y
-										ffnav.AwaitSuccess(100,500,function () return Player.pos.y < startHeight end, _trackDown)
-									end
-									--]=]
-									return false
-								--end
+								Descend(true)
+								return false
 							end
-							
-							--[[
-							local originalIndex = ml_navigation.pathindex + 1
-								
-							local newIndex = originalIndex
-							if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
-								for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
-									local node = ml_navigation.path[i]
-									if (node) then
-										local nc = ml_navigation:GetConnection(node)
-										if (not nc or not In(nc.type,0,5)) then
-											local dist3d = math.distance3d(node,ppos)
-											if (dist3d < 100 and (node.type == GLOBAL.NODETYPE.CUBE) and node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0) then
-												local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
-												if (not hit) then
-													--d("Bumped index to [" .. i .. "]")
-													newIndex = i
-												end
-											end
-										end
-									end
-								end
-								if (newIndex > originalIndex) then
-									--d("Need to compact path.")
-									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
-										if (newIndex > i) then
-											 ml_navigation.path[i] = nil
-											 --d("Removing skipped node [" .. i .. "] from path.")
-										end
-									end
-									ffnav.CompactPath()
-								end
-							end
-							
-							
-							ml_navigation.lastconnectionid = nextnode.navconnectionid
-							ml_navigation.pathindex = originalIndex	
-							NavigationManager.NavPathNode = ml_navigation.pathindex
-							]]
-						
+
 							-- We landed now and can continue our path..
 							ml_navigation.lastconnectionid = nextnode.navconnectionid		
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
-							--ml_navigation.pathindex = originalIndex	
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
 						end
 		-- Normal Navigation
@@ -1838,8 +1731,6 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("[Navigation]: Normal navigation..")
 						
-						--d("index:"..tostring(ml_navigation.pathindex)..",nextnode:"..tostring(nextnode.type))
-						--table.print(ml_navigation.path)
 						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
@@ -1872,6 +1763,7 @@ function ml_navigation.Navigate(event, ticks )
 										Player:Dive()
 									end
 								)
+								ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
 								return
 								
 							elseif (nextnode.water or (navcon and navcon.type == 3 and (nextnextnode and nextnextnode.water))) then
