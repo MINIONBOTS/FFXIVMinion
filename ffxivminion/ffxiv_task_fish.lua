@@ -366,7 +366,8 @@ function e_precastbuff:execute()
 	local requiredismount = c_precastbuff.requiredismount
 	local activity = c_precastbuff.activity
 	
-	if (requirestopfishing) then
+	local fs = Player:GetFishingState()
+	if (fs ~= 0 and requirestopfishing) then
 		ffxiv_fish.StopFishing()
 		return
 	end
