@@ -239,6 +239,7 @@ c_precastbuff.activity = ""
 c_precastbuff.item = nil
 c_precastbuff.itemid = 0
 c_precastbuff.requirestop = false
+c_precastbuff.requirestopfishing = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
 	if (MIsLoading() or MIsCasting() or IsFlying()) then
@@ -248,7 +249,45 @@ function c_precastbuff:evaluate()
 	c_precastbuff.activity = ""
 	c_precastbuff.itemid = 0
 	c_precastbuff.requirestop = false
+	c_precastbuff.requirestopfishing = false
 	c_precastbuff.requiredismount = false
+		
+		
+		
+	local useCordials = (gFishUseCordials)
+	local useFood = 0
+	local needsStealth = false
+	local taskType = "fishing"
+	
+	local task = ffxiv_fish.currentTask
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		needsStealth = IsNull(task.usestealth,false)
+		minimumGP = IsNull(task.mingp,0)
+		useCordials = IsNull(task.usecordials,useCordials)
+		useFood = IsNull(task.food,0)
+		taskType = IsNull(task.type,"fishing")
+	elseif (table.valid(marker)) then
+		needsStealth = IsNull(marker.usestealth,false)
+	end
+		
+	if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
+		needsStealth = GUI_Get(needsStealth)
+	end
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
+	end
+	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+		minimumGP = GUI_Get(minimumGP)
+	end
+	if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
+		useFood = GUI_Get(useFood)
+	end
+	
+	if (taskType == "idle") then
+		return false
+	end
+		
 		
 	local fs = Player:GetFishingState()
 	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,763) and MissingBuff(Player,764)) and fs == 4)) then
@@ -256,6 +295,7 @@ function c_precastbuff:evaluate()
 			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
 				c_precastbuff.activity = "switchclass"
 				c_precastbuff.requirestop = false
+				c_precastbuff.requirestopfishing = true
 				c_precastbuff.requiredismount = false
 				return true
 			else
@@ -265,46 +305,6 @@ function c_precastbuff:evaluate()
 			end
 		end
 
-		if (ShouldEat()) then
-			c_precastbuff.activity = "eat"
-			c_precastbuff.requirestop = false
-			c_precastbuff.requiredismount = false
-			return true
-		end
-		
-		local useCordials = (gFishUseCordials)
-		local useFood = 0
-		local needsStealth = false
-		local taskType = "fishing"
-		
-		local task = ffxiv_fish.currentTask
-		local marker = ml_marker_mgr.currentMarker
-		if (table.valid(task)) then
-			needsStealth = IsNull(task.usestealth,false)
-			minimumGP = IsNull(task.mingp,0)
-			useCordials = IsNull(task.usecordials,useCordials)
-			useFood = IsNull(task.food,0)
-			taskType = IsNull(task.type,"fishing")
-		elseif (table.valid(marker)) then
-			needsStealth = IsNull(marker.usestealth,false)
-		end
-		
-		if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
-			needsStealth = GUI_Get(needsStealth)
-		end
-		if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
-			useCordials = GUI_Get(useCordials)
-		end
-		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
-			minimumGP = GUI_Get(minimumGP)
-		end
-		if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
-			useFood = GUI_Get(useFood)
-		end
-		
-		if (taskType == "idle") then
-			return false
-		end
 		
 		local hasStealth = HasBuff(Player.id,47)
 		if (not hasStealth and needsStealth) then
@@ -331,10 +331,19 @@ function c_precastbuff:evaluate()
 			c_precastbuff.activity = "usemanual"
 			c_precastbuff.itemid = manualItem.hqid
 			c_precastbuff.requirestop = true
+			c_precastbuff.requirestopfishing = true
 			c_precastbuff.requiredismount = true
 			return true
 		end
 	else
+		
+		if (ShouldEat()) then
+			c_precastbuff.activity = "eat"
+			c_precastbuff.requirestop = false
+			c_precastbuff.requiredismount = false
+			return true
+		end
+		
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
@@ -353,11 +362,16 @@ end
 function e_precastbuff:execute()
 	local activityitemid = c_precastbuff.itemid
 	local requirestop = c_precastbuff.requirestop
+	local requirestopfishing = c_precastbuff.requirestopfishing
 	local requiredismount = c_precastbuff.requiredismount
 	local activity = c_precastbuff.activity
 	
-	if (requirestop) then
+	if (requirestopfishing) then
 		ffxiv_fish.StopFishing()
+		return
+	end
+	
+	if (requirestop) then
 		if (Player:IsMoving()) then
 			Player:PauseMovement()
 			ml_global_information.Await(1500, function () return not Player:IsMoving() end)
