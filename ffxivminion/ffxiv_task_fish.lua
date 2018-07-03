@@ -956,9 +956,9 @@ function c_snagging:evaluate()
 	end
 	
 
-	if (useBuff and ((HasBuffs(Player,568) and snagWithIntuition) or (MissingBuffs(Player,568) and snagWithoutIntuition))) then
-		local snagging = SkillMgr.GetAction(4100,1)
-		if (snagging and snagging:IsReady(Player.id)) then
+	local snagging = SkillMgr.GetAction(4100,1)
+	if (snagging and snagging:IsReady(Player.id)) then
+		if (useBuff and ((HasBuffs(Player,568) and snagWithIntuition) or (MissingBuffs(Player,568) and snagWithoutIntuition))) then
 			if (MissingBuffs(Player,"761")) then
 				if (snagging:Cast()) then
 					ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
