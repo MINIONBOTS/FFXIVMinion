@@ -1742,31 +1742,18 @@ function ml_navigation.Navigate(event, ticks )
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
-							if (IsSwimming() or (nextnode.water and nextnode.y < ppos.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
+							if (IsSwimming() or (nextnextnode.water and nextnextnode.y < nextnextnode.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
 								d("[Navigation] - Dive into water, using connection ["..tostring(isCubeCon).."].")
 								ffnav.isdescending = isCubeCon
-								Player:StopMovement()
-								Player:Dive()
-								ffnav.AwaitDo(3000, 
-									function () 
-										local descending = MIsLoading() or IsDiving()
-										if (ffnav.isdescending and descending) then -- we are using a navconnection , therefore have to iterate the currentindex to the navconnection end-cube-node. If the next node is 'only' a cube instead, we don't iterate, we dive and move towards it where then the index is iterated
-											ffnav.isdescending = false
-											ml_navigation.pathindex = ml_navigation.pathindex + 1
-											NavigationManager.NavPathNode = ml_navigation.pathindex
-											d("[Navigation]: finished diving, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
-										end
-										return descending
-									end, 
-									function () 
-										Player:StopMovement()
-										Player:Dive()
-									end
-								)
-								ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+								if (Player:IsMoving()) then
+									Player:StopMovement()
+									return false
+								end
+								Dive()
 								return
 								
 							elseif (nextnode.water or (navcon and navcon.type == 3 and (nextnextnode and nextnextnode.water))) then
+								
 								-- For connecting to the weird tunnel exists in underwater towns.
 								ml_navigation:NavigateToNode(ppos,nextnode)	
 								return

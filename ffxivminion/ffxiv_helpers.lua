@@ -6613,13 +6613,7 @@ function Stop()
 	}
 	ml_navigation.ParseInstructions(instructions)
 end
-
 function Descend(incnode)
-	--local instructions = {
-		--{"Descend", {}},
-	--}
-	--ml_navigation.ParseInstructions(instructions)
-	
 	if (IsFlying()) then
 		local incnode = IsNull(incnode,false)
 		
@@ -6672,6 +6666,42 @@ function Descend(incnode)
 		
 		_dismount()
 	end
+end
+
+function Dive()
+	local _waitDown, _dive
+	_waitDown = function ()
+		local startHeight = Player.pos.y
+		
+		ffnav.AwaitSuccessFail(100, 250, 
+			function ()	return Player.pos.y < startHeight or MIsLoading() end, nil, 
+			_waitDown, 
+			function () 
+				d("[Dive]: End dive process.")
+				if (ffnav.isdescending) then
+					ffnav.isdescending = false
+					ml_navigation.pathindex = ml_navigation.pathindex + 1
+					NavigationManager.NavPathNode = ml_navigation.pathindex
+				end
+			end
+		)
+		ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+	end
+	
+	_dive = function ()
+		local startHeight = Player.pos.y
+		
+		d("[Dive]: Start dive.")
+		Player:Dive()
+		ffnav.AwaitSuccessFail(250, 1000, 
+			function () return (Player.pos.y < startHeight or MIsLoading() or IsDiving()) end, nil,
+			_waitDown, 
+			_dive
+		)
+		ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+	end
+	
+	_dive()
 end
 
 function UsingBattleItem()
