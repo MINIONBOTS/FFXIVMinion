@@ -252,8 +252,6 @@ function c_precastbuff:evaluate()
 	c_precastbuff.requirestopfishing = false
 	c_precastbuff.requiredismount = false
 		
-		
-		
 	local useCordials = (gFishUseCordials)
 	local useFood = 0
 	local needsStealth = false
@@ -2223,20 +2221,22 @@ end
 c_fishnextprofilepos = inheritsFrom( ml_cause )
 e_fishnextprofilepos = inheritsFrom( ml_effect )
 c_fishnextprofilepos.blockOnly = false
+c_fishnextprofilepos.distance = 0
 function c_fishnextprofilepos:evaluate()
     if (not table.valid(ffxiv_fish.currentTask)) then
 		return false
 	end
 	
 	c_fishnextprofilepos.blockOnly = false
+	c_fishnextprofilepos.distance = 0
     
 	local task = ffxiv_fish.currentTask
 	if (task.mapid == Player.localmapid) then
 		local pos = GetCurrentTaskPos()
 		local myPos = Player.pos
-		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
-		if (dist > 5 or ml_task_hub:CurrentTask().requiresRelocate) then
-			d("dist = "..tostring(dist))
+		local dist = math.distance3d(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+		if (dist > 3 or ml_task_hub:CurrentTask().requiresRelocate) then
+			c_fishnextprofilepos.distance = dist
 			return true
 		elseif (Player.ismounted) then
 			Dismount()
@@ -2265,9 +2265,20 @@ function e_fishnextprofilepos:execute()
 	
     local newTask = ffxiv_task_movetopos.Create()
 	local task = ffxiv_fish.currentTask
-    newTask.pos = GetCurrentTaskPos()
+	local taskPos = GetCurrentTaskPos()
+	newTask.pos = taskPos
 	newTask.range = 1
 	newTask.doFacing = true
+	
+	if (CanFlyInZone() and c_fishnextprofilepos.distance > 40 and not gTeleportHack) then
+		local flightApproach, approachDist = AceLib.API.Math.GetFlightApproach(taskPos)
+		if (flightApproach and approachDist < 30) then
+			newTask.pos = flightApproach
+			newTask.range = 5
+			newTask.doFacing = false
+		end
+	end
+	
 	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
