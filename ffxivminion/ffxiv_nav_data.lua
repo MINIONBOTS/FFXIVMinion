@@ -8,7 +8,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                   ["E"] = "Seek passage to Ul'dah",
+                   ["E"] = "Seek Passage to Ul'dah",
                    ["J"] = "「ウルダハ」へ行く",
                    ["G"] = "Nach Ul'dah",
                    ["F"] = "Aller à Ul'dah",
@@ -23,7 +23,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Gridania",
+                    ["E"] = "Purchase Passage to Gridania",
                     ["J"] = "「グリダニア」へ行く",
                     ["G"] = "Nach Gridania",
                     ["F"] = "Aller à Gridania",
@@ -38,7 +38,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
                     ["J"] = "「リムサ・ロミンサ」へ行く",
                     ["G"] = "Nach Limsa Lominsa",
                     ["F"] = "Aller à Limsa Lominsa",
@@ -65,7 +65,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
                     ["J"] = "「リムサ・ロミンサ」へ行く",
                     ["G"] = "Nach Limsa Lominsa",
                     ["F"] = "Aller à Limsa Lominsa",
@@ -87,7 +87,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Gridania",
+                    ["E"] = "Purchase Passage to Gridania",
                     ["J"] = "「グリダニア」へ行く",
                     ["G"] = "Nach Gridania",
                     ["F"] = "Aller à Gridania",
@@ -108,7 +108,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["E"] = "Seek Passage to the Gold Saucer",
                     ["J"] = "「ゴールドソーサー」へ行く",
                     ["G"] = "Zum Gold Saucer",
                     ["F"] = "Aller au Gold Saucer",
@@ -260,7 +260,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Ul'dah",
+                    ["E"] = "Purchase Passage to Ul'dah",
                     ["J"] = "「ウルダハ」へ行く",
                     ["G"] = "Nach Ul'dah",
                     ["F"] = "Aller à Ul'dah",
@@ -275,7 +275,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
                     ["J"] = "「リムサ・ロミンサ」へ行く",
                     ["G"] = "Nach Limsa Lominsa",
                     ["F"] = "Aller à Limsa Lominsa",
@@ -290,7 +290,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["E"] = "Seek Passage to the Gold Saucer",
                     ["J"] = "「ゴールドソーサー」へ行く",
                     ["G"] = "Zum Gold Saucer",
                     ["F"] = "Aller au Gold Saucer",
@@ -337,7 +337,7 @@ ffxiv_map_nav.data = {
 					["Player.level >= 10"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Sweetbloom Pier",
+                    ["E"] = "Purchase Passage to Sweetbloom Pier",
                     ["J"] = "「花蜜桟橋」へ行く",
                     ["G"] = "Zum Honigblumen-Steg",
                     ["F"] = "Aller à la jetée du Bouquet",
@@ -462,7 +462,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Ul'dah",
+                    ["E"] = "Purchase Passage to Ul'dah",
                     ["J"] = "「ウルダハ」へ行く",
                     ["G"] = "Nach Ul'dah",
                     ["F"] = "Aller à Ul'dah",
@@ -477,7 +477,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Gridania",
+                    ["E"] = "Purchase Passage to Gridania",
                     ["J"] = "「グリダニア」へ行く",
                     ["G"] = "Nach Gridania",
                     ["F"] = "Aller à Gridania",
@@ -492,7 +492,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["E"] = "Seek Passage to the Gold Saucer",
                     ["J"] = "「ゴールドソーサー」へ行く",
                     ["G"] = "Zum Gold Saucer",
                     ["F"] = "Aller au Gold Saucer",
@@ -536,7 +536,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Aleport",
+                    ["E"] = "Purchase Passage to Aleport",
                     ["J"] = "「エールポート」へ行く",
                     ["G"] = "Zum Bierhafen",
                     ["F"] = "Aller à Port-aux-Ales",
@@ -552,7 +552,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Costa del Sol",
+                    ["E"] = "Purchase Passage to Costa del Sol",
                     ["J"] = "「コスタ・デル・ソル」へ行く",
                     ["G"] = "Zur Sonnenküste",
                     ["F"] = "Aller à Costa del Sol",
@@ -608,7 +608,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
                     ["J"] = "「リムサ・ロミンサ」へ行く",
                     ["G"] = "Nach Limsa Lominsa",
                     ["F"] = "Aller à Limsa Lominsa",
@@ -637,7 +637,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
                     ["J"] = "「リムサ・ロミンサ」へ行く",
                     ["G"] = "Nach Limsa Lominsa",
                     ["F"] = "Aller à Limsa Lominsa",
@@ -653,7 +653,7 @@ ffxiv_map_nav.data = {
 					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
-                    ["E"] = "Purchase passage to Candlekeep Quay",
+                    ["E"] = "Purchase Passage to Candlekeep Quay",
                     ["J"] = "「キャンドルキープ埠頭」へ行く",
                     ["G"] = "Zum Kerzenwacht-Kai",
                     ["F"] = "Aller au quai de la Torche",
@@ -845,7 +845,7 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(435)"] = true,
 				} 
 				, conversationstrings = {
-					["E"] = "Seek passage to the Gold Saucer",
+					["E"] = "Seek Passage to the Gold Saucer",
 					["J"] = "「ゴールドソーサー」へ行く",
 					["G"] = "Zum Gold Saucer",
 					["F"] = "Aller au Gold Saucer",
