@@ -2214,7 +2214,7 @@ function ffxiv_task_craft:Draw()
 		GUI:SameLine(0,5)
 		
 		
-		local buttonBG = ml_gui.style.current.colors[GUI.Col_Button]
+		local buttonBG = GUI:GetStyle().colors[GUI.Col_Button]
 		GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 		GUI:PushStyleColor(GUI.Col_ButtonActive, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 		if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
@@ -2764,7 +2764,7 @@ function ffxiv_craft.Draw( event, ticks )
 		GUI:SetNextWindowSize(500,200,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 		
-		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 		
 		ffxiv_task_craft.GUI.orders.visible, ffxiv_task_craft.GUI.orders.open = GUI:Begin(ffxiv_task_craft.GUI.orders.name, ffxiv_task_craft.GUI.orders.open)

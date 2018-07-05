@@ -1350,7 +1350,7 @@ function ml_global_information.DrawMainFull()
 				GUI:SetNextWindowSize(350,300,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 				GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 				
-				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 				
 				ffxivminion.GUI.main.visible, ffxivminion.GUI.main.open = GUI:Begin(ffxivminion.GUI.main.name, ffxivminion.GUI.main.open)
@@ -1383,7 +1383,7 @@ Quest: Completes quests based on a questing profile.\
 					end
 					GUI:SameLine()
 					local RemainingSizeBotMode = GUI:GetContentRegionAvailWidth()
-					GUI:PushItemWidth(RemainingSizeBotMode-65)
+					GUI:PushItemWidth(RemainingSizeBotMode-65)					
 					local modeChanged = GUI_Combo("##"..GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
 					GUI:PopItemWidth()
 					if (modeChanged) then
@@ -1566,7 +1566,7 @@ function ml_global_information.DrawSmall()
 		if (ffxivminion.GUI.main.open) then		
 			if (ml_global_information.drawMode ~= 1) then
 				GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
-				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .35)
 				
 				local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
@@ -1622,7 +1622,7 @@ function ml_global_information.DrawSettings()
 			GUI:SetNextWindowSize(600,500,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 			
-			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 			
 			ffxivminion.GUI.settings.visible, ffxivminion.GUI.settings.open = GUI:Begin(ffxivminion.GUI.settings.name, ffxivminion.GUI.settings.open)
@@ -2127,9 +2127,9 @@ function ml_global_information.DrawMiniButtons()
 			
 			if (table.valid(buttonsNeeded)) then
 				local fontSize = GUI:GetWindowFontSize()
-				local windowPaddingY = ml_gui.style.current.windowpadding.y
-				local framePaddingY = ml_gui.style.current.framepadding.y
-				local itemSpacingY = ml_gui.style.current.itemspacing.y
+				local windowPaddingY = GUI:GetStyle().windowpadding.y
+				local framePaddingY = GUI:GetStyle().framepadding.y
+				local itemSpacingY = GUI:GetStyle().itemspacing.y
 
 				GUI:SetNextWindowPos(currentX,height - ((fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2)) * 2) + windowPaddingY)
 				local totalSize = 30
@@ -2138,8 +2138,8 @@ function ml_global_information.DrawMiniButtons()
 				end
 				GUI:SetNextWindowSize(totalSize,fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2),GUI.SetCond_Always)
 				
-				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
-				local buttonBG = ml_gui.style.current.colors[GUI.Col_Button]
+				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
+				local buttonBG = GUI:GetStyle().colors[GUI.Col_Button]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
 				GUI:Begin("#MenuBar",true,flags)
 				GUI:BeginChild("##ButtonRegion")
@@ -2190,7 +2190,7 @@ function ml_global_information.DrawLoginHandler()
 		GUI:SetNextWindowSize(330,145,GUI.SetCond_Always) --set the next window size, only on first ever	
 		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 		
-		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 		
 		ffxivminion.GUI.login.visible, ffxivminion.GUI.login.open = GUI:Begin(ffxivminion.GUI.login.name, ffxivminion.GUI.login.open)
@@ -2290,7 +2290,7 @@ function ml_global_information.DrawAutoGrindEditor()
 			GUI:SetNextWindowSize(700,500,GUI.SetCond_Always) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 			
-			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 			
 			ffxivminion.GUI.autogrind.visible, ffxivminion.GUI.autogrind.open = GUI:Begin(ffxivminion.GUI.autogrind.name, ffxivminion.GUI.autogrind.open)
@@ -2350,7 +2350,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 		if (ffxivminion.GUI.help.open) then
 			GUI:SetNextWindowSize(400,700,GUI.SetCond_Always) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
-			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 			ffxivminion.GUI.help.visible, ffxivminion.GUI.help.open = GUI:Begin(ffxivminion.GUI.help.name, ffxivminion.GUI.help.open)
 			if ( ffxivminion.GUI.help.visible ) then
@@ -2604,7 +2604,7 @@ function ml_global_information.DrawInformationPopup() -- Helper Window
 					GUI:SetNextWindowSize(500,GUI_GetFrameHeight(1),GUI.SetCond_Always)
 				end
 				
-				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]				
+				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]				
 				GUI:PushStyleColor(GUI.Col_WindowBg, drawSegment.colors.r, drawSegment.colors.g, drawSegment.colors.b, drawSegment.colors.a)
 				flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
 				drawSegment.visible, drawSegment.open = GUI:Begin(drawSegment.name, drawSegment.open, flags)

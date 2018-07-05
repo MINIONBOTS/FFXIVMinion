@@ -183,9 +183,9 @@ ffxiv_task_party.GUI = {
 
 function ffxiv_task_party:Draw()
 	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
-	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	local windowPaddingY = GUI:GetStyle().windowpadding.y
+	local framePaddingY = GUI:GetStyle().framepadding.y
+	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("UseGamePartyLeader"))

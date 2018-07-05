@@ -284,9 +284,9 @@ end
 
 function GUI_GetFrameHeight(rows)
 	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
-	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	local windowPaddingY = GUI:GetStyle().windowpadding.y
+	local framePaddingY = GUI:GetStyle().framepadding.y
+	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
 	return ((fontSize * rows) + (itemSpacingY * (rows - 1)) + (framePaddingY * 2 * rows) + (windowPaddingY * 2))
 end
@@ -383,8 +383,8 @@ function GUI_DrawVerticalTabs(tTabs,name)
 	
 	local tabName = IsNull(name,"##main-tabs")
 	local fontSize = (GUI:GetWindowFontSize())
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
+	local windowPaddingY = GUI:GetStyle().windowpadding.y
+	local framePaddingY = GUI:GetStyle().framepadding.y
 
 	local counter = 1;
 	
@@ -466,8 +466,8 @@ function GUI_DrawTabs(tTabs)
 
 	local returnIndex,returnName;
 	local fontSize = (GUI:GetWindowFontSize() + 4)
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
+	local windowPaddingY = GUI:GetStyle().windowpadding.y
+	local framePaddingY = GUI:GetStyle().framepadding.y
 
 	GUI:BeginChild("##main-tabs",0,fontSize+(framePaddingY * 2),false)
 	
