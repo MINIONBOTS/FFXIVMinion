@@ -195,9 +195,9 @@ function ffxiv_task_test:Draw()
 	--end
 
 	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
-	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	local windowPaddingY = GUI:GetStyle().windowpadding.y
+	local framePaddingY = GUI:GetStyle().framepadding.y
+	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
 	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(11),true)
 	GUI:Columns(2)

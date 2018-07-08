@@ -113,9 +113,9 @@ ffxiv_task_minigames.GUI = {
 
 function ffxiv_task_minigames:Draw()
 	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = ml_gui.style.current.windowpadding.y
-	local framePaddingY = ml_gui.style.current.framepadding.y
-	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	local windowPaddingY = GUI:GetStyle().current.windowpadding.y
+	local framePaddingY = GUI:GetStyle().current.framepadding.y
+	local itemSpacingY = GUI:GetStyle().current.itemspacing.y
 	
 	GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs

@@ -316,7 +316,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 					local maxWidth, maxHeight = GUI:GetScreenSize()
 					GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
 					GUI:SetNextWindowSize(maxWidth,maxHeight,GUI.SetCond_Always)
-					local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+					local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 					GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
 					flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
 					GUI:Begin("ffxiv_radar 3D Overlay", true, flags)	
@@ -429,7 +429,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 					local maxWidth, maxHeight = GUI:GetScreenSize()
 					GUI:SetNextWindowPos(0, 0, GUI.SetCond_FirstUseEver)
 					GUI:SetNextWindowSize(200*(ffxiv_radar.RadarSize/100)+100,200*(ffxiv_radar.RadarSize/100)+100,GUI.SetCond_Always) -- Scalable GUI.
-					local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+					local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 					GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
 					if ffxiv_radar.ClickThrough == true then -- 2D Radar Clickthrough toggle check.
 						flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
