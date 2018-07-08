@@ -1792,6 +1792,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderEditIfNecessary = false
 	gCraftOrderEditSkillProfileIndex = 1
 	gCraftOrderEditSkillProfile = GetString("none")
+	gCraftOrderEditSkip = false
 	
 	gCraftNewProfileName = ""
 	
@@ -2080,14 +2081,16 @@ function ffxiv_task_craft:Draw()
 				--if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
 				--	ffxiv_craft.DeleteOrder(id)
 				--end
-				local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
+				
+				gCraftOrderEditSkip = IsNull(order.skip,false)
+				local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
 				if (changed) then
 					orders[id].skip = newVal
 					if orders[id].skip == true then
-						orders[id].uialert = skip
+						orders[id].uialert = "skip"
 					end
-					ffxiv_craft.tracking.measurementDelay = Now()
 				end
+				
 				GUI:NextColumn()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
@@ -2592,7 +2595,7 @@ function ffxiv_craft.UpdateAlertElement()
 			end
 		end
 		--ffxiv_craft.SaveProfile()
-		ffxiv_craft.tracking.measurementDelay = Now() + 1000
+		--ffxiv_craft.tracking.measurementDelay = Now() + 1000
 	end
 end	
 
@@ -2819,9 +2822,10 @@ function ffxiv_craft.Draw( event, ticks )
 						
 						if (order.skip == nil) then
 							orders[id].skip = false
-							--ffxiv_craft.SaveProfile()
+							ffxiv_craft.SaveProfile()
 						end
 						
+						--[[
 						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
 						if (changed) then
 							orders[id].skip = newVal
@@ -2830,6 +2834,17 @@ function ffxiv_craft.Draw( event, ticks )
 							end
 							ffxiv_craft.tracking.measurementDelay = Now()
 						end
+						--]]
+						
+						gCraftOrderEditSkip = IsNull(order.skip,false)
+						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
+						if (changed) then
+							orders[id].skip = newVal
+							if orders[id].skip == true then
+								orders[id].uialert = "skip"
+							end
+						end
+						
 						GUI:NextColumn()
 						
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
