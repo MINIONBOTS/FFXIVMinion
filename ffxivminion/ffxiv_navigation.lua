@@ -1002,7 +1002,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
 		ml_navigation:ResetCurrentPath()
-		return false
+		return -1337
 	end
 	
 	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)	

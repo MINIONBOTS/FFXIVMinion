@@ -2587,7 +2587,7 @@ function ffxiv_craft.UpdateAlertElement()
 			end
 		end
 		ffxiv_craft.SaveProfile()
-		ffxiv_craft.tracking.measurementDelay = Now() + 10000
+		ffxiv_craft.tracking.measurementDelay = Now() + 1000
 	end
 end	
 
