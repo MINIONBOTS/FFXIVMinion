@@ -2399,10 +2399,14 @@ function ffxiv_craft.SaveProfile(strName)
 		info.orders = {}
 	end
 	
-	if (strName ~= "") then
-		persistence.store(ffxiv_craft.profilePath..strName..".lua",info)
+	if (table.valid(info)) then
+		if (strName ~= "") then
+			persistence.store(ffxiv_craft.profilePath..strName..".lua",info)
+		else
+			persistence.store(ffxiv_craft.profilePath..gCraftProfile..".lua",info)
+		end
 	else
-		persistence.store(ffxiv_craft.profilePath..gCraftProfile..".lua",info)
+		d("[Craft]: Orders table was invalid.")
 	end
 	
 	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
@@ -2500,6 +2504,7 @@ function ffxiv_craft.UpdateAlertElement()
 			
 			local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
 			for id,order in pairs(orders) do
+			
 				if order["uialert"] == nil then
 					order["uialert"] = "None"
 				end
@@ -2586,7 +2591,7 @@ function ffxiv_craft.UpdateAlertElement()
 				end
 			end
 		end
-		ffxiv_craft.SaveProfile()
+		--ffxiv_craft.SaveProfile()
 		ffxiv_craft.tracking.measurementDelay = Now() + 1000
 	end
 end	
