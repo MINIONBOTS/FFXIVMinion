@@ -160,12 +160,14 @@ function GetMinGP()
 		if task.mingp == "skillProfileDefined" then
 			if SkillMgr.ProfileRaw.mingp ~= nil then
 				minimumGP = SkillMgr.ProfileRaw.mingp
+				d("[Gather]: Skill profile requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
 			else
 				minimumGP = 0
 			end
 		end
 	elseif (table.valid(marker)) then
 		minimumGP = IsNull(marker.mingp,0)
+		d("[Gather]: Marker requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
 	end
 		
 	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
@@ -337,7 +339,7 @@ function c_movetonode:evaluate()
 			if (not reachable) then
 			
 				-- Might stop just out of range to wait for GP, don't need to be super accurate
-				if (Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
+				if (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 				end
@@ -362,7 +364,7 @@ function c_movetonode:evaluate()
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
-				elseif (Player.gp.current < minimumGP) then
+				elseif (Player.gp.current < minimumGP and Player.gp.current < Player.gp.max) then
 					local myTarget = MGetTarget()
 					if (myTarget and myTarget.id ~= gatherable.id) then
 						Player:SetTarget(gatherable.id)
@@ -474,7 +476,7 @@ function e_movetonode:execute()
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
 						alternateTask.useTeleport = (gTeleportHack)
-						alternateTask.range = 2.5
+						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
@@ -488,7 +490,7 @@ function e_movetonode:execute()
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
 						alternateTask.useTeleport = (gTeleportHack)
-						alternateTask.range = 2.5
+						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
@@ -497,18 +499,18 @@ function e_movetonode:execute()
 					d("[MoveToNode]: Need to use manual. ")
 					return
 				end
-				if (Player.gp.current < newTask.minGP) then
+				if (Player.gp.current < newTask.minGP and Player.gp.current < Player.gp.max) then
 					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
 						alternateTask.useTeleport = (gTeleportHack)
-						alternateTask.range = 2.5
+						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 						d("[MoveToNode]: Starting alternate MOVETOPOS task to wait for GP.")
 					end
-					d("[MoveToNode]: Need to wait for GP. ")
+					d("[MoveToNode]: Need to wait for GP, this task is set to require ["..tostring(newTask.minGP).."]. ")
 					return
 				end
 			end
