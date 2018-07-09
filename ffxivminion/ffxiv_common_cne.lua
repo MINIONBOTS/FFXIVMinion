@@ -1696,21 +1696,37 @@ function c_mount:evaluate()
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
 		
-		if (dismountDistance > 0 and dist2d <= dismountDistance and 
-			(dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10)))) 
-		then
-			local doDismount = false
-			if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
-				doDismount = true
+		local needsMount = false
+		if (table.valid(ml_navigation.path)) then
+			for i, node in pairs(ml_navigation.path) do
+				if (i >= ml_navigation.pathindex) then
+					ml_navigation.TagNode(node)
+					if (node.air or node.air_avoid) then
+						needsMount = true
+					end
+				end
+			end		
+		end
+		
+		if (not needsMount) then
+			if (dismountDistance > 0 and dist2d <= dismountDistance and 
+				(dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10)))) 
+			then
+				local doDismount = false
+				if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
+					doDismount = true
+				end
+				if (doDismount and not IsDismounting()) then
+					Dismount()
+					c_mount.blockOnly = true
+					return true
+				end
+				return false
+			else
+				--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 			end
-			if (doDismount and not IsDismounting()) then
-				Dismount()
-				c_mount.blockOnly = true
-				return true
-			end
-			return false
 		else
-			--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
+			d("[Mount]: Cannot dismount, needs to fly still.")
 		end
 	end
 	
