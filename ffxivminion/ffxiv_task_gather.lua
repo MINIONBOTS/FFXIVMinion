@@ -340,7 +340,8 @@ function c_movetonode:evaluate()
 			
 				-- Might stop just out of range to wait for GP, don't need to be super accurate
 				if (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
-					ml_global_information.Await(500)
+					ml_global_information.ShowInformation(GetString("Waiting for GP ["..tostring(minimumGP).."]..."), 3000)
+					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 				end
 				
@@ -369,9 +370,9 @@ function c_movetonode:evaluate()
 					if (myTarget and myTarget.id ~= gatherable.id) then
 						Player:SetTarget(gatherable.id)
 					end
-					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					
-					ml_global_information.Await(500)
+					ml_global_information.ShowInformation(GetString("Waiting for GP ["..tostring(minimumGP).."]..."), 3000)
+					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 					return true
 				end
