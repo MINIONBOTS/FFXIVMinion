@@ -3213,7 +3213,7 @@ function ffxiv_gather.NeedsStealth()
 			stealth = ActionList:Get(1,229)
 		end
 		
-		if (stealth) then
+		if (stealth and stealth:IsReady(Player.id)) then
 			local dangerousArea = false
 			local destPos = ml_task_hub:CurrentTask().pos
 			local myPos = Player.pos
