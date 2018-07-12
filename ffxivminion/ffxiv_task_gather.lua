@@ -3189,6 +3189,9 @@ function ffxiv_gather.NeedsStealth()
 	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
+	if Player.level < 8 then
+		return false
+	end	
 
 	local useStealth = true
 	local task = ffxiv_gather.currentTask
@@ -3213,7 +3216,7 @@ function ffxiv_gather.NeedsStealth()
 			stealth = ActionList:Get(1,229)
 		end
 		
-		if (stealth and stealth:IsReady(Player.id)) then
+		if (stealth) then
 			local dangerousArea = false
 			local destPos = ml_task_hub:CurrentTask().pos
 			local myPos = Player.pos
