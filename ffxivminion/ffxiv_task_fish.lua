@@ -1285,9 +1285,9 @@ function c_buybait:evaluate()
 							rebuyids[thisID] = v
 						end
 					else
-						if (ItemCount(k) < v) then
+						--if (ItemCount(k) < v) then
 							rebuyids[k] = v
-						end
+						--end
 					end
 				end
 				
