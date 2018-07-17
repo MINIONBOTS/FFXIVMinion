@@ -35,6 +35,7 @@ function ffxiv_task_gather.Create()
     
     --ffxiv_task_gather members
     newinst.name = "LT_GATHER"
+    newinst.seriescount = 0
     newinst.gatherid = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
@@ -519,6 +520,7 @@ function e_movetonode:execute()
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.navid = ml_task_hub:CurrentTask().gatherid
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
+			ml_task_hub:CurrentTask().seriescount = ml_task_hub:CurrentTask().seriescount + 1
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)
 		end
@@ -2491,6 +2493,13 @@ function c_gathernexttask:evaluate()
 				invalid = true
 			end
 		end
+		if (not invalid) then
+			if ((IsNull(currentTask.seriescounter,0) ~= 0) and (ml_task_hub:CurrentTask().seriescount >= IsNull(currentTask.seriescounter,0))) then
+				d("[GatherNextTask]: Task node limit has been reached, invalidate.",3)
+				invalid = true
+			end
+		end
+		
 	end
 	
 	if (completed) then
@@ -2941,6 +2950,7 @@ function e_gathernexttask:execute()
 	ml_task_hub:CurrentTask().failedSearches = 0
 	ml_task_hub:CurrentTask().taskFailed = 0
 	ml_task_hub:CurrentTask().taskStarted = 0
+	ml_task_hub:CurrentTask().seriescount = 0
 	
 	ffxiv_gather.currentTask.touchCompleted = false
 
@@ -3172,6 +3182,9 @@ function ffxiv_gather.NeedsStealth()
 	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
+	if Player.level < 8 then
+		return false
+	end	
 
 	local useStealth = true
 	local task = ffxiv_gather.currentTask

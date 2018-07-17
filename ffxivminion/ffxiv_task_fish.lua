@@ -1274,7 +1274,6 @@ function c_buybait:evaluate()
 		end
 		
 		if (not foundSuitable) then
-		--if (not foundSuitable) or lowbait then -- can't use, will trigger even on expensive baits, needs separation
 			fd("Need to go buy something.",2)
 			
 			if (table.valid(rebuy)) then
@@ -1286,7 +1285,9 @@ function c_buybait:evaluate()
 							rebuyids[thisID] = v
 						end
 					else
-						rebuyids[k] = v
+						--if (ItemCount(k) < v) then
+							rebuyids[k] = v
+						--end
 					end
 				end
 				
