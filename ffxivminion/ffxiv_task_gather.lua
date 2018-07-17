@@ -399,38 +399,31 @@ function e_movetonode:execute()
 			
 			local newTask = ffxiv_task_movetointeract.Create()
 			
-			--[[
 			local foundPos = false
-			local frontPosFar = GetPosFromDistanceHeading(pos, 5, pos.h)
-			if (frontPosFar) then
-				local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPosFar)
-				if (table.valid(closestmesh)) then
-					if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 7) then
+			if (IsFlying()) then
+				local approachPosition = AceLib.API.Math.GetFlightApproach(pos)
+				if (approachPosition) then
+					if (NavigationManager:IsReachable(approachPosition)) then
 						d("used estimated position 1")
-						pos = closestmesh
+						pos = shallowcopy(approachPosition)
 						foundPos = true
-					else
-						d("closestmesh.distance:"..tostring(closestmesh.distance))
 					end
 				end
 			end
 			
 			if (not foundPos) then
-				local frontPos = GetPosFromDistanceHeading(pos, 3, pos.h)
-				if (frontPos) then
-					local closestmesh = NavigationManager:GetClosestPointOnMesh(frontPos)
-					if (table.valid(closestmesh)) then
-						if (NavigationManager:IsReachable(closestmesh) and closestmesh.distance <= 5) then
+				local approachPosition = AceLib.API.Math.GetSafestApproach(pos)
+				if (approachPosition) then
+					local nearestMesh = FindClosestMesh(approachPosition)
+					if (nearestMesh) then
+						if (NavigationManager:IsReachable(nearestMesh)) then
 							d("used estimated position 2")
-							pos = closestmesh
+							pos = shallowcopy(nearestMesh)
 							foundPos = true
-						else
-							d("closestmesh.distance2:"..tostring(closestmesh.distance))
 						end
 					end
 				end
 			end
-			--]]
 			
 			if (not foundPos) then
 				local meshpos = gatherable.meshpos
