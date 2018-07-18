@@ -1742,8 +1742,13 @@ function ml_navigation.Navigate(event, ticks )
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
-							if (IsSwimming() or (nextnode.water and nextnode.y < nextnode.y)) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
-								d("[Navigation] - Dive into water, using connection ["..tostring(isCubeCon).."].")
+							if ((IsSwimming() or nextnode.water) and nextnode.y < ppos.y) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
+								if (IsSwimming()) then
+									d("[Navigation] - Dive into water (swimming), using connection ["..tostring(isCubeCon).."].")
+								else
+									d("[Navigation] - Dive into water (node position), using connection ["..tostring(isCubeCon).."].")
+								end
+
 								ffnav.isdescending = isCubeCon
 								if (Player:IsMoving()) then
 									Player:StopMovement()

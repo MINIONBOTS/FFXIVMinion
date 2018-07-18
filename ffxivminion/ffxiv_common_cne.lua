@@ -4160,27 +4160,6 @@ function c_dointeract:evaluate()
 		--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
 		if (myTarget and myTarget.id == interactable.id) then
 			
-			--[[
-			-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
-			if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current) then
-				d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
-				Player:Stop()
-				return true
-			end
-			
-			if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-				d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
-				return false
-			end
-			
-			d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
-			Player:Interact(interactable.id)
-			ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-			
-			-- this return might need to be false, if the .interactable is not perfect
-			return true
-			--]]
-			
 			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
 				if (interactable.type == 5) then
 					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 6 and ydiff <= 4.7 and ydiff >= -1.3) or  
