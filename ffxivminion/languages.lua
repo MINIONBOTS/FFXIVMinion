@@ -6466,6 +6466,19 @@ Tank Assist: Targets whatever your tank is targetting.",
     },                               
 }
 
+-- merge the ml_strings into the miniondbstrings, so they get all translated
+for language,data in pairs(ml_strings) do
+	for skey,str in pairs(data) do
+		if ( ml_miniondbstrings[skey] == nil ) then
+			ml_miniondbstrings[skey] = { [language] = str }
+			
+		else
+			if ( ml_miniondbstrings[skey][language] == nil ) then
+				ml_miniondbstrings[skey][language] = str
+			end
+		end
+	end	
+end
 -- merge  the minionlib strings with our ffxiv strings
 for language,data in pairs(ffxiv_strings) do
 	if ( ml_strings[language] ) then
