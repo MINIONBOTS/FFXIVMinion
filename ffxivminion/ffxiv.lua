@@ -1369,7 +1369,25 @@ function ml_global_information.DrawMainFull()
 						GUI:Text("Bot Status:") GUI:SameLine()
 						GUI:TextColored(1,.1,.2,1,"NOT RUNNING")
 					end
-					GUI:AlignFirstTextHeightToWidgets()	GUI:Text(GetString("botMode")) 
+					
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:BeginGroup()
+					GUI:Text(GetString("botMode")) 
+					GUI:SameLine()
+					
+					GUI:PushItemWidth(-65)
+					local modeChanged = GUI_Combo("##"..GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
+					GUI:PopItemWidth()
+					if (modeChanged) then
+						ffxivminion.SwitchMode(gBotMode)
+						local uuid = GetUUID()
+						if ( string.valid(uuid) ) then
+							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
+							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
+						end
+					end
+					GUI:EndGroup()
+					
 					if (GUI:IsItemHovered()) then 
 						GUI:SetTooltip("Assist: Handles combat with a selected skill profile while you do the moving.\
 Crafting: Automates crafting of a single item or list using crafting orders.\
@@ -1381,20 +1399,8 @@ Party-Grind: Follows a party leader around assisting  them in combat.\
 Quest: Completes quests based on a questing profile.\
 ") 
 					end
-					GUI:SameLine()
-					local RemainingSizeBotMode = GUI:GetContentRegionAvailWidth()
-					GUI:PushItemWidth(RemainingSizeBotMode-65)					
-					local modeChanged = GUI_Combo("##"..GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
-					GUI:PopItemWidth()
-					if (modeChanged) then
-						ffxivminion.SwitchMode(gBotMode)
-						local uuid = GetUUID()
-						if ( string.valid(uuid) ) then
-							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
-							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
-						end
-					end
-					GUI:SameLine()
+					
+					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##help",ml_global_information.path.."\\GUI\\UI_Textures\\questionmark.png", 14, 14)) then
 						ffxivminion.GUI.help.open = true
 					end
@@ -1409,19 +1415,12 @@ Quest: Completes quests based on a questing profile.\
 							end
 						end
 					end
-					GUI:AlignFirstTextHeightToWidgets()	GUI:Text(GetString("Skill Profile")) GUI:SameLine()
-					local RemainingSizeSkillProfile = GUI:GetContentRegionAvailWidth()
 					
-					--[[local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
-					local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
-					local combatClass = not gatherClasses and not craftClasses]]
-					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
+					GUI:AlignFirstTextHeightToWidgets()	
+					GUI:Text(GetString("Skill Profile")) GUI:SameLine()
 					
-					if acrValid then
-						RemainingSizeSkillProfile = RemainingSizeSkillProfile - 10 
-					end
-					
-					GUI:PushItemWidth(RemainingSizeSkillProfile-65)
+					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					GUI:PushItemWidth(-1 * (IIF(acrValid,75,65)))
 					local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					GUI:PopItemWidth()
 					if (skillsChanged) then
@@ -1434,6 +1433,7 @@ Quest: Completes quests based on a questing profile.\
 							SkillMgr.UseProfile(gSkillProfile)
 						end
 					end
+					
 					GUI:SameLine()
 					
 					if (not acrValid) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
@@ -2565,7 +2565,6 @@ Do you have materials?"))
 						end
 					end
 				end
-	
 			end
 			GUI:End()
 			GUI:PopStyleColor()
