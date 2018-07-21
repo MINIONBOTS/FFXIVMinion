@@ -771,6 +771,7 @@ function SkillMgr.ModuleInit()
 	end
 	if (Settings.FFXIVMINION.gSMDefaultProfiles[uuid] == nil) then
 		Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = {}
+		Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
 	end
 	
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
@@ -965,6 +966,7 @@ function SkillMgr.LoadInit()
 				gSkillProfile = gSMDefaultProfiles[Player.job]
 				local uuid = GetUUID()
 				Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
+				Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
 			end
 		end
 	end
@@ -2073,6 +2075,7 @@ end
 function SkillMgr.SetDefaultProfile(strName)
 	local uuid = GetUUID()
 	local profile = strName or gSkillProfile
+	
 	Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = profile
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 end
@@ -6575,6 +6578,7 @@ function SkillMgr.DrawManager()
 					gSkillProfileIndex = GetKeyByValue(gSkillProfile,SkillMgr.profiles)
 					local uuid = GetUUID()
 					Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
+					Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
 					SkillMgr.UseProfile(gSkillProfile)
 					
 					
