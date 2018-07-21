@@ -1354,34 +1354,55 @@ function ml_navigation.Navigate(event, ticks )
 									--d("[Navigation]: Jumping towards Targetpos, Dist2d:"..tostring(todist2d).." - " ..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]))
 									if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
 										-- We reached our target node...
-										Player:StopMovement()
-										if ( nc.radius <= 0.5  ) then
-											-- let's cheat for precission :D
-											Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z, true)
-											d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
-										end
 										
-										if (nextnextnode) then
-											Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
-										end
-										ml_navigation.pathindex = ml_navigation.pathindex + 1
-										NavigationManager.NavPathNode = ml_navigation.pathindex
-										ml_navigation:ResetOMCHandler()
-																				
-									else
-										-- if we felt below start and landing pos, we will never make it to the goal anyway now
-										if ( from_pos.y > (ppos.y + 1)  and to_pos.y > (ppos.y + 1) ) then
-											if ( nc.radius <= 0.5  ) then												
-												Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z, true)
-												d("[Navigation]: [Jumping] - TP to End of Navconnection.")
-												ml_navigation.pathindex = ml_navigation.pathindex + 1
-												NavigationManager.NavPathNode = ml_navigation.pathindex
-												ml_navigation:ResetOMCHandler()
+										if ( nc.radius <= 0.5 ) then
+											-- let's cheat for precission :D											
+											if (Player:IsMoving() or Player:IsJumping() ) then
 												Player:StopMovement()
+												ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
+												return
+											else
+												Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
+												ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
 												if (nextnextnode) then
 													Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 												end
-												
+												ml_navigation.pathindex = ml_navigation.pathindex + 1
+												NavigationManager.NavPathNode = ml_navigation.pathindex
+												ml_navigation:ResetOMCHandler()
+												d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
+											end
+										else
+											Player:StopMovement()
+											if (nextnextnode) then
+												Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+											end
+											ml_navigation.pathindex = ml_navigation.pathindex + 1
+											NavigationManager.NavPathNode = ml_navigation.pathindex
+											ml_navigation:ResetOMCHandler()	
+											d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
+										end
+																														
+									else
+										-- if we felt below start and landing pos, we will never make it to the goal anyway now
+										if ( from_pos.y > (ppos.y + 1)  and to_pos.y > (ppos.y + 1) ) then
+											if ( nc.radius <= 0.5 ) then
+												-- let's cheat for precission :D											
+												if (Player:IsMoving() or Player:IsJumping() ) then
+													Player:StopMovement()
+													ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
+													return
+												else
+													Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
+													ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
+													if (nextnextnode) then
+														Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+													end
+													ml_navigation.pathindex = ml_navigation.pathindex + 1
+													NavigationManager.NavPathNode = ml_navigation.pathindex
+													ml_navigation:ResetOMCHandler()
+													d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
+												end
 											else
 												d("[Navigation]: [Jumping] - Failed to Reach End of Navconnection.")
 												Player:Stop()
@@ -1411,16 +1432,23 @@ function ml_navigation.Navigate(event, ticks )
 						-- OMC Teleport						
 						if ( nc.subtype == 3 ) then							
 							ml_navigation.GUI.lastAction = "Teleport NavConnection"
-							
-							Player:StopMovement()
-							if (gTeleportHack) then
-								Hacks:TeleportToXYZ(to_pos.x,to_pos.y,to_pos.z,true)
-							else
-								ffxiv_dialog_manager.IssueStopNotice("Teleport NavConnection","Teleport NavConnection exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
+							if (Player:IsMoving() or Player:IsJumping() ) then
+								Player:StopMovement()
+								Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+								ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
+								return
+							else							
+								Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
+								if (nextnextnode) then
+									Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+								end
+								ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
+								d(GetTickCount())
+								--ffxiv_dialog_manager.IssueStopNotice("Teleport NavConnection","Teleport NavConnection exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
-							ml_navigation:ResetOMCHandler()
+							ml_navigation:ResetOMCHandler()							
 							return
 						end
 						
@@ -2007,9 +2035,13 @@ function ml_navigation:EnsurePosition(ppos)
 	
 	if ( (ml_global_information.Now - self.ensurepositionstarttime) < 1000) then
 	
-		if ( not Player:IsMoving () and dist > 0.5 and dist < 3.0 ) then
-			Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
-			d("[Navigation:EnsurePosition]: TP to correct Start Position.")
+		if ( not Player:IsMoving () and dist > 0.5 and dist < 3.0 ) then	-- teleport while jumping results in a crippled state afterwards
+			if ( Player:IsJumping() ) then
+				return true
+			else
+				Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
+				d("[Navigation:EnsurePosition]: TP to correct Start Position.")
+			end
 		end
 		
 		-- update pos after teleport
@@ -2023,8 +2055,12 @@ function ml_navigation:EnsurePosition(ppos)
 			local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,self.ensureposition)
 							
 			if ( dist > 0.5 ) then
-				Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z,true)
-				d("[Navigation]: [EnsurePosition] - TP to correct location.")
+				if ( Player:IsJumping() ) then
+					return true
+				else
+					Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
+					d("[Navigation]: [EnsurePosition] - TP to correct location.")
+				end		
 			end
 			
 			if ( anglediff and (anglediff > 0.003 or anglediff < -0.003) ) then
