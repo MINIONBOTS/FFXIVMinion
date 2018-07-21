@@ -645,6 +645,7 @@ function ffxivminion.SetMainVars()
 	else
 		gBotMode = ffxivminion.GetSetting("gBotMode",GetString("assistMode"))
 	end
+	gBotMode = GetString(gBotMode)
 	gBotModeList = {GetString("none")}
 	
 	gSkillProfileIndex = 1
@@ -1384,6 +1385,7 @@ function ml_global_information.DrawMainFull()
 						if ( string.valid(uuid) ) then
 							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
 							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
+							Settings.FFXIVMINION.gBotModes = Settings.FFXIVMINION.gBotModes
 						end
 					end
 					GUI:EndGroup()
@@ -2342,7 +2344,6 @@ function ml_global_information.DrawAutoGrindEditor()
 		end
 	end
 end
-
 
 function ml_global_information.DrawHelper() -- Helper Window
 	local gamestate = MGetGameState()
