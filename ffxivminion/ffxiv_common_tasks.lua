@@ -686,7 +686,7 @@ function ffxiv_task_movetomap:task_complete_eval()
 end
 
 function ffxiv_task_movetomap:task_fail_eval()
-	return (not Player.alive)
+	return (not Player.alive or Player.incombat)
 end
 
 --=======================SUMMON CHOCO TASK=========================-

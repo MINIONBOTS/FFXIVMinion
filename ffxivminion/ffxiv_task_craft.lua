@@ -1047,7 +1047,6 @@ end
 
 function e_startcraft:execute()
 	if (e_startcraft.blocktime > 0) then
-		d("blocking")
 		ml_global_information.Await(e_startcraft.blocktime)
 		return
 	end
