@@ -1431,7 +1431,14 @@ Quest: Completes quests based on a questing profile.\
 							gSkillProfileIndex = 1
 						else
 							local uuid = GetUUID()
-							Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
+							if ( string.valid(uuid) ) then
+								gSMDefaultProfiles[Player.job] = gSkillProfile
+								Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
+								Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
+							else
+								d("UUID was invalid.")
+							end
+							
 							SkillMgr.UseProfile(gSkillProfile)
 						end
 					end
@@ -1452,7 +1459,7 @@ Quest: Completes quests based on a questing profile.\
 						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 					end
 					
-		GUI:Separator()
+					GUI:Separator()
 					--[[
 					GUI:PushItemWidth(width-80)
 					GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList, 

@@ -404,10 +404,14 @@ function e_movetonode:execute()
 			if (IsFlying()) then
 				local approachPosition = AceLib.API.Math.GetFlightApproach(pos)
 				if (approachPosition) then
-					if (NavigationManager:IsReachable(approachPosition)) then
-						d("used estimated position 1")
-						pos = shallowcopy(approachPosition)
-						foundPos = true
+					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
+					if (nearestMesh) then
+						local dist3d = math.distance3d(ppos,nearestMesh)
+						if (dist3d > 4 and NavigationManager:IsReachable(nearestMesh)) then
+							d("used estimated position 2")
+							pos = shallowcopy(nearestMesh)
+							foundPos = true
+						end
 					end
 				end
 			end
@@ -415,9 +419,10 @@ function e_movetonode:execute()
 			if (not foundPos) then
 				local approachPosition = AceLib.API.Math.GetSafestApproach(pos)
 				if (approachPosition) then
-					local nearestMesh = FindClosestMesh(approachPosition)
+					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
 					if (nearestMesh) then
-						if (NavigationManager:IsReachable(nearestMesh)) then
+						local dist3d = math.distance3d(ppos,nearestMesh)
+						if (dist3d > 3 and NavigationManager:IsReachable(nearestMesh)) then
 							d("used estimated position 2")
 							pos = shallowcopy(nearestMesh)
 							foundPos = true
