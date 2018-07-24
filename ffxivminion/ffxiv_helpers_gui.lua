@@ -176,17 +176,19 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 			GUI:OpenPopup(popup.title)
 		end
 		
-		local width, height = 500, 100
+		local width, height, force = 500, 100, false
 		if (popup.gui) then
 			if (popup.gui.height) then
 				height = popup.gui.height
+				force = true
 			end
 			if (popup.gui.width) then
 				width = popup.gui.width
+				force = true
 			end
 		end
 		
-		GUI:SetNextWindowSize(width,height,GUI.SetCond_Once)
+		GUI:SetNextWindowSize(width,height,IIF(force,GUI.SetCond_Always,GUI.SetCond_Once))
 		
 		if (GUI:BeginPopupModal(popup.title,true)) then
 			GUI:Spacing(); GUI:Spacing();
