@@ -34,132 +34,134 @@ function ffxiv_dialog_manager.TableToGUI(vars)
 					selectedIndex,selectedName = ml_gui.DrawTabs(popup.tab_control)
 				end
 			end
-			
+		
 			for k,vartable in pairsByKeys(vars) do
-				local controltype = vartable.type
-				local controldisplay = vartable.display
-				local controlvar = vartable.var
-				local controlisdefault = vartable.isdefault
-				local controldefault = vartable.default
-				local controlclick = vartable.onclick
-				local controlstep = IsNull(vartable.step,1)
-				local controlmin = vartable.minvalue
-				local controlmax = vartable.maxvalue
-				local controltab = vartable.tab
-				local onchange = vartable.onchange
-				local tooltip = vartable.tooltip
-				local sameline = vartable.sameline
-				local controlamount = vartable.amount
-				local width = vartable.width
-				
-				if (not controltab or (controltab and (selectedName == controltab))) then
-					local changedVal = false
+				if (type(vartable) == "table") then
+					local controltype = vartable.type
+					local controldisplay = vartable.display
+					local controlvar = vartable.var
+					local controlisdefault = vartable.isdefault
+					local controldefault = vartable.default
+					local controlclick = vartable.onclick
+					local controlstep = IsNull(vartable.step,1)
+					local controlmin = vartable.minvalue
+					local controlmax = vartable.maxvalue
+					local controltab = vartable.tab
+					local onchange = vartable.onchange
+					local tooltip = vartable.tooltip
+					local sameline = vartable.sameline
+					local controlamount = vartable.amount
+					local width = vartable.width
 					
-					if (width and type(width) == "number") then
-						GUI:PushItemWidth(width)
-					end
-					
-					if (controltype == "combobox") then
-						local controllist = vartable.list or ""
-						local combotable = string.totable(controllist,",")
-						local currentval = _G[controlvar]
-						local currentindex = GetKeyByValue(currentval,combotable)
+					if (not controltab or (controltab and (selectedName == controltab))) then
+						local changedVal = false
 						
-						local newindex = GUI:Combo(controldisplay, _G[controlvar.."_index"], combotable)
-						if (newindex ~= _G[controlvar.."_index"]) then
-							changedVal = true
-							_G[controlvar.."_index"] = newindex
-							_G[controlvar] = combotable[newindex]
-							Settings.FFXIVMINION[controlvar.."_index"] = _G[controlvar.."_index"]
-							Settings.FFXIVMINION[controlvar] = _G[controlvar]
+						if (width and type(width) == "number") then
+							GUI:PushItemWidth(width)
 						end
-					elseif (controltype == "checkbox" or controltype == "boolean") then
-						local newval = GUI:Checkbox(controldisplay,_G[controlvar])
-						if (newval ~= _G[controlvar]) then
-							changedVal = true
-							_G[controlvar] = newval
-							Settings.FFXIVMINION[controlvar] = _G[controlvar]
-						end
-					elseif (controltype == "numeric" or controltype == "number") then
-						local newval = GUI:InputInt(controldisplay,_G[controlvar],controlstep,(controlstep * 2))
-						if (newval ~= _G[controlvar]) then
-							local allowSave = true
-							if (controlmin and newval < controlmin) then
-								allowSave = false
-							elseif (controlmax and newval > controlmax) then
-								allowSave = false
+						
+						if (controltype == "combobox") then
+							local controllist = vartable.list or ""
+							local combotable = string.totable(controllist,",")
+							local currentval = _G[controlvar]
+							local currentindex = GetKeyByValue(currentval,combotable)
+							
+							local newindex = GUI:Combo(controldisplay, _G[controlvar.."_index"], combotable)
+							if (newindex ~= _G[controlvar.."_index"]) then
+								changedVal = true
+								_G[controlvar.."_index"] = newindex
+								_G[controlvar] = combotable[newindex]
+								Settings.FFXIVMINION[controlvar.."_index"] = _G[controlvar.."_index"]
+								Settings.FFXIVMINION[controlvar] = _G[controlvar]
 							end
-							if (allowSave) then
+						elseif (controltype == "checkbox" or controltype == "boolean") then
+							local newval = GUI:Checkbox(controldisplay,_G[controlvar])
+							if (newval ~= _G[controlvar]) then
 								changedVal = true
 								_G[controlvar] = newval
 								Settings.FFXIVMINION[controlvar] = _G[controlvar]
-							end	
+							end
+						elseif (controltype == "numeric" or controltype == "number") then
+							local newval = GUI:InputInt(controldisplay,_G[controlvar],controlstep,(controlstep * 2))
+							if (newval ~= _G[controlvar]) then
+								local allowSave = true
+								if (controlmin and newval < controlmin) then
+									allowSave = false
+								elseif (controlmax and newval > controlmax) then
+									allowSave = false
+								end
+								if (allowSave) then
+									changedVal = true
+									_G[controlvar] = newval
+									Settings.FFXIVMINION[controlvar] = _G[controlvar]
+								end	
+							end
+						elseif (controltype == "field" or controltype == "string") then
+							local newval = GUI:InputText(controldisplay,_G[controlvar])
+							if (newval ~= _G[controlvar]) then
+								changedVal = true
+								_G[controlvar] = newval
+								Settings.FFXIVMINION[controlvar] = _G[controlvar]
+							end
+						elseif (controltype == "button") then
+							local doExecute = false
+							if (controlisdefault and GUI:IsKeyPressed(13)) then
+								doExecute = true
+							end
+							if (width and type(width) == "number") then
+								if (GUI:Button(controldisplay,width,20)) then
+									doExecute = true
+								end
+							else
+								if (GUI:Button(controldisplay)) then
+									doExecute = true
+								end
+							end
+							if (doExecute) then
+								if (controlclick and type(controlclick) == "function") then
+									controlclick()
+								elseif (controlclick and type(controlclick) == "string") then
+									local f = LoadString(controlclick)
+								end
+							end
+						end	
+
+						if (changedVal and onchange and type(onchange) == "string") then
+							local f = LoadString(onchange)
 						end
-					elseif (controltype == "field" or controltype == "string") then
-						local newval = GUI:InputText(controldisplay,_G[controlvar])
-						if (newval ~= _G[controlvar]) then
-							changedVal = true
-							_G[controlvar] = newval
-							Settings.FFXIVMINION[controlvar] = _G[controlvar]
-						end
-					elseif (controltype == "button") then
-						local doExecute = false
-						if (controlisdefault and GUI:IsKeyPressed(13)) then
-							doExecute = true
-						end
+						
 						if (width and type(width) == "number") then
-							if (GUI:Button(controldisplay,width,20)) then
-								doExecute = true
-							end
-						else
-							if (GUI:Button(controldisplay)) then
-								doExecute = true
-							end
+							GUI:PopItemWidth()
 						end
-						if (doExecute) then
-							if (controlclick and type(controlclick) == "function") then
-								controlclick()
-							elseif (controlclick and type(controlclick) == "string") then
-								local f = LoadString(controlclick)
-							end
-						end
-					end	
 
-					if (changedVal and onchange and type(onchange) == "string") then
-						local f = LoadString(onchange)
-					end
-					
-					if (width and type(width) == "number") then
-						GUI:PopItemWidth()
-					end
-
-					if (string.valid(tooltip)) then
-						if (GUI:IsItemHovered()) then
-							GUI:SetTooltip(tooltip)
+						if (string.valid(tooltip)) then
+							if (GUI:IsItemHovered()) then
+								GUI:SetTooltip(tooltip)
+							end
 						end
-					end
-					
-					if (sameline and sameline == true) then
-						if (controlamount and type(controlamount) == "number") then
-							GUI:SameLine(0,controlamount)
-						else
-							GUI:SameLine(0,10)
+						
+						if (sameline and sameline == true) then
+							if (controlamount and type(controlamount) == "number") then
+								GUI:SameLine(0,controlamount)
+							else
+								GUI:SameLine(0,10)
+							end
 						end
-					end
-					
-					if (controltype == "spacing") then
-						if (controlamount and type(controlamount) == "number") then
-							for i = 1,controlamount do
+						
+						if (controltype == "spacing") then
+							if (controlamount and type(controlamount) == "number") then
+								for i = 1,controlamount do
+									GUI:Spacing()
+								end
+							else
 								GUI:Spacing()
 							end
-						else
-							GUI:Spacing()
 						end
+						
+						if (controltype == "separator") then
+							GUI:Separator()
+						end					
 					end
-					
-					if (controltype == "separator") then
-						GUI:Separator()
-					end					
 				end
 			end
 		end
@@ -186,9 +188,9 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 		
 		GUI:SetNextWindowSize(width,height,GUI.SetCond_Once)
 		
-		if (GUI:BeginPopupModal(popup.title, true)) then
-			GUI:Spacing(); GUI:Spacing(); 
-			
+		if (GUI:BeginPopupModal(popup.title,true)) then
+			GUI:Spacing(); GUI:Spacing();
+
 			local lines = popup.lines
 			if (type(lines) == "table") then
 				for i,line in pairsByKeys(lines) do
