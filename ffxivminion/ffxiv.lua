@@ -601,15 +601,15 @@ end
 function ffxivminion.SetMainVars()
 	-- Login
 	local uuid = GetUUID()
-	if ( Settings.FFXIVMINION.FFXIV_Login_DataCenters and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid] ) then
-		FFXIV_Login_DataCenterName = Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid]
+	if ( Settings.Global.FFXIV_Login_DataCenters and string.valid(uuid) and Settings.Global.FFXIV_Login_DataCenters[uuid] ) then
+		FFXIV_Login_DataCenterName = Settings.Global.FFXIV_Login_DataCenters[uuid]
 	else
 		FFXIV_Login_DataCenterName = ffxivminion.GetSetting("FFXIV_Login_DataCenterName",ffxivminion.logincenters[1])
 	end
 	FFXIV_Login_DataCenter = IsNull(GetKeyByValue(FFXIV_Login_DataCenterName,ffxivminion.logincenters),1)
 	
-	if ( Settings.FFXIVMINION.FFXIV_Login_Servers and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] ) then
-		FFXIV_Login_ServerName = Settings.FFXIVMINION.FFXIV_Login_Servers[uuid]
+	if ( Settings.Global.FFXIV_Login_Servers and string.valid(uuid) and Settings.Global.FFXIV_Login_Servers[uuid] ) then
+		FFXIV_Login_ServerName = Settings.Global.FFXIV_Login_Servers[uuid]
 		--d("pulling login server name for uuid ["..tostring(uuid).."], ["..tostring(FFXIV_Login_ServerName).."]")
 	else
 		FFXIV_Login_ServerName = ffxivminion.GetSetting("FFXIV_Login_ServerName",ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
@@ -622,14 +622,14 @@ function ffxivminion.SetMainVars()
 		--d("reset server selection to first server.")
 	end
 	
-	if ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] ) then
-		FFXIV_Login_ServiceAccount = Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid]
+	if ( Settings.Global.FFXIV_Login_ServiceAccounts and string.valid(uuid) and Settings.Global.FFXIV_Login_ServiceAccounts[uuid] ) then
+		FFXIV_Login_ServiceAccount = Settings.Global.FFXIV_Login_ServiceAccounts[uuid]
 	else
 		FFXIV_Login_ServiceAccount = ffxivminion.GetSetting("FFXIV_Login_ServiceAccount",1)
 	end
 	
-	if ( Settings.FFXIVMINION.FFXIV_Login_Characters and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] ) then
-		FFXIV_Login_Character = Settings.FFXIVMINION.FFXIV_Login_Characters[uuid]
+	if ( Settings.Global.FFXIV_Login_Characters and string.valid(uuid) and Settings.Global.FFXIV_Login_Characters[uuid] ) then
+		FFXIV_Login_Character = Settings.Global.FFXIV_Login_Characters[uuid]
 	else
 		FFXIV_Login_Character = ffxivminion.GetSetting("FFXIV_Login_Character",0)
 	end
@@ -833,7 +833,6 @@ end
 
 -- Module Event Handler
 function ffxivminion.HandleInit()
-
 	-- Build bottom menu for new GUI addons.
 	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
 	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ",true)
@@ -2036,21 +2035,23 @@ function ml_global_information.DrawSettings()
 					if (dcChanged) then
 						local uuid = GetUUID()
 						if ( string.valid(uuid) ) then
-							if  ( Settings.FFXIVMINION.FFXIV_Login_DataCenters == nil ) then 
-								Settings.FFXIVMINION.FFXIV_Login_DataCenters = {} 
+							if  ( Settings.Global.FFXIV_Login_DataCenters == nil ) then 
+								Settings.Global.FFXIV_Login_DataCenters = {} 
 							end
 							--d("set login datacenter to ["..tostring(FFXIV_Login_DataCenterName).."] for UUID ["..tostring(uuid).."]")
-							Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+							Settings.Global.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+							Settings.Global.FFXIV_Login_DataCenters = Settings.Global.FFXIV_Login_DataCenters
 						else
 							--d("uuid not valid")
 						end
 						GUI_Set("FFXIV_Login_Server",1)
 						GUI_Set("FFXIV_Login_ServerName","")
 						if ( string.valid(uuid) ) then
-							if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
-								Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+							if  ( Settings.Global.FFXIV_Login_Servers == nil ) then 
+								Settings.Global.FFXIV_Login_Servers = {} 
 							end
-							Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+							Settings.Global.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+							Settings.Global.FFXIV_Login_Servers = Settings.Global.FFXIV_Login_Servers
 						end
 						
 						ffxivminion.loginvars.datacenterSelected = false
@@ -2063,11 +2064,12 @@ function ml_global_information.DrawSettings()
 						if (serverChanged) then
 							local uuid = GetUUID()
 							if ( string.valid(uuid) ) then
-								if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
-									Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+								if  ( Settings.Global.FFXIV_Login_Servers == nil ) then 
+									Settings.Global.FFXIV_Login_Servers = {} 
 								end
 								--d("set login server to ["..tostring(FFXIV_Login_ServerName).."] for UUID ["..tostring(uuid).."]")
-								Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+								Settings.Global.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+								Settings.Global.FFXIV_Login_Servers = Settings.Global.FFXIV_Login_Servers
 							else	
 								--d("uuid not valid")
 							end
@@ -2080,10 +2082,11 @@ function ml_global_information.DrawSettings()
 						function () 
 							local uuid = GetUUID()
 							if ( string.valid(uuid) ) then
-								if  ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts == nil ) then 
-									Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts = {} 
+								if  ( Settings.Global.FFXIV_Login_ServiceAccounts == nil ) then 
+									Settings.Global.FFXIV_Login_ServiceAccounts = {} 
 								end
-								Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+								Settings.Global.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+								Settings.Global.FFXIV_Login_ServiceAccounts = Settings.Global.FFXIV_Login_ServiceAccounts
 							end
 						end 
 					)
@@ -2092,10 +2095,11 @@ function ml_global_information.DrawSettings()
 						function () 
 							local uuid = GetUUID()
 							if ( string.valid(uuid) ) then
-								if  ( Settings.FFXIVMINION.FFXIV_Login_Characters == nil ) then 
-									Settings.FFXIVMINION.FFXIV_Login_Characters = {} 
+								if  ( Settings.Global.FFXIV_Login_Characters == nil ) then 
+									Settings.Global.FFXIV_Login_Characters = {} 
 								end
-								Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
+								Settings.Global.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
+								Settings.Global.FFXIV_Login_Characters = Settings.Global.FFXIV_Login_Characters
 							end
 								
 							ffxivminion.loginvars.charSelected = false
@@ -2212,21 +2216,23 @@ function ml_global_information.DrawLoginHandler()
 			if (dcChanged) then
 				local uuid = GetUUID()
 				if ( string.valid(uuid) ) then
-					if  ( Settings.FFXIVMINION.FFXIV_Login_DataCenters == nil ) then 
-						Settings.FFXIVMINION.FFXIV_Login_DataCenters = {} 
+					if  ( Settings.Global.FFXIV_Login_DataCenters == nil ) then 
+						Settings.Global.FFXIV_Login_DataCenters = {} 
 					end
 					--d("set login datacenter to ["..tostring(FFXIV_Login_DataCenterName).."] for UUID ["..tostring(uuid).."]")
-					Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+					Settings.Global.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+					Settings.Global.FFXIV_Login_DataCenters = Settings.Global.FFXIV_Login_DataCenters
 				else
 					--d("uuid not valid")
 				end
 				GUI_Set("FFXIV_Login_Server",1)
 				GUI_Set("FFXIV_Login_ServerName","")
 				if ( string.valid(uuid) ) then
-					if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
-						Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+					if  ( Settings.Global.FFXIV_Login_Servers == nil ) then 
+						Settings.Global.FFXIV_Login_Servers = {} 
 					end
-					Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+					Settings.Global.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+					Settings.Global.FFXIV_Login_Servers = Settings.Global.FFXIV_Login_Servers
 				end
 				
 				ffxivminion.loginvars.datacenterSelected = false
@@ -2239,11 +2245,12 @@ function ml_global_information.DrawLoginHandler()
 				if (serverChanged) then
 					local uuid = GetUUID()
 					if ( string.valid(uuid) ) then
-						if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
-							Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
+						if  ( Settings.Global.FFXIV_Login_Servers == nil ) then 
+							Settings.Global.FFXIV_Login_Servers = {} 
 						end
 						--d("set login server to ["..tostring(FFXIV_Login_ServerName).."] for UUID ["..tostring(uuid).."]")
-						Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+						Settings.Global.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+						Settings.Global.FFXIV_Login_Servers = Settings.Global.FFXIV_Login_Servers
 					else	
 						--d("uuid not valid")
 					end
@@ -2256,10 +2263,11 @@ function ml_global_information.DrawLoginHandler()
 				function () 
 					local uuid = GetUUID()
 					if ( string.valid(uuid) ) then
-						if  ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts == nil ) then 
-							Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts = {} 
+						if  ( Settings.Global.FFXIV_Login_ServiceAccounts == nil ) then 
+							Settings.Global.FFXIV_Login_ServiceAccounts = {} 
 						end
-						Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+						Settings.Global.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+						Settings.Global.FFXIV_Login_ServiceAccounts = Settings.Global.FFXIV_Login_ServiceAccounts
 					end
 				end 
 			)
@@ -2268,10 +2276,11 @@ function ml_global_information.DrawLoginHandler()
 				function () 
 					local uuid = GetUUID()
 					if ( string.valid(uuid) ) then
-						if  ( Settings.FFXIVMINION.FFXIV_Login_Characters == nil ) then 
-							Settings.FFXIVMINION.FFXIV_Login_Characters = {} 
+						if  ( Settings.Global.FFXIV_Login_Characters == nil ) then 
+							Settings.Global.FFXIV_Login_Characters = {} 
 						end
-						Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
+						Settings.Global.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
+						Settings.Global.FFXIV_Login_Characters = Settings.Global.FFXIV_Login_Characters
 					end
 						
 					ffxivminion.loginvars.charSelected = false
