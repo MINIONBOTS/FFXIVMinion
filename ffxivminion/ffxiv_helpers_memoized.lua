@@ -47,10 +47,12 @@ end
 
 function MGetControls()
 	local memoized = memoize.controls
-	if (table.valid(memoized)) then
+	local lastcontroltick = IsNull(memoize.lastcontroltick,0)
+	if (table.valid(memoized) and lastcontroltick == Now()) then
 		return memoized
 	else
 		memoize.controls = GetControls()
+		memoize.lastcontroltick = Now()
 		if (table.valid(memoize.controls)) then
 			for id,e in pairs(memoize.controls) do
 				memoize.controls[e.name] = e
