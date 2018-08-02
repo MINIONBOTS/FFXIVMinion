@@ -147,6 +147,8 @@ function dev.DrawCall(event, ticks )
 															GUI:PushItemWidth(500)
 															if (data.type == "int32") then
 																GUI:Text(tostring(data.value))
+															elseif (data.type == "uint32") then
+																GUI:Text(tostring(data.value))
 															elseif (data.type == "bool") then
 																GUI:Text(tostring(data.value))
 															elseif (data.type == "string") then
