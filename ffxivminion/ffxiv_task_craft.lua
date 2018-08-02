@@ -1141,33 +1141,40 @@ function e_startcraft:execute()
 							local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
 							local craftAmount = (wantedAmount / yield)
 							if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
-								Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
+								--Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
+								UseControlAction("RecipeNote","Quick Synthesis",{craftAmount, ml_task_hub:CurrentTask().useHQ})
 							else
 								if ((maxAmount / yield) > 99) then
-									ml_global_information.Await(math.random(1000,2000))
-									Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
+									--ml_global_information.Await(math.random(1000,2000))
+									--Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
+									UseControlAction("RecipeNote","Quick Synthesis",{99, ml_task_hub:CurrentTask().useHQ})
 								else
-									ml_global_information.Await(math.random(1000,2000))
-									Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
+									--ml_global_information.Await(math.random(1000,2000))
+									--Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
+									UseControlAction("RecipeNote","Quick Synthesis",{(maxAmount / yield), ml_task_hub:CurrentTask().useHQ})
 								end
 							end
-							if (IsControlOpen("RecipeNote")) then
-								ffxiv_craft.ToggleCraftingLog()
-							end
+							--if (IsControlOpen("RecipeNote")) then
+								--ffxiv_craft.ToggleCraftingLog()
+							--end
 							SkillMgr.newCraft = true
 							ml_task_hub:CurrentTask().allowWindowOpen = false
+							ml_global_information.Await(5000, function () return (IsControlOpen("SynthesisSimple") and not IsControlOpen("RecipeNote")) end)
+							return true
 						else
-							ml_global_information.Await(math.random(1000,2000))
-							Crafting:CraftSelectedItem()
-							ml_global_information.Await(2000, function () return (IsControlOpen("Synthesis") and IsControlOpen("RecipeNote")) end, ffxiv_craft.ToggleCraftingLog())
-									
-							Crafting:CraftSelectedItem()
-							if (IsControlOpen("RecipeNote")) then
-								ffxiv_craft.ToggleCraftingLog()
-							end
+							--ml_global_information.Await(math.random(1000,2000))
+							--Crafting:CraftSelectedItem()
+															
+							--Crafting:CraftSelectedItem()
+							--if (IsControlOpen("RecipeNote")) then
+								--ffxiv_craft.ToggleCraftingLog()
+							--end
+							UseControlAction("RecipeNote","Synthesize")	
 							SkillMgr.newCraft = true
 							ml_task_hub:CurrentTask().matsSet = false
 							ml_task_hub:CurrentTask().allowWindowOpen = false
+							ml_global_information.Await(5000, function () return (IsControlOpen("Synthesis") and not IsControlOpen("RecipeNote")) end)
+							return true
 						end
 						ml_global_information.Await(2500)
 						return
@@ -1189,14 +1196,16 @@ function e_startcraft:execute()
 			end
 		end
 	elseif gCraftMarkerOrProfileIndex ~= 1 then				
-		Crafting:CraftSelectedItem()
-		if (IsControlOpen("RecipeNote")) then
-			ffxiv_craft.ToggleCraftingLog()
-		end
+		--Crafting:CraftSelectedItem()
+		--if (IsControlOpen("RecipeNote")) then
+			--ffxiv_craft.ToggleCraftingLog()
+		--end
+		
+		UseControlAction("RecipeNote","Synthesize")	
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
-		ml_global_information.Await(2500)
-		ml_task_hub:CurrentTask().allowWindowOpen = false
+		ml_global_information.Await(5000, function () return (IsControlOpen("Synthesis") and not IsControlOpen("RecipeNote")) end)
+		--ml_task_hub:CurrentTask().allowWindowOpen = false
 	end
 end
 

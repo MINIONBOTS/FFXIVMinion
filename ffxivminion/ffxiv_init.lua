@@ -798,8 +798,17 @@ function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,igno
 								if (postDelay ~= 0) then
 									ml_global_information.Await(postDelay)
 								end
-								if (control:Action(action,actionArg)) then
-									return true
+								if (type(actionArg) == "table") then
+									-- handle multiple args, min 2, max 3 args, using index 1-3
+									if (table.size(actionArg) == 2) then
+										control:Action(action,actionArg[1],actionArg[2])
+									elseif (table.size(actionArg) == 3) then
+										control:Action(action,actionArg[1],actionArg[2],actionArg[3])
+									end
+								else
+									if (control:Action(action,actionArg)) then
+										return true
+									end
 								end
 								return false
 							end
