@@ -1020,7 +1020,7 @@ function c_startcraft:evaluate()
 										Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
 										e_startcraft.blocktime = math.random(150,300)
 										return true
-									elseif (ingredient.needed > (ingredient.selectednq + ingredient.selectedhq) and ingredent.needed <= (ingredient.inventoryhq + ingredient.inventorynq)) then -- ghetto fix, can't manually update nq mats atm
+									elseif (ingredient.needed > (ingredient.selectednq + ingredient.selectedhq) and ingredient.needed <= (ingredient.inventoryhq + ingredient.inventorynq)) then -- ghetto fix, can't manually update nq mats atm
 										--ml_global_information:ToggleRun()
 										ffxiv_craft:ToggleCraftingLog()
 										ml_task_hub:CurrentTask().allowWindowOpen = true
