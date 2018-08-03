@@ -1014,11 +1014,18 @@ function c_startcraft:evaluate()
 									Crafting:SetCraftingMats(i-1,ingredient.needed)
 									e_startcraft.blocktime = math.random(150,300)
 									return true
-								elseif (ingredient.needed > ingredient.inventoryhq and ingredient.selectedhq < ingredient.inventoryhq) then
-									d("[Craft]: This craft will use ["..tostring(ingredient.needed).."] HQ of ["..ingredient.name.."], since we can't use 100% HQ.")
-									Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
-									e_startcraft.blocktime = math.random(150,300)
-									return true
+								elseif (ingredient.needed > ingredient.inventoryhq) then
+									if (ingredient.selectedhq < ingredient.inventoryhq) then
+										d("[Craft]: This craft will use ["..tostring(ingredient.needed).."] HQ of ["..ingredient.name.."], since we can't use 100% HQ.")
+										Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+										e_startcraft.blocktime = math.random(150,300)
+										return true
+									elseif (ingredient.needed > (ingredient.selectednq + ingredient.selectedhq) and ingredent.needed <= (ingredient.inventoryhq + ingredient.inventorynq)) then -- ghetto fix, can't manually update nq mats atm
+										--ml_global_information:ToggleRun()
+										ffxiv_craft:ToggleCraftingLog()
+										ml_task_hub:CurrentTask().allowWindowOpen = true
+										return false
+									end
 								end
 							end
 						else
