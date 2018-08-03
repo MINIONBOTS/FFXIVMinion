@@ -824,7 +824,7 @@ function c_closelog:evaluate()
 	if (ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
-	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") or MIsLoading() or IsControlOpen("Talk") or IsControlOpen("Request")) then	
+	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("SynthesisSimpleDialog") or IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") or MIsLoading() or IsControlOpen("Talk") or IsControlOpen("Request")) then	
 		--d("Cannot clear inventory, basic reasons.")
 		return false
 	end
@@ -918,7 +918,7 @@ function c_opencraftwnd:evaluate()
 		return false
 	end
 	
-	if (not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple") and not IsControlOpen("RecipeNote")) then
+	if (not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple") and not IsControlOpen("SynthesisSimpleDialog") and not IsControlOpen("RecipeNote")) then
 		local logOpen = ActionList:Get(10,9)
 		if (logOpen and logOpen.usable) then
 			logOpen:Cast(Player.id)
@@ -938,7 +938,7 @@ e_startcraft = inheritsFrom( ml_effect )
 e_startcraft.blocktime = 0
 function c_startcraft:evaluate()
 	e_startcraft.blocktime = 0
-	if (not ffxiv_craft.IsCrafting() and IsControlOpen("RecipeNote")) then
+	if (not ffxiv_craft.IsCrafting() and (IsControlOpen("RecipeNote") or IsControlOpen("SynthesisSimpleDialog"))) then
 		
 		if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 			local recipe = ml_task_hub:CurrentTask().recipe
@@ -967,7 +967,7 @@ function c_startcraft:evaluate()
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
 				local quickCraft = ml_task_hub:CurrentTask().useQuick
-				if (canCraft) or (ml_task_hub:CurrentTask().ifNecessary) then
+				if (canCraft or ml_task_hub:CurrentTask().ifNecessary) then
 					if (requiredItems == 0 or (requiredItems > 0 and itemcount < (requiredItems + startingCount))) then
 						if (Player.cp.max >= minCP) or (quickCraft and not requireCollect) then
 							return true
@@ -1139,36 +1139,43 @@ function e_startcraft:execute()
 							local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 							local wantedAmount = ml_task_hub:ThisTask().requiredItems
 							local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
-							local craftAmount = (wantedAmount / yield)
+							local craftAmount = math.ceil(wantedAmount / yield)
 							if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
-								--Crafting:CraftSelectedItem(craftAmount,ml_task_hub:CurrentTask().useHQ)
-								UseControlAction("RecipeNote","Quick Synthesis",{craftAmount, ml_task_hub:CurrentTask().useHQ})
+								if (IsControlOpen("SynthesisSimpleDialog")) then
+									d("using control with craftamount :"..tostring(craftAmount))
+									UseControlAction("SynthesisSimpleDialog","Synthesize",{craftAmount, ml_task_hub:CurrentTask().useHQ})
+								else
+									d("using quick synth again")
+									UseControlAction("RecipeNote","QuickSynthesis",{craftAmount, ml_task_hub:CurrentTask().useHQ})
+									ml_global_information.Await(1000, 5000, function () return (IsControlOpen("SynthesisSimpleDialog") and not IsControlOpen("RecipeNote")) end)
+									return
+								end
 							else
 								if ((maxAmount / yield) > 99) then
-									--ml_global_information.Await(math.random(1000,2000))
-									--Crafting:CraftSelectedItem(99,ml_task_hub:CurrentTask().useHQ)
-									UseControlAction("RecipeNote","Quick Synthesis",{99, ml_task_hub:CurrentTask().useHQ})
+									if (IsControlOpen("SynthesisSimpleDialog")) then
+										d("using control with 99 :"..tostring(craftAmount))
+										UseControlAction("SynthesisSimpleDialog","Synthesize",{99, ml_task_hub:CurrentTask().useHQ})
+									else
+										UseControlAction("RecipeNote","QuickSynthesis",{craftAmount, ml_task_hub:CurrentTask().useHQ})
+										ml_global_information.Await(1000, 5000, function () return (IsControlOpen("SynthesisSimpleDialog") and not IsControlOpen("RecipeNote")) end)
+										return
+									end
 								else
-									--ml_global_information.Await(math.random(1000,2000))
-									--Crafting:CraftSelectedItem((maxAmount / yield),ml_task_hub:CurrentTask().useHQ)
-									UseControlAction("RecipeNote","Quick Synthesis",{(maxAmount / yield), ml_task_hub:CurrentTask().useHQ})
+									if (IsControlOpen("SynthesisSimpleDialog")) then
+										d("using control with max yield :"..tostring(craftAmount))
+										UseControlAction("SynthesisSimpleDialog","Synthesize",{(maxAmount / yield), ml_task_hub:CurrentTask().useHQ})
+									else
+										UseControlAction("RecipeNote","QuickSynthesis",{craftAmount, ml_task_hub:CurrentTask().useHQ})
+										ml_global_information.Await(1000, 5000, function () return (IsControlOpen("SynthesisSimpleDialog") and not IsControlOpen("RecipeNote")) end)
+										return
+									end
 								end
 							end
-							--if (IsControlOpen("RecipeNote")) then
-								--ffxiv_craft.ToggleCraftingLog()
-							--end
 							SkillMgr.newCraft = true
 							ml_task_hub:CurrentTask().allowWindowOpen = false
 							ml_global_information.Await(5000, function () return (IsControlOpen("SynthesisSimple") and not IsControlOpen("RecipeNote")) end)
 							return true
 						else
-							--ml_global_information.Await(math.random(1000,2000))
-							--Crafting:CraftSelectedItem()
-															
-							--Crafting:CraftSelectedItem()
-							--if (IsControlOpen("RecipeNote")) then
-								--ffxiv_craft.ToggleCraftingLog()
-							--end
 							UseControlAction("RecipeNote","Synthesize")	
 							SkillMgr.newCraft = true
 							ml_task_hub:CurrentTask().matsSet = false
@@ -1176,7 +1183,6 @@ function e_startcraft:execute()
 							ml_global_information.Await(5000, function () return (IsControlOpen("Synthesis") and not IsControlOpen("RecipeNote")) end)
 							return true
 						end
-						ml_global_information.Await(2500)
 						return
 					else
 						if (ml_task_hub:CurrentTask().failedAttempts < 2) then
@@ -1196,11 +1202,6 @@ function e_startcraft:execute()
 			end
 		end
 	elseif gCraftMarkerOrProfileIndex ~= 1 then				
-		--Crafting:CraftSelectedItem()
-		--if (IsControlOpen("RecipeNote")) then
-			--ffxiv_craft.ToggleCraftingLog()
-		--end
-		
 		UseControlAction("RecipeNote","Synthesize")	
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
@@ -1730,6 +1731,7 @@ function ffxiv_task_craft:UIInit()
 	end
 	if (Settings.FFXIVMINION.gLastCraftProfiles[uuid] == nil) then
 		Settings.FFXIVMINION.gLastCraftProfiles[uuid] = {}
+		Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
 	end
 	
 	_G["gCraftProfile"] = Settings.FFXIVMINION.gLastCraftProfiles[uuid] or ffxiv_craft.profilesDisplay[1]
@@ -1903,6 +1905,7 @@ function ffxiv_task_craft:Draw()
 			ffxiv_craft.profileData = ffxiv_craft.profiles[gCraftProfile]
 			local uuid = GetUUID()
 			Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
+			Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
 			ffxiv_craft.orders = ffxiv_craft.profileData.orders
 			ffxiv_craft.ResetOrders()
 		end
@@ -1942,7 +1945,7 @@ function ffxiv_task_craft:Draw()
 						gCraftProfileIndex = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay)
 						local uuid = GetUUID()
 						Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
-						
+						Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
 					end,
 				},
 				{
