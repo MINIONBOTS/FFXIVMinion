@@ -1535,10 +1535,10 @@ function GetNearestFromList(strList,pos,radius)
 		
 		if (table.valid(filteredList)) then
 			table.sort(filteredList,function(a,b) return a.distance2d < b.distance2d end)
-			
-			local i,e = next(filteredList)
-			if (i and e) then
-				return e
+			for i,e in ipairs(filteredList) do
+				if (i and e) then
+					return e
+				end
 			end
 		end
 	end
@@ -1608,10 +1608,10 @@ function GetNearestGatherable(marker)
 		
 		if (table.valid(gatherables)) then
 			table.sort(gatherables,	function(a,b) return a.pathdistance < b.pathdistance end)
-			
-			local i,g = next(gatherables)
-			if (i and g) then
-				return g
+			for i,g in ipairs(gatherables) do
+				if (i and g) then
+					return g
+				end
 			end
 		end
 	end
@@ -5374,9 +5374,9 @@ function GetForelandsSection(pos)
         },
         [2] = {
             a = {x = 640, z = -647},
-            b = {x = 160, z = -647},
-            c = {x = 160, z = -555},
-            d = {x = 640, z = -555},
+			b = {x = 640, z = -555},
+			c = {x = 160, z = -555},
+            d = {x = 160, z = -647},
             x = {x = 400, ymax = 10, z = -601},
         },
         [3] = {
@@ -5388,23 +5388,23 @@ function GetForelandsSection(pos)
         },
         [4] = {
             a = {x = 33, z = -208},
-            b = {x = 98, z = -208},
-            c = {x = 98, z = -109},
-            d = {x = 33, z = -109},
+			b = {x = 33, z = -109},
+			c = {x = 98, z = -109},
+            d = {x = 98, z = -208},
             x = {x = 65.5, z = -158.5},
         },
         [5] = {
-            a = {x = 98, z = -246},
-            b = {x = -29, z = -246},
-            c = {x = -29, z = -490},
-            d = {x = 98, z = -490},
+            a = {x =  98, z = -246},
+			b = {x =  98, z = -490},
+			c = {x = -29, z = -490},
+            d = {x = -29, z = -246},
             x = {x = 34.5, z = -368},
         },
         [6] = {
             a = {x = 98, z = -490},
-            b = {x = 80, z = -490},
-            c = {x = 80, z = -520},
-            d = {x = 98, z = -520},
+			b = {x = 98, z = -520},
+			c = {x = 80, z = -520},
+            d = {x = 80, z = -490},
             x = {x = 89, z = -505},
         },
     }
@@ -6132,7 +6132,8 @@ function Transport398(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
-	if (not CanFlyInZone()) then
+	if (false) then -- need to re-evaluate the sections before enabling this
+	--if (not CanFlyInZone()) then
 		if (GetForelandsSection(pos1) ~= GetForelandsSection(pos2)) then
 			if (GilCount() > 1000) then
 				if (GetForelandsSection(Player.pos) == 2) then
