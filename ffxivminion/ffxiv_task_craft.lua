@@ -857,15 +857,30 @@ function c_craftlimit:evaluate()
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
-			local itemcount = 0
+			local getcounts = {}
+			getcounts[itemid] = true
+			getcounts[itemid + 1000000] = true
+			getcounts[itemid + 500000] = true
+			
+			local getcountsorted = {}
+			for itemid,_ in pairs(getcounts) do
+				table.insert(getcountsorted,itemid)
+			end
+			
+			local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+			
+			local itemcountnorm = IsNull(itemcounts[itemid].count,0)
+			local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
+			local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+			local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
+			
+			
 			if (requireCollect) then
-				itemcount = itemcount + ItemCount(itemid + 500000)
+				itemcount = itemcountCollectable
 			elseif (requireHQ) then
-				itemcount = itemcount + ItemCount(itemid + 1000000)
+				itemcount = itemcountHQ
 			elseif (countHQ) then
-				itemcount = itemcount + ItemCount(itemid,true)
-			else
-				itemcount = itemcount + ItemCount(itemid)
+				itemcount = itemcountnorm + itemcountHQ
 			end
 			
 			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
@@ -1981,6 +1996,7 @@ function ffxiv_task_craft:Draw()
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				local requireHQ = ml_task_hub:CurrentTask().requireHQ
 				local countHQ = ml_task_hub:CurrentTask().countHQ
+				
 				local itemcount = 0
 				if (requireCollect) then
 					itemcount = itemcount + ItemCount(itemid + 500000)
@@ -2110,7 +2126,6 @@ function ffxiv_task_craft:Draw()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-				--ffxiv_craft.UpdateAlertElement()
 				
 				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 				
@@ -2507,6 +2522,7 @@ function ffxiv_craft.UpdateAlertElement()
 		local orders = ffxiv_craft.orders
 		local foundSelection = false
 		if (table.valid(orders)) then
+		
 			local getcounts = {}
 			for id,order in pairs(orders) do
 				local itemid = order.item
@@ -2591,6 +2607,12 @@ function ffxiv_craft.UpdateAlertElement()
 				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
 				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
 				
+				--cd("itemid = "..tostring(itemid))
+				--cd("itemcountnorm = "..tostring(itemcountnorm))
+				--cd("itemcountHQ = "..tostring(itemcountHQ))
+				--cd("itemcountCollectable = "..tostring(itemcountCollectable))
+				--cd("itemcount = "..tostring(itemcount))
+				
 				--itemcount = itemcount + ItemCount(itemid,true)
 				--itemcountnorm = itemcountnorm + ItemCount(itemid,false)
 				--itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
@@ -2610,7 +2632,7 @@ function ffxiv_craft.UpdateAlertElement()
 			end
 		end
 		--ffxiv_craft.SaveProfile()
-		--ffxiv_craft.tracking.measurementDelay = Now() + 1000
+		ffxiv_craft.tracking.measurementDelay = Now() + 1000
 	end
 end	
 
@@ -2911,7 +2933,6 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-						--ffxiv_craft.UpdateAlertElement()
 						
 						local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 						if uiAlert == "skip" then
