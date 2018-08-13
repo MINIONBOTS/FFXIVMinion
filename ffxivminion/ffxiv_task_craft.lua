@@ -967,15 +967,30 @@ function c_startcraft:evaluate()
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 				
-				local itemcount = 0
+				local getcounts = {}
+				getcounts[itemid] = true
+				getcounts[itemid + 1000000] = true
+				getcounts[itemid + 500000] = true
+				
+				local getcountsorted = {}
+				for itemid,_ in pairs(getcounts) do
+					table.insert(getcountsorted,itemid)
+				end
+				
+				local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+				
+				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
+				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
+				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
+				
+				
 				if (requireCollect) then
-					itemcount = itemcount + ItemCount(itemid + 500000)
+					itemcount = itemcountCollectable
 				elseif (requireHQ) then
-					itemcount = itemcount + ItemCount(itemid + 1000000)
+					itemcount = itemcountHQ
 				elseif (countHQ) then
-					itemcount = itemcount + ItemCount(itemid,true)
-				else
-					itemcount = itemcount + ItemCount(itemid)
+					itemcount = itemcountnorm + itemcountHQ
 				end
 					
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
