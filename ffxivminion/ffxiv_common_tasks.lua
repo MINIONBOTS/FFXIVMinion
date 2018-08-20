@@ -1236,10 +1236,12 @@ function ffxiv_task_rest:task_complete_eval()
 		return false
 	end
 	
-    if not IsOnMap(732) and ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
-		return true
+	local restHP, restMP = gRestHP, gRestMP
+	if (IsEurekaMap(Player.localmapid)) then
+		restHP, restMP = gEurekaRestHP, gEurekaRestMP
 	end
-	 if IsOnMap(732) and ((Player.hp.percent > math.random(90,95) or tonumber(gEurekaRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gEurekaRestMP) == 0)) then
+	
+    if ((Player.hp.percent > math.random(90,95) or tonumber(restHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(restMP) == 0)) then
 		return true
 	end
 	
@@ -1326,14 +1328,15 @@ function ffxiv_task_flee:task_complete_eval()
 		end
     end
 	
+	local fleeHP, fleeMP, restHP, restMP, potionHP = gFleeHP, gFleeMP, gRestHP, gRestMP, gPotionHP
+	if (IsEurekaMap(Player.localmapid)) then
+		fleeHP, fleeMP, restHP, restMP, potionHP = gEurekaFleeHP, gEurekaFleeMP, gEurekaRestHP, gEurekaRestMP, gEurekaPotionHP
+	end
+	
 	return (not Player.incombat or 
-		(not IsOnMap(732) and (tonumber(gRestHP) > tonumber(gFleeHP) and Player.hp.percent > tonumber(gRestHP) and tonumber(gRestMP) > tonumber(gFleeMP) and Player.mp.percent > tonumber(gRestMP)) or
-		(tonumber(gFleeHP) > 0 and Player.hp.percent > tonumber(gPotionHP)) or
-		(tonumber(gFleeHP) > 0 and Player.hp.percent > 75))
-		or
-		(IsOnMap(732) and (tonumber(gEurekaRestHP) > tonumber(gEurekaFleeHP) and Player.hp.percent > tonumber(gEurekaRestHP) and tonumber(gEurekaRestMP) > tonumber(gEurekaFleeMP) and Player.mp.percent > tonumber(gEurekaRestMP)) or
-		(tonumber(gEurekaFleeHP) > 0 and Player.hp.percent > tonumber(gEurekaPotionHP)) or
-		(tonumber(gEurekaFleeHP) > 0 and Player.hp.percent > 75)))
+		((tonumber(restHP) > tonumber(fleeHP) and Player.hp.percent > tonumber(restHP) and tonumber(restMP) > tonumber(fleeMP) and Player.mp.percent > tonumber(restMP)) or
+		(tonumber(fleeHP) > 0 and Player.hp.percent > tonumber(potionHP)) or
+		(tonumber(fleeHP) > 0 and Player.hp.percent > 75)))
 end
 
 function ffxiv_task_flee:task_complete_execute()

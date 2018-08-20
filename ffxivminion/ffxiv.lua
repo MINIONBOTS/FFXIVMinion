@@ -710,7 +710,7 @@ function ffxivminion.SetMainVars()
 	gChocoQuest = ffxivminion.GetSetting("gChocoQuest",true)
 	
 	gChocoStance = ffxivminion.GetSetting("gChocoStance",1)
-	gChocoStances = {GetString("stFree"), GetString("stDefender"), GetString("stAttacker"), GetString("stHealer"), GetString("stFollow")}
+	gChocoStances = {GetString("stFree"), GetString("stDefender"), GetString("stAttacker"), GetString("stHealer"), GetString("stFollow"), GetString("None")}
 	gChocoStanceString = gChocoStances[gChocoStance]
 	
 	gChocoItem = ffxivminion.GetSetting("gChocoItem",1)

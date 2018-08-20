@@ -484,6 +484,9 @@ function e_faterandomdelay:execute()
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
+--622, 1308  239.30, 11, 191.99, 6559
+
+
 c_startfate = inheritsFrom( ml_cause )
 e_startfate = inheritsFrom( ml_effect )
 e_startfate.contentid = 0
@@ -590,6 +593,7 @@ function c_turninItem:evaluate()
 			local npcid = gatherable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
+				
 				local turninid = gatherable.turninid
 				local currentcount = ItemCount(turninid,{2004})
 				if ((currentcount >= gFateGatherTurnCount) or (currentcount >= 1 and (fate.status == 8 or fate.duration < 120))) then
@@ -1140,6 +1144,7 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 			[1255] = { id = 6543, pos = {x = -210, y = 83, z = -532 } },
 			[1261] = { id = 6547, pos = {x = 460, y = -24, z = 586 } },
 			[1269] = { id = 6554, pos = {x = 166, y = 34, z = -332 } },
+			[1308] = { id = 6559, pos = {x = 239, y = 11, z = -191 } },
 		},
 	}
 	
@@ -1201,7 +1206,6 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 			[821] = { id = 4254, pos = {x = 519, y = -44, z = -147 }, itemid = 2006422, turninid = 2001885 },
 		},
 		
-		
 		[400] = {
 			[728] = { id = 3959, pos = {x = 597, y = -9, z = -35 }, itemid = 2006126, turninid = 2001788 },
 		},
@@ -1220,15 +1224,18 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		},
 			
 		[614] = {
-				[1111] = { id = 6291, pos = {x = -76, y = 61, z = -700 }, itemid = 2008613, turninid = 2002389 },
-				[1136] = { id = 6735, pos = {x = 647, y = 82, z = 230 }, itemid = 2008959, turninid = 2002235 },
-				[1224] = { id = 6508, pos = {x = 230, y = 43, z = 52 }, itemid = 2008751, turninid = 2002270 },
-				[1225] = { id = 6510, pos = {x = 438, y = 86, z = 40 }, itemid = 2008752, turninid = 2002271 },
+			[1111] = { id = 6291, pos = {x = -76, y = 61, z = -700 }, itemid = 2008613, turninid = 2002389 },
+			[1136] = { id = 6735, pos = {x = 647, y = 82, z = 230 }, itemid = 2008959, turninid = 2002235 },
+			[1224] = { id = 6508, pos = {x = 230, y = 43, z = 52 }, itemid = 2008751, turninid = 2002270 },
+			[1225] = { id = 6510, pos = {x = 438, y = 86, z = 40 }, itemid = 2008752, turninid = 2002271 },
 		},
-			
 		[620] = {
 			[1186] = { id = 6439, pos = {x = 211, y = 311, z = 371 }, itemid = 2008956, turninid = 2002267 },
+			
 		},
+		[622] = {
+			[1308] = { id = 6559, pos = {x = 239, y = 11, z = -191 }, itemid = 2008947, turninid = 2002385 },
+		}
 	}
 	
 	local mapGatherable = gatherable[mapid]

@@ -459,7 +459,7 @@ function c_avoid:evaluate()
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
-	if IsOnMap(732) and (tonumber(gEurekaAvoidHP) == 0 or tonumber(gEurekaAvoidHP) < Player.hp.percent) then
+	if IsEurekaMap(Player.localmapid) and (tonumber(gEurekaAvoidHP) == 0 or tonumber(gEurekaAvoidHP) < Player.hp.percent) then
 		return false
 	end
 	
@@ -592,7 +592,7 @@ function c_autopotion:evaluate()
 	c_autopotion.item = nil
 	
 	if (Player.alive) then
-		if IsOnMap(732) then
+		if IsEurekaMap(Player.localmapid) then
 			if (tonumber(gEurekaPotionHP) > 0 and Player.hp.percent < tonumber(gEurekaPotionHP)) then
 				local Eurekapotion, EurekapotionAction = GetItem(22306)
 				if (Eurekapotion and EurekapotionAction and not EurekapotionAction.isoncd) then
@@ -1972,15 +1972,17 @@ end
 c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
-	local companion = GetCompanionEntity()
-	if (companion and ValidString(gChocoStanceString)) then
-		if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
-			local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
-			if (stanceAction) then
-				local acStance = ActionList:Get(6,stanceAction)		
-				if (acStance and not acStance.isoncd and acStance.usable) then
-					acStance:Cast(Player.id)
-					return true
+	if (gChocoStanceString ~= GetString("None")) then -- Index 6 is "none"
+		local companion = GetCompanionEntity()
+		if (companion and ValidString(gChocoStanceString)) then
+			if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
+				local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
+				if (stanceAction) then
+					local acStance = ActionList:Get(6,stanceAction)		
+					if (acStance and not acStance.isoncd and acStance.usable) then
+						acStance:Cast(Player.id)
+						return true
+					end
 				end
 			end
 		end
@@ -2805,7 +2807,7 @@ function c_rest:evaluate()
 		return false
 	end
 	
-	if (InInstance() and not IsOnMap(732)) then
+	if (InInstance() and not IsEurekaMap(Player.localmapid)) then
 		return false
 	end
 	
@@ -2829,7 +2831,7 @@ function c_rest:evaluate()
 	local isDOH = (Player.job >= 8 and Player.job <= 15)
 	
 	local dorest = false
-	if IsOnMap(732) then
+	if IsEurekaMap(Player.localmapid) then
 		if (( tonumber(gEurekaRestHP) > 0 and Player.hp.percent < tonumber(gEurekaRestHP)) or
 		(( tonumber(gEurekaRestMP) > 0 and Player.mp.percent < tonumber(gEurekaRestMP)) and not isDOL and not isDOH)) then
 			dorest = true
@@ -3018,7 +3020,7 @@ function e_dead:execute()
 
 	if (Player.revivestate == 2) then
 		-- try raise first
-		if (IsOnMap(732)) then
+		if (IsEurekaMap(Player.localmapid)) then
 			if (HasBuffs(Player,"148,1140")) then
 				if (UseControlAction("SelectYesno","Yes")) then
 					c_dead.timer = 0

@@ -1918,7 +1918,7 @@ end
 function GetFleeHP()
 	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
 	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
-	if IsOnMap(732) then
+	if IsEurekaMap(Player.localmapid) then
 		fleeHP = tonumber(gEurekaFleeHP) + (3 * attackingMobs)
 	end
 	return fleeHP
@@ -5221,6 +5221,15 @@ function IsPVPMap(mapid)
 		[554] = true,
 	}
 	return (pvpMaps[mapid] ~= nil)
+end
+
+function IsEurekaMap(mapid)
+	local mapid = tonumber(mapid) or 0
+	local eMaps = {
+		[732] = true,
+		[763] = true,
+	}
+	return (eMaps[mapid] ~= nil)
 end
 
 function CanUseAirship()
