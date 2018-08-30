@@ -43,14 +43,22 @@ function FindRadarMarker(id,flag,both)
 	if (table.valid(info)) then
 		if (table.valid(info.markers)) then
 			for k,marker in pairs(info.markers) do
-				if (id ~= 0 and marker.id == id) then
-					d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
-					viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
-					return viable
-				elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
-					d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
-					viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
-					return viable
+				if (both and id ~= 0 and flag ~= 0) then
+					if (id ~= 0 and marker.id == id and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
+						d("[FindRadarMarker] Found a marker with id ["..tostring(id).."] and flag ["..tostring(flag).."].")
+						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+						return viable
+					end
+				else
+					if (id ~= 0 and marker.id == id and flag ~= 0 and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
+						d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+						return viable
+					elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
+						d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
+						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+						return viable
+					end
 				end
 			end
 		end
@@ -6706,7 +6714,13 @@ function Dive()
 		ffnav.AwaitSuccessFail(250, 1000, 
 			function () return (Player.pos.y < startHeight or MIsLoading() or IsDiving()) end, nil,
 			_waitDown, 
-			_dive
+			function () 
+				if (not IsFlying() and not IsDiving()) then
+					_dive()
+				else
+					d("[Dive]: Stop attempting to dive, flying or already diving.")
+				end
+			end
 		)
 		ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
 	end
