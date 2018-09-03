@@ -403,6 +403,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 						FFXIV_Common_NavMesh = currentFile
 						FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
 					end
+					
+					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, 0)
+					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, 0)
 				end
 			end
 		else
