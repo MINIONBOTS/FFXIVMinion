@@ -33,31 +33,39 @@ function FilterByProximity(entities,center,radius,sortfield)
 	end
 end
 
-function FindRadarMarker(id,flag,both)
+function FindRadarMarker(id,flag,both,reqdist,distancepos)
 	local id = tonumber(id) or 0
 	local flag = tonumber(flag) or 0
 	local both = IsNull(both,false)
+	local reqdist = IsNull(reqdist,0)
+	local distancepos = IsNull(distancepos,Player.pos)
 
 	local viable = {}
 	local info = GetControlData("_NaviMap")
 	if (table.valid(info)) then
 		if (table.valid(info.markers)) then
 			for k,marker in pairs(info.markers) do
-				if (both and id ~= 0 and flag ~= 0) then
-					if (id ~= 0 and marker.id == id and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
-						d("[FindRadarMarker] Found a marker with id ["..tostring(id).."] and flag ["..tostring(flag).."].")
-						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
-						return viable
-					end
-				else
-					if (id ~= 0 and marker.id == id and flag ~= 0 and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
-						d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
-						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
-						return viable
-					elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
-						d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
-						viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
-						return viable
+				local dist2d = 0
+				if (reqdist ~= 0) then
+					dist2d = math.distance2d(marker.x,marker.y,distancepos.x,distancepos.z)
+				end
+				if (reqdist == 0 or dist2d <= reqdist) then
+					if (both and id ~= 0 and flag ~= 0) then
+						if (id ~= 0 and marker.id == id and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
+							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."] and flag ["..tostring(flag).."].")
+							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+							return viable
+						end
+					else
+						if (id ~= 0 and marker.id == id and flag ~= 0 and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
+							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+							return viable
+						elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
+							d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
+							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+							return viable
+						end
 					end
 				end
 			end

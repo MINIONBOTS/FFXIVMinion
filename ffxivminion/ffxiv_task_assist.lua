@@ -99,7 +99,7 @@ function ffxiv_task_assist:Process()
 			if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
 				if (gStartCombat or (not gStartCombat and Player.incombat)) then
 					
-					if (gAssistFollowTarget ) then
+					if (gAssistFollowTarget) then
 						local ppos = Player.pos
 						local pos = target.pos
 						
@@ -348,15 +348,51 @@ function ffxiv_assist.GetAttackTarget()
         local el = MEntityList("los,lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                target = e
-            end
+			if (i and e) then
+				if (i and e) then
+					el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+					if ( table.valid(el) ) then
+						i,e = next(el)
+						if (i and e) then
+							target = e
+						end
+					else
+						el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+						if ( table.valid(el) ) then
+							i,e = next(el)
+							if (i and e) then
+								target = e
+							end
+						end
+					end	
+				else
+					target = e
+				end
+			end
 		else
 			el = MEntityList("lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
 			if ( table.valid(el) ) then
 				local i,e = next(el)
-				if (i~=nil and e~=nil) then
-					target = e
+				if (i and e) then
+					if (e.hp.percent == 100) then
+						el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+						if ( table.valid(el) ) then
+							i,e = next(el)
+							if (i and e) then
+								target = e
+							end
+						else
+							el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+							if ( table.valid(el) ) then
+								i,e = next(el)
+								if (i and e) then
+									target = e
+								end
+							end
+						end	
+					else
+						target = e
+					end
 				end
 			end
         end
@@ -364,15 +400,51 @@ function ffxiv_assist.GetAttackTarget()
         local el = MEntityList("los,highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                target = e
+            if (i and e) then
+                if (e.hp.percent == 100) then
+					el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+					if ( table.valid(el) ) then
+						i,e = next(el)
+						if (i and e) then
+							target = e
+						end
+					else
+						el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+						if ( table.valid(el) ) then
+							i,e = next(el)
+							if (i and e) then
+								target = e
+							end
+						end
+					end	
+				else
+					target = e
+				end
             end
 		else
 			el = MEntityList("highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
 			if ( table.valid(el) ) then
 				local i,e = next(el)
-				if (i~=nil and e~=nil) then
-					target = e
+				if (i and e) then
+					if (e.hp.percent == 100) then
+						el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+						if ( table.valid(el) ) then
+							i,e = next(el)
+							if (i and e) then
+								target = e
+							end
+						else
+							el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+							if ( table.valid(el) ) then
+								i,e = next(el)
+								if (i and e) then
+									target = e
+								end
+							end
+						end	
+					else
+						target = e
+					end
 				end
 			end
         end
@@ -380,14 +452,14 @@ function ffxiv_assist.GetAttackTarget()
         local el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
         if ( table.valid(el) ) then
             local i,e = next(el)
-            if (i~=nil and e~=nil) then
+            if (i and e) then
                 target = e
             end
 		else
 			el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 			if ( table.valid(el) ) then
 				local i,e = next(el)
-				if (i~=nil and e~=nil) then
+				if (i and e) then
 					target = e
 				end
 			end
