@@ -1113,7 +1113,7 @@ c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
 	local addonName = "SelectYesno"
-	if (ffxivminion.gameRegion ~= 1) then
+	if (ffxivminion.gameRegion == 3) then -- maybe
 		addonName = "SelectYesNoCountItem"
 	end
 	if (IsControlOpen(addonName)) then

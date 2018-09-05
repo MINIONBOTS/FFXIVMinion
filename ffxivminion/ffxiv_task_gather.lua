@@ -2215,7 +2215,7 @@ c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
 	local addonName = "SelectYesno"
-	if (ffxivminion.gameRegion ~= 1) then
+	if (ffxivminion.gameRegion == 3) then -- maybe
 		addonName = "SelectYesNoCountItem"
 	end
 	if (IsControlOpen(addonName)) then
