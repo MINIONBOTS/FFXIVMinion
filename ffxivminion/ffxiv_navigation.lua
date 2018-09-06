@@ -1701,6 +1701,7 @@ function ml_navigation.Navigate(event, ticks )
 						if (not ml_navigation:IsStillOnPath(ppos,"3dfly")) then return end
 														
 						-- Check if the next node is reached:
+						local dist2D = math.distance2d(nextnode,ppos)
 						local dist3D = math.distance3d(nextnode,ppos)
 						
 						--ml_debug("[Navigation]: Moving to next node")
@@ -1731,15 +1732,19 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
-						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-																					
+						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then																					
 							local canLand = true
 							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
 							if (not hit) then
 								canLand = false
 							end	
+							if (not canLand) then
+								if (nextnode.is_end and nextnode.ground and dist2D < 2 and dist3D < 4) then
+									canLand = true
+								end
+							end
 					
-							if (canLand and not nextnode.is_cube and nextnode.ground and not ml_navigation:CanContinueFlying()) then
+							if (canLand and not nextnode.is_cube and nextnode.ground and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
 								
 								Descend(true)
 								return false
