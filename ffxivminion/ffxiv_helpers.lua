@@ -65,6 +65,10 @@ function FindRadarMarker(id,flag,both,reqdist,distancepos)
 							d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
 							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 							return viable
+						elseif (id ~= 0 and marker.id == id) then
+							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
+							return viable
 						end
 					end
 				end
