@@ -1897,7 +1897,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adju
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
-		d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 		
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.pathindex = ml_navigation.pathindex + 1

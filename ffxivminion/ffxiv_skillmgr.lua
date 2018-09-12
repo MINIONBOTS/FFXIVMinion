@@ -55,6 +55,8 @@ SkillMgr.ClassJob = {
 }
 
 SkillMgr.SkillBook = {}
+SkillMgr.lastBookUpdate = 0
+SkillMgr.lastBookClass = 0
 SkillMgr.ProfileRaw = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.EditingSkill = 0
@@ -734,11 +736,15 @@ SkillMgr.Variables = {
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
 	
 	SKM_SingleUse = { default = true, cast = "boolean", profile = "singleuseonly", section = "gathering"},
+	SKM_AddsBuff = { default = "", cast = "string", profile = "gatheraddsbuff", section = "gathering"},
 	SKM_GatherMax = { default = false, cast = "boolean", profile = "gathermax", section = "gathering"},
+	SKM_GPStart = { default = 0, cast = "number", profile = "gpstart", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_GAttemptsMax = { default = 0, cast = "number", profile = "gatherattemptsmax", section = "gathering"},
+	SKM_GMaxAttemptsMin = { default = 0, cast = "number", profile = "maxgatherattemptsmin", section = "gathering"},
+	SKM_GMaxAttempts = { default = 0, cast = "number", profile = "maxgatherattempts", section = "gathering"},
 	SKM_HasItem = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_IsItem = { default = "", cast = "string", profile = "isitem", section = "gathering"},
 	SKM_UNSP = { default = false, cast = "boolean", profile = "isunspoiled", section = "gathering"},
@@ -3360,6 +3366,39 @@ function SkillMgr.Craft()
 	return false
 end
 
+SkillMgr.MatchingGatherSkills = {
+	--Basic Skills
+	-- MIN/BTN
+	["Prospect"] 				={ [16] = 227, [17] = 210 },
+	["Preparation"] 			={ [16] = 230, [17] = 213 },
+	["Sharp Vision"] 			={ [16] = 235, [17] = 218 },
+	["Sharp Vision 2"] 			={ [16] = 237, [17] = 220 },
+	["Sharp Vision 3"] 			={ [16] = 295, [17] = 294 },
+	["HQ Chance Up"] 			={ [16] = 242, [17] = 225 },
+	["HQ Chance Up 2"] 			={ [16] = 243, [17] = 226 },
+	["HQ Chance Up 3"] 			={ [16] = 270, [17] = 271 },
+	["Toil"] 					={ [16] = 231, [17] = 214 },
+	["Luck"] 					={ [16] = 4081, [17] = 4095 },
+	["Discerning Eye"] 			={ [16] = 4078, [17] = 4092 },
+	["Methodical Appraisal"] 	={ [16] = 4075, [17] = 4089 },
+	["Collector's Glove"] 		={ [16] = 4074, [17] = 4088 },
+	["Utmost Caution"] 			={ [16] = 4079, [17] = 4093 },
+	["Instinctual Appraisal"] 	={ [16] = 4076, [17] = 4090 },
+	["Impulsive Appraisal"] 	={ [16] = 4077, [17] = 4091 },
+	["Impulsive Appraisal 2"] 	={ [16] = 301, [17] = 302 },
+	["Single Mind"] 			={ [16] = 4081, [17] = 4098 },
+	["Dredge / Prune"] 			={ [16] = 4082, [17] = 4096 },
+	["Dredge 2 / Prune 2"] 		={ [16] = 4083, [17] = 4097 },
+	["Counsel"] 				={ [16] = 274, [17] = 275 },
+	["Solid / Ageless"] 		={ [16] = 232, [17] = 215 },
+	["Vigor / Brunt"] 			={ [16] = 233, [17] = 216 },
+	["Clear / Flora"] 			={ [16] = 4072, [17] = 4086 },
+	["King / Blessed"] 			={ [16] = 239, [17] = 222 },
+	["King 2/ Blessed 2"] 		={ [16] = 241, [17] = 224 },
+	["Bountiful"] 				={ [16] = 4073, [17] = 4087 },
+	["Bountiful 2"] 			={ [16] = 272, [17] = 273 },
+}
+
 function SkillMgr.Gather(item)
 	if (SkillMgr.IsYielding()) then
 		d("[SkillManager]: Wait a bit, yielding..")
@@ -3376,7 +3415,25 @@ function SkillMgr.Gather(item)
 			local skillid = tonumber(skill.id)
             if ( skill.used  ) then		-- takes care of los, range, facing target and valid target		
                 local realskilldata = SkillMgr.GetAction(skillid,1)
-			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
+				--if skill is not found, see if we can find it
+				if (not realskilldata) then
+					local found = false
+					for skillname,data in pairs(SkillMgr.MatchingGatherSkills) do
+						for job, sid in pairs(data) do
+							if (sid == skill.id) then
+								skillid = tonumber(data[Player.job]) or 0
+								realskilldata = SkillMgr.GetAction(skillid,1)
+								found = true
+								break
+							end
+						end
+						if (found) then
+							break
+						end
+					end
+				end
+
+				if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
 					local castable = true
@@ -3424,6 +3481,11 @@ function SkillMgr.Gather(item)
 						castable = false
 					end
 					
+					--d("starting GP was ["..tostring(SkillMgr.lastGPStart).."]")
+					if (tonumber(skill.gpstart) > 0 and IsNull(SkillMgr.lastGPStart,0) < tonumber(skill.gpstart)) then 
+						castable = false 
+					end
+					
 					if (tonumber(skill.gpmin) > 0 and Player.gp.current < tonumber(skill.gpmin)) then 
 						SkillMgr.DebugOutput(prio, "[Player GP]"..tostring(Player.gp.current).."")
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] minGP."..tonumber(skill.gpmin).."")
@@ -3444,17 +3506,29 @@ function SkillMgr.Gather(item)
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] Node gatherattemptsmax = "..tonumber(node.gatherattemptsmax).."")
 						castable = false 
 					end
-					if 
-						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax))	then 
+					if (tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax))	then 
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] gatherattemptsmax."..tonumber(skill.gatherattemptsmax).."")
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattemptsmax."..tonumber(node.gatherattemptsmax).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] node gatherattemptsmax."..tonumber(node.gatherattempts).."")
 						castable = false 
 					end
-					
+					if (tonumber(skill.maxgatherattemptsmin) > 0 and node.gatherattemptsmax <= tonumber(skill.maxgatherattemptsmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the max gather attempts minimum check.")
+						castable = false
+					end
+					if (tonumber(skill.maxgatherattempts) > 0 and node.gatherattemptsmax ~= tonumber(skill.maxgatherattempts)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the max gather attempts equality check.")
+						castable = false
+					end
 					
 					--Previous gathering skill check
 					if (not IsNullString(skill.pskillg)) then
-						if (tonumber(SkillMgr.prevGatherSkillID) ~= tonumber(skill.pskillg)) then
+						local found = false
+						for skillid in StringSplit(skill.pskillg,",") do
+							if (tonumber(SkillMgr.prevGatherSkillID) == tonumber(skillid)) then
+								found = true
+							end
+						end
+						if (not found) then
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed previous gathering skill check.")
 							castable = false
 						end
@@ -3514,7 +3588,7 @@ function SkillMgr.Gather(item)
                     end	
 					
 					--Single use check
-					if (skill.singleuseonly  and SkillMgr.prevSkillList[skillid]) then
+					if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
 						castable = false
 					end
@@ -3531,6 +3605,14 @@ function SkillMgr.Gather(item)
 
 								if IsUncoverSkill(skillid) then
 									ml_task_hub:CurrentTask().itemsUncovered = true
+								end
+								
+								if (IsNull(skill.gatheraddsbuff,"") ~= "") then
+									ml_global_information.Await(2000,3500, 
+										function () 
+											return HasBuffs(Player, skill.gatheraddsbuff)
+										end
+									)
 								end
 								return true
 							end	
@@ -5754,6 +5836,36 @@ function SKM_Combo(label, varindex, varval, itemlist, height)
 	return changed, _G[varindex], _G[varval]
 end
 
+function SkillMgr.FillSkillBook()
+	if (TimeSince(SkillMgr.lastBookUpdate) > 10000 or Player.job ~= SkillMgr.lastBookClass) then
+		SkillMgr.SkillBook = {[1] = {}, [9] = {}, [11] = {}}
+		
+		local types = {[1] = "Actions",[9] = "Crafting", [11] = "Pets"}
+		for actiontype,actiondesc in pairsByKeys(types) do
+			local actionlist = ActionList:Get(actiontype)
+			if (table.valid(actionlist)) then
+				for actionid, action in pairs(actionlist) do
+					if ((actiontype ~= 1 or action.job ~= 0) and 
+						(not gSkillMgrFilterJob or actiontype ~= 1 or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) 
+					then
+						if (not gSkillMgrFilterUsable or action.usable == true) then
+							SkillMgr.SkillBook[actiontype][actionid] = { 
+								name = action.name, id = action.id, usable = action.usable, type = actiontype, job = action.job,
+								cost = action.cost, skilltype = action.skilltype, casttime = action.casttime, recasttime = action.recasttime, 
+								range = action.range, radius = action.radius, level = action.level, combospellid = action.combospellid,
+								cd = action.cd, cdmax = action.cdmax, isgroundtargeted = action.isgroundtargeted
+							}
+						end
+					end
+				end
+			end
+		end
+		
+		SkillMgr.lastBookUpdate = Now()
+		SkillMgr.lastBookClass = Player.job
+	end
+end
+
 function SkillMgr.DrawSkillBook()
 	--if (SkillMgr.GUI.skillbook.open) then	
 		GUI:SetNextWindowPos((SkillMgr.GUI.manager.x - SkillMgr.GUI.skillbook.width),SkillMgr.GUI.manager.y,GUI.SetCond_Appearing)
@@ -5770,23 +5882,23 @@ function SkillMgr.DrawSkillBook()
 			GUI_Capture(GUI:Checkbox("This Job Only",gSkillMgrFilterJob),"gSkillMgrFilterJob")
 			GUI_Capture(GUI:Checkbox("Usable Only",gSkillMgrFilterUsable),"gSkillMgrFilterUsable")
 			
-			local types = {[1] = "Actions",[9] = "Crafting", [11] = "Pets"}
+			SkillMgr.FillSkillBook()
 			
-			for actiontype,actiondesc in pairsByKeys(types) do
-				if ( GUI:TreeNode(tostring(actiontype).." - "..tostring(actiondesc))) then
-					local actionlist = ActionList:Get(actiontype)
-					if (table.valid(actionlist)) then
-						for actionid, action in pairs(actionlist) do
-							if ((actiontype ~= 1 or action.job ~= 0) and (not gSkillMgrFilterJob or actiontype ~= 1 or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) then
-								if (not gSkillMgrFilterUsable or action.usable == true) then
-									if ( GUI:Button(action.name.." ["..tostring(action.id).."]",width,20)) then
-										SkillMgr.AddSkillToProfile(action)
-									end
+			if (table.valid(SkillMgr.SkillBook)) then
+				local types = {[1] = "Actions",[9] = "Crafting", [11] = "Pets"}
+				for actiontype,actiondesc in spairs(types) do
+					if (GUI:TreeNode(tostring(actiontype).." - "..tostring(actiondesc))) then
+						--local actionlist = ActionList:Get(actiontype)
+						local actionlist = SkillMgr.SkillBook[actiontype]
+						if (table.valid(actionlist)) then
+							for actionid, action in spairs(actionlist) do
+								if ( GUI:Button(action.name.." ["..tostring(action.id).."]",width,20)) then
+									SkillMgr.AddSkillToProfile(action)
 								end
 							end
 						end
+						GUI:TreePop()
 					end
-					GUI:TreePop()
 				end
 			end
 		end
@@ -6393,6 +6505,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
+		GUI:Text(GetString("Adds Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_AddsBuff",SKM_AddsBuff),"SKM_AddsBuff"); GUI:NextColumn();	
 		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
 		GUI:Text(GetString("Ephemeral Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EPHE",SKM_EPHE),"SKM_EPHE"); GUI:NextColumn();	
 		GUI:Text(GetString("Legendary Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_LGND",SKM_LGND),"SKM_LGND"); GUI:NextColumn();	
@@ -6401,7 +6514,10 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Gather Attempts Full")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_GatherMax",SKM_GatherMax),"SKM_GatherMax"); GUI:NextColumn();
 		GUI:Text(GetString("Gather Attempts >")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	
 		GUI:Text(GetString("Gather Attempts <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMax",SKM_GAttemptsMax,0,0),"SKM_GAttemptsMax"); GUI:NextColumn();
+		GUI:Text(GetString("Max Gather Attempts >")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GMaxAttemptsMin",SKM_GMaxAttemptsMin,0,0),"SKM_GMaxAttemptsMin"); GUI:NextColumn();	
+		GUI:Text(GetString("Max Gather Attempts =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GMaxAttempts",SKM_GMaxAttempts,0,0),"SKM_GMaxAttempts"); GUI:NextColumn();
 		GUI:Separator();		
+		GUI:Text(GetString("GP Start >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPStart",SKM_GPStart,0,0),"SKM_GPStart"); GUI:NextColumn();
 		GUI:Text(GetString("GP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("GP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
 		GUI:Separator();
