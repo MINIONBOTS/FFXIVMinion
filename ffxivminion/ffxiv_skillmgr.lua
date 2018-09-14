@@ -69,6 +69,7 @@ SkillMgr.prevGatherSkillID = ""
 SkillMgr.prevSkillTimestamp = 0
 SkillMgr.prevGCDSkillID = ""
 SkillMgr.prevSkillList = {}
+SkillMgr.pathMark = ""
 SkillMgr.tempPrevSkillList = {}
 SkillMgr.nextSkillID = ""
 SkillMgr.nextSkillPrio = ""
@@ -737,6 +738,8 @@ SkillMgr.Variables = {
 	
 	SKM_SingleUse = { default = true, cast = "boolean", profile = "singleuseonly", section = "gathering"},
 	SKM_AddsBuff = { default = "", cast = "string", profile = "gatheraddsbuff", section = "gathering"},
+	SKM_AddsMark = { default = "", cast = "string", profile = "gatheraddsmark", section = "gathering"},
+	SKM_RequiresMark = { default = "", cast = "string", profile = "gatherrequiresmark", section = "gathering"},
 	SKM_GatherMax = { default = false, cast = "boolean", profile = "gathermax", section = "gathering"},
 	SKM_GPStart = { default = 0, cast = "number", profile = "gpstart", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
@@ -3386,7 +3389,7 @@ SkillMgr.MatchingGatherSkills = {
 	["Instinctual Appraisal"] 	={ [16] = 4076, [17] = 4090 },
 	["Impulsive Appraisal"] 	={ [16] = 4077, [17] = 4091 },
 	["Impulsive Appraisal 2"] 	={ [16] = 301, [17] = 302 },
-	["Single Mind"] 			={ [16] = 4081, [17] = 4098 },
+	["Single Mind"] 			={ [16] = 4084, [17] = 4098 },
 	["Dredge / Prune"] 			={ [16] = 4082, [17] = 4096 },
 	["Dredge 2 / Prune 2"] 		={ [16] = 4083, [17] = 4097 },
 	["Counsel"] 				={ [16] = 274, [17] = 275 },
@@ -3409,6 +3412,10 @@ function SkillMgr.Gather(item)
 	
     local node = MGetTarget()
     if ( table.valid(node) and table.valid(SkillMgr.SkillProfile)) then
+	
+		if (Player.gp.current > SkillMgr.lastGPStart) then
+			SkillMgr.lastGPStart = Player.gp.current
+		end
         
 		local doHalt = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
@@ -3523,9 +3530,11 @@ function SkillMgr.Gather(item)
 					--Previous gathering skill check
 					if (not IsNullString(skill.pskillg)) then
 						local found = false
-						for skillid in StringSplit(skill.pskillg,",") do
-							if (tonumber(SkillMgr.prevGatherSkillID) == tonumber(skillid)) then
+						for pskill in StringSplit(skill.pskillg,",") do
+							if (tonumber(SkillMgr.prevGatherSkillID) == tonumber(pskill)) then
 								found = true
+							else
+								--d("prev skillid:"..tostring(SkillMgr.prevGatherSkillID)..",pskill:"..tostring(pskill))
 							end
 						end
 						if (not found) then
@@ -3593,22 +3602,33 @@ function SkillMgr.Gather(item)
 						castable = false
 					end
 					
+					if (IsNull(skill.gatherrequiresmark,"") ~= "") then
+						if (skill.gatherrequiresmark ~= SkillMgr.pathMark) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] requires mark ["..tostring(skill.gatherrequiresmark).."] does not match ["..tostring(SkillMgr.pathMark).."].")
+							castable = false
+						end
+					end
+					
 					if ( castable ) then
 						if (realskilldata:IsReady(Player.id)) then
 							doHalt = true
 							if ( realskilldata:Cast(Player.id)) then	
-								d("CASTING (gathering) : "..tostring(skill.name))
+								d("CASTING (gathering) : "..tostring(prio).." : "..tostring(skill.name))
 								SkillMgr.SkillProfile[prio].lastcast = Now()
 								SkillMgr.prevGatherSkillID = tostring(skillid)
 								--After a skill is used here, mark it unusable for the rest of the duration of the node.
 								SkillMgr.prevSkillList[skillid] = true
+								
+								if (IsNull(skill.gatheraddsmark,"") ~= "") then
+									SkillMgr.pathMark = skill.gatheraddsmark
+								end
 
 								if IsUncoverSkill(skillid) then
 									ml_task_hub:CurrentTask().itemsUncovered = true
 								end
 								
 								if (IsNull(skill.gatheraddsbuff,"") ~= "") then
-									ml_global_information.Await(2000,3500, 
+									ml_global_information.Await(2500,4000, 
 										function () 
 											return HasBuffs(Player, skill.gatheraddsbuff)
 										end
@@ -6502,10 +6522,12 @@ end
 function SkillMgr.DrawGatherEditor()
 	if (GUI:CollapsingHeader("Gathering","gathering-header")) then
 		GUI:Columns(2,"#gathering-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,180); GUI:SetColumnOffset(2,300);
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
 		GUI:Text(GetString("Adds Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_AddsBuff",SKM_AddsBuff),"SKM_AddsBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("Add Chain Mark")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_AddsMark",SKM_AddsMark),"SKM_AddsMark"); GUI:NextColumn();	
+		GUI:Text(GetString("Require Chain Mark")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_RequiresMark",SKM_RequiresMark),"SKM_RequiresMark"); GUI:NextColumn();		
 		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
 		GUI:Text(GetString("Ephemeral Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_EPHE",SKM_EPHE),"SKM_EPHE"); GUI:NextColumn();	
 		GUI:Text(GetString("Legendary Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_LGND",SKM_LGND),"SKM_LGND"); GUI:NextColumn();	
@@ -6623,7 +6645,7 @@ function SkillMgr.DrawManager()
 											if (skill[info.profile] ~= nil) then
 												if (info.cast == type(skill[info.profile])) then
 													if (varname == "SKM_CONDITION") then
-														d("setting ["..tostring(varname).."] to ["..tostring(skill[info.profile]).."]")
+														--d("setting ["..tostring(varname).."] to ["..tostring(skill[info.profile]).."]")
 													end
 													_G[varname] = skill[info.profile]
 												else
