@@ -57,6 +57,7 @@ SkillMgr.ClassJob = {
 SkillMgr.SkillBook = {}
 SkillMgr.lastBookUpdate = 0
 SkillMgr.lastBookClass = 0
+SkillMgr.lastGPStart = 0
 SkillMgr.ProfileRaw = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.EditingSkill = 0
