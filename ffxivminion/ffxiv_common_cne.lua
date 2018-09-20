@@ -4321,8 +4321,9 @@ function c_scripexchange:evaluate()
 		return false
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
-			ml_global_information.Await(1500)
+			ml_global_information.Await(1000)
 			UseControlAction("MasterPieceSupply","SelectCategory",0)
+			c_scripexchange.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
 	end
@@ -4345,8 +4346,10 @@ function c_scripexchange:evaluate()
 		return true
 	else
 		if (table.isa(currentItems)) then
-			d("[ScripExchange]: Found items list.")
+			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
 			for index,itemdata in pairs(currentItems) do
+				d("[ScripExchange]: Checking data for ["..tostring(itemdata.itemid).."] ["..tostring(itemdata.name).."].")
+				
 				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
 				--[[
 					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
@@ -4356,8 +4359,12 @@ function c_scripexchange:evaluate()
 						local originalQuantity = itemdata.ownedquantity
 						c_scripexchange.lastItem = itemdata.itemid
 						c_scripexchange.handoverComplete = false
+						
 						local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
+						d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
 						return true
+					else
+						d("[ScripExchange]: Owned quantity ["..tostring(itemdata.ownedquantity).."] < Required Quantity ["..tostring(itemdata.requiredquantity).."].")
 					end
 				else
 					d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
