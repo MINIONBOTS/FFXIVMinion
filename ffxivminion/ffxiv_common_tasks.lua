@@ -1975,12 +1975,12 @@ function ffxiv_misc_shopping:task_complete_eval()
 			local buycomplete = false
 			if (amount > 0) then
 				if (itemcount >= (self.startingCount + amount)) then
-					d("[Shopping_TaskComplete]: We only needed "..tostring(self.startingCount + amount)..", so we can complete this.", 3)
+					ml_debug("[Shopping_TaskComplete]: We only needed "..tostring(self.startingCount + amount)..", so we can complete this.", 3)
 					buycomplete = true
 				end
 			else
 				if (itemcount > 0) then
-					d("[Shopping_TaskComplete]: We only need 1, so we can complete this.", 3)
+					ml_debug("[Shopping_TaskComplete]: We only need 1, so we can complete this.", 3)
 					buycomplete = true
 				end
 			end
@@ -2331,6 +2331,7 @@ function ffxiv_misc_scripexchange.Create()
     newinst.name = "MISC_SCRIPEXCHANGE"
 	
 	newinst.categories = {}
+	newinst.loaded = false
 	
 	local appraiser = FindNearestCollectableAppraiser()
 	if (table.valid(appraiser)) then

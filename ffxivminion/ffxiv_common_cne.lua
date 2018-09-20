@@ -4319,6 +4319,12 @@ function c_scripexchange:evaluate()
 	
 	if (not IsControlOpen("MasterPieceSupply")) then
 		return false
+	else
+		if (not ml_task_hub:CurrentTask().loaded) then
+			ml_global_information.Await(1500)
+			UseControlAction("MasterPieceSupply","SelectCategory",0)
+			ml_task_hub:CurrentTask().loaded = true
+		end
 	end
 	
 	local currentCategory = GetControlData("MasterPieceSupply","category")
