@@ -1726,7 +1726,7 @@ function c_mount:evaluate()
 				--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 			end
 		else
-			d("[Mount]: Cannot dismount, needs to fly still.")
+			--d("[Mount]: Cannot dismount, needs to fly still.")
 		end
 	end
 	
@@ -3220,6 +3220,7 @@ function c_dostealth:evaluate()
 	c_dostealth.dropStealth = false
 
 	local needsStealth = ml_global_information.needsStealth
+	ml_global_information.canStealth = ml_global_information.needsStealth
 	local hasStealth = HasBuff(Player.id,47)
 	local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
 	ml_navigation.TagNode(nextnode)
@@ -3250,7 +3251,6 @@ function c_dostealth:evaluate()
 	return false
 end
 function e_dostealth:execute()
-	ml_global_information.canStealth = ml_global_information.needsStealth
 	local newTask = ffxiv_task_stealth.Create()
 	newTask.addingStealth = c_dostealth.addStealth
 	newTask.droppingStealth = c_dostealth.dropStealth
@@ -4094,12 +4094,12 @@ function c_dointeract:evaluate()
 	end
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
-			d("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]")
+			ml_debug("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]",3)
 			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			else
-				d("[DoInteract]: Didn't find any matching entities.")
+				ml_debug("[DoInteract]: Didn't find any matching entities.",3)
 			end
 			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
 		end
