@@ -4348,7 +4348,7 @@ function c_scripexchange:evaluate()
 		if (table.isa(currentItems)) then
 			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
 			for index,itemdata in pairs(currentItems) do
-				d("[ScripExchange]: Checking data for ["..tostring(itemdata.itemid).."] ["..tostring(itemdata.name).."].")
+				--d("[ScripExchange]: Checking data for ["..tostring(itemdata.itemid).."].")
 				
 				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
 				--[[
@@ -4361,13 +4361,13 @@ function c_scripexchange:evaluate()
 						c_scripexchange.handoverComplete = false
 						
 						local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
-						d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
+						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
 						return true
 					else
-						d("[ScripExchange]: Owned quantity ["..tostring(itemdata.ownedquantity).."] < Required Quantity ["..tostring(itemdata.requiredquantity).."].")
+						--d("[ScripExchange]: Owned quantity ["..tostring(itemdata.ownedquantity).."] < Required Quantity ["..tostring(itemdata.requiredquantity).."].")
 					end
 				else
-					d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
+					--d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
 				end
 			end
 			
