@@ -928,7 +928,11 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if Player.incombat or (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
-		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
+		ml_debug("Cannot use teleport, position is locked, or we are casting.")
+		return false
+	end
+	if Player.incombat or (GilCount() < 1500) then
+		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 1500."))
 		return false
 	end
 	
