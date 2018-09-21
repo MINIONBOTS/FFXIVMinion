@@ -52,6 +52,8 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
+	ml_global_information.needsStealth = false
+	ml_global_information.canStealth = false
 	
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
@@ -462,6 +464,8 @@ function ffxiv_task_movetointeract.Create()
 	gSkipTalk = true
 	
 	ml_global_information.monitorStuck = true
+	ml_global_information.needsStealth = false
+	ml_global_information.canStealth = false
 	newinst.alwaysMount = false
 	
 	ffxiv_unstuck.Reset()

@@ -1682,7 +1682,7 @@ c_mount.attemptPos = nil
 c_mount.blockOnly = true
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.canStealth or IsSwimming())
+		or IsShopWindowOpen() or IsFlying() or IsTransporting() or ml_global_information.needsStealth or IsSwimming())
 	then
 		return false
 	end
