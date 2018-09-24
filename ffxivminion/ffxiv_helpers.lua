@@ -4842,6 +4842,11 @@ function ItemCounts(hqids,inventoriesArg,includehqArg)
 			if (memoize.itemcount[hqid]) then
 				--d("removing entry for ["..tostring(hqid).."]")
 				returnables[hqid] = { id = hqid, count = IsNull(memoize.itemcount[hqid].count,0) }
+				if (includehq) then
+					if (memoize.itemcount[hqid + 1000000]) then
+						returnables[hqid].count = returnables[hqid].count + memoize.itemcount[hqid + 1000000].count
+					end
+				end
 				allhqids[hqid] = nil
 			else
 				--d("creating entry for ["..tostring(hqid).."]")
@@ -4877,7 +4882,7 @@ function ItemCounts(hqids,inventoriesArg,includehqArg)
 					if (returnables[nqid]) then
 						returnables[nqid].count = (returnables[nqid].count + info.count)
 					else
-						returnables[nqid] = { id = hqid, count = info.count }
+						returnables[nqid] = { id = nqid, count = info.count }
 					end
 				end
 			end
