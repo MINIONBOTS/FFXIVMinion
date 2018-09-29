@@ -5166,14 +5166,15 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
-		local PlayerMap = Player.localmapid
+		local mapid = Player.localmapid
+		local syncLevel = Player:GetSyncLevel()
 		
 		if (tonumber(skill.levelmin) > 0 and 
-			((tonumber(skill.levelmin) > Player.level) or ((PlayerMap ~= 732) and (PlayerMap ~= 763) and Player:GetSyncLevel() > 0 and (tonumber(skill.levelmin) > Player:GetSyncLevel()))))
+			((tonumber(skill.levelmin) > Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (tonumber(skill.levelmin) > syncLevel))))
 		then
 			return true
 		elseif (tonumber(skill.levelmax) > 0 and
-			((tonumber(skill.levelmax) < Player.level) or ((PlayerMap ~= 732) and (PlayerMap ~= 763) and Player:GetSyncLevel() > 0 and (tonumber(skill.levelmax) < Player:GetSyncLevel()))))
+			((tonumber(skill.levelmax) < Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (tonumber(skill.levelmax) < syncLevel))))
 		then
 			return true
 		end
