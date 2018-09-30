@@ -50,7 +50,7 @@ local obj1 = {
 	["mingp"] = 600;
 	["skills"] = {
 		[1] = {
-			["alias"] = "UC IA2 (BOT) S2";
+			["alias"] = "UC IA2 S2";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -347,7 +347,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[2] = {
-			["alias"] = "UC IA (BOT) S2";
+			["alias"] = "UC IA S2";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -644,7 +644,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[3] = {
-			["alias"] = "SM (BOT) S2";
+			["alias"] = "SM S2";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -941,7 +941,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[4] = {
-			["alias"] = "SM (BOT) S3 DE";
+			["alias"] = "SM S3 DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -1238,7 +1238,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[5] = {
-			["alias"] = "SM (BOT) S3 DE";
+			["alias"] = "SM S3 DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -1535,7 +1535,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[6] = {
-			["alias"] = "IA2 (BOT) S1";
+			["alias"] = "IA2 S1";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -1832,7 +1832,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[7] = {
-			["alias"] = "IA (BOT) S1";
+			["alias"] = "IA S1";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -2129,7 +2129,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[8] = {
-			["alias"] = "IA2 (BOT) S2 DE";
+			["alias"] = "IA2 S2 DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -2426,7 +2426,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[9] = {
-			["alias"] = "IA (BOT) S2 DE";
+			["alias"] = "IA S2 DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -2723,7 +2723,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[10] = {
-			["alias"] = "IA2 (BOT) S2 NO DE";
+			["alias"] = "IA2 S2 NO DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -3020,7 +3020,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[11] = {
-			["alias"] = "IA (BOT) S2 NO DE";
+			["alias"] = "IA S2 NO DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -3317,7 +3317,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[12] = {
-			["alias"] = "MA (BOT)";
+			["alias"] = "MA";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
@@ -3614,7 +3614,7 @@ local obj1 = {
 			["used"] = true;
 		};
 		[13] = {
-			["alias"] = "SM (BOT) S3 DE";
+			["alias"] = "SM S3 DE";
 			["chainend"] = false;
 			["chainname"] = "";
 			["chainstart"] = false;
