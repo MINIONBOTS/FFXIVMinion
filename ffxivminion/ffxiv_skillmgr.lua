@@ -5387,7 +5387,7 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	conditional = { name = "Target HP Checks"	
+	conditional = { name = "Target HP/MP/TP Checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
@@ -5398,10 +5398,15 @@ function SkillMgr.AddDefaultConditions()
 		local thpcl = tonumber(skill.thpcl) or 0
 		local thpcb = tonumber(skill.thpcb) or 0
 		local thpadv = tonumber(skill.thpadv) or 0
+		local ttpl = tonumber(skill.ttpl) or 0
+		local tmpl = tonumber(skill.tmpl) or 0
+		
 		if ((thpl > 0 and thpl > target.hp.percent) or
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
 			(thpcb > 0 and thpcb < target.hp.current) or
+			(ttpl > 0 and ttpl > target.tp) or
+			(tmpl > 0 and tmpl > target.mp.percent) or
 			(thpadv > 0 and (((Player.hp.max * thpadv) > target.hp.max) and target.contentid ~= 541))) 
 		then 
 			return true 
