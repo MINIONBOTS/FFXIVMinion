@@ -349,7 +349,7 @@ function ffxiv_assist.GetAttackTarget()
         if ( table.valid(el) ) then
             local i,e = next(el)
 			if (i and e) then
-				if (i and e) then
+				if (e.hp.percent == 100) then
 					el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 					if ( table.valid(el) ) then
 						i,e = next(el)
