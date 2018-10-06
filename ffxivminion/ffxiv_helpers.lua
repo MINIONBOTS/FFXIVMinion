@@ -1539,7 +1539,7 @@ function GetNearestFromList(strList,pos,radius)
 		for i,entity in pairs(el) do
 			local epos = entity.pos
 			if (NavigationManager:IsReachable(epos)) then
-				if (not radius or (radius >= 100)) then
+				if (not radius or (radius >= 150)) then
 					table.insert(filteredList,entity)
 				else
 					local dist = Distance2D(pos.x,pos.z,epos.x,epos.z)
