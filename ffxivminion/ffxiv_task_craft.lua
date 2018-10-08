@@ -867,13 +867,12 @@ function c_craftlimit:evaluate()
 				table.insert(getcountsorted,itemid)
 			end
 			
-			local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+			local itemcounts = ItemCounts(getcountsorted)
 			
 			local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 			local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 			local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
 			local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
-			
 			
 			if (requireCollect) then
 				itemcount = itemcountCollectable
@@ -883,7 +882,8 @@ function c_craftlimit:evaluate()
 				itemcount = itemcountnorm + itemcountHQ
 			end
 			
-			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
+			local taskDetails = ml_task_hub:CurrentTask()
+			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,taskDetails.useHQ,taskDetails)
 			if (not canCraft) then
 				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
 				return true
@@ -977,7 +977,7 @@ function c_startcraft:evaluate()
 					table.insert(getcountsorted,itemid)
 				end
 				
-				local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+				local itemcounts = ItemCounts(getcountsorted)
 				
 				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
@@ -2551,7 +2551,7 @@ function ffxiv_craft.UpdateAlertElement()
 				table.insert(getcountsorted,itemid)
 			end
 			
-			local itemcounts = ItemCounts(getcountsorted,{0, 1, 2, 3, 2001})
+			local itemcounts = ItemCounts(getcountsorted)
 			for id,order in pairs(orders) do
 			
 				if order["uialert"] == nil then
@@ -2628,10 +2628,6 @@ function ffxiv_craft.UpdateAlertElement()
 				--cd("itemcountCollectable = "..tostring(itemcountCollectable))
 				--cd("itemcount = "..tostring(itemcount))
 				
-				--itemcount = itemcount + ItemCount(itemid,true)
-				--itemcountnorm = itemcountnorm + ItemCount(itemid,false)
-				--itemcountHQ = itemcountHQ + ItemCount(itemid + 1000000)
-				--itemcountCollectable = itemcountCollectable + ItemCount(itemid + 500000)
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
 				end
