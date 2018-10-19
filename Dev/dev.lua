@@ -41,40 +41,10 @@ end
 RegisterEventHandler("Module.Initalize",dev.Init)
 
 dev.logUiEvent = false
-dev.uiEvents = { }
 
-function dev.BuildUIEventFunction(eventInfo)
-	local res = "UIEvent('"..eventInfo.name.."', "..tostring(eventInfo.type)
-	
-	if table.valid(eventInfo.args) then 
-		res = res..", "
-		local nargs = #eventInfo.args
-		for i = 1, nargs do
-			local arg = eventInfo.args[i]
-			local argtype = type(arg)
-			if argtype == "string" then
-				res = res.."'"..arg.."'"
-			elseif argtype == "nil" then
-				res = res.."nil"
-			else
-				res = res..""..tostring(arg)
-			end
-
-			if i < nargs then
-				res = res..", "
-			end
-		end
-	end
-
-	return res..")"
-end
-
-RegisterEventHandler("Game.UIEvent", function(eventName, eventInfo) 
+RegisterEventHandler("Game.UIEvent", function(eventName, eventJson) 
 	if dev.logUiEvent then
-		eventInfo.luaCommand = dev.BuildUIEventFunction(eventInfo)
-		d(eventInfo.luaCommand)
-
-		table.insert(dev.uiEvents, eventInfo)
+		d(eventJson)
 	end
 end)
 
@@ -96,42 +66,6 @@ function dev.DrawCall(event, ticks )
 
 			if ( GUI:TreeNode("UI Events")) then
 				dev.logUiEvent = GUI:Checkbox("Logs UI events", dev.logUiEvent)
-				if GUI:Button("Clear events list") then
-					dev.uiEvents = { }
-				end
-				if table.valid(dev.uiEvents) then
-					GUI:Separator()
-
-					for iEvent,eventInfo in ipairs(dev.uiEvents) do
-						if GUI:TreeNode("#"..tostring(iEvent).." - "..eventInfo.luaCommand) then	
-							GUI:PushItemWidth(200);	
-
-							GUI:BulletText("Name") GUI:SameLine(200) GUI:InputText("##eventinfo_name"..tostring(iEvent),tostring(eventInfo.name))
-							GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##eventinfo_type"..tostring(iEvent),tostring(eventInfo.type))
-							
-							for iArg, arg in ipairs(eventInfo.args) do
-								local tArg = type(arg)
-								GUI:BulletText("Arg #"..tostring(iArg).." ("..tArg..")") GUI:SameLine(200) 
-								if tArg == "string" then
-									eventInfo.args[iArg] = GUI:InputText("##eventinfo_param"..tostring(iEvent)..tostring(iArg), arg)
-								elseif tArg == "boolean" then
-									eventInfo.args[iArg] = GUI:Checkbox("##eventinfo_param"..tostring(iEvent)..tostring(iArg), arg)
-								elseif tArg == "number" then
-									eventInfo.args[iArg] = GUI:InputInt("##eventinfo_param"..tostring(iEvent)..tostring(iArg), arg)
-								else
-									GUI:InputText("##eventinfo_param"..tostring(iEvent)..tostring(iArg),tostring(arg))
-								end
-							end
-							
-							if GUI:Button("Process event##"..tostring(iEvent)) then
-								UIEvent(eventInfo.name, eventInfo.type, unpack(eventInfo.args))
-							end
-
-							GUI:PopItemWidth()
-							GUI:TreePop()
-						end
-					end
-				end
 				GUI:TreePop()
 			end
 			-- cbk: Addon Controls
