@@ -1561,17 +1561,17 @@ function CanUseExpManual()
 			local manual1, action1 = GetItem(4633)
 			
 			
-			if (Player.level >= 45) and commercial then
+			if commercial then
 				if (commercial and action and not action.isoncd) then
 					--d("Can use commercial manual.")
 					return true, commercial
 				end
-			elseif (Player.level >= 25) and manual2 then 
+			elseif manual2 then 
 				if (manual2 and action2 and not action2.isoncd) then
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
-			elseif (Player.level >= 15) and manual1 then 
+			elseif manual1 then 
 				if (manual1 and action1 and not action1.isoncd) then
 					return true, manual1
 				end
@@ -1591,17 +1591,17 @@ function CanUseExpManual()
 			local manual2, action2 = GetItem(4634)
 			local manual1, action1 = GetItem(4632)
 			
-			if (Player.level >= 45) and commercial then
+			if commercial then
 				if (commercial and action and not action.isoncd) then
 					--d("Can use commercial manual.")
 					return true, commercial
 				end
-			elseif (Player.level >= 25) and manual2 then 
+			elseif manual2 then 
 				if (manual2 and action2 and not action2.isoncd) then
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
-			elseif (Player.level >= 15) and manual1 then 
+			elseif manual1 then 
 				if (manual1 and action1 and not action1.isoncd) then
 					return true, manual1
 				end
