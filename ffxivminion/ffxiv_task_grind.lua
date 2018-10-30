@@ -806,7 +806,7 @@ function ffxiv_task_grind:UIInit()
 	gGrindDoBossFates = ffxivminion.GetSetting("gGrindDoBossFates",true)
 	gGrindDoGrindFates = ffxivminion.GetSetting("gGrindDoGrindFates",true)
 	gGrindDoGatherFates = ffxivminion.GetSetting("gGrindDoGatherFates",false)
-	gFateGatherTurnCount = ffxivminion.GetSetting("gFateGatherTurnCount",20)
+	gFateGatherTurnCount = ffxivminion.GetSetting("gFateGatherTurnCount",10)
 	gGrindDoDefenseFates = ffxivminion.GetSetting("gGrindDoDefenseFates",true)
 	gGrindDoEscortFates = ffxivminion.GetSetting("gGrindDoEscortFates",true)
 	

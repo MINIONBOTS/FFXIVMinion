@@ -581,6 +581,10 @@ e_turninItem = inheritsFrom( ml_effect )
 e_turninItem.contentid = 0
 e_turninItem.npcpos = {}
 function c_turninItem:evaluate()
+	if (Player.incombat) then
+		return false
+	end
+	
 	-- Reset tempvars.
 	e_turninItem.contentid = 0
 	e_turninItem.npcpos = {}
@@ -593,7 +597,6 @@ function c_turninItem:evaluate()
 			local npcid = gatherable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
-				
 				local turninid = gatherable.turninid
 				local currentcount = ItemCount(turninid,{2004})
 				if ((currentcount >= gFateGatherTurnCount) or (currentcount >= 1 and (fate.status == 8 or fate.duration < 120))) then

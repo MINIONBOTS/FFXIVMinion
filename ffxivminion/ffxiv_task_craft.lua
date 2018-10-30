@@ -1449,9 +1449,9 @@ c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
 	local addonName = "SelectYesno"
-	if (ffxivminion.gameRegion == 3) then
-		addonName = "SelectYesNoCountItem"
-	end
+	--if (ffxivminion.gameRegion == 3) then
+		--addonName = "SelectYesNoCountItem"
+	--end
 	if (IsControlOpen("SelectYesNoItem") or IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
 		if (info and IsNull(info.collectability,-1) >= 0) then
