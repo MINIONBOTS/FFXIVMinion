@@ -751,7 +751,12 @@ function e_gather:execute()
 	end
 	
 	local thisNode = MGetEntity(ml_global_information.gatherid)
+	if not thisNode and (MGetTarget() and (MGetTarget().distance < 5 and MGetTarget().cangather and MGetTarget().targetable)) then
+		thisNode = MGetTarget()
+		d("returned targeted node")
+	end
 	if (not table.valid(thisNode) or not thisNode.cangather or not thisNode.targetable) then
+		d("returned no valid node")
 		return
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
