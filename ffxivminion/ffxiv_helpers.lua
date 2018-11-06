@@ -5253,6 +5253,7 @@ function IsEurekaMap(mapid)
 	local eMaps = {
 		[732] = true,
 		[763] = true,
+		[795] = true,
 	}
 	return (eMaps[mapid] ~= nil)
 end
