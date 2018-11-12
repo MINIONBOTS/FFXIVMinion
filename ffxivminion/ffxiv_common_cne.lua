@@ -3996,8 +3996,15 @@ function c_switchclass:evaluate()
 			return false
 		end
 		
+		local override = ml_task_hub:CurrentTask().override
 		local gsvar = "gGearset"..tostring(class)
-		if (_G[gsvar] ~= 0) then
+		if (override ~= 0) then
+			local commandString = "/gs change "..tostring(override)
+			SendTextCommand(commandString)
+			ml_global_information.Await(3000, function () return (Player.job == class) end)
+			e_switchclass.blockOnly = true
+			return true
+		elseif (_G[gsvar] ~= 0) then
 			local commandString = "/gs change "..tostring(_G[gsvar])
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
@@ -4180,8 +4187,12 @@ function c_dointeract:evaluate()
 								return true
 							end
 							
-							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
-							Player:Interact(interactable.id)
+							local convoList = GetConversationList()
+							if (not table.valid(convoList)) then
+								d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
+								Player:Interact(interactable.id)
+							end
+							
 							if (TimeSince(c_dointeract.lastInteract) > 2000) then
 								ml_global_information.Await(1000)
 								return true

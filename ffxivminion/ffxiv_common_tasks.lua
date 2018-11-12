@@ -2062,6 +2062,7 @@ function ffxiv_misc_switchclass.Create()
     newinst.params = {}
 	newinst.stepCompleted = false	
 	newinst.class = 0
+	newinst.override = 0
 	newinst.autoequipCheck = 0
     
     return newinst
@@ -2092,8 +2093,14 @@ function ffxiv_misc_switchclass:task_complete_eval()
 			return false
 		end
 		
+		local override = self.override
 		local gsvar = "gGearset"..tostring(Player.job)
-		if (_G[gsvar] ~= 0) then
+		if (override ~= 0) then
+			local commandString = "/gs change "..tostring(override)
+			SendTextCommand(commandString)
+			ml_global_information.Await(3000, function () return (Player.job == class) end)
+			return true
+		elseif (_G[gsvar] ~= 0) then
 			local commandString = "/gs change "..tostring(_G[gsvar])
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
@@ -2247,9 +2254,11 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			end
 			
 			if (string.valid(self.conversationstring)) then
+				d("Checking task conversation string.")
 				for selectindex,convo in pairs(convoList) do
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(self.conversationstring)
+					d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline)."].")
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 						SelectConversationLine(selectindex)
@@ -2259,10 +2268,12 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
+				d("Checking task conversation strings.")
 				for selectindex,convo in pairs(convoList) do
 					local cleanedline = CleanConvoLine(convo)
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = CleanConvoLine(v)
+						d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline)."].")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 							SelectConversationLine(selectindex)
@@ -2273,6 +2284,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					end
 				end
 			elseif (self.conversationindex > 0) then
+				d("Checking task conversation index.")
 				SelectConversationIndex(self.conversationindex)
 				self.initiatedPos = Player.pos
 				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
