@@ -2258,7 +2258,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				for selectindex,convo in pairs(convoList) do
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(self.conversationstring)
-					d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline)."].")
+					d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline).."].")
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 						SelectConversationLine(selectindex)
@@ -2273,7 +2273,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					local cleanedline = CleanConvoLine(convo)
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = CleanConvoLine(v)
-						d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline)."].")
+						d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline).."].")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 							SelectConversationLine(selectindex)
