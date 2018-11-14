@@ -786,7 +786,7 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 		end
-		if gCraftTeaTypeIndex == 4 or gCraftTeaList == gCraftTeaTypeIndex == 5 then
+		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
 			local tea, action = GetItem(19882)
 			if (tea and action and not action.isoncd) then
 				return true, tea
@@ -1803,7 +1803,7 @@ function ffxiv_task_craft:UIInit()
 		
 	gTeaSelection = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
 	gCraftTeaList = ffxivminion.GetSetting("gCraftTeaList",GetString("none"))
-	gCraftTeaTypeIndex = GetKeyByValue(gCraftTeaList,gTeaSelection)
+	gCraftTeaTypeIndex = IsNull(GetKeyByValue(gCraftTeaList,gTeaSelection),1)
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
 	gCraftFoodIndex = IsNull(GetKeyByValue(gCraftFood,gFoods),1)
