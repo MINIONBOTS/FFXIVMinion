@@ -4322,7 +4322,7 @@ function ShouldTeleport(pos)
 		if (not gTeleportHackParanoid) then
 			return true
 		else
-			local scanDistance = 50
+			local scanDistance = gTeleportHackParanoidDistance
 			local players = MEntityList("type=1,maxdistance=".. scanDistance)
 			local nearbyPlayers = TableSize(players)
 			if nearbyPlayers > 0 then
@@ -4341,7 +4341,7 @@ function ShouldTeleport(pos)
 				if (players) then
 					for i,entity in pairs(players) do
 						local epos = entity.pos
-						if (Distance3D(epos.x,epos.y,epos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= 50) then
+						if (Distance3D(epos.x,epos.y,epos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= scanDistance) then
 							return false
 						end
 					end

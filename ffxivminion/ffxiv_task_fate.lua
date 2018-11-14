@@ -182,8 +182,8 @@ function c_teletofate:evaluate()
 				local myPos = Player.pos
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				
-				if (gTeleportHackParanoid ) then
-					local scanDistance = 50
+				if (gTeleportHackParanoid) then
+					local scanDistance = gTeleportHackParanoidDistance
 					local players = EntityList("type=1,maxdistance=".. scanDistance)
 					local nearbyPlayers = TableSize(players)
 					if nearbyPlayers > 0 then
@@ -194,7 +194,7 @@ function c_teletofate:evaluate()
 					if (players) then
 						for i,entity in pairs(players) do
 							local epos = entity.pos
-							if (Distance3D(epos.x,epos.y,epos.z,fatePos.x,fatePos.y,fatePos.z) <= 50) then
+							if (Distance3D(epos.x,epos.y,epos.z,fatePos.x,fatePos.y,fatePos.z) <= scanDistance) then
 								return false
 							end
 						end
