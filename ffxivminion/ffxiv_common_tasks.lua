@@ -1536,7 +1536,7 @@ function ffxiv_task_grindCombat:Process()
 					else
 						Dismount()
 					end
-				end
+				end				
 				if (Player:IsMoving() and not IsFlying()) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
@@ -1594,7 +1594,7 @@ function ffxiv_task_grindCombat:Process()
 					ml_task_hub:CurrentTask().lastMovement = Now()
 				end
 			end
-			if (target.distance2d <= 15) then
+			if (InCombatRange(target.id) or (target.distance2d <= 15 and not ml_navigation:IsUsingConnection())) then
 				if (Player.ismounted) then
 					if (IsFlying()) then
 						Descend()
