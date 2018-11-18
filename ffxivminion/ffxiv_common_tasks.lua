@@ -602,7 +602,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
 	gSkipTalk = self.skipTalkVal
-	self.completed = false
+	self.completed = true
 end
 
 function ffxiv_task_movetointeract:task_fail_eval()
