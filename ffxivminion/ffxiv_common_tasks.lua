@@ -461,7 +461,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.maxAttempts = 0
 	
 	newinst.skipTalkVal = gSkipTalk
-	gSkipTalk = true
+	gSkipTalk = false
 	
 	ml_global_information.monitorStuck = true
 	ml_global_information.needsStealth = false
@@ -602,7 +602,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
 	gSkipTalk = self.skipTalkVal
-	self.completed = true
+	self.completed = false
 end
 
 function ffxiv_task_movetointeract:task_fail_eval()
@@ -1723,7 +1723,7 @@ function ffxiv_mesh_interact.Create()
     newinst.interactLatency = 0
 	
 	newinst.skipTalkVal = gSkipTalk
-	gSkipTalk = true
+	gSkipTalk = false
     return newinst
 end
 
@@ -1848,7 +1848,7 @@ function ffxiv_nav_interact.Create()
 	newinst.alwaysMount = false
 	
 	newinst.skipTalkVal = gSkipTalk
-	gSkipTalk = true
+	gSkipTalk = false
 	
     return newinst
 end
@@ -2174,7 +2174,7 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.stealthFunction = nil
 	
 	newinst.skipTalkVal = gSkipTalk
-	gSkipTalk = true
+	gSkipTalk = false
 	
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
