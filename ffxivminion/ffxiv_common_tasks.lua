@@ -1595,12 +1595,8 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			if (InCombatRange(target.id) or (target.distance2d <= 15 and not ml_navigation:IsUsingConnection())) then
-				if (Player.ismounted) then
-					if (IsFlying()) then
-						Descend()
-					else
-						Dismount()
-					end
+				if (Player.ismounted and not IsFlying()) then
+					Dismount()
 				end
 			end
 			if (InCombatRange(target.id) and not IsFlying()) then
