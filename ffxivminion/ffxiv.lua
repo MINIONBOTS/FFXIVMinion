@@ -618,11 +618,13 @@ function ffxivminion.SetMainVars()
 		FFXIV_Login_ServerName = ffxivminion.GetSetting("FFXIV_Login_ServerName",ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
 		--d("pulling first available login server name ["..tostring(FFXIV_Login_ServerName).."]")
 	end
-	FFXIV_Login_Server = IsNull(GetKeyByValue(FFXIV_Login_ServerName,ffxivminion.loginservers[FFXIV_Login_DataCenter]),1)
-	if (FFXIV_Login_Server == nil) then 
+	
+	local serverIndex = GetKeyByValue(FFXIV_Login_ServerName,ffxivminion.loginservers[FFXIV_Login_DataCenter])
+	if (serverIndex == nil) then
 		FFXIV_Login_Server = 1
-		FFXIV_Login_ServerName = ""
-		--d("reset server selection to first server.")
+		FFXIV_Login_ServerName = ffxivminion.loginservers[FFXIV_Login_DataCenter]
+	else
+		FFXIV_Login_Server = serverIndex
 	end
 	
 	if ( Settings.Global.FFXIV_Login_ServiceAccounts and string.valid(uuid) and Settings.Global.FFXIV_Login_ServiceAccounts[uuid] ) then
