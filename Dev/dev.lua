@@ -1828,6 +1828,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Last Action") GUI:SameLine(200) GUI:InputText("##dev37", tostring(c.lastaction))
 		local cinfo = c.castinginfo
 		if ( table.size(cinfo) > 0) then
+			GUI:BulletText("(.castinginfo)")
 			GUI:BulletText("Casting ID") GUI:SameLine(200) GUI:InputText("##dev38", tostring(cinfo.castingid))
 			GUI:BulletText("Casting Time") GUI:SameLine(200) GUI:InputText("##dev39", tostring(cinfo.casttime))
 			GUI:BulletText("Casting TargetCount") GUI:SameLine(200) GUI:InputText("##dev40", tostring(cinfo.castingtargetcount))
@@ -1852,6 +1853,16 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 			end
 		end
 		GUI:TreePop()
+	end
+	
+	local ekinfo = c.eurekainfo
+	if ( table.size(ekinfo) > 0) then
+		if ( GUI:TreeNode(".eurekainfo") ) then
+			GUI:BulletText(".level") GUI:SameLine(200) GUI:InputText("##eurekainfo.level", tostring(ekinfo.level))
+			local aff = { [0] = "self", [1] = "fire", [2] = "ice", [3] = "wind", [4] = "earth", [5] = "lightning", [6] = "water"}
+			GUI:BulletText(".affinity") GUI:SameLine(200) GUI:InputText("##eurekainfo.affinity", tostring(ekinfo.affinity).."("..IsNull(aff[ekinfo.affinity],"none")..")")
+			GUI:TreePop()
+		end
 	end
 	
 	if ( GUI:TreeNode("Buffs") ) then
