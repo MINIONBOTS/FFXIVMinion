@@ -53,6 +53,9 @@ function ffxiv_task_assist:Init()
 	local ke_fateSync = ml_element:create( "FateSync", c_assistsyncfatelevel, e_assistsyncfatelevel, 70 )
     self:add( ke_fateSync, self.process_elements)
 	
+	local ke_ekFateSync = ml_element:create( "EurekaFateSync", c_ekassistsyncfatelevel, e_ekassistsyncfatelevel, 65 )
+    self:add( ke_ekFateSync, self.process_elements)
+	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 60 )
     self:add( ke_companion, self.process_elements)
 	
@@ -296,12 +299,46 @@ function e_assistyesno:execute()
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
+c_ekassistsyncfatelevel = inheritsFrom( ml_cause )
+e_ekassistsyncfatelevel = inheritsFrom( ml_effect )
+function c_ekassistsyncfatelevel:evaluate()
+	if (not gAssistSyncFate or not IsEurekaMap(Player.localmapid) or Now() < ml_global_information.syncTimer and not MIsLocked()) then
+        return false
+    end
+	
+	local target = MGetTarget()
+	if (target and target.fateid ~= 0 and not Player.ismounted) then
+		local myPos = Player.pos
+		local fateID = target.fateid
+		local fate = MGetFateByID(fateID)
+		if ( table.valid(fate)) then
+			if (fate.maxlevel < Player.eurekainfo.level) then
+				local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+				if (distance <= fate.radius) then
+					Player:SyncLevel()
+					return true
+				end
+			end
+		end
+	end
+    return false
+end
+function e_ekassistsyncfatelevel:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_global_information.syncTimer = Now() + 5000
+end
+
 c_assistsyncfatelevel = inheritsFrom( ml_cause )
 e_assistsyncfatelevel = inheritsFrom( ml_effect )
 function c_assistsyncfatelevel:evaluate()
-    if (not gAssistSyncFate or Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
+    --if (not gAssistSyncFate or Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
+	if (not gAssistSyncFate or IsEurekaMap(Player.localmapid) or Now() < ml_global_information.syncTimer) then
         return false
     end
+	
+	if (Player:GetSyncLevel() ~= 0) then
+		return false
+	end
 	
 	local target = MGetTarget()
 	if (target and target.fateid ~= 0 and not Player.ismounted) then

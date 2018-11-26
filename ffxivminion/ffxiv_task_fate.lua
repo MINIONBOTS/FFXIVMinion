@@ -367,16 +367,19 @@ end
 c_syncfatelevel = inheritsFrom( ml_cause )
 e_syncfatelevel = inheritsFrom( ml_effect )
 function c_syncfatelevel:evaluate()
-    if (Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
+    if (Now() < ml_global_information.syncTimer) then
         return false
     end
+	
+	if (not IsEurekaMap(Player.localmapid) and Player:GetSyncLevel() ~= 0) then
+		return false
+	end
 	
     local myPos = Player.pos
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = MGetFateByID(fateID)
 	if ( table.valid(fate)) then
-		if (fate.maxlevel < Player.level) then
-		--if (AceLib.API.Fate.RequiresSync(fate.id)) then
+		if ((not IsEurekaMap(Player.localmapid) and fate.maxlevel < Player.level) or (IsEurekaMap(Player.localmapid) and fate.maxlevel < Player.eurekainfo.level)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
 				return true
@@ -725,7 +728,7 @@ c_add_fatetarget.oocCastTimer = 0
 c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
 	if (not Player.incombat) then
-		if (SkillMgr.Cast( Player, true)) then
+		if (SkillMgr.Cast(Player, true)) then
 			c_add_fatetarget.oocCastTimer = Now() + 1500
 			return false
 		end
