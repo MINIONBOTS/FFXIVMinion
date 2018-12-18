@@ -36,7 +36,7 @@ ffxiv_fish.collectibles = {
     { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Wraithfish", minimum = 50 },
     { name = AceLib.API.Items.GetNameByID(20024,47), id = 20024, alias = "Sweatfish", minimum = 0 },
     { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Soul of the Stallion", minimum = 50 },
-    { name = AceLib.API.Items.GetNameByID(20019,47), id = 20019, alias = "Ala Mhigan Ribbon", minimum = 40 },
+    { name = AceLib.API.Items.GetNameByID(20019,47), id = 20019, alias = "Ala Mhigan Ribbon", minimum = 41 },
     { name = AceLib.API.Items.GetNameByID(20021,47), id = 20021, alias = "Seraphim", minimum = 49 },
     { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Thousandfang", minimum = 50 },
     { name = AceLib.API.Items.GetNameByID(20230,47), id = 20230, alias = "Fangshi", minimum = 303 },
