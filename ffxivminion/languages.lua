@@ -2220,7 +2220,7 @@ Tank Assist: Targets whatever your tank is targetting.",
         showAetherytes                  = "エーテライト表示",
         xPos                            = "X 地点",
         yPos                            = "Y 地点",
-        assist                          = "アシスト",
+        assist                          = "ターゲットアシスト",
         assistPriority                  = "優先度",
 
                 -- new stuff (since last translation)
