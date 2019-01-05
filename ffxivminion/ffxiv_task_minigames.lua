@@ -183,7 +183,7 @@ function ffxiv_task_minigames:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PlayTimeTooltip")) end
 		GUI_DrawIntMinMax("##RestTime","gMGRestTime",1,5,0,360)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("RestTimeTooltip")) end
-		GUI_DrawIntMinMax("##PostGameDelay","gMGRestTime",100,500,0,10000)
+		GUI_DrawIntMinMax("##PostGameDelay","gMGGameDelay",100,500,0,10000)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("PostGameDelayTooltip")) end
 		GUI:PopItemWidth()
 		GUI:Columns()
@@ -415,7 +415,7 @@ function c_randomizegame:evaluate()
 	local minRandom = tonumber(gMGRandomizeTimeMin) * 60 * 1000
 	local maxRandom = tonumber(gMGRandomizeTimeMax) * 60 * 1000
 	
-	local randomizeSeed = math.random(minRandom,maxRandom)
+	local randomizeSeed = math.random(minRandom, math.max(minRandom,maxRandom))
 	if (ml_task_hub:CurrentTask().awaitingWin or IsControlOpen("SelectString") or TimeSince(ml_task_hub:CurrentTask().randomizeTimer) < randomizeSeed) then
 		return false
 	end
