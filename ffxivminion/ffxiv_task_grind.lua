@@ -930,7 +930,7 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##doAtma",gGrindAtmaMode),"gGrindAtmaMode", 
 			function () 
 				if (gGrindAtmaMode) then
-					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindLuminousMode",false) GUI_Set("gGrindFatesNoMinLevel",true) GUI_Set("gGrindAutoLevel",false) 
 				end
 			end
 		)
@@ -938,7 +938,7 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox("##DoLuminous",gGrindLuminousMode),"gGrindLuminousMode", 
 			function ()
 				if (gGrindLuminousMode) then
-					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true) 
+					GUI_Set("gGrindDoFates",true) GUI_Set("gGrindFatesOnly",true) GUI_Set("gGrindAtmaMode",false) GUI_Set("gGrindFatesNoMinLevel",true)  GUI_Set("gGrindAutoLevel",false) 
 				end
 			end
 		);
