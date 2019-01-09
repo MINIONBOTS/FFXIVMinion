@@ -30,7 +30,13 @@ ffxiv_craft.collectors = {
 	[15] = 4567,
 }
 ffxiv_craft.collectibles = {
-
+	-- 4.5
+	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 1 },
+    { name = AceLib.API.Items.GetNameByID(24563), minimum = 1 },
+    { name = AceLib.API.Items.GetNameByID(24564), minimum = 1 },
+    { name = AceLib.API.Items.GetNameByID(24565), minimum = 1 },
+    { name = AceLib.API.Items.GetNameByID(24566), minimum = 1 },
+	
 	-- Weekly
 	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
 	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 }, -- M Tribe Sundries
