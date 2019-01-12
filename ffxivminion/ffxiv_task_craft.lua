@@ -31,11 +31,17 @@ ffxiv_craft.collectors = {
 }
 ffxiv_craft.collectibles = {
 	-- 4.5
-	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 1 },
-    { name = AceLib.API.Items.GetNameByID(24563), minimum = 1 },
-    { name = AceLib.API.Items.GetNameByID(24564), minimum = 1 },
-    { name = AceLib.API.Items.GetNameByID(24565), minimum = 1 },
-    { name = AceLib.API.Items.GetNameByID(24566), minimum = 1 },
+	{ name = AceLib.API.Items.GetNameByID(23143), minimum = 195 },
+    { name = AceLib.API.Items.GetNameByID(23144), minimum = 195 },
+    { name = AceLib.API.Items.GetNameByID(23145), minimum = 130 },
+    { name = AceLib.API.Items.GetNameByID(23146), minimum = 130 },
+    { name = AceLib.API.Items.GetNameByID(23147), minimum = 110 },
+	
+	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 233 },
+    { name = AceLib.API.Items.GetNameByID(24563), minimum = 233 },
+    { name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },
+    { name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },
+    { name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },
 	
 	-- Weekly
 	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
