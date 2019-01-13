@@ -6,6 +6,7 @@ ffxiv_map_nav.data = {
 			{id = 130, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 1 
 				, requires =  {
 					["QuestCompleted(435)"] = true,
+					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
                    ["E"] = "Seek Passage to Ul'dah",
@@ -21,6 +22,7 @@ ffxiv_map_nav.data = {
 			{id = 132, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 2 
 				, requires =  {
 					["QuestCompleted(435)"] = true,
+					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
                     ["E"] = "Purchase Passage to Gridania",
@@ -36,6 +38,7 @@ ffxiv_map_nav.data = {
 			{id = 128, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 3 
 				, requires =  {
 					["QuestCompleted(435)"] = true,
+					["CanUseAirship()"] = true,
 				}
 				, conversationstrings = {
                     ["E"] = "Purchase Passage to Limsa Lominsa",
