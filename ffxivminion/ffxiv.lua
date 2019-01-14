@@ -107,7 +107,7 @@ ffxivminion.AutoGrindDefault = [[
 			elseif (inshroud) then
 				return 152 --east shroud
 			elseif (inlanoscea) then
-				return 138 --middle la noscea
+				return 138 --western la noscea
 			else
 				return 152
 			end
