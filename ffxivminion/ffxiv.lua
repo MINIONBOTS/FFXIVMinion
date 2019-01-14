@@ -112,17 +112,17 @@ ffxivminion.AutoGrindDefault = [[
 				return 152
 			end
 			
-		elseif (level >= 17 and level < 22) then
+		elseif ((level >= 17 and level < 22) and CanAccessMap(152)) then
 			return 152 --east shroud
-		elseif (level >= 22 and level < 30) then
+		elseif ((level >= 22 and level < 30) and CanAccessMap(153)) then
 			return 153 --south shroud
-		elseif (level >= 30 and level < 40) then
+		elseif ((level >= 30 and level < 40) and CanAccessMap(137)) then
 			return 137 --eastern la noscea
-		elseif (level >= 40 and level < 45) then
+		elseif ((level >= 40 and level < 45) and CanAccessMap(155)) then
 			return 155 --coerthas
-		elseif (level >= 45 and level < 48) then
+		elseif ((level >= 45 and level < 48) and CanAccessMap(146)) then
 			return 146 -- southern thanalan
-		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397)))) then
+		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397))) and CanAccessMap(147)) then
 			return 147 -- northern thanalan
 		elseif (level >= 67 and CanAccessMap(622)) then
 			return 622 --The Azim Steppes
@@ -814,7 +814,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 	
 	-- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20171113
+	ffxivminion.AutoGrindDefaultVersion = 20180115
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
