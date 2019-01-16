@@ -127,6 +127,7 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
 	[FFXIV.JOBS.REDMAGE] = "Redmage",
+	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -195,6 +196,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.DARKKNIGHT] = 3617,
 			[FFXIV.JOBS.SAMURAI] = 7477,
 			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
+			[FFXIV.JOBS.BLUEMAGE] = 11385,
 		}
 	else
 		testSkills = {
@@ -300,6 +302,7 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.DARKKNIGHT] = 3617,
 		[FFXIV.JOBS.SAMURAI] = 7477,
 		[FFXIV.JOBS.REDMAGE] = IIF(Player.level > 1,7503,7504),
+		[FFXIV.JOBS.BLUEMAGE] = 11385,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -948,6 +951,7 @@ function SkillMgr.ModuleInit()
 	gSkillProfileValidAST = false
 	gSkillProfileValidSAM = false
 	gSkillProfileValidRDM = false
+	gSkillProfileValidBLU = false
 	
 	gSkillProfileValidMIN = false
 	gSkillProfileValidBTN = false
@@ -1677,6 +1681,7 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidAST = IsNull(classes[FFXIV.JOBS.ASTROLOGIAN],false) 
 	gSkillProfileValidRDM = IsNull(classes[FFXIV.JOBS.REDMAGE],false) 
 	gSkillProfileValidSAM = IsNull(classes[FFXIV.JOBS.SAMURAI],false) 
+	gSkillProfileValidBLU = IsNull(classes[FFXIV.JOBS.BLUEMAGE],false) 
 	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
@@ -1754,6 +1759,7 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.ASTROLOGIAN] = IsNull(gSkillProfileValidAST,false),
 		[FFXIV.JOBS.SAMURAI] = IsNull(gSkillProfileValidSAM,false),
 		[FFXIV.JOBS.REDMAGE] = IsNull(gSkillProfileValidRDM,false),
+		[FFXIV.JOBS.BLUEMAGE] = IsNull(gSkillProfileValidBLU,false),
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
@@ -4759,6 +4765,23 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	--[[
+	conditional = { name = "Debuff/Buff Latency Check"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		---removebuff
+		if ( skill.dobuff  and skill.lastcast) then
+			if ((skill.lastcast + 1000) > Now()) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	--]]
+	
 	conditional = { name = "Other Skill Ready Check"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -5955,18 +5978,18 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM",
+				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
 					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 				
 				for i,abrev in pairsByKeys(classes) do
 					if (_G["gSkillProfileValid"..abrev] == true) then
-						if (i <= 24) then
+						if (i <= 25) then
 							fighting = true
 							break
-						elseif (i >= 25 and i <= 27) then
+						elseif (i >= 26 and i <= 28) then
 							gathering = true
 							break
-						elseif (i >= 28 and i <= 35) then
+						elseif (i >= 29 and i <= 36) then
 							crafting = true
 							break
 						end
@@ -6587,7 +6610,7 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
@@ -6636,7 +6659,7 @@ function SkillMgr.DrawManager()
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								--if (SkillMgr.EditingSkill ~= prio) then
 									local classCheck = false
-									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM",
+									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
 										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 									
 									for i,abrev in pairsByKeys(classes) do
