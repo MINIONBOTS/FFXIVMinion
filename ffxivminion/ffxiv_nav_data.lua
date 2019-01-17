@@ -682,7 +682,11 @@ ffxiv_map_nav.data = {
 			{id = 137, cost = 5, x = 719.070007,	z = 214.217957,	    y = 0.217405,	h = 0.028251},
 		},
 		[138] = {
-			{id = 138, cost = 5, x = -476.706177,	z = 287.913330,	    y = 1.921210,	h = -0.688538},
+			{id = 138, cost = 5, x = -476.706177,	z = 287.913330,	    y = 1.921210,	h = -0.688538
+				, requires = {
+					["(Player.localmapid ~= 139 or (Player.localmapid == 139 and ((Player.pos.x < 0) or (Player.pos.x > 0 and GilCount() >= 40))))"] = true,
+				}
+			},
 		},
 		[180] = {
 			{id = 180, cost = 5, x = -341.941010,	z = -18.610147,	    y = 48.610909,	h = 1.852675},

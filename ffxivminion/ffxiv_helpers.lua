@@ -5880,7 +5880,7 @@ function Transport139(pos1,pos2)
 	
 	local gilCount = GilCount()
 	if (pos1.x < 0 and pos2.x > 0) then
-		if (gilCount > 100) then
+		if (gilCount >= 40) then
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -341.24, y = -1, z = 112.098}
@@ -5891,7 +5891,7 @@ function Transport139(pos1,pos2)
 			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
 		end
 	elseif (pos1.x > 0 and pos2.x < 0) then
-		if (gilCount > 100) then
+		if (gilCount >= 40) then
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
