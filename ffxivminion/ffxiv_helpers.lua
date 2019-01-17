@@ -3475,7 +3475,8 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.NINJA or
 		jobID == FFXIV.JOBS.MACHINIST or
 		jobID == FFXIV.JOBS.SAMURAI or
-		jobID == FFXIV.JOBS.REDMAGE
+		jobID == FFXIV.JOBS.REDMAGE or
+		jobid == FFXIV.JOBS.BLUEMAGE
     then
         return GetString("dps")
     elseif
@@ -3510,6 +3511,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.MACHINIST] = true,
 			[FFXIV.JOBS.SAMURAI] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
+			[FFXIV.JOBS.BLUEMAGE] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
@@ -3537,6 +3539,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SCHOLAR] = true,
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
+			[FFXIV.JOBS.BLUEMAGE] = true,
 		}
 	end
 	return nil
@@ -3574,7 +3577,8 @@ function IsRangedDPS(var)
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
 			jobid == FFXIV.JOBS.MACHINIST or 
-			jobid == FFXIV.JOBS.REDMAGE)
+			jobid == FFXIV.JOBS.REDMAGE or
+			jobid == FFXIV.JOBS.BLUEMAGE)
 end
 function IsRanged(var)
 	local var = IsNull(var,Player)
@@ -3596,7 +3600,8 @@ function IsRanged(var)
 			jobid == FFXIV.JOBS.WHITEMAGE or
 			jobid == FFXIV.JOBS.ASTROLOGIAN or
 			jobid == FFXIV.JOBS.MACHINIST or
-			jobid == FFXIV.JOBS.REDMAGE)
+			jobid == FFXIV.JOBS.REDMAGE or
+			jobid == FFXIV.JOBS.BLUEMAGE)
 end
 function IsPhysicalDPS(var)
 	local var = IsNull(var,Player)
@@ -3631,7 +3636,8 @@ function IsCasterDPS(var)
 			jobid == FFXIV.JOBS.BLACKMAGE or
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.REDMAGE)
+			jobid == FFXIV.JOBS.REDMAGE or 
+			jobid == FFXIV.JOBS.BLUEMAGE)
 end
 function IsCaster(var)
 	local var = IsNull(var,Player)
@@ -3650,7 +3656,8 @@ function IsCaster(var)
 			jobid == FFXIV.JOBS.CONJURER or
 			jobid == FFXIV.JOBS.SCHOLAR or 
 			jobid == FFXIV.JOBS.ASTROLOGIAN or
-			jobid == FFXIV.JOBS.REDMAGE)
+			jobid == FFXIV.JOBS.REDMAGE or
+			jobid == FFXIV.JOBS.BLUEMAGE)
 end
 function IsHealer(var)
 	local var = IsNull(var,Player)
