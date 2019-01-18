@@ -3476,7 +3476,7 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.MACHINIST or
 		jobID == FFXIV.JOBS.SAMURAI or
 		jobID == FFXIV.JOBS.REDMAGE or
-		jobid == FFXIV.JOBS.BLUEMAGE
+		jobID == FFXIV.JOBS.BLUEMAGE
     then
         return GetString("dps")
     elseif
