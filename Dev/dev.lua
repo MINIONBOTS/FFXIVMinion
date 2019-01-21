@@ -1062,6 +1062,32 @@ function dev.DrawCall(event, ticks )
                         end
                         GUI:TreePop()
                     end
+
+					if ( GUI:TreeNode("Air Force One")) then
+						local shooting_targets = Duty:RideShooting_GetTargets()
+						if (GUI:TreeNode("Targets##shooting_targets")) then
+							if table.valid(shooting_targets) then
+								GUI:Separator()                                            
+								GUI:Columns(3, "##devgshootingtargets",true)
+								GUI:Text("ID"); GUI:NextColumn()
+								GUI:Text("Pos"); GUI:NextColumn()
+								GUI:Text("Action"); GUI:NextColumn()
+								for _,data in ipairs(shooting_targets) do
+									GUI:Text(tostring(data.id)) GUI:NextColumn()
+									GUI:Text(string.format("%.0f, %.0f, %.0f", data.x, data.y, data.z)) GUI:NextColumn()
+									if GUI:Button("Shoot##shoot_"..tostring(data.id)) then
+										d("Shoot", data.id)
+										Duty:RideShooting_ShootTarget(data.id)
+									end
+									GUI:NextColumn()
+								end
+								GUI:Separator()
+								GUI:Columns(1)
+							end	
+							GUI:TreePop()
+						end
+                        GUI:TreePop()
+                    end
                 else
 					GUI:Text("Not Ingame...")
 				end
