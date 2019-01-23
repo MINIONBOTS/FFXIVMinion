@@ -735,7 +735,7 @@ ffxiv_map_nav.data = {
         [398] = {
             {id = 398, cost = 5, x = -849.0742, y = 117.6830, z = -655.5919, h = -2.0784
 				, requires = {
-					["GetQuestInfo(1476,'step') >= 4 or QuestCompleted(1476)"] = true,
+					["GetQuestInfo(1609,'step') >= 1 or QuestCompleted(1609)"] = true,
 				},
 			},
         },
