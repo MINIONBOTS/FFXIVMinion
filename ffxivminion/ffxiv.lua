@@ -2547,21 +2547,23 @@ Do you have materials?"))
 					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
 					
 					if CanAccessMap(635) then
-						GUI:Text("Can Access all maps");
-					elseif CanAccessMap(622) and not CanAccessMap(621) then
+						GUI:Text("Can Access ALL maps");
+					elseif CanAccessMap(622) then
 						GUI:Text("Can Access Azim Steppes");
-					elseif CanAccessMap(614) and not CanAccessMap(622) then
+					elseif CanAccessMap(614) then
 						GUI:Text("Can Access Yanxia");
-					elseif CanAccessMap(613) and not CanAccessMap(614) then
+					elseif CanAccessMap(613) then
 						GUI:Text("Can Access The Ruby Sea");
-					elseif CanAccessMap(612) and not CanAccessMap(613) then
+					elseif CanAccessMap(612) then
 						GUI:Text("Can Access The Fringes");
-					elseif CanAccessMap(399) and not CanAccessMap(612) then
-						GUI:Text("Can Access Dravanian Hinterlands ");
-					elseif CanAccessMap(397) and not CanAccessMap(399) then
-						GUI:Text("Can Access The Fringes");
-					elseif not CanAccessMap(397) then
-						GUI:Text("Can NOT Access Heavensward");
+					elseif CanAccessMap(399) then
+						GUI:Text("Can Access Dravanian Hinterlands");
+					elseif CanAccessMap(397) then
+						GUI:Text("Can Access CWH");
+					elseif CanAccessMap(418) then
+						GUI:Text("Can NOT Access CWH");
+					elseif not CanAccessMap(418) then
+						GUI:Text("Can NOT Access Heavensward maps");
 					end
 					
 					GUI:Text("Can Fly on Map: "); GUI:SameLine(); GUI:Text(tostring(Player.flying.canflyinzone))
