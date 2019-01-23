@@ -2558,6 +2558,8 @@ Do you have materials?"))
 						GUI:Text("Can Access The Fringes");
 					elseif CanAccessMap(399) then
 						GUI:Text("Can Access Dravanian Hinterlands");
+					elseif CanAccessMap(398) then
+						GUI:Text("Can Access Dravanian Forelands");
 					elseif CanAccessMap(397) then
 						GUI:Text("Can Access CWH");
 					elseif CanAccessMap(418) then
