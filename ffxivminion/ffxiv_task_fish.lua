@@ -1685,6 +1685,10 @@ function c_fishnexttask:evaluate()
 				elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
 					invalid = true
 				end
+			if (currentTask.mapid and (not CanAccessMap(currentTask.mapid))) then
+				invalid = true
+				fd("Task ["..tostring(i).."] not valid due to Map Access.",3)
+			end
 			end
 			
 			if (not invalid) then
@@ -1807,6 +1811,10 @@ function c_fishnexttask:evaluate()
 						elseif (data.maxlevel and Player.level > data.maxlevel) then
 						fd("Player to high",1)
 							valid = false
+						end
+						if (data.mapid and (not CanAccessMap(data.mapid))) then
+							valid = false
+							fd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 						end
 						
 						if (valid) then

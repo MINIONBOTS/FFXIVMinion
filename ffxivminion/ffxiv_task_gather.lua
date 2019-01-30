@@ -2413,6 +2413,10 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Level is too high for the task, invalidate.",3)
 				invalid = true
 			end
+			if (currentTask.mapid and (not CanAccessMap(currentTask.mapid))) then
+				invalid = true
+				gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
+			end
 		end
 		
 		if (not invalid) then
@@ -2563,7 +2567,10 @@ function c_gathernexttask:evaluate()
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
-					
+					if (data.mapid and (not CanAccessMap(data.mapid))) then
+						valid = false
+						gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
+					end
 					if (valid) then
 						local lastGather = ffxiv_gather.GetLastGather(profileName,i)
 						if (lastGather ~= 0) then
