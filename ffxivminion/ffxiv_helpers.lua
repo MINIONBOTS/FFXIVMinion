@@ -7262,7 +7262,6 @@ function GetAetherCurrentData(mapid)
 				if (IsControlOpen("AetherCurrent")) then
 					ActionList:Get(10,67):Cast()
 				end
-				ml_global_information.Await(1000)
 				return ff.aetherCurrent[mapid]
 			end
 		end
@@ -7272,8 +7271,7 @@ function GetAetherCurrentData(mapid)
 	local aeclist = Player:GetAetherCurrentsList()
 	if (not IsControlOpen("AetherCurrent")) then
 		ActionList:Get(10,67):Cast()
-		ml_global_information.Await(2000)
-		ml_global_information.AwaitSuccess(500,5000, function () return TableSize(aeclist) < 20 end)
+		ml_global_information.AwaitSuccess(2000,5000, function () return TableSize(aeclist) < 20 end)
 	end
 	
 	if (table.valid(aeclist)) then
