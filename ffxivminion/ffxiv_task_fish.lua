@@ -2973,6 +2973,7 @@ function ffxiv_task_fish:Draw()
 			ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
 			local uuid = GetUUID()
 			Settings.FFXIVMINION.gLastFishProfiles[uuid] = gFishProfile
+			Settings.FFXIVMINION.gLastFishProfiles = Settings.FFXIVMINION.gLastFishProfiles
 		end
 		GUI:PopItemWidth()
 		if gGatherProfileIndex == 1 and (gFishProfileIndex == 1 or gFishProfile == GetString("None")) then
