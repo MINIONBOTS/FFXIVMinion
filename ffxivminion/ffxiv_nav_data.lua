@@ -742,7 +742,7 @@ ffxiv_map_nav.data = {
         [418] = {
             {id = 418, cost = 5, x = 468.7914, y = 224.4822, z = 880.5457, h = -0.2626
                 , requires = {
-                    ["IsOnMap(397) and CanFlyInZone() or QuestCompleted(1634)"] = true, -- check quest, can be accessed sooner?
+                    ["IsOnMap(397) and (CanFlyInZone() or QuestCompleted(1634))"] = true, -- check quest, can be accessed sooner?
                 },
             },
         },
