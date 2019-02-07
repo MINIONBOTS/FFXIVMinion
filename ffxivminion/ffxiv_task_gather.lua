@@ -8,6 +8,7 @@ ffxiv_gather.profiles = {}
 ffxiv_gather.profilesDisplay = {}
 ffxiv_gather.profileData = {}
 ffxiv_gather.currentTask = {}
+ffxiv_gather.accessmaplist = {}
 ffxiv_gather.currentTaskIndex = 0
 ffxiv_gather.collectors = {
 	[16] = 4074,
@@ -107,7 +108,21 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 
 	return pos
 end
-	
+function ffxiv_gather.CanAccessGatherMap(mapid)
+
+	if ffxiv_gather.accessmaplist[mapid] then
+		return ffxiv_gather.accessmaplist[mapid]
+	else
+		if CanAccessMap(mapid) then
+			ffxiv_gather.accessmaplist[mapid] = true
+			return true
+		else
+		
+			ffxiv_gather.accessmaplist[mapid] = false
+			return false
+		end
+	end
+end
 function ffxiv_gather.GetCurrentTaskPos()
 	local pos = {}
 	
@@ -2413,7 +2428,7 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Level is too high for the task, invalidate.",3)
 				invalid = true
 			end
-			if (currentTask.mapid and (not CanAccessMap(currentTask.mapid))) then
+			if (currentTask.mapid and (not ffxiv_gather.CanAccessGatherMap(currentTask.mapid))) then
 				invalid = true
 				gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 			end
@@ -2567,7 +2582,7 @@ function c_gathernexttask:evaluate()
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
-					if (data.mapid and (not CanAccessMap(data.mapid))) then
+					if (data.mapid and (not ffxiv_gather.CanAccessGatherMap(data.mapid))) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 					end
