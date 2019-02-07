@@ -1180,7 +1180,7 @@ function e_gather:execute()
 		
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
-				if (item.id == itemid1) then
+				if gGatherMarkerOrProfileIndex ~= 3 and (item.id == itemid1) then
 					return DoGathering(item)
 				end
 			end
