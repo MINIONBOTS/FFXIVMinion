@@ -110,7 +110,7 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 end
 function ffxiv_gather.CanAccessGatherMap(mapid)
 
-	if ffxiv_gather.accessmaplist[mapid] then
+	if ffxiv_gather.accessmaplist[mapid] ~= nil then
 		return ffxiv_gather.accessmaplist[mapid]
 	else
 		if CanAccessMap(mapid) then

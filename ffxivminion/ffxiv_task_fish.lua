@@ -130,7 +130,7 @@ end
 
 function ffxiv_fish.CanAccessFishingMap(mapid)
 
-	if ffxiv_fish.accessmaplist[mapid] then
+	if ffxiv_fish.accessmaplist[mapid] ~= nil then
 		return ffxiv_fish.accessmaplist[mapid]
 	else
 		if CanAccessMap(mapid) then
