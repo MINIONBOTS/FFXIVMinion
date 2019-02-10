@@ -1139,7 +1139,7 @@ function e_gather:execute()
 				gd("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]",2)
 			end
 		end
-		if (type(item1) == "number") then
+		if (type(item2) == "number") then
 			itemid2 = item2
 		end
 		if (tonumber(item2) ~= nil) then
@@ -1166,13 +1166,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (nogpitemid ~= 0) then
 				if (item.id == nogpitemid) then
+				gd("gather no gp item")
 					return DoGathering(item)
 				end
 			end
 
 			if (nogpitemslot ~= 0) then
 				if (item.index == nogpitemslot and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for item nogpitemslot ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1180,14 +1181,15 @@ function e_gather:execute()
 		
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
-				if gGatherMarkerOrProfileIndex ~= 3 and (item.id == itemid1) then
+				if (gBotMode ~= GetString("gatherMode") or (gBotMode ~= GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
+					gd("[Gather]: Run gathering procedure for itemid1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 					
 			if (itemslot1 ~= 0) then
 				if (item.index == itemslot1 and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for itemslot1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1196,14 +1198,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid2 ~= 0) then
 				if (item.id == itemid2) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for item itemid2 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == itemslot2 and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for itemslot2 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1212,12 +1214,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid3 ~= 0) then
 				if (item.id == itemid3) then
+					gd("[Gather]: Run gathering procedure for item itemid3 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot3 ~= 0) then
 				if (item.index == itemslot3 and item.id ~= nil) then
+					gd("[Gather]: Run gathering procedure for itemslot3 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1228,6 +1232,7 @@ function e_gather:execute()
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
 			if (toboolean(item.isunknown) or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
+				gd("[Gather]: unknown - ["..tostring(item.id).."].",2)
 				return DoGathering(item)
 			end
 		end
@@ -1238,6 +1243,7 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (not IsMap(item.id)) then
 				if (item.chance > 50) then
+					gd("[Gather]: chance - ["..tostring(item.id).."].",2)
 					return DoGathering(item)
 				end
 			end
@@ -1248,6 +1254,7 @@ function e_gather:execute()
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
 			if (not IsMap(item.id)) then
+				gd("[Gather]: map - ["..tostring(item.id).."].",2)
 				return DoGathering(item)
 			end
 		end
