@@ -1485,12 +1485,12 @@ function c_collectibleaddoncraft:evaluate()
 								foundMatch = true
 							end
 						end
+						
 						if (foundMatch) then
 							if (info.collectability >= tonumber(collectable.value)) then
 								validCollectible = true
 							else
-							d(" required collectable.value = ".. tostring(collectable.value))
-								d("Collectibility was too low ["..tostring(info.collectability).."].",1)
+								gd("Collectibility was too low ["..tostring(info.collectability).."].",1)
 							end
 						end
 					end
@@ -1503,11 +1503,9 @@ function c_collectibleaddoncraft:evaluate()
 
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
-								d("Collectibility was too low ["..tostring(info.collectability).."].",1)
 				UseControlAction(addonName,"No")
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
-								d("Collectibility was ok ["..tostring(info.collectability).."].",1)
 				UseControlAction(addonName,"Yes")
 			end
 			ml_global_information.Await(2000, 3000, function () return not IsControlOpen("Synthesis") end)						
@@ -2083,7 +2081,7 @@ function ffxiv_task_craft:Draw()
 		
 		local orders = ffxiv_craft.orders
 		if (table.valid(orders)) then
-			for id,order in pairs(orders) do
+			for id,order in spairs(orders) do
 			GUI:AlignFirstTextHeightToWidgets(); 
 			if order.collect then
 				GUI:Text("(C) " .. tostring(order.name));
@@ -2932,18 +2930,13 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Text("Remove"); GUI:NextColumn();
 					GUI:Text("Alert"); GUI:NextColumn();
 					GUI:Separator();
-				
+										
 					for id,order in spairs(orders) do
 						if order.collect then
 							GUI:Text("(C) " .. tostring(order.name));
 						else
 							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
-						end	
-						if (GUI:IsItemHovered()) then
-							GUI:BeginTooltip()
-							ffxiv_craft.InspectRecipe(order.id)
-							GUI:EndTooltip()
-						end						
+						end				
 						GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(id); GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.amount); GUI:NextColumn()
@@ -2951,18 +2944,7 @@ function ffxiv_craft.Draw( event, ticks )
 						if (order.skip == nil) then
 							orders[id].skip = false
 							ffxiv_craft.SaveProfile()
-						end
-						
-						--[[
-						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
-						if (changed) then
-							orders[id].skip = newVal
-							if orders[id].skip == true then
-								orders[id].uialert = skip
-							end
-							ffxiv_craft.tracking.measurementDelay = Now()
-						end
-						--]]
+						end						
 						
 						gCraftOrderEditSkip = IsNull(order.skip,false)
 						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
