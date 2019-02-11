@@ -42,7 +42,7 @@ ffxiv_craft.collectibles = {
     { name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },
     { name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },
     { name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },
-	
+
 	-- Weekly
 	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
 	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 }, -- M Tribe Sundries
@@ -923,7 +923,8 @@ function e_craftlimit:execute()
 	cd("[CraftLimit]: Profile has reached the preset requirements.",3)
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
-		ffxiv_craft.orders[recipeid].completed = true
+		local key = ml_task_hub:CurrentTask().key
+		ffxiv_craft.orders[key].completed = true
 		ffxiv_craft.tracking.measurementDelay = Now()
 		
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
@@ -1484,12 +1485,12 @@ function c_collectibleaddoncraft:evaluate()
 								foundMatch = true
 							end
 						end
-						
 						if (foundMatch) then
 							if (info.collectability >= tonumber(collectable.value)) then
 								validCollectible = true
 							else
-								gd("Collectibility was too low ["..tostring(info.collectability).."].",1)
+							d(" required collectable.value = ".. tostring(collectable.value))
+								d("Collectibility was too low ["..tostring(info.collectability).."].",1)
 							end
 						end
 					end
@@ -1502,9 +1503,11 @@ function c_collectibleaddoncraft:evaluate()
 
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+								d("Collectibility was too low ["..tostring(info.collectability).."].",1)
 				UseControlAction(addonName,"No")
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+								d("Collectibility was ok ["..tostring(info.collectability).."].",1)
 				UseControlAction(addonName,"Yes")
 			end
 			ml_global_information.Await(2000, 3000, function () return not IsControlOpen("Synthesis") end)						
@@ -1551,12 +1554,12 @@ function c_selectcraft:evaluate()
 				orders[id].completed = false
 			end
 			if (order.completed == false and order.skip ~= true) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 				if (canCraft) or (order.ifnecessary) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
 				else
-					d("canCraft:"..tostring(canCraft))
+					d("Can't Craft:"..tostring(order.name))
 				end
 			end
 		end
@@ -1573,14 +1576,11 @@ function e_selectcraft:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local orders = ffxiv_craft.orders
 		
-		local sortfunc = function(orders,a,b) 
-			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-		end
 		
 		local foundSelection = false
-		for id,order in spairs(orders, sortfunc) do
+		for id,order in pairs(orders) do
 			if (not order.completed and not order.skip) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 
 				if (canCraft) or (order.ifnecessary) then
 					
@@ -1612,6 +1612,7 @@ function e_selectcraft:execute()
 					newTask.ifNecessary = order.ifnecessary
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.skillprofile
+					newTask.key = id
 					
 					for i = 1,6 do
 						newTask["hq"..tostring(i)] = IsNull(order["hq"..tostring(i)],0)
@@ -1680,6 +1681,7 @@ function ffxiv_task_craftitems.Create()
 	newinst.recipeSelected = false
 	newinst.matsSet = false
 	newinst.skillProfile = ""
+	newinst.key = 0
 	newinst.quickTimer = 0
 	
 	newinst.failedAttempts = 0
@@ -2043,7 +2045,7 @@ function ffxiv_task_craft:Draw()
 				else
 					local orders = ffxiv_craft.orders
 					if (table.valid(orders)) then
-						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().recipe.id].maxcount,"Inf")
+						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().key].maxcount,"Inf")
 						GUI:PushItemWidth(50)
 						GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
 						if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Based from total item count only.")) end
@@ -2055,8 +2057,17 @@ function ffxiv_task_craft:Draw()
 		end
 	
 		GUI:Separator();
-		GUI:Columns(8, "#craft-manage-orders", true)
-		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 210); GUI:SetColumnOffset(3, 260); GUI:SetColumnOffset(4, 310); GUI:SetColumnOffset(5, 360); GUI:SetColumnOffset(6, 405); GUI:SetColumnOffset(7, 450); GUI:SetColumnOffset(8, 510);
+		GUI:Columns(10, "#craft-manage-orders", true)
+		GUI:SetColumnOffset(1, 160);
+		GUI:SetColumnOffset(2, 210);
+		GUI:SetColumnOffset(3, 260);
+		GUI:SetColumnOffset(4, 310);
+		GUI:SetColumnOffset(5, 360);
+		GUI:SetColumnOffset(6, 400);
+		GUI:SetColumnOffset(7, 430); -- up icon
+		GUI:SetColumnOffset(8, 460); -- down icon
+		GUI:SetColumnOffset(9, 505);
+		GUI:SetColumnOffset(10, 580);
 		
 		GUI:Text("Item"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
@@ -2064,16 +2075,15 @@ function ffxiv_task_craft:Draw()
 		GUI:Text("HQ"); GUI:NextColumn();
 		GUI:Text("COL"); GUI:NextColumn();
 		GUI:Text("Edit"); GUI:NextColumn();
+		GUI:NextColumn(); -- up icon
+		GUI:NextColumn(); -- down icon
 		GUI:Text("Skip"); GUI:NextColumn();
 		GUI:Text("Alert"); GUI:NextColumn();
 		GUI:Separator();
 		
 		local orders = ffxiv_craft.orders
 		if (table.valid(orders)) then
-			local sortfunc = function(orders,a,b) 
-				return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-			end
-			for id,order in spairs(orders, sortfunc) do
+			for id,order in pairs(orders) do
 			GUI:AlignFirstTextHeightToWidgets(); 
 			if order.collect then
 				GUI:Text("(C) " .. tostring(order.name));
@@ -2136,9 +2146,68 @@ function ffxiv_task_craft:Draw()
 				
 				GUI:PopStyleColor(2)
 				GUI:NextColumn()
-				--if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
-				--	ffxiv_craft.DeleteOrder(id)
-				--end
+				
+				local doPriorityUp = 0
+				local doPriorityDown = 0
+				local doPriorityTop = 0
+					
+				GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\w_up.png",16,16); GUI:SameLine(0,15);
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						doPriorityUp = id
+					elseif (GUI:IsMouseClicked(1)) then
+						doPriorityTop = id
+					end
+					GUI:SetTooltip("Right click will update old profile task numbering on move.")
+				end
+				if (doPriorityUp ~= 0 and doPriorityUp ~= 1) then
+					
+					local currentPos = doPriorityUp
+					local newPos = doPriorityUp - 1
+					
+					local temp = orders[newPos]
+					orders[newPos] = orders[currentPos]
+					orders[currentPos] = temp	
+										
+					ffxiv_craft.SaveProfile()
+				end
+				if (doPriorityTop ~= 0 and doPriorityTop ~= 1) then
+					
+					local currentPos = doPriorityTop
+					local newPos = doPriorityTop
+					
+					while currentPos > 1 do
+						local temp = orders[newPos]
+						orders[newPos] = orders[currentPos]
+						orders[currentPos] = temp	
+						currentPos = newPos
+						newPos = newPos - 1
+					end
+										
+					ffxiv_craft.SaveProfile()
+				end
+					
+				GUI:NextColumn()
+				
+				GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\w_down.png",16,16); GUI:SameLine(0,15);
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						doPriorityDown = id
+					end
+				end
+				if (doPriorityDown ~= 0 and doPriorityDown < TableSize(orders)) then
+					
+					local currentPos = doPriorityDown
+					local newPos = doPriorityDown + 1
+					
+					local temp = orders[newPos]
+					orders[newPos] = orders[currentPos]
+					orders[currentPos] = temp	
+										
+					ffxiv_craft.SaveProfile()
+				end
+				
+				GUI:NextColumn()
 				
 				gCraftOrderEditSkip = IsNull(order.skip,false)
 				local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
@@ -2512,7 +2581,9 @@ function ffxiv_craft.AddToProfile()
 				thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
 			end
 			
-			orders[recipeid] = thisOrder
+			--orders[recipeid] = thisOrder
+			table.insert(ffxiv_craft.orders,thisOrder)
+			d("print here")
 			ffxiv_craft.SaveProfile()
 		end
 	end
@@ -2597,7 +2668,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["ifnecessary"] = false
 				end
 					
-				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(id,order["usehq"])
+				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(order.id,order["usehq"])
 				--local yield = AceLib.API.Items.GetRecipeDetails(id).yield
 
 				if order["maxcount"] ~= maxAmount then
@@ -2862,10 +2933,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Text("Alert"); GUI:NextColumn();
 					GUI:Separator();
 				
-					local sortfunc = function(orders,a,b) 
-						return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-					end
-					for id,order in spairs(orders, sortfunc) do
+					for id,order in spairs(orders) do
 						if order.collect then
 							GUI:Text("(C) " .. tostring(order.name));
 						else
@@ -2873,7 +2941,7 @@ function ffxiv_craft.Draw( event, ticks )
 						end	
 						if (GUI:IsItemHovered()) then
 							GUI:BeginTooltip()
-							ffxiv_craft.InspectRecipe(id)
+							ffxiv_craft.InspectRecipe(order.id)
 							GUI:EndTooltip()
 						end						
 						GUI:NextColumn()
