@@ -5261,6 +5261,7 @@ function IsEurekaMap(mapid)
 		[732] = true,
 		[763] = true,
 		[795] = true,
+		[827] = true,
 	}
 	return (eMaps[mapid] ~= nil)
 end
