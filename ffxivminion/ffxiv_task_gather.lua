@@ -770,10 +770,8 @@ function e_gather:execute()
 	local thisNode = MGetEntity(ml_global_information.gatherid)
 	if not thisNode and (MGetTarget() and (MGetTarget().distance < 5 and MGetTarget().cangather and MGetTarget().targetable)) then
 		thisNode = MGetTarget()
-		d("returned targeted node")
 	end
 	if (not table.valid(thisNode) or not thisNode.cangather or not thisNode.targetable) then
-		d("returned no valid node")
 		return
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
@@ -1183,7 +1181,7 @@ function e_gather:execute()
 		
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
-				if (gBotMode ~= GetString("gatherMode") or (gBotMode ~= GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
+				if (gBotMode ~= GetString("gatherMode") or (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
 					gd("[Gather]: Run gathering procedure for itemid1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
@@ -3660,6 +3658,7 @@ function ffxiv_task_gather:Draw()
 			if ( string.valid(uuid) ) then
 				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+				Settings.minionlib.gMarkerModes = Settings.minionlib.gMarkerModes
 			end
 		end
 	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.

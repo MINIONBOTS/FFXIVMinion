@@ -2975,6 +2975,7 @@ function ffxiv_task_fish:Draw()
 			if ( string.valid(uuid) ) then
 				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+				Settings.minionlib.gMarkerModes = Settings.minionlib.gMarkerModes
 			end
 		end
 	-- Profile Options
