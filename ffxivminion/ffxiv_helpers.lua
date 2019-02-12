@@ -3344,6 +3344,8 @@ function IsGardening(itemid)
 			or itemid == 7034
 			or itemid == 12650
 			or itemid == 12656
+			or itemid == 12887
+			or (itemid >= 15865 and itemid <= 15870)
 			)
 end
 -- Ixali hidden items have a max item count of 5.
