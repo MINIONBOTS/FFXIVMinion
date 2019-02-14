@@ -1680,7 +1680,7 @@ function c_fishnexttask:evaluate()
 						baitChoice = IsNull(currentTask.baitname,"")
 					end
 					
-					if (not HasBaits(baitChoice)) then
+					if (not currentTask.type == "idle" and not currentTask.idlepriority) and (not HasBaits(baitChoice)) then
 						invalid = true
 					end
 					
@@ -1859,7 +1859,7 @@ function c_fishnexttask:evaluate()
 									fd("Task ["..tostring(i).."] has baitChoice ["..tostring(data.baitname).."] is Bait.",1)
 								end
 								
-								if (not HasBaits(baitChoice)) then
+								if (not data.type == "idle" and not data.idlepriority) and (not HasBaits(baitChoice)) then
 									fd("Task ["..tostring(i).."] is missing bait",1)
 									valid = false
 								end
