@@ -39,6 +39,7 @@ local obj1 = {
 		[33] = false;
 		[34] = false;
 		[35] = false;
+		[36] = false;
 	};
 	["filters"] = {
 		[1] = "Stance Sheild/Sword";
@@ -2439,7 +2440,7 @@ local obj1 = {
 			["trgtype"] = "Any";
 			["ttpl"] = 0;
 			["type"] = 1;
-			["used"] = false;
+			["used"] = true;
 		};
 		[9] = {
 			["alias"] = "----- Priority -----";
