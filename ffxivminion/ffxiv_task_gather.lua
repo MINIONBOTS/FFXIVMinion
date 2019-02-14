@@ -741,7 +741,7 @@ function DoGathering(item)
 	gd("[Gather]: Using Gather ["..tostring(item.index-1).."].",1)
 	Player:Gather(item.index-1)
 	if (HasBuffs(Player,"805")) then
-		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
+		ml_global_information.Await(2000, function () return IsControlOpen("GatheringMasterpiece") end)
 	end
 	return 3
 end
