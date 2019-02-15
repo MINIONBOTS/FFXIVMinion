@@ -2554,39 +2554,35 @@ function ffxiv_craft.AddToProfile()
 	local recipeid = tonumber(gCraftOrderAddRecipeID) or 0
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
-		if (orders[recipeid] == nil) then
-			local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
-			local thisOrder = { 	
-				id = recipeid, 
-				item = recipeDetails.id, 
-				name = recipeDetails.name, 
-				level = recipeDetails.attemptlevel,
-				class = recipeDetails.class, 
-				page = recipeDetails.page,
-				amount = gCraftOrderAddAmount, 
-				usequick = gCraftOrderAddQuick, 
-				collect = gCraftOrderAddCollect, 
-				usehq = gCraftOrderAddHQ, 
-				ifnecessary = gCraftOrderAddIfNecessary,
-				skillprofile = gCraftOrderAddSkillProfile,
-				requirehq = gCraftOrderAddRequireHQ, 
-				requiredcp = gCraftOrderAddRequireCP, 
-				counthq = gCraftOrderAddCountHQ,
-				skip = false,
-				completed = false,
-			}
-			
-			for i = 1,6 do
-				thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"],false)
-				thisOrder["hq"..tostring(i).."min"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0)
-				thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
-			end
-			
-			--orders[recipeid] = thisOrder
-			table.insert(ffxiv_craft.orders,thisOrder)
-			d("print here")
-			ffxiv_craft.SaveProfile()
+		local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
+		local thisOrder = { 	
+			id = recipeid, 
+			item = recipeDetails.id, 
+			name = recipeDetails.name, 
+			level = recipeDetails.attemptlevel,
+			class = recipeDetails.class, 
+			page = recipeDetails.page,
+			amount = gCraftOrderAddAmount, 
+			usequick = gCraftOrderAddQuick, 
+			collect = gCraftOrderAddCollect, 
+			usehq = gCraftOrderAddHQ, 
+			ifnecessary = gCraftOrderAddIfNecessary,
+			skillprofile = gCraftOrderAddSkillProfile,
+			requirehq = gCraftOrderAddRequireHQ, 
+			requiredcp = gCraftOrderAddRequireCP, 
+			counthq = gCraftOrderAddCountHQ,
+			skip = false,
+			completed = false,
+		}
+		
+		for i = 1,6 do
+			thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"],false)
+			thisOrder["hq"..tostring(i).."min"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0)
+			thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
 		end
+		
+		table.insert(ffxiv_craft.orders,thisOrder)
+		ffxiv_craft.SaveProfile()
 	end
 end
 
@@ -3138,7 +3134,6 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:Text("Could not find display dictionary for ["..gCraftOrderSelect.."] with attempt level ["..tostring(k).."]")
 					end					
 				end
-				
 				if (gCraftOrderAddRecipeID ~= 0) then
 					
 					GUI:Separator()
