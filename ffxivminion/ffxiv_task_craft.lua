@@ -1574,14 +1574,14 @@ function e_selectcraft:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local orders = ffxiv_craft.orders
 		
-		
 		local foundSelection = false
-		for id,order in pairs(orders) do
+		for id,order in spairs(orders) do
+		
 			if (not order.completed and not order.skip) then
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 
 				if (canCraft) or (order.ifnecessary) then
-					
+					d("new task = "..tostring(id))
 					local itemid = order.item
 					local itemcount = 0
 					if (order.collect) then
@@ -1825,6 +1825,7 @@ function ffxiv_task_craft:UIInit()
 	
 	--Add
 	gCraftOrderAddID = 0
+	gCraftOrderAddRecipeID = 0
 	gCraftOrderAddAmount = 1
 	gCraftOrderAddRequireHQ = false
 	gCraftOrderAddRequireCP = 0
@@ -1838,6 +1839,7 @@ function ffxiv_task_craft:UIInit()
 	
 	--Edit
 	gCraftOrderEditID = 0
+	gCraftOrderEditRecipeID = 0
 	gCraftOrderEditAmount = 1
 	gCraftOrderEditRequireHQ = false
 	gCraftOrderEditRequiredCP = 0
@@ -2108,6 +2110,7 @@ function ffxiv_task_craft:Draw()
 				
 				if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
 					gCraftOrderEditID = id
+					gCraftOrderEditRecipeID = order.id
 						
 					gCraftOrderEditAmount = IsNull(order["amount"],0)
 					gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
@@ -2548,7 +2551,7 @@ function ffxiv_craft.CreateNewProfile()
 end
 
 function ffxiv_craft.AddToProfile()
-	local recipeid = tonumber(gCraftOrderAddID) or 0
+	local recipeid = tonumber(gCraftOrderAddRecipeID) or 0
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
 		if (orders[recipeid] == nil) then
@@ -2667,7 +2670,6 @@ function ffxiv_craft.UpdateAlertElement()
 				end
 					
 				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(order.id,order["usehq"])
-				--local yield = AceLib.API.Items.GetRecipeDetails(id).yield
 
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
@@ -2963,6 +2965,7 @@ function ffxiv_craft.Draw( event, ticks )
 						
 						if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
 							gCraftOrderEditID = id
+							gCraftOrderEditRecipeID = order.id
 							
 							gCraftOrderEditAmount = IsNull(order["amount"],0)
 							gCraftOrderEditCollect = IsNull(order["collect"],false)
@@ -3111,6 +3114,7 @@ function ffxiv_craft.Draw( event, ticks )
 							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
 							if (thisRecipe) then
 								gCraftOrderAddID = thisRecipe.recipeid
+								gCraftOrderAddRecipeID = thisRecipe.recipeid
 								gCraftOrderAddAmount = 1
 								gCraftOrderAddCollect = false
 								gCraftOrderAddRequireHQ = false
@@ -3135,7 +3139,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end					
 				end
 				
-				if (gCraftOrderAddID ~= 0) then
+				if (gCraftOrderAddRecipeID ~= 0) then
 					
 					GUI:Separator()
 				
@@ -3186,7 +3190,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI:Columns()
 					if (gCraftOrderAddHQ) and not gCraftOrderAddIfNecessary then	
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddID)
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-add-hq", true)
@@ -3282,6 +3286,8 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Spacing()
 					
 					if (GUI:Button("Add to Profile",250,20)) then
+					
+						d("Adding Recipe id ["..gCraftOrderAddRecipeID.."]")
 						ffxiv_craft.AddToProfile()
 						ffxiv_craft.tracking.measurementDelay = Now()
 					end
@@ -3402,7 +3408,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Columns()
 					if (gCraftOrderEditHQ) and not gCraftOrderEditIfNecessary then
 						GUI:Separator()
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditID)
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-edit-hq", true)
