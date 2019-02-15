@@ -2938,7 +2938,7 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
 						end				
 						GUI:NextColumn()
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(id); GUI:NextColumn()
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.id); GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.amount); GUI:NextColumn()
 						
 						if (order.skip == nil) then
