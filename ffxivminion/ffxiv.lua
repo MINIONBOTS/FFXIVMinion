@@ -2598,6 +2598,49 @@ Do you have materials?"))
 							GUI:Text("Quest Step : "); GUI:SameLine(); GUI:Text(gCurrQuestStep)
 						end
 					end
+					
+					if (gBotMode == GetString("questMode") and _G["gQuestStepType"] == "grind") or gBotMode == GetString("grindMode") then
+						if gEnableAdvancedGrindSettings then
+							
+							local minFateLevel = IsNull(tonumber(gGrindFatesMinLevel),0)
+							local maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel),0)
+							GUI:Text("Yes I was silly and altered deault fate settings!");
+							if gGrindDoFates then
+								GUI:Text(table.size(GetApprovedFates()).." Fates available in my area and for my lvl settings");
+								if SetNoMinFateLevel then
+									GUI:Text("No Min fate level");
+								else
+									GUI:Text("Min fate level is "..math.max((Player.level - minFateLevel),0));
+								end
+								if SetNoMaxFateLevel then
+									GUI:Text("No Max fate level");
+								else
+									GUI:Text("Max fate level is "..(Player.level + gGrindFatesMaxLevel));
+								end
+							else
+								GUI:Text("Do Fates is disabled");
+							end
+						else
+							local minFateLevel = 70
+							local maxFateLevel = 2
+							GUI:Text("Using Default Grind settings");
+							if gGrindDoFates then
+								GUI:Text(table.size(GetApprovedFates()).." Fates available in my area and for my lvl settings");
+								if SetNoMinFateLevel then
+									GUI:Text("No Min fate level");
+								else
+									GUI:Text("Min fate level is "..math.max((Player.level - minFateLevel),0));
+								end
+								if SetNoMaxFateLevel then
+									GUI:Text("No Max fate level");
+								else
+									GUI:Text("Max fate level is "..(Player.level + maxFateLevel));
+								end
+							else
+								GUI:Text("Do Fates is disabled");
+							end
+						end
+					end
 				end
 			end
 			GUI:End()

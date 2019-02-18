@@ -2486,11 +2486,11 @@ function GetApprovedFates()
 	if (table.valid(fatelist)) then
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = 70
-			local maxFateLevel = 3
+			local maxFateLevel = 2
 			
 			if gEnableAdvancedGrindSettings then
-				minFateLevel = tonumber(gGrindFatesMinLevel) or 0
-				maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
+				minFateLevel = IsNull(tonumber(gGrindFatesMinLevel),0)
+				maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel),0)
 			end
 			
 			--local fatePos = {x = fate.x, y = fate.y, z = fate.z}
