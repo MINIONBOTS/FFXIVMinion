@@ -877,11 +877,25 @@ function c_endfate:evaluate()
 			return true
 		end
 	else
-		if (not IsFateApproved(fate.id)) then
-			d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		if gEnableAdvancedGrindSettings then
+			minFateLevel = tonumber(gGrindFatesMinLevel) or 0
+			maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
+		else
+			minFateLevel = 70
+			maxFateLevel = 3
+		end
+		
+		if ((minFateLevel ~= 0 and not gGrindFatesNoMinLevel and (fate.level < (Player.level - minFateLevel))) or 
+			(maxFateLevel ~= 0 and not gGrindFatesNoMaxLevel and (fate.level > (Player.level + maxFateLevel))))
+		then
 			return true
 		end
-	end
+    end
+	
+	--if (not IsFateApproved(fate.id)) then
+		--d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		--return true
+	--end
     
     return false
 end
