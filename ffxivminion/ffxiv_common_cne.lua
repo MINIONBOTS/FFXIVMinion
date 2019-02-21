@@ -2016,7 +2016,7 @@ function c_roleautoset:evaluate()
 		end	
 	end
 	
-	if gRoleAutoset then
+	if gRoleSkillAutoset then
 		if IsTank(Player.job) then
 			local rampart = ActionList:Get(1,7531)
 			local hasRampart = rampart.usable
@@ -2039,7 +2039,7 @@ function c_roleautoset:evaluate()
 			local shirk = ActionList:Get(1,7537)
 			local hasShirk = shirk.usable
 			
-			if Player.level >= rampart.level and (gRoleRampart and not hasRampart) or (not gRoleRampart and hasRampart) then
+			if Player.level >= rampart.level and (gRoleSkillRampart and not hasRampart) or (not gRoleSkillRampart and hasRampart) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[rampart.id] or (e_roleautoset.lastRole[rampart.id] and  e_roleautoset.lastRole[rampart.id] ~= Player.level))) then
 					e_roleautoset.lastRole[rampart.id] = Player.level 
@@ -2047,7 +2047,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= lowBlow.level and (gRoleLowBlow and not hasLowBlow) or (not gRoleLowBlow and hasLowBlow) then
+			if Player.level >= lowBlow.level and (gRoleSkillLowBlow and not hasLowBlow) or (not gRoleSkillLowBlow and hasLowBlow) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[lowBlow.id] or (e_roleautoset.lastRole[lowBlow.id] and  e_roleautoset.lastRole[lowBlow.id] ~= Player.level))) then
 					e_roleautoset.lastRole[lowBlow.id] = Player.level 
@@ -2055,7 +2055,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= provoke.level and (gRoleProvoke and not hasProvoke) or (not gRoleProvoke and hasProvoke) then
+			if Player.level >= provoke.level and (gRoleSkillProvoke and not hasProvoke) or (not gRoleSkillProvoke and hasProvoke) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[provoke.id] or (e_roleautoset.lastRole[provoke.id] and  e_roleautoset.lastRole[provoke.id] ~= Player.level))) then
 					e_roleautoset.lastRole[provoke.id] = Player.level 
@@ -2063,7 +2063,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= convalescence.level and (gRoleConvalescence and not hasConvalescence) or (not gRoleConvalescence and hasConvalescence) then
+			if Player.level >= convalescence.level and (gRoleSkillConvalescence and not hasConvalescence) or (not gRoleSkillConvalescence and hasConvalescence) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[convalescence.id] or (e_roleautoset.lastRole[convalescence.id] and  e_roleautoset.lastRole[convalescence.id] ~= Player.level))) then
 					e_roleautoset.lastRole[convalescence.id] = Player.level 
@@ -2071,7 +2071,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= anticipation.level and (gRoleAnticipation and not hasAnticipation) or (not gRoleAnticipation and hasAnticipation) then
+			if Player.level >= anticipation.level and (gRoleSkillAnticipation and not hasAnticipation) or (not gRoleSkillAnticipation and hasAnticipation) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[anticipation.id] or (e_roleautoset.lastRole[anticipation.id] and  e_roleautoset.lastRole[anticipation.id] ~= Player.level))) then
 					e_roleautoset.lastRole[anticipation.id] = Player.level 
@@ -2079,7 +2079,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= reprisal.level and (gRoleReprisal and not hasReprisal) or (not gRoleReprisal and hasReprisal) then
+			if Player.level >= reprisal.level and (gRoleSkillReprisal and not hasReprisal) or (not gRoleSkillReprisal and hasReprisal) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[reprisal.id] or (e_roleautoset.lastRole[reprisal.id] and  e_roleautoset.lastRole[reprisal.id] ~= Player.level))) then
 					e_roleautoset.lastRole[reprisal.id] = Player.level 
@@ -2087,7 +2087,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= awareness.level and (gRoleAwareness and not hasAwareness) or (not gRoleAwareness and hasAwareness) then
+			if Player.level >= awareness.level and (gRoleSkillAwareness and not hasAwareness) or (not gRoleSkillAwareness and hasAwareness) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[awareness.id] or (e_roleautoset.lastRole[awareness.id] and  e_roleautoset.lastRole[awareness.id] ~= Player.level))) then
 					e_roleautoset.lastRole[awareness.id] = Player.level 
@@ -2095,7 +2095,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= interject.level and (gRoleInterject and not hasInterject) or (not gRoleInterject and hasInterject) then
+			if Player.level >= interject.level and (gRoleSkillInterject and not hasInterject) or (not gRoleSkillInterject and hasInterject) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[interject.id] or (e_roleautoset.lastRole[interject.id] and  e_roleautoset.lastRole[interject.id] ~= Player.level))) then
 					e_roleautoset.lastRole[interject.id] = Player.level 
@@ -2103,7 +2103,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= ultimatum.level and (gRoleUltimatum and not hasUltimatum) or (not gRoleUltimatum and hasUltimatum) then
+			if Player.level >= ultimatum.level and (gRoleSkillUltimatum and not hasUltimatum) or (not gRoleSkillUltimatum and hasUltimatum) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[ultimatum.id] or (e_roleautoset.lastRole[ultimatum.id] and  e_roleautoset.lastRole[ultimatum.id] ~= Player.level))) then
 					e_roleautoset.lastRole[ultimatum.id] = Player.level 
@@ -2111,7 +2111,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= shirk.level and (gRoleShirk and not hasShirk) or (not gRoleShirk and hasShirk) then
+			if Player.level >= shirk.level and (gRoleSkillShirk and not hasShirk) or (not gRoleSkillShirk and hasShirk) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[shirk.id] or (e_roleautoset.lastRole[shirk.id] and  e_roleautoset.lastRole[shirk.id] ~= Player.level))) then
 					e_roleautoset.lastRole[shirk.id] = Player.level 
@@ -2143,7 +2143,7 @@ function c_roleautoset:evaluate()
 			local rescue = ActionList:Get(1,7571)
 			local hasRescue = rescue.usable
 						
-			if Player.level >= clericstance.level and (gRoleClericstance and not hasClericstance) or (not gRoleClericstance and hasClericstance) then
+			if Player.level >= clericstance.level and (gRoleSkillClericstance and not hasClericstance) or (not gRoleSkillClericstance and hasClericstance) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[clericstance.id] or (e_roleautoset.lastRole[clericstance.id] and  e_roleautoset.lastRole[clericstance.id] ~= Player.level))) then
 					e_roleautoset.lastRole[clericstance.id] = Player.level 
@@ -2151,7 +2151,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= breakSkill.level and (gRoleBreakSkill and not hasBreakSkill) or (not gRoleBreakSkill and hasBreakSkill) then
+			if Player.level >= breakSkill.level and (gRoleSkillBreakSkill and not hasBreakSkill) or (not gRoleSkillBreakSkill and hasBreakSkill) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[breakSkill.id] or (e_roleautoset.lastRole[breakSkill.id] and  e_roleautoset.lastRole[breakSkill.id] ~= Player.level))) then
 					e_roleautoset.lastRole[breakSkill.id] = Player.level 
@@ -2159,7 +2159,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= protect.level and (gRoleProtect and not hasProtect) or (not gRoleProtect and hasProtect) then
+			if Player.level >= protect.level and (gRoleSkillProtect and not hasProtect) or (not gRoleSkillProtect and hasProtect) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[protect.id] or (e_roleautoset.lastRole[protect.id] and  e_roleautoset.lastRole[protect.id] ~= Player.level))) then
 					e_roleautoset.lastRole[protect.id] = Player.level 
@@ -2167,7 +2167,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= esuna.level and (gRoleEsuna and not hasEsuna) or (not gRoleEsuna and hasEsuna) then
+			if Player.level >= esuna.level and (gRoleSkillEsuna and not hasEsuna) or (not gRoleSkillEsuna and hasEsuna) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[esuna.id] or (e_roleautoset.lastRole[esuna.id] and  e_roleautoset.lastRole[esuna.id] ~= Player.level))) then
 					e_roleautoset.lastRole[esuna.id] = Player.level 
@@ -2175,7 +2175,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= lucid.level and (gRoleLucid and not hasLucid) or (not gRoleLucid and hasLucid) then
+			if Player.level >= lucid.level and (gRoleSkillLucid and not hasLucid) or (not gRoleSkillLucid and hasLucid) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[lucid.id] or (e_roleautoset.lastRole[lucid.id] and  e_roleautoset.lastRole[lucid.id] ~= Player.level))) then
 					e_roleautoset.lastRole[lucid.id] = Player.level 
@@ -2183,7 +2183,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= swiftcast.level and (gRoleSwiftcast and not hasSwiftcast) or (not gRoleSwiftcast and hasSwiftcast) then
+			if Player.level >= swiftcast.level and (gRoleSkillSwiftcast and not hasSwiftcast) or (not gRoleSkillSwiftcast and hasSwiftcast) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[swiftcast.id] or (e_roleautoset.lastRole[swiftcast.id] and  e_roleautoset.lastRole[swiftcast.id] ~= Player.level))) then
 					e_roleautoset.lastRole[swiftcast.id] = Player.level 
@@ -2191,7 +2191,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= eye.level and (gRoleEye and not hasEye) or (not gRoleEye and hasEye) then
+			if Player.level >= eye.level and (gRoleSkillEye and not hasEye) or (not gRoleSkillEye and hasEye) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[eye.id] or (e_roleautoset.lastRole[eye.id] and  e_roleautoset.lastRole[eye.id] ~= Player.level))) then
 					e_roleautoset.lastRole[eye.id] = Player.level 
@@ -2199,7 +2199,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= largesse.level and (gRoleLargesse and not hasLargesse) or (not gRoleLargesse and hasLargesse) then
+			if Player.level >= largesse.level and (gRoleSkillLargesse and not hasLargesse) or (not gRoleSkillLargesse and hasLargesse) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[largesse.id] or (e_roleautoset.lastRole[largesse.id] and  e_roleautoset.lastRole[largesse.id] ~= Player.level))) then
 					e_roleautoset.lastRole[largesse.id] = Player.level 
@@ -2207,7 +2207,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= surecast.level and (gRoleSurecast and not hasSurecast) or (not gRoleSurecast and hasSurecast) then
+			if Player.level >= surecast.level and (gRoleSkillSurecast and not hasSurecast) or (not gRoleSkillSurecast and hasSurecast) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[surecast.id] or (e_roleautoset.lastRole[surecast.id] and  e_roleautoset.lastRole[surecast.id] ~= Player.level))) then
 					e_roleautoset.lastRole[surecast.id] = Player.level 
@@ -2215,7 +2215,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= rescue.level and (gRoleRescue and not hasRescue) or (not gRoleRescue and hasRescue) then
+			if Player.level >= rescue.level and (gRoleSkillRescue and not hasRescue) or (not gRoleSkillRescue and hasRescue) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[rescue.id] or (e_roleautoset.lastRole[rescue.id] and  e_roleautoset.lastRole[rescue.id] ~= Player.level))) then
 					e_roleautoset.lastRole[rescue.id] = Player.level 
@@ -2223,7 +2223,6 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			
 		end
 		if IsCasterDPS(Player.job) then
 			local addle = ActionList:Get(1,7560)
@@ -2247,7 +2246,7 @@ function c_roleautoset:evaluate()
 			local erase = ActionList:Get(1,7566)
 			local hasErase = erase.usable
 						
-			if Player.level >= addle.level and (gRoleAddle and not hasAddle) or (not gRoleAddle and hasAddle) then
+			if Player.level >= addle.level and (gRoleSkillAddle and not hasAddle) or (not gRoleSkillAddle and hasAddle) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[addle.id] or (e_roleautoset.lastRole[addle.id] and  e_roleautoset.lastRole[addle.id] ~= Player.level))) then
 					e_roleautoset.lastRole[addle.id] = Player.level 
@@ -2255,7 +2254,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= breakSkill.level and (gRoleBreakSkill and not hasBreakSkill) or (not gRoleBreakSkill and hasBreakSkill) then
+			if Player.level >= breakSkill.level and (gRoleSkillBreakSkill and not hasBreakSkill) or (not gRoleSkillBreakSkill and hasBreakSkill) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[breakSkill.id] or (e_roleautoset.lastRole[breakSkill.id] and  e_roleautoset.lastRole[breakSkill.id] ~= Player.level))) then
 					e_roleautoset.lastRole[breakSkill.id] = Player.level 
@@ -2263,7 +2262,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= drain.level and (gRoleDrain and not hasDrain) or (not gRoleDrain and hasDrain) then
+			if Player.level >= drain.level and (gRoleSkillDrain and not hasDrain) or (not gRoleSkillDrain and hasDrain) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[drain.id] or (e_roleautoset.lastRole[drain.id] and  e_roleautoset.lastRole[drain.id] ~= Player.level))) then
 					e_roleautoset.lastRole[drain.id] = Player.level 
@@ -2271,7 +2270,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= diversion.level and (gRoleDiversion and not hasDiversion) or (not gRoleDiversion and hasDiversion) then
+			if Player.level >= diversion.level and (gRoleSkillDiversion and not hasDiversion) or (not gRoleSkillDiversion and hasDiversion) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[diversion.id] or (e_roleautoset.lastRole[diversion.id] and  e_roleautoset.lastRole[diversion.id] ~= Player.level))) then
 					e_roleautoset.lastRole[diversion.id] = Player.level 
@@ -2279,7 +2278,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= lucid.level and (gRoleLucid and not hasLucid) or (not gRoleLucid and hasLucid) then
+			if Player.level >= lucid.level and (gRoleSkillLucid and not hasLucid) or (not gRoleSkillLucid and hasLucid) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[lucid.id] or (e_roleautoset.lastRole[lucid.id] and  e_roleautoset.lastRole[lucid.id] ~= Player.level))) then
 					e_roleautoset.lastRole[lucid.id] = Player.level 
@@ -2287,7 +2286,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= swiftcast.level and (gRoleSwiftcast and not hasSwiftcast) or (not gRoleSwiftcast and hasSwiftcast) then
+			if Player.level >= swiftcast.level and (gRoleSkillSwiftcast and not hasSwiftcast) or (not gRoleSkillSwiftcast and hasSwiftcast) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[swiftcast.id] or (e_roleautoset.lastRole[swiftcast.id] and  e_roleautoset.lastRole[swiftcast.id] ~= Player.level))) then
 					e_roleautoset.lastRole[swiftcast.id] = Player.level 
@@ -2295,7 +2294,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= manaShift.level and (gRoleMana and not hasManaShift) or (not gRoleMana and hasManaShift) then
+			if Player.level >= manaShift.level and (gRoleSkillMana and not hasManaShift) or (not gRoleSkillMana and hasManaShift) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[manaShift.id] or (e_roleautoset.lastRole[manaShift.id] and  e_roleautoset.lastRole[manaShift.id] ~= Player.level))) then
 					e_roleautoset.lastRole[manaShift.id] = Player.level 
@@ -2303,7 +2302,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= apoc.level and (gRoleApoc and not hasApoc) or (not gRoleApoc and hasApoc) then
+			if Player.level >= apoc.level and (gRoleSkillApoc and not hasApoc) or (not gRoleSkillApoc and hasApoc) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[apoc.id] or (e_roleautoset.lastRole[apoc.id] and  e_roleautoset.lastRole[apoc.id] ~= Player.level))) then
 					e_roleautoset.lastRole[apoc.id] = Player.level 
@@ -2311,7 +2310,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= surecast.level and (gRoleSurecast and not hasSurecast) or (not gRoleSurecast and hasSurecast) then
+			if Player.level >= surecast.level and (gRoleSkillSurecast and not hasSurecast) or (not gRoleSkillSurecast and hasSurecast) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[surecast.id] or (e_roleautoset.lastRole[surecast.id] and  e_roleautoset.lastRole[surecast.id] ~= Player.level))) then
 					e_roleautoset.lastRole[surecast.id] = Player.level 
@@ -2319,7 +2318,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= erase.level and (gRoleErase and not hasErase) or (not gRoleErase and hasErase) then
+			if Player.level >= erase.level and (gRoleSkillErase and not hasErase) or (not gRoleSkillErase and hasErase) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[erase.id] or (e_roleautoset.lastRole[erase.id] and  e_roleautoset.lastRole[erase.id] ~= Player.level))) then
 					e_roleautoset.lastRole[erase.id] = Player.level 
@@ -2350,7 +2349,7 @@ function c_roleautoset:evaluate()
 			local peloton = ActionList:Get(1,7557)
 			local hasPeloton = peloton.usable
 			
-			if Player.level >= secondWind.level and (gRoleRangedSecondWind and not hasSecondWind) or (not gRoleRangedSecondWind and hasSecondWind) then
+			if Player.level >= secondWind.level and (gRoleSkillRangedSecondWind and not hasSecondWind) or (not gRoleSkillRangedSecondWind and hasSecondWind) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[secondWind.id] or (e_roleautoset.lastRole[secondWind.id] and  e_roleautoset.lastRole[secondWind.id] ~= Player.level))) then
 					e_roleautoset.lastRole[secondWind.id] = Player.level 
@@ -2358,7 +2357,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= footGraze.level and (gRoleFootGraze and not hasFootGraze) or (not gRoleFootGraze and hasFootGraze) then
+			if Player.level >= footGraze.level and (gRoleSkillFootGraze and not hasFootGraze) or (not gRoleSkillFootGraze and hasFootGraze) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[footGraze.id] or (e_roleautoset.lastRole[footGraze.id] and  e_roleautoset.lastRole[footGraze.id] ~= Player.level))) then
 					e_roleautoset.lastRole[footGraze.id] = Player.level 
@@ -2366,7 +2365,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= legGraze.level and (gRoleLegGraze and not hasLegGraze) or (not gRoleLegGraze and hasLegGraze) then
+			if Player.level >= legGraze.level and (gRoleSkillLegGraze and not hasLegGraze) or (not gRoleSkillLegGraze and hasLegGraze) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[legGraze.id] or (e_roleautoset.lastRole[legGraze.id] and  e_roleautoset.lastRole[legGraze.id] ~= Player.level))) then
 					e_roleautoset.lastRole[legGraze.id] = Player.level 
@@ -2374,7 +2373,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= peloton.level and (gRolePeloton and not hasPeloton) or (not gRolePeloton and hasPeloton) then
+			if Player.level >= peloton.level and (gRoleSkillPeloton and not hasPeloton) or (not gRoleSkillPeloton and hasPeloton) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[peloton.id] or (e_roleautoset.lastRole[peloton.id] and  e_roleautoset.lastRole[peloton.id] ~= Player.level))) then
 					e_roleautoset.lastRole[peloton.id] = Player.level 
@@ -2382,7 +2381,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= invigorate.level and (gRoleRangedInvigorate and not hasInvigorate) or (not gRoleRangedInvigorate and hasInvigorate) then
+			if Player.level >= invigorate.level and (gRoleSkillRangedInvigorate and not hasInvigorate) or (not gRoleSkillRangedInvigorate and hasInvigorate) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[invigorate.id] or (e_roleautoset.lastRole[invigorate.id] and  e_roleautoset.lastRole[invigorate.id] ~= Player.level))) then
 					e_roleautoset.lastRole[invigorate.id] = Player.level 
@@ -2390,7 +2389,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= tactician.level and (gRoleTactician and not hasTactician) or (not gRoleTactician and hasTactician) then
+			if Player.level >= tactician.level and (gRoleSkillTactician and not hasTactician) or (not gRoleSkillTactician and hasTactician) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[tactician.id] or (e_roleautoset.lastRole[tactician.id] and  e_roleautoset.lastRole[tactician.id] ~= Player.level))) then
 					e_roleautoset.lastRole[tactician.id] = Player.level 
@@ -2398,7 +2397,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= refresh.level and (gRoleRefresh and not hasRefresh) or (not gRoleRefresh and hasRefresh) then
+			if Player.level >= refresh.level and (gRoleSkillRefresh and not hasRefresh) or (not gRoleSkillRefresh and hasRefresh) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[refresh.id] or (e_roleautoset.lastRole[refresh.id] and  e_roleautoset.lastRole[refresh.id] ~= Player.level))) then
 					e_roleautoset.lastRole[refresh.id] = Player.level 
@@ -2406,7 +2405,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= headGraze.level and (gRoleHeadGraze and not hasHeadGraze) or (not gRoleHeadGraze and hasHeadGraze) then
+			if Player.level >= headGraze.level and (gRoleSkillHeadGraze and not hasHeadGraze) or (not gRoleSkillHeadGraze and hasHeadGraze) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[headGraze.id] or (e_roleautoset.lastRole[headGraze.id] and  e_roleautoset.lastRole[headGraze.id] ~= Player.level))) then
 					e_roleautoset.lastRole[headGraze.id] = Player.level 
@@ -2414,7 +2413,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= armGraze.level and (gRoleArmGraze and not hasArmGraze) or (not gRoleArmGraze and hasArmGraze) then
+			if Player.level >= armGraze.level and (gRoleSkillArmGraze and not hasArmGraze) or (not gRoleSkillArmGraze and hasArmGraze) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[armGraze.id] or (e_roleautoset.lastRole[armGraze.id] and  e_roleautoset.lastRole[armGraze.id] ~= Player.level))) then
 					e_roleautoset.lastRole[armGraze.id] = Player.level 
@@ -2422,7 +2421,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= palisade.level and (gRolePalisade and not hasPalisade) or (not gRolePalisade and hasPalisade) then
+			if Player.level >= palisade.level and (gRoleSkillPalisade and not hasPalisade) or (not gRoleSkillPalisade and hasPalisade) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[palisade.id] or (e_roleautoset.lastRole[palisade.id] and  e_roleautoset.lastRole[palisade.id] ~= Player.level))) then
 					e_roleautoset.lastRole[palisade.id] = Player.level 
@@ -2453,7 +2452,7 @@ function c_roleautoset:evaluate()
 			local diversion = ActionList:Get(1,7545)
 			local hasDiversion = diversion.usable
 			
-			if Player.level >= secondWind.level and (gRoleSecondWind and not hasSecondWind) or (not gRoleSecondWind and hasSecondWind) then
+			if Player.level >= secondWind.level and (gRoleSkillSecondWind and not hasSecondWind) or (not gRoleSkillSecondWind and hasSecondWind) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[secondWind.id] or (e_roleautoset.lastRole[secondWind.id] and  e_roleautoset.lastRole[secondWind.id] ~= Player.level))) then
 					e_roleautoset.lastRole[secondWind.id] = Player.level 
@@ -2461,7 +2460,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= armsLength.level and (gRoleArmsLength and not hasArmsLength) or (not gRoleArmsLength and hasArmsLength) then
+			if Player.level >= armsLength.level and (gRoleSkillArmsLength and not hasArmsLength) or (not gRoleSkillArmsLength and hasArmsLength) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[armsLength.id] or (e_roleautoset.lastRole[armsLength.id] and  e_roleautoset.lastRole[armsLength.id] ~= Player.level))) then
 					e_roleautoset.lastRole[armsLength.id] = Player.level 
@@ -2469,7 +2468,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= legSweep.level and (gRoleLegSweep and not hasLegSweep) or (not gRoleLegSweep and hasLegSweep) then
+			if Player.level >= legSweep.level and (gRoleSkillLegSweep and not hasLegSweep) or (not gRoleSkillLegSweep and hasLegSweep) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[legSweep.id] or (e_roleautoset.lastRole[legSweep.id] and  e_roleautoset.lastRole[legSweep.id] ~= Player.level))) then
 					e_roleautoset.lastRole[legSweep.id] = Player.level 
@@ -2477,7 +2476,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= diversion.level and (gRoleMeleeDiversion and not hasDiversion) or (not gRoleMeleeDiversion and hasDiversion) then
+			if Player.level >= diversion.level and (gRoleSkillMeleeDiversion and not hasDiversion) or (not gRoleSkillMeleeDiversion and hasDiversion) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[diversion.id] or (e_roleautoset.lastRole[diversion.id] and  e_roleautoset.lastRole[diversion.id] ~= Player.level))) then
 					e_roleautoset.lastRole[diversion.id] = Player.level 
@@ -2485,7 +2484,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= invigorate.level and (gRoleInvigorate and not hasInvigorate) or (not gRoleInvigorate and hasInvigorate) then
+			if Player.level >= invigorate.level and (gRoleSkillInvigorate and not hasInvigorate) or (not gRoleSkillInvigorate and hasInvigorate) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[invigorate.id] or (e_roleautoset.lastRole[invigorate.id] and  e_roleautoset.lastRole[invigorate.id] ~= Player.level))) then
 					e_roleautoset.lastRole[invigorate.id] = Player.level 
@@ -2493,7 +2492,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= bloodbath.level and (gRoleBloodbath and not hasBloodbath) or (not gRoleBloodbath and hasBloodbath) then
+			if Player.level >= bloodbath.level and (gRoleSkillBloodbath and not hasBloodbath) or (not gRoleSkillBloodbath and hasBloodbath) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[bloodbath.id] or (e_roleautoset.lastRole[bloodbath.id] and  e_roleautoset.lastRole[bloodbath.id] ~= Player.level))) then
 					e_roleautoset.lastRole[bloodbath.id] = Player.level
@@ -2501,7 +2500,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= goad.level and (gRoleGoad and not hasGoad) or (not gRoleGoad and hasGoad) then
+			if Player.level >= goad.level and (gRoleSkillGoad and not hasGoad) or (not gRoleSkillGoad and hasGoad) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[goad.id] or (e_roleautoset.lastRole[goad.id] and  e_roleautoset.lastRole[goad.id] ~= Player.level))) then
 					e_roleautoset.lastRole[goad.id] = Player.level 
@@ -2509,7 +2508,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= feint.level and (gRoleFeint and not hasFeint) or (not gRoleFeint and hasFeint) then
+			if Player.level >= feint.level and (gRoleSkillFeint and not hasFeint) or (not gRoleSkillFeint and hasFeint) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[feint.id] or (e_roleautoset.lastRole[feint.id] and  e_roleautoset.lastRole[feint.id] ~= Player.level))) then
 					e_roleautoset.lastRole[feint.id] = Player.level 
@@ -2517,7 +2516,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= crutch.level and (gRoleCrutch and not hasCrutch) or (not gRoleCrutch and hasCrutch) then
+			if Player.level >= crutch.level and (gRoleSkillCrutch and not hasCrutch) or (not gRoleSkillCrutch and hasCrutch) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[crutch.id] or (e_roleautoset.lastRole[crutch.id] and  e_roleautoset.lastRole[crutch.id] ~= Player.level))) then
 					e_roleautoset.lastRole[crutch.id] = Player.level 
@@ -2525,7 +2524,7 @@ function c_roleautoset:evaluate()
 					return true
 				end
 			end
-			if Player.level >= trueNorth.level and (gRoleTrueNorth and not hasTrueNorth) or (not gRoleTrueNorth and hasTrueNorth) then
+			if Player.level >= trueNorth.level and (gRoleSkillTrueNorth and not hasTrueNorth) or (not gRoleSkillTrueNorth and hasTrueNorth) then
 				if (not table.valid(e_roleautoset.lastRole)) or (table.valid(e_roleautoset.lastRole) and 
 					(not e_roleautoset.lastRole[trueNorth.id] or (e_roleautoset.lastRole[trueNorth.id] and  e_roleautoset.lastRole[trueNorth.id] ~= Player.level))) then
 					e_roleautoset.lastRole[trueNorth.id] = Player.level 
