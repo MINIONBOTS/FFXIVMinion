@@ -1138,13 +1138,19 @@ function e_startcraft:execute()
 							for i = 1,6 do
 								local ingredient = mats[i]
 								if (ingredient) then
-									local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+									local hqAmountMax = ml_task_hub:CurrentTask()["hq"..tostring(i)]
 									local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
+									local hqUseMax = ml_task_hub:CurrentTask()["hq"..tostring(i).."max"]
 									if not ifNecessary then
-										if (hqAmount > 0) then
-											if (ingredient.inventoryhq >= hqAmount and ingredient.selectedhq < hqAmount) then
-												d("[Craft]: Order is set to prefer ["..tostring(hqAmount).."] HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,hqAmount)
+										if (hqAmountMax > 0) then
+											if (ingredient.inventoryhq >= hqAmountMax and ingredient.selectedhq < hqAmountMax) then
+												d("[Craft]: Order is set to prefer ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
+												Crafting:SetCraftingMats(i-1,hqAmountMax)
+												ml_global_information.Await(math.random(150,300))
+												return
+											elseif (ingredient.inventoryhq < hqAmountMax and ingredient.selectedhq < ingredient.inventoryhq) then
+												d("[Craft]: Order is set to maximise HQ of ["..ingredient.name.."].")
+												Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
 												ml_global_information.Await(math.random(150,300))
 												return
 											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and ingredient.selectedhq < hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
@@ -1156,6 +1162,25 @@ function e_startcraft:execute()
 												d("[Craft]: Stop crafting item, not enough HQ.")
 												e_craftlimit:execute()
 												return false
+											end
+										else
+											local maxHQ = ingredient.needed
+											local minHQ = 0
+												
+											if (ingredient.inventoryhq >= maxHQ) then
+												if (ingredient.selectedhq ~= maxHQ) then
+													d("[Craft]: Order is set to use any HQ of ["..ingredient.name.."].")
+													Crafting:SetCraftingMats(i-1,maxHQ)
+													ml_global_information.Await(math.random(150,300))
+													return
+												end
+											elseif (ingredient.inventoryhq > minHQ) then
+												if (ingredient.inventoryhq < maxHQ and ingredient.selectedhq ~= ingredient.inventoryhq) then
+													d("[Craft]: Order is set to use any HQ of ["..ingredient.name.."].")
+													Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+													ml_global_information.Await(math.random(150,300))
+													return
+												end
 											end
 										end
 									else
