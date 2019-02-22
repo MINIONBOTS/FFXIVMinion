@@ -1109,6 +1109,7 @@ function e_startcraft:execute()
 		local itemid = ml_task_hub:CurrentTask().itemid
 		local indexInfo = Crafting:GetSelectedCraftInfo(recipe.id)
 		local skillProfile = ml_task_hub:CurrentTask().skillProfile
+		local key = ml_task_hub:CurrentTask().key
 		
 		if (table.valid(indexInfo)) then
 			if indexInfo.iscorrectindex ~= true then 
@@ -1244,7 +1245,7 @@ function e_startcraft:execute()
 							return
 						else
 							cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."].",3)
-							ffxiv_craft.orders[recipe.id].completed = true
+							ffxiv_craft.orders[key].completed = true
 							ml_task_hub:CurrentTask().completed = true
 						end
 					end			
