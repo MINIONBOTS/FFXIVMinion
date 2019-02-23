@@ -1158,13 +1158,13 @@ function e_startcraft:execute()
 												Crafting:SetCraftingMats(i-1,hqAmountMin)
 												ml_global_information.Await(math.random(150,300))
 												return
-											elseif ((ingredient.inventoryhq == 0) and (ingredient.selectednq >= ingredient.needed)) then
+											elseif ((ingredient.inventoryhq == 0) and (ingredient.inventorynq >= ingredient.needed)) then
 												d("[Craft]: Order is set to 0 HQ of ["..ingredient.name.."].")
 												Crafting:SetCraftingMats(i-1,0)
 												ml_global_information.Await(math.random(150,300))
 												return
-											elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
-												d("[Craft]: Stop crafting item, not enough HQ.")
+											elseif ((ingredient.inventoryhq + ingredient.inventorynq) < ingredient.needed) then
+												d("[Craft]: Stop crafting item, not enough Items.")
 												e_craftlimit:execute()
 												return false
 											end
@@ -1186,12 +1186,12 @@ function e_startcraft:execute()
 													ml_global_information.Await(math.random(150,300))
 													return
 												end
-											elseif ((ingredient.inventoryhq == 0) and (ingredient.selectednq >= ingredient.needed)) then
+											elseif ((ingredient.inventoryhq == 0) and (ingredient.inventorynq >= ingredient.needed)) then
 												d("[Craft]: Order is set to 0 HQ of ["..ingredient.name.."].")
 												Crafting:SetCraftingMats(i-1,0)
 												ml_global_information.Await(math.random(150,300))
 												return
-											elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
+											elseif ((ingredient.inventoryhq + ingredient.inventorynq) < ingredient.needed) then
 												d("[Craft]: Stop crafting item, not enough Items.")
 												e_craftlimit:execute()
 												return false
