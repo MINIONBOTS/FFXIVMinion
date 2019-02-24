@@ -1138,59 +1138,31 @@ function e_startcraft:execute()
 							for i = 1,6 do
 								local ingredient = mats[i]
 								if (ingredient) then
+								
 									local hqAmountMax = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+									if hqAmountMax > ingredient.needed then
+										hqAmountMax = ingredient.needed
+									end
 									local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
-									local hqUseMax = ml_task_hub:CurrentTask()["hq"..tostring(i).."max"]
 									if not ifNecessary then
-										if (hqAmountMax > 0) then
-											if (ingredient.inventoryhq >= hqAmountMax and ingredient.selectedhq < hqAmountMax) then
-												d("[Craft]: Order is set to prefer ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,hqAmountMax)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif (ingredient.inventoryhq < hqAmountMax and ingredient.selectedhq < ingredient.inventoryhq) then
-												d("[Craft]: Order is set to maximise HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and ingredient.selectedhq < hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-												d("[Craft]: Order is set to require at least ["..tostring(hqAmountMin).."] HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,hqAmountMin)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif ((ingredient.selectedhq + ingredient.inventorynq) < ingredient.needed) then
-												d("[Craft]: Stop crafting item, not enough Items.")
-												e_craftlimit:execute()
-												return false
-											end
-										else
-											local maxHQ = ingredient.needed
-											local minHQ = 0
-												
-											if (ingredient.inventoryhq >= maxHQ) then
-												if (ingredient.selectedhq ~= maxHQ) then
-													d("[Craft]: Order is set to use any HQ of ["..ingredient.name.."].")
-													Crafting:SetCraftingMats(i-1,maxHQ)
-													ml_global_information.Await(math.random(150,300))
-													return
-												end
-											elseif (ingredient.inventoryhq > minHQ) then
-												if (ingredient.inventoryhq < maxHQ and ingredient.selectedhq ~= ingredient.inventoryhq) then
-													d("[Craft]: Order is set to use any HQ of ["..ingredient.name.."].")
-													Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
-													ml_global_information.Await(math.random(150,300))
-													return
-												end
-											elseif ((ingredient.inventoryhq == 0) and (ingredient.inventorynq >= ingredient.needed)) then
-												d("[Craft]: Order is set to 0 HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,0)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif ((ingredient.inventoryhq + ingredient.inventorynq) < ingredient.needed) then
-												d("[Craft]: Stop crafting item, not enough Items.")
-												e_craftlimit:execute()
-												return false
-											end
+										if ((ingredient.inventoryhq >= hqAmountMax) and (hqAmountMax >= hqAmountMin) and (ingredient.selectedhq < hqAmountMax)) then -- set max hq material
+											d("[Craft]: Order is set to use Maximum ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
+											Crafting:SetCraftingMats(i-1,hqAmountMax) -- set max
+											ml_global_information.Await(math.random(150,300))
+											return
+										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq < ingredient.inventoryhq)) then -- set as much as currently possible
+											d("[Craft]: Order is set use as much HQ as I Currently have of ["..tostring(ingredient.inventoryhq).."] HQ of ["..ingredient.name.."].")
+											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq) -- set what i have
+											ml_global_information.Await(math.random(150,300))
+											return
+										elseif (ingredient.inventoryhq < hqAmountMin) then
+											d("[Craft]: Stop crafting item, not enough HQ Items of ["..ingredient.name.."].")
+											e_craftlimit:execute()
+											return false
+										elseif ((ingredient.selectedhq + ingredient.inventorynq) < ingredient.needed) then
+											d("[Craft]: Stop crafting item, not enough ingrediends of ["..ingredient.name.."].")
+											e_craftlimit:execute()
+											return false
 										end
 									else
 										if ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
@@ -3229,8 +3201,8 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Text("Ingredient"); GUI:NextColumn();
 							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Min HQ Amount"); GUI:NextColumn();
+							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Use All HQ"); GUI:NextColumn();
 							
 							GUI:Separator();
@@ -3243,6 +3215,28 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:AlignFirstTextHeightToWidgets()
 									GUI:Text(tostring(recipeDetails["iamount"..tostring(i)])); GUI:Dummy(); GUI:NextColumn();
 									
+									
+									
+									GUI:PushItemWidth(50)
+									local newVal, changed = GUI:InputInt("##HQ MinAmount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0,0)
+									if (changed) then
+									
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										ffxiv_craft.UpdateOrderElement()
+										elseif (newVal < 0) then
+											newVal = 0
+										ffxiv_craft.UpdateOrderElement()
+										end
+											
+										_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									if (GUI:IsItemHovered()) then
+										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
 									
 									GUI:PushItemWidth(50)
 									local newVal, changed = GUI:InputInt("##HQ Amount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i)],0,0)
@@ -3264,27 +3258,6 @@ function ffxiv_craft.Draw( event, ticks )
 									end
 									if (GUI:IsItemHovered()) then
 										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
-									end
-									GUI:PopItemWidth()
-									GUI:NextColumn();
-									
-									GUI:PushItemWidth(50)
-									local newVal, changed = GUI:InputInt("##HQ MinAmount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0,0)
-									if (changed) then
-									
-										if (newVal > recipeDetails["iamount"..tostring(i)]) then
-											newVal = recipeDetails["iamount"..tostring(i)]
-										ffxiv_craft.UpdateOrderElement()
-										elseif (newVal < 0) then
-											newVal = 0
-										ffxiv_craft.UpdateOrderElement()
-										end
-											
-										_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = newVal
-										ffxiv_craft.UpdateOrderElement()
-									end
-									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -3447,8 +3420,8 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Text("Ingredient"); GUI:NextColumn();
 							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Min HQ Amount"); GUI:NextColumn();
+							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Use All HQ"); GUI:NextColumn();
 							GUI:Separator();
 							
@@ -3459,6 +3432,27 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy();GUI:NextColumn();
 									GUI:AlignFirstTextHeightToWidgets()
 									GUI:Text(recipeDetails["iamount"..tostring(i)]); GUI:Dummy();GUI:NextColumn();
+									
+									
+									GUI:PushItemWidth(50)
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:InputInt("##HQ MinAmount-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"],0,0)
+									if (changed) then
+									
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										
+										_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									if (GUI:IsItemHovered()) then
+										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
 									
 									GUI:PushItemWidth(50)
 									GUI:AlignFirstTextHeightToWidgets()
@@ -3481,26 +3475,6 @@ function ffxiv_craft.Draw( event, ticks )
 									end
 									if (GUI:IsItemHovered()) then
 										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
-									end
-									GUI:PopItemWidth()
-									GUI:NextColumn();
-									
-									GUI:PushItemWidth(50)
-									GUI:AlignFirstTextHeightToWidgets()
-									local newVal, changed = GUI:InputInt("##HQ MinAmount-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"],0,0)
-									if (changed) then
-									
-										if (newVal > recipeDetails["iamount"..tostring(i)]) then
-											newVal = recipeDetails["iamount"..tostring(i)]
-										elseif (newVal < 0) then
-											newVal = 0
-										end
-										
-										_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = newVal
-										ffxiv_craft.UpdateOrderElement()
-									end
-									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
