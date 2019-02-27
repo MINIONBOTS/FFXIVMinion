@@ -252,7 +252,7 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
 			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
 			basePos = marker:GetPosition()
-		elseif (gBotMode ~= GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3) then
+		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
 			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,70)
 			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
