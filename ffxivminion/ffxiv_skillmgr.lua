@@ -118,8 +118,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.ARCANIST] = "Summoner",
 	[FFXIV.JOBS.SUMMONER] = "Summoner",
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
-	[FFXIV.JOBS.BOTANIST] = "Botanist",
-	[FFXIV.JOBS.MINER] = "Miner",
+	[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
+	[FFXIV.JOBS.MINER] = "Gathering_Leveling",
 	[FFXIV.JOBS.ROGUE] = "Rogue",
 	[FFXIV.JOBS.NINJA] = "Ninja",
 	[FFXIV.JOBS.MACHINIST] = "Machinist",
@@ -860,6 +860,9 @@ function SkillMgr.ModuleInit()
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] = "Redmage"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] = "BlueMage"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.MINER] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.MINER] = "Gathering_Leveling"
