@@ -42,7 +42,7 @@ ffxiv_craft.collectibles = {
     { name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },
     { name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },
     { name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },
-	
+
 	-- Weekly
 	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
 	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 }, -- M Tribe Sundries
@@ -923,7 +923,8 @@ function e_craftlimit:execute()
 	cd("[CraftLimit]: Profile has reached the preset requirements.",3)
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
-		ffxiv_craft.orders[recipeid].completed = true
+		local key = ml_task_hub:CurrentTask().key
+		ffxiv_craft.orders[key].completed = true
 		ffxiv_craft.tracking.measurementDelay = Now()
 		
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
@@ -1108,6 +1109,7 @@ function e_startcraft:execute()
 		local itemid = ml_task_hub:CurrentTask().itemid
 		local indexInfo = Crafting:GetSelectedCraftInfo(recipe.id)
 		local skillProfile = ml_task_hub:CurrentTask().skillProfile
+		local key = ml_task_hub:CurrentTask().key
 		
 		if (table.valid(indexInfo)) then
 			if indexInfo.iscorrectindex ~= true then 
@@ -1136,25 +1138,31 @@ function e_startcraft:execute()
 							for i = 1,6 do
 								local ingredient = mats[i]
 								if (ingredient) then
-									local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+								
+									local hqAmountMax = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+									if hqAmountMax > ingredient.needed then
+										hqAmountMax = ingredient.needed
+									end
 									local hqAmountMin = ml_task_hub:CurrentTask()["hq"..tostring(i).."min"]
 									if not ifNecessary then
-										if (hqAmount > 0) then
-											if (ingredient.inventoryhq >= hqAmount and ingredient.selectedhq < hqAmount) then
-												d("[Craft]: Order is set to prefer ["..tostring(hqAmount).."] HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,hqAmount)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif (hqAmountMin > 0 and ingredient.inventoryhq >= hqAmountMin and ingredient.selectedhq < hqAmountMin and (hqAmountMin + ingredient.inventorynq) >= ingredient.needed) then
-												d("[Craft]: Order is set to require at least ["..tostring(hqAmountMin).."] HQ of ["..ingredient.name.."].")
-												Crafting:SetCraftingMats(i-1,hqAmountMin)
-												ml_global_information.Await(math.random(150,300))
-												return
-											elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
-												d("[Craft]: Stop crafting item, not enough HQ.")
-												e_craftlimit:execute()
-												return false
-											end
+										if ((ingredient.inventoryhq >= hqAmountMax) and (hqAmountMax >= hqAmountMin) and (ingredient.selectedhq < hqAmountMax)) then -- set max hq material
+											d("[Craft]: Order is set to use Maximum ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
+											Crafting:SetCraftingMats(i-1,hqAmountMax) -- set max
+											ml_global_information.Await(math.random(150,300))
+											return
+										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq < ingredient.inventoryhq)) then -- set as much as currently possible
+											d("[Craft]: Order is set use as much HQ as I Currently have of ["..tostring(ingredient.inventoryhq).."] HQ of ["..ingredient.name.."].")
+											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq) -- set what i have
+											ml_global_information.Await(math.random(150,300))
+											return
+										elseif (ingredient.inventoryhq < hqAmountMin) then
+											d("[Craft]: Stop crafting item, not enough HQ Items of ["..ingredient.name.."].")
+											e_craftlimit:execute()
+											return false
+										elseif ((ingredient.selectedhq + ingredient.inventorynq) < ingredient.needed) then
+											d("[Craft]: Stop crafting item, not enough ingrediends of ["..ingredient.name.."].")
+											e_craftlimit:execute()
+											return false
 										end
 									else
 										if ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) then
@@ -1234,7 +1242,7 @@ function e_startcraft:execute()
 						end
 						return
 					else
-						if (ml_task_hub:CurrentTask().failedAttempts < 2) then
+						if (ml_task_hub:CurrentTask().failedAttempts < 10) then
 							d("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 							ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
 							ml_task_hub:CurrentTask().matsSet = false
@@ -1243,7 +1251,7 @@ function e_startcraft:execute()
 							return
 						else
 							cd("[StartCraft]: We cannot craft anymore of item ["..tostring(recipe.id).."].",3)
-							ffxiv_craft.orders[recipe.id].completed = true
+							ffxiv_craft.orders[key].completed = true
 							ml_task_hub:CurrentTask().completed = true
 						end
 					end			
@@ -1551,12 +1559,12 @@ function c_selectcraft:evaluate()
 				orders[id].completed = false
 			end
 			if (order.completed == false and order.skip ~= true) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 				if (canCraft) or (order.ifnecessary) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
 				else
-					d("canCraft:"..tostring(canCraft))
+					d("Can't Craft:"..tostring(order.name))
 				end
 			end
 		end
@@ -1573,17 +1581,14 @@ function e_selectcraft:execute()
 	if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
 		local orders = ffxiv_craft.orders
 		
-		local sortfunc = function(orders,a,b) 
-			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-		end
-		
 		local foundSelection = false
-		for id,order in spairs(orders, sortfunc) do
+		for id,order in spairs(orders) do
+		
 			if (not order.completed and not order.skip) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(id,order.usehq)
+				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 
 				if (canCraft) or (order.ifnecessary) then
-					
+					d("new task = "..tostring(id))
 					local itemid = order.item
 					local itemcount = 0
 					if (order.collect) then
@@ -1612,6 +1617,7 @@ function e_selectcraft:execute()
 					newTask.ifNecessary = order.ifnecessary
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.skillprofile
+					newTask.key = id
 					
 					for i = 1,6 do
 						newTask["hq"..tostring(i)] = IsNull(order["hq"..tostring(i)],0)
@@ -1680,6 +1686,7 @@ function ffxiv_task_craftitems.Create()
 	newinst.recipeSelected = false
 	newinst.matsSet = false
 	newinst.skillProfile = ""
+	newinst.key = 0
 	newinst.quickTimer = 0
 	
 	newinst.failedAttempts = 0
@@ -1825,6 +1832,7 @@ function ffxiv_task_craft:UIInit()
 	
 	--Add
 	gCraftOrderAddID = 0
+	gCraftOrderAddRecipeID = 0
 	gCraftOrderAddAmount = 1
 	gCraftOrderAddRequireHQ = false
 	gCraftOrderAddRequireCP = 0
@@ -1838,6 +1846,7 @@ function ffxiv_task_craft:UIInit()
 	
 	--Edit
 	gCraftOrderEditID = 0
+	gCraftOrderEditRecipeID = 0
 	gCraftOrderEditAmount = 1
 	gCraftOrderEditRequireHQ = false
 	gCraftOrderEditRequiredCP = 0
@@ -2043,7 +2052,7 @@ function ffxiv_task_craft:Draw()
 				else
 					local orders = ffxiv_craft.orders
 					if (table.valid(orders)) then
-						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().recipe.id].maxcount,"Inf")
+						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().key].maxcount,"Inf")
 						GUI:PushItemWidth(50)
 						GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
 						if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Based from total item count only.")) end
@@ -2055,8 +2064,17 @@ function ffxiv_task_craft:Draw()
 		end
 	
 		GUI:Separator();
-		GUI:Columns(8, "#craft-manage-orders", true)
-		GUI:SetColumnOffset(1, 160); GUI:SetColumnOffset(2, 210); GUI:SetColumnOffset(3, 260); GUI:SetColumnOffset(4, 310); GUI:SetColumnOffset(5, 360); GUI:SetColumnOffset(6, 405); GUI:SetColumnOffset(7, 450); GUI:SetColumnOffset(8, 510);
+		GUI:Columns(10, "#craft-manage-orders", true)
+		GUI:SetColumnOffset(1, 160);
+		GUI:SetColumnOffset(2, 210);
+		GUI:SetColumnOffset(3, 260);
+		GUI:SetColumnOffset(4, 310);
+		GUI:SetColumnOffset(5, 360);
+		GUI:SetColumnOffset(6, 400);
+		GUI:SetColumnOffset(7, 430); -- up icon
+		GUI:SetColumnOffset(8, 460); -- down icon
+		GUI:SetColumnOffset(9, 505);
+		GUI:SetColumnOffset(10, 580);
 		
 		GUI:Text("Item"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
@@ -2064,16 +2082,15 @@ function ffxiv_task_craft:Draw()
 		GUI:Text("HQ"); GUI:NextColumn();
 		GUI:Text("COL"); GUI:NextColumn();
 		GUI:Text("Edit"); GUI:NextColumn();
+		GUI:NextColumn(); -- up icon
+		GUI:NextColumn(); -- down icon
 		GUI:Text("Skip"); GUI:NextColumn();
 		GUI:Text("Alert"); GUI:NextColumn();
 		GUI:Separator();
 		
 		local orders = ffxiv_craft.orders
 		if (table.valid(orders)) then
-			local sortfunc = function(orders,a,b) 
-				return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-			end
-			for id,order in spairs(orders, sortfunc) do
+			for id,order in spairs(orders) do
 			GUI:AlignFirstTextHeightToWidgets(); 
 			if order.collect then
 				GUI:Text("(C) " .. tostring(order.name));
@@ -2100,6 +2117,7 @@ function ffxiv_task_craft:Draw()
 				
 				if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
 					gCraftOrderEditID = id
+					gCraftOrderEditRecipeID = order.id
 						
 					gCraftOrderEditAmount = IsNull(order["amount"],0)
 					gCraftOrderEditRequiredCP = IsNull(order["requiredcp"],0)
@@ -2136,9 +2154,68 @@ function ffxiv_task_craft:Draw()
 				
 				GUI:PopStyleColor(2)
 				GUI:NextColumn()
-				--if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
-				--	ffxiv_craft.DeleteOrder(id)
-				--end
+				
+				local doPriorityUp = 0
+				local doPriorityDown = 0
+				local doPriorityTop = 0
+					
+				GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\w_up.png",16,16); GUI:SameLine(0,15);
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						doPriorityUp = id
+					elseif (GUI:IsMouseClicked(1)) then
+						doPriorityTop = id
+					end
+					GUI:SetTooltip("Right click will update old profile task numbering on move.")
+				end
+				if (doPriorityUp ~= 0 and doPriorityUp ~= 1) then
+					
+					local currentPos = doPriorityUp
+					local newPos = doPriorityUp - 1
+					
+					local temp = orders[newPos]
+					orders[newPos] = orders[currentPos]
+					orders[currentPos] = temp	
+										
+					ffxiv_craft.SaveProfile()
+				end
+				if (doPriorityTop ~= 0 and doPriorityTop ~= 1) then
+					
+					local currentPos = doPriorityTop
+					local newPos = doPriorityTop
+					
+					while currentPos > 1 do
+						local temp = orders[newPos]
+						orders[newPos] = orders[currentPos]
+						orders[currentPos] = temp	
+						currentPos = newPos
+						newPos = newPos - 1
+					end
+										
+					ffxiv_craft.SaveProfile()
+				end
+					
+				GUI:NextColumn()
+				
+				GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\w_down.png",16,16); GUI:SameLine(0,15);
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						doPriorityDown = id
+					end
+				end
+				if (doPriorityDown ~= 0 and doPriorityDown < TableSize(orders)) then
+					
+					local currentPos = doPriorityDown
+					local newPos = doPriorityDown + 1
+					
+					local temp = orders[newPos]
+					orders[newPos] = orders[currentPos]
+					orders[currentPos] = temp	
+										
+					ffxiv_craft.SaveProfile()
+				end
+				
+				GUI:NextColumn()
 				
 				gCraftOrderEditSkip = IsNull(order.skip,false)
 				local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
@@ -2481,40 +2558,38 @@ function ffxiv_craft.CreateNewProfile()
 end
 
 function ffxiv_craft.AddToProfile()
-	local recipeid = tonumber(gCraftOrderAddID) or 0
+	local recipeid = tonumber(gCraftOrderAddRecipeID) or 0
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
-		if (orders[recipeid] == nil) then
-			local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
-			local thisOrder = { 	
-				id = recipeid, 
-				item = recipeDetails.id, 
-				name = recipeDetails.name, 
-				level = recipeDetails.attemptlevel,
-				class = recipeDetails.class, 
-				page = recipeDetails.page,
-				amount = gCraftOrderAddAmount, 
-				usequick = gCraftOrderAddQuick, 
-				collect = gCraftOrderAddCollect, 
-				usehq = gCraftOrderAddHQ, 
-				ifnecessary = gCraftOrderAddIfNecessary,
-				skillprofile = gCraftOrderAddSkillProfile,
-				requirehq = gCraftOrderAddRequireHQ, 
-				requiredcp = gCraftOrderAddRequireCP, 
-				counthq = gCraftOrderAddCountHQ,
-				skip = false,
-				completed = false,
-			}
-			
-			for i = 1,6 do
-				thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"],false)
-				thisOrder["hq"..tostring(i).."min"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0)
-				thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
-			end
-			
-			orders[recipeid] = thisOrder
-			ffxiv_craft.SaveProfile()
+		local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
+		local thisOrder = { 	
+			id = recipeid, 
+			item = recipeDetails.id, 
+			name = recipeDetails.name, 
+			level = recipeDetails.attemptlevel,
+			class = recipeDetails.class, 
+			page = recipeDetails.page,
+			amount = gCraftOrderAddAmount, 
+			usequick = gCraftOrderAddQuick, 
+			collect = gCraftOrderAddCollect, 
+			usehq = gCraftOrderAddHQ, 
+			ifnecessary = gCraftOrderAddIfNecessary,
+			skillprofile = gCraftOrderAddSkillProfile,
+			requirehq = gCraftOrderAddRequireHQ, 
+			requiredcp = gCraftOrderAddRequireCP, 
+			counthq = gCraftOrderAddCountHQ,
+			skip = false,
+			completed = false,
+		}
+		
+		for i = 1,6 do
+			thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"],false)
+			thisOrder["hq"..tostring(i).."min"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0)
+			thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
 		end
+		
+		table.insert(ffxiv_craft.orders,thisOrder)
+		ffxiv_craft.SaveProfile()
 	end
 end
 
@@ -2597,8 +2672,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["ifnecessary"] = false
 				end
 					
-				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(id,order["usehq"])
-				--local yield = AceLib.API.Items.GetRecipeDetails(id).yield
+				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(order.id,order["usehq"])
 
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
@@ -2861,40 +2935,21 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Text("Remove"); GUI:NextColumn();
 					GUI:Text("Alert"); GUI:NextColumn();
 					GUI:Separator();
-				
-					local sortfunc = function(orders,a,b) 
-						return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-					end
-					for id,order in spairs(orders, sortfunc) do
+										
+					for id,order in spairs(orders) do
 						if order.collect then
 							GUI:Text("(C) " .. tostring(order.name));
 						else
 							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
-						end	
-						if (GUI:IsItemHovered()) then
-							GUI:BeginTooltip()
-							ffxiv_craft.InspectRecipe(id)
-							GUI:EndTooltip()
-						end						
+						end				
 						GUI:NextColumn()
-						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(id); GUI:NextColumn()
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.id); GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.amount); GUI:NextColumn()
 						
 						if (order.skip == nil) then
 							orders[id].skip = false
 							ffxiv_craft.SaveProfile()
-						end
-						
-						--[[
-						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
-						if (changed) then
-							orders[id].skip = newVal
-							if orders[id].skip == true then
-								orders[id].uialert = skip
-							end
-							ffxiv_craft.tracking.measurementDelay = Now()
-						end
-						--]]
+						end						
 						
 						gCraftOrderEditSkip = IsNull(order.skip,false)
 						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),gCraftOrderEditSkip)
@@ -2913,6 +2968,7 @@ function ffxiv_craft.Draw( event, ticks )
 						
 						if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
 							gCraftOrderEditID = id
+							gCraftOrderEditRecipeID = order.id
 							
 							gCraftOrderEditAmount = IsNull(order["amount"],0)
 							gCraftOrderEditCollect = IsNull(order["collect"],false)
@@ -3061,6 +3117,7 @@ function ffxiv_craft.Draw( event, ticks )
 							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
 							if (thisRecipe) then
 								gCraftOrderAddID = thisRecipe.recipeid
+								gCraftOrderAddRecipeID = thisRecipe.recipeid
 								gCraftOrderAddAmount = 1
 								gCraftOrderAddCollect = false
 								gCraftOrderAddRequireHQ = false
@@ -3084,8 +3141,7 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:Text("Could not find display dictionary for ["..gCraftOrderSelect.."] with attempt level ["..tostring(k).."]")
 					end					
 				end
-				
-				if (gCraftOrderAddID ~= 0) then
+				if (gCraftOrderAddRecipeID ~= 0) then
 					
 					GUI:Separator()
 				
@@ -3136,7 +3192,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI:Columns()
 					if (gCraftOrderAddHQ) and not gCraftOrderAddIfNecessary then	
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddID)
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-add-hq", true)
@@ -3145,8 +3201,8 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Text("Ingredient"); GUI:NextColumn();
 							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Min HQ Amount"); GUI:NextColumn();
+							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Use All HQ"); GUI:NextColumn();
 							
 							GUI:Separator();
@@ -3159,6 +3215,28 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:AlignFirstTextHeightToWidgets()
 									GUI:Text(tostring(recipeDetails["iamount"..tostring(i)])); GUI:Dummy(); GUI:NextColumn();
 									
+									
+									
+									GUI:PushItemWidth(50)
+									local newVal, changed = GUI:InputInt("##HQ MinAmount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0,0)
+									if (changed) then
+									
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										ffxiv_craft.UpdateOrderElement()
+										elseif (newVal < 0) then
+											newVal = 0
+										ffxiv_craft.UpdateOrderElement()
+										end
+											
+										_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									if (GUI:IsItemHovered()) then
+										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
 									
 									GUI:PushItemWidth(50)
 									local newVal, changed = GUI:InputInt("##HQ Amount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i)],0,0)
@@ -3180,27 +3258,6 @@ function ffxiv_craft.Draw( event, ticks )
 									end
 									if (GUI:IsItemHovered()) then
 										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
-									end
-									GUI:PopItemWidth()
-									GUI:NextColumn();
-									
-									GUI:PushItemWidth(50)
-									local newVal, changed = GUI:InputInt("##HQ MinAmount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"],0,0)
-									if (changed) then
-									
-										if (newVal > recipeDetails["iamount"..tostring(i)]) then
-											newVal = recipeDetails["iamount"..tostring(i)]
-										ffxiv_craft.UpdateOrderElement()
-										elseif (newVal < 0) then
-											newVal = 0
-										ffxiv_craft.UpdateOrderElement()
-										end
-											
-										_G["gCraftOrderAddHQIngredient"..tostring(i).."Min"] = newVal
-										ffxiv_craft.UpdateOrderElement()
-									end
-									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -3232,6 +3289,8 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Spacing()
 					
 					if (GUI:Button("Add to Profile",250,20)) then
+					
+						d("Adding Recipe id ["..gCraftOrderAddRecipeID.."]")
 						ffxiv_craft.AddToProfile()
 						ffxiv_craft.tracking.measurementDelay = Now()
 					end
@@ -3352,7 +3411,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Columns()
 					if (gCraftOrderEditHQ) and not gCraftOrderEditIfNecessary then
 						GUI:Separator()
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditID)
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-edit-hq", true)
@@ -3361,8 +3420,8 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Text("Ingredient"); GUI:NextColumn();
 							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Min HQ Amount"); GUI:NextColumn();
+							GUI:Text("Max HQ Amount"); GUI:NextColumn();
 							GUI:Text("Use All HQ"); GUI:NextColumn();
 							GUI:Separator();
 							
@@ -3373,6 +3432,27 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy();GUI:NextColumn();
 									GUI:AlignFirstTextHeightToWidgets()
 									GUI:Text(recipeDetails["iamount"..tostring(i)]); GUI:Dummy();GUI:NextColumn();
+									
+									
+									GUI:PushItemWidth(50)
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:InputInt("##HQ MinAmount-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"],0,0)
+									if (changed) then
+									
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										
+										_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									if (GUI:IsItemHovered()) then
+										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
 									
 									GUI:PushItemWidth(50)
 									GUI:AlignFirstTextHeightToWidgets()
@@ -3395,26 +3475,6 @@ function ffxiv_craft.Draw( event, ticks )
 									end
 									if (GUI:IsItemHovered()) then
 										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
-									end
-									GUI:PopItemWidth()
-									GUI:NextColumn();
-									
-									GUI:PushItemWidth(50)
-									GUI:AlignFirstTextHeightToWidgets()
-									local newVal, changed = GUI:InputInt("##HQ MinAmount-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"],0,0)
-									if (changed) then
-									
-										if (newVal > recipeDetails["iamount"..tostring(i)]) then
-											newVal = recipeDetails["iamount"..tostring(i)]
-										elseif (newVal < 0) then
-											newVal = 0
-										end
-										
-										_G["gCraftOrderEditHQIngredient"..tostring(i).."Min"] = newVal
-										ffxiv_craft.UpdateOrderElement()
-									end
-									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();

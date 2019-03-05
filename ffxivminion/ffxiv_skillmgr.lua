@@ -118,8 +118,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.ARCANIST] = "Summoner",
 	[FFXIV.JOBS.SUMMONER] = "Summoner",
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
-	[FFXIV.JOBS.BOTANIST] = "Botanist",
-	[FFXIV.JOBS.MINER] = "Miner",
+	[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
+	[FFXIV.JOBS.MINER] = "Gathering_Leveling",
 	[FFXIV.JOBS.ROGUE] = "Rogue",
 	[FFXIV.JOBS.NINJA] = "Ninja",
 	[FFXIV.JOBS.MACHINIST] = "Machinist",
@@ -790,25 +790,25 @@ function SkillMgr.ModuleInit()
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	
 	if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
+		gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Marauder"
+		gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Warrior"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Lancer"
+		gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Dragoon"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Archer"
+		gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Bard"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Conjurer"
+		gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Whitemage"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black_Mage"
+		gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Blackmage"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
@@ -826,13 +826,13 @@ function SkillMgr.ModuleInit()
 		gSMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White_Mage"
+		gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "Whitemage"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black_Mage"
+		gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Blackmage"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Arcanist"
+		gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Summoner"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
@@ -847,13 +847,28 @@ function SkillMgr.ModuleInit()
 		gSMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "Dark Knight"
+		gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] = "Samurai"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] = "Redmage"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] = "BlueMage"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.MINER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.MINER] = "Gathering_Leveling"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.BOTANIST] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling"
 	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
 		gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"

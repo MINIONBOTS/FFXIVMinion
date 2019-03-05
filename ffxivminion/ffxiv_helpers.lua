@@ -2486,11 +2486,11 @@ function GetApprovedFates()
 	if (table.valid(fatelist)) then
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = 70
-			local maxFateLevel = 3
+			local maxFateLevel = 2
 			
 			if gEnableAdvancedGrindSettings then
-				minFateLevel = tonumber(gGrindFatesMinLevel) or 0
-				maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
+				minFateLevel = IsNull(tonumber(gGrindFatesMinLevel),0)
+				maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel),0)
 			end
 			
 			--local fatePos = {x = fate.x, y = fate.y, z = fate.z}
@@ -3344,6 +3344,8 @@ function IsGardening(itemid)
 			or itemid == 7034
 			or itemid == 12650
 			or itemid == 12656
+			or itemid == 12887
+			or (itemid >= 15865 and itemid <= 15870)
 			)
 end
 -- Ixali hidden items have a max item count of 5.
@@ -5261,6 +5263,7 @@ function IsEurekaMap(mapid)
 		[732] = true,
 		[763] = true,
 		[795] = true,
+		[827] = true,
 	}
 	return (eMaps[mapid] ~= nil)
 end
@@ -7289,6 +7292,9 @@ function FindNearestCollectableAppraiser()
 	local idyllshire = { id = 1012300, aethid = 75, mapid = 478, pos = {x = -18.3, y = 206.5, z = 45.1} }
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
+	local gridania = { id = 1003076, aethid = 25, mapid = 133, pos = {x = 143, y = 13, z = -103} }
+	local limsa = { id = 1003632, aethid = 8, mapid = 139, pos = {x = -257, y = 16, z = 40} }
+	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	
 	if (Player.localmapid == morDhona.mapid) then
 		return morDhona
@@ -7296,6 +7302,12 @@ function FindNearestCollectableAppraiser()
 		return idyllshire
 	elseif (Player.localmapid == rhalgr.mapid) then
 		return rhalgr
+	elseif (Player.localmapid == gridania.mapid) then
+		return gridania
+	elseif (Player.localmapid == limsa.mapid) then
+		return limsa
+	elseif (Player.localmapid == uldah.mapid) then
+		return uldah
 	else
 		local hasIdyllshire, hasRhalgr, hasMorDhona = false, false, false
 		local idyllshireCost, rhalgrCost, morDhonaCost = 0, 0, 0

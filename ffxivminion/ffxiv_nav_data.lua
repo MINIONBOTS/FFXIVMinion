@@ -569,7 +569,11 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[628] = {
-			{id = 628, cost = 1, x = -356.02, y = 8.01, z = 46.85, h = -1.63, g = 1021536 },
+			{id = 628, cost = 1, x = -356.02, y = 8.01, z = 46.85, h = -1.63, g = 1021536
+				, requires = {
+					["QuestCompleted(2469)"] = true, -- check quest id. only added to stop low lvl chars attempting pathing
+                },
+			},
 		},
 		[680] = {
 			{id = 680, cost = 1, x = -357.66, y = 8.00, z = 45.82, h = 1.61, g = 1020442 },

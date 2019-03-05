@@ -746,62 +746,62 @@ function ffxivminion.SetMainVars()
 	gEurekaAntidote = ffxivminion.GetSetting("gEurekaAntidote",false)
 	
 	-- Role Skills
-	gRoleAutoset = ffxivminion.GetSetting("gRoleAutoset",false)
+	gRoleSkillAutoset = ffxivminion.GetSetting("gRoleSkillAutoset",true)
 	
-	gRoleRampart = ffxivminion.GetSetting("gRoleRampart",true)
-	gRoleLowBlow = ffxivminion.GetSetting("gRoleLowBlow",true)
-	gRoleProvoke = ffxivminion.GetSetting("gRoleProvoke",false)
-	gRoleConvalescence = ffxivminion.GetSetting("gRoleConvalescence",false)
-	gRoleAnticipation = ffxivminion.GetSetting("gRoleAnticipation",true)
-	gRoleReprisal = ffxivminion.GetSetting("gRoleReprisal",false)
-	gRoleAwareness = ffxivminion.GetSetting("gRoleAwareness",false)
-	gRoleInterject = ffxivminion.GetSetting("gRoleInterject",false)
-	gRoleUltimatum = ffxivminion.GetSetting("gRoleUltimatum",false)
-	gRoleShirk = ffxivminion.GetSetting("gRoleShirk",false)
+	gRoleSkillRampart = ffxivminion.GetSetting("gRoleSkillRampart",true)
+	gRoleSkillLowBlow = ffxivminion.GetSetting("gRoleSkillLowBlow",true)
+	gRoleSkillProvoke = ffxivminion.GetSetting("gRoleSkillProvoke",true)
+	gRoleSkillConvalescence = ffxivminion.GetSetting("gRoleSkillConvalescence",true)
+	gRoleSkillAnticipation = ffxivminion.GetSetting("gRoleSkillAnticipation",true)
+	gRoleSkillReprisal = ffxivminion.GetSetting("gRoleSkillReprisal",true)
+	gRoleSkillAwareness = ffxivminion.GetSetting("gRoleSkillAwareness",true)
+	gRoleSkillInterject = ffxivminion.GetSetting("gRoleSkillInterject",true)
+	gRoleSkillUltimatum = ffxivminion.GetSetting("gRoleSkillUltimatum",true)
+	gRoleSkillShirk = ffxivminion.GetSetting("gRoleSkillShirk",true)
 	
-	gRoleClericstance = ffxivminion.GetSetting("gRoleClericstance",false)
-	gRoleBreakSkill = ffxivminion.GetSetting("gRoleBreakSkill",false)
-	gRoleProtect = ffxivminion.GetSetting("gRoleProtect",true)
-	gRoleEsuna = ffxivminion.GetSetting("gRoleEsuna",true)
-	gRoleLucid = ffxivminion.GetSetting("gRoleLucid",true)
-	gRoleSwiftcast = ffxivminion.GetSetting("gRoleSwiftcast",true)
-	gRoleEye = ffxivminion.GetSetting("gRoleEye",false)
-	gRoleLargesse = ffxivminion.GetSetting("gRoleLargesse",false)
-	gRoleSurecast = ffxivminion.GetSetting("gRoleSurecast",false)
-	gRoleRescue = ffxivminion.GetSetting("gRoleRescue",false)
+	gRoleSkillClericstance = ffxivminion.GetSetting("gRoleSkillClericstance",true)
+	gRoleSkillBreakSkill = ffxivminion.GetSetting("gRoleSkillBreakSkill",true)
+	gRoleSkillProtect = ffxivminion.GetSetting("gRoleSkillProtect",true)
+	gRoleSkillEsuna = ffxivminion.GetSetting("gRoleSkillEsuna",true)
+	gRoleSkillLucid = ffxivminion.GetSetting("gRoleSkillLucid",true)
+	gRoleSkillSwiftcast = ffxivminion.GetSetting("gRoleSkillSwiftcast",true)
+	gRoleSkillEye = ffxivminion.GetSetting("gRoleSkillEye",true)
+	gRoleSkillLargesse = ffxivminion.GetSetting("gRoleSkillLargesse",true)
+	gRoleSkillSurecast = ffxivminion.GetSetting("gRoleSkillSurecast",true)
+	gRoleSkillRescue = ffxivminion.GetSetting("gRoleSkillRescue",true)
 	
-	gRoleCasterBreakSkill = ffxivminion.GetSetting("gRoleCasterBreakSkill",false)
-	gRoleCasterLucid = ffxivminion.GetSetting("gRoleCasterLucid",false)
-	gRoleCasterSwiftcast = ffxivminion.GetSetting("gRoleCasterSwiftcast",false)
-	gRoleCasterSurecast = ffxivminion.GetSetting("gRoleCasterSurecast",false)
-	gRoleAddle = ffxivminion.GetSetting("gRoleAddle",false)
-	gRoleDrain = ffxivminion.GetSetting("gRoleDrain",false)
-	gRoleDiversion = ffxivminion.GetSetting("gRoleDiversion",false)
-	gRoleApoc = ffxivminion.GetSetting("gRoleApoc",false)
-	gRoleMana = ffxivminion.GetSetting("gRoleMana",false)
-	gRoleErase = ffxivminion.GetSetting("gRoleErase",false)
+	gRoleSkillCasterBreakSkill = ffxivminion.GetSetting("gRoleSkillCasterBreakSkill",true)
+	gRoleSkillCasterLucid = ffxivminion.GetSetting("gRoleSkillCasterLucid",true)
+	gRoleSkillCasterSwiftcast = ffxivminion.GetSetting("gRoleSkillCasterSwiftcast",true)
+	gRoleSkillCasterSurecast = ffxivminion.GetSetting("gRoleSkillCasterSurecast",true)
+	gRoleSkillAddle = ffxivminion.GetSetting("gRoleSkillAddle",true)
+	gRoleSkillDrain = ffxivminion.GetSetting("gRoleSkillDrain",true)
+	gRoleSkillDiversion = ffxivminion.GetSetting("gRoleSkillDiversion",true)
+	gRoleSkillApoc = ffxivminion.GetSetting("gRoleSkillApoc",true)
+	gRoleSkillMana = ffxivminion.GetSetting("gRoleSkillMana",true)
+	gRoleSkillErase = ffxivminion.GetSetting("gRoleSkillErase",true)
 	
-	gRoleSecondWind = ffxivminion.GetSetting("gRoleSecondWind",true)
-	gRoleArmsLength = ffxivminion.GetSetting("gRoleArmsLength",false)
-	gRoleLegSweep = ffxivminion.GetSetting("gRoleLegSweep",true)
-	gRoleMeleeDiversion = ffxivminion.GetSetting("gRoleMeleeDiversion",false)
-	gRoleInvigorate = ffxivminion.GetSetting("gRoleInvigorate",true)
-	gRoleBloodbath = ffxivminion.GetSetting("gRoleBloodbath",true)
-	gRoleGoad = ffxivminion.GetSetting("gRoleGoad",false)
-	gRoleFeint = ffxivminion.GetSetting("gRoleFeint",false)
-	gRoleCrutch = ffxivminion.GetSetting("gRoleCrutch",false)
-	gRoleTrueNorth = ffxivminion.GetSetting("gRoleTrueNorth",true)
+	gRoleSkillSecondWind = ffxivminion.GetSetting("gRoleSkillSecondWind",true)
+	gRoleSkillArmsLength = ffxivminion.GetSetting("gRoleSkillArmsLength",true)
+	gRoleSkillLegSweep = ffxivminion.GetSetting("gRoleSkillLegSweep",true)
+	gRoleSkillMeleeDiversion = ffxivminion.GetSetting("gRoleSkillMeleeDiversion",true)
+	gRoleSkillInvigorate = ffxivminion.GetSetting("gRoleSkillInvigorate",true)
+	gRoleSkillBloodbath = ffxivminion.GetSetting("gRoleSkillBloodbath",true)
+	gRoleSkillGoad = ffxivminion.GetSetting("gRoleSkillGoad",true)
+	gRoleSkillFeint = ffxivminion.GetSetting("gRoleSkillFeint",true)
+	gRoleSkillCrutch = ffxivminion.GetSetting("gRoleSkillCrutch",true)
+	gRoleSkillTrueNorth = ffxivminion.GetSetting("gRoleSkillTrueNorth",true)
 	
-	gRoleRangedSecondWind = ffxivminion.GetSetting("gRoleRangedSecondWind",true)
-	gRoleFootGraze = ffxivminion.GetSetting("gRoleFootGraze",false)
-	gRoleLegGraze = ffxivminion.GetSetting("gRoleLegGraze",false)
-	gRolePeloton = ffxivminion.GetSetting("gRolePeloton",true)
-	gRoleRangedInvigorate = ffxivminion.GetSetting("gRoleRangedInvigorate",true)
-	gRoleTactician = ffxivminion.GetSetting("gRoleTactician",false)
-	gRoleRefresh = ffxivminion.GetSetting("gRoleRefresh",true)
-	gRoleHeadGraze = ffxivminion.GetSetting("gRoleHeadGraze",false)
-	gRoleArmGraze = ffxivminion.GetSetting("gRoleArmGraze",true)
-	gRolePalisade = ffxivminion.GetSetting("gRolePalisade",false)
+	gRoleSkillRangedSecondWind = ffxivminion.GetSetting("gRoleSkillRangedSecondWind",true)
+	gRoleSkillFootGraze = ffxivminion.GetSetting("gRoleSkillFootGraze",true)
+	gRoleSkillLegGraze = ffxivminion.GetSetting("gRoleSkillLegGraze",true)
+	gRoleSkillPeloton = ffxivminion.GetSetting("gRoleSkillPeloton",true)
+	gRoleSkillRangedInvigorate = ffxivminion.GetSetting("gRoleSkillRangedInvigorate",true)
+	gRoleSkillTactician = ffxivminion.GetSetting("gRoleSkillTactician",true)
+	gRoleSkillRefresh = ffxivminion.GetSetting("gRoleSkillRefresh",true)
+	gRoleSkillHeadGraze = ffxivminion.GetSetting("gRoleSkillHeadGraze",true)
+	gRoleSkillArmGraze = ffxivminion.GetSetting("gRoleSkillArmGraze",true)
+	gRoleSkillPalisade = ffxivminion.GetSetting("gRoleSkillPalisade",true)
 	
 	
 	for jobid,abrev in pairs(ffxivminion.classes) do
@@ -1742,106 +1742,7 @@ function ml_global_information.DrawSettings()
 					
 					GUI:Separator();
 					
-					GUI_Capture(GUI:Checkbox(GetString("Auto-set Role Skills. (For leveling new classes Only.)"),gRoleAutoset),"gRoleAutoset");
-					GUI:Separator();
-						
-						GUI_Capture(GUI:Checkbox(GetString("Rampart"),gRoleRampart),"gRoleRampart");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("LowBlow"),gRoleLowBlow),"gRoleLowBlow");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Provoke"),gRoleProvoke),"gRoleProvoke");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Convalescence"),gRoleConvalescence),"gRoleConvalescence");
-						GUI_Capture(GUI:Checkbox(GetString("Anticipation"),gRoleAnticipation),"gRoleAnticipation");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Reprisal"),gRoleReprisal),"gRoleReprisal");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Awareness"),gRoleAwareness),"gRoleAwareness");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Interject"),gRoleInterject),"gRoleInterject");
-						GUI_Capture(GUI:Checkbox(GetString("Ultimatum"),gRoleUltimatum),"gRoleUltimatum");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Shirk"),gRoleShirk),"gRoleShirk");
-					
-					GUI:Separator();
-					
-						GUI_Capture(GUI:Checkbox(GetString("Cleric Stance"),gRoleClericstance),"gRoleClericstance");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Break"),gRoleBreakSkill),"gRoleBreakSkill");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Protect"),gRoleProtect),"gRoleProtect");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Esuna"),gRoleEsuna),"gRoleEsuna");
-						GUI_Capture(GUI:Checkbox(GetString("Lucid Dreaming"),gRoleLucid),"gRoleLucid");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Swiftcast"),gRoleSwiftcast),"gRoleSwiftcast");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Eye for an Eye"),gRoleEye),"gRoleEye");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Largesse"),gRoleLargesse),"gRoleLargesse");
-						GUI_Capture(GUI:Checkbox(GetString("Surecast"),gRoleSurecast),"gRoleSurecast");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Rescue"),gRoleRescue),"gRoleRescue");
-						
-					GUI:Separator();
-					
-						GUI_Capture(GUI:Checkbox(GetString("Addle"),gRoleAddle),"gRoleAddle");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Break##Caster"),gRoleCasterBreakSkill),"gRoleCasterBreakSkill");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Drain"),gRoleDrain),"gRoleDrain");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Diversion"),gRoleDiversion),"gRoleDiversion");
-						GUI_Capture(GUI:Checkbox(GetString("Lucid Dreaming##Caster"),gRoleCasterLucid),"gRoleCasterLucid");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Swiftcast##Caster"),gRoleCasterSwiftcast),"gRoleCasterSwiftcast");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Mana Shift"),gRoleMana),"gRoleMana");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Apocatastasis"),gRoleApoc),"gRoleApoc");
-						GUI_Capture(GUI:Checkbox(GetString("Surecast##Caster"),gRoleCasterSurecast),"gRoleCasterSurecast");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Erase"),gRoleErase),"gRoleErase");
-						
-					GUI:Separator();
-					
-						GUI_Capture(GUI:Checkbox(GetString("Second Wind"),gRoleSecondWind),"gRoleSecondWind");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Arms Length"),gRoleArmsLength),"gRoleArmsLength");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Leg Sweep"),gRoleLegSweep),"gRoleLegSweep");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Diversion##Melee"),gRoleMeleeDiversion),"gRoleMeleeDiversion");
-						GUI_Capture(GUI:Checkbox(GetString("Invigorate"),gRoleInvigorate),"gRoleInvigorate");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Bloodbath"),gRoleBloodbath),"gRoleBloodbath");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Goad"),gRoleGoad),"gRoleGoad");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Feint"),gRoleFeint),"gRoleFeint");
-						GUI_Capture(GUI:Checkbox(GetString("Crutch"),gRoleCrutch),"gRoleCrutch");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("True North"),gRoleTrueNorth),"gRoleTrueNorth");
-						
-					GUI:Separator();
-					
-						GUI_Capture(GUI:Checkbox(GetString("Second Wind##Ranged"),gRoleRangedSecondWind),"gRoleRangedSecondWind");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Foot Graze"),gRoleFootGraze),"gRoleFootGraze");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Leg Graze"),gRoleLegGraze),"gRoleLegGraze");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Peloton"),gRolePeloton),"gRolePeloton");
-						GUI_Capture(GUI:Checkbox(GetString("Invigorate##Ranged"),gRoleRangedInvigorate),"gRoleRangedInvigorate");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Tactician"),gRoleTactician),"gRoleTactician");
-						GUI:SameLine(300)
-						GUI_Capture(GUI:Checkbox(GetString("Refresh"),gRoleRefresh),"gRoleRefresh");
-						GUI:SameLine(450)
-						GUI_Capture(GUI:Checkbox(GetString("Head Graze"),gRoleHeadGraze),"gRoleHeadGraze");
-						GUI_Capture(GUI:Checkbox(GetString("ArmGraze"),gRoleArmGraze),"gRoleArmGraze");
-						GUI:SameLine(150)
-						GUI_Capture(GUI:Checkbox(GetString("Palisade"),gRolePalisade),"gRolePalisade");
+					GUI_Capture(GUI:Checkbox(GetString("Auto-set Role Skills. (For leveling new classes Only.)"),gRoleSkillAutoset),"gRoleSkillAutoset");
 						
 					GUI:Separator();
 					
@@ -2598,6 +2499,49 @@ Do you have materials?"))
 						end
 						if gCurrQuestStep ~= "" then
 							GUI:Text("Quest Step : "); GUI:SameLine(); GUI:Text(gCurrQuestStep)
+						end
+					end
+					
+					if (gBotMode == GetString("questMode") and _G["gQuestStepType"] == "grind") or gBotMode == GetString("grindMode") then
+						if gEnableAdvancedGrindSettings then
+							
+							local minFateLevel = IsNull(tonumber(gGrindFatesMinLevel),0)
+							local maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel),0)
+							GUI:Text("Yes I was silly and altered deault fate settings!");
+							if gGrindDoFates then
+								GUI:Text(table.size(GetApprovedFates()).." Fates available in my area and for my lvl settings");
+								if SetNoMinFateLevel then
+									GUI:Text("No Min fate level");
+								else
+									GUI:Text("Min fate level is "..math.max((Player.level - minFateLevel),0));
+								end
+								if SetNoMaxFateLevel then
+									GUI:Text("No Max fate level");
+								else
+									GUI:Text("Max fate level is "..(Player.level + gGrindFatesMaxLevel));
+								end
+							else
+								GUI:Text("Do Fates is disabled");
+							end
+						else
+							local minFateLevel = 70
+							local maxFateLevel = 2
+							GUI:Text("Using Default Grind settings");
+							if gGrindDoFates then
+								GUI:Text(table.size(GetApprovedFates()).." Fates available in my area and for my lvl settings");
+								if SetNoMinFateLevel then
+									GUI:Text("No Min fate level");
+								else
+									GUI:Text("Min fate level is "..math.max((Player.level - minFateLevel),0));
+								end
+								if SetNoMaxFateLevel then
+									GUI:Text("No Max fate level");
+								else
+									GUI:Text("Max fate level is "..(Player.level + maxFateLevel));
+								end
+							else
+								GUI:Text("Do Fates is disabled");
+							end
 						end
 					end
 				end

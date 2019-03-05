@@ -8,6 +8,7 @@ ffxiv_gather.profiles = {}
 ffxiv_gather.profilesDisplay = {}
 ffxiv_gather.profileData = {}
 ffxiv_gather.currentTask = {}
+ffxiv_gather.accessmaplist = {}
 ffxiv_gather.currentTaskIndex = 0
 ffxiv_gather.collectors = {
 	[16] = 4074,
@@ -107,7 +108,21 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 
 	return pos
 end
-	
+function ffxiv_gather.CanAccessGatherMap(mapid)
+
+	if ffxiv_gather.accessmaplist[mapid] ~= nil then
+		return ffxiv_gather.accessmaplist[mapid]
+	else
+		if CanAccessMap(mapid) then
+			ffxiv_gather.accessmaplist[mapid] = true
+			return true
+		else
+		
+			ffxiv_gather.accessmaplist[mapid] = false
+			return false
+		end
+	end
+end
 function ffxiv_gather.GetCurrentTaskPos()
 	local pos = {}
 	
@@ -237,10 +252,12 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
 			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
 			basePos = marker:GetPosition()
-		elseif gGatherMarkerOrProfileIndex == 3 then
+		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
 			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,70)
 			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
+		else
+			return false
 		end
 		
 		if (table.valid(basePos)) then
@@ -721,10 +738,11 @@ function DoGathering(item)
 		return 2
 	end	
 	
-	gd("[Gather]: Using Gather ["..tostring(item.index-1).."].",1)
-	Player:Gather(item.index-1)
+	local gatherindex = (item.index-1)
+	gd("[Gather]: Using Gather ["..tostring(gatherindex).."].",1)
+	Player:Gather(gatherindex)
 	if (HasBuffs(Player,"805")) then
-		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
+		ml_global_information.AwaitDo(10000, function () return IsControlOpen("GatheringMasterpiece") end, function () Player:Gather(gatherindex) end)
 	end
 	return 3
 end
@@ -753,10 +771,8 @@ function e_gather:execute()
 	local thisNode = MGetEntity(ml_global_information.gatherid)
 	if not thisNode and (MGetTarget() and (MGetTarget().distance < 5 and MGetTarget().cangather and MGetTarget().targetable)) then
 		thisNode = MGetTarget()
-		d("returned targeted node")
 	end
 	if (not table.valid(thisNode) or not thisNode.cangather or not thisNode.targetable) then
-		d("returned no valid node")
 		return
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
@@ -1124,7 +1140,7 @@ function e_gather:execute()
 				gd("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]",2)
 			end
 		end
-		if (type(item1) == "number") then
+		if (type(item2) == "number") then
 			itemid2 = item2
 		end
 		if (tonumber(item2) ~= nil) then
@@ -1151,13 +1167,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (nogpitemid ~= 0) then
 				if (item.id == nogpitemid) then
+				gd("gather no gp item")
 					return DoGathering(item)
 				end
 			end
 
 			if (nogpitemslot ~= 0) then
 				if (item.index == nogpitemslot and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for item nogpitemslot ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1165,14 +1182,15 @@ function e_gather:execute()
 		
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
-				if (item.id == itemid1) then
+				if (gBotMode ~= GetString("gatherMode") or (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
+					gd("[Gather]: Run gathering procedure for itemid1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 					
 			if (itemslot1 ~= 0) then
 				if (item.index == itemslot1 and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for itemslot1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1181,14 +1199,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid2 ~= 0) then
 				if (item.id == itemid2) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for item itemid2 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == itemslot2 and item.id ~= nil) then
-					gd("[Gather]: Run gathering procedure for item ["..item.name.."]",2)
+					gd("[Gather]: Run gathering procedure for itemslot2 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1197,12 +1215,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid3 ~= 0) then
 				if (item.id == itemid3) then
+					gd("[Gather]: Run gathering procedure for item itemid3 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot3 ~= 0) then
 				if (item.index == itemslot3 and item.id ~= nil) then
+					gd("[Gather]: Run gathering procedure for itemslot3 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
 			end
@@ -1213,6 +1233,7 @@ function e_gather:execute()
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
 			if (toboolean(item.isunknown) or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
+				gd("[Gather]: unknown - ["..tostring(item.id).."].",2)
 				return DoGathering(item)
 			end
 		end
@@ -1223,6 +1244,7 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (not IsMap(item.id)) then
 				if (item.chance > 50) then
+					gd("[Gather]: chance - ["..tostring(item.id).."].",2)
 					return DoGathering(item)
 				end
 			end
@@ -1233,6 +1255,7 @@ function e_gather:execute()
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
 			if (not IsMap(item.id)) then
+				gd("[Gather]: map - ["..tostring(item.id).."].",2)
 				return DoGathering(item)
 			end
 		end
@@ -2413,7 +2436,7 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Level is too high for the task, invalidate.",3)
 				invalid = true
 			end
-			if (currentTask.mapid and (not CanAccessMap(currentTask.mapid))) then
+			if (currentTask.mapid and (not ffxiv_gather.CanAccessGatherMap(currentTask.mapid))) then
 				invalid = true
 				gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 			end
@@ -2567,7 +2590,7 @@ function c_gathernexttask:evaluate()
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
-					if (data.mapid and (not CanAccessMap(data.mapid))) then
+					if (data.mapid and (not ffxiv_gather.CanAccessGatherMap(data.mapid))) then
 						valid = false
 						gd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 					end
@@ -3636,6 +3659,7 @@ function ffxiv_task_gather:Draw()
 			if ( string.valid(uuid) ) then
 				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+				Settings.minionlib.gMarkerModes = Settings.minionlib.gMarkerModes
 			end
 		end
 	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.

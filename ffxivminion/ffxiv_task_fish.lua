@@ -6,6 +6,7 @@ ffxiv_fish.firstRunCompleted = false
 ffxiv_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfiles\]]
 ffxiv_fish.profiles = {}
 ffxiv_fish.profilesDisplay = {}
+ffxiv_fish.accessmaplist = {}
 
 ffxiv_fish.profileData = {}
 ffxiv_fish.currentTask = {}
@@ -127,6 +128,20 @@ function fd(var,level)
 	end
 end
 
+function ffxiv_fish.CanAccessFishingMap(mapid)
+
+	if ffxiv_fish.accessmaplist[mapid] ~= nil then
+		return ffxiv_fish.accessmaplist[mapid]
+	else
+		if CanAccessMap(mapid) then
+			ffxiv_fish.accessmaplist[mapid] = true
+			return true
+		else
+			ffxiv_fish.accessmaplist[mapid] = false
+			return false
+		end
+	end
+end
 function ffxiv_fish.GetDirective()
 	local marker = ml_marker_mgr.currentMarker
 	local task = ffxiv_fish.currentTask
@@ -1665,7 +1680,7 @@ function c_fishnexttask:evaluate()
 						baitChoice = IsNull(currentTask.baitname,"")
 					end
 					
-					if (not HasBaits(baitChoice)) then
+					if (not currentTask.type == "idle" and not currentTask.idlepriority) and (not HasBaits(baitChoice)) then
 						invalid = true
 					end
 					
@@ -1685,7 +1700,7 @@ function c_fishnexttask:evaluate()
 				elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
 					invalid = true
 				end
-			if (currentTask.mapid and (not CanAccessMap(currentTask.mapid))) then
+			if (currentTask.mapid and (not ffxiv_fish.CanAccessFishingMap(currentTask.mapid))) then
 				invalid = true
 				fd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 			end
@@ -1812,7 +1827,7 @@ function c_fishnexttask:evaluate()
 						fd("Player to high",1)
 							valid = false
 						end
-						if (data.mapid and (not CanAccessMap(data.mapid))) then
+						if (data.mapid and (not ffxiv_fish.CanAccessFishingMap(data.mapid))) then
 							valid = false
 							fd("Task ["..tostring(i).."] not valid due to Map Access.",3)
 						end
@@ -1844,7 +1859,7 @@ function c_fishnexttask:evaluate()
 									fd("Task ["..tostring(i).."] has baitChoice ["..tostring(data.baitname).."] is Bait.",1)
 								end
 								
-								if (not HasBaits(baitChoice)) then
+								if (not data.type == "idle" and not data.idlepriority) and (not HasBaits(baitChoice)) then
 									fd("Task ["..tostring(i).."] is missing bait",1)
 									valid = false
 								end
@@ -2960,6 +2975,7 @@ function ffxiv_task_fish:Draw()
 			if ( string.valid(uuid) ) then
 				if  ( Settings.minionlib.gMarkerModes == nil ) then Settings.minionlib.gMarkerModes = {} end
 				Settings.minionlib.gMarkerModes[uuid] = ml_marker_mgr.modes[gMarkerModeIndex]
+				Settings.minionlib.gMarkerModes = Settings.minionlib.gMarkerModes
 			end
 		end
 	-- Profile Options
