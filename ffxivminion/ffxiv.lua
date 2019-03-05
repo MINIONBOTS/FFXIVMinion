@@ -398,12 +398,14 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					ml_global_information.queueLoader = false
 					
 					local currentFile = NavigationManager.CurrentFile
-					currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
-					if (currentFile ~= FFXIV_Common_NavMesh) then
-						FFXIV_Common_NavMesh = currentFile
-						FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
-					end
-					
+					local path = ml_mesh_mgr.navigationpath or ml_mesh_mgr.defaultpath -- yes this can be nil ..had it , fx
+					if(string.valid(path)) then
+						currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile, path.."\\", ""))
+						if (currentFile ~= FFXIV_Common_NavMesh) then
+							FFXIV_Common_NavMesh = currentFile
+							FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
+						end
+					end					
 					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, 0)
 					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, 0)
 				end
