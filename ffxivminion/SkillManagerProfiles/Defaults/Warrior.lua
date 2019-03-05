@@ -39,6 +39,7 @@ local obj1 = {
 		[33] = false;
 		[34] = false;
 		[35] = false;
+		[36] = false;
 	};
 	["filters"] = {
 		[1] = "Defiance/Deliverance";
@@ -9295,7 +9296,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 36;
-			["levelmin"] = 7533;
+			["levelmin"] = 18;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
@@ -12768,7 +12769,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["levelmax"] = 0;
-			["levelmin"] = 7533;
+			["levelmin"] = 18;
 			["m10actioncomplete"] = "";
 			["m10actionid"] = 0;
 			["m10actionmsg"] = "";
