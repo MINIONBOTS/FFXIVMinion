@@ -337,10 +337,16 @@ function SkillMgr.UpdateDefaultProfiles()
 	for _,profile in pairs(SkillMgr.StartingProfiles) do
 		local filePath = SkillMgr.profilePath..profile..".lua"
 		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
-		if (not FileExists(filePath) and FileExists(defaultPath)) then
-			local fileData = persistence.load(defaultPath)
-			if (fileData) then
-				persistence.store(filePath, fileData)
+		if FileExists(defaultPath) then
+			local defaultFileData = persistence.load(defaultPath)
+			if (defaultFileData) then
+				local currentFileData = persistence.load(filePath)
+				if (not FileExists(filePath)) then
+					persistence.store(filePath, defaultFileData)
+				elseif IsNull(defaultFileData.update,0) > IsNull(currentFileData.update,0) then
+					persistence.store(filePath, defaultFileData)
+					d("Updated Profile ".. tostring(profile) .. " to version " ..tostring(defaultFileData.update))
+				end
 			end
 		end
 	end
@@ -348,10 +354,16 @@ function SkillMgr.UpdateDefaultProfiles()
 	for _,profile in pairs(SkillMgr.ExtraProfiles) do
 		local filePath = SkillMgr.profilePath..profile..".lua"
 		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
-		if (not FileExists(filePath) and FileExists(defaultPath)) then
-			local fileData = persistence.load(defaultPath)
-			if (fileData) then
-				persistence.store(filePath, fileData)
+		if FileExists(defaultPath) then
+			local defaultFileData = persistence.load(defaultPath)
+			if (defaultFileData) then
+				local currentFileData = persistence.load(filePath)
+				if (not FileExists(filePath)) then
+					persistence.store(filePath, defaultFileData)
+				elseif IsNull(defaultFileData.update,0) > IsNull(currentFileData.update,0) then
+					persistence.store(filePath, defaultFileData)
+					d("Updated Profile ".. tostring(profile) .. " to version " ..tostring(defaultFileData.update))
+				end
 			end
 		end
 	end
