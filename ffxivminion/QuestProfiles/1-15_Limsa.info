@@ -6677,24 +6677,22 @@ local obj1 = {
 		};
 		[545] = {
 			["level"] = 14;
-			["name"] = "66081";
+			["name"] = "A Mizzenmast Repast";
 			["prereq"] = {
-				[-1] = {
-					[1] = 690;
-				};
+				["QuestCompleted(690)"] = true;
 			};
 			["steps"] = {
 				[1] = {
 					["id"] = 1000972;
 					["itemreward"] = false;
 					["mapid"] = 128;
-					["meshname"] = "Limsa (Upper)";
 					["pos"] = {
-						["x"] = 18.060426712036;
-						["y"] = 40.216011047363;
-						["z"] = -5.3179306983948;
+						["x"] = 20.2978;
+						["y"] = 40.1999;
+						["z"] = -6.1024;
 					};
 					["type"] = "start";
+					
 				};
 				[2] = {
 					["complete"] = {
@@ -6704,32 +6702,34 @@ local obj1 = {
 					["itemid"] = 3760;
 					["itemturnin"] = false;
 					["mapid"] = 129;
-					["meshname"] = "Limsa (Lower)";
 					["pos"] = {
-						["x"] = 9.1000003814697;
-						["y"] = 20.89999961853;
-						["z"] = -15.300000190735;
+						["x"] = 9.1;
+						["y"] = 20.899;
+						["z"] = -15.3;
 					};
 					["type"] = "equip";
 				};
 				[3] = {
 					["complete"] = {
-						["step"] = 2;
+						["IsOnMap(198)"] = true;
 					};
 					["condition"] = {
+						["IsOnMap(198)"] = false;
 						["IsEquipped(3760)"] = true;
 					};
 					["id"] = 1001029;
 					["index"] = 1;
 					["itemreward"] = false;
 					["mapid"] = 129;
-					["meshname"] = "Limsa (Lower)";
 					["pos"] = {
-						["x"] = 9.1000003814697;
-						["y"] = 20.89999961853;
-						["z"] = -15.300000190735;
+						["x"] = 9.19296;
+						["y"] = 20.9808;
+						["z"] = -15.1844;
 					};
 					["type"] = "interact";
+					["interactrange3d"] = 4;
+					
+					
 				};
 				[4] = {
 					["complete"] = {
@@ -6739,39 +6739,42 @@ local obj1 = {
 					["index"] = 2;
 					["itemreward"] = false;
 					["mapid"] = 177;
-					["meshname"] = "Limsa Lominsa - Inn";
 					["pos"] = {
-						["x"] = 0.0089637320488691;
+						["x"] = 0;
 						["y"] = 0;
-						["z"] = 7.3753023147583;
+						["z"] = 4;
 					};
 					["type"] = "interact";
+					["interactrange3d"] = 4;
+					
+					
 				};
 				[5] = {
 					["id"] = 1001029;
 					["index"] = 255;
 					["itemreward"] = false;
 					["mapid"] = 129;
-					["meshname"] = "Limsa (Lower)";
 					["pos"] = {
-						["x"] = 9.1000003814697;
-						["y"] = 20.89999961853;
-						["z"] = -15.300000190735;
+						["x"] = 9.19296;
+						["y"] = 20.9808;
+						["z"] = -15.1844;
 					};
 					["type"] = "interact";
+					["interactrange3d"] = 4;
+					
+					
 				};
 				[6] = {
 					["id"] = 1002694;
 					["itemreward"] = false;
-					["itemrewardslot"] = 0;
 					["mapid"] = 198;
-					["meshname"] = "Limsa Lominsa - Command";
 					["pos"] = {
-						["x"] = 0.09795219451189;
-						["y"] = 1.6041331291199;
-						["z"] = -5.0648546218872;
+						["x"] = -0.0420135;
+						["y"] = 1.60014;
+						["z"] = -6.97977;
 					};
 					["type"] = "complete";
+					
 				};
 			};
 		};
