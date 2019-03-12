@@ -839,20 +839,27 @@ function ml_navigation:IsGoalClose(ppos,node)
 	
 	local nc
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
-		if (table.valid(ml_mesh_mgr.navconnections)) then
-			nc = ml_mesh_mgr.navconnections[node.navconnectionid]
-			if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
-				
-				if (nc.type == 3 and Player.flying.isflying) then
-					goaldist2d = goaldist2d - nc.radius
-					if (math.abs(ppos.y-node.y) < 3) then -- some of the connection radius' are too big, don't want a full on sphere
-						goaldist = goaldist - nc.radius
-					end
-				else
-					--d("substracing the radius from the remaining distance")
+		-- 'live nav' vs 'new nav'
+		local nc
+		if (NavigationManager.ShowCells == nil ) then
+			if (table.valid(ml_mesh_mgr.navconnections)) then
+				nc = ml_mesh_mgr.navconnections[node.navconnectionid]
+			end
+		else
+			nc = NavigationManager:GetNavConnection(node.navconnectionid)
+		end
+	
+		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
+			
+			if (nc.type == 3 and Player.flying.isflying) then
+				goaldist2d = goaldist2d - nc.radius
+				if (math.abs(ppos.y-node.y) < 3) then -- some of the connection radius' are too big, don't want a full on sphere
 					goaldist = goaldist - nc.radius
-					goaldist2d = goaldist2d - nc.radius
 				end
+			else
+				--d("substracing the radius from the remaining distance")
+				goaldist = goaldist - nc.radius
+				goaldist2d = goaldist2d - nc.radius
 			end
 		end
 	end
@@ -934,7 +941,13 @@ end
 function ml_navigation:GetConnection(node)
 	local navcon
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
-		navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
+		-- 'live nav' vs 'new nav'
+		local navcon
+		if (NavigationManager.ShowCells == nil ) then				
+			navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
+		else
+			navcon = NavigationManager:GetNavConnection(node.navconnectionid)
+		end
 	end
 	
 	-- type = 0: disabled, 1: cube-cube, 2: floor-floor, 3: floor-cube, 4: custom omc, 5: macromesh
@@ -949,13 +962,18 @@ function ml_navigation:IsUsingConnection()
 	if (table.valid(lastnode)) then
 		local nc
 		if (lastnode.navconnectionid ~= 0) then
-			if (table.valid(ml_mesh_mgr.navconnections)) then
-				nc = ml_mesh_mgr.navconnections[lastnode.navconnectionid]
-				
-				-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
-				if ( nc and nc.type == 1 ) then
-					return true
+		
+			-- 'live nav' vs 'new nav'
+			if (NavigationManager.ShowCells == nil ) then
+				if (table.valid(ml_mesh_mgr.navconnections)) then
+					nc = ml_mesh_mgr.navconnections[lastnode.navconnectionid]
 				end
+			else
+				nc = NavigationManager:GetNavConnection(lastnode.navconnectionid)
+			end	
+			-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
+			if ( nc and nc.type == 1 ) then
+				return true
 			end
 		end
 	end
@@ -1960,7 +1978,14 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 		
 		local radius = 0
 		if (ml_navigation.lastconnectionid ~= 0) then
-			local navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
+			-- 'live nav' vs 'new nav'
+			local navcon
+			if (NavigationManager.ShowCells == nil ) then
+				navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
+			else
+				navcon = NavigationManager:GetNavConnection(ml_navigation.lastconnectionid)
+			end
+			
 			if (navcon) then -- Type 5
 				radius = navcon.radius
 				threshold = threshold + radius
