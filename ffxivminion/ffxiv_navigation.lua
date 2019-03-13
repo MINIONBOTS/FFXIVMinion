@@ -840,15 +840,13 @@ function ml_navigation:IsGoalClose(ppos,node)
 	local nc
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		-- 'live nav' vs 'new nav'
-		local nc
-		if (NavigationManager.ShowCells == nil ) then
+		if (NavigationManager.ShowCells == nil ) then		
 			if (table.valid(ml_mesh_mgr.navconnections)) then
 				nc = ml_mesh_mgr.navconnections[node.navconnectionid]
 			end
 		else
 			nc = NavigationManager:GetNavConnection(node.navconnectionid)
 		end
-	
 		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
 			
 			if (nc.type == 3 and Player.flying.isflying) then
@@ -942,8 +940,7 @@ function ml_navigation:GetConnection(node)
 	local navcon
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		-- 'live nav' vs 'new nav'
-		local navcon
-		if (NavigationManager.ShowCells == nil ) then				
+		if (NavigationManager.ShowCells == nil ) then		
 			navcon = ml_mesh_mgr.navconnections[node.navconnectionid]
 		else
 			navcon = NavigationManager:GetNavConnection(node.navconnectionid)
@@ -961,20 +958,19 @@ function ml_navigation:IsUsingConnection()
 	local lastnode = self.path[self.pathindex - 1]
 	if (table.valid(lastnode)) then
 		local nc
-		if (lastnode.navconnectionid ~= 0) then
-		
+		if (lastnode.navconnectionid ~= 0) then			
 			-- 'live nav' vs 'new nav'
-			if (NavigationManager.ShowCells == nil ) then
+			if (NavigationManager.ShowCells == nil ) then			
 				if (table.valid(ml_mesh_mgr.navconnections)) then
 					nc = ml_mesh_mgr.navconnections[lastnode.navconnectionid]
 				end
 			else
 				nc = NavigationManager:GetNavConnection(lastnode.navconnectionid)
-			end	
-			-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
+			end
+				-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
 			if ( nc and nc.type == 1 ) then
 				return true
-			end
+			end			
 		end
 	end
 	return false
@@ -1981,11 +1977,10 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 			-- 'live nav' vs 'new nav'
 			local navcon
 			if (NavigationManager.ShowCells == nil ) then
-				navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
+				 navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
 			else
 				navcon = NavigationManager:GetNavConnection(ml_navigation.lastconnectionid)
 			end
-			
 			if (navcon) then -- Type 5
 				radius = navcon.radius
 				threshold = threshold + radius
