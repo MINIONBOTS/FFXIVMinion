@@ -686,6 +686,53 @@ function ffxiv_task_movetomap:task_complete_eval()
 		return true
 	end
 	
+	if (IsControlOpen("HousingSelectBlock")) then
+		UseControlAction("HousingSelectBlock","Travel",math.random(1,10))
+		ml_global_information.Await(3000, function () return IsControlOpen("SelectYesno") end, function () PressYesNo(true) end)
+		return false
+	end
+	
+	if (IsControlOpen("SelectIconString") or IsControlOpen("SelectString")) then
+		local convoList = GetConversationList()
+		if (table.valid(convoList)) then
+			local conversationstrings;
+			if (In(Player.localmapid,339,340,341)) then
+				conversationstrings = {
+					["E"] = "Leave residential district"; --6403
+					["J"] = "冒険者居住区外に移動する";
+					["G"] = "Wohngebiet verlassen";
+					["F"] = "Sortir de la zone de logement";
+					--["CN"] = "设置返回点";
+					--["KR"] = "귀환 지점 설정";
+				}
+			else
+				conversationstrings = {
+					["E"] = "Go to specified ward"; --6349
+					["J"] = "区を指定して移動（ハウスアピール確認）";
+					["G"] = "Zum angegebenen Bezirk";
+					["F"] = "Spécifier le secteur où aller";
+					--["CN"] = "设置返回点";
+					--["KR"] = "귀환 지점 설정";
+				}
+			end
+
+			for selectindex,convo in pairs(convoList) do
+				local cleanedline = CleanConvoLine(convo)
+				for k,v in pairs(conversationstrings) do
+					local cleanedv = CleanConvoLine(v)
+					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+						d("Use conversation line ["..tostring(convo).."]")
+						SelectConversationLine(selectindex)
+						ml_global_information.Await(3000, function () return IsControlOpen("HousingSelectBlock") end)
+						return false
+					end
+				end
+			end
+		else
+			return false
+		end
+	end
+	
 	return false
 end
 

@@ -620,6 +620,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(684, "Duty_2550")
 		ml_mesh_mgr.SetDefaultMesh(757, "Duty_3024")
 		ml_mesh_mgr.SetDefaultMesh(634, "Duty_3027")
+		
+		ml_mesh_mgr.SetDefaultMesh(339, "[Housing]Mist")
+		ml_mesh_mgr.SetDefaultMesh(340, "[Housing]Goblet")
+		ml_mesh_mgr.SetDefaultMesh(341, "[Housing]Lavender Beds")
 	end
 	
 	-- General overrides.
