@@ -702,7 +702,7 @@ function ffxiv_task_movetomap:task_complete_eval()
 					["J"] = "冒険者居住区外に移動する";
 					["G"] = "Wohngebiet verlassen";
 					["F"] = "Sortir de la zone de logement";
-					--["CN"] = "设置返回点";
+					["CN"] = "离开住宅区";
 					--["KR"] = "귀환 지점 설정";
 				}
 			else
@@ -711,7 +711,7 @@ function ffxiv_task_movetomap:task_complete_eval()
 					["J"] = "区を指定して移動（ハウスアピール確認）";
 					["G"] = "Zum angegebenen Bezirk";
 					["F"] = "Spécifier le secteur où aller";
-					--["CN"] = "设置返回点";
+					["CN"] = "移动到指定小区";
 					--["KR"] = "귀환 지점 설정";
 				}
 			end
@@ -2259,11 +2259,11 @@ function ffxiv_task_moveaethernet:Init()
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_moveaethernet:task_complete_eval()
+function ffxiv_task_moveaethernet:task_complete_eval()	
 	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
-			if (self.useAethernet) then
+			if (self.useAethernet and not self.isResidential) then
 				local aethernet = {
 					us = "Aethernet",
 					de = "Ätherytennetz",
@@ -2294,6 +2294,73 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					end
 				end
 				d("Checked if we need to open aetheryte menu.")
+			elseif (self.useAethernet and self.isResidential) then
+				local aethernet = {
+					us = "Aethernet",
+					de = "Ätherytennetz",
+					fr = "Réseau de transport urbain éthéré",
+					jp = "都市転送網",
+					cn = "都市传送网",
+					kr = "도시 내 이동",
+				}
+				
+				local residential = {
+					us = "Residential District Aethernet",
+					de = "Wohnviertel",
+					fr = "Quartier résidentiel",
+					jp = "冒険者居住区転送",
+					cn = "冒险者住宅区传送",
+					kr = "모험가 거주구로 이동",
+				}
+				
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = CleanConvoLine(convo)
+					for language,astring in pairs(residential) do
+						local cleanedastring = CleanConvoLine(astring)
+						if (string.contains(cleanedline,cleanedastring)) then
+							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+							SelectConversationLine(selectindex)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+						end
+					end
+				end
+				d("Checked if we need to open residential aetheryte menu.")
+			end
+			
+			if (self.isResidential) then
+				local conversationstrings;
+				if (In(Player.localmapid,339,340,341)) then
+					conversationstrings = {
+						["E"] = "Leave residential district"; --6403
+						["J"] = "冒険者居住区外に移動する";
+						["G"] = "Wohngebiet verlassen";
+						["F"] = "Sortir de la zone de logement";
+						["CN"] = "添加到收藏夹";
+						--["KR"] = "귀환 지점 설정";
+					}
+				else
+					conversationstrings = {
+						["E"] = "Go to specified ward"; --6349
+						["J"] = "区を指定して移動（ハウスアピール確認）";
+						["G"] = "Zum angegebenen Bezirk";
+						["F"] = "Spécifier le secteur où aller";
+						["CN"] = "设置返回点";
+						--["KR"] = "귀환 지점 설정";
+					}
+				end
+
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = CleanConvoLine(convo)
+					for k,v in pairs(conversationstrings) do
+						local cleanedv = CleanConvoLine(v)
+						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+							d("Use conversation line ["..tostring(convo).."]")
+							SelectConversationLine(selectindex)
+							ml_global_information.Await(3000, function () return IsControlOpen("HousingSelectBlock") end)
+							return false
+						end
+					end
+				end
 			end
 			
 			if (string.valid(self.conversationstring)) then

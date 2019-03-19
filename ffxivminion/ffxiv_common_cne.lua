@@ -1495,6 +1495,7 @@ c_useaethernet = inheritsFrom( ml_cause )
 e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
+e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then
@@ -1509,6 +1510,7 @@ function c_useaethernet:evaluate(mapid, pos)
 
 	e_useaethernet.nearest = nil
 	e_useaethernet.destination = nil
+	e_useaethernet.isresidential = nil
 	
 	if (c_useaethernet.used) then
 		return false
@@ -1520,15 +1522,35 @@ function c_useaethernet:evaluate(mapid, pos)
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	
-	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
-	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
-		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
-			d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
-			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
-			e_useaethernet.nearest = nearestAethernet
-			e_useaethernet.destination = bestAethernet
-			return true
+	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
+		e_useaethernet.nearest = {
+			["id"] = 8, ["mapid"] = 129, ["pos"] = { ["x"] = -81.74, ["y"] = 18.9, ["z"] = 3.56 }
+		}
+		e_useaethernet.isresidential = true
+		return true
+	elseif (Player.localmapid == 132 and destMapID == 340 and QuestCompleted(1212)) then
+		e_useaethernet.nearest = {
+			["id"] = 2, ["mapid"] = 132, ["pos"] = { ["x"] = 34, ["y"] = 2.2, ["z"] = 32.62	}
+		}
+		e_useaethernet.isresidential = true
+		return true
+	elseif (Player.localmapid == 130 and destMapID == 341 and QuestCompleted(1213)) then
+		e_useaethernet.nearest = {
+			["id"] = 9, ["mapid"] = 130, ["pos"] = { ["x"] = -142.28, ["y"] = -3.15, ["z"] = -166 }
+		}
+		e_useaethernet.isresidential = true
+		return true
+	else
+		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
+		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
+			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
+				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
+				--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
+				e_useaethernet.nearest = nearestAethernet
+				e_useaethernet.destination = bestAethernet
+				return true
+			end
 		end
 	end
 	
@@ -1536,7 +1558,17 @@ function c_useaethernet:evaluate(mapid, pos)
 end
 function e_useaethernet:execute()
 	if (table.valid(e_useaethernet.nearest)) then
-		if (table.valid(e_useaethernet.destination)) then
+		if (e_useaethernet.isresidential) then
+			local newTask = ffxiv_task_moveaethernet.Create()
+			newTask.contentid = e_useaethernet.nearest.id
+			newTask.pos = e_useaethernet.nearest.pos
+			--newTask.conversationstrings = e_useaethernet.destination.conversationstrings
+			newTask.useAethernet = true
+			newTask.isResidential = true
+			c_useaethernet.used = true
+			
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		elseif (table.valid(e_useaethernet.destination)) then
 			d("Use aethernet task to go from ["..tostring(e_useaethernet.nearest.id).."] to ["..tostring(e_useaethernet.destination.id).."]")
 			local newTask = ffxiv_task_moveaethernet.Create()
 			newTask.contentid = e_useaethernet.nearest.id
@@ -4097,6 +4129,21 @@ function c_dointeract:evaluate()
 	local myTarget = MGetTarget()
 	local ppos = Player.pos
 	
+	if (IsControlOpen("HousingSelectBlock")) then
+		UseControlAction("HousingSelectBlock","Travel",math.random(1,10))
+		ml_task_hub:CurrentTask().initiatedPos = Player.pos
+		ml_global_information.Await(1000, 3000, 
+			function () 
+				return IsControlOpen("SelectYesno") 
+			end, 
+			function () 
+				ml_global_information.AwaitDo(1000, 3000, 
+					function () return MIsLoading() end, 
+					function () UseControlAction("SelectYesno","Yes") end)
+			end)
+		return true
+	end
+	
 	-- Scan for our wanted contentid to get as much data as we can, for better decisions.
 	local interactable = nil
 	if (ml_task_hub:CurrentTask().lastInteractableSearch == nil) then
@@ -4187,7 +4234,7 @@ function c_dointeract:evaluate()
 							end
 							
 							local convoList = GetConversationList()
-							if (not table.valid(convoList)) then
+							if (not table.valid(convoList) and not MIsLocked()) then
 								d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
 								Player:Interact(interactable.id)
 							end
