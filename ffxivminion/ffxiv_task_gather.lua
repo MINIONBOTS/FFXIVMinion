@@ -1076,7 +1076,7 @@ function e_gather:execute()
 		--if (Player.level < 70) then
 		if (thisNode.contentid <= 4) then
 			for i,item in pairs(list) do
-				if (toboolean(item.isunknown)) then
+				if (item.chance > 0 and (toboolean(item.isunknown))) then
 					return DoGathering(item)
 				end
 			end
