@@ -737,7 +737,7 @@ function ffxiv_task_movetomap:task_complete_eval()
 end
 
 function ffxiv_task_movetomap:task_fail_eval()
-	return (not Player.alive or Player.incombat)
+	return (not Player.alive)
 end
 
 --=======================SUMMON CHOCO TASK=========================-
@@ -1811,6 +1811,12 @@ function ffxiv_mesh_interact:task_complete_eval()
 				local interact = EntityList:Get(tonumber(self.interact))
 				local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
 				if (interact and interact.interactable) then
+				
+				if (c_killaggrotarget:evaluate()) then
+					e_killaggrotarget:execute()
+					return false
+				end
+	
 				--if (interact and interact.distance < (radius * 4)) then
 					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
@@ -1834,7 +1840,7 @@ function ffxiv_mesh_interact:task_complete_execute()
 end
 
 function ffxiv_mesh_interact:task_fail_eval()
-    if (Player.incombat or not Player.alive) then
+    if (not Player.alive) then
 		return true
 	end
 	
@@ -1968,7 +1974,7 @@ end
 ffxiv_nav_interact.task_complete_execute = ffxiv_task_movetointeract.task_complete_execute
 ffxiv_nav_interact.task_fail_execute = ffxiv_task_movetointeract.task_fail_execute
 function ffxiv_nav_interact:task_fail_eval()
-    if (Player.incombat or not Player.alive) then
+    if (not Player.alive) then
 		return true
 	end
 	

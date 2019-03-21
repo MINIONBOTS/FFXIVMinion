@@ -81,7 +81,7 @@ c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
-	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or IsPOTD(Player.localmapid)) then
+	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or IsPOTD(Player.localmapid) or not IsFighter(Player.job)) then
         return false
     end
 	
@@ -927,22 +927,22 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if Player.incombat or (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
+	if (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
 		ml_debug("Cannot use teleport, position is locked, or we are casting.")
 		return false
 	end
-	if Player.incombat or (GilCount() < 1500) then
+	if (GilCount() < 1500) then
 		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 1500."))
 		return false
 	end
 	
 	e_teleporttomap.aeth = nil
 	
-	local el = EntityList("alive,attackable,onmesh,aggro")
-	if (table.valid(el)) then
-		ml_debug("Cannot use teleport, we have aggro currently.")
-		return false
-	end
+	--local el = EntityList("alive,attackable,onmesh,aggro")
+	--if (table.valid(el)) then
+		--ml_debug("Cannot use teleport, we have aggro currently.")
+		--return false
+	--end
 	
 	--Only perform this check when dismounted.
 	local teleport = ActionList:Get(5,7)
@@ -1035,6 +1035,11 @@ end
 function e_teleporttomap:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
+		return
+	end
+	
+	if (c_killaggrotarget:evaluate()) then
+		e_killaggrotarget:execute()
 		return
 	end
 	
@@ -4225,6 +4230,11 @@ function c_dointeract:evaluate()
 						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2))
 					then
 						if (not IsFlying()) then
+							if (c_killaggrotarget:evaluate()) then
+								e_killaggrotarget:execute()
+								return false
+							end
+				
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
 							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
@@ -4271,6 +4281,12 @@ function c_dointeract:evaluate()
 					
 					if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
 						if (not IsFlying()) then
+							if (c_killaggrotarget:evaluate()) then
+								e_killaggrotarget:execute()
+								return false
+							end
+							
+							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
