@@ -334,6 +334,36 @@ function SkillMgr.UpdateBasicSkills()
 end
 
 function SkillMgr.UpdateDefaultProfiles()
+	-- Strip default field values for reading clarity.
+	local profileList = FolderList(SkillMgr.defaultProfilePath,[[(.*)lua$]])
+    if (table.valid(profileList)) then		
+		for i,profile in pairs(profileList) do
+			local defaultFileData = persistence.load(profile)
+			if (defaultFileData) then
+				if (table.valid(defaultFileData.skills)) then
+					local fieldDefaults = {}
+					for fieldid, defaults in pairs(SkillMgr.Variables) do
+						fieldDefaults[defaults.profile] = defaults.default
+					end
+					
+					local requiredUpdate = false
+					for prio,skill in pairs(defaultFileData.skills) do
+						for field,fieldvalue in pairs(skill) do
+							if (fieldvalue == fieldDefaults[field] or fieldDefaults[field] == nil) then
+								defaultFileData.skills[prio][field] = nil
+								requiredUpdate = true
+							end
+						end
+					end
+					if (requiredUpdate) then
+						persistence.store(defaultPath, defaultFileData)
+						--d("Updated default profile ["..tostring(profile).."].")
+					end
+				end
+            end
+        end	
+    end
+
 	for _,profile in pairs(SkillMgr.StartingProfiles) do
 		local filePath = SkillMgr.profilePath..profile..".lua"
 		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
@@ -368,8 +398,6 @@ function SkillMgr.UpdateDefaultProfiles()
 		end
 	end
 end
-
-SkillMgr.UpdateDefaultProfiles()
 
 SkillMgr.ActionTypes = {
 	ACTIONS = 1,
@@ -782,6 +810,8 @@ SkillMgr.Variables = {
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", section = "gathering"},
 }
+
+SkillMgr.UpdateDefaultProfiles()
 
 function SkillMgr.ModuleInit() 	
 	SkillMgr.GUI.manager.main_tabs = GUI_CreateTabs("Edit,Add,Debug",false)
@@ -1666,7 +1696,7 @@ function SkillMgr.ReadFile(strFile)
 				end
 			end
 		end
-		if (validJob) then
+		if (validJob) then			
 			SkillMgr.SkillProfile = profile.skills
 		end
 	else
@@ -1754,6 +1784,23 @@ function SkillMgr.WriteToFile(strFile)
 	info.version = 3
 	SkillMgr.ResetSkillTracking()
 	info.skills = SkillMgr.SkillProfile or {}	
+	if (table.valid(info.skills)) then
+		
+		local fieldDefaults = {}
+		for fieldid, defaults in pairs(SkillMgr.Variables) do
+			--d("checking field id ["..tostring(fieldid).."], ["..tostring(defaults.profile).."] ["..tostring(defaults.default).."]")
+			fieldDefaults[defaults.profile] = defaults.default
+		end
+	
+		for prio,skill in pairs(info.skills) do
+			for field,fieldvalue in pairs(skill) do
+				if (fieldvalue == fieldDefaults[field] or fieldDefaults[field] == nil) then
+					info.skills[prio][field] = nil
+				end
+			end
+		end
+	end
+	
 	info.filters = {
 		[1] = gSkillManagerFilter1,
 		[2] = gSkillManagerFilter2,
@@ -1977,10 +2024,11 @@ function SkillMgr.CheckProfileValidity()
 		SkillMgr.SkillProfile = profile
 	end
 	
-	if (requiredUpdate) then
-		d("Profile required an update, resaving.")
-		SkillMgr.SaveProfile()
-	end
+	-- No longer writing all defaults.
+	--if (requiredUpdate) then
+		--d("Profile required an update, resaving.")
+		--SkillMgr.SaveProfile()
+	--end
 end
 
 function SkillMgr.HasProfile(strName)
@@ -2156,6 +2204,12 @@ function SkillMgr.UpdateProfiles()
 		for i,profile in pairs(profileList) do
             profileName = string.gsub(profile, ".lua", "")
 			table.insert(SkillMgr.profiles,profileName)
+			
+			-- Don't uncomment unless you want to run a mass update.
+			--[[
+			SkillMgr.ReadFile(profileName)
+			SkillMgr.WriteToFile(profileName)
+			--]]
         end	
     end
 	--table.print(SkillMgr.profiles)
