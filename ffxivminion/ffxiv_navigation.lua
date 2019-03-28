@@ -1320,20 +1320,26 @@ function ml_navigation.Navigate(event, ticks )
 						-- Our current 'nextnode' is the END of the NavConnection !!
 						-- Find out which side of the NavCon we are at
 						-- Figure out the OMC direction, one time, reset by ResetOMCHandler.
-						local from_pos
-						local to_pos
+						local from_pos = nc.from
+						local to_pos = nc.to
+						local ncradius
+						local ncsubtype
+						local from_heading
+						
+						if (nc.sideA ~= nil) then
+							from_pos = nc.sideA
+							to_pos = nc.sideB
+						end
+						
 						if (self.omc_direction == 0) then
-							if (math.distance3d(ppos, nc.sideA) < math.distance3d(ppos, nc.sideB)) then
+							if (math.distance3d(ppos, from_pos) < math.distance3d(ppos, to_pos)) then
 								self.omc_direction = 1
 							else
 								self.omc_direction = 2
 							end
 						end
 						
-						local ncradius
-						local ncsubtype
-						local from_heading
-						if(nc.sideA ~= nil) then
+						if (nc.sideA ~= nil) then
 							if (self.omc_direction == 1) then -- From sideA to  side B
 								from_pos = nc.sideA
 								to_pos = nc.sideB
