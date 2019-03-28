@@ -838,26 +838,41 @@ function ml_navigation:IsGoalClose(ppos,node)
 	--type = 0: disabled, 1: cube-cube, 2: floor-floor, 3: floor-cube, 4: custom omc, 5: macromesh
 	
 	local nc
+	local ncsubtype
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		-- 'live nav' vs 'new nav'
-		if (NavigationManager.ShowCells == nil ) then		
+		if (NavigationManager.ShowCells == nil ) then	
 			if (table.valid(ml_mesh_mgr.navconnections)) then
 				nc = ml_mesh_mgr.navconnections[node.navconnectionid]
 			end
+			ncsubtype = nc.details.subtype
 		else
 			nc = NavigationManager:GetNavConnection(node.navconnectionid)
+			ncsubtype = nc.subtype
 		end
 		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
+			local ncradius
+			if(node.navconnectionsideA ~= nil ) then -- new nav code, NCs have sideA and sideB which can have different radii				
+				if(node.navconnectionsideA == true) then
+					ncradius = nc.sideA.radius
+					self.omc_direction = 1
+				else
+					ncradius = nc.sideB.radius
+					self.omc_direction = 2
+				end
+			else
+				ncradius = nc.radius
+			end
 			
 			if (nc.type == 3 and Player.flying.isflying) then
-				goaldist2d = goaldist2d - nc.radius
+				goaldist2d = goaldist2d - ncradius
 				if (math.abs(ppos.y-node.y) < 3) then -- some of the connection radius' are too big, don't want a full on sphere
-					goaldist = goaldist - nc.radius
+					goaldist = goaldist - ncradius
 				end
 			else
 				--d("substracing the radius from the remaining distance")
-				goaldist = goaldist - nc.radius
-				goaldist2d = goaldist2d - nc.radius
+				goaldist = goaldist - ncradius
+				goaldist2d = goaldist2d - ncradius
 			end
 		end
 	end
@@ -866,7 +881,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		--d("index = "..tostring(ml_navigation.pathindex)..", y = "..tostring(node.y)..",goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
 			self:ResetOMCHandler()
-			if ( nc and In(nc.subtype,1,2,3,4)) then				
+			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
@@ -877,7 +892,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		--d("diving goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3ddive"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2ddive"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3ddive"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2ddive"]) then
 			self:ResetOMCHandler()
-			if ( nc and In(nc.subtype,1,2,3,4)) then				
+			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
@@ -887,7 +902,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 		--d("swimming goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dswim"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dswim"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dswim"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dswim"]) then
 			self:ResetOMCHandler()
-			if ( nc and In(nc.subtype,1,2,3,4)) then				
+			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
@@ -897,7 +912,8 @@ function ml_navigation:IsGoalClose(ppos,node)
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dmount"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dmount"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
 			self:ResetOMCHandler()
-			if ( nc and In(nc.subtype,1,2,3,4)) then				
+			if ( nc and In(ncsubtype,1,2,3,4)) then	
+				d(222222222222222222)
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
@@ -908,7 +924,8 @@ function ml_navigation:IsGoalClose(ppos,node)
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dwalk"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dwalk"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
 			self:ResetOMCHandler()
-			if ( nc and In(nc.subtype,1,2,3,4)) then				
+			if ( nc and In(ncsubtype,1,2,3,4)) then	
+d(33333333333333)			
 				self.omc_id = nc.id
 				self.omc_details = nc
 			end
@@ -916,6 +933,7 @@ function ml_navigation:IsGoalClose(ppos,node)
 			return true
 		end
 	end
+	self.omc_direction = 0
 	return false
 end
 
@@ -1280,10 +1298,11 @@ function ml_navigation.Navigate(event, ticks )
 						return
 					end
 					
-					local navcon = ml_navigation:GetConnection(nextnode)
+					
 					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
+						d("111111111111111111111")
 						-- Our current 'nextnode' is the END of the NavConnection !!
 						-- Find out which side of the NavCon we are at
 						-- Figure out the OMC direction, one time, reset by ResetOMCHandler.
@@ -1297,12 +1316,31 @@ function ml_navigation.Navigate(event, ticks )
 							end
 						end
 						
-						if (self.omc_direction == 1) then
-							from_pos = nc.from
-							to_pos = nc.to
+						local ncradius
+						local ncsubtype
+						if(nc.sideA ~= nil) then
+							if (self.omc_direction == 1) then -- From sideA to  side B
+								from_pos = nc.sideA
+								to_pos = nc.sideB
+								ncradius = nc.sideA.radius
+							else
+								from_pos = nc.sideB
+								to_pos = nc.sideA
+								ncradius = nc.sideB.radius
+							end
+							ncsubtype = nc.details.subtype
+							d("WHAAAAAAAT SUBTYPE : "..tostring(ncsubtype))
 						else
-							from_pos = nc.to
-							to_pos = nc.from
+							if (self.omc_direction == 1) then
+								from_pos = nc.from
+								to_pos = nc.to
+							else
+								from_pos = nc.to
+								to_pos = nc.from
+							end
+							ncradius = nc.radius
+							ncsubtype = nc.subtype
+							d("BAD SUBTYPE : "..tostring(ncsubtype))
 						end
 						
 						if (not MIsLocked()) then
@@ -1332,15 +1370,16 @@ function ml_navigation.Navigate(event, ticks )
 						end
 								
 						-- NavConnection JUMP
-						if ( nc.subtype == 1 ) then
+						d("NOWIS SUBTYPE : "..tostring(ncsubtype))
+						if ( ncsubtype == 1 ) then
 							
 							ml_navigation.GUI.lastAction = "Jump NavConnection"
 																					
 							-- Before the jump
 								if ( not ml_navigation.omc_startheight ) then
 									-- Adjust facing
-									if ( nc.radius <= 0.5  ) then											
-										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc) ) then											
+									if ( ncradius <= 0.5  ) then											
+										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos) ) then											
 											return
 										end
 									else
@@ -1369,7 +1408,7 @@ function ml_navigation.Navigate(event, ticks )
 									if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
 										-- We reached our target node...
 										
-										if ( nc.radius <= 0.5 ) then
+										if ( ncradius <= 0.5 ) then
 											-- let's cheat for precission :D											
 											if (Player:IsMoving() or Player:IsJumping() ) then
 												Player:StopMovement()
@@ -1383,7 +1422,7 @@ function ml_navigation.Navigate(event, ticks )
 												end
 												ml_navigation.pathindex = ml_navigation.pathindex + 1
 												NavigationManager.NavPathNode = ml_navigation.pathindex
-												ml_navigation:ResetOMCHandler()
+												ml_navigation:ResetOMCHandler()												
 												d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
 											end
 										else
@@ -1400,7 +1439,7 @@ function ml_navigation.Navigate(event, ticks )
 									else
 										-- if we felt below start and landing pos, we will never make it to the goal anyway now
 										if ( from_pos.y > (ppos.y + 1)  and to_pos.y > (ppos.y + 1) ) then
-											if ( nc.radius <= 0.5 ) then
+											if ( ncradius <= 0.5 ) then
 												-- let's cheat for precission :D											
 												if (Player:IsMoving() or Player:IsJumping() ) then
 													Player:StopMovement()
@@ -1434,7 +1473,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- OMC Walk								
-						if ( nc.subtype == 2 ) then
+						if ( ncsubtype == 2 ) then
 							if (ml_navigation.omc_starttimer == 0 ) then
 								ml_navigation.omc_starttimer = ticks
 							end
@@ -1444,7 +1483,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- OMC Teleport						
-						if ( nc.subtype == 3 ) then							
+						if ( ncsubtype == 3 ) then							
 							ml_navigation.GUI.lastAction = "Teleport NavConnection"
 							if (Player:IsMoving() or Player:IsJumping() ) then
 								Player:StopMovement()
@@ -1467,7 +1506,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- OMC Interact	
-						if ( nc.subtype == 4 ) then
+						if ( ncsubtype == 4 ) then
 							-- OMC Interact  I AM SO UNSURE IF THAT IS WORKING OR EVEN USED ANYMORE :D:D:D:D
 							ml_navigation.GUI.lastAction = "Interact NavConnection"
 							if (Player:IsMoving()) then
@@ -1546,7 +1585,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- OMC Portal
-						if ( nc.subtype == 5 ) then
+						if ( ncsubtype == 5 ) then
 							
 							ml_navigation.GUI.lastAction = "Portal OMC"
 							ml_navigation:NavigateToNode(ppos,nextnode,2000)
@@ -1554,7 +1593,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- OMC Custom
-						if ( nc.subtype == 6 ) then
+						if ( ncsubtype == 6 ) then
 							
 							ml_navigation.GUI.lastAction = "Custom OMC"
 							ml_navigation:NavigateToNode(ppos,nextnode,1500)	
@@ -1777,7 +1816,7 @@ function ml_navigation.Navigate(event, ticks )
 						ffnav.isdescending = false
 						
 						--d("[Navigation]: Normal navigation..")
-						
+						local navcon = ml_navigation:GetConnection(nextnode)
 						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
@@ -1973,18 +2012,27 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 		local nextnode = ml_navigation.path[ml_navigation.pathindex]
 		
 		local radius = 0
-		if (ml_navigation.lastconnectionid ~= 0) then
+		if (self.lastconnectionid ~= 0) then
 			-- 'live nav' vs 'new nav'
 			local navcon
 			if (NavigationManager.ShowCells == nil ) then
-				 navcon = ml_mesh_mgr.navconnections[ml_navigation.lastconnectionid]
+				 navcon = ml_mesh_mgr.navconnections[self.lastconnectionid]
+				 if (navcon) then -- Type 5
+					radius = navcon.radius
+					threshold = threshold + radius
+				end
 			else
-				navcon = NavigationManager:GetNavConnection(ml_navigation.lastconnectionid)
+				navcon = NavigationManager:GetNavConnection(self.lastconnectionid)
+				 if (navcon) then -- Type 5
+					if(self.omc_direction == 1) then
+						radius = navcon.sideA.radius
+					else
+						radius = navcon.sideB.radius
+					end
+					threshold = threshold + radius
+				end
 			end
-			if (navcon) then -- Type 5
-				radius = navcon.radius
-				threshold = threshold + radius
-			end
+			
 		end
 		
 		if (lastnode and nextnode) then
@@ -2029,17 +2077,7 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 end
 
 -- Sets the position and heading which the main call will make sure that it has before continuing the movement. Used for NavConnections / OMC
-function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection)	
-		
-	-- Find out which side of the NavCon we are at
-	local nearside, farside
-	if (math.distance3d(playerpos, navconnection.from) < math.distance3d(playerpos, navconnection.to) ) then
-		nearside = navconnection.from
-		farside = navconnection.to
-	else
-		nearside = navconnection.to
-		farside = navconnection.from
-	end
+function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection, nearsidepos, farsidepos)	
 		
 	self.ensureposition = {x = nearside.x, y = nearside.y, z = nearside.z}
 		
@@ -2128,6 +2166,7 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_traveldist = 0
 	self.omc_traveltimer = nil
 	self.omc_direction = 0
+	self.lastupdate = 0
 end
 
 ffnav = {}
