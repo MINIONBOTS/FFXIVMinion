@@ -839,26 +839,28 @@ function ml_navigation:IsGoalClose(ppos,node)
 	
 	local nc
 	local ncsubtype
+	local ncdirectionFromA
 	if (node.navconnectionid and node.navconnectionid ~= 0) then
 		-- 'live nav' vs 'new nav'
 		if (NavigationManager.ShowCells == nil ) then	
 			if (table.valid(ml_mesh_mgr.navconnections)) then
 				nc = ml_mesh_mgr.navconnections[node.navconnectionid]
 			end
-			ncsubtype = nc.details.subtype
+			ncsubtype = nc.subtype
 		else
 			nc = NavigationManager:GetNavConnection(node.navconnectionid)
-			ncsubtype = nc.subtype
+			ncsubtype = nc.details.subtype
 		end
 		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
 			local ncradius
 			if(node.navconnectionsideA ~= nil ) then -- new nav code, NCs have sideA and sideB which can have different radii				
+				d("YES "..tostring(node.navconnectionsideA))
 				if(node.navconnectionsideA == true) then
 					ncradius = nc.sideA.radius
-					self.omc_direction = 1
+					ncdirectionFromA =  true
 				else
 					ncradius = nc.sideB.radius
-					self.omc_direction = 2
+					ncdirectionFromA =  false
 				end
 			else
 				ncradius = nc.radius
@@ -884,6 +886,9 @@ function ml_navigation:IsGoalClose(ppos,node)
 			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
+				if(ncdirectionFromA~=nil) then
+					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				end
 			end
 			--d("close enough, flying")
 			return true
@@ -895,6 +900,9 @@ function ml_navigation:IsGoalClose(ppos,node)
 			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
+				if(ncdirectionFromA~=nil) then
+					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				end
 			end
 			return true
 		end
@@ -905,6 +913,9 @@ function ml_navigation:IsGoalClose(ppos,node)
 			if ( nc and In(ncsubtype,1,2,3,4)) then				
 				self.omc_id = nc.id
 				self.omc_details = nc
+				if(ncdirectionFromA~=nil) then
+					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				end
 			end
 			return true
 		end
@@ -913,9 +924,11 @@ function ml_navigation:IsGoalClose(ppos,node)
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
 			self:ResetOMCHandler()
 			if ( nc and In(ncsubtype,1,2,3,4)) then	
-				d(222222222222222222)
 				self.omc_id = nc.id
 				self.omc_details = nc
+				if(ncdirectionFromA~=nil) then
+					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				end
 			end
 			--d("close enough, mounted")
 			return true
@@ -925,9 +938,11 @@ function ml_navigation:IsGoalClose(ppos,node)
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
 			self:ResetOMCHandler()
 			if ( nc and In(ncsubtype,1,2,3,4)) then	
-d(33333333333333)			
 				self.omc_id = nc.id
 				self.omc_details = nc
+				if(ncdirectionFromA~=nil) then
+					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				end
 			end
 			--d("close enough, walking")
 			return true
@@ -1302,7 +1317,6 @@ function ml_navigation.Navigate(event, ticks )
 					
 					local nc = self.omc_details
 					if ( self.omc_id ) then
-						d("111111111111111111111")
 						-- Our current 'nextnode' is the END of the NavConnection !!
 						-- Find out which side of the NavCon we are at
 						-- Figure out the OMC direction, one time, reset by ResetOMCHandler.
@@ -1318,18 +1332,20 @@ function ml_navigation.Navigate(event, ticks )
 						
 						local ncradius
 						local ncsubtype
+						local from_heading
 						if(nc.sideA ~= nil) then
 							if (self.omc_direction == 1) then -- From sideA to  side B
 								from_pos = nc.sideA
 								to_pos = nc.sideB
 								ncradius = nc.sideA.radius
+								from_heading = nc.details.headingA_x
 							else
 								from_pos = nc.sideB
 								to_pos = nc.sideA
 								ncradius = nc.sideB.radius
+								from_heading = nc.details.headingB_x
 							end
 							ncsubtype = nc.details.subtype
-							d("WHAAAAAAAT SUBTYPE : "..tostring(ncsubtype))
 						else
 							if (self.omc_direction == 1) then
 								from_pos = nc.from
@@ -1340,7 +1356,6 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							ncradius = nc.radius
 							ncsubtype = nc.subtype
-							d("BAD SUBTYPE : "..tostring(ncsubtype))
 						end
 						
 						if (not MIsLocked()) then
@@ -1370,7 +1385,6 @@ function ml_navigation.Navigate(event, ticks )
 						end
 								
 						-- NavConnection JUMP
-						d("NOWIS SUBTYPE : "..tostring(ncsubtype))
 						if ( ncsubtype == 1 ) then
 							
 							ml_navigation.GUI.lastAction = "Jump NavConnection"
@@ -1379,7 +1393,7 @@ function ml_navigation.Navigate(event, ticks )
 								if ( not ml_navigation.omc_startheight ) then
 									-- Adjust facing
 									if ( ncradius <= 0.5  ) then											
-										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos) ) then											
+										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos, from_heading) ) then											
 											return
 										end
 									else
@@ -2077,8 +2091,24 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 end
 
 -- Sets the position and heading which the main call will make sure that it has before continuing the movement. Used for NavConnections / OMC
-function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection, nearsidepos, farsidepos)	
+function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection, nearsidepos, farsidepos, nearheading)	
 		
+	-- Find out which side of the NavCon we are at	
+	local nearside, farside
+	if( not nearsidepos ) then -- old live nav
+		if (math.distance3d(playerpos, navconnection.from) < math.distance3d(playerpos, navconnection.to) ) then
+			nearside = navconnection.from
+			farside = navconnection.to
+		else
+			nearside = navconnection.to
+			farside = navconnection.from
+		end
+	else
+		nearside = nearsidepos
+		nearside.hx = nearheading
+		farside = farsidepos
+	end
+	
 	self.ensureposition = {x = nearside.x, y = nearside.y, z = nearside.z}
 		
 	if(nearside.hx ~= 0 ) then
