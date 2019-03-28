@@ -1323,7 +1323,7 @@ function ml_navigation.Navigate(event, ticks )
 						local from_pos
 						local to_pos
 						if (self.omc_direction == 0) then
-							if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to)) then
+							if (math.distance3d(ppos, nc.sideA) < math.distance3d(ppos, nc.sideB)) then
 								self.omc_direction = 1
 							else
 								self.omc_direction = 2
