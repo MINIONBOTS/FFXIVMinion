@@ -131,6 +131,18 @@ sck.hotkeys = {
 			Settings.FFXIVMINION.gAssistFilter5 = gAssistFilter5
 		end
 	},
+	{
+		label = "Tank Assist Toggle", mod1 = "SCK_Tank_Mod1", mod2 = "SCK_Tank_Mod2", key = "SCK_Tank_Mod3", mouse = "SCK_Tank_Mouse",
+		event = function ()				
+			if FFXIV_Assist_Mode == GetString("none") then
+				FFXIV_Assist_Mode = GetString("tankAssist")
+				FFXIV_Assist_ModeIndex = 5
+			else
+				FFXIV_Assist_Mode = GetString("none")
+				FFXIV_Assist_ModeIndex = 1
+			end
+		end
+	},
 }
 
 for i,shortcut in pairsByKeys(sck.hotkeys) do
