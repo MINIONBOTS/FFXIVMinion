@@ -2404,6 +2404,21 @@ Check UI alert and see if there is an alert. \
 Quick start \
 Have you set a Skill Profile? \
 Do you have materials?"))
+					elseif gBotMode == GetString("questMode") then
+GUI:Text(GetString("I'm doing the 1-70 quests and above level 30,\
+but I still don't have my Chocobo.  Why?"))
+
+GUI:TextColored(1,.1,.2,1,("Most likely it's still doing side quests and hasn't\
+advanced the main quest line far enough to get your\
+chocobo, that's totally normal.\
+Also make sure you've configured the bot to select \
+a grand company."))
+
+GUI:Text(GetString("Why is it stuck at the quest asking for my \
+chocobo name?"))
+
+GUI:TextColored(1,.1,.2,1,("You've either configured the bot to use an \
+invalid name or haven't chosen one."))
 					else
 						GUI:Text(GetString("Accepting help and Faq suggestions"))
 					end
