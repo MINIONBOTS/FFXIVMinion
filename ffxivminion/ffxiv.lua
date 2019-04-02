@@ -19,7 +19,7 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos" }
+	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light" }
 else
 	ffxivminion.logincenters = { "Main" }
 end
@@ -32,7 +32,8 @@ if (ffxivminion.gameRegion == 1) then
 		[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
 		[5] = { "None","Adamantoise","Balmung","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Sargatanas","Siren","Zalera" },
 		[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
-		[7] = {	"None","Cerberus","Lich","Louisoix","Moogle","Odin","Omega","Phoenix","Ragnarok","Shiva","Zodiark" },
+		[7] = {	"None","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
+		[8] = {	"None","Lich","Odin","Phoenix","Shiva","Zodiark" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
@@ -290,7 +291,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 					end
 				else
 					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 8) then
 							d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
 							if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2)) or UseControlAction("TitleDCWorldMap","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
 								login.datacenterSelected = true
