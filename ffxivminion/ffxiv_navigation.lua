@@ -849,7 +849,9 @@ function ml_navigation:IsGoalClose(ppos,node)
 			ncsubtype = nc.subtype
 		else
 			nc = NavigationManager:GetNavConnection(node.navconnectionid)
-			ncsubtype = nc.details.subtype
+			if (nc.details and nc.details.subtype) then
+				ncsubtype = nc.details.subtype
+			end
 		end
 		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
 			local ncradius
