@@ -4413,8 +4413,8 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (not skill) then
 		SkillMgr.DebugOutput( prio, "Skill is missing.. weird error." )
 		return 0
-	elseif (skill and not skill.used) then
-		SkillMgr.DebugOutput( prio, "Skill is not used." )
+	elseif (skill and not IsNull(skill.used ,true)) then
+		SkillMgr.DebugOutput( prio, tostring("Skill ["..prio.."] is not used.") )
 		return 0
 	end
 	
