@@ -2147,7 +2147,7 @@ function ml_navigation:EnsurePosition(ppos)
 		
 		-- update pos after teleport
 		local ppos = Player.pos
-		local anglediff = self.ensureheading and (ppos.h - self.ensureheading.hx)
+		local anglediff = self.ensureheading and self.ensureheading.hx ~= nil and (ppos.h - self.ensureheading.hx)
 		local anglediff2= self.ensureheadingtargetpos and math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = self.ensureheadingtargetpos.x-ppos.x, y = 0, z = self.ensureheadingtargetpos.z-ppos.z})
 		
 		--d(tostring(anglediff).. " - " ..tostring(anglediff2))
