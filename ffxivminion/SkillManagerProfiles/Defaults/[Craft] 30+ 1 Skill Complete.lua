@@ -39,6 +39,7 @@ local obj1 = {
 		[33] = false;
 		[34] = false;
 		[35] = false;
+		[36] = false;
 	};
 	["filters"] = {
 		[1] = "";
