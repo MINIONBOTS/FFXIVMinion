@@ -2465,7 +2465,7 @@ invalid name or haven't chosen one."))
 					local ppos = ml_mesh_mgr.GetPlayerPos()
 					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
 					
-					if CanAccessMap(635) then
+					if CanAccessMap(621) then
 						GUI:Text("Can Access ALL maps");
 					elseif CanAccessMap(622) then
 						GUI:Text("Can Access Azim Steppes");
