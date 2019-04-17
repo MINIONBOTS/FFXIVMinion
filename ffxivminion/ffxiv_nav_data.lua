@@ -897,18 +897,55 @@ ffxiv_map_nav.data = {
 		},
 		
 		[130] = {
-			{id = 130, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 1 },
+			{id = 130, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 1
+				, requires =  {
+					["QuestCompleted(1664)"] = true,
+				}
+				, conversationstrings = {
+                   ["E"] = "Purchase Passage to Ul'dah",
+                   ["J"] = "「ウルダハ」へ行く",
+                   ["G"] = "Nach Ul'dah",
+                   ["F"] = "Aller à Ul'dah",
+                   ["CN"] = "前往乌尔达哈",
+                   ["KR"] = "'울다하'로 이동",
+                },
+			},
 		},
 		[132] = {
-			{id = 132, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 2 },
+			{id = 132, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 2 
+				, requires =  {
+					["QuestCompleted(1664)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase Passage to Gridania",
+                    ["J"] = "「グリダニア」へ行く",
+                    ["G"] = "Nach Gridania",
+                    ["F"] = "Aller à Gridania",
+                    ["CN"] = "前往格里达尼亚",
+                    ["KR"] = "'그리다니아'로 이동",
+                },
+			},
 		},
 		[128] = {
-			{id = 128, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 3 },
+			{id = 128, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 3
+				, requires =  {
+					["QuestCompleted(1664)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase Passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
+			},
 		},
 		[144] = {
-			{id = 144, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211
+			{id = 144, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 4
 				, requires =  {
 					["QuestCompleted(435)"] = true,
+					["QuestCompleted(1664)"] = true,
 				} 
 				, conversationstrings = {
 					["E"] = "Seek Passage to the Gold Saucer",
