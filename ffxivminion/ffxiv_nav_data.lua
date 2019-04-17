@@ -53,6 +53,21 @@ ffxiv_map_nav.data = {
 		[388] = {
 			{id = 388, cost = 3, x = -83.325, y = 0.0442, z = 29.0272, h = -1.597130, a = 1011044},
 		},
+		[419] = {
+			{id = 419, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 4
+				, requires =  {
+					["QuestCompleted(1664)"] = true,
+				}
+				, conversationstrings = {
+                   ["E"] = "Purchase Passage to Ishgard",
+                  -- ["J"] = "「ウルダハ」へ行く",
+                  -- ["G"] = "Nach Ul'dah",
+                 --  ["F"] = "Aller à Ul'dah",
+                  -- ["CN"] = "前往乌尔达哈",
+                  -- ["KR"] = "'울다하'로 이동",
+                },
+			},
+		},
 	},
 	[388] =
 	{
