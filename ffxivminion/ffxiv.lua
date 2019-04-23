@@ -19,7 +19,7 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light" }
+	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light","Crystal" }
 else
 	ffxivminion.logincenters = { "Main" }
 end
@@ -30,10 +30,11 @@ if (ffxivminion.gameRegion == 1) then
 		[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
 		[3] = { "None","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
 		[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
-		[5] = { "None","Adamantoise","Balmung","Cactuar","Coeurl","Faerie","Gilgamesh","Goblin","Jenova","Mateus","Midgardsormr","Sargatanas","Siren","Zalera" },
-		[6] = {	"None","Behemoth","Brynhildr","Diabolos","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Malboro","Twintania","Ultros" },
+		[5] = { "None","Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren" },
+		[6] = {	"None","Behemoth","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Ultros" },
 		[7] = {	"None","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
 		[8] = {	"None","Lich","Odin","Phoenix","Shiva","Zodiark" },
+		[9] = {	"None","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
