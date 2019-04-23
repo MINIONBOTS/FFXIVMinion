@@ -59,12 +59,12 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(1664)"] = true,
 				}
 				, conversationstrings = {
-                   ["E"] = "Purchase Passage to Ishgard",
-                  -- ["J"] = "「ウルダハ」へ行く",
-                  -- ["G"] = "Nach Ul'dah",
-                 --  ["F"] = "Aller à Ul'dah",
-                  -- ["CN"] = "前往乌尔达哈",
-                  -- ["KR"] = "'울다하'로 이동",
+					["E"] = "Purchase Passage to Ishgard",
+					["J"] = "「イシュガルド」へ行く",
+					["G"] = "Nach Ishgard",
+					["F"] = "Aller à Ishgard",
+					["CN"] = "前往伊修加德",
+					["KR"] = "'이슈가르드'로 이동",
                 },
 			},
 		},
