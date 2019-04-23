@@ -1304,7 +1304,7 @@ function ffxiv_gather.CheckBuffs(item)
 		collectCost = IsNull(task.collectGP,0)
 		if task.collectGP == "skillProfileDefined" then
 			if SkillMgr.ProfileRaw.mingp ~= nil then
-				collectCost = SkillMgr.ProfileRaw.mingp
+				collectCost = IsNull(SkillMgr.ProfileRaw.mingp,0)
 			end
 		end
 		
