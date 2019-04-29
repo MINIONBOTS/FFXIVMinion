@@ -1175,7 +1175,7 @@ ffxiv_map_nav.data = {
         [613] = {
             {id = 613, cost = 1, x = -134.31, y = -6.91, z = -58.86, h = -1.61
 				, requires = {
-					["QuestCompleted(2476)"] = true,
+					["GetQuestInfo(2476,'step') == 255 or QuestCompleted(2476)"] = true,
 				},
 			},
         },    
