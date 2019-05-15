@@ -1281,7 +1281,6 @@ function c_getmovementpath:evaluate()
 			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
 				ml_debug("rebuild non-cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
-				--Player:BuildPath(tonumber(-583), tonumber(49), tonumber(316),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
 				ml_debug("no fly pathLength = "..tostring(pathLength))
 			end
 			
@@ -1290,7 +1289,7 @@ function c_getmovementpath:evaluate()
 				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
-					ml_debug("pathLength 2 = "..tostring(pathLength))
+					ml_debug("pathLength with no avoids = "..tostring(pathLength))
 				end
 				
 				if (pathLength <= 0) then
@@ -1298,7 +1297,7 @@ function c_getmovementpath:evaluate()
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 					c_getmovementpath.lastFallback = Now()
 					c_getmovementpath.lastGoal = gotoPos
-					ml_debug("pathLength 3 = "..tostring(pathLength))
+					ml_debug("pathLength cube path = "..tostring(pathLength))
 				end
 			end
 			
