@@ -567,6 +567,7 @@ end
 c_autopotion = inheritsFrom( ml_cause )
 e_autopotion = inheritsFrom( ml_effect )
 c_autopotion.potions = {
+	{ minlevel = 60, item = 23167 },
 	{ minlevel = 50, item = 13637 },
 	{ minlevel = 40, item = 4554 },
 	{ minlevel = 30, item = 4553 },
@@ -574,6 +575,7 @@ c_autopotion.potions = {
 	{ minlevel = 1, item = 4551 },
 }
 c_autopotion.ethers = {
+	{ minlevel = 60, item = 23168 },
 	{ minlevel = 50, item = 13638 },
 	{ minlevel = 40, item = 4558 },
 	{ minlevel = 30, item = 4557 },
@@ -4234,7 +4236,7 @@ function c_dointeract:evaluate()
 						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2))
 					then
 						if (not IsFlying()) then
-							if (c_killaggrotarget:evaluate()) then
+							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
 								return false
 							end
