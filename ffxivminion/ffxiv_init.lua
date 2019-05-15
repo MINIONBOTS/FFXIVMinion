@@ -385,7 +385,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands")
 		ml_mesh_mgr.SetDefaultMesh(399, "The Dravanian Hinterlands")
 		ml_mesh_mgr.SetDefaultMesh(400, "The Churning Mists")
-		ml_mesh_mgr.SetDefaultMesh(401, "Sea of Clouds")
+		ml_mesh_mgr.SetDefaultMesh(401, "The Sea of Clouds")
 		ml_mesh_mgr.SetDefaultMesh(402, "Azys Lla")
 		ml_mesh_mgr.SetDefaultMesh(418, "Ishgard - Foundation")
 		ml_mesh_mgr.SetDefaultMesh(419, "The Pillars")
@@ -554,7 +554,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(489, "Coerthas Western Highlands")
 		ml_mesh_mgr.SetDefaultMesh(490, "Lower La Noscea")
 		ml_mesh_mgr.SetDefaultMesh(491, "Southern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(492, "Sea of Clouds")
+		ml_mesh_mgr.SetDefaultMesh(492, "The Sea of Clouds")
 		ml_mesh_mgr.SetDefaultMesh(493, "Duty_2037")
 		ml_mesh_mgr.SetDefaultMesh(494, "Duty_2056")
 		ml_mesh_mgr.SetDefaultMesh(495, "Lower La Noscea")
@@ -604,7 +604,6 @@ function ml_global_information.Init()
 		
 		--[[		
 		ml_mesh_mgr.SetDefaultMesh(493, "Duty_2037") -- pali 60*
-		ml_mesh_mgr.SetDefaultMesh(718, "Duty_2904") -- war 70*
 		ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917") -- drk 65*
 		ml_mesh_mgr.SetDefaultMesh(716, "Duty_2919") -- drk 70*
 		
