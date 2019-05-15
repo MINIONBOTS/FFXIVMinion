@@ -1276,23 +1276,27 @@ function c_getmovementpath:evaluate()
 			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
 			
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
-			if (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-				--d("rebuild non-cube path")
+			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
+				ml_debug("rebuild non-cube path")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
+				--Player:BuildPath(tonumber(-583), tonumber(49), tonumber(316),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
+				ml_debug("no fly pathLength = "..tostring(pathLength))
 			end
 			
-			if (pathLength <= 0) then
-				-- attempt to get a path with no borders or avoidance first
+			if (gBotMode ~= GetString("NavTest") or (gBotMode == GetString("NavTest") and not gTestNoFly)) and (pathLength <= 0) then
+				-- attempt to get a path with no avoidance first
 				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor((GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
-					--d("Pulled a path with no borders: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
+					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
+					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
+					ml_debug("pathLength 2 = "..tostring(pathLength))
 				end
 				
 				if (pathLength <= 0) then
-					--d("rebuild cube path")
+					ml_debug("rebuild cube path")
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 					c_getmovementpath.lastFallback = Now()
 					c_getmovementpath.lastGoal = gotoPos
+					ml_debug("pathLength 3 = "..tostring(pathLength))
 				end
 			end
 			
@@ -1334,12 +1338,12 @@ function c_walktopos:evaluate()
 	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
-			--d("[WalkToPos]: Pathing was started.")
+			ml_debug("[WalkToPos]: Pathing was started.")
 		end
 		return true
 	else
 		if (ml_navigation:DisablePathing()) then
-			d("[WalkToPos]: Pathing was stopped.")
+			ml_debug("[WalkToPos]: Pathing was stopped.")
 			return true
 		end
 	end
@@ -1845,7 +1849,7 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
-	if (c_mount.blockOnly) then
+	if (c_mount.blockOnly) or not Player.onmesh then
 		return false
 	end
 	
@@ -2006,7 +2010,7 @@ function e_companion:execute()
 	local green = GetItem(4868)
 	if (green and green:IsReady()) then
 		green:Cast()
-		ml_global_information.Await(5000, function () return Player.castinginfo.castingid == 851 end)
+		ml_global_information.AwaitSuccess(1000,2500, function () return Player.castinginfo.castingid == 851 end)
 	end
 end
 
@@ -4281,11 +4285,11 @@ function c_dointeract:evaluate()
 					
 					if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
 						if (not IsFlying()) then
-							if (c_killaggrotarget:evaluate()) then
+							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
 								return false
 							end
-							
+				
 							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							

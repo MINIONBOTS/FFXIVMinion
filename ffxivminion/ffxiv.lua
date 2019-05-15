@@ -805,6 +805,11 @@ function ffxivminion.SetMainVars()
 	gRoleSkillArmGraze = ffxivminion.GetSetting("gRoleSkillArmGraze",true)
 	gRoleSkillPalisade = ffxivminion.GetSetting("gRoleSkillPalisade",true)
 	
+	gStuckReturn = ffxivminion.GetSetting("gStuckReturn",true)
+	gStuckTeleport = ffxivminion.GetSetting("gStuckTeleport",false)
+	gStuckDisable = ffxivminion.GetSetting("gStuckDisable",true)
+	gStuckRemesh = ffxivminion.GetSetting("gStuckRemesh",false)
+	
 	
 	for jobid,abrev in pairs(ffxivminion.classes) do
 		local str = "gGearset"..tostring(jobid)
@@ -845,8 +850,8 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	-- Build bottom menu for new GUI addons.
-	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
-	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ",true)
+	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings,Stuck!",true)
+	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ,Mesh Report",true)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
 	
@@ -1659,6 +1664,19 @@ function ml_global_information.DrawSettings()
 				--local tabindex, tabname = GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
 				--local tabs = ffxivminion.GUI.settings.main_tabs
 				
+				
+				if (tabindex == 9) then
+					GUI:BeginChild("##main-header-unstuck",0,GUI_GetFrameHeight(10),true)
+				
+					GUI:Text("Options if stuck");
+					GUI_Capture(GUI:Checkbox(GetString("Attempt to remesh area"),gStuckRemesh),"gStuckRemesh");
+					GUI_Capture(GUI:Checkbox(GetString("Return if available"),gStuckReturn),"gStuckReturn");
+					GUI_Capture(GUI:Checkbox(GetString("Teleport to local Aetheryte"),gStuckTeleport),"gStuckTeleport");
+					GUI_Capture(GUI:Checkbox(GetString("Disable Bot"),gStuckDisable),"gStuckDisable");
+					
+					GUI:EndChild()
+				end
+					
 				if (tabindex == 1) then
 					GUI:BeginChild("##main-header-botstatus",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(100)
@@ -2309,6 +2327,36 @@ function ml_global_information.DrawHelper() -- Helper Window
 				GUI:Separator()
 				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
 				local tabs = ffxivminion.GUI.help.main_tabs
+				if not (tabs.tabs[4].isselected) then
+					NavigationManager.ShowFloorMesh = false 
+					Settings.minionlib.ShowNavPath = false
+				end
+				if (tabs.tabs[4].isselected) then
+					NavigationManager.ShowFloorMesh = true 
+					NavigationManager.RenderDistance = 1
+					NavigationManager.RenderAlpha = 115
+					Settings.minionlib.ShowNavPath = true
+					
+					
+					GUI:Text("Report issues in the Forum or Discord Channel.")
+					GUI:Spacing();
+					GUI:Spacing();
+					GUI:Text("Please provide : ")
+					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("This tab must be included in the image.")
+					GUI:Spacing();
+					GUI:Spacing();
+					GUI:Separator()
+					GUI:Text("Navmesh:")
+					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					GUI:Separator()
+					GUI:Text("Player position:")
+					local PlayerPos = Player.pos
+					GUI:Text("X: "..PlayerPos.x)
+					GUI:Text("Y: "..PlayerPos.y)
+					GUI:Text("Z: "..PlayerPos.z)
+					GUI:Separator()
+				end
 				-- Help tab.
 				if (tabs.tabs[2].isselected) then
 					if (gBotMode == GetString("assistMode")) then
@@ -2464,7 +2512,11 @@ invalid name or haven't chosen one."))
 					GUI:Text("Eorzea Time: "); GUI:SameLine();	GUI:Text(FFXIV_Common_EorzeaTime)
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
-					GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
+					if NavigationManager:IsOnMesh(ppos) then
+						GUI:Text(GetString("Is On Mesh: ")) GUI:SameLine() GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
+					else
+						GUI:TextColored(1,.1,.2,1,GetString("Not On Mesh"))
+					end
 					
 					if CanAccessMap(621) then
 						GUI:Text("Can Access ALL maps");
@@ -2631,6 +2683,7 @@ function ml_global_information.Draw( event, ticks )
 	ml_global_information.DrawLoginHandler()
 	ml_global_information.DrawAutoGrindEditor()
 	ml_global_information.DrawHelper()
+	ml_global_information.DrawStuck()
 	ml_global_information.DrawInformationPopup()
 end
 

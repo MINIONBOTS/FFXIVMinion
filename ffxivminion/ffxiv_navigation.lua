@@ -1512,14 +1512,18 @@ function ml_navigation.Navigate(event, ticks )
 								Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
 								ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
 								return
-							else							
-								Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
-								if (nextnextnode) then
-									Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+							else	
+								if gTeleportHack then
+									Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
+									if (nextnextnode) then
+										Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
+									end
+									ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
+									d(GetTickCount())
+									--ffxiv_dialog_manager.IssueStopNotice("Teleport NavConnection","Teleport NavConnection exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
+								else 
+									NavigationManager:DisableNavConnection(nc.id)
 								end
-								ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
-								d(GetTickCount())
-								--ffxiv_dialog_manager.IssueStopNotice("Teleport NavConnection","Teleport NavConnection exist on this mesh.\nPlease enable the Teleport (Hack) usage in Advanced Settings or remove them.")
 							end
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
@@ -1850,7 +1854,7 @@ function ml_navigation.Navigate(event, ticks )
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
-							if ((IsSwimming() or nextnode.water) and nextnode.y < ppos.y) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
+							if (IsSwimming() and (nextnode.y < (ppos.y - 15))) then	-- We need to differ between the player standing ontop of the water and wanting to dive and the player standing on the seafloor and wanting to ascend to water cubes above
 								if (IsSwimming()) then
 									d("[Navigation] - Dive into water (swimming), using connection ["..tostring(isCubeCon).."].")
 								else
@@ -2103,7 +2107,7 @@ function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection
 		
 	-- Find out which side of the NavCon we are at	
 	local nearside, farside
-	if( not nearheading ) then -- old live nav
+	if( not nearsidepos ) then -- old live nav
 		if (math.distance3d(playerpos, navconnection.from) < math.distance3d(playerpos, navconnection.to) ) then
 			nearside = navconnection.from
 			farside = navconnection.to
