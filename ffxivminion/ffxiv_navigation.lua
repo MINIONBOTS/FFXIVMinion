@@ -856,7 +856,6 @@ function ml_navigation:IsGoalClose(ppos,node)
 		if (nc and nc.type ~= 5) then -- Type 5 == MacroMesh
 			local ncradius
 			if(node.navconnectionsideA ~= nil ) then -- new nav code, NCs have sideA and sideB which can have different radii				
-				d("YES "..tostring(node.navconnectionsideA))
 				if(node.navconnectionsideA == true) then
 					ncradius = nc.sideA.radius
 					ncdirectionFromA =  true
