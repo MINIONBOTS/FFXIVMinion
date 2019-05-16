@@ -463,7 +463,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(281, "[Trial]Leviathan", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(207, "[Trial]MoogleMog", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(374, "[Trial]Ramuh", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(377, "[Trial]Shiva", enforce)
+		ml_mesh_mgr.SetDefaultMesh(377, "Akh Afah Amphitheatre", enforce)
 		ml_mesh_mgr.SetDefaultMesh(206, "[Trial] The Navel", enforce)		
 		
 		-- Class Duties
