@@ -1287,7 +1287,13 @@ function c_getmovementpath:evaluate()
 			if (gBotMode ~= GetString("NavTest") or (gBotMode == GetString("NavTest") and not gTestNoFly)) and (pathLength <= 0) then
 				-- attempt to get a path with no avoidance first
 				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
+					if (NavigationManager.ShowCells == nil ) then
+					-- old nav version:
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor((GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
+					else
+					-- new nav version:
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
+					end
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					ml_debug("pathLength with no avoids = "..tostring(pathLength))
 				end

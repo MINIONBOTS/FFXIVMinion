@@ -44,9 +44,15 @@ e_stuck.stuckevacpos = {}
 e_stuck.blockOnly = false
 function c_stuck:evaluate()
 	
-	if ffxiv_unstuck.remeshstate ~= 0 then
-		ffxiv_unstuck.AttemptMeshFix()
-		return
+	if (NavigationManager.ShowCells == nil ) then
+		-- old nav
+		gStuckRemesh = nil
+	else
+		-- new nav
+		if ffxiv_unstuck.remeshstate ~= 0 then
+			ffxiv_unstuck.AttemptMeshFix()
+			return
+		end
 	end
 	
 	e_stuck.state = {}
