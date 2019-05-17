@@ -532,8 +532,8 @@ GUI:Spacing();
 
 local bugReport = ""
 
-local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
-if (NavigationManager.ShowCells == nil )
+--local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+if (NavigationManager.ShowCells == nil ) then
 	currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 end
 bugReport = "Navmesh: "..tostring(currentMesh).."\n"

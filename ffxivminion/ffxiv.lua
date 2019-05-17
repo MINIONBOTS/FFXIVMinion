@@ -2350,7 +2350,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Separator()
 					GUI:Text("Navmesh:")
 					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
-					if (NavigationManager.ShowCells == nil )
+					if (NavigationManager.ShowCells == nil ) then
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 					end
 					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
@@ -2497,7 +2497,7 @@ invalid name or haven't chosen one."))
 					GUI:Separator()
 					GUI:Text("Navmesh:")
 					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
-					if (NavigationManager.ShowCells == nil )
+					if (NavigationManager.ShowCells == nil ) then
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 					end
 					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
