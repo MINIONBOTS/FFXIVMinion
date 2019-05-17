@@ -2349,7 +2349,11 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+					if (NavigationManager.ShowCells == nil )
+						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
+					end
+					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
@@ -2492,7 +2496,11 @@ invalid name or haven't chosen one."))
 					GUI:Text("The image must show the full error.")
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+					if (NavigationManager.ShowCells == nil )
+						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
+					end
+					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos

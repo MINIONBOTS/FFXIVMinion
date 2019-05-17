@@ -532,7 +532,11 @@ GUI:Spacing();
 
 local bugReport = ""
 
-bugReport = "Navmesh: "..tostring(ml_mesh_mgr.currentfilename).."\n"
+local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+if (NavigationManager.ShowCells == nil )
+	currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
+end
+bugReport = "Navmesh: "..tostring(currentMesh).."\n"
 bugReport = bugReport..GetString("MapID: ")..tostring(Player.localmapid).."\n"
 GUI:Spacing();
 GUI:Spacing();		
