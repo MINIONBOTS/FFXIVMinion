@@ -2349,7 +2349,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
 					if (NavigationManager.ShowCells == nil ) then
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 					end
@@ -2496,7 +2496,7 @@ invalid name or haven't chosen one."))
 					GUI:Text("The image must show the full error.")
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
 					if (NavigationManager.ShowCells == nil ) then
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 					end

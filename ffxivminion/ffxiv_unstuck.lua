@@ -532,7 +532,7 @@ GUI:Spacing();
 
 local bugReport = ""
 
---local currentMesh = IsNull(ml_mesh_mgr.data.mapname,"")
+--local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
 if (NavigationManager.ShowCells == nil ) then
 	currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 end
