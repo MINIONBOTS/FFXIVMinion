@@ -469,14 +469,12 @@ end
 
 function ffxiv_unstuck_teleport:task_complete_eval()
 	if (MIsCasting(true)) then
-		d("iscasting")
 		return true
 	end
 	if (MIsLoading()) then
 		return true
 	end		
 	
-	d("complete teleport")
 	return true
 end
 function ffxiv_unstuck_teleport:task_complete_execute()  
@@ -514,7 +512,8 @@ function ml_global_information.DrawStuck()
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 			
-			ffxiv_unstuck.GUI.visable, ffxiv_unstuck.GUI.open = GUI:Begin(ffxiv_unstuck.GUI.name, ffxiv_unstuck.GUI.open)
+			local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+			ffxiv_unstuck.GUI.visable, ffxiv_unstuck.GUI.open = GUI:Begin(ffxiv_unstuck.GUI.name, ffxiv_unstuck.GUI.open, flags)
 			if (ffxiv_unstuck.GUI.visable) then 		
 			
 				local fontSize = GUI:GetWindowFontSize()
@@ -533,10 +532,13 @@ GUI:Spacing();
 local bugReport = ""
 
 --local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
-if (NavigationManager.ShowCells == nil ) then
-	currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
-end
-bugReport = "Navmesh: "..tostring(currentMesh).."\n"
+--if (NavigationManager.ShowCells == nil ) then
+	local currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
+--end
+bugReport = "Type: "..tostring(e_stuck.state.name).."\n"
+bugReport = bugReport.."\n"
+
+bugReport = bugReport.."Navmesh: "..tostring(currentMesh).."\n"
 bugReport = bugReport..GetString("MapID: ")..tostring(Player.localmapid).."\n"
 GUI:Spacing();
 GUI:Spacing();		
