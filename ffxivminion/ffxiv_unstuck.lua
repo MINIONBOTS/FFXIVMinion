@@ -298,7 +298,7 @@ function ffxiv_unstuck.IsStalled()
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
 	if (ffxiv_unstuck.coarse.lastDist <= requiredDist and ffxiv_unstuck.IsPathing() and not MIsLocked()) then
-		--d("[Unstuck_Stalled]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.coarse.lastDist).."].")
+		--d("[Unstuck_Stalled]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.coarse.lastDist).."], but needed ["..tostring(requiredDist).."].")
 		return true
 	else
 		--d("[Unstuck_Stalled]: Covered the minimum distance necessary.")
