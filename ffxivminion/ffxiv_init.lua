@@ -643,6 +643,10 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(738, "Resonatorium", enforce)
 			ml_mesh_mgr.SetDefaultMesh(757, "Duty_3024", enforce)
 			ml_mesh_mgr.SetDefaultMesh(634, "Duty_3027", enforce)
+			
+			ml_mesh_mgr.SetDefaultMesh(339, "[Housing] Mist", enforce)
+			ml_mesh_mgr.SetDefaultMesh(340, "[Housing] Lavender Beds", enforce)
+			ml_mesh_mgr.SetDefaultMesh(341, "[Housing] The Goblet", enforce)
 		
 		
 		elseif( not isnewnav and Settings.minionlib.newnavsystem ) then
