@@ -182,6 +182,7 @@ function e_stuck:execute()
 	end
 	if ffxiv_unstuck.State["STUCK"].ticks >= state.maxticks then
 		ffxiv_unstuck.State.STUCK.ticks = 0
+		ffxiv_unstuck.State.STALLED.ticks = 0
 	end
 	if ffxiv_unstuck.State["STALLED"].ticks >= state.maxticks then
 		ffxiv_unstuck.State.STALLED.ticks = 0
