@@ -559,7 +559,7 @@ GUI:Separator()
 			if (GUI:Button("Close")) then
 				ffxiv_unstuck.GUI.open = false
 				NavigationManager.ShowFloorMesh = false 
-				--Settings.minionlib.ShowNavPath = false
+				Settings.minionlib.ShowNavPath = false
 				NavigationManager.ShowCells = false
 			end
 
