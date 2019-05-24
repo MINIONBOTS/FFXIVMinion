@@ -2343,8 +2343,9 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("An Image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
+					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Separator()
@@ -2487,13 +2488,14 @@ invalid name or haven't chosen one."))
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("An Image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
+					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
 					GUI:Spacing();
-					GUI:Text("If the console has error messages :")
-					GUI:Text("Please provide an image of the console.")
-					GUI:Text("The image must show the full error.")
+					GUI:Text("If the console has error messages")
+					GUI:Text("include an image of the console.")
+					GUI:Text("The image must show the FULL error.")
 					GUI:Separator()
 					if (NavigationManager.ShowCells == nil ) then
 						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
