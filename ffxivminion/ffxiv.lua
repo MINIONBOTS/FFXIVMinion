@@ -2343,7 +2343,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("An Image of your ENTIRE SCREEN with your report.")
+					GUI:Text("An image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
 					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
@@ -2488,7 +2488,7 @@ invalid name or haven't chosen one."))
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("An Image of your ENTIRE SCREEN with your report.")
+					GUI:Text("An image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
 					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
