@@ -2496,9 +2496,9 @@ invalid name or haven't chosen one."))
 					GUI:Text("The image must show the full error.")
 					GUI:Separator()
 					if (NavigationManager.ShowCells == nil ) then
-						GUI:Text("Using New Navigation")
-					else
 						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
+					else
+						GUI:Text("Using New Navigation")
 					end
 					GUI:Text("MapID: "..tostring(Player.localmapid))
 					GUI:Text("Navmesh: ".. tostring(ml_mesh_mgr.currentfilename))
