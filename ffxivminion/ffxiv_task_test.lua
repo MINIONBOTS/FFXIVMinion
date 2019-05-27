@@ -199,7 +199,7 @@ function ffxiv_task_test:Draw()
 	local framePaddingY = GUI:GetStyle().framepadding.y
 	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(11),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(15),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
@@ -209,17 +209,23 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("X")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Y")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Z")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Distance 2d")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Distance 3d")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Is Reachable")
 	GUI:NextColumn()
 	local ColumnWidth = GUI:GetContentRegionAvail()
 	GUI:PushItemWidth(ColumnWidth)
-	GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
-	GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
-	GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
-	GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
-	GUI_Capture(GUI:InputText("##NPC ID",gTestNPCID),"gTestNPCID");
-	GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
-	GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
-	GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##NPC ID",gTestNPCID),"gTestNPCID");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance2D(Player.pos.x,Player.pos.z,gTestMapX,gTestMapZ)))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(NavigationManager:IsReachable({x = gTestMapX, y = gTestMapY, z = gTestMapZ})))
 	GUI:PopItemWidth()
 	GUI:Columns()
 	local FullWidth = GUI:GetContentRegionAvail()
@@ -231,6 +237,12 @@ function ffxiv_task_test:Draw()
 	end
 	if (GUI:Button("Get Random Pos",FullWidth,20)) then
 		ffxiv_task_test.GetRandomPosition()
+	end
+	if (GUI:Button("Get Closest Mesh Pos",FullWidth,20)) then
+		local newpos = FindClosestMesh({x = gTestMapX, y = gTestMapY, z = gTestMapZ},100,true)
+		 gTestMapX = IsNull(newpos.x,gTestMapX)
+		 gTestMapY = IsNull(newpos.y,gTestMapY)
+		 gTestMapZ = IsNull(newpos.z,gTestMapZ)
 	end
 	GUI:EndChild()
 end
