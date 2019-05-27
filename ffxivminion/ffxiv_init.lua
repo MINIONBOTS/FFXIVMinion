@@ -601,7 +601,7 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(710, "Duty_2568", enforce)
 			ml_mesh_mgr.SetDefaultMesh(711, "Duty_2570", enforce)
 			ml_mesh_mgr.SetDefaultMesh(714, "Duty_2914", enforce)
-			--ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce)
+			ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce)
 			ml_mesh_mgr.SetDefaultMesh(716, "Duty_2919", enforce) 
 			ml_mesh_mgr.SetDefaultMesh(717, "Duty_2900", enforce)
 			ml_mesh_mgr.SetDefaultMesh(718, "Duty_2904", enforce)
@@ -612,7 +612,6 @@ function ml_global_information.Init()
 			
 			--[[		
 			ml_mesh_mgr.SetDefaultMesh(493, "Duty_2037", enforce) -- pali 60*
-			ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce) -- drk 65*
 			
 			ml_mesh_mgr.SetDefaultMesh(707, "Duty_2587", enforce) -- rdm 70 #1
 			]]
