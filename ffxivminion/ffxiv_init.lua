@@ -645,11 +645,13 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(634, "Duty_3027", enforce)
 		
 		
-		elseif( not isnewnav and Settings.minionlib.newnavsystem ) then
+		elseif( not isnewnav) then
 			-- We are running the old nav after using the new one last time, set the old default mesh names:
-			local enforce = true
-			Settings.minionlib.newnavsystem = nil
-		
+			local enforce = false
+			if( Settings.minionlib.newnavsystem ) then
+				enforce = true
+				Settings.minionlib.newnavsystem = nil
+			end
 			-- Set default meshes SetDefaultMesh(mapid, filename)
 			ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea", enforce)
 			ml_mesh_mgr.SetDefaultMesh(135, "Lower La Noscea", enforce)
