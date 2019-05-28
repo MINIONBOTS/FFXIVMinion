@@ -1591,7 +1591,11 @@ function ml_global_information.DrawSmall()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then		
 			if (ml_global_information.drawMode ~= 1) then
-				GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
+				if gBotMode == GetString("assistMode") or gBotMode == "NavTest" then
+					GUI:SetNextWindowSize(200,70,GUI.SetCond_Always) --set the next window size, only on first ever	
+				else
+					GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
+				end
 				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .35)
 				
@@ -1605,20 +1609,15 @@ function ml_global_information.DrawSmall()
 				local child_color = (FFXIV_Common_BotRunning == true and { r = 0, g = .10, b = 0, a = .75 }) or { r = .10, g = 0, b = 0, a = .75 }
 				GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,10)
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
-
+				
 				GUI:BeginChild("##label-"..gBotMode,120,35,true)
 				GUI:AlignFirstTextHeightToWidgets()
 				GUI:Text(gBotMode)
 				GUI:EndChild()
+				GUI:SameLine(contentwidth-35);
+				
 				GUI:PopStyleColor()
 				GUI:PopStyleVar()
-				if (GUI:IsItemHovered()) then
-					if (GUI:IsMouseClicked(0)) then
-						ml_global_information.ToggleRun()
-					end
-				end
-				
-				GUI:SameLine(contentwidth-35);
 				
 				GUI:BeginChild("##style-switch",35,35,false)
 				GUI:Text("");
@@ -1632,7 +1631,23 @@ function ml_global_information.DrawSmall()
 						end
 					end
 				end
-				GUI:EndChild()
+				GUI:EndChild()					
+				
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						ml_global_information.ToggleRun()
+					end
+				end			
+				
+				if gBotMode == GetString("assistMode") then
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text(GetString("T. Assist").." = "..tostring(FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]))
+				end
+				if gBotMode == "NavTest" then
+					GUI:AlignFirstTextHeightToWidgets()
+					GUI:Text("Distance 3d".." = "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
+				end
+					
 				
 				GUI:End()
 				GUI:PopStyleColor()
@@ -2349,11 +2364,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
-					if (NavigationManager.ShowCells == nil ) then
-						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
-					end
-					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
+					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
@@ -2496,11 +2507,7 @@ invalid name or haven't chosen one."))
 					GUI:Text("The image must show the full error.")
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
-					if (NavigationManager.ShowCells == nil ) then
-						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
-					end
-					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
+					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos

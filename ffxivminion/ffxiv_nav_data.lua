@@ -405,7 +405,7 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[340] = {
-			{id = 341, cost = 5, x = 199,	z = 324.05,	    y = -32.05,	h = 1.83, i = 1005656, r = true
+			{id = 340, cost = 5, x = 199,	z = 324.05,	    y = -32.05,	h = 1.83, g = 1005656, r = true
 				--, requires = {
 					--["QuestCompleted(1212)"] = true,
 				--},
@@ -414,7 +414,7 @@ ffxiv_map_nav.data = {
 	},
 	[340] = {
 		[148] = {
-			{id = 148, cost = 5, x = 10.75,	z = 206.67,	    y = 2.61,	h = 0.36, i = 1005655, rx = true
+			{id = 148, cost = 5, x = 10.75,	z = 206.67,	    y = 2.61,	h = 0.36, g = 1005655, rx = true
 				--, requires = {
 					--["QuestCompleted(1212)"] = true,
 				--},

@@ -547,7 +547,7 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(471, "Eastern La Noscea", enforce)
 			ml_mesh_mgr.SetDefaultMesh(472, "Coerthas Western Highlands", enforce)
 			ml_mesh_mgr.SetDefaultMesh(473, "South Shroud", enforce)	
-			ml_mesh_mgr.SetDefaultMesh(474, "Limsa Lominsa Upper Decks", enforce)
+			ml_mesh_mgr.SetDefaultMesh(474, "Duty_2016", enforce)
 			ml_mesh_mgr.SetDefaultMesh(475, "Coerthas Central Highlands", enforce)	
 			ml_mesh_mgr.SetDefaultMesh(476, "The Dravanian Hinterlands", enforce)
 			ml_mesh_mgr.SetDefaultMesh(477, "Duty_1695", enforce)
@@ -601,8 +601,8 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(710, "Duty_2568", enforce)
 			ml_mesh_mgr.SetDefaultMesh(711, "Duty_2570", enforce)
 			ml_mesh_mgr.SetDefaultMesh(714, "Duty_2914", enforce)
-			--ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce)
-			--ml_mesh_mgr.SetDefaultMesh(716, "Duty_2919", enforce) 
+			ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce)
+			ml_mesh_mgr.SetDefaultMesh(716, "Duty_2919", enforce) 
 			ml_mesh_mgr.SetDefaultMesh(717, "Duty_2900", enforce)
 			ml_mesh_mgr.SetDefaultMesh(718, "Duty_2904", enforce)
 			ml_mesh_mgr.SetDefaultMesh(721, "Duty_2925", enforce)
@@ -612,8 +612,6 @@ function ml_global_information.Init()
 			
 			--[[		
 			ml_mesh_mgr.SetDefaultMesh(493, "Duty_2037", enforce) -- pali 60*
-			ml_mesh_mgr.SetDefaultMesh(715, "Duty_2917", enforce) -- drk 65*
-			ml_mesh_mgr.SetDefaultMesh(716, "Duty_2919", enforce) -- drk 70*
 			
 			ml_mesh_mgr.SetDefaultMesh(707, "Duty_2587", enforce) -- rdm 70 #1
 			]]
@@ -643,6 +641,10 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(738, "Resonatorium", enforce)
 			ml_mesh_mgr.SetDefaultMesh(757, "Duty_3024", enforce)
 			ml_mesh_mgr.SetDefaultMesh(634, "Duty_3027", enforce)
+			
+			ml_mesh_mgr.SetDefaultMesh(339, "Mist", enforce)
+			ml_mesh_mgr.SetDefaultMesh(340, "The Lavender Beds", enforce)
+			ml_mesh_mgr.SetDefaultMesh(341, "The Goblet", enforce)
 		
 		
 		elseif( not isnewnav) then
