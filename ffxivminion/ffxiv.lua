@@ -1591,10 +1591,11 @@ function ml_global_information.DrawSmall()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then		
 			if (ml_global_information.drawMode ~= 1) then
-				if gBotMode == GetString("assistMode") or gBotMode == "NavTest" then
+				--if gBotMode == GetString("assistMode") or gBotMode == "NavTest" then -- People using this feature are basically hiding the UI.
+				if gBotMode == "NavTest" then
 					GUI:SetNextWindowSize(200,70,GUI.SetCond_Always) --set the next window size, only on first ever	
 				else
-					GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
+					GUI:SetNextWindowSize(190,50,GUI.SetCond_Always) --set the next window size, only on first ever	
 				end
 				local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .35)
@@ -1614,16 +1615,15 @@ function ml_global_information.DrawSmall()
 				GUI:AlignFirstTextHeightToWidgets()
 				GUI:Text(gBotMode)
 				GUI:EndChild()
-				GUI:SameLine(contentwidth-35);
-				
-				GUI:PopStyleColor()
-				GUI:PopStyleVar()
-				
 				if (GUI:IsItemHovered()) then
 					if (GUI:IsMouseClicked(0)) then
 						ml_global_information.ToggleRun()
 					end
-				end			
+				end	
+				GUI:SameLine(contentwidth-35);
+				
+				GUI:PopStyleColor()
+				GUI:PopStyleVar()
 				
 				GUI:BeginChild("##style-switch",35,35,false)
 				GUI:Text("");
@@ -1639,16 +1639,18 @@ function ml_global_information.DrawSmall()
 				end
 				GUI:EndChild()					
 				
+				--[[
 				if gBotMode == GetString("assistMode") then
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text(GetString("T. Assist").." = "..tostring(FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]))
+					GUI:Text(GetString("Target Mode").." = "..tostring(FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]))
 				end
+				--]]
+				
 				if gBotMode == "NavTest" then
 					GUI:AlignFirstTextHeightToWidgets()
 					GUI:Text("Distance 3d".." = "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
 				end
 					
-				
 				GUI:End()
 				GUI:PopStyleColor()
 			end
