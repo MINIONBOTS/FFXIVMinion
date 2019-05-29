@@ -423,6 +423,7 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(744, "Kienkan", enforce)
 			ml_mesh_mgr.SetDefaultMesh(759, "Doman Enclave", enforce)
 			ml_mesh_mgr.SetDefaultMesh(786, "Castrum Fluminis", enforce)
+			ml_mesh_mgr.SetDefaultMesh(829, "Eorzean Alliance Headquarters", enforce)
 			
 			
 			-- Dungeons
