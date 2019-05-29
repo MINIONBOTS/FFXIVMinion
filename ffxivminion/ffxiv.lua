@@ -1619,6 +1619,12 @@ function ml_global_information.DrawSmall()
 				GUI:PopStyleColor()
 				GUI:PopStyleVar()
 				
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						ml_global_information.ToggleRun()
+					end
+				end			
+				
 				GUI:BeginChild("##style-switch",35,35,false)
 				GUI:Text("");
 				GUI:Image(ml_global_information.GetMainIcon(),14,14)
@@ -1632,12 +1638,6 @@ function ml_global_information.DrawSmall()
 					end
 				end
 				GUI:EndChild()					
-				
-				if (GUI:IsItemHovered()) then
-					if (GUI:IsMouseClicked(0)) then
-						ml_global_information.ToggleRun()
-					end
-				end			
 				
 				if gBotMode == GetString("assistMode") then
 					GUI:AlignFirstTextHeightToWidgets()
