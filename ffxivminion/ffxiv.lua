@@ -2372,6 +2372,11 @@ function ml_global_information.DrawHelper() -- Helper Window
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
 					end
 					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
+					if (NavigationManager.ShowCells == nil ) then
+						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
+					else
+						GUI:Text("Using New Navigation")
+					end
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
