@@ -2360,13 +2360,18 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("An image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
+					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Separator()
 					GUI:Text("Navmesh:")
-					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
+					if (NavigationManager.ShowCells == nil ) then
+						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
+					end
+					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
@@ -2500,16 +2505,22 @@ invalid name or haven't chosen one."))
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Text("Please provide : ")
-					GUI:Text("A FULL SCREEN image with your report.")
+					GUI:Text("An image of your ENTIRE SCREEN with your report.")
 					GUI:Text("This tab must be included in the image.")
+					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
 					GUI:Spacing();
-					GUI:Text("If the console has error messages :")
-					GUI:Text("Please provide an image of the console.")
-					GUI:Text("The image must show the full error.")
+					GUI:Text("If the console has error messages")
+					GUI:Text("include an image of the console.")
+					GUI:Text("The image must show the FULL error.")
 					GUI:Separator()
-					GUI:Text("Navmesh:")
-					GUI:Text(ml_mesh_mgr.currentfilename..GetString(" - MapID: ")..tostring(Player.localmapid))
+					if (NavigationManager.ShowCells == nil ) then
+						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
+					else
+						GUI:Text("Using New Navigation")
+					end
+					GUI:Text("MapID: "..tostring(Player.localmapid))
+					GUI:Text("Navmesh: ".. tostring(ml_mesh_mgr.currentfilename))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
