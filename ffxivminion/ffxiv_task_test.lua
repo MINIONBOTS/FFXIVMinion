@@ -223,8 +223,8 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance2D(Player.pos.x,Player.pos.z,gTestMapX,gTestMapZ)))
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance2D(Player.pos.x,Player.pos.z,tonumber(gTestMapX),tonumber(gTestMapZ))))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,tonumber(gTestMapX),tonumber(gTestMapY),tonumber(gTestMapZ))))
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(NavigationManager:IsReachable({x = gTestMapX, y = gTestMapY, z = gTestMapZ})))
 	GUI:PopItemWidth()
 	GUI:Columns()
