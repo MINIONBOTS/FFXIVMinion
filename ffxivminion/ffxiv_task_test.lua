@@ -215,6 +215,15 @@ function ffxiv_task_test:Draw()
 	GUI:NextColumn()
 	local ColumnWidth = GUI:GetContentRegionAvail()
 	GUI:PushItemWidth(ColumnWidth)
+	if gTestMapX == "" then
+		gTestMapX = 0
+	end
+	if gTestMapY == "" then
+		gTestMapY = 0
+	end
+	if gTestMapZ == "" then
+		gTestMapZ = 0
+	end
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
