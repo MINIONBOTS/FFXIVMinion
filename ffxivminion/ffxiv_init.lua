@@ -384,7 +384,7 @@ function ml_global_information.Init()
 			ml_mesh_mgr.SetDefaultMesh(388, "Gold Saucer - Chocobo Square", enforce)
 			
 			ml_mesh_mgr.SetDefaultMesh(331, "The Howling Eye", enforce)
-			ml_mesh_mgr.SetDefaultMesh(351, "Rising Stones", enforce)
+			ml_mesh_mgr.SetDefaultMesh(351, "The Rising Stones", enforce)
 			ml_mesh_mgr.SetDefaultMesh(395, "Intercessory", enforce)
 			ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands", enforce)
 			ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands", enforce)
