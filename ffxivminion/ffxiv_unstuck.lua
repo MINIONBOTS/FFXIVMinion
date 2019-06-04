@@ -177,21 +177,15 @@ function e_stuck:execute()
 	local state = e_stuck.state
 	local task = e_stuck.task
 		
-	if (e_stuck.blockOnly and ffxiv_unstuck.State[state.name].stats < 3 and task ~= "Disable") then
+	if (e_stuck.blockOnly and ffxiv_unstuck.State[state.name].stats < 3) then
 		return
 	end
-	if ffxiv_unstuck.State["STUCK"].ticks >= state.maxticks then
-		ffxiv_unstuck.State.STUCK.ticks = 0
-		ffxiv_unstuck.State.STALLED.ticks = 0
-	end
-	if ffxiv_unstuck.State["STALLED"].ticks >= state.maxticks then
-		ffxiv_unstuck.State.STALLED.ticks = 0
-	end
-	if ffxiv_unstuck.State["OFFMESH"].ticks >= state.maxticks then
-		ffxiv_unstuck.State.OFFMESH.ticks = 0
-	end
 	
-	if (not Player.incombat and not MIsCasting() and (ffxiv_unstuck.State[state.name].stats > 2 or task == "Disable") and not InInstance()) then
+	ffxiv_unstuck.State.STUCK.ticks = 0
+	ffxiv_unstuck.State.STALLED.ticks = 0
+	ffxiv_unstuck.State.OFFMESH.ticks = 0
+	
+	if (not Player.incombat and not MIsCasting() and (ffxiv_unstuck.State[state.name].stats > 2) and not InInstance()) then
 		Player:Stop()
 		if task == "Disable" then
 			
@@ -207,6 +201,7 @@ function e_stuck:execute()
 		elseif task == "Teleport" then 
 			local aeth = e_stuck.lastaeth
 			if (Player:Teleport(aeth.id)) then	
+				ffxiv_unstuck.State[state.name].stats = 0
 				local newTask = ffxiv_task_teleport.Create()
 				newTask.aetheryte = aeth.id
 				newTask.mapID = aeth.territory
@@ -225,6 +220,7 @@ function e_stuck:execute()
 					local returnHome = ActionList:Get(1,6)
 					if (returnHome and returnHome:IsReady()) then
 						if (returnHome:Cast(Player.id)) then
+							ffxiv_unstuck.State[state.name].stats = 0
 							ml_global_information.Await(10000, function () return (MIsLoading() and not MIsLocked()) end)
 							ffxiv_unstuck.State[state.name].stats = 0
 							return true
@@ -233,6 +229,7 @@ function e_stuck:execute()
 				end
 			)
 		elseif task == "Remesh" then
+			ffxiv_unstuck.State[state.name].stats = 0
 			e_stuck.lastfixmeshpos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
 			e_stuck.lastfixmeshmap = Player.localmapid
 			ffxiv_unstuck.remeshstate = 1
