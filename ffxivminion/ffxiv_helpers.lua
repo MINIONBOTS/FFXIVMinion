@@ -4418,19 +4418,30 @@ end
 function HuntingLogsUnlocked()	
 	local requiredQuests = {
 		[1] = 253,
-		[2] = 533,
+		[2] = 286, 
 		[3] = 311,
-		[4] = 23,
-		[5] = 21,
-		[6] = 22,
-		[7] = 345,
-		[8] = 453,
-		[9] = 104,
+		[4] = 312,
+		[5] = 345,
+		[6] = 346,
+		[7] = 23,
+		[8] = 218, 
+		[9] = 533,
+		[10] = 553,
+		[11] = 21,
+		[12] = 219,
+		[13] = 109,
+		[14] = 453,
+		[15] = 454,
+		[16] = 22,
+		[17] = 211,
 	}
 	
 	for i,quest in pairs(requiredQuests) do
 		if (Quest:IsQuestCompleted(quest)) then
+			--d("Quest :"..tostring(quest).." is completed.")
 			return true
+		else
+			--d("Quest :"..tostring(quest).." is NOT completed.")
 		end
 	end
 	
