@@ -380,7 +380,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(204, "Seat of the First Bow", enforce)
 		
 		ml_mesh_mgr.SetDefaultMesh(144, "The Gold Saucer", enforce)
-		ml_mesh_mgr.SetDefaultMesh(388, "Gold Saucer - Chocobo Square", enforce)
+		ml_mesh_mgr.SetDefaultMesh(388, "Chocobo Square", enforce)
 		
 		ml_mesh_mgr.SetDefaultMesh(331, "The Howling Eye", enforce)
 		ml_mesh_mgr.SetDefaultMesh(351, "Rising Stones", enforce)
