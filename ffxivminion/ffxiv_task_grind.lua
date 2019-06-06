@@ -242,6 +242,10 @@ c_grindnexttask.blockOnly = false
 c_grindnexttask.subset = {}
 c_grindnexttask.subsetExpiration = 0
 function c_grindnexttask:evaluate()
+	if not Player.onmesh then
+		d("Blocked due to off mesh")
+		return false
+	end
 	if (not Player.alive or not table.valid(ffxiv_grind.profileData)) then
 		return false
 	end

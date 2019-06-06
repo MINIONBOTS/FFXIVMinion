@@ -727,6 +727,9 @@ e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
 c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
+	if not Player.onmesh then
+		return false
+	end
 	if (not Player.incombat) then
 		if (SkillMgr.Cast(Player, true)) then
 			c_add_fatetarget.oocCastTimer = Now() + 1500
