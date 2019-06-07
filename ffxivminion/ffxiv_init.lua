@@ -328,10 +328,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.useQuaternion = false
 		
 		local enforce = false
-		if (not Settings.minionlib.newnavsystemlive_2) then
+		if (not Settings.minionlib.newnavsystemlive_3) then
 			-- We are running the new nav the first time or switched to it after using the old one last time, set the new default mesh names:
 			enforce = true
-			Settings.minionlib.newnavsystemlive_2 = true
+			Settings.minionlib.newnavsystemlive_3 = true
 		end
 		
 		-- Set default meshes SetDefaultMesh(mapid, filename)
