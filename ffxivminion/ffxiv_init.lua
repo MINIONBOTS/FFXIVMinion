@@ -327,7 +327,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.averagegameunitsize = 1
 		ml_mesh_mgr.useQuaternion = false
 		
-		local enforce = false
+		local enforce = nil
 		if (not Settings.minionlib.newnavsystemlive_3) then
 			-- We are running the new nav the first time or switched to it after using the old one last time, set the new default mesh names:
 			enforce = true
@@ -379,8 +379,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(198, "Command Room", enforce)
 		ml_mesh_mgr.SetDefaultMesh(204, "Seat of the First Bow", enforce)
 		
-		ml_mesh_mgr.SetDefaultMesh(144, "The Gold Saucer", enforce)
-		ml_mesh_mgr.SetDefaultMesh(388, "Chocobo Square", enforce)
+		ml_mesh_mgr.SetDefaultMesh(144, "The Gold Saucer", true)
+		ml_mesh_mgr.SetDefaultMesh(388, "Chocobo Square", true)
 		
 		ml_mesh_mgr.SetDefaultMesh(331, "The Howling Eye", enforce)
 		ml_mesh_mgr.SetDefaultMesh(351, "The Rising Stones", true)
