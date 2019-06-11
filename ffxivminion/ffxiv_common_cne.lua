@@ -1287,9 +1287,9 @@ function c_getmovementpath:evaluate()
 			
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
 			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) then
-				ml_debug("rebuild non-cube path")
+				ml_debug("[GetMovementPath]: rebuilding non-flying path..")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
-				ml_debug("no fly pathLength = "..tostring(pathLength))
+				ml_debug("[GetMovementPath]: no fly pathLength found, lenght: = "..tostring(pathLength))
 			end
 			
 			if (gBotMode ~= GetString("NavTest") or (gBotMode == GetString("NavTest") and not gTestNoFly)) and (pathLength <= 0) then
@@ -1303,15 +1303,15 @@ function c_getmovementpath:evaluate()
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
 					end
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
-					ml_debug("pathLength with no avoids = "..tostring(pathLength))
+					ml_debug("[GetMovementPath]: pathLength with no avoids = "..tostring(pathLength))
 				end
 				
 				if (pathLength <= 0) then
-					ml_debug("rebuild cube path")
+					ml_debug("[GetMovementPath]: rebuild cube path..")
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 					c_getmovementpath.lastFallback = Now()
 					c_getmovementpath.lastGoal = gotoPos
-					ml_debug("pathLength cube path = "..tostring(pathLength))
+					ml_debug("[GetMovementPath]: pathLength cube path = "..tostring(pathLength))
 				end
 			end
 			
@@ -1320,10 +1320,10 @@ function c_getmovementpath:evaluate()
 				return false
 			end
 		else
-			d("no valid gotopos")
+			d("[GetMovementPath]: Invalid gotopos in current Task")
 		end
 	else
-		d("didn't have a valid position")
+		d("[GetMovementPath]: Current Task does not have a valid position !")
 	end
 	
 	d("[GetMovementPath]: We could not get a path to our destination.")
