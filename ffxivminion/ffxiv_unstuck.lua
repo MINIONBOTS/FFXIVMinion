@@ -91,53 +91,53 @@ function c_stuck:evaluate()
 			if (state.ticks >= state.maxticks) then
 				e_stuck.state = state
 				d("Reached a stuck state for ["..tostring(state.name).."]")
-				--local distToRemesh = IsNull(Distance2D(Player.pos.x,Player.pos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),100)
-				local distToRemesh = IsNull(Distance2D(Player.pos.x,Player.pos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
-				local returnHome = ActionList:Get(1,6)
-				local aeth = GetAetheryteByMapID(Player.localmapid, Player.pos)
-				local evacPoint = GetNearestEvacPoint()
-				
-				if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or (e_stuck.lastfixmeshmap and e_stuck.lastfixmeshmap == Player.localmapid))) then
-				
-					e_stuck.task = "Remesh"
-					d("Attempt Remesh")
-					if (Player:IsMoving()) then
-						Player:PauseMovement()
-						ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-					end
-					e_stuck.lastfixmeshpos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
-					e_stuck.lastfixmeshmap = Player.localmapid
-					ffxiv_unstuck.remeshstate = 1
-
-					return true
-				elseif gStuckReturn and (returnHome and returnHome:IsReady()) then
-					e_stuck.task = "Return"
-					return true
-				elseif gStuckTeleport and (ActionIsReady(7,5) and aeth) and (e_stuck.lastteleport < Now()) then	
-				
-					e_stuck.task = "Teleport"
-					e_stuck.lastaeth = aeth
-					return true
-				elseif gStuckDisable then
-					e_stuck.task = "Disable"
-					return true
-				end
+				return true
 			elseif state.ticks >= state.minticks then
 				e_stuck.state = state
 				d("name = "..tostring(state.name))
 				if (name ~= "OFFMESH") then
-				
-					local distToLastStuck = IsNull(Distance2D(Player.pos.x,Player.pos.z,coarse.lastPos.x,coarse.lastPos.z),0)
 					if (not IsFlying() and not IsDiving() and TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
+						if ffxiv_unstuck.State[state.name].stats >= 3 then	
+							local distToRemesh = IsNull(Distance2D(Player.pos.x,Player.pos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
+							local returnHome = ActionList:Get(1,6)
+							local aeth = GetAetheryteByMapID(Player.localmapid, Player.pos)
+							local evacPoint = GetNearestEvacPoint()
+							if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or (e_stuck.lastfixmeshmap and e_stuck.lastfixmeshmap == Player.localmapid))) then
+								e_stuck.task = "Remesh"
+								d("Attempt Remesh")
+								if (Player:IsMoving()) then
+									Player:PauseMovement()
+									ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+								end
+								e_stuck.lastfixmeshpos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
+								e_stuck.lastfixmeshmap = Player.localmapid
+								ffxiv_unstuck.remeshstate = 1
+
+								return true
+							elseif gStuckReturn and (returnHome and returnHome:IsReady()) then
+								e_stuck.task = "Return"
+								return true
+							elseif gStuckTeleport and (ActionIsReady(7,5) and aeth) and (e_stuck.lastteleport < Now()) then	
+							
+								e_stuck.task = "Teleport"
+								e_stuck.lastaeth = aeth
+								return true
+							else				
+								if gStuckDisable then
+									e_stuck.task = "Disable"
+									return true
+								end
+							end
+						end
 						d("[Unstuck]: Performing corrective jump.")
 						Player:Jump()
 						ml_global_information.Await(3000, function () return not Player:IsJumping() end)
 						ffxiv_unstuck.lastCorrection = Now()
 						ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
+						e_stuck.blockOnly = true
+						e_stuck.task = "Jump"						
+						return true
 					end
-					e_stuck.blockOnly = true
-					e_stuck.task = "Jump"
-					return true
 				else
 					local attemptReturnPos = FindClosestMesh(Player.pos,10,false)
 				
