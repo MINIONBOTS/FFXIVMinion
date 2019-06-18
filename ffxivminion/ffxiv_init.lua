@@ -583,7 +583,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(664, "Duty_2411", true)
 		ml_mesh_mgr.SetDefaultMesh(666, "Ul'dah - Steps of Thal", true)
 		ml_mesh_mgr.SetDefaultMesh(667, "Duty_2413", true) 
-		ml_mesh_mgr.SetDefaultMesh(668, "Duty_2577" )
+		ml_mesh_mgr.SetDefaultMesh(668, "Duty_2577", true )
 		ml_mesh_mgr.SetDefaultMesh(669, "Duty_2588", true)
 		ml_mesh_mgr.SetDefaultMesh(672, "Duty_2582", true)
 		ml_mesh_mgr.SetDefaultMesh(673, "Duty_2592", true)
@@ -598,7 +598,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(704, "Duty_2894", true)
 		ml_mesh_mgr.SetDefaultMesh(705, "Ul'dah - Steps of Thal", true)
 		ml_mesh_mgr.SetDefaultMesh(706, "Ul'dah - Steps of Thal", true)
-		--ml_mesh_mgr.SetDefaultMesh(707, "Duty_2587", true)
+		ml_mesh_mgr.SetDefaultMesh(707, "Duty_2587", true)
 		ml_mesh_mgr.SetDefaultMesh(708, "Duty_2562", true)
 		ml_mesh_mgr.SetDefaultMesh(709, "Duty_2565", true)
 		ml_mesh_mgr.SetDefaultMesh(710, "Duty_2568", true)
@@ -612,11 +612,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(722, "Duty_2927", true)
 		ml_mesh_mgr.SetDefaultMesh(723, "Duty_2952", true)
 		ml_mesh_mgr.SetDefaultMesh(726, "Duty_2950", true)
-		
-		--[[		to do		
-		ml_mesh_mgr.SetDefaultMesh(707, "Duty_2587", enforce) -- rdm 70 #1
-		]]
-		
+				
 		-- Latty SB
 		ml_mesh_mgr.SetDefaultMesh(249, "Duty_414", true)
 		ml_mesh_mgr.SetDefaultMesh(271, "Duty_551", true)
