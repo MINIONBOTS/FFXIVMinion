@@ -244,6 +244,7 @@ ffxiv_unstuck.remeshstate = 0
 ffxiv_unstuck.AutoFixMeshOn = 0
 ffxiv_unstuck.needsSave =  false
 function ffxiv_unstuck.AttemptMeshFix()
+	Player:Stop()
 	
 	if NavigationManager.ProcessingFloorMesh then
 		ffxiv_unstuck.needsSave =  true
@@ -258,12 +259,12 @@ function ffxiv_unstuck.AttemptMeshFix()
 		NavigationManager.AutoSaveMesh = false
 		ml_mesh_mgr.data.running = true
 		d("[AttemptMeshFix] = Deleteing area")
-		ml_global_information.Await(1000)
+		ml_global_information.Await(10000)
 		ffxiv_unstuck.remeshstate = 2
 		return
 	elseif ffxiv_unstuck.remeshstate == 2 then
-					Player:Move(FFXIV.MOVEMENT.BACKWARD)
-					ml_global_information.Await(1000, function () return Player:IsMoving() end)
+		Player:Move(FFXIV.MOVEMENT.BACKWARD)
+		--ml_global_information.Await(1000, function () return Player:IsMoving() end)
 		ml_mesh_mgr.data.flooreditormode = 3
 		NavigationManager.FloorEditorMode = 3
 		NavigationManager.RecordDistance = 1
