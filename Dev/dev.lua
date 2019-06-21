@@ -1437,6 +1437,7 @@ function dev.DrawCall(event, ticks )
 							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
 								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(e.id))
+								GUI:BulletText(".guid") GUI:SameLine(200) GUI:InputText("##devpa9"..tostring(id),tostring(e.guid))
 								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(e.mapid))
 								GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))
 								GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(e.region))
@@ -1447,6 +1448,7 @@ function dev.DrawCall(event, ticks )
                                 GUI:BulletText(".hp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa7", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
                                 h = e.mp
                                 GUI:BulletText(".mp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa8", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+								if (GUI:Button("Kick##"..tostring(id),50,15) ) then Player:KickPartyMember(e.guid) end
 								GUI:TreePop()
 							end
 						end
