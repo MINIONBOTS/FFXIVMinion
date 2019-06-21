@@ -32,8 +32,8 @@ if (ffxivminion.gameRegion == 1) then
 		[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
 		[5] = { "None","Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren" },
 		[6] = {	"None","Behemoth","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Ultros" },
-		[7] = {	"None","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
-		[8] = {	"None","Lich","Odin","Phoenix","Shiva","Zodiark" },
+		[7] = {	"None","Spriggan","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
+		[8] = {	"None","Twintania","Lich","Odin","Phoenix","Shiva","Zodiark" },
 		[9] = {	"None","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
