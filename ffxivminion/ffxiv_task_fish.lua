@@ -199,12 +199,12 @@ function GetCurrentTaskPos()
 			local taskMultiPos = task.multipos
 			if (table.valid(taskMultiPos)) then
 				if (table.valid(taskMultiPos[task.currentPositionIndex])) then
-					pos = taskMultiPos[task.currentPositionIndex]
+					pos = NavigationManager:GetClosestPointOnMesh(taskMultiPos[task.currentPositionIndex])
 				else
 					for i,choice in pairs(taskMultiPos) do
 						if (table.valid(choice)) then
 							ffxiv_fish.currentTask.currentPositionIndex = i
-							pos = choice
+							pos = NavigationManager:GetClosestPointOnMesh(choice)
 							break
 						end
 					end
@@ -213,7 +213,7 @@ function GetCurrentTaskPos()
 		else
 			local taskPos = task.pos
 			if (table.valid(taskPos)) then
-				pos = taskPos
+				pos = NavigationManager:GetClosestPointOnMesh(taskPos)
 			end
 		end
 	end
