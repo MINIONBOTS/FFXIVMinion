@@ -190,21 +190,28 @@ function HasBaits(name)
 	return false
 end
 
-function GetCurrentTaskPos()
+function GetCurrentTaskPos(meshcheck)
 	local pos = {}
+	local meshcheck = IsNull(meshcheck,true)
 	
-	if (table.valid(ffxiv_fish.currentTask)) then
-		local task = ffxiv_fish.currentTask
+	local task = ffxiv_fish.currentTask
+	if (table.valid(task)) then
 		if (task.maxPositions > 0) then
 			local taskMultiPos = task.multipos
 			if (table.valid(taskMultiPos)) then
 				if (table.valid(taskMultiPos[task.currentPositionIndex])) then
-					pos = NavigationManager:GetClosestPointOnMesh(taskMultiPos[task.currentPositionIndex])
+					pos = taskMultiPos[task.currentPositionIndex]
+					if (meshcheck) then
+						pos = NavigationManager:GetClosestPointOnMesh(pos)
+					end
 				else
 					for i,choice in pairs(taskMultiPos) do
 						if (table.valid(choice)) then
 							ffxiv_fish.currentTask.currentPositionIndex = i
-							pos = NavigationManager:GetClosestPointOnMesh(choice)
+							pos = choice
+							if (meshcheck) then
+								pos = NavigationManager:GetClosestPointOnMesh(pos)
+							end
 							break
 						end
 					end
@@ -213,7 +220,7 @@ function GetCurrentTaskPos()
 		else
 			local taskPos = task.pos
 			if (table.valid(taskPos)) then
-				pos = NavigationManager:GetClosestPointOnMesh(taskPos)
+				pos = taskPos
 			end
 		end
 	end
@@ -2203,7 +2210,7 @@ function e_fishnextprofilemap:execute()
 	end
 
 	local mapID = e_fishnextprofilemap.mapid
-	local taskPos = GetCurrentTaskPos()
+	local taskPos = GetCurrentTaskPos(false)
 	
 	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)
 	if(table.valid(pos)) then		
