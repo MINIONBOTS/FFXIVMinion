@@ -72,9 +72,6 @@ ffxivminion.classes = {
 	[FFXIV.JOBS.ASTROLOGIAN] = "AST",	
 	[FFXIV.JOBS.REDMAGE] = "RDM",
 	[FFXIV.JOBS.SAMURAI] = "SAM",
-	[FFXIV.JOBS.BLUEMAGE] = "BLU",
-	[FFXIV.JOBS.GUNBREAKER] = "GNB",
-	[FFXIV.JOBS.DANCER] = "DNC",
 	[FFXIV.JOBS.BOTANIST] = "BTN",
 	[FFXIV.JOBS.FISHER] = "FSH",
 	[FFXIV.JOBS.MINER] = "MIN",
@@ -1074,10 +1071,7 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,	
 			[FFXIV.JOBS.REDMAGE]		= ffxiv_combat_redmage,
 			[FFXIV.JOBS.SAMURAI]		= ffxiv_combat_samurai,
-			[FFXIV.JOBS.BLUEMAGE]		= ffxiv_combat_bluemage,
-			
-			[FFXIV.JOBS.GUNBREAKER]		= ffxiv_combat_gunbreaker,
-			[FFXIV.JOBS.DANCER]			= ffxiv_combat_dancer,			
+			[FFXIV.JOBS.BLUEMAGE]		= ffxiv_combat_bluemage,				
 			
 			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,

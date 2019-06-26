@@ -1023,8 +1023,6 @@ function GetLowestMPParty( range, role, includeself )
 		[FFXIV.JOBS.SCHOLAR] = true,
 		[FFXIV.JOBS.DARKKNIGHT] = true,
 		[FFXIV.JOBS.ASTROLOGIAN] = true,
-		--[FFXIV.JOBS.GUNBREAKER] = true, not sure yet
-		--[FFXIV.JOBS.DANCER] = true, not sure yet
 	}
 	
 	-- DPS, Healer, Tank, Caster
@@ -1079,8 +1077,6 @@ function GetLowestTPParty( range, role, includeself )
 		[23] = true,
 		[29] = true,
 		[30] = true,
-		--[FFXIV.JOBS.GUNBREAKER] = true, not sure yet
-		--[FFXIV.JOBS.DANCER] = true, not sure yet
 	}
 	
 	-- If the role is to be filtered, remove the non-applicable jobs here.
@@ -3471,7 +3467,6 @@ function GetRoleString(jobID)
         jobID == FFXIV.JOBS.ARCHER or
         jobID == FFXIV.JOBS.BARD or
         jobID == FFXIV.JOBS.BLACKMAGE or
-		jobID == FFXIV.JOBS.DANCER or
         jobID == FFXIV.JOBS.DRAGOON or
         jobID == FFXIV.JOBS.LANCER or
         jobID == FFXIV.JOBS.MONK or
@@ -3498,8 +3493,7 @@ function GetRoleString(jobID)
         jobID == FFXIV.JOBS.MARAUDER or
         jobID == FFXIV.JOBS.PALADIN or
         jobID == FFXIV.JOBS.WARRIOR or 
-		jobID == FFXIV.JOBS.DARKKNIGHT or 
-		jobID == FFXIV.JOBS.GUNBREAKER
+		jobID == FFXIV.JOBS.DARKKNIGHT
     then
         return GetString("tank")
     end
@@ -3510,7 +3504,6 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.ARCHER] = true,
 			[FFXIV.JOBS.BARD] = true,
 			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DANCER] = true,
 			[FFXIV.JOBS.DRAGOON] = true,
 			[FFXIV.JOBS.LANCER] = true,
 			[FFXIV.JOBS.MONK] = true,
@@ -3536,7 +3529,6 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.PALADIN] = true,
 			[FFXIV.JOBS.WARRIOR] = true,
 			[FFXIV.JOBS.DARKKNIGHT] = true,
-			[FFXIV.JOBS.GUNBREAKER] = true,
 		}
 	elseif (rolestring == "Caster") then
 		return {
