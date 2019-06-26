@@ -128,6 +128,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
 	[FFXIV.JOBS.REDMAGE] = "Redmage",
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
+	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
+	[FFXIV.JOBS.DANCER] = "Dancer",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -180,6 +182,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.DRAGOON] = 75,
 			[FFXIV.JOBS.ARCHER] = {98, 97},
 			[FFXIV.JOBS.BARD] = {98, 97},
+			--[FFXIV.JOBS.DANCER] = {98, 97},
 			[FFXIV.JOBS.CONJURER] = { 132, 127, 121, 119 },
 			[FFXIV.JOBS.WHITEMAGE] = { 7431, 3568, 132, 127, 121, 119 },
 			[FFXIV.JOBS.THAUMATURGE] = {156, 142},
@@ -194,6 +197,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.MACHINIST] = { 7411, 2866 },
 			[FFXIV.JOBS.ASTROLOGIAN] = { 7442, 3598, 3596 },
 			[FFXIV.JOBS.DARKKNIGHT] = 3617,
+			--[FFXIV.JOBS.GUNBREAKER] = 3617,
 			[FFXIV.JOBS.SAMURAI] = 7477,
 			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
 			[FFXIV.JOBS.BLUEMAGE] = 11385,
@@ -210,6 +214,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.DRAGOON] = 8791,
 			[FFXIV.JOBS.ARCHER] = 8834,
 			[FFXIV.JOBS.BARD] = 8834,
+			--[FFXIV.JOBS.DANCER] = 8834,
 			[FFXIV.JOBS.CONJURER] = 8895,
 			[FFXIV.JOBS.WHITEMAGE] = 8895,
 			[FFXIV.JOBS.THAUMATURGE] = 8858,
@@ -222,6 +227,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.MACHINIST] = 8845,
 			[FFXIV.JOBS.ASTROLOGIAN] = 8912,
 			[FFXIV.JOBS.DARKKNIGHT] = 8769,
+			--[FFXIV.JOBS.GUNBREAKER] = 8769,
 			[FFXIV.JOBS.SAMURAI] = 8821,
 			[FFXIV.JOBS.REDMAGE] = 8882,
 		}
@@ -303,6 +309,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.SAMURAI] = 7477,
 		[FFXIV.JOBS.REDMAGE] = IIF(Player.level > 1,7503,7504),
 		[FFXIV.JOBS.BLUEMAGE] = 11385,
+		--[FFXIV.JOBS.GUNBREAKER] = 11385,
+		--[FFXIV.JOBS.DANCER] = 11385,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -330,6 +338,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.DARKKNIGHT] = 8769,
 		[FFXIV.JOBS.SAMURAI] = 8821,
 		[FFXIV.JOBS.REDMAGE] = 8882,
+		--[FFXIV.JOBS.GUNBREAKER] = 11385,
+		--[FFXIV.JOBS.DANCER] = 11385,
 	}
 end
 
@@ -906,6 +916,12 @@ function SkillMgr.ModuleInit()
 	if (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == "None") then
 		gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] = "BlueMage"
 	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == "None") then
+		gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
+	end
+	if (gSMDefaultProfiles[FFXIV.JOBS.DANCER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DANCER] == "None") then
+		gSMDefaultProfiles[FFXIV.JOBS.DANCER] = "Dancer"
+	end
 	if (gSMDefaultProfiles[FFXIV.JOBS.MINER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MINER] == "None") then
 		gSMDefaultProfiles[FFXIV.JOBS.MINER] = "Gathering_Leveling"
 	end
@@ -1009,6 +1025,8 @@ function SkillMgr.ModuleInit()
 	gSkillProfileValidSAM = false
 	gSkillProfileValidRDM = false
 	gSkillProfileValidBLU = false
+	gSkillProfileValidGNB = false
+	gSkillProfileValidDNC = false 
 	
 	gSkillProfileValidMIN = false
 	gSkillProfileValidBTN = false
@@ -1739,6 +1757,8 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidRDM = IsNull(classes[FFXIV.JOBS.REDMAGE],false) 
 	gSkillProfileValidSAM = IsNull(classes[FFXIV.JOBS.SAMURAI],false) 
 	gSkillProfileValidBLU = IsNull(classes[FFXIV.JOBS.BLUEMAGE],false) 
+	gSkillProfileValidGNB = IsNull(classes[FFXIV.JOBS.GUNBREAKER],false) 
+	gSkillProfileValidDNC = IsNull(classes[FFXIV.JOBS.DANCER],false) 
 	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
@@ -1835,6 +1855,8 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.SAMURAI] = IsNull(gSkillProfileValidSAM,false),
 		[FFXIV.JOBS.REDMAGE] = IsNull(gSkillProfileValidRDM,false),
 		[FFXIV.JOBS.BLUEMAGE] = IsNull(gSkillProfileValidBLU,false),
+		[FFXIV.JOBS.GUNBREAKER] = IsNull(gSkillProfileValidGNB,false),
+		[FFXIV.JOBS.DANCER] = IsNull(gSkillProfileValidDNC,false),
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
@@ -6061,18 +6083,18 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
+				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
 					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 				
 				for i,abrev in pairsByKeys(classes) do
 					if (_G["gSkillProfileValid"..abrev] == true) then
-						if (i <= 25) then
+						if (i <= 27) then
 							fighting = true
 							break
-						elseif (i >= 26 and i <= 28) then
+						elseif (i >= 28 and i <= 30) then
 							gathering = true
 							break
-						elseif (i >= 29 and i <= 36) then
+						elseif (i >= 31 and i <= 38) then
 							crafting = true
 							break
 						end
@@ -6693,7 +6715,7 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
@@ -6742,7 +6764,7 @@ function SkillMgr.DrawManager()
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								--if (SkillMgr.EditingSkill ~= prio) then
 									local classCheck = false
-									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
+									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
 										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 									
 									for i,abrev in pairsByKeys(classes) do
