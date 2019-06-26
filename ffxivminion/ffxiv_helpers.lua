@@ -3584,6 +3584,7 @@ function IsRangedDPS(var)
 			jobid == FFXIV.JOBS.ARCHER or
 			jobid == FFXIV.JOBS.BARD or
 			jobid == FFXIV.JOBS.BLACKMAGE or
+			jobid == FFXIV.JOBS.DANCER or
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
 			jobid == FFXIV.JOBS.MACHINIST or 
@@ -3602,6 +3603,7 @@ function IsRanged(var)
 	return 	(jobid == FFXIV.JOBS.ARCANIST or
 			jobid == FFXIV.JOBS.ARCHER or
 			jobid == FFXIV.JOBS.BARD or
+			jobid == FFXIV.JOBS.DANCER or
 			jobid == FFXIV.JOBS.BLACKMAGE or
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
@@ -3631,6 +3633,7 @@ function IsPhysicalDPS(var)
 			jobid == FFXIV.JOBS.ARCHER or
 			jobid == FFXIV.JOBS.SAMURAI or
 			jobid == FFXIV.JOBS.BARD or
+			jobid == FFXIV.JOBS.DANCER or
 			jobid == FFXIV.JOBS.MACHINIST)
 end
 function IsCasterDPS(var)
@@ -3696,6 +3699,7 @@ function IsTank(var)
 		jobid == FFXIV.JOBS.MARAUDER or
 		jobid == FFXIV.JOBS.PALADIN or
 		jobid == FFXIV.JOBS.WARRIOR or
+		jobid == FFXIV.JOBS.GUNBREAKER or
 		jobid == FFXIV.JOBS.DARKKNIGHT)
 end
 function IsGatherer(jobID)
