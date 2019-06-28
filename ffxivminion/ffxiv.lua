@@ -1072,6 +1072,8 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.REDMAGE]		= ffxiv_combat_redmage,
 			[FFXIV.JOBS.SAMURAI]		= ffxiv_combat_samurai,
 			[FFXIV.JOBS.BLUEMAGE]		= ffxiv_combat_bluemage,				
+			[FFXIV.JOBS.GUNBREAKER]		= ffxiv_combat_gunbreaker,
+			[FFXIV.JOBS.DANCER]		= ffxiv_combat_dancer,			
 			
 			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
@@ -1088,8 +1090,7 @@ function ffxivminion.CheckClass()
 		}
 	end
 	
-	local classes = ml_global_information.classes
-	local playerClass = classes[Player.job]
+	local playerClass = ml_global_information.classes[Player.job]
 	if (not playerClass) then
 		ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
 		return
@@ -1111,8 +1112,8 @@ function ffxivminion.CheckClass()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
 		return
-	end
     
+	end
     if (ml_global_information.CurrentClassID ~= Player.job) then
         ml_global_information.CurrentClass = playerClass
         ml_global_information.CurrentClassID = Player.job
