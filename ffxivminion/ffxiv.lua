@@ -83,6 +83,8 @@ ffxivminion.classes = {
 	[FFXIV.JOBS.WEAVER] = "WVR",
 	[FFXIV.JOBS.ALCHEMIST] = "ALC",
 	[FFXIV.JOBS.CULINARIAN] = "CUL",
+	[FFXIV.JOBS.DANCER] = "DNC",
+	[FFXIV.JOBS.GUNBREAKER] = "GNB",
 }
 
 ffxivminion.AutoGrindDefault = [[
@@ -1073,7 +1075,7 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.SAMURAI]		= ffxiv_combat_samurai,
 			[FFXIV.JOBS.BLUEMAGE]		= ffxiv_combat_bluemage,				
 			[FFXIV.JOBS.GUNBREAKER]		= ffxiv_combat_gunbreaker,
-			[FFXIV.JOBS.DANCER]		= ffxiv_combat_dancer,			
+			[FFXIV.JOBS.DANCER]			= ffxiv_combat_dancer,			
 			
 			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
