@@ -128,6 +128,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
 	[FFXIV.JOBS.REDMAGE] = "Redmage",
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
+	--[FFXIV.JOBS.DANCER] = "Dancer",
+	--[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -197,6 +199,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.SAMURAI] = 7477,
 			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
 			[FFXIV.JOBS.BLUEMAGE] = 11385,
+			[FFXIV.JOBS.DANCER] = 15989,
+			[FFXIV.JOBS.GUNBREAKER] = 16137,
 		}
 	else
 		testSkills = {
@@ -224,6 +228,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.DARKKNIGHT] = 8769,
 			[FFXIV.JOBS.SAMURAI] = 8821,
 			[FFXIV.JOBS.REDMAGE] = 8882,
+			[FFXIV.JOBS.DANCER] = 17756,
+			[FFXIV.JOBS.GUNBREAKER] = 17703,
 		}
 	end
 	
@@ -303,6 +309,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.SAMURAI] = 7477,
 		[FFXIV.JOBS.REDMAGE] = IIF(Player.level > 1,7503,7504),
 		[FFXIV.JOBS.BLUEMAGE] = 11385,
+		[FFXIV.JOBS.DANCER] = 15989,
+		[FFXIV.JOBS.GUNBREAKER] = 16137,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -330,6 +338,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.DARKKNIGHT] = 8769,
 		[FFXIV.JOBS.SAMURAI] = 8821,
 		[FFXIV.JOBS.REDMAGE] = 8882,
+		[FFXIV.JOBS.DANCER] = 17756,
+		[FFXIV.JOBS.GUNBREAKER] = 17703,
 	}
 end
 
