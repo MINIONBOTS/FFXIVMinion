@@ -676,7 +676,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(814, "Kholusia", enforce)
 		ml_mesh_mgr.SetDefaultMesh(815, "Amh Araeng", enforce)
 		ml_mesh_mgr.SetDefaultMesh(819, "The Crystarium", enforce)
-		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)
+		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)		
+		ml_mesh_mgr.SetDefaultMesh(842, "The Syrcus Trench", enforce)
+		ml_mesh_mgr.SetDefaultMesh(820, "Eulmore", enforce)
+		ml_mesh_mgr.SetDefaultMesh(816, "Il Mheg", enforce)
+		ml_mesh_mgr.SetDefaultMesh(813, "Lakeland", enforce)		
 		
 	end
 	
