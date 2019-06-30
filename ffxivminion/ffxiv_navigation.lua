@@ -1943,7 +1943,7 @@ function ml_navigation.Navigate(event, ticks )
 		end		
 	end
 end
-RegisterEventHandler("Gameloop.Draw", ml_navigation.Navigate)
+RegisterEventHandler("Gameloop.Draw", ml_navigation.Navigate, "ml_navigation.Navigate")
 
 function ml_navigation.DebugDraw(event, ticks )
 	if ( table.valid(ml_navigation.path) and false) then	
@@ -1957,7 +1957,7 @@ function ml_navigation.DebugDraw(event, ticks )
 		GUI:End()
 	end			
 end
-RegisterEventHandler("Gameloop.Draw", ml_navigation.DebugDraw)
+RegisterEventHandler("Gameloop.Draw", ml_navigation.DebugDraw, "ml_navigation.DebugDraw")
 
 -- Used by multiple places in the Navigate() function above, so I'll put it here ...no redudant code...
 function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adjustedHeading)
@@ -2664,7 +2664,7 @@ function ml_navigation.DrawPath(event, ticks)
 	--end
 end
 --RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawPath)
-RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawObstacleFinder)
+RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawObstacleFinder,"ml_navigation.DrawObstacleFinder")
 
 
 

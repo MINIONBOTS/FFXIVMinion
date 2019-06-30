@@ -377,4 +377,4 @@ function ffxiv_marker_mgr.AddMarker(strType, fields)
 	end
 end
 
-RegisterEventHandler("Module.Initalize",ffxiv_marker_mgr.HandleInit)
+RegisterEventHandler("Module.Initalize",ffxiv_marker_mgr.HandleInit,"ffxiv_marker_mgr.HandleInit")

@@ -558,4 +558,4 @@ function GUI_DrawTabs(tTabs)
 	return returnIndex,returnName
 end
 
-RegisterEventHandler("Gameloop.Draw", ffxiv_dialog_manager.Draw)
+RegisterEventHandler("Gameloop.Draw", ffxiv_dialog_manager.Draw,"ffxiv_dialog_manager.Draw")

@@ -2723,6 +2723,6 @@ function ml_global_information.Draw( event, ticks )
 end
 
 -- Register Event Handlers
-RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)
-RegisterEventHandler("Gameloop.Update",ml_global_information.OnUpdate)
-RegisterEventHandler("Gameloop.Draw", ml_global_information.Draw)
+RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit,"ffxivminion.HandleInit")
+RegisterEventHandler("Gameloop.Update",ml_global_information.OnUpdate,"ml_global_information.OnUpdate")
+RegisterEventHandler("Gameloop.Draw", ml_global_information.Draw,"ml_global_information.Draw")

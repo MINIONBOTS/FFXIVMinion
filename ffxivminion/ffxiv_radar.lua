@@ -804,6 +804,6 @@ function ffxiv_radar.ToggleMenu()
 end
 
 -- Register Event Handlers
-RegisterEventHandler("Module.Initalize",ffxiv_radar.Init)
-RegisterEventHandler("Gameloop.Draw", ffxiv_radar.DrawCall)
-RegisterEventHandler("Radar.toggle", ffxiv_radar.ToggleMenu)
+RegisterEventHandler("Module.Initalize",ffxiv_radar.Init,"ffxiv_radar.Init")
+RegisterEventHandler("Gameloop.Draw", ffxiv_radar.DrawCall,"ffxiv_radar.DrawCall")
+RegisterEventHandler("Radar.toggle", ffxiv_radar.ToggleMenu,"ffxiv_radar.ToggleMenu")

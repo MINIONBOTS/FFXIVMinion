@@ -1623,7 +1623,7 @@ function ml_global_information.LoadBehaviorFiles()
 	end
 	BehaviorManager:LoadBehaviorFromFolder(path)
  end
-RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles)
+RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles,"ml_global_information.LoadBehaviorFiles")
 
 function PressYesNo(answer)
 	local answer = IsNull(answer,true)
@@ -1734,4 +1734,4 @@ function pd(strOut)
 	end
 end
 
-RegisterEventHandler("Module.Initalize",ml_global_information.Init)
+RegisterEventHandler("Module.Initalize",ml_global_information.Init, "ml_global_information.Init")

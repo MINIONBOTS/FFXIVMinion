@@ -6883,6 +6883,6 @@ function SkillMgr.Draw( event, ticks )
 	end
 end
 
-RegisterEventHandler("Gameloop.Update",SkillMgr.OnGameUpdate)
-RegisterEventHandler("Module.Initalize",SkillMgr.ModuleInit)
-RegisterEventHandler("Gameloop.Draw", SkillMgr.Draw)
+RegisterEventHandler("Gameloop.Update",SkillMgr.OnGameUpdate,"SkillMgr.OnGameUpdate")
+RegisterEventHandler("Module.Initalize",SkillMgr.ModuleInit,"SkillMgr.ModuleInit")
+RegisterEventHandler("Gameloop.Draw", SkillMgr.Draw,"SkillMgr.Draw")

@@ -525,4 +525,4 @@ function ffxiv_task_huntlog:task_complete_execute()
 	end
 end
 
-RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate)
+RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate,"ffxiv_task_huntlog.GUIVarUpdate")

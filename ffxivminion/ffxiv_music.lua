@@ -607,7 +607,7 @@ function ffxiv_music.ToggleMenu()
 	ffxiv_music.GUI.open = not ffxiv_music.GUI.open
 end
 
-RegisterEventHandler("Module.Initalize",ffxiv_music.Init)
-RegisterEventHandler("Gameloop.Update",ffxiv_music.OnUpdate)
-RegisterEventHandler("Gameloop.Draw", ffxiv_music.DrawCall)
-RegisterEventHandler("Music.toggle", ffxiv_music.ToggleMenu)
+RegisterEventHandler("Module.Initalize",ffxiv_music.Init,"ffxiv_music.Init")
+RegisterEventHandler("Gameloop.Update",ffxiv_music.OnUpdate,"ffxiv_music.OnUpdate")
+RegisterEventHandler("Gameloop.Draw", ffxiv_music.DrawCall,"ffxiv_music.DrawCall")
+RegisterEventHandler("Music.toggle", ffxiv_music.ToggleMenu, "ffxiv_music.ToggleMenu")

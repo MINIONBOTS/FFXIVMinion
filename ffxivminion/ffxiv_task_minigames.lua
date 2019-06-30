@@ -512,5 +512,5 @@ function e_interactgamevendor:execute()
 	ml_task_hub:CurrentTask().delay = Now() + math.random(1000,1500)
 end
 
-RegisterEventHandler("Module.Initalize",MiniGames.ModuleInit)
-RegisterEventHandler("Gameloop.Update",MiniGames.OnUpdate)
+RegisterEventHandler("Module.Initalize",MiniGames.ModuleInit,"MiniGames.ModuleInit")
+RegisterEventHandler("Gameloop.Update",MiniGames.OnUpdate,"MiniGames.OnUpdate")

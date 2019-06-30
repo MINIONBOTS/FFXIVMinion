@@ -3508,4 +3508,4 @@ function ffxiv_craft.Draw( event, ticks )
 	end
 end
 
-RegisterEventHandler("Gameloop.Draw", ffxiv_craft.Draw)
+RegisterEventHandler("Gameloop.Draw", ffxiv_craft.Draw, "ffxiv_craft.Draw")
