@@ -4135,6 +4135,10 @@ function GetAetheryteByMapID(mapid, p)
 			[1] = { name = "Reunion", aethid = 109, x = 555, z = 346 },
 			[2] = { name = "The Dawn Throne", aethid = 110, x = 71, z = 36 },
 		},		
+		[815] = {name = "Amh Araeng",
+			[1] = { name = "Mord", aethid = 140, x = 246, z = -200 },
+			[2] = { name = "Inn", aethid = 161, x = 399, z = 307 },
+		},		
 	}
 	
 	local list = GetAttunedAetheryteList()
@@ -7528,6 +7532,10 @@ function IsNormalMap(mapid)
 		[628] = true,		
 		[635] = true,	
 		[759] = true,	
+		[814] = true,	
+		[815] = true,	
+		[820] = true,	
+		[844] = true,	
 	}
 	return maps[mapid] ~= nil
 end

@@ -128,6 +128,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
 	[FFXIV.JOBS.REDMAGE] = "Redmage",
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
+	--[FFXIV.JOBS.DANCER] = "Dancer",
+	--[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -197,6 +199,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.SAMURAI] = 7477,
 			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
 			[FFXIV.JOBS.BLUEMAGE] = 11385,
+			[FFXIV.JOBS.DANCER] = 15989,
+			[FFXIV.JOBS.GUNBREAKER] = 16137,
 		}
 	else
 		testSkills = {
@@ -224,6 +228,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.DARKKNIGHT] = 8769,
 			[FFXIV.JOBS.SAMURAI] = 8821,
 			[FFXIV.JOBS.REDMAGE] = 8882,
+			[FFXIV.JOBS.DANCER] = 17756,
+			[FFXIV.JOBS.GUNBREAKER] = 17703,
 		}
 	end
 	
@@ -303,6 +309,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.SAMURAI] = 7477,
 		[FFXIV.JOBS.REDMAGE] = IIF(Player.level > 1,7503,7504),
 		[FFXIV.JOBS.BLUEMAGE] = 11385,
+		[FFXIV.JOBS.DANCER] = 15989,
+		[FFXIV.JOBS.GUNBREAKER] = 16137,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -330,6 +338,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.DARKKNIGHT] = 8769,
 		[FFXIV.JOBS.SAMURAI] = 8821,
 		[FFXIV.JOBS.REDMAGE] = 8882,
+		[FFXIV.JOBS.DANCER] = 17756,
+		[FFXIV.JOBS.GUNBREAKER] = 17703,
 	}
 end
 
@@ -1009,6 +1019,8 @@ function SkillMgr.ModuleInit()
 	gSkillProfileValidSAM = false
 	gSkillProfileValidRDM = false
 	gSkillProfileValidBLU = false
+	gSkillProfileValidGNB = false
+	gSkillProfileValidDNC = false
 	
 	gSkillProfileValidMIN = false
 	gSkillProfileValidBTN = false
@@ -1739,6 +1751,8 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidRDM = IsNull(classes[FFXIV.JOBS.REDMAGE],false) 
 	gSkillProfileValidSAM = IsNull(classes[FFXIV.JOBS.SAMURAI],false) 
 	gSkillProfileValidBLU = IsNull(classes[FFXIV.JOBS.BLUEMAGE],false) 
+	gSkillProfileValidGNB = IsNull(classes[FFXIV.JOBS.GUNBREAKER],false) 
+	gSkillProfileValidDNC = IsNull(classes[FFXIV.JOBS.DANCER],false) 
 	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
@@ -1835,6 +1849,8 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.SAMURAI] = IsNull(gSkillProfileValidSAM,false),
 		[FFXIV.JOBS.REDMAGE] = IsNull(gSkillProfileValidRDM,false),
 		[FFXIV.JOBS.BLUEMAGE] = IsNull(gSkillProfileValidBLU,false),
+		[FFXIV.JOBS.GUNBREAKER] = IsNull(gSkillProfileValidGNB,false),
+		[FFXIV.JOBS.DANCER] = IsNull(gSkillProfileValidDNC,false), 
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
@@ -6061,7 +6077,7 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
+				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
 					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 				
 				for i,abrev in pairsByKeys(classes) do
@@ -6693,7 +6709,7 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
@@ -6742,7 +6758,7 @@ function SkillMgr.DrawManager()
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								--if (SkillMgr.EditingSkill ~= prio) then
 									local classCheck = false
-									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU",
+									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
 										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 									
 									for i,abrev in pairsByKeys(classes) do
