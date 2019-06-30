@@ -673,6 +673,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(737, "Royal Palace", true)
 		ml_mesh_mgr.SetDefaultMesh(769, "Duty_3076", true)
 		
+		ml_mesh_mgr.SetDefaultMesh(819, "The Crystarium", enforce)
+		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)
+		
 	end
 	
 	-- General overrides.
