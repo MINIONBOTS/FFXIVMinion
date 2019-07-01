@@ -1575,6 +1575,14 @@ function CanUseExpManual()
 	end
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+		if (Player.level >= 70 and MissingBuff(Player,1081)) then
+            local revised, action = GetItem(26553)
+            if (revised and action and not action.isoncd) then
+                --d("Can use revised manual.")
+                return true, revised
+            end
+        end
+		
 		if (Player.level >= 60 and MissingBuff(Player,1081)) then
 			local squadron, action = GetItem(14949)
 			if (squadron and action and not action.isoncd) then
@@ -1606,6 +1614,14 @@ function CanUseExpManual()
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
+		if (Player.level >= 70 and MissingBuff(Player,1082)) then
+            local revised, action = GetItem(26554)
+            if (revised and action and not action.isoncd) then
+                --d("Can use revised manual.")
+                return true, revised
+            end
+        end
+		
 		if (Player.level >= 60 and MissingBuff(Player,1082)) then
 			local squadron, action = GetItem(14949)
 			if (squadron and action and not action.isoncd) then
