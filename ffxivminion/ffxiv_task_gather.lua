@@ -1073,7 +1073,7 @@ function e_gather:execute()
 		gd("Checking unknown item section.",2)
 		
 			-- Gather unknown items to unlock them.
-		--if (Player.level < 70) then
+		--if (Player.level < 80) then
 		if (thisNode.contentid <= 4) then
 			for i,item in pairs(list) do
 				if (item.chance > 0 and (toboolean(item.isunknown))) then
@@ -1614,7 +1614,7 @@ function CanUseExpManual()
 			end
 		end
 					
-		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,45)) then
+		if (Player.level >= 15 and Player.level < 80 and MissingBuff(Player,45)) then
 			local commercial, action = GetItem(12667)
 			local manual2, action2 = GetItem(4634)
 			local manual1, action1 = GetItem(4632)
