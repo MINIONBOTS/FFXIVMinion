@@ -223,7 +223,7 @@ function c_findnode:evaluate()
 		local whitelist = ""
 		local radius = 150
 		local nodeminlevel = 1
-		local nodemaxlevel = 70
+		local nodemaxlevel = 80
 		local basePos = {}
 		local blacklist = ""
 		local includesHighPrio = true;
@@ -233,7 +233,7 @@ function c_findnode:evaluate()
 		if (table.valid(task)) then
 			whitelist = IsNull(task.whitelist,"")
 			radius = IsNull(task.radius,150)
-			nodemaxlevel = IsNull(task.nodemaxlevel,70)
+			nodemaxlevel = IsNull(task.nodemaxlevel,80)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			basePos = ffxiv_gather.GetCurrentTaskPos()
 			
@@ -249,12 +249,12 @@ function c_findnode:evaluate()
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker.mincontentlevel,1)
 			if (nodeminlevel == 0) then nodeminlevel = 1 end
-			nodemaxlevel = IsNull(marker.maxcontentlevel,70)
-			if (nodemaxlevel == 0) then nodemaxlevel = 70 end
+			nodemaxlevel = IsNull(marker.maxcontentlevel,80)
+			if (nodemaxlevel == 0) then nodemaxlevel = 80 end
 			basePos = marker:GetPosition()
 		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
-			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,70)
+			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,80)
 			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
 		else
 			return false
@@ -1614,7 +1614,7 @@ function CanUseExpManual()
 			end
 		end
 					
-		if (Player.level >= 15 and Player.level < 70 and MissingBuff(Player,45)) then
+		if (Player.level >= 15 and Player.level < 80 and MissingBuff(Player,45)) then
 			local commercial, action = GetItem(12667)
 			local manual2, action2 = GetItem(4634)
 			local manual1, action1 = GetItem(4632)
