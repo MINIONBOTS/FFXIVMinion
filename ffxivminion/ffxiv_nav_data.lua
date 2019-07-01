@@ -1679,10 +1679,8 @@ ffxiv_aetheryte_data = {
 	[814] = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
 		{id = 814, aethid = 138, x = -244, y = 20, z = 385},
-		{id = 814, aethid = 139, x = -431, y = 417, z = -618
-			, requires = {
-				["QuestCompleted(99999)"] = true,
-			},
+		{id = 814, aethid = 139, x = -431, y = 417, z = -618, 
+			requires = function () return QuestCompleted(99999) end,
 		},
 	},
 	
@@ -1709,7 +1707,7 @@ ffxiv_aetheryte_data = {
 	},
 	[820] = {
 		{id = 820, aethid = 134, x = 0, y = 82, z = 0, 
-			requires = function () return QuestCompleted(9999) end, -- get quest id later
+			requires = function () return QuestCompleted(99999) end, -- get quest id later
 		},
 	},
 }	
