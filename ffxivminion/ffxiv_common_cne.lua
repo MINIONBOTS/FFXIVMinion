@@ -3354,8 +3354,9 @@ end
 c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
+c_skipcutscene.executionTimer = 0
 function c_skipcutscene:evaluate()
-	if (gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
+	if (gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 5000) then
 		local totalUI = 0
 		for i=0,165 do
 			if (GetUIPermission(i) == 1) then
@@ -3363,14 +3364,19 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526) and not IsControlOpen("NowLoading") and not IsControlOpen("FadeMiddle")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
 					SelectConversationIndex(1)
 				end
 			else
-				PressKey(27)
+				if (c_skipcutscene.executionTimer == 0) then
+					c_skipcutscene.executionTimer = Now()
+				elseif (TimeSince(c_skipcutscene.executionTimer) > 2000) then
+					c_skipcutscene.executionTimer = 0
+					PressKey(27)
+				end
 				--KeyDown(27)
 				--ml_global_information.Await(250,function () KeyUp(27) end)
 			end
