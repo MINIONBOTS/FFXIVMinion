@@ -1741,6 +1741,54 @@ function dev.DrawCall(event, ticks )
 			end
 -- 	END UTILITY FUNCTIONS
 
+		if ( GUI:TreeNode("Installed Addons") ) then
+					local alist = GetAddonList()					
+					table.sort(alist, function(a,b) return a.average > b.average end)
+					GUI:PushItemWidth(250)
+					GUI:Columns( 6, "#beer", true )
+					GUI:SetColumnWidth(0, 250)
+					GUI:SetColumnWidth(1, 125)
+					GUI:SetColumnWidth(2, 75)
+					GUI:SetColumnWidth(3, 75)
+					GUI:SetColumnWidth(4, 75)
+					GUI:SetColumnWidth(5, 75)
+					GUI:Text("Addon")
+					GUI:NextColumn()
+					GUI:Text("Event")
+					GUI:NextColumn()
+					GUI:Text("lasttick")						
+					GUI:NextColumn()						
+					GUI:Text("highest (ms)")
+					GUI:NextColumn()
+					GUI:Text("lowest (ms)")
+					GUI:NextColumn()
+					GUI:Text("average (ms)")
+					GUI:NextColumn()
+					GUI:Separator()
+					local tick = GetTickCount()
+					for i, e in pairs(alist) do
+						if(e.average ~= 0) then
+							GUI:Text(e.name)
+							GUI:NextColumn()
+							GUI:Text(e.event)
+							GUI:NextColumn()
+							GUI:Text(e.lasttick)
+							GUI:NextColumn()
+							GUI:Text(e.highest)
+							GUI:NextColumn()
+							GUI:Text(e.slowest)
+							GUI:NextColumn()
+							GUI:Text(e.average)
+							GUI:NextColumn()
+						end
+					end
+					GUI:Columns(1)
+					GUI:PopItemWidth()
+					GUI:TreePop()
+				end
+-- 	END INSTALLED ADDONS
+
+
 			GUI:PopStyleVar(2)
 		end
 		GUI:End()
