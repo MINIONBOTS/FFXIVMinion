@@ -4157,6 +4157,10 @@ function GetAetheryteByMapID(mapid, p)
 		[817] = {name = "Greatwood",
 			[1] = { name = "Slitherbough", aethid = 142, x = -103, z = 297},
 			[2] = { name = "Fanow", aethid = 143, x = 382, z = -194},
+		},
+		[818] = {name = "The Tempest",
+			[1] = { name = "The Ondo Cups", aethid = 147, x = 561, z = -199},
+			[2] = { name = "Macarenses", aethid = 148, x = -141, z = 218},
 		},		
 	}
 	
