@@ -1674,7 +1674,9 @@ ffxiv_aetheryte_data = {
 	},
 	[813] = {
 		{id = 813, aethid = 132, x = 753, y = 24, z = -28.8},
-		{id = 813, aethid = 136, x = -735, y = 53, z = -230},
+		{id = 813, aethid = 136, x = -735, y = 53, z = -230, 
+			requires = function () return QuestCompleted(99999) end,
+		},
 	},
 	[814] = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
@@ -1686,21 +1688,31 @@ ffxiv_aetheryte_data = {
 	
 	[815] = {
 		{id = 815, aethid = 140, x = 246, y = 13, z = -220},
-		{id = 815, aethid = 141, x = -499, y = 45, z = -210},
+		{id = 815, aethid = 141, x = -499, y = 45, z = -210, 
+			requires = function () return QuestCompleted(99999) end,
+		},
 		{id = 815, aethid = 161, x = 399, y = -24, z = 307},
 	},
 	[816] = {
 		{id = 816, aethid = 144, x = -344, y = 48, z = 512},
-		{id = 816, aethid = 145, x = -72, y = 103, z = -857},
-		{id = 816, aethid = 146, x = 380, y = 87, z = -687},
+		{id = 816, aethid = 145, x = -72, y = 103, z = -857, 
+			requires = function () return QuestCompleted(99999) end,
+		},
+		{id = 816, aethid = 146, x = 380, y = 87, z = -687, 
+			requires = function () return QuestCompleted(99999) end,
+		},
 	},
 	[817] = {
 		{id = 817, aethid = 142, x = -103, y = -19, z = 297},
-		{id = 817, aethid = 143, x = 382, y = 21, z = -194},
+		{id = 817, aethid = 143, x = 382, y = 21, z = -194, 
+			requires = function () return QuestCompleted(99999) end,
+		},
 	},
 	[818] = {
 		{id = 818, aethid = 147, x = 561, y = 352, z = -199},
-		{id = 818, aethid = 148, x = -141, y = -280, z = 218},
+		{id = 818, aethid = 148, x = -141, y = -280, z = 218, 
+			requires = function () return QuestCompleted(99999) end,
+		},
 	},
 	[819] = {
 		{id = 819, aethid = 133, x = -65, y = 4, z = 0},
