@@ -368,9 +368,28 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 			end
 		end
 	elseif (IsControlOpen("SelectOk")) then
-		if (UseControlAction("SelectOk","Yes",0)) then
-			d("Skipping sub time warning... You should resub :P")
-			ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
+		local SelectOKMessage = GetControl("SelectOk"):GetStrings()[2] or ""
+		local QueueString = {
+			[1] = "This World is currently full.", -- EN
+			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
+			[3] = "Ce Monde est plein.", -- FR
+			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
+			[4] = "현재 서버가 혼잡합니다.", -- CN
+			[6] = "需要排队处理登录信息" -- KR
+		}
+		local ClientLanguage = GetGameLanguage() or 1
+		local QueueMessage = QueueString[ClientLanguage]
+		--d("SelectOKMessage: "..SelectOKMessage)
+		--d("QueueMessage: "..QueueMessage)
+		if string.contains(SelectOKMessage,QueueMessage) == true then
+			d("Waiting In Login Queue...")
+			ml_global_information.Await(1000, 2000, function () return (IsControlOpen("SelectOk")) end)
+		else
+			--d("Not In Queue")
+			if (UseControlAction("SelectOk","ssdfgsdf",0)) then
+				d("Skipping Select Window")
+				ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
+			end
 		end
 	end
 end
