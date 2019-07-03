@@ -681,11 +681,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(842, "The Syrcus Trench", enforce)
 		ml_mesh_mgr.SetDefaultMesh(820, "Eulmore", enforce)
 		ml_mesh_mgr.SetDefaultMesh(816, "Il Mheg", enforce)
-		ml_mesh_mgr.SetDefaultMesh(813, "Lakeland", enforce)
 		ml_mesh_mgr.SetDefaultMesh(874, "Duty_3270", enforce)
 		ml_mesh_mgr.SetDefaultMesh(847, "[Trial] The Dying Gasp", enforce)
 		ml_mesh_mgr.SetDefaultMesh(838, "[Dungeon] Amaurot", enforce)
-		
+		ml_mesh_mgr.SetDefaultMesh(817, "The Rak'tika Greatwood", enforce)
+		ml_mesh_mgr.SetDefaultMesh(818, "The Tempest", enforce)
 		
 		
 	end
