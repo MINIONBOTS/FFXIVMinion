@@ -1268,14 +1268,15 @@ ffxiv_map_nav.data = {
             {id = 818, cost = 1, x = -495, y = 8, z = 586, h = -1.61, b = 1027448},
         },
         [820] = {
-            {id = 820, cost = 1, x = 173, y = 58, z = 879, h = -0.05},
+            {id = 820, cost = 1, x = 173, y = 58, z = 879, h = -0.05
+				, requires = {
+					["GetQuestInfo(3286,'step') > 1 or QuestCompleted(3286)"] = true,
+				},
+			},
         },
     },
 	[815] =
     {
-        [813] = {
-            {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15},
-        },
         [819] = {
             {id = 819, cost = 1, x = 688, y = -38, z = -661, h = 0.96, b = 1027863
 				, requires = {
