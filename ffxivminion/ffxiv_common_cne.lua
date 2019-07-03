@@ -1006,6 +1006,19 @@ function c_teleporttomap:evaluate()
 			end
 			
 			local attunedAetherytes = GetAttunedAetheryteList()
+			-- Fall back check to see if we can get to Crystal, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -65, y = 4, z = 0}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,destMapID)
+					if (table.valid(backupPos)) then
+						d("using block 2")
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			
 			-- Fall back check to see if we can get to Foundation, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
