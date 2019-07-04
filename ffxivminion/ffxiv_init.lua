@@ -687,6 +687,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(838, "[Dungeon] Amaurot", enforce)
 		ml_mesh_mgr.SetDefaultMesh(817, "The Rak'tika Greatwood", enforce)
 		ml_mesh_mgr.SetDefaultMesh(818, "The Tempest", enforce)
+		ml_mesh_mgr.SetDefaultMesh(841, "[Dungeon] Akadaemia Anyder", enforce)
 		
 		
 	end
