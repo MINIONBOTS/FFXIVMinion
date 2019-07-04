@@ -129,18 +129,22 @@ ffxivminion.AutoGrindDefault = [[
 			return 146 -- southern thanalan
 		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397))) and CanAccessMap(147)) then
 			return 147 -- northern thanalan
+		elseif (level >= 74 and CanAccessMap(816)) then
+			return 816 -- Il Mheg
+		elseif (level >= 70 and CanAccessMap(813)) then
+			return 813 -- Lakeland
 		elseif (level >= 67 and CanAccessMap(622)) then
-			return 622 --The Azim Steppes
+			return 622 -- The Azim Steppes
 		elseif (level >= 60 and CanAccessMap(612)) then
-			return 612 --The Fringes
+			return 612 -- The Fringes
 		elseif (level >= 58 and level < 60 and CanAccessMap(478) and CanAccessMap(399)) then
 			return 399 --The Dravanian Hinterlands
 		elseif (level >= 60 and CanAccessMap(478) and CanAccessMap(399) and not CanAccessMap(612)) then
-			return 399 --The Dravanian Hinterlands
+			return 399 -- The Dravanian Hinterlands
 		elseif (level >= 55 and level < 60 and CanAccessMap(398)) then
-			return 398	--The Dravanian Forelands
+			return 398	-- The Dravanian Forelands
 		elseif (level >= 50 and level < 60 and CanAccessMap(397)) then
-			return 397 --Coerthas Western Highlands		
+			return 397 -- Coerthas Western Highlands		
 		else
 			return 138
 		end
@@ -845,7 +849,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 	
 	-- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20180115
+	ffxivminion.AutoGrindDefaultVersion = 20190704
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion",0)
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
