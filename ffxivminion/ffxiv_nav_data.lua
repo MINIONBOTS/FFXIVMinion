@@ -1697,9 +1697,7 @@ ffxiv_aetheryte_data = {
 	},
 	[813] = {
 		{id = 813, aethid = 132, x = 753, y = 24, z = -28.8},
-		{id = 813, aethid = 136, x = -735, y = 53, z = -230, 
-			requires = function () return QuestCompleted(99999) end,
-		},
+		{id = 813, aethid = 136, x = -735, y = 53, z = -230},
 	},
 	[814] = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
