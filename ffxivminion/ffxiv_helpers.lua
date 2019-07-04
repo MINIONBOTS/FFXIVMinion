@@ -7059,6 +7059,8 @@ function GetConversationList()
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7076,6 +7078,8 @@ function SelectConversationLine(line)
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7090,6 +7094,8 @@ function SelectConversationIndex(index)
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
