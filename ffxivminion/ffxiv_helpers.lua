@@ -7568,8 +7568,10 @@ function IsNormalMap(mapid)
 		[628] = true,		
 		[635] = true,	
 		[759] = true,	
+		[813] = true,	
 		[814] = true,	
 		[815] = true,	
+		[816] = true,	
 		[820] = true,	
 		[844] = true,	
 	}
