@@ -1284,6 +1284,13 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
+        [813] = {
+            {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15
+				, requires = {
+					["QuestCompleted(99999)"] = true,
+				},
+			},
+        },
     },
 	[816] =
     {
