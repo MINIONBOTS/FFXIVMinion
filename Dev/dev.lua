@@ -1741,33 +1741,37 @@ function dev.DrawCall(event, ticks )
 			end
 -- 	END UTILITY FUNCTIONS
 
-		if ( GUI:TreeNode("Installed Addons") ) then
-					local alist = GetAddonList()					
-					table.sort(alist, function(a,b) return a.average > b.average end)
-					GUI:PushItemWidth(250)
-					GUI:Columns( 6, "#beer", true )
-					GUI:SetColumnWidth(0, 250)
-					GUI:SetColumnWidth(1, 125)
-					GUI:SetColumnWidth(2, 75)
-					GUI:SetColumnWidth(3, 75)
-					GUI:SetColumnWidth(4, 75)
-					GUI:SetColumnWidth(5, 75)
-					GUI:Text("Addon")
-					GUI:NextColumn()
-					GUI:Text("Event")
-					GUI:NextColumn()
-					GUI:Text("lasttick")						
-					GUI:NextColumn()						
-					GUI:Text("highest (ms)")
-					GUI:NextColumn()
-					GUI:Text("lowest (ms)")
-					GUI:NextColumn()
-					GUI:Text("average (ms)")
-					GUI:NextColumn()
-					GUI:Separator()
-					local tick = GetTickCount()
-					for i, e in pairs(alist) do
-						if(e.average ~= 0) then
+			if ( GUI:TreeNode("Installed Addons") ) then
+				dev.showInitAddons = GUI:Checkbox("Include Initialize Events", dev.showInitAddons or false)
+				if(not dev.lastaddontick or ticks - dev.lastaddontick > 200) then
+					dev.lastaddontick = ticks
+					dev.addonlist = GetAddonList()
+					table.sort(dev.addonlist, function(a,b) return a.average > b.average end)					
+				end
+				GUI:PushItemWidth(250)
+				GUI:Columns( 6, "#beer", true )
+				GUI:SetColumnWidth(0, 250)
+				GUI:SetColumnWidth(1, 125)
+				GUI:SetColumnWidth(2, 100)
+				GUI:SetColumnWidth(3, 100)
+				GUI:SetColumnWidth(4, 100)
+				GUI:SetColumnWidth(5, 100)
+				GUI:Text("Addon")
+				GUI:NextColumn()
+				GUI:Text("Event")
+				GUI:NextColumn()
+				GUI:Text("lasttick")						
+				GUI:NextColumn()						
+				GUI:Text("highest (ms)")
+				GUI:NextColumn()
+				GUI:Text("lowest (ms)")
+				GUI:NextColumn()
+				GUI:Text("average (ms)")
+				GUI:NextColumn()
+				GUI:Separator()					
+				for i, e in pairs(dev.addonlist) do
+					if(e.highest ~= 0) then
+						if(dev.showInitAddons or ( e.lasttick < 10000 and e.event ~= "Module.Initialize"))then
 							GUI:Text(e.name)
 							GUI:NextColumn()
 							GUI:Text(e.event)
@@ -1782,10 +1786,11 @@ function dev.DrawCall(event, ticks )
 							GUI:NextColumn()
 						end
 					end
-					GUI:Columns(1)
-					GUI:PopItemWidth()
-					GUI:TreePop()
 				end
+				GUI:Columns(1)
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
 -- 	END INSTALLED ADDONS
 
 
