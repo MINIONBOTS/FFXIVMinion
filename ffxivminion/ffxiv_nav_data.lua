@@ -1719,7 +1719,7 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(3305) end,
 		},
 		{id = 816, aethid = 145, x = -72, y = 103, z = -857, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3313) end,
 		},
 		{id = 816, aethid = 146, x = 380, y = 87, z = -687, 
 			requires = function () return QuestCompleted(99999) end,
