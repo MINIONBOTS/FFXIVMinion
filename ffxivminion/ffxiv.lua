@@ -1191,12 +1191,14 @@ function ffxivminion.CheckMode()
 end
 
 function ffxivminion.UpdateGlobals()
-	if (Player) then
-		ml_global_information.Player_Aetherytes = GetAetheryteList()
+	if (gBotMode ~= GetString("assistMode")) then
+		if (Player) then
+			ml_global_information.Player_Aetherytes = GetAetheryteList()
+		end
+		
+		local meshState = NavigationManager:GetNavMeshState()
+		ml_global_information.MeshReady = (meshState == GLOBAL.MESHSTATE.MESHREADY or meshState == GLOBAL.MESHSTATE.MESHEMPTY)
 	end
-	
-	local meshState = NavigationManager:GetNavMeshState()
-	ml_global_information.MeshReady = (meshState == GLOBAL.MESHSTATE.MESHREADY or meshState == GLOBAL.MESHSTATE.MESHEMPTY)
 end
 
 function ml_global_information.Reset()
