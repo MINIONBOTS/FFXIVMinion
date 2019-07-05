@@ -5366,6 +5366,19 @@ function CanAccessMap(mapid)
 				end
 			end
 			
+			-- Fall back check to see if we can get to Crystal, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -65, y = 4, z = 0}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,destMapID)
+					if (table.valid(backupPos)) then
+						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			
 			-- Fall back check to see if we can get to Foundation, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
@@ -7046,6 +7059,8 @@ function GetConversationList()
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7063,6 +7078,8 @@ function SelectConversationLine(line)
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7077,6 +7094,8 @@ function SelectConversationIndex(index)
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7555,8 +7574,10 @@ function IsNormalMap(mapid)
 		[628] = true,		
 		[635] = true,	
 		[759] = true,	
+		[813] = true,	
 		[814] = true,	
 		[815] = true,	
+		[816] = true,	
 		[820] = true,	
 		[844] = true,	
 	}

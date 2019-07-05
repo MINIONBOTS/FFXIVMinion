@@ -617,6 +617,13 @@ ffxiv_map_nav.data = {
 		[680] = {
 			{id = 680, cost = 1, x = -357.66, y = 8.00, z = 45.82, h = 1.61, g = 1020442 },
 		},
+        [819] = {
+            {id = 819, cost = 1, x = 802, y = 1, z = 253, h = -1.55, b = 1029807
+                , requires =  {
+                    ["GetQuestInfo(3280,'step') > 1 or QuestCompleted(3280)"] = true, -- fake connection
+                }
+			},
+        },
 	},
 	[134] =
 	{
@@ -1239,7 +1246,11 @@ ffxiv_map_nav.data = {
             {id = 815, cost = 1, x = 535, y = -5, z = 862, h = 0.01},
         },
         [816] = {
-            {id = 816, cost = 1, x = -323, y = 116, z = -832, h = -3.0},
+            {id = 816, cost = 1, x = -323, y = 116, z = -832, h = -3.0
+				, requires = {
+					["GetQuestInfo(3305,'step') == 255 or QuestCompleted(3305)"] = true,
+				},
+			},
         },
         [817] = {
             {id = 817, cost = 1, x = 878, y = 42, z = -290, h = 1.6},
@@ -1261,7 +1272,11 @@ ffxiv_map_nav.data = {
             {id = 818, cost = 1, x = -495, y = 8, z = 586, h = -1.61, b = 1027448},
         },
         [820] = {
-            {id = 820, cost = 1, x = 173, y = 58, z = 879, h = -0.05},
+            {id = 820, cost = 1, x = 173, y = 58, z = 879, h = -0.05
+				, requires = {
+					["GetQuestInfo(3286,'step') > 1 or QuestCompleted(3286)"] = true,
+				},
+			},
         },
     },
 	[815] =
@@ -1274,13 +1289,21 @@ ffxiv_map_nav.data = {
 			},
         },
         [813] = {
-            {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15},
+            {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15
+				, requires = {
+					["QuestCompleted(99999)"] = true,
+				},
+			},
         },
     },
 	[816] =
     {
         [813] = {
-            {id = 813, cost = 1, x = -694, y = 112, z = 833, h = -0.24},
+            {id = 813, cost = 1, x = -694, y = 112, z = 833, h = -0.24
+				, requires = {
+					["GetQuestInfo(3305,'step') == 255 or QuestCompleted(3305)"] = true,
+				},
+			},
         },
     },
 	[817] =
@@ -1674,9 +1697,7 @@ ffxiv_aetheryte_data = {
 	},
 	[813] = {
 		{id = 813, aethid = 132, x = 753, y = 24, z = -28.8},
-		{id = 813, aethid = 136, x = -735, y = 53, z = -230, 
-			requires = function () return QuestCompleted(99999) end,
-		},
+		{id = 813, aethid = 136, x = -735, y = 53, z = -230},
 	},
 	[814] = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
@@ -1694,7 +1715,9 @@ ffxiv_aetheryte_data = {
 		{id = 815, aethid = 161, x = 399, y = -24, z = 307},
 	},
 	[816] = {
-		{id = 816, aethid = 144, x = -344, y = 48, z = 512},
+		{id = 816, aethid = 144, x = -355, y = 46, z = 482, 
+			requires = function () return QuestCompleted(3305) end,
+		},
 		{id = 816, aethid = 145, x = -72, y = 103, z = -857, 
 			requires = function () return QuestCompleted(99999) end,
 		},
@@ -1719,7 +1742,7 @@ ffxiv_aetheryte_data = {
 	},
 	[820] = {
 		{id = 820, aethid = 134, x = 0, y = 82, z = 0, 
-			requires = function () return QuestCompleted(99999) end, -- get quest id later
+			requires = function () return QuestCompleted(3631) end,
 		},
 	},
 }	

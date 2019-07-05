@@ -589,7 +589,7 @@ c_autopotion.ethers = {
 }
 c_autopotion.item = nil
 function c_autopotion:evaluate()
-	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
+	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")
 		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat) 
 	then
 		return false
@@ -1006,6 +1006,19 @@ function c_teleporttomap:evaluate()
 			end
 			
 			local attunedAetherytes = GetAttunedAetheryteList()
+			-- Fall back check to see if we can get to Crystal, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -65, y = 4, z = 0}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,destMapID)
+					if (table.valid(backupPos)) then
+						d("using block 2")
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			
 			-- Fall back check to see if we can get to Foundation, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
@@ -3364,7 +3377,7 @@ function c_skipcutscene:evaluate()
 		end
 		
 		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526) and not IsControlOpen("NowLoading")) then
-			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
+			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
 					SelectConversationIndex(1)
