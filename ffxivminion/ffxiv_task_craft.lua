@@ -1897,7 +1897,7 @@ function ffxiv_task_craft:UIInit()
 		_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
 	end
 	
-	for k = 5,70,5 do
+	for k = 5,80,5 do
 		_G["gCraftDictionarySelectIndex"..tostring(k)] = 1
 		_G["gCraftDictionarySelect"..tostring(k)] = GetString("none")				
 	end
@@ -3107,7 +3107,7 @@ function ffxiv_craft.Draw( event, ticks )
 				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
 				GUI:PopItemWidth()
 				
-				for k = 5,70,5 do
+				for k = 5,80,5 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
 					if (dictionary and dictionaryDisplay) then
 						--d("found dictionary for k = "..tostring(k))
@@ -3129,7 +3129,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gCraftOrderAddSkillProfileIndex = 1
 								gCraftOrderAddSkillProfile = GetString("none")
 							end
-							for j = 5,70,5 do
+							for j = 5,80,5 do
 								if (j ~= k) then
 									_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
 									_G["gCraftDictionarySelect"..tostring(j)] = GetString("none")		

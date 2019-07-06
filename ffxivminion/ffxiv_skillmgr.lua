@@ -577,6 +577,26 @@ SkillMgr.Variables = {
 	SKM_GAUGE4EQ = { default = 0, cast = "number", profile = "gauge4eq", readable = "", section = "fighting", group = "" },
 	SKM_GAUGE4OR = { default = "", cast = "string", profile = "gauge4or", readable = "", section = "fighting", group = "" },
 	
+	SKM_GAUGE5LT = { default = 0, cast = "number", profile = "gauge5lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE5GT = { default = 0, cast = "number", profile = "gauge5gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE5EQ = { default = 0, cast = "number", profile = "gauge5eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE5OR = { default = "", cast = "string", profile = "gauge5or", readable = "", section = "fighting", group = "" },
+	
+	SKM_GAUGE6LT = { default = 0, cast = "number", profile = "gauge6lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE6GT = { default = 0, cast = "number", profile = "gauge6gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE6EQ = { default = 0, cast = "number", profile = "gauge6eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE6OR = { default = "", cast = "string", profile = "gauge6or", readable = "", section = "fighting", group = "" },
+	
+	SKM_GAUGE7LT = { default = 0, cast = "number", profile = "gauge7lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE7GT = { default = 0, cast = "number", profile = "gauge7gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE7EQ = { default = 0, cast = "number", profile = "gauge7eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE7OR = { default = "", cast = "string", profile = "gauge7or", readable = "", section = "fighting", group = "" },
+	
+	SKM_GAUGE8LT = { default = 0, cast = "number", profile = "gauge8lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE8GT = { default = 0, cast = "number", profile = "gauge8gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE8EQ = { default = 0, cast = "number", profile = "gauge8eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE8OR = { default = "", cast = "string", profile = "gauge8or", readable = "", section = "fighting", group = "" },
+	
 	-- Macro Vars.
 	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", readable = "", section = "fighting" },
 	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", readable = "", section = "fighting" },
@@ -5882,7 +5902,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		
-		for i = 1,4 do
+		for i = 1,8 do
 			local g = Player.gauge
 			
 			if (table.valid(g) and g[i] ~= nil and tonumber(g[i]) ~= nil) then
@@ -6460,7 +6480,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-gauges-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		for i = 1,4 do
+		for i = 1,8 do
 			GUI:Text(GetString("Gauge Indicator "..tostring(i))); GUI:NextColumn(); GUI:NextColumn();
 			GUI:Text(GetString("Value <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."LT",_G["SKM_GAUGE"..tostring(i).."LT"],0,0),"SKM_GAUGE"..tostring(i).."LT"); GUI:NextColumn();
 			GUI:Text(GetString("Value >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."GT",_G["SKM_GAUGE"..tostring(i).."GT"],0,0),"SKM_GAUGE"..tostring(i).."GT"); GUI:NextColumn();

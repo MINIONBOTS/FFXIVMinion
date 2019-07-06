@@ -519,7 +519,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 		
 		if (not Player.incombat) then
-			if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
+			if ((ffxivminion.GUI.settings.open and TimeSince(ml_global_information.updateFoodTimer) > 15000) or ml_global_information.updateFoodTimer == 0) then
 				ml_global_information.updateFoodTimer = tickcount
 				ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 			end
@@ -534,7 +534,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					end
 				end
 			end
-		
+			
+			-- TODO: This section could potentially cause some FPS drops, need to rework a bit.
 			if (FFXIV_Common_BotRunning) then				
 				if (gChocoItemString ~= GetString("none")) then
 					if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
