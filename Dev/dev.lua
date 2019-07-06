@@ -1820,6 +1820,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("OwnerID") GUI:SameLine(200) GUI:InputText("##dev8",tostring(c.ownerid))
 		GUI:BulletText("Claimed By ID") GUI:SameLine(200) GUI:InputText("##dev43",tostring(c.claimedbyid))
 		GUI:BulletText("Fate ID") GUI:SameLine(200) GUI:InputText("##dev35", tostring(c.fateid))
+		GUI:BulletText("Icon ID") GUI:SameLine(200) GUI:InputText("##dev354", tostring(c.iconid))
 		GUI:TreePop()
 	end
 	if ( GUI:TreeNode("Bars Data") ) then
