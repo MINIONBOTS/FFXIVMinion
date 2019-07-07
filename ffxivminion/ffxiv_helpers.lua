@@ -4315,7 +4315,9 @@ function IsCityMap(mapid)
 		[419] = true,
 		[478] = true,
 		[628] = true,
-		[635] = true,
+		[635] = true,			
+		[819] = true,			
+		[820] = true,
 	}
 	return cityMaps[mapid]
 end
@@ -7577,8 +7579,10 @@ function IsNormalMap(mapid)
 		[813] = true,	
 		[814] = true,	
 		[815] = true,	
-		[816] = true,	
-		[820] = true,	
+		[816] = true,		
+		[817] = true,	
+		[818] = true,			
+		[819] = true,	
 		[844] = true,	
 	}
 	return maps[mapid] ~= nil
