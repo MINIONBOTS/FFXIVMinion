@@ -1121,7 +1121,7 @@ function e_startcraft:execute()
 				
 				ml_global_information.Await(1000)
 				return
-			elseif (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
+			elseif (skillProfile ~= "" and gSkillProfile ~= skillProfile and skillProfile ~= GetString("none")) then
 				if (SkillMgr.HasProfile(skillProfile)) then
 					SkillMgr.UseProfile(skillProfile)
 				end
