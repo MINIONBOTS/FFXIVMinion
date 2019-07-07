@@ -176,7 +176,8 @@ function GetMinGP()
 		if task.mingp == "skillProfileDefined" then
 			if SkillMgr.ProfileRaw.mingp ~= nil then
 				minimumGP = SkillMgr.ProfileRaw.mingp
-				d("[Gather]: Skill profile requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
+				--d("[Gather Information]: Skill profile requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
+				ml_global_information.ShowInformation(GetString("[Information]: Selected skill profile requires at least ["..tostring(minimumGP).."] GP."), 4000)
 			else
 				minimumGP = 0
 			end
