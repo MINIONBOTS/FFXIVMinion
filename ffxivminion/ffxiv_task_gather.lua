@@ -359,7 +359,7 @@ function c_movetonode:evaluate()
 			
 				-- Might stop just out of range to wait for GP, don't need to be super accurate
 				if (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
-					ml_global_information.ShowInformation(GetString("Waiting for GP ["..tostring(minimumGP).."]..."), 3000)
+					ml_global_information.ShowInformation(GetString("[Information]: Waiting for ["..tostring(minimumGP).."] GP."), 3000)
 					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 				end
@@ -390,7 +390,7 @@ function c_movetonode:evaluate()
 						Player:SetTarget(gatherable.id)
 					end
 					
-					ml_global_information.ShowInformation(GetString("Waiting for GP ["..tostring(minimumGP).."]..."), 3000)
+					ml_global_information.ShowInformation(GetString("[Information]: Waiting for ["..tostring(minimumGP).."] GP."), 3000)
 					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 					return true
@@ -1495,7 +1495,6 @@ function CanUseCordial()
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 		useCordials = GUI_Get(useCordials)
 	end
-			
 	if (useCordials) then
 		local cordialQuick, cordialQuickAction = GetItem(1016911)
 		if (not cordialQuick) then
@@ -1515,6 +1514,8 @@ function CanUseCordial()
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		
 		if not IsFisher(Player.job) then
+	--d("(minimumGP - Player.gp.current) ["..tostring((minimumGP - Player.gp.current)).."]")
+	--d("((minimumGP - Player.gp.current) >= 100) ["..tostring(((minimumGP - Player.gp.current) >= 100)).."]")
 			if ((minimumGP - Player.gp.current) >= 100) then		
 				if cordialHigh and ((gpDeficit >= 350) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
@@ -1564,7 +1565,7 @@ function CanUseCordial()
 			end
 		end
 	else
-		fd("[CanUseCordials]: Can't use cordials on this task.",1)
+		gd("[CanUseCordials]: Can't use cordials on this task.",1)
 	end
 	
 	return false, nil
@@ -1773,8 +1774,8 @@ function c_nodeprebuff:evaluate()
 						d("[NodePreBuff]: Need to use a cordial.")
 						e_nodeprebuff.activity = "usecordial"
 						e_nodeprebuff.itemid = cordialItem.hqid
-						e_nodeprebuff.requirestop = true
-						e_nodeprebuff.requiredismount = true
+						e_nodeprebuff.requirestop = false
+						e_nodeprebuff.requiredismount = false
 						return true
 					end					
 				end
