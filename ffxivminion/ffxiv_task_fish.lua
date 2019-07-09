@@ -203,6 +203,7 @@ function GetCurrentTaskPos(meshcheck)
 					pos = taskMultiPos[task.currentPositionIndex]
 					if (meshcheck) then
 						pos = NavigationManager:GetClosestPointOnMesh(pos)
+						pos.h = taskMultiPos[task.currentPositionIndex].h
 					end
 				else
 					for i,choice in pairs(taskMultiPos) do
@@ -211,6 +212,7 @@ function GetCurrentTaskPos(meshcheck)
 							pos = choice
 							if (meshcheck) then
 								pos = NavigationManager:GetClosestPointOnMesh(pos)
+								pos.h = choice.h
 							end
 							break
 						end
