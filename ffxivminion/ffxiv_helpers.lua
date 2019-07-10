@@ -5381,6 +5381,21 @@ function CanAccessMap(mapid)
 				end
 			end
 			
+			if (mapid == 820 and not CanUseAetheryte(134)) then
+			-- Fall back alternate check to see if we can get to EL, and from there to the destination.
+				for k,aetheryte in pairs(attunedAetherytes) do
+					if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
+						local aethPos = {x = -244, y = 20, z = 385}
+						local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
+						if (table.valid(backupPos)) then
+							--d("Found an attuned backup position aetheryte for 820 in Kholusia.")
+							e_teleporttomap.aeth = aetheryte
+							return true
+						end
+					end
+				end
+			end
+			
 			-- Fall back check to see if we can get to Crystal, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
