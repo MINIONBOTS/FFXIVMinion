@@ -1722,7 +1722,7 @@ function HasBuff(targetid, buffID, stacks, duration, ownerid)
 		if (table.valid(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					if ((stacks == 0 or stacks >= buff.stacks) and
+					if ((stacks == 0 or buff.stacks >= stacks) and
 						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
 						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
@@ -1785,7 +1785,7 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 			local missing = true
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					if ((stacks == 0 or stacks >= buff.stacks) and
+					if ((stacks == 0 or buff.stacks >= stacks) and
 						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
 						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
@@ -5380,6 +5380,7 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+			
 			-- Fall back check to see if we can get to Crystal, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then

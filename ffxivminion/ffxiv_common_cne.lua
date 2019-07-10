@@ -1004,8 +1004,9 @@ function c_teleporttomap:evaluate()
 				e_teleporttomap.aeth = aeth
 				return true
 			end
-			end
+		
 			local attunedAetherytes = GetAttunedAetheryteList()
+			
 			-- Fall back check to see if we can get to EL, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
@@ -1017,6 +1018,7 @@ function c_teleporttomap:evaluate()
 						return true
 					end
 				end
+			end
 			
 			-- Fall back check to see if we can get to Crystal, and from there to the destination.
 			for k,aetheryte in pairs(attunedAetherytes) do
