@@ -423,10 +423,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(759, "Doman Enclave", enforce)
 		ml_mesh_mgr.SetDefaultMesh(786, "Castrum Fluminis", enforce)
 		
-		ml_mesh_mgr.SetDefaultMesh(339, "Mist", enforce)
-		ml_mesh_mgr.SetDefaultMesh(340, "The Lavender Beds", enforce)
-		ml_mesh_mgr.SetDefaultMesh(341, "The Goblet", enforce)		
-		
+		ml_mesh_mgr.SetDefaultMesh(339, "[Housing] Mist", enforce)
+		ml_mesh_mgr.SetDefaultMesh(340, "[Housing] Lavender Beds", enforce)
+		ml_mesh_mgr.SetDefaultMesh(341, "[Housing] The Goblet", enforce)
+		ml_mesh_mgr.SetDefaultMesh(641, "[Housing] Shirogane", enforce)
 		
 		-- Dungeons
 		--ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon]Aery", enforce)
@@ -460,15 +460,27 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(169, "[Dungeon] Toto-Rak", enforce)
 		ml_mesh_mgr.SetDefaultMesh(421, "[Dungeon] The Vault", enforce)
 		ml_mesh_mgr.SetDefaultMesh(159, "[Dungeon] Wanderers Palace", enforce)
+
+		ml_mesh_mgr.SetDefaultMesh(837, "[Dungeon] Holminster", enforce)
+		ml_mesh_mgr.SetDefaultMesh(821, "[Dungeon] Dohn Mheg", enforce)
+		ml_mesh_mgr.SetDefaultMesh(823, "[Dungeon] The Qitana Ravel", enforce)
+		ml_mesh_mgr.SetDefaultMesh(836, "[Dungeon] Malikah's Well", enforce)
+		ml_mesh_mgr.SetDefaultMesh(822, "[Dungeon] Mt. Gulg", enforce)
+		ml_mesh_mgr.SetDefaultMesh(838, "[Dungeon] Amaurot", enforce)
+		ml_mesh_mgr.SetDefaultMesh(840, "[Dungeon] The Twinning", enforce)
+		ml_mesh_mgr.SetDefaultMesh(841, "[Dungeon] Akadaemia Anyder", enforce)
+		
+		-- Trial
 		--ml_mesh_mgr.SetDefaultMesh(332, "[Trial]CapeWestwind", enforce)
-	--	ml_mesh_mgr.SetDefaultMesh(426, "[Trial]Chrysalis", enforce)
+		ml_mesh_mgr.SetDefaultMesh(426, "[Trial]Chrysalis", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(208, "[Trial]Garuda", enforce)
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(281, "[Trial]Leviathan", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(207, "[Trial]MoogleMog", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(374, "[Trial]Ramuh", enforce)
 		ml_mesh_mgr.SetDefaultMesh(377, "Akh Afah Amphitheatre", enforce)
-		ml_mesh_mgr.SetDefaultMesh(206, "[Trial] The Navel", enforce)		
+		ml_mesh_mgr.SetDefaultMesh(206, "[Trial] The Navel", enforce)
+		ml_mesh_mgr.SetDefaultMesh(847, "[Trial] The Dying Gasp", enforce)
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
@@ -681,17 +693,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(818, "The Tempest", enforce)
 		ml_mesh_mgr.SetDefaultMesh(819, "The Crystarium", enforce)
 		ml_mesh_mgr.SetDefaultMesh(820, "Eulmore", enforce)
-		ml_mesh_mgr.SetDefaultMesh(821, "[Dungeon] Dohn Mheg", enforce)
-		ml_mesh_mgr.SetDefaultMesh(837, "[Dungeon] Holminster", enforce)
-		ml_mesh_mgr.SetDefaultMesh(838, "[Dungeon] Amaurot", enforce)
-		ml_mesh_mgr.SetDefaultMesh(840, "[Dungeon] The Twinning", enforce)
-		ml_mesh_mgr.SetDefaultMesh(841, "[Dungeon] Akadaemia Anyder", enforce)
 		ml_mesh_mgr.SetDefaultMesh(842, "The Syrcus Trench", enforce)
 		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)
-		ml_mesh_mgr.SetDefaultMesh(847, "[Trial] The Dying Gasp", enforce)
 		ml_mesh_mgr.SetDefaultMesh(874, "Duty_3270", enforce)
-		
-		
 	end
 	
 	-- General overrides.
@@ -1387,7 +1391,7 @@ function ml_global_information.Init()
 				[790] = "Ul'dah - Steps of Nald",
 				[791] = "Hidden Gorge",
 				[792] = "The Fall of Belah'dia",
-				[793] = "The Ghimlyt Dark",
+				[793] = "[Dungeon] The Ghimlyt Dark",
 				[794] = "The Shifting Altars of Uznair",
 				[795] = "Eureka Pyros",
 				[796] = "Blue Sky",
