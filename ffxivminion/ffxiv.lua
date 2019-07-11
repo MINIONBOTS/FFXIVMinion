@@ -2581,8 +2581,20 @@ invalid name or haven't chosen one."))
 						GUI:TextColored(1,.1,.2,1,GetString("Not On Mesh"))
 					end
 					
-					if CanAccessMap(621) then
+					if CanAccessMap(818) then
 						GUI:Text("Can Access ALL maps");
+					elseif CanAccessMap(817) then
+						GUI:Text("Can Access The Rak'tika Greatwood");
+					elseif CanAccessMap(816) then
+						GUI:Text("Can Access Il Mheg");
+					elseif CanAccessMap(815) then
+						GUI:Text("Can Access Amh Araeng");
+					elseif CanAccessMap(814) then
+						GUI:Text("Can Access Lakeland");
+					elseif CanAccessMap(819) then
+						GUI:Text("Can Access The Crystarium");
+					elseif CanAccessMap(621) then
+						GUI:Text("Can Access The Lochs");
 					elseif CanAccessMap(622) then
 						GUI:Text("Can Access Azim Steppes");
 					elseif CanAccessMap(614) then
