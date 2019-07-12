@@ -1243,7 +1243,11 @@ ffxiv_map_nav.data = {
 	[813] =
     {
         [815] = {
-            {id = 815, cost = 1, x = 535, y = -5, z = 862, h = 0.01},
+            {id = 815, cost = 1, x = 535, y = -5, z = 862, h = 0.01
+                , requires = {
+                    ["QuestCompleted(3609)"] = true,
+                },
+            },
         },
         [816] = {
             {id = 816, cost = 1, x = -323, y = 116, z = -832, h = -3.0
@@ -1746,7 +1750,7 @@ ffxiv_aetheryte_data = {
 	[818] = {
 		{id = 818, aethid = 147, x = 561, y = 352, z = -199},
 		{id = 818, aethid = 148, x = -141, y = -280, z = 218, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3652) end,
 		},
 	},
 	[819] = {
