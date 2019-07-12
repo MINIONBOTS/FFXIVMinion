@@ -2583,6 +2583,46 @@ function c_dostealth:evaluate()
 			c_dostealth.addStealth = true
 			return true
 		elseif (not needsStealth and hasStealth) then
+			
+			-- Check if stealth will be broken by mount, if it will, don't manually remove it.
+			local myPos = Player.pos
+			local gotoPos = ml_task_hub:CurrentTask().pos
+			if (table.valid(gotoPos)) then
+				local dist2d = math.distance2d(myPos, gotoPos)
+				local dist3d = math.distance3d(myPos, gotoPos)
+				
+				local needsMount = false
+				if (table.valid(ml_navigation.path)) then
+					for i, node in pairs(ml_navigation.path) do
+						if (i >= ml_navigation.pathindex) then
+							ml_navigation.TagNode(node)
+							if (node.air or node.air_avoid) then
+								needsMount = true
+							end
+						end
+					end		
+				end
+				
+				local noMountMaps = {
+					[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
+					[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
+				}
+				
+				if (not noMountMaps[Player.localmapid]) then
+					local forcemount = false
+					if (CanFlyInZone()) then
+						if (ml_task_hub:CurrentTask().alwaysMount) then
+							forcemount = true
+						end
+					end
+				
+					if ((dist3d > tonumber(gMountDist)) or forcemount or needsMount) then
+						return false
+					end
+				end
+			
+			end
+			
 			c_dostealth.dropStealth = true
 			return true
 		end
