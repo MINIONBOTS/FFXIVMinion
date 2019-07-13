@@ -5974,6 +5974,169 @@ function GetLochsSection(pos)
 	
 	return sec
 end
+function GetKholusiaSection(pos)
+    local sections = {
+        [1] = {
+            a = {x = -900, z = -850},
+            b = {x = -900, z = 265},
+            c = {x = 900, z = 265},
+            d = {x = 900, z = -850},
+            x = {x = 0, ymin = 135, z = -292.5},
+        },
+    }
+
+    local sec = 1
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end
+
+    return sec
+end
+
+function GetAhmAraengSection(pos)
+    local section2 = {
+        [1] = {
+            a = {x = -700, z = -800},
+            b = {x = -700, z = 213},
+            c = {x = 125, z = 213},
+            d = {x = 125, z = -800},
+            x = {x = -287.5, z = -293.5},
+        },
+        [2] = {
+            a = {x = -143, z = 213},
+            b = {x = -143, z = 283},
+            c = {x = 125, z = 283},
+            d = {x = 125, z = 213},
+            x = {x = -9, z = 248},
+        },
+    }
+	local section3 = {
+        [1] = {
+            a = {x = -700, z = 213},
+            b = {x = -700, z = 551},
+            c = {x = -143, z = 551},
+            d = {x = -143, z = 213},
+            x = {x = -421.5, z = 382},
+        },
+        [2] = {
+            a = {x = -143, z = 334},
+            b = {x = -143, z = 551},
+            c = {x = 117, z = 551},
+            d = {x = 117, z = 334},
+            x = {x = -13, z = 442.5},
+        },
+		[3] = {
+            a = {x = 117, z = 389},
+            b = {x = 117, z = 551},
+            c = {x = 164, z = 551},
+            d = {x = 164, z = 389},
+            x = {x = 140.5, z = 470},
+        },
+		[4] = {
+            a = {x = 164, z = 441},
+            b = {x = 164, z = 551},
+            c = {x = 212, z = 551},
+            d = {x = 212, z = 441},
+            x = {x = 188, z = 496},
+        },
+		[5] = {
+            a = {x = 212, z = 512},
+            b = {x = 212, z = 551},
+            c = {x = 299, z = 551},
+            d = {x = 299, z = 512},
+            x = {x = 255.5, z = 531.5},
+        },
+		[6] = {
+            a = {x = -700, z = 551},
+            b = {x = -700, z = 1000},
+            c = {x = 800, z = 1000},
+            d = {x = 800, z = 551},
+            x = {x = 50, z = 775.5},
+        },
+    }
+
+    local sec = 1
+	if (table.valid(pos)) then
+        for i,section in pairs(section2) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end
+	if (table.valid(pos)) then
+        for i,section in pairs(section3) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 3
+                break
+            end
+        end
+    end
+	
+	return sec
+end
+
+function GetTempestSection(pos)
+    local sections = {
+        [1] = {
+            a = {x = -1000, z = -500},
+            b = {x = -1000, z = 1000},
+            c = {x = -530, z = 1000},
+            d = {x = -530, z = -500},
+            x = {x = -765, z = 250},
+        },
+        [2] = {
+            a = {x = -530, z = 130},
+            b = {x = -530, z = 1000},
+            c = {x = -70, z = 1000},
+            d = {x = -70, z = 130},
+            x = {x = -300, z = 565},
+        },
+        [3] = {
+            a = {x = -70, z = 198},
+            b = {x = -70, z = 1000},
+            c = {x = 97, z = 1000},
+            d = {x = 97, z = 198},
+            x = {x = 13.5, z = 599},
+        },
+        [4] = {
+            a = {x = 97, z = 333},
+            b = {x = 97, z = 1000},
+            c = {x = 213, z = 1000},
+            d = {x = 213, z = 333},
+            x = {x = 155, z = 666.5},
+        },
+        [5] = {
+            a = {x = 213, z = 530},
+            b = {x = 213, z = 1000},
+            c = {x = 415, z = 1000},
+            d = {x = 415, z = 530},
+            x = {x = 314, z = 765},
+        },
+    }
+
+    local sec = 1
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end
+
+    return sec
+end
+
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -6678,7 +6841,262 @@ function Transport622(pos1,pos2)
 	
     return false            
 end
+function Transport814(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if QuestCompleted(3634) then 
+			local gilCount = GilCount()
+			if (GetKholusiaSection(pos1) ~= GetKholusiaSection(pos2)) then
+				if (GetKholusiaSection(Player.pos) == 1) then
+					if (CanUseAetheryte(139) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(139)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 139
+									newTask.mapID = 814
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -454.70, y = 65.78, z = 58.27}
+								newTask.contentid = 1028319
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				end
+				if (GetKholusiaSection(Player.pos) == 2) then
+					if (CanUseAetheryte(138) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(138)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 138
+									newTask.mapID = 814
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -454.64, y = 334.05, z = -16.98}
+								newTask.contentid = 1028320
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+		
+	return false			
+end
+function Transport815(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if QuestCompleted(3609) then 
+			local gilCount = GilCount()
+			if (GetAhmAraengSection(pos1) ~= GetAhmAraengSection(pos2)) then
+				if (GetAhmAraengSection(Player.pos) == 1 and GetAhmAraengSection(pos2) == 2) then
+					if (CanUseAetheryte(141) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(141)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 141
+									newTask.mapID = 815
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
+				if (GetAhmAraengSection(Player.pos) == 2 and GetAhmAraengSection(pos2) == 1) then
+					if (CanUseAetheryte(140) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(140)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 140
+									newTask.mapID = 815
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
+			end
+		end	
+		if QuestCompleted(3621) then 
+			local gilCount = GilCount()
+			if (GetAhmAraengSection(pos1) ~= GetAhmAraengSection(pos2)) then
+				if (GetAhmAraengSection(Player.pos) == 2 and GetAhmAraengSection(pos2) == 3) then
+					if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -474.59, y = 45.55, z = -237.59}
+								newTask.contentid = 1031660
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+						end
+					end
+				end
+				if (GetAhmAraengSection(Player.pos) == 3 and GetAhmAraengSection(pos2) == 2) then
+					if (CanUseAetheryte(141) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(141)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 141
+									newTask.mapID = 815
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -176.01, y = -3.42, z = 215.46}
+								newTask.contentid = 2010763
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							
+							end
+						end
+					end
+				end
+				if (GetAhmAraengSection(Player.pos) == 1 and GetAhmAraengSection(pos2) == 3) then
+					if (CanUseAetheryte(141) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(141)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 141
+									newTask.mapID = 815
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+		
+	return false			
+end
 
+function Transport818(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if QuestCompleted(3652) then 
+			local gilCount = GilCount()
+			if (GetTempestSection(pos1) ~= GetTempestSection(pos2)) then
+				if (GetTempestSection(Player.pos) == 1) then
+					if (CanUseAetheryte(148) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(148)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 148
+									newTask.mapID = 818
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -610.40, y = 45.48, z = 94.93}
+								newTask.contentid = 2010145
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				end
+				if (GetTempestSection(Player.pos) == 2) then
+					if (CanUseAetheryte(147) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(147)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 147
+									newTask.mapID = 818
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					else
+						if (gilCount > 0) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -602.82, y = -282.73, z = 113.49}
+								newTask.contentid = 2010146
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+		
+	return false			
+end
 function CanFlyInZone()
 	if (Player.flying) then
 		if (Player.flying.canflyinzone) then
