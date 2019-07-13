@@ -693,9 +693,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(818, "The Tempest", enforce)
 		ml_mesh_mgr.SetDefaultMesh(819, "The Crystarium", enforce)
 		ml_mesh_mgr.SetDefaultMesh(820, "Eulmore", enforce)
-		ml_mesh_mgr.SetDefaultMesh(842, "The Syrcus Trench", enforce)
+		ml_mesh_mgr.SetDefaultMesh(842, "The Syrcus Trench", true)
 		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)
-		ml_mesh_mgr.SetDefaultMesh(874, "Duty_3270", enforce)
+		ml_mesh_mgr.SetDefaultMesh(874, "Duty_3270", true)
+		ml_mesh_mgr.SetDefaultMesh(877, "Lakeland", true)
 	end
 	
 	-- General overrides.
