@@ -1753,14 +1753,14 @@ ffxiv_aetheryte_data = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
 		{id = 814, aethid = 138, x = -244, y = 20, z = 385},
 		{id = 814, aethid = 139, x = -431, y = 417, z = -618, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3634) end,
 		},
 	},
 	
 	[815] = {
 		{id = 815, aethid = 140, x = 246, y = 13, z = -220},
 		{id = 815, aethid = 141, x = -499, y = 45, z = -210, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3609) end,
 		},
 		{id = 815, aethid = 161, x = 399, y = -24, z = 307},
 	},
