@@ -1279,7 +1279,7 @@ ffxiv_map_nav.data = {
         [818] = {
             {id = 818, cost = 1, x = -495, y = 8, z = 586, h = -1.61, b = 1027448
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3647)"] = true,
 				},
 			},
         },
@@ -1303,7 +1303,7 @@ ffxiv_map_nav.data = {
         [813] = {
             {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3609)"] = true,
 				},
 			},
         },
@@ -1329,7 +1329,7 @@ ffxiv_map_nav.data = {
         [814] = {
             {id = 814, cost = 1, x = 261, y = 420, z = -885, h = -0.01, g = 2010635
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3647)"] = true,
 				},
 			},
         },
