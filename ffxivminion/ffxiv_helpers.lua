@@ -6960,7 +6960,7 @@ function Transport815(pos1,pos2)
 				end
 			end
 		end	
-		if QuestCompleted(3619) then 
+		if (QuestCompleted(3619) or (HasQuest(3619) and GetQuestInfo(3619,'step') >= 255)) then 
 			local gilCount = GilCount()
 			if (GetAhmAraengSection(pos1) ~= GetAhmAraengSection(pos2)) then
 				if (GetAhmAraengSection(Player.pos) == 2 and GetAhmAraengSection(pos2) == 3) then
