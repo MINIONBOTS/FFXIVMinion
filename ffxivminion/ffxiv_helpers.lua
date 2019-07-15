@@ -6960,7 +6960,7 @@ function Transport815(pos1,pos2)
 				end
 			end
 		end	
-		if (QuestCompleted(3619) or (HasQuest(3619) and GetQuestInfo(3619,'step') >= 255)) then 
+		if QuestCompleted(3621) then 
 			local gilCount = GilCount()
 			if (GetAhmAraengSection(pos1) ~= GetAhmAraengSection(pos2)) then
 				if (GetAhmAraengSection(Player.pos) == 2 and GetAhmAraengSection(pos2) == 3) then
@@ -7021,13 +7021,31 @@ function Transport815(pos1,pos2)
 						end
 					end
 				end
+				if (GetAhmAraengSection(Player.pos) == 3 and GetAhmAraengSection(pos2) == 1) then
+					if (CanUseAetheryte(140) and not Player.incombat) and (gilCount > 100) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+								if (Player:Teleport(140)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 140
+									newTask.mapID = 815
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
 			end
 		end
 	end
 		
 	return false			
 end
-
 function Transport818(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -7098,6 +7116,7 @@ function Transport818(pos1,pos2)
 		
 	return false			
 end
+
 function CanFlyInZone()
 	if (Player.flying) then
 		if (Player.flying.canflyinzone) then
