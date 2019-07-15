@@ -269,6 +269,13 @@ ffxiv_map_nav.data = {
 				}
 			},
 		},
+		[842] = {
+			{id = 842, cost = 1, x = 351, y = -26, z = -370, h = 3.13, b = 1029791
+				, requires =  {
+					["GetQuestInfo(3279,'step') > 1 or QuestCompleted(3279)"] = true,
+				}
+			},
+		},
 	},
 	[132] =
 	{
@@ -617,13 +624,6 @@ ffxiv_map_nav.data = {
 		[680] = {
 			{id = 680, cost = 1, x = -357.66, y = 8.00, z = 45.82, h = 1.61, g = 1020442 },
 		},
-        [819] = {
-            {id = 819, cost = 1, x = 802, y = 1, z = 253, h = -1.55, b = 1029807
-                , requires =  {
-                    ["GetQuestInfo(3280,'step') > 1 or QuestCompleted(3280)"] = true, -- fake connection
-                }
-			},
-        },
 	},
 	[134] =
 	{
@@ -1279,7 +1279,7 @@ ffxiv_map_nav.data = {
         [818] = {
             {id = 818, cost = 1, x = -495, y = 8, z = 586, h = -1.61, b = 1027448
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3647)"] = true,
 				},
 			},
         },
@@ -1303,7 +1303,7 @@ ffxiv_map_nav.data = {
         [813] = {
             {id = 813, cost = 1, x = -616, y = 58, z = -675, h = -2.15
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3609)"] = true,
 				},
 			},
         },
@@ -1329,7 +1329,7 @@ ffxiv_map_nav.data = {
         [814] = {
             {id = 814, cost = 1, x = 261, y = 420, z = -885, h = -0.01, g = 2010635
 				, requires = {
-					["QuestCompleted(99999)"] = true,
+					["QuestCompleted(3647)"] = true,
 				},
 			},
         },
@@ -1354,13 +1354,37 @@ ffxiv_map_nav.data = {
 			},
         },
         [844] = {
-            {id = 844, cost = 1, x = 118, y = 14, z = 7, h = -1.61, b = 1027230},
+            {id = 844, cost = 1, x = 118, y = 14, z = 7, h = -1.61, b = 1027230
+				, requires = {
+					["QuestCompleted(3281)"] = true,
+				},
+			},
         },
     },
 	[820] =
     {
         [814] = {
             {id = 814, cost = 1, x = 0, y = -17, z = -160, h = -3.13},
+        },
+    },
+	[842] =
+    {
+        [156] = {
+            {id = 156, cost = 1, x = -72, y = 6, z = 80, h = -0.5, g = 2010599},
+        },
+        [877] = {
+            {id = 877, cost = 1, x = -52, y = 1.5, z = 39, h = 2.9, b = 1029797
+				, requires = {
+					["GetQuestInfo(3279,'step') >= 3 and GetQuestInfo(3279,'step') < 255"] = true,
+				},
+			},
+        },
+        [813] = {
+            {id = 813, cost = 1, x = -52, y = 1.5, z = 39, h = 2.9, b = 1029797
+				, requires = {
+					["GetQuestInfo(3279,'step') >= 255 or QuestCompleted(3279)"] = true,
+				},
+			},
         },
     },
 	[844] =
@@ -1370,6 +1394,16 @@ ffxiv_map_nav.data = {
         },
         [819] = {
             {id = 819, cost = 1, x = 0, y = 1, z = 14, h = -0.00, g = 2009758},
+        },
+    },
+	[877] =
+    {
+        [842] = {
+            {id = 842, cost = 1, x = 176, y = 5, z = 60, h = 2.9, b = 2010609
+				, requires = {
+					["GetQuestInfo(3279,'step') >= 3 or QuestCompleted(3279)"] = true,
+				},
+			},
         },
     },
 }-- set reference for mesh mgr
@@ -1719,14 +1753,14 @@ ffxiv_aetheryte_data = {
 		{id = 814, aethid = 137, x = 668, y = 29, z = 289},
 		{id = 814, aethid = 138, x = -244, y = 20, z = 385},
 		{id = 814, aethid = 139, x = -431, y = 417, z = -618, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3634) end,
 		},
 	},
 	
 	[815] = {
 		{id = 815, aethid = 140, x = 246, y = 13, z = -220},
 		{id = 815, aethid = 141, x = -499, y = 45, z = -210, 
-			requires = function () return QuestCompleted(99999) end,
+			requires = function () return QuestCompleted(3609) end,
 		},
 		{id = 815, aethid = 161, x = 399, y = -24, z = 307},
 	},
