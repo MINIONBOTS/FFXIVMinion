@@ -588,71 +588,68 @@ c_autopotion.ethers = {
 	{ minlevel = 1, item = 4555 },
 }
 c_autopotion.item = nil
+c_autopotion.lastPass = 0
 function c_autopotion:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")
-		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat) 
+		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat or TimeSince(c_autopotion.lastPass) < 1000) 
 	then
 		return false
 	end
 	
+	local findPotions = {}
+	local plvl = Player.level
+	
 	-- Reset tempvar.
 	c_autopotion.item = nil
-	
 	if (Player.alive) then
 		if IsEurekaMap(Player.localmapid) then
 			if (tonumber(gEurekaPotionHP) > 0 and Player.hp.percent < tonumber(gEurekaPotionHP)) then
-				local Eurekapotion, EurekapotionAction = GetItem(22306)
-				if (Eurekapotion and EurekapotionAction and not EurekapotionAction.isoncd) then
-					c_autopotion.item = Eurekapotion
-					return true
-				end
+				table.insert(findPotions,22306)
 			end
 			if gEurekaAntidote and (HasBuff(Player.id,18)) then
-				local EurekaAntidote, EurekaAntidoteAction = GetItem(4564)
-				if (EurekaAntidote and EurekaAntidoteAction and not EurekaAntidoteAction.isoncd) then
-					c_autopotion.item = EurekaAntidote
-					return true
-				end
+				table.insert(findPotions,4564)
 			end
 		else 
 			local potions = c_autopotion.potions
 			if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
-				for k,itempair in pairsByKeys(potions) do
-					if (Player.level >= itempair.minlevel) then
-						local item = GetItem(tonumber(itempair.item))
-						if (item and item:IsReady(Player.id)) then
-							c_autopotion.item = item
-							return true
-						end
-						
-						local hqitem = GetItem(tonumber(itempair.item) + 1000000)
-						if (hqitem and hqitem:IsReady(Player.id)) then
-							c_autopotion.item = hqitem
-							return true
-						end
+				for k,itempair in ipairs(potions) do
+					if (plvl >= itempair.minlevel) then
+						table.insert(findPotions,itempair.item + 1000000)
+						table.insert(findPotions,itempair.item)
 					end
 				end
 			end
 			
 			local ethers = c_autopotion.ethers
 			if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
-				for k,itempair in pairsByKeys(ethers) do
-					if (Player.level >= itempair.minlevel) then
-						local item = GetItem(tonumber(itempair.item))
-						if (item and item:IsReady(Player.id)) then
-							c_autopotion.item = item
-							return true
-						end
-						
-						local hqitem = GetItem(tonumber(itempair.item) + 1000000)
-						if (hqitem and hqitem:IsReady(Player.id)) then
-							c_autopotion.item = hqitem
-							return true
-						end
+				for k,itempair in ipairs(ethers) do
+					if (plvl >= itempair.minlevel) then
+						table.insert(findPotions,itempair.item + 1000000)
+						table.insert(findPotions,itempair.item)
 					end
 				end
 			end
 		end
+	end
+	
+	if (not table.valid(findPotions)) then
+		c_autopotion.lastPass = Now()
+		return false
+	end
+	
+	local potionItems = GetItems(findPotions,{0,1,2,3})
+	if (table.valid(potionItems)) then
+		for prio,itemdata in ipairs(potionItems) do
+			local potion,potionAction = itemdata.item, itemdata.action
+			if (potion and potionAction and not potionAction.isoncd) then
+				c_autopotion.item = potion
+				return true
+			end
+		end
+	else
+		-- Didn't find the items, not likely to acquire them and need them in the next 10 seconds.
+		-- This time could be much longer if not for the fact that the inventory API often fails to properly see all details.
+		c_autopotion.lastPass = Now() + 10000
 	end
 	
 	return false
@@ -662,9 +659,7 @@ function e_autopotion:execute()
 	if (item) then
 		item:Cast(Player.id)
 	end
-	--local newTask = ffxiv_task_useitem.Create()
-	--newTask.itemid = c_autopotion.itemid
-	--ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	c_autopotion.lastPass = (Now() - 500)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -2028,9 +2023,8 @@ end
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
-    if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or 
-		Player.ismounted or IsMounting() or IsDismounting() or
-		IsCompanionSummoned() or InInstance() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
+    if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or InInstance() or Player.ismounted or IsMounting() or IsDismounting() or
+		IsCompanionSummoned() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
 	then
 		--[[
 		d("1:"..tostring(ffxiv_task_quest.noCompanion))
@@ -2276,7 +2270,7 @@ end
 c_eat = inheritsFrom( ml_cause )
 e_eat = inheritsFrom( ml_effect )
 function c_eat:evaluate()
-	if (Busy() or Player.incombat) then
+	if (Player.incombat or Busy()) then
 		return false
 	end
 	
@@ -2597,7 +2591,7 @@ function c_dostealth:evaluate()
 						if (i >= ml_navigation.pathindex) then
 							ml_navigation.TagNode(node)
 							if (node.air or node.air_avoid) then
-								needsMount = true
+								needsMount = truec_autopotion
 							end
 						end
 					end		
