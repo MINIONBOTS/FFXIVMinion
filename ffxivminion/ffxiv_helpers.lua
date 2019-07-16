@@ -6847,7 +6847,7 @@ function Transport814(pos1,pos2)
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
-		if QuestCompleted(3634) then 
+		if (HasQuest(3634) and GetQuestInfo(3634,'step') >= 2) or QuestCompleted(3634) then 
 			local gilCount = GilCount()
 			if (GetKholusiaSection(pos1) ~= GetKholusiaSection(pos2)) then
 				if (GetKholusiaSection(Player.pos) == 1) then
