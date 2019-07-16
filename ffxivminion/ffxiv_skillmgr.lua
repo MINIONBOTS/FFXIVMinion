@@ -3538,6 +3538,10 @@ SkillMgr.MatchingGatherSkills = {
 	["King 2/ Blessed 2"] 		={ [16] = 241, [17] = 224 },
 	["Bountiful"] 				={ [16] = 4073, [17] = 4087 },
 	["Bountiful 2"] 			={ [16] = 272, [17] = 273 },
+	["Stickler"] 				={ [16] = 4593, [17] = 4594 },
+	["The Giving Land"] 		={ [16] = 4589, [17] = 4590 },
+	["Pick Clean"] 				={ [16] = 4587, [17] = 4588 },
+	["Mountaineer / Pioneer"] 	={ [16] = 4605, [17] = 4606 },
 }
 
 function SkillMgr.Gather(item)
