@@ -1374,17 +1374,24 @@ ffxiv_map_nav.data = {
         },
         [877] = {
             {id = 877, cost = 1, x = -52, y = 1.5, z = 39, h = 2.9, b = 1029797
-                , requires = {
-                    ["GetQuestInfo(3279,'step') >= 3 and GetQuestInfo(3279,'step') < 255"] = true,
-                },
-            },
+				, requires = {
+					["HasQuest(3279) and GetQuestInfo(3279,'step') >= 3 and GetQuestInfo(3279,'step') < 255"] = true,
+				},
+			},
+        },
+        [813] = {
+            {id = 813, cost = 1, x = -52, y = 1.5, z = 39, h = 2.9, b = 1029797
+				, requires = {
+					["GetQuestInfo(3279,'step') >= 255 or QuestCompleted(3279) and not QuestCompleted(3281)"] = true,
+				},
+			},
         },
         [844] = {
             {id = 844, cost = 1, x = -52, y = 1.5, z = 39, h = 2.9, b = 1029804
-                , requires = {
-                    ["GetQuestInfo(3279,'step') >= 255 or QuestCompleted(3279)"] = true,
-                },
-            },
+				, requires = {
+					["QuestCompleted(3281)"] = true,
+				},
+			},
         },
     },
 	[844] =
