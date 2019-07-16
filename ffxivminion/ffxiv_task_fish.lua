@@ -1654,7 +1654,7 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (ffxiv_fish.attemptedCasts > 2) then
-				if (table.size(ffxiv_fish.currentTask.attemptedPositions) >= ffxiv_fish.currentTask.maxPositions) then
+				if (table.size(ffxiv_fish.currentTask.attemptedPositions) >= ffxiv_fish.currentTask.maxPositions) or (table.size(ffxiv_fish.currentTask.attemptedPositions) >= 5) then
 					ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 					invalid = true
 				else
