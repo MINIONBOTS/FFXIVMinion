@@ -205,6 +205,18 @@ function MEntityList(elstring)
 	end
 end
 
+function MGetParty()
+	local memString = "MGetParty"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local party = GetParty()
+		SetMemoized(memString,party)
+		return party
+	end
+end
+
 function MGetItem(hqid,includehq,requirehq)
 	local memString = "MGetItem;"..tostring(hqid)..";"..tostring(includehq)..";"..tostring(requirehq)
 	local memoized = GetMemoized(memString)

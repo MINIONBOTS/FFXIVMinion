@@ -6118,13 +6118,13 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				for i,abrev in pairsByKeys(classes) do
 					if (_G["gSkillProfileValid"..abrev] == true) then
-						if (i <= 25) then
+						if (i <= 27) then
 							fighting = true
 							break
-						elseif (i >= 26 and i <= 28) then
+						elseif (i >= 28 and i <= 30) then
 							gathering = true
 							break
-						elseif (i >= 29 and i <= 36) then
+						elseif (i >= 31 and i <= 38) then
 							crafting = true
 							break
 						end

@@ -8147,3 +8147,18 @@ function IsInCombat(includepet,includecompanion)
 	end
 	return false
 end
+function GetParty()
+	local party = IsNull(MEntityList("myparty,alive,maxdistance2d=100"),{})
+	party[Player.id] = Player
+	
+	local npcTeam = MEntityList("alive,chartype=9,targetable,maxdistance2d=100")
+	if (npcTeam) then
+		for i,entity in pairs(npcTeam) do
+			local econt = entity.contentid
+			if (entity.ownerid == Player.id or In(econt,10066,10067,10068,10069,10070,10071,10072,10073)) then
+				party[i] = entity
+			end
+		end
+	end
+	return party
+end

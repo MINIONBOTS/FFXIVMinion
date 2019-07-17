@@ -1826,7 +1826,7 @@ function c_mount:evaluate()
 		end
 	end
 	
-	if (Player.ismounted or Player.incombat) then
+	if (Player.ismounted or Player.incombat or ml_task_hub:CurrentTask().nomount) then
 		return false
 	end
 	
