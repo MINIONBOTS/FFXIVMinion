@@ -2844,7 +2844,7 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 			
 		local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-4),maxattemptlevel)
 		if (dictionary) then
-			if (not ffxiv_craft.dictionaries[craftid] or not not ffxiv_craft.dictionariesDisplay[craftid]) then
+			if (not ffxiv_craft.dictionaries[craftid] or not ffxiv_craft.dictionariesDisplay[craftid]) then
 				ffxiv_craft.dictionaries[craftid] = {}
 				ffxiv_craft.dictionariesDisplay[craftid] = {}
 			end
