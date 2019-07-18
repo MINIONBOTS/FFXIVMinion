@@ -697,6 +697,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(844, "The Ocular", enforce)
 		ml_mesh_mgr.SetDefaultMesh(874, "Duty_3270", true)
 		ml_mesh_mgr.SetDefaultMesh(877, "Lakeland", true)
+		ml_mesh_mgr.SetDefaultMesh(880, "The Crown of the Immaculate", true)
 	end
 	
 	-- General overrides.
