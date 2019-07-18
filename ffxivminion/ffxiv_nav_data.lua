@@ -1416,7 +1416,11 @@ ffxiv_map_nav.data = {
 	[880] =
     {
         [814] = {
-            {id = 814, cost = 1, x = 99, y = 1, z = 119, g = 2010601},
+            {id = 814, cost = 1, x = 99, y = 1, z = 119, g = 2010601
+				, requires = {
+					["QuestCompleted(3643)"] = true,
+				},
+			},
         },
     },
 }-- set reference for mesh mgr
