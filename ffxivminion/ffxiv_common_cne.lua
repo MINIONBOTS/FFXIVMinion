@@ -1740,7 +1740,7 @@ end
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
 c_bettertargetsearch.targetid = 0
-c_bettertargetsearch.throttle = 1000
+--c_bettertargetsearch.throttle = 1000
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
     if (MIsLoading() or MIsLocked() or MIsCasting() or 

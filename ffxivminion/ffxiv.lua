@@ -536,7 +536,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 			
 			-- TODO: This section could potentially cause some FPS drops, need to rework a bit.
-			if (FFXIV_Common_BotRunning) then				
+			if (FFXIV_Common_BotRunning and ml_task_hub:CurrentTask() ~= nil) then				
 				if (gChocoItemString ~= GetString("none")) then
 					if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 						ml_global_information.rootCheckTimer = tickcount
