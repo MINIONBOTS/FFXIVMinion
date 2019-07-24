@@ -390,7 +390,7 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 			ml_global_information.Await(1000, 2000, function () return (IsControlOpen("SelectOk")) end)
 		else
 			--d("Not In Queue")
-			if (UseControlAction("SelectOk","ssdfgsdf",0)) then
+			if (UseControlAction("SelectOk","Yes",0)) then
 				d("Skipping Select Window")
 				ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
 			end
