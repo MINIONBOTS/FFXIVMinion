@@ -174,7 +174,7 @@ function GetMinGP()
 	if (table.valid(task)) then
 		minimumGP = IsNull(task.mingp,0)
 		if task.mingp == "skillProfileDefined" then
-			if SkillMgr.ProfileRaw.mingp ~= nil then
+			if IsNull(SkillMgr.ProfileRaw.mingp,0) ~= 0 then
 				minimumGP = SkillMgr.ProfileRaw.mingp
 				--d("[Gather Information]: Skill profile requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
 				ml_global_information.ShowInformation(GetString("[Information]: Selected skill profile requires at least ["..tostring(minimumGP).."] GP."), 4000)
@@ -1304,7 +1304,7 @@ function ffxiv_gather.CheckBuffs(item)
 		local collectables = task.collectables
 		collectCost = IsNull(task.collectGP,0)
 		if task.collectGP == "skillProfileDefined" then
-			if tonumber(SkillMgr.ProfileRaw.mingp) ~= nil then
+			if tonumber(IsNull(SkillMgr.ProfileRaw.mingp,0)) ~= 0 then
 				collectCost = tonumber(SkillMgr.ProfileRaw.mingp)
 			end
 		end
