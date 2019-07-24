@@ -624,6 +624,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(722, "Duty_2927", true)
 		ml_mesh_mgr.SetDefaultMesh(723, "Duty_2952", true)
 		ml_mesh_mgr.SetDefaultMesh(726, "Duty_2950", true)
+		ml_mesh_mgr.SetDefaultMesh(872, "Duty_3628", true)
+		ml_mesh_mgr.SetDefaultMesh(876, "Duty_3626", true)
 				
 		-- Latty SB
 		ml_mesh_mgr.SetDefaultMesh(249, "Duty_414", true)
