@@ -385,14 +385,16 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 		local QueueMessage = QueueString[ClientLanguage]
 		--d("SelectOKMessage: "..SelectOKMessage)
 		--d("QueueMessage: "..QueueMessage)
-		if string.contains(SelectOKMessage,QueueMessage) == true then
-			d("Waiting In Login Queue...")
-			ml_global_information.Await(1000, 2000, function () return (IsControlOpen("SelectOk")) end)
-		else
-			--d("Not In Queue")
-			if (UseControlAction("SelectOk","Yes",0)) then
-				d("Skipping Select Window")
-				ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
+		if SelectOKMessage ~= "" then
+			if string.contains(SelectOKMessage,QueueMessage) == true then
+				d("Waiting In Login Queue...")
+				ml_global_information.Await(1000, 2000, function () return (IsControlOpen("SelectOk")) end)
+			else
+				--d("Not In Queue")
+				if (UseControlAction("SelectOk","Yes",0)) then
+					d("Skipping Select Window")
+					ml_global_information.Await(500, 1000, function () return (IsControlOpen("SelectOk")) end)
+				end
 			end
 		end
 	end
