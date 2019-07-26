@@ -864,7 +864,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	end
 	
 	if (npc) then
-		el = MEntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
+		el = MEntityList("alive,friendly,targetable,maxdistance="..tostring(range))
 		if ( table.valid(el) ) then
 			for i,entity in pairs(el) do
 				if (IsValidHealTarget(entity) and entity.hp.percent <= hp) then
@@ -3098,10 +3098,13 @@ function IsLoading()
 	elseif (Player.localmapid == 0) then
 		--d("IsLoading [2] - In a transitional map state (mapid 0).")
 		return true
+	elseif (HasBuff(Player.id,1937)) then
+		--d("IsLoading [3] - In event.")
+		return true
 	else
 		local meshState = NavigationManager:GetNavMeshState()
 		if (In(meshState,GLOBAL.MESHSTATE.MESHLOADING,GLOBAL.MESHSTATE.MESHSAVING,GLOBAL.MESHSTATE.MESHBUILDING)) then
-			--d("IsLoading [3]: MESHSTATE ["..tostring(meshState).."]")
+			--d("IsLoading [4]: MESHSTATE ["..tostring(meshState).."]")
 			return true
 		end
 	end
