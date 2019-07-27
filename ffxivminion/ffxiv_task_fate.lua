@@ -771,6 +771,7 @@ function e_add_fatetarget:execute()
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.betterTargetFunction = GetNearestFateAttackable
 	newTask.targetid = c_add_fatetarget.targetid
+	newTask.fateid = ml_task_hub:CurrentTask().fateid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 

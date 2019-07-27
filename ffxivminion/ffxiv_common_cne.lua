@@ -1763,7 +1763,8 @@ function c_bettertargetsearch:evaluate()
 end
 function e_bettertargetsearch:execute()
     ml_task_hub:CurrentTask().targetid = c_bettertargetsearch.targetid
-	Player:SetTarget(c_bettertargetsearch.targetid)      
+	Player:SetTarget(c_bettertargetsearch.targetid)     
+	c_bettertargetsearch.postpone = Now() + 5000
 end
 
 -----------------------------------------------------------------------------------------------
