@@ -149,7 +149,7 @@ SkillMgr.ExtraProfiles = {
 	"Gathering_Scrips",	
 	"Gathering_Shards",	
 	"Custom_Task",
-	"Aetherial_Gathering_SHB"
+	"Aetherial_Gathering_SHB",
 	
 	"[Craft] Leveling",
 	"[Craft] 30+ 1 Skill Complete",
