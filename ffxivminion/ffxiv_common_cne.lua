@@ -1743,7 +1743,7 @@ c_bettertargetsearch.targetid = 0
 --c_bettertargetsearch.throttle = 1000
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
-    if (MIsLoading() or MIsLocked() or MIsCasting() or 
+    if (MIsLoading() or MIsLocked() or
 		(gBotMode == GetString("partyMode") and not IsPartyLeader()) or
 		Now() < c_bettertargetsearch.postpone) 
 	then
@@ -1762,7 +1762,7 @@ function c_bettertargetsearch:evaluate()
 end
 function e_bettertargetsearch:execute()
     ml_task_hub:CurrentTask().targetid = c_bettertargetsearch.targetid
-	Player:SetTarget(c_bettertargetsearch.targetid)        
+	Player:SetTarget(c_bettertargetsearch.targetid)      
 end
 
 -----------------------------------------------------------------------------------------------
