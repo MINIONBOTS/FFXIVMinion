@@ -7531,8 +7531,6 @@ function GetConversationList()
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
-	elseif (IsControlOpen("CutSceneSelectString")) then
-		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7541,6 +7539,23 @@ function GetConversationList()
 			return control:GetData()
 		end
 	end
+	
+	if (IsControlOpen("CutSceneSelectString")) then
+		local control = GetControl("CutSceneSelectString")
+		if (control) then
+			local rawtable = control:GetRawData()
+			local stringtable = {}
+			local indexcount = 0
+			for index, data in pairsByKeys(rawtable) do
+				if (data.type == "string") then
+					stringtable[indexcount] = data.value
+					indexcount = indexcount + 1
+				end
+			end
+			return stringtable
+		end
+	end
+	
 	return nil
 end
 function SelectConversationLine(line)
