@@ -779,33 +779,63 @@ end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
 		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
-			local tea, action = GetItem(19884)
+			-- "Cunning Craftsman's Syrup",
+			local teahq, action = GetItem(1027959)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(27959)
 			if (tea and action and not action.isoncd) then
 				return true, tea
-			end
+			end		
+			-- "Cunning Craftsman's Tea",
 			local teahq, action = GetItem(1019884)
 			if (teahq and action and not action.isoncd) then
 				return true, teahq
 			end
-		end
-		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
-			local tea, action = GetItem(19883)
+			local tea, action = GetItem(19884)
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
+		end
+		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
+			-- "Commanding Craftsman's Syrup",
+			local teahq, action = GetItem(1027958)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(27958)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
+			-- "Commanding Craftsman's Tea",
 			local teahq, action = GetItem(1019883)
 			if (teahq and action and not action.isoncd) then
 				return true, teahq
 			end
-		end
-		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
-			local tea, action = GetItem(19882)
+			local tea, action = GetItem(19883)
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
+		end
+		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
+			-- "Competent Craftsman's Syrup",
+			local teahq, action = GetItem(1027957)
+			if (teahq and action and  not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(27957)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
+			-- "Competent Craftsman's Tea",
 			local teahq, action = GetItem(1019882)
 			if (teahq and action and  not action.isoncd) then
 				return true, teahq
+			end
+			local tea, action = GetItem(19882)
+			if (tea and action and not action.isoncd) then
+				return true, tea
 			end
 		end
 	end
