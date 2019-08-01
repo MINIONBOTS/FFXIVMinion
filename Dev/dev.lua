@@ -428,17 +428,19 @@ function dev.DrawCall(event, ticks )
 												GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
 												GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
 												GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
-												GUI:BulletText("IsGroundTargeted") GUI:SameLine(200) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
-												GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-												GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+												GUI:BulletText("IsGroundTargeted") GUI:SameLine(250) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
+												GUI:BulletText("IsReady(Player)") GUI:SameLine(250) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+												GUI:BulletText("IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+												GUI:BulletText("CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
 												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
 												if (action.type == 13) then
 													GUI:BulletText(".canfly") GUI:SameLine(200) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
 												end												
 												local tar = Player:GetTarget()
 												if ( tar ) then
-													GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
-													GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+													GUI:BulletText("IsReady(Target)") GUI:SameLine(250) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
+													GUI:BulletText("IsFacing(Target)") GUI:SameLine(250) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+													GUI:BulletText("CanCastResult(Target)") GUI:SameLine(250) GUI:InputText("##devac25"..tostring(actionid),tostring(action:CanCastResult(tar.id)))
 												end
 												if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
 												if ( tar ) then
@@ -1911,9 +1913,11 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		local cinfo = c.castinginfo
 		if ( table.size(cinfo) > 0) then
 			GUI:BulletText("(.castinginfo)")
-			GUI:BulletText("Casting ID") GUI:SameLine(200) GUI:InputText("##dev38", tostring(cinfo.castingid))
-			GUI:BulletText("Casting Time") GUI:SameLine(200) GUI:InputText("##dev39", tostring(cinfo.casttime))
-			GUI:BulletText("Casting TargetCount") GUI:SameLine(200) GUI:InputText("##dev40", tostring(cinfo.castingtargetcount))
+			GUI:BulletText("ptr") GUI:SameLine(250) GUI:InputText("##dev38323", string.format( "%X",cinfo.ptr))
+			GUI:BulletText("Casting ID") GUI:SameLine(250) GUI:InputText("##dev38", tostring(cinfo.castingid))
+			GUI:BulletText("Casting Time") GUI:SameLine(250) GUI:InputText("##dev39", tostring(cinfo.casttime))
+			GUI:BulletText("Casting TargetCount") GUI:SameLine(250) GUI:InputText("##dev40", tostring(cinfo.castingtargetcount))
+			GUI:BulletText("Casting Interruptible") GUI:SameLine(250) GUI:InputText("##dev42130", tostring(cinfo.castinginterruptible))
 			if ( GUI:TreeNode("Casting Targets") ) then
 				local ct = cinfo.castingtargets			
 				if ( table.size(ct) > 0) then
@@ -1923,14 +1927,14 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 				end
 				GUI:TreePop()
 			end	
-			GUI:BulletText("Last Cast ID") GUI:SameLine(200) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
-			GUI:BulletText("Time Since Last Cast") GUI:SameLine(200) GUI:InputText("##dev47", tostring(cinfo.timesincecast))
-			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
-			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
-			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))
+			GUI:BulletText("Last Cast ID") GUI:SameLine(250) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
+			GUI:BulletText("Time Since Last Cast") GUI:SameLine(250) GUI:InputText("##dev47", tostring(cinfo.timesincecast))
+			GUI:BulletText("Channeling ID") GUI:SameLine(250) GUI:InputText("##dev42", tostring(cinfo.channelingid))
+			GUI:BulletText("Channeling Target ID") GUI:SameLine(250) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
+			GUI:BulletText("Channeling Time") GUI:SameLine(250) GUI:InputText("##dev44", tostring(cinfo.channeltime))
 			if(isplayer)then
-				GUI:BulletText("ComboTime Remain") GUI:SameLine(200) GUI:InputText("##devp45", tostring(c.combotimeremain))
-				GUI:BulletText("Last Combo ID") GUI:SameLine(200) GUI:InputText("##devp46", tostring(c.lastcomboid))
+				GUI:BulletText("ComboTime Remain") GUI:SameLine(250) GUI:InputText("##devp45", tostring(c.combotimeremain))
+				GUI:BulletText("Last Combo ID") GUI:SameLine(250) GUI:InputText("##devp46", tostring(c.lastcomboid))
 			
 			end
 		end
