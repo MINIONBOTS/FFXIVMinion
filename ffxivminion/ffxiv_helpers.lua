@@ -7855,6 +7855,7 @@ function FindNearestCollectableAppraiser()
 	local gridania = { id = 1003076, aethid = 25, mapid = 133, pos = {x = 143, y = 13, z = -103} }
 	local limsa = { id = 1003632, aethid = 8, mapid = 139, pos = {x = -257, y = 16, z = 40} }
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
+	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
 	
 	if (Player.localmapid == morDhona.mapid) then
 		return morDhona
@@ -7868,9 +7869,11 @@ function FindNearestCollectableAppraiser()
 		return limsa
 	elseif (Player.localmapid == uldah.mapid) then
 		return uldah
+	elseif (Player.localmapid == eulmore.mapid) and gEulmoreCollectables then
+		return eulmore
 	else
-		local hasIdyllshire, hasRhalgr, hasMorDhona = false, false, false
-		local idyllshireCost, rhalgrCost, morDhonaCost = 0, 0, 0
+		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore = false, false, false, false
+		local idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost = 0, 0, 0, 0
 		local gil = GilCount()
 		local attuned = GetAttunedAetheryteList(true)
 		if (table.valid(attuned)) then
@@ -7884,11 +7887,17 @@ function FindNearestCollectableAppraiser()
 				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
 					hasRhalgr = true
 					rhalgrCost = aetheryte.price
+				elseif gEulmoreCollectables and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
+					hasEulmore = true
+					eulmoreCost = aetheryte.price
 				end
-				if (hasIdyllshire and hasMorDhona and hasRhalgr) then
+				if (hasIdyllshire and hasMorDhona and hasRhalgr) or (hasEulmore) then
 					break
 				end
 			end
+		end
+		if hasEulmore then
+			return eulmore
 		end
 		if (hasIdyllshire and hasMorDhona and hasRhalgr) then
 			if (morDhonaCost < rhalgrCost and morDhonaCost < idyllshireCost) then
