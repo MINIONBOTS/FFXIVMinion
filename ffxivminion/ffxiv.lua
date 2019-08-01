@@ -716,8 +716,7 @@ function ffxivminion.SetMainVars()
 	gMountDist = ffxivminion.GetSetting("gMountDist",75)
 	gUseSprint = ffxivminion.GetSetting("gUseSprint",false)
 	gSprintDist = ffxivminion.GetSetting("gSprintDist",50)
-	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
-	FFXIV_Common_SmoothPathing = ffxivminion.GetSetting("FFXIV_Common_SmoothPathing",false)
+	gEulmoreCollectables = ffxivminion.GetSetting("gEulmoreCollectables",false)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	gUseExpManuals = ffxivminion.GetSetting("gUseExpManuals",true)
@@ -1806,15 +1805,9 @@ function ml_global_information.DrawSettings()
 					end
 					
 					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"),gAvoidAOE),"gAvoidAOE");
-					GUI_Capture(GUI:Checkbox(GetString("Random Paths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
-					GUI_Capture(GUI:Checkbox(GetString("Smooth Pathing"),FFXIV_Common_SmoothPathing),"FFXIV_Common_SmoothPathing");
+					GUI_Capture(GUI:Checkbox(GetString("Use Eulmore Scrip Turnins"),gEulmoreCollectables),"gEulmoreCollectables");
 					
 					GUI:Separator();
-					
-					GUI_Capture(GUI:Checkbox(GetString("Auto-set Role Skills. (For leveling new classes Only.)"),gRoleSkillAutoset),"gRoleSkillAutoset");
-						
-					GUI:Separator();
-					
 				end	
 				
 				if (tabindex == 3) then
