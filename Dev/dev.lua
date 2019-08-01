@@ -38,7 +38,7 @@ function dev.Init()
 end
 
 
-RegisterEventHandler("Module.Initalize",dev.Init)
+RegisterEventHandler("Module.Initalize",dev.Init,"dev.Init")
 
 dev.logUiEvent = false
 
@@ -46,7 +46,7 @@ RegisterEventHandler("Game.UIEvent", function(eventName, eventJson)
 	if dev.logUiEvent then
 		d(eventJson)
 	end
-end)
+end, "Game.UIEvent")
 
 function dev.ChatTest()
 	SendTextCommand("/say "..tostring(os.time(os.date('*t'))))
@@ -1799,7 +1799,7 @@ function dev.DrawCall(event, ticks )
 		GUI:End()
 	end
 end
-RegisterEventHandler("Gameloop.Draw", dev.DrawCall)
+RegisterEventHandler("Gameloop.Draw", dev.DrawCall, "dev.DrawCall")
 
 function dev.DrawGameObjectDetails(c,isplayer,ispet) 
 	GUI:PushItemWidth(200)
