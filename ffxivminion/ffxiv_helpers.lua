@@ -3257,7 +3257,7 @@ function ShouldEat()
 			local foodStack = foodEntry.buffstackid
 			--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 			local food, action = GetItem(foodID)
-			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,0,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
+			if (food and action and not action.isoncd and (MissingBuff(Player,48,0,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
 				return true
 			end
 		end
