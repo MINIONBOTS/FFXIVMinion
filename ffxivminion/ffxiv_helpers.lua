@@ -7531,6 +7531,8 @@ function GetConversationList()
 		controlName = "SelectIconString"
 	elseif (IsControlOpen("SelectString")) then
 		controlName = "SelectString"
+	elseif (IsControlOpen("CutSceneSelectString")) then
+		controlName = "CutSceneSelectString"
 	end
 	
 	if (controlName) then
@@ -7540,6 +7542,8 @@ function GetConversationList()
 		end
 	end
 	
+	-- This change breaks the questing profiles that rely on it.
+	--[[
 	if (IsControlOpen("CutSceneSelectString")) then
 		local control = GetControl("CutSceneSelectString")
 		if (control) then
@@ -7555,6 +7559,7 @@ function GetConversationList()
 			return stringtable
 		end
 	end
+	--]]
 	
 	return nil
 end
