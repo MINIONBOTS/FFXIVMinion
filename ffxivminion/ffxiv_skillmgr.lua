@@ -128,8 +128,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.SAMURAI] = "Samurai",
 	[FFXIV.JOBS.REDMAGE] = "Redmage",
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
-	--[FFXIV.JOBS.DANCER] = "Dancer",
-	--[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
+	[FFXIV.JOBS.DANCER] = "Dancer",
+	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
 }
 
 SkillMgr.ExtraProfiles = {
