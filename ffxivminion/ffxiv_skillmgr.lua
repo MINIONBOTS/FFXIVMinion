@@ -6787,6 +6787,13 @@ function SkillMgr.DrawManager()
 				if (GUI:CollapsingHeader("Profile Skills","skills-header")) then
 					local skills = SkillMgr.SkillProfile
 					if (table.valid(skills)) then
+						
+						local doDelete = 0
+						local doPriorityUp = 0
+						local doPriorityDown = 0
+						local doPriorityTop = 0
+						local doPriorityBottom = 0
+						
 						for prio,skill in pairsByKeys(skills) do
 							local alias = IsNull(skill.name,"No Name")
 							if (IsNull(skill.alias,"") ~= "") then
@@ -6836,38 +6843,93 @@ function SkillMgr.DrawManager()
 							GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 							GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 							if (GUI:ImageButton("##skillmgr-manage-prioup-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\w_up.png", 16, 16)) then	
-								if (prio > 1) then
-									local tmp = SkillMgr.SkillProfile[prio-1]
-									SkillMgr.SkillProfile[prio-1] = SkillMgr.SkillProfile[prio]
-									SkillMgr.SkillProfile[prio-1].prio = SkillMgr.SkillProfile[prio-1].prio - 1
-									SkillMgr.SkillProfile[prio] = tmp
-									SkillMgr.SkillProfile[prio].prio = SkillMgr.SkillProfile[prio].prio + 1
-									SkillMgr.SaveProfile()
-								end
+								doPriorityUp = prio
 							end
+							if (GUI:IsItemHovered()) then
+								if (GUI:IsMouseClicked(1)) then
+									doPriorityTop = prio
+								end
+							end							
 							GUI:SameLine(0,5)
 							if (GUI:ImageButton("##skillmgr-manage-priodown-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\w_down.png", 16, 16)) then
-								if (prio < table.size(SkillMgr.SkillProfile)) then
-									local tmp = SkillMgr.SkillProfile[prio+1]
-									SkillMgr.SkillProfile[prio+1] = SkillMgr.SkillProfile[prio]
-									SkillMgr.SkillProfile[prio+1].prio = SkillMgr.SkillProfile[prio+1].prio + 1
-									SkillMgr.SkillProfile[prio] = tmp
-									SkillMgr.SkillProfile[prio].prio = SkillMgr.SkillProfile[prio].prio - 1
-									SkillMgr.SaveProfile()
-								end
+								doPriorityDown = prio
 							end
+							if (GUI:IsItemHovered()) then
+								if (GUI:IsMouseClicked(1)) then
+									doPriorityBottom = prio
+								end
+							end	
 							GUI:SameLine(0,5)
 							if (GUI:ImageButton("##skillmgr-manage-delete-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
-								SkillMgr.SkillProfile = TableRemoveSort(SkillMgr.SkillProfile,prio)
-								for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-									if (skill.prio ~= prio) then
-										SkillMgr.SkillProfile[prio].prio = prio
-									end
-								end
-								SkillMgr.SaveProfile()
+								doDelete = prio
 							end
 							
 							GUI:PopStyleColor(2)
+						end
+					
+					
+						if (doPriorityUp ~= 0 and doPriorityUp ~= 1) then
+							local currentPos = doPriorityUp
+							local newPos = doPriorityUp - 1
+							
+							local temp = SkillMgr.SkillProfile[newPos]
+							SkillMgr.SkillProfile[newPos] = SkillMgr.SkillProfile[currentPos]
+							SkillMgr.SkillProfile[currentPos] = temp	
+							
+							SkillMgr.SaveProfile()
+						end
+						
+						if (doPriorityTop ~= 0 and doPriorityTop ~= 1) then
+							local currentPos = doPriorityTop
+							local newPos = doPriorityTop
+							
+							while currentPos > 1 do
+								local temp = SkillMgr.SkillProfile[newPos]
+								SkillMgr.SkillProfile[newPos] = SkillMgr.SkillProfile[currentPos]
+								SkillMgr.SkillProfile[currentPos] = temp	
+								currentPos = newPos
+								newPos = newPos - 1
+							end
+							
+							SkillMgr.SaveProfile()
+						end
+						
+						if (doPriorityDown ~= 0 and doPriorityDown < TableSize(SkillMgr.SkillProfile)) then
+							local currentPos = doPriorityDown
+							local newPos = doPriorityDown + 1
+							
+							local temp = SkillMgr.SkillProfile[newPos]
+							SkillMgr.SkillProfile[newPos] = SkillMgr.SkillProfile[currentPos]
+							SkillMgr.SkillProfile[currentPos] = temp
+							
+							SkillMgr.SaveProfile()
+						end
+						
+						local profSize = TableSize(SkillMgr.SkillProfile)
+						if (doPriorityBottom ~= 0 and doPriorityBottom < profSize) then
+						
+							local currentPos = doPriorityBottom
+							local newPos = doPriorityBottom + 1
+							
+							while currentPos < profSize do
+								local temp = SkillMgr.SkillProfile[newPos]
+								SkillMgr.SkillProfile[newPos] = SkillMgr.SkillProfile[currentPos]
+								SkillMgr.SkillProfile[currentPos] = temp	
+								currentPos = newPos
+								newPos = newPos + 1
+							end
+							
+							SkillMgr.SaveProfile()
+						end
+						
+						if (doDelete ~= 0) then
+							SkillMgr.SkillProfile = TableRemoveSort(SkillMgr.SkillProfile,doDelete)
+							for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
+								if (skill.prio ~= prio) then
+									SkillMgr.SkillProfile[prio].prio = prio
+								end
+							end
+							SkillMgr.SaveProfile()
 						end
 					end
 				end

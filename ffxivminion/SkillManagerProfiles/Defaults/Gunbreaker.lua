@@ -161,6 +161,13 @@ local obj1 = {
 			["prio"] = 13;
 		};
 		[14] = {
+			["id"] = 16143;
+			["levelmin"] = 15;
+			["maxRange"] = 15;
+			["name"] = "Lightning Shot";
+			["prio"] = 20;
+		};
+		[15] = {
 			["gauge1gt"] = 1;
 			["gcd"] = "True";
 			["gcdtime"] = 1;
@@ -171,57 +178,52 @@ local obj1 = {
 			["prio"] = 14;
 			["trg"] = "Player";
 		};
-		[15] = {
-			["gcd"] = "True";
-			["id"] = 17716;
-			["maxRange"] = 15;
-			["name"] = "Rough Divide";
-			["prio"] = 15;
-		};
 		[16] = {
-			["id"] = 17717;
-			["maxRange"] = 15;
-			["name"] = "Lightning Shot";
-			["prio"] = 16;
-		};
-		[17] = {
 			["id"] = 16159;
 			["levelmin"] = 62;
 			["maxRange"] = 0;
 			["name"] = "Bow Shock";
-			["prio"] = 17;
+			["prio"] = 15;
 			["skncdtimemin"] = 10;
 			["sknoffcd"] = "16138";
 			["tarange"] = 5;
 			["terange"] = 5;
 			["trg"] = "Player";
 		};
-		[18] = {
+		[17] = {
 			["id"] = 16144;
 			["levelmin"] = 18;
 			["maxRange"] = 3;
 			["name"] = "Blasting Zone";
-			["prio"] = 18;
+			["prio"] = 16;
 			["skncdtimemin"] = 10;
 			["sknoffcd"] = "16138";
 		};
-		[19] = {
+		[18] = {
 			["id"] = 16165;
 			["levelmin"] = 80;
 			["maxRange"] = 3;
 			["name"] = "Blasting Zone";
-			["prio"] = 19;
+			["prio"] = 17;
 			["skncdtimemin"] = 10;
 			["sknoffcd"] = "16138";
 		};
-		[20] = {
+		[19] = {
 			["gauge1or"] = "0,0";
 			["gcdtime"] = 1;
 			["id"] = 16164;
 			["levelmin"] = 76;
 			["maxRange"] = 25;
 			["name"] = "Bloodfest";
-			["prio"] = 20;
+			["prio"] = 18;
+		};
+		[20] = {
+			["gcd"] = "False";
+			["id"] = 16154;
+			["levelmin"] = 56;
+			["maxRange"] = 15;
+			["name"] = "Rough Divide";
+			["prio"] = 19;
 		};
 	};
 	["version"] = 3;
