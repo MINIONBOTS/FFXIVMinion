@@ -300,6 +300,7 @@ local obj1 = {
 		};
 		[18] = {
 			["id"] = 16516;
+			["levelmin"] = 80;
 			["maxRange"] = 25;
 			["name"] = "Enkindle Phoenix";
 			["prio"] = 18;
@@ -511,7 +512,7 @@ local obj1 = {
 			["playerlevelmin"] = 30;
 			["pmppl"] = 20;
 			["prio"] = 35;
-			["secspassed"] = 1;
+			["secspassed"] = 3;
 			["trg"] = "Pet";
 		};
 		[36] = {
@@ -533,7 +534,7 @@ local obj1 = {
 			["playerlevelmin"] = 15;
 			["pmppl"] = 20;
 			["prio"] = 36;
-			["secspassed"] = 1;
+			["secspassed"] = 3;
 			["trg"] = "Pet";
 		};
 		[37] = {
@@ -554,7 +555,7 @@ local obj1 = {
 			["playerlevelmin"] = 4;
 			["pmppl"] = 20;
 			["prio"] = 37;
-			["secspassed"] = 1;
+			["secspassed"] = 3;
 			["trg"] = "Pet";
 		};
 		[38] = {
