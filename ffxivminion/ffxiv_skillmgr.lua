@@ -106,8 +106,8 @@ if (GetGameRegion() == 1) then
 		[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
 		[FFXIV.JOBS.MARAUDER] = "Warrior",
 		[FFXIV.JOBS.WARRIOR] = "Warrior",
-		[FFXIV.JOBS.PUGILIST] = "Monk",
-		[FFXIV.JOBS.MONK] = "Monk",
+		[FFXIV.JOBS.PUGILIST] = "Monk", -- works for SHB
+		[FFXIV.JOBS.MONK] = "Monk", -- works for SHB
 		[FFXIV.JOBS.LANCER] = "Dragoon_SHB",
 		[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB",
 		[FFXIV.JOBS.ARCHER] = "Bard_SHB",
