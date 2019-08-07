@@ -121,12 +121,12 @@ if (GetGameRegion() == 1) then
 		[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB",
 		[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
 		[FFXIV.JOBS.MINER] = "Gathering_Leveling",
-		[FFXIV.JOBS.ROGUE] = "Rogue",
-		[FFXIV.JOBS.NINJA] = "Ninja",
+		[FFXIV.JOBS.ROGUE] = "Rogue",-- works for SHB
+		[FFXIV.JOBS.NINJA] = "Ninja",-- works for SHB
 		[FFXIV.JOBS.MACHINIST] = "Machinist_SHB",
 		[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB",
 		[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB",
-		[FFXIV.JOBS.SAMURAI] = "Samurai",
+		[FFXIV.JOBS.SAMURAI] = "Samurai_SHB",
 		[FFXIV.JOBS.REDMAGE] = "Redmage_SHB",
 		[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
 		[FFXIV.JOBS.DANCER] = "Dancer",
