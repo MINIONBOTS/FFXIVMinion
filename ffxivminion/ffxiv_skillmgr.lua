@@ -104,8 +104,8 @@ if (GetGameRegion() == 1) then
 	SkillMgr.StartingProfiles = {
 		[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB",
 		[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
-		[FFXIV.JOBS.MARAUDER] = "Warrior",
-		[FFXIV.JOBS.WARRIOR] = "Warrior",
+		[FFXIV.JOBS.MARAUDER] = "Warrior_SHB",
+		[FFXIV.JOBS.WARRIOR] = "Warrior_SHB",
 		[FFXIV.JOBS.PUGILIST] = "Monk", -- works for SHB
 		[FFXIV.JOBS.MONK] = "Monk", -- works for SHB
 		[FFXIV.JOBS.LANCER] = "Dragoon_SHB",
