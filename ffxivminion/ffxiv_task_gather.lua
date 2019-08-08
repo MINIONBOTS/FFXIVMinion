@@ -904,6 +904,10 @@ function e_gather:execute()
 							attemptGather = true
 						elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
 							attemptGather = true
+						elseif (gatherMaps == "Gliderskin Only" and item.id == 26744) then
+							attemptGather = true
+						elseif (gatherMaps == "Zonureskin Only" and item.id == 26745) then
+							attemptGather = true
 						end
 					
 						if (attemptGather) then
