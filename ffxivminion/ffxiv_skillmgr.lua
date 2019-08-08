@@ -884,6 +884,8 @@ function SkillMgr.ModuleInit()
 	for varname,info in pairs(SkillMgr.Variables) do
 		_G[varname] = info.default
 	end
+	
+
 
 	local uuid = GetUUID()
 	if (Settings.FFXIVMINION.gSMDefaultProfiles == nil) then
@@ -892,93 +894,79 @@ function SkillMgr.ModuleInit()
 	if (Settings.FFXIVMINION.gSMDefaultProfiles[uuid] == nil) then
 		Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = {}
 		Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
-	end
-	
+	end	
+
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
-	
-	if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Warrior"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Dragoon"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Bard"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Whitemage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Blackmage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.MONK] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MONK] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.MONK] = "Monk"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.BARD] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BARD] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "Whitemage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Blackmage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Summoner"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.ROGUE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ROGUE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.NINJA] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] = "Samurai"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] = "Redmage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.BLUEMAGE] = "BlueMage"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.MINER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MINER] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.MINER] = "Gathering_Leveling"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.BOTANIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BOTANIST] == "None") then
-		gSMDefaultProfiles[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling"
-	end
-	if (gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
-		gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"
+	gSMProfileUpdates = ffxivminion.GetSetting("gSMProfileUpdates",0)
+
+	if (GetGameRegion() == 1) and gSMProfileUpdates < 20190808 then
+		if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == "Paladin") then
+			gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == "Warrior") then
+			gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Warrior_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == "Dragoon") then
+			gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Dragoon_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == "Bard") then
+			gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Bard_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == "Whitemage") then
+			gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Whitemage_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == "Blackmage") then
+			gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Blackmage_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == "Paladin") then
+			gSMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] == "Warrior") then
+			gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] == "Dragoon") then
+			gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.BARD] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BARD] == "Bard") then
+			gSMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == "Whitemage") then
+			gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "Whitemage_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == "Blackmage") then
+			gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Blackmage_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == "Summoner") then
+			gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Summoner_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == "Summoner") then
+			gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == "Scholar") then
+			gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == "DarkKnight") then
+			gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == "Machinist") then
+			gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == "Astrologian") then
+			gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] == "Samurai") then
+			gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] = "Samurai_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] == "Redmage") then
+			gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] = "Redmage_SHB"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.DANCER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.DANCER] == "None") then
+			gSMDefaultProfiles[FFXIV.JOBS.DANCER] = "Dancer"
+		end
+		if (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == "None") then
+			gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
+		end
+		Settings.FFXIVMINION.gSMProfileUpdates = 20190808
 	end
 	
 	gSkillManagerQueueing = ffxivminion.GetSetting("gSkillManagerQueueing",false)
