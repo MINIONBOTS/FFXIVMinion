@@ -7874,7 +7874,7 @@ function FindNearestCollectableAppraiser()
 		return limsa
 	elseif (Player.localmapid == uldah.mapid) then
 		return uldah
-	elseif (Player.localmapid == eulmore.mapid) and gEulmoreCollectables then
+	elseif (Player.localmapid == eulmore.mapid) and QuestCompleted(3603) then
 		return eulmore
 	else
 		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore = false, false, false, false
@@ -7892,7 +7892,7 @@ function FindNearestCollectableAppraiser()
 				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
 					hasRhalgr = true
 					rhalgrCost = aetheryte.price
-				elseif gEulmoreCollectables and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
+				elseif QuestCompleted(3603) and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
 					hasEulmore = true
 					eulmoreCost = aetheryte.price
 				end
