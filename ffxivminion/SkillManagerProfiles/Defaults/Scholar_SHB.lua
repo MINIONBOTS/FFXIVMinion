@@ -791,6 +791,20 @@ local obj1 = {
 		[48] = {
 			["condition"] = "";
 			["filterthree"] = "Off";
+			["id"] = 7435;
+			["levelmin"] = 64;
+			["maxRange"] = 25;
+			["name"] = "Broil II";
+			["ncurrentaction"] = "150";
+			["npskill"] = "150";
+			["onlyparty"] = true;
+			["playerlevelmin"] = 54;
+			["pmppl"] = 30;
+			["prio"] = 62;
+		};
+		[49] = {
+			["condition"] = "";
+			["filterthree"] = "Off";
 			["gcdtime"] = 0.5;
 			["id"] = 3584;
 			["levelmin"] = 54;
@@ -803,7 +817,7 @@ local obj1 = {
 			["pmppl"] = 30;
 			["prio"] = 48;
 		};
-		[49] = {
+		[50] = {
 			["filterthree"] = "Off";
 			["gcdtime"] = 0.5;
 			["id"] = 163;
@@ -815,7 +829,7 @@ local obj1 = {
 			["pmppl"] = 20;
 			["prio"] = 49;
 		};
-		[50] = {
+		[51] = {
 			["condition"] = "";
 			["filterthree"] = "Off";
 			["gcd"] = "True";
@@ -830,7 +844,7 @@ local obj1 = {
 			["pmppl"] = 20;
 			["prio"] = 50;
 		};
-		[51] = {
+		[52] = {
 			["alias"] = "----- Solo -----";
 			["gcdtime"] = 0.5;
 			["maxRange"] = 0;
@@ -841,7 +855,7 @@ local obj1 = {
 			["type"] = 11;
 			["used"] = false;
 		};
-		[52] = {
+		[53] = {
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 17865;
@@ -858,7 +872,7 @@ local obj1 = {
 			["tnbuff"] = "189";
 			["tnbuffdura"] = 6;
 		};
-		[53] = {
+		[54] = {
 			["condition"] = "";
 			["dobuff"] = true;
 			["gcdtime"] = 0.5;
@@ -876,7 +890,7 @@ local obj1 = {
 			["tnbuff"] = "179";
 			["tnbuffdura"] = 3;
 		};
-		[54] = {
+		[55] = {
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 16541;
@@ -890,7 +904,19 @@ local obj1 = {
 			["pmppl"] = 30;
 			["prio"] = 54;
 		};
-		[55] = {
+		[56] = {
+			["id"] = 7435;
+			["levelmin"] = 64;
+			["maxRange"] = 25;
+			["name"] = "Broil II";
+			["ncurrentaction"] = "150";
+			["npskill"] = "150";
+			["partysizelt"] = 2;
+			["playerlevelmin"] = 54;
+			["pmppl"] = 30;
+			["prio"] = 63;
+		};
+		[57] = {
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 3584;
@@ -904,7 +930,7 @@ local obj1 = {
 			["pmppl"] = 30;
 			["prio"] = 55;
 		};
-		[56] = {
+		[58] = {
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 17869;
@@ -918,7 +944,7 @@ local obj1 = {
 			["pmppl"] = 20;
 			["prio"] = 56;
 		};
-		[57] = {
+		[59] = {
 			["condition"] = "";
 			["gcd"] = "True";
 			["gcdtime"] = 0.5;
@@ -932,7 +958,7 @@ local obj1 = {
 			["pmppl"] = 20;
 			["prio"] = 57;
 		};
-		[58] = {
+		[60] = {
 			["combat"] = "Out of Combat";
 			["condition"] = "";
 			["filterone"] = "Off";
@@ -952,7 +978,7 @@ local obj1 = {
 			["terange"] = 15;
 			["trg"] = "Pet";
 		};
-		[59] = {
+		[61] = {
 			["combat"] = "Out of Combat";
 			["condition"] = "";
 			["dobuff"] = true;
@@ -971,7 +997,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 			["trg"] = "Pet";
 		};
-		[60] = {
+		[62] = {
 			["combat"] = "Out of Combat";
 			["condition"] = "";
 			["gcdtime"] = 0.5;
@@ -989,7 +1015,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 			["trg"] = "Pet";
 		};
-		[61] = {
+		[63] = {
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 163;
