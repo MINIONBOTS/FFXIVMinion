@@ -45,6 +45,7 @@ function ffxiv_task_gather.Create()
 	
 	ffxiv_gather.currentTask = {}
 	ffxiv_gather.currentTaskIndex = 0
+	newinst.randomDelayCompleted = false
 	
 	newinst.pos = Player.pos
     newinst.gatherTimer = 0
@@ -758,6 +759,9 @@ function c_gather:evaluate()
     return false
 end
 function e_gather:execute()	
+
+	ml_task_hub:ThisTask().randomDelayCompleted = false
+
 	if (Player.action ~= 264 and Player.action ~= 256 and not ActionList:IsReady()) then
 		ml_task_hub:CurrentTask().idleTimer = Now()
 		ml_debug("Gathering ability is not ready yet.")
@@ -3437,6 +3441,26 @@ end
 function e_resettask:execute()
 	c_gathernexttask:evaluate()
 end
+
+c_gatherrandomdelay = inheritsFrom( ml_cause )
+e_gatherrandomdelay = inheritsFrom( ml_effect )
+function c_gatherrandomdelay:evaluate()
+	
+	if (not ml_task_hub:ThisTask().randomDelayCompleted) then
+d("begin random delay")
+		return true
+	end
+    
+    return false
+end
+function e_gatherrandomdelay:execute()
+	local minWait = 1 * 500
+	local maxWait = 5 * 1000
+	local waitTime = math.random(minWait,maxWait)
+d("delay time = "..tostring(waitTime/1000).." seconds")
+	ml_global_information.Await(waitTime)
+	ml_task_hub:ThisTask().randomDelayCompleted = true
+end
 function ffxiv_task_gather:Init()
 	--[[ Overwatch Elements ]]
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 150 )
@@ -3445,6 +3469,9 @@ function ffxiv_task_gather:Init()
 	local ke_flee = ml_element:create( "Flee", c_gatherflee, e_gatherflee, 140 )
     self:add( ke_flee, self.overwatch_elements)
 	
+	local ke_gatherrandomDelay = ml_element:create( "RandomFateDelay", c_gatherrandomdelay, e_gatherrandomdelay, 80 )
+    self:add( ke_gatherrandomDelay, self.process_elements)
+
 	--local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
     --self:add( ke_avoidAggressives, self.overwatch_elements)
 	
