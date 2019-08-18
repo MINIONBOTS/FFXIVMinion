@@ -899,7 +899,7 @@ function SkillMgr.ModuleInit()
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	gSMProfileUpdates = ffxivminion.GetSetting("gSMProfileUpdates",0)
 
-	if (GetGameRegion() == 1) and gSMProfileUpdates < 20190808 then
+	if (GetGameRegion() == 1) and gSMProfileUpdates < 20190818 then
 		if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == "Paladin") then
 			gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB"
 		end
@@ -966,7 +966,7 @@ function SkillMgr.ModuleInit()
 		if (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] == "None") then
 			gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
 		end
-		Settings.FFXIVMINION.gSMProfileUpdates = 20190808
+		Settings.FFXIVMINION.gSMProfileUpdates = 20190818
 	end
 	
 	gSkillManagerQueueing = ffxivminion.GetSetting("gSkillManagerQueueing",false)

@@ -516,6 +516,7 @@ local obj1 = {
 			["prio"] = 41;
 		};
 	};
+	["update"] = 20190818;
 	["version"] = 3;
 }
 return obj1
