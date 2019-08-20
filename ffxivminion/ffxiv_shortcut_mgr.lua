@@ -31,7 +31,7 @@ sck.hotkeys = {
 				if (table.valid(gameCoords)) then
 					local y1 = Player.pos.y + 100
 					local y2 = Player.pos.y - 100
-					
+
 					local moved = false
 					for i = y1, y1-500, -1 do
 						local trypos = {x = gameCoords.x, y = i, z = gameCoords.z}
@@ -43,11 +43,11 @@ sck.hotkeys = {
 							return true
 						end
 					end
-					
+
 					for i = y2, y2+500, 1 do
 						local trypos = {x = gameCoords.x, y = i, z = gameCoords.z}
 						local p = NavigationManager:GetClosestPointOnMesh(trypos)
-						if (table.valid(p)) then	
+						if (table.valid(p)) then
 							d("2: found meshpos")
 							table.print(p)
 							Player:MoveTo(p.x,p.y,p.z)
@@ -60,7 +60,7 @@ sck.hotkeys = {
 	},
 	{
 		label = "Click-to-Teleport", mod1 = "SCK_ClickTeleport_Mod1", mod2 = "SCK_ClickTeleport_Mod2", key = "SCK_ClickTeleport_Mod3", mouse = "SCK_ClickTeleport_Mouse",
-		event = function ()				
+		event = function ()
 			if (Player:IsMoving()) then
 				Player:Stop()
 				ml_global_information.Await(1500, function () return not Player:IsMoving() end)
@@ -69,7 +69,7 @@ sck.hotkeys = {
 				if (table.valid(gameCoords)) then
 					local y1 = Player.pos.y + 100
 					local y2 = Player.pos.y - 100
-					
+
 					local moved = false
 					for i = y1, y1-500, -1 do
 						local trypos = {x = gameCoords.x, y = i, z = gameCoords.z}
@@ -81,11 +81,11 @@ sck.hotkeys = {
 							return true
 						end
 					end
-					
+
 					for i = y2, y2+500, 1 do
 						local trypos = {x = gameCoords.x, y = i, z = gameCoords.z}
 						local p = NavigationManager:GetClosestPointOnMesh(trypos)
-						if (table.valid(p)) then	
+						if (table.valid(p)) then
 							d("2: found meshpos")
 							table.print(p)
 							Hacks:TeleportToXYZ(p.x,p.y,p.z,true)
@@ -98,42 +98,42 @@ sck.hotkeys = {
 	},
 	{
 		label = "SKM Filter 1", mod1 = "SCK_Filter1_Mod1", mod2 = "SCK_Filter1_Mod2", key = "SCK_Filter1_Key", mouse = "SCK_Filter1_Mouse",
-		event = function () 
+		event = function ()
 			gAssistFilter1 = not gAssistFilter1
 			Settings.FFXIVMINION.gAssistFilter1 = gAssistFilter1
 		end
 	},
 	{
 		label = "SKM Filter 2", mod1 = "SCK_Filter2_Mod1", mod2 = "SCK_Filter2_Mod2", key = "SCK_Filter2_Key", mouse = "SCK_Filter2_Mouse",
-		event = function () 
+		event = function ()
 			gAssistFilter2 = not gAssistFilter2
 			Settings.FFXIVMINION.gAssistFilter2 = gAssistFilter2
 		end
 	},
 	{
 		label = "SKM Filter 3", mod1 = "SCK_Filter3_Mod1", mod2 = "SCK_Filter3_Mod2", key = "SCK_Filter3_Key", mouse = "SCK_Filter3_Mouse",
-		event = function () 
+		event = function ()
 			gAssistFilter3 = not gAssistFilter3
 			Settings.FFXIVMINION.gAssistFilter3 = gAssistFilter3
 		end
 	},
 	{
 		label = "SKM Filter 4", mod1 = "SCK_Filter4_Mod1", mod2 = "SCK_Filter4_Mod2", key = "SCK_Filter4_Key", mouse = "SCK_Filter4_Mouse",
-		event = function () 
+		event = function ()
 			gAssistFilter4 = not gAssistFilter4
 			Settings.FFXIVMINION.gAssistFilter4 = gAssistFilter4
 		end
 	},
 	{
 		label = "SKM Filter 5", mod1 = "SCK_Filter5_Mod1", mod2 = "SCK_Filter5_Mod2", key = "SCK_Filter5_Key", mouse = "SCK_Filter5_Mouse",
-		event = function () 
+		event = function ()
 			gAssistFilter5 = not gAssistFilter5
 			Settings.FFXIVMINION.gAssistFilter5 = gAssistFilter5
 		end
 	},
 	{
 		label = "Tank Assist Toggle", mod1 = "SCK_Tank_Mod1", mod2 = "SCK_Tank_Mod2", key = "SCK_Tank_Mod3", mouse = "SCK_Tank_Mouse",
-		event = function ()				
+		event = function ()
 			if FFXIV_Assist_Mode == GetString("none") then
 				FFXIV_Assist_Mode = GetString("tankAssist")
 				FFXIV_Assist_ModeIndex = 5
@@ -155,14 +155,14 @@ for i,shortcut in pairsByKeys(sck.hotkeys) do
 end
 
 
-function sck.ModuleInit() 	
+function sck.ModuleInit()
 	for _,hotkey in pairsByKeys(sck.hotkeys) do
 		_G[hotkey.mod1] = ffxivminion.GetSetting(hotkey.mod1,1)
 		_G[hotkey.mod2] = ffxivminion.GetSetting(hotkey.mod2,1)
 		_G[hotkey.key] = ffxivminion.GetSetting(hotkey.key,1)
 		_G[hotkey.mouse] = ffxivminion.GetSetting(hotkey.mouse,0)
 	end
-	
+
 	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SHORTCUTS", name = "Shortcuts", onClick = function() sck.GUI.open = not sck.GUI.open end, tooltip = "Open the Shortcut Manager."},"FFXIVMINION##MENU_HEADER")
 end
 
@@ -176,20 +176,20 @@ function sck.AddShortcuts(shortcuts)
 end
 
 function sck.DrawCall( event, ticks )
-	
+
 	local gamestate;
 	if (GetGameState and GetGameState()) then
 		gamestate = GetGameState()
 	else
 		gamestate = 3
 	end
-	
+
 	-- Switch according to the gamestate
-	if (sck.GUI.open) then	
-		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
+	if (sck.GUI.open) then
+		GUI:SetNextWindowPosCenter(GUI.SetCond_Once)
 		GUI:SetNextWindowSize(500,300,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever
 		sck.GUI.visible, sck.GUI.open = GUI:Begin(sck.GUI.name, sck.GUI.open)
-		if ( sck.GUI.visible ) then 
+		if ( sck.GUI.visible ) then
 			for _,hotkey in pairsByKeys(sck.hotkeys) do
 				GUI:Text(hotkey.label)
 				sck.DrawModKey("##"..hotkey.label.."-hotkeys-mod1",hotkey.mod1); GUI:SameLine();
@@ -202,26 +202,26 @@ function sck.DrawCall( event, ticks )
 	end
 
 	local shiftPressed, controlPressed = GUI:IsKeyDown(16), GUI:IsKeyDown(17)
-	
+
 	local doThrottle = false
 	for _,hotkey in pairsByKeys(sck.hotkeys) do
 		local mod1var = _G[hotkey.mod1]
 		local mod2var = _G[hotkey.mod2]
 		local keyvar = _G[hotkey.key]
 		local mousevar = _G[hotkey.mouse]
-		
+
 		local stop = false
-		
+
 		local key,mouse = nil,nil;
 		if (keyvar ~= 1) then key = sck.ClicksMap[keyvar] end
 		if (mousevar ~= 0) then mouse = sck.MouseClicksMap[mousevar] end
-		
+
 		if ((key ~= nil and GUI:IsKeyPressed(key)) or (mouse ~= nil and GUI:IsMouseClicked(mouse) and not GUI:IsMouseDragging(mouse))) then
-			if (ticks > sck.hotkeyThrottle) then	
-				
+			if (ticks > sck.hotkeyThrottle) then
+
 				local mod1 = sck.ModifierClicksMap[mod1var]
 				local mod2 = sck.ModifierClicksMap[mod2var]
-			
+
 				local doEvent = true
 				if (shiftPressed and mod1 ~= 16 and mod2 ~= 16) or
 					(not shiftPressed and (mod1 == 16 or mod2 == 16)) then
@@ -231,7 +231,7 @@ function sck.DrawCall( event, ticks )
 					(not controlPressed and (mod1 == 17 or mod2 == 17)) then
 					doEvent = false
 				end
-				
+
 				if (doEvent) then
 					if (hotkey.event ~= nil and type(hotkey.event) == "function") then
 						local ret = hotkey.event()
@@ -243,8 +243,8 @@ function sck.DrawCall( event, ticks )
 				end
 			end
 		end
-		if (stop) then 
-			break 
+		if (stop) then
+			break
 		end
 	end
 	if (doThrottle) then
@@ -286,7 +286,7 @@ function sck.CreateDisplayMap(boxtable)
 	local display = {}
 	local map = {}
 	local i = 1
-	
+
 	if (ValidTable(boxtable)) then
 		for k,v in pairsByKeys(boxtable) do
 			display[i] = v
@@ -294,7 +294,7 @@ function sck.CreateDisplayMap(boxtable)
 			i = i + 1
 		end
 	end
-	
+
 	return display,map
 end
 
@@ -312,7 +312,7 @@ sck.MouseClicksDisplay = {
 	[0] = "None",
 	[1] = "Left Button",
 	[2] = "Right Button",
-	[3] = "Middle Button",	
+	[3] = "Middle Button",
 	[4] = "Middle Mouse",
 	[5] = "Mouse 4",
 	[6] = "Mouse 5",
