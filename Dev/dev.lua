@@ -1497,10 +1497,11 @@ function dev.DrawCall(event, ticks )
 						end
 						GUI:Separator()
 						if (dev.questid == nil) then dev.questid = 122 end
-						GUI:BulletText("Enter Quest ID") GUI:SameLine(200) dev.questid = GUI:InputText("##devql3",dev.questid)
-						GUI:BulletText("HasQuest") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:HasQuest(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
-						GUI:BulletText("GetQuestCurrentStep") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:GetQuestCurrentStep(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
-						GUI:BulletText("IsQuestCompleted") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:IsQuestCompleted(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("Enter Quest ID") GUI:SameLine(200) dev.questid = GUI:InputText("##devq20",dev.questid)
+						GUI:BulletText("HasQuest") GUI:SameLine(200) GUI:InputText("##devq20"..tostring(id),tostring(Quest:HasQuest(tonumber(dev.questid),false)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("GetQuestCurrentStep") GUI:SameLine(200) GUI:InputText("##devq20"..tostring(id),tostring(Quest:GetQuestCurrentStep(tonumber(dev.questid),false)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("IsQuestCompleted") GUI:SameLine(200) GUI:InputText("##devq20"..tostring(id),tostring(Quest:IsQuestCompleted(tonumber(dev.questid),false)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("Allowance") GUI:SameLine(200) GUI:InputText("##devq20"..tostring(id),tostring(Quest:GetQuestAllowance()),GUI.InputTextFlags_ReadOnly)
 						
 					else
 						GUI:Text("Duty Finder Not Open...")
@@ -1512,7 +1513,55 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END QUEST LIST
-			
+			if ( GUI:TreeNode("Leve List")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local qList = Quest:GetLeveList()
+					if (table.valid(qList)) then
+						for id, e in pairsByKeys(qList) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then							
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devql0"..tostring(id),tostring(e.id))
+								GUI:BulletText(".step") GUI:SameLine(200) GUI:InputText("##devql1"..tostring(id),tostring(e.step))
+								GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##devll2"..tostring(id),tostring(e.completed))
+								GUI:BulletText(".I8A") GUI:SameLine(200) GUI:InputText("##devll3"..tostring(id),tostring(e.I8A))
+								GUI:BulletText(".I8B") GUI:SameLine(200) GUI:InputText("##devll4"..tostring(id),tostring(e.I8B))
+								GUI:BulletText(".I8C") GUI:SameLine(200) GUI:InputText("##devll5"..tostring(id),tostring(e.I8C))
+								GUI:BulletText(".I8D") GUI:SameLine(200) GUI:InputText("##devll6"..tostring(id),tostring(e.I8D))
+								GUI:BulletText(".I8E") GUI:SameLine(200) GUI:InputText("##devll7"..tostring(id),tostring(e.I8E))
+								GUI:BulletText(".I8F") GUI:SameLine(200) GUI:InputText("##devll8"..tostring(id),tostring(e.I8F))
+								GUI:BulletText(".I8AH") GUI:SameLine(200) GUI:InputText("##devll9"..tostring(id),tostring(e.I8AH))
+								GUI:BulletText(".I8BH") GUI:SameLine(200) GUI:InputText("##flagl8"..tostring(id),tostring(e.I8BH))
+                                GUI:BulletText(".I8CH") GUI:SameLine(200) GUI:InputText("##flagl9"..tostring(id),tostring(e.I8CH))
+                                GUI:BulletText(".I8DH") GUI:SameLine(200) GUI:InputText("##flagl10"..tostring(id),tostring(e.I8DH))
+                                GUI:BulletText(".I8EH") GUI:SameLine(200) GUI:InputText("##flagl11"..tostring(id),tostring(e.I8EH))
+                                GUI:BulletText(".I8FH") GUI:SameLine(200) GUI:InputText("##flagl12"..tostring(id),tostring(e.I8FH))
+                                GUI:BulletText(".I8AL") GUI:SameLine(200) GUI:InputText("##flagl13"..tostring(id),tostring(e.I8AL))
+                                GUI:BulletText(".I8BL") GUI:SameLine(200) GUI:InputText("##flagl14"..tostring(id),tostring(e.I8BL))
+                                GUI:BulletText(".I8CL") GUI:SameLine(200) GUI:InputText("##flagl15"..tostring(id),tostring(e.I8CL))
+                                GUI:BulletText(".I8DL") GUI:SameLine(200) GUI:InputText("##flagl16"..tostring(id),tostring(e.I8DL))
+                                GUI:BulletText(".I8EL") GUI:SameLine(200) GUI:InputText("##flagl17"..tostring(id),tostring(e.I8EL))
+                                GUI:BulletText(".I8FL") GUI:SameLine(200) GUI:InputText("##flagl18"..tostring(id),tostring(e.I8FL))
+                                GUI:TreePop()
+							end
+						end
+						GUI:Separator()
+						if (dev.questid == nil) then dev.questid = 123 end
+						GUI:BulletText("Enter Quest ID") GUI:SameLine(200) dev.questid = GUI:InputText("##devl20",dev.questid)
+						GUI:BulletText("HasQuest") GUI:SameLine(200) GUI:InputText("##devl20"..tostring(id),tostring(Quest:HasQuest(tonumber(dev.questid),true)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("GetQuestCurrentStep") GUI:SameLine(200) GUI:InputText("##devl20"..tostring(id),tostring(Quest:GetQuestCurrentStep(tonumber(dev.questid),true)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("IsQuestCompleted") GUI:SameLine(200) GUI:InputText("##devl20"..tostring(id),tostring(Quest:IsQuestCompleted(tonumber(dev.questid),true)),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("Allowance") GUI:SameLine(200) GUI:InputText("##devl20"..tostring(id),tostring(Quest:GetQuestAllowance()),GUI.InputTextFlags_ReadOnly)
+						
+					else
+						GUI:Text("Duty Finder Not Open...")
+					end	
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end				
+				GUI:TreePop()
+			end
+-- END QUEST LIST			
 			-- cbk: Render Manager
 			if ( GUI:TreeNode("Renderobject List")) then
 			
