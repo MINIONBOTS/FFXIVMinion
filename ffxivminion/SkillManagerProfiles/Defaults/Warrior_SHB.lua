@@ -216,8 +216,6 @@ local obj1 = {
 		};
 		[15] = {
 			["alias"] = "Fell Cleave (DPS)";
-			["chainend"] = true;
-			["chainname"] = "DPS Chain";
 			["condition"] = "";
 			["gcdtime"] = 0.5;
 			["id"] = 3549;
@@ -291,7 +289,6 @@ local obj1 = {
 		};
 		[22] = {
 			["alias"] = "Berserk (DPS)";
-			["chainname"] = "DPS Chain";
 			["filterone"] = "On";
 			["gcdtime"] = 0.5;
 			["id"] = 38;
@@ -318,10 +315,18 @@ local obj1 = {
 			["trg"] = "Player";
 		};
 		[24] = {
-			["chainend"] = true;
-			["chainname"] = "Tank Chain";
+			["id"] = 16462;
+			["levelmin"] = 40;
+			["maxRange"] = 0;
+			["name"] = "Mythril Tempest";
+			["pcskill"] = "41";
+			["prio"] = 32;
+			["tarange"] = 5;
+			["terange"] = 5;
+			["trg"] = "Player";
+		};
+		[25] = {
 			["condition"] = "";
-			["enmityaoe"] = true;
 			["filtertwo"] = "Off";
 			["frontalconeaoe"] = true;
 			["gcdtime"] = 0.5;
@@ -331,12 +336,11 @@ local obj1 = {
 			["name"] = "Overpower";
 			["playerlevelmin"] = 10;
 			["prio"] = 24;
-			["ptpl"] = 200;
 			["tarange"] = 8;
-			["tecount"] = 2;
+			["tecount"] = 1;
 			["terange"] = 8;
 		};
-		[25] = {
+		[26] = {
 			["combat"] = "Any";
 			["gcdtime"] = 0.5;
 			["id"] = 46;
@@ -349,7 +353,7 @@ local obj1 = {
 			["ptrg"] = "Enemy";
 			["pttpl"] = 600;
 		};
-		[26] = {
+		[27] = {
 			["alias"] = "Storm's Eye  (DPS)";
 			["condition"] = "";
 			["gcdtime"] = 0.5;
@@ -365,7 +369,7 @@ local obj1 = {
 			["ptrg"] = "Enemy";
 			["tbuffowner"] = "Any";
 		};
-		[27] = {
+		[28] = {
 			["gcdtime"] = 0.5;
 			["id"] = 42;
 			["levelmin"] = 38;
@@ -375,7 +379,7 @@ local obj1 = {
 			["playerlevelmin"] = 38;
 			["prio"] = 27;
 		};
-		[28] = {
+		[29] = {
 			["id"] = 37;
 			["levelmin"] = 18;
 			["maxRange"] = 3;
@@ -386,7 +390,7 @@ local obj1 = {
 			["tnbuffdura"] = 3;
 			["tnbuffowner"] = "Any";
 		};
-		[29] = {
+		[30] = {
 			["id"] = 38;
 			["levelmax"] = 17;
 			["levelmin"] = 6;
@@ -396,7 +400,7 @@ local obj1 = {
 			["prio"] = 29;
 			["trg"] = "Player";
 		};
-		[30] = {
+		[31] = {
 			["gcdtime"] = 0.5;
 			["id"] = 31;
 			["ignoremoving"] = true;
@@ -406,7 +410,7 @@ local obj1 = {
 			["playerlevelmin"] = 1;
 			["prio"] = 30;
 		};
-		[31] = {
+		[32] = {
 			["id"] = 31;
 			["ignoremoving"] = true;
 			["levelmin"] = 1;
@@ -415,7 +419,7 @@ local obj1 = {
 			["prio"] = 31;
 		};
 	};
-	["update"] = 20190807;
+	["update"] = 20190825;
 	["version"] = 3;
 }
 return obj1
