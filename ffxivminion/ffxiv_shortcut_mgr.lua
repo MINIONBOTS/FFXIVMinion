@@ -186,7 +186,7 @@ function sck.DrawCall( event, ticks )
 
 	-- Switch according to the gamestate
 	if (sck.GUI.open) then
-		GUI:SetNextWindowPosCenter(GUI.SetCond_Once)
+		GUI:SetNextWindowPosCenter(GUI.SetCond_FirstUseEver)
 		GUI:SetNextWindowSize(500,300,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever
 		sck.GUI.visible, sck.GUI.open = GUI:Begin(sck.GUI.name, sck.GUI.open)
 		if ( sck.GUI.visible ) then
