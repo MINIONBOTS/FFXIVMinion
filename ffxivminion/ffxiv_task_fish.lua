@@ -451,6 +451,98 @@ function e_precastbuff:execute()
 	end
 end
 
+c_identicalcast = inheritsFrom( ml_cause )
+e_identicalcast = inheritsFrom( ml_effect )
+function c_identicalcast:evaluate()
+
+	if (HasBuffs(Player,1804) or HasBuffs(Player,1803)) then
+		return false
+	end
+	local fs = Player:GetFishingState()
+	if (fs == 4) then
+		local UseIdenticalCast = false
+		local task = ffxiv_fish.currentTask
+		local identCastables = IsNull(task.identicalcastables,"")
+
+		if (identCastables ~= "") then
+			UseIdenticalCast = true
+		end
+
+		if (UseIdenticalCast) then
+			local identicalCast = SkillMgr.GetAction(4596,1)
+			if (identicalCast and identicalCast:IsReady(Player.id)) then
+					
+				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+				if (lastCatch and identCastables ~= "") then
+					for identCast in StringSplit(identCastables,",") do
+						if (AceLib.API.Items.GetIDByName(identCast,47) == lastCatch) then
+							d("Identical cast because fish was "..tostring(identCast))
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+
+    return false
+end
+function e_identicalcast:execute()
+    local identicalCast = SkillMgr.GetAction(4596,1)
+    if (identicalCast and identicalCast:IsReady(Player.id)) then
+        if (identicalCast:Cast()) then
+			fd("Identical Cast",1)
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+		end
+		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
+    end
+end
+c_surfaceslap = inheritsFrom( ml_cause )
+e_surfaceslap = inheritsFrom( ml_effect )
+function c_surfaceslap:evaluate()
+
+	if (HasBuffs(Player,1804) or HasBuffs(Player,1803)) then
+		return false
+	end
+	local fs = Player:GetFishingState()
+	if (fs == 4) then
+		local Cast = false
+		local task = ffxiv_fish.currentTask
+		local surfaceSlapList = IsNull(task.surfaceslaplist,"")
+
+		if surfaceSlapList ~= "" then
+			Cast = true
+		end
+
+		if (Cast) then
+			local surfaceSlap = SkillMgr.GetAction(4595,1)
+			if (surfaceSlap and surfaceSlap:IsReady(Player.id)) then
+					
+				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+				if (lastCatch and surfaceSlapList ~= "") then
+					for slap in StringSplit(surfaceSlapList,",") do
+						if (AceLib.API.Items.GetIDByName(slap,47) == lastCatch) then
+							d("surface slap because fish was "..tostring(slap))
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+
+    return false
+end
+function e_surfaceslap:execute()
+    local surfaceSlap = SkillMgr.GetAction(4595,1)
+    if (surfaceSlap and surfaceSlap:IsReady(Player.id)) then
+        if (surfaceSlap:Cast()) then
+			fd("surfaceSlap Cast",1)
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+		end
+		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
+    end
+end
 c_mooch2 = inheritsFrom( ml_cause )
 e_mooch2 = inheritsFrom( ml_effect )
 function c_mooch2:evaluate()
@@ -2792,11 +2884,17 @@ function ffxiv_task_fish:Init()
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 45 )
     self:add(ke_precast, self.process_elements)
 		
+	local ke_identicalCast = ml_element:create( "IdenticalCast", c_identicalcast, e_identicalcast, 29 )
+    self:add(ke_identicalCast, self.process_elements)	
+
 	local ke_mooch2 = ml_element:create( "Mooch2", c_mooch2, e_mooch2, 42 )
     self:add(ke_mooch2, self.process_elements)
 	
 	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 40 )
     self:add(ke_mooch, self.process_elements)
+	
+	local ke_surfaceSlap = ml_element:create( "SurfaceSlap", c_surfaceslap, e_surfaceslap, 31 )
+    self:add(ke_surfaceSlap, self.process_elements)	
 	
 	local ke_release = ml_element:create( "Release", c_release, e_release, 30 )
     self:add(ke_release, self.process_elements)	
