@@ -266,7 +266,8 @@ c_precastbuff.requirestop = false
 c_precastbuff.requirestopfishing = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
-	if (MIsLoading() or MIsCasting() or IsFlying()) then
+	local fs = Player:GetFishingState()
+	if (MIsLoading() or MIsCasting() or IsFlying() or fs == 9) then
 		return false
 	end
 	
@@ -311,7 +312,6 @@ function c_precastbuff:evaluate()
 	end
 		
 		
-	local fs = Player:GetFishingState()
 	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,763) and MissingBuff(Player,764)) and fs == 4)) then
 		if (Player.job ~= FFXIV.JOBS.FISHER) then
 			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
@@ -363,6 +363,7 @@ function c_precastbuff:evaluate()
 			c_precastbuff.activity = "eat"
 			c_precastbuff.requirestop = false
 			c_precastbuff.requiredismount = false
+			c_precastbuff.requirestopfishing = true
 			return true
 		end
 		
