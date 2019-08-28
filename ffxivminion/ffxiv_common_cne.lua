@@ -461,6 +461,9 @@ e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
+	if gBotMode == GetString("assistMode") then
+		return false
+	end
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
@@ -523,7 +526,30 @@ function c_avoid:evaluate()
 			end
 		end
 	end
-	
+	if not IsNormalMap(Player.localmapid) then
+		local el = EntityList("onmesh,maxdistance=40")
+		if (table.valid(el)) then
+			for i,entity in pairs(el) do
+				local e = EntityList:Get(entity.id)
+				if (e) then
+					local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+					d(spellData)
+					if (shouldAvoid and spellData) then
+						local lastAvoid = c_avoid.lastAvoid
+						if (lastAvoid) then
+							if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
+								--d("Don't dodge, we already dodged this recently.")
+								return false							
+							end
+						end
+						
+						--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
+						c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+					end
+				end
+			end
+		end
+	end
 	if (table.valid(c_avoid.newAvoid)) then
 		local newPos,seconds,obstacle = AceLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
 		if (table.valid(newPos)) then
@@ -1323,7 +1349,7 @@ function c_getmovementpath:evaluate()
 			
 			local dist = math.distance2d(gotoPos,Player.pos)
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
-			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) or (dist < 70) then
+			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) or (dist < 50) then
 				ml_debug("[GetMovementPath]: rebuilding non-flying path..")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
 				ml_debug("[GetMovementPath]: no fly pathLength found, lenght: = "..tostring(pathLength))

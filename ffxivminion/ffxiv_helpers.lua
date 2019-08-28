@@ -2702,6 +2702,28 @@ function ScanForMobs(ids,distance)
 
 	return false
 end
+function ScanForLocation(ids,distance,spells)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
+	local maxdistance = tonumber(distance) or 150
+	local caster = false
+	local closest = nil
+	local closestdist = 99999999
+	local el = MEntityList("contentid="..ids..",maxdistance2d="..tostring(maxdistance))
+	if (table.valid(el)) then
+		for i,e in pairs(el) do
+			if (e and e.castinginfo) then
+				if (not spells or (spells and (MultiComp(e.castinginfo.channelingid,spells)))) then
+					if (e.distance < closestdist) then
+						closestdist = e.distance
+						caster = true
+						closest = e
+					end
+				end
+			end
+		end
+	end
+	return caster, closest
+end
 function ScanForCaster(ids,distance,spells,includeself)
 	local includeself = IsNull(includeself,false)
 	local ids = (type(ids) == "string" and ids) or tostring(ids) or ""
@@ -2710,9 +2732,9 @@ function ScanForCaster(ids,distance,spells,includeself)
 	local maxdistance = tonumber(distance) or 150
 	local el;
 	if (string.valid(ids)) then
-		el = MEntityList("alive,contentid="..ids..",maxdistance2d="..tostring(maxdistance))
+		el = MEntityList("contentid="..ids..",maxdistance2d="..tostring(maxdistance))
 	else
-		el = MEntityList("alive,maxdistance2d="..tostring(maxdistance))
+		el = MEntityList("maxdistance2d="..tostring(maxdistance))
 	end
 	if (table.valid(el)) then
 		for i,e in pairs(el) do
