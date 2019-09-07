@@ -30,716 +30,1012 @@ ffxiv_craft.collectors = {
 	[15] = 4567,
 }
 ffxiv_craft.collectibles = {
-	-- 4.5
-	{ name = AceLib.API.Items.GetNameByID(23143), minimum = 195 },
-    { name = AceLib.API.Items.GetNameByID(23144), minimum = 195 },
-    { name = AceLib.API.Items.GetNameByID(23145), minimum = 130 },
-    { name = AceLib.API.Items.GetNameByID(23146), minimum = 130 },
-    { name = AceLib.API.Items.GetNameByID(23147), minimum = 110 },
-	
-	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 233 },
-    { name = AceLib.API.Items.GetNameByID(24563), minimum = 233 },
-    { name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },
-    { name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },
-    { name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },
 
-	-- Weekly
-	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 1 }, -- Resistance Materiel
-	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 }, -- M Tribe Sundries
-	{ name = AceLib.API.Items.GetNameByID(20777), minimum = 130 }, -- Gold Saucer Consolation Prize
-	{ name = AceLib.API.Items.GetNameByID(20776), minimum = 167 }, -- Far Eastern Antique
-	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 }, -- Gyr Abanian Souvenir
-	{ name = AceLib.API.Items.GetNameByID(20774), minimum = 1 }, -- Sunken Treasure Tank Trimmings
-	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 }, -- Orphanage Donation
-	{ name = AceLib.API.Items.GetNameByID(17552), minimum = 1 }, -- Heartfelt Gift
-	{ name = AceLib.API.Items.GetNameByID(17551), minimum = 59 }, -- Maelstrom Materiel
-	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 }, -- Coerthan Souvenir
-	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 }, -- Near Eastern Antique
-	
-	{ name = AceLib.API.Items.GetNameByID(19928),  minimum = 625 }, --	Zelkova Lumber
-	{ name = AceLib.API.Items.GetNameByID(19947),  minimum = 625 }, --	Molybdenum Ingot
-	{ name = AceLib.API.Items.GetNameByID(19966),  minimum = 625 }, --	Imperial Jade
-	{ name = AceLib.API.Items.GetNameByID(19997),  minimum = 625 }, --	Gazelle Leather
-	{ name = AceLib.API.Items.GetNameByID(19987),  minimum = 625 }, --	Twinsilk
-	{ name = AceLib.API.Items.GetNameByID(19903),  minimum = 625 }, --	Enchanted Palladium Ink
-	{ name = AceLib.API.Items.GetNameByID(19821),  minimum = 625 }, --	Onigara-yaki
+	-- Weekly (Custom Delivery)
+	-- Zhloe Alipoh
+	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 },	--	Near Eastern Antique
+	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 },	--	Coerthan Souvenir	
+	{ name = AceLib.API.Items.GetNameByID(17551), minimum = 59 },	--	Maelstrom Materiel	
+	{ name = AceLib.API.Items.GetNameByID(17552), minimum = 63 },	--	Heartfelt Gift	
+	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 },	--	Orphanage Donation	
+	-- M 'naago
+	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 },	--	Gyr Abanian Souvenir
+	{ name = AceLib.API.Items.GetNameByID(20776), minimum = 167 },	--	Far Eastern Antique	
+	{ name = AceLib.API.Items.GetNameByID(20777), minimum = 130 },	--	Gold Saucer Consolation Prize	
+	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 },	--	M Tribe Sundries	
+	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 104 },	--	Resistance Materiel
+	-- Kurenai
+	{ name = AceLib.API.Items.GetNameByID(23143), minimum = 195 },	--	Gyr Abanian Remedies	
+	{ name = AceLib.API.Items.GetNameByID(23144), minimum = 195 },	--	Anti-shark Harpoon
+	{ name = AceLib.API.Items.GetNameByID(23145), minimum = 130 },	--	Coerthan Cold-weather Gear
+	{ name = AceLib.API.Items.GetNameByID(23146), minimum = 130 },	--	Sui-no-Sato Special
+	{ name = AceLib.API.Items.GetNameByID(23147), minimum = 110 },	--	Cloud Pearl
+	-- Adkiragh
+	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 233 },	--	Ishgardian Culinary Essentials
+	{ name = AceLib.API.Items.GetNameByID(24563), minimum = 233 },	--	Fermented Juice
+	{ name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },	--	Signature Buuz Cookware
+	{ name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },	--	Hard Place Decorative Furnishings 
+	{ name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },	--	Arkhi Brewing Set
 	
 	-- Carpenter
-	{ name = AceLib.API.Items.GetNameByID(10608),  minimum = 320 }, --	Adamantite Spear
-	{ name = AceLib.API.Items.GetNameByID(10609),  minimum = 400 }, --	Adamantite Trident
-	{ name = AceLib.API.Items.GetNameByID(19583),  minimum = 660 }, --	Almandine Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(11927),  minimum = 190 }, --	Astral Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(18037),  minimum = 320 }, --	Beech Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(18041),  minimum = 300 }, --	Beech Rod
-	{ name = AceLib.API.Items.GetNameByID(10615),  minimum = 400 }, --	Birch Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(11914),  minimum = 400 }, --	Birch Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(10614),  minimum = 320 }, --	Birch Longbow
-	{ name = AceLib.API.Items.GetNameByID(12583),  minimum = 360 }, --	Birch Lumber
-	{ name = AceLib.API.Items.GetNameByID(10639),  minimum = 400 }, --	Birch Rod
-	{ name = AceLib.API.Items.GetNameByID(10638),  minimum = 320 }, --	Birch Signum
-	{ name = AceLib.API.Items.GetNameByID(11937),  minimum = 350 }, --	Birch Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(10634),  minimum = 130 }, --	Cedar Crook
-	{ name = AceLib.API.Items.GetNameByID(11911),  minimum = 160 }, --	Cedar Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(10610),  minimum = 130 }, --	Cedar Longbow
-	{ name = AceLib.API.Items.GetNameByID(11928),  minimum = 270 }, --	Cloud Mica Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(11912),  minimum = 240 }, --	Dark Chestnut Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(10612),  minimum = 220 }, --	Dark Chestnut Longbow
-	{ name = AceLib.API.Items.GetNameByID(12581),  minimum = 250 }, --	Dark Chestnut Lumber
-	{ name = AceLib.API.Items.GetNameByID(10636),  minimum = 220 }, --	Dark Chestnut Rod
-	{ name = AceLib.API.Items.GetNameByID(11936),  minimum = 270 }, --	Dark Chestnut Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(18348),  minimum = 470 }, --	Doman Iron Lance
-	{ name = AceLib.API.Items.GetNameByID(18504),  minimum = 560 }, --	Doman Steel Halberd
-	{ name = AceLib.API.Items.GetNameByID(11929),  minimum = 350 }, --	Dragonscale Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(12015),  minimum = 320 }, --	Hallowed Chestnut Armillae
-	{ name = AceLib.API.Items.GetNameByID(10613),  minimum = 270 }, --	Hallowed Chestnut Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(11913),  minimum = 290 }, --	Hallowed Chestnut Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(10925),  minimum = 270 }, --	Hallowed Chestnut Mask of Casting
-	{ name = AceLib.API.Items.GetNameByID(10883),  minimum = 270 }, --	Hallowed Chestnut Mask of Healing
-	{ name = AceLib.API.Items.GetNameByID(12012),  minimum = 350 }, --	Hallowed Chestnut Necklace
-	{ name = AceLib.API.Items.GetNameByID(12021),  minimum = 290 }, --	Hallowed Chestnut Ring
-	{ name = AceLib.API.Items.GetNameByID(18036),  minimum = 320 }, --	High Steel Trident
-	{ name = AceLib.API.Items.GetNameByID(12014),  minimum = 190 }, --	Holy Cedar Armillae
-	{ name = AceLib.API.Items.GetNameByID(10611),  minimum = 160 }, --	Holy Cedar Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(12011),  minimum = 220 }, --	Holy Cedar Necklace
-	{ name = AceLib.API.Items.GetNameByID(12020),  minimum = 190 }, --	Holy Cedar Ring
-	{ name = AceLib.API.Items.GetNameByID(11935),  minimum = 190 }, --	Holy Cedar Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(19730),  minimum = 420 }, --	Larch Bracelets
-	{ name = AceLib.API.Items.GetNameByID(18193),  minimum = 370 }, --	Larch Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(19728),  minimum = 420 }, --	Larch Earrings
-	{ name = AceLib.API.Items.GetNameByID(19729),  minimum = 420 }, --	Larch Necklace
-	{ name = AceLib.API.Items.GetNameByID(19731),  minimum = 420 }, --	Larch Ring
-	{ name = AceLib.API.Items.GetNameByID(19522),  minimum = 370 }, --	Larch Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(18197),  minimum = 370 }, --	Larch Wand
-	{ name = AceLib.API.Items.GetNameByID(18660),  minimum = 630 }, --	Molybdenum Trident
-	{ name = AceLib.API.Items.GetNameByID(19516),  minimum = 320 }, --	Muudhorn Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(10605),  minimum = 160 }, --	Mythrite Pugil Stick
-	{ name = AceLib.API.Items.GetNameByID(10604),  minimum = 130 }, --	Mythrite Trident
-	{ name = AceLib.API.Items.GetNameByID(19740),  minimum = 610 }, --	Persimmon Bracelets
-	{ name = AceLib.API.Items.GetNameByID(18509),  minimum = 560 }, --	Persimmon Cane
-	{ name = AceLib.API.Items.GetNameByID(19738),  minimum = 610 }, --	Persimmon Earrings
-	{ name = AceLib.API.Items.GetNameByID(19739),  minimum = 610 }, --	Persimmon Necklace
-	{ name = AceLib.API.Items.GetNameByID(19741),  minimum = 610 }, --	Persimmon Ring
-	{ name = AceLib.API.Items.GetNameByID(19564),  minimum = 610 }, --	Persimmon Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(18353),  minimum = 470 }, --	Pine Cane
-	{ name = AceLib.API.Items.GetNameByID(18349),  minimum = 470 }, --	Pine Composite Bow
-	{ name = AceLib.API.Items.GetNameByID(19537),  minimum = 510 }, --	Pine Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(19543),  minimum = 510 }, --	Pine Spinning Wheel
-	{ name = AceLib.API.Items.GetNameByID(19562),  minimum = 610 }, --	Polished Slate Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(19541),  minimum = 510 }, --	Slate Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(19520),  minimum = 370 }, --	Stiperstone Grinding Wheel
-	{ name = AceLib.API.Items.GetNameByID(10607),  minimum = 270 }, --	Titanium Fork
-	{ name = AceLib.API.Items.GetNameByID(10606),  minimum = 220 }, --	Titanium Lance
-	{ name = AceLib.API.Items.GetNameByID(19750),  minimum = 650 }, --	Zelkova Bracelets
-	{ name = AceLib.API.Items.GetNameByID(18665),  minimum = 630 }, --	Zelkova Cane
-	{ name = AceLib.API.Items.GetNameByID(19748),  minimum = 650 }, --	Zelkova Earrings
-	{ name = AceLib.API.Items.GetNameByID(19579),  minimum = 660 }, --	Zelkova Fishing Rod
-	{ name = AceLib.API.Items.GetNameByID(18661),  minimum = 630 }, --	Zelkova Longbow
-	{ name = AceLib.API.Items.GetNameByID(19749),  minimum = 650 }, --	Zelkova Necklace
-	{ name = AceLib.API.Items.GetNameByID(19751),  minimum = 650 }, --	Zelkova Ring
-	{ name = AceLib.API.Items.GetNameByID(19585),  minimum = 660 }, --	Zelkova Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(10608), minimum = 320 },	--	Adamantite Spear
+	{ name = AceLib.API.Items.GetNameByID(10609), minimum = 400 },	--	Adamantite Trident
+	{ name = AceLib.API.Items.GetNameByID(19583), minimum = 660 },	--	Almandine Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(25797), minimum = 640 },	--	Applewood Staff
+	{ name = AceLib.API.Items.GetNameByID(11927), minimum = 190 },	--	Astral Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(18037), minimum = 320 },	--	Beech Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(18041), minimum = 300 },	--	Beech Rod
+	{ name = AceLib.API.Items.GetNameByID(10615), minimum = 400 },	--	Birch Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(11914), minimum = 400 },	--	Birch Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(10614), minimum = 320 },	--	Birch Longbow
+	{ name = AceLib.API.Items.GetNameByID(12583), minimum = 360 },	--	Birch Lumber
+	{ name = AceLib.API.Items.GetNameByID(10639), minimum = 400 },	--	Birch Rod
+	{ name = AceLib.API.Items.GetNameByID(10638), minimum = 320 },	--	Birch Signum
+	{ name = AceLib.API.Items.GetNameByID(11937), minimum = 350 },	--	Birch Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(25956), minimum = 700 },	--	Bluespirit Cane
+	{ name = AceLib.API.Items.GetNameByID(25951), minimum = 700 },	--	Bluespirit Spear
+	{ name = AceLib.API.Items.GetNameByID(10634), minimum = 130 },	--	Cedar Crook
+	{ name = AceLib.API.Items.GetNameByID(11911), minimum = 160 },	--	Cedar Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(10610), minimum = 130 },	--	Cedar Longbow
+	{ name = AceLib.API.Items.GetNameByID(11928), minimum = 270 },	--	Cloud Mica Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(11912), minimum = 240 },	--	Dark Chestnut Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(10612), minimum = 220 },	--	Dark Chestnut Longbow
+	{ name = AceLib.API.Items.GetNameByID(12581), minimum = 250 },	--	Dark Chestnut Lumber
+	{ name = AceLib.API.Items.GetNameByID(10636), minimum = 220 },	--	Dark Chestnut Rod
+	{ name = AceLib.API.Items.GetNameByID(11936), minimum = 270 },	--	Dark Chestnut Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(18348), minimum = 470 },	--	Doman Iron Lance
+	{ name = AceLib.API.Items.GetNameByID(18504), minimum = 560 },	--	Doman Steel Halberd
+	{ name = AceLib.API.Items.GetNameByID(11929), minimum = 350 },	--	Dragonscale Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(26272), minimum = 930 },	--	Dwarven Lignum Bow
+	{ name = AceLib.API.Items.GetNameByID(26271), minimum = 930 },	--	Dwarven Lignum Lance
+	{ name = AceLib.API.Items.GetNameByID(26277), minimum = 930 },	--	Dwarven Lignum Pole
+	{ name = AceLib.API.Items.GetNameByID(12015), minimum = 320 },	--	Hallowed Chestnut Armillae
+	{ name = AceLib.API.Items.GetNameByID(10613), minimum = 270 },	--	Hallowed Chestnut Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(11913), minimum = 290 },	--	Hallowed Chestnut Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(10925), minimum = 270 },	--	Hallowed Chestnut Mask of Casting
+	{ name = AceLib.API.Items.GetNameByID(10883), minimum = 270 },	--	Hallowed Chestnut Mask of Healing
+	{ name = AceLib.API.Items.GetNameByID(12012), minimum = 350 },	--	Hallowed Chestnut Necklace
+	{ name = AceLib.API.Items.GetNameByID(12021), minimum = 290 },	--	Hallowed Chestnut Ring
+	{ name = AceLib.API.Items.GetNameByID(18036), minimum = 320 },	--	High Steel Trident
+	{ name = AceLib.API.Items.GetNameByID(12014), minimum = 190 },	--	Holy Cedar Armillae
+	{ name = AceLib.API.Items.GetNameByID(10611), minimum = 160 },	--	Holy Cedar Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(12011), minimum = 220 },	--	Holy Cedar Necklace
+	{ name = AceLib.API.Items.GetNameByID(12020), minimum = 190 },	--	Holy Cedar Ring
+	{ name = AceLib.API.Items.GetNameByID(11935), minimum = 190 },	--	Holy Cedar Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(19730), minimum = 420 },	--	Larch Bracelets
+	{ name = AceLib.API.Items.GetNameByID(18193), minimum = 370 },	--	Larch Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(19728), minimum = 420 },	--	Larch Earrings
+	{ name = AceLib.API.Items.GetNameByID(19729), minimum = 420 },	--	Larch Necklace
+	{ name = AceLib.API.Items.GetNameByID(19731), minimum = 420 },	--	Larch Ring
+	{ name = AceLib.API.Items.GetNameByID(19522), minimum = 370 },	--	Larch Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(18197), minimum = 370 },	--	Larch Wand
+	{ name = AceLib.API.Items.GetNameByID(27229), minimum = 960 },	--	Lignum Vitae Bracelet
+	{ name = AceLib.API.Items.GetNameByID(27150), minimum = 1060 },	--	Lignum Vitae Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(27154), minimum = 1060 },	--	Lignum Vitae Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(27693), minimum = 930 },	--	Lignum Vitae Lumber
+	{ name = AceLib.API.Items.GetNameByID(27228), minimum = 960 },	--	Lignum Vitae Necklace
+	{ name = AceLib.API.Items.GetNameByID(27156), minimum = 1060 },	--	Lignum Vitae Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(27690), minimum = 570 },	--	Miracle Apple Lumber
+	{ name = AceLib.API.Items.GetNameByID(18660), minimum = 630 },	--	Molybdenum Trident
+	{ name = AceLib.API.Items.GetNameByID(19516), minimum = 320 },	--	Muudhorn Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(10605), minimum = 160 },	--	Mythrite Pugil Stick
+	{ name = AceLib.API.Items.GetNameByID(10604), minimum = 130 },	--	Mythrite Trident
+	{ name = AceLib.API.Items.GetNameByID(19740), minimum = 610 },	--	Persimmon Bracelets
+	{ name = AceLib.API.Items.GetNameByID(18509), minimum = 560 },	--	Persimmon Cane
+	{ name = AceLib.API.Items.GetNameByID(19738), minimum = 610 },	--	Persimmon Earrings
+	{ name = AceLib.API.Items.GetNameByID(19739), minimum = 610 },	--	Persimmon Necklace
+	{ name = AceLib.API.Items.GetNameByID(19741), minimum = 610 },	--	Persimmon Ring
+	{ name = AceLib.API.Items.GetNameByID(19564), minimum = 610 },	--	Persimmon Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(18353), minimum = 470 },	--	Pine Cane
+	{ name = AceLib.API.Items.GetNameByID(18349), minimum = 470 },	--	Pine Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(19537), minimum = 510 },	--	Pine Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(19543), minimum = 510 },	--	Pine Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(19562), minimum = 610 },	--	Polished Slate Grinding Wheel\
+	{ name = AceLib.API.Items.GetNameByID(26116), minimum = 830 },	--	Sandteak Cane
+	{ name = AceLib.API.Items.GetNameByID(26111), minimum = 830 },	--	Sandteak Fauchard
+	{ name = AceLib.API.Items.GetNameByID(27129), minimum = 900 },	--	Sandteak Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(27133), minimum = 900 },	--	Sandteak Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(27692), minimum = 830 },	--	Sandteak Lumber
+	{ name = AceLib.API.Items.GetNameByID(19541), minimum = 510 },	--	Slate Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(19520), minimum = 370 },	--	Stiperstone Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(10607), minimum = 270 },	--	Titanium Fork
+	{ name = AceLib.API.Items.GetNameByID(10606), minimum = 220 },	--	Titanium Lance
+	{ name = AceLib.API.Items.GetNameByID(26008), minimum = 770 },	--	White Ash Earring of Fending
+	{ name = AceLib.API.Items.GetNameByID(26011), minimum = 770 },	--	White Ash Earring of Healing
+	{ name = AceLib.API.Items.GetNameByID(27108), minimum = 700 },	--	White Ash Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(27218), minimum = 770 },	--	White Ash Necklace
+	{ name = AceLib.API.Items.GetNameByID(27220), minimum = 770 },	--	White Ash Ring
+	{ name = AceLib.API.Items.GetNameByID(27114), minimum = 700 },	--	White Ash Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(27204), minimum = 500 },	--	White Oak Bracelets
+	{ name = AceLib.API.Items.GetNameByID(25636), minimum = 500 },	--	White Oak Cane
+	{ name = AceLib.API.Items.GetNameByID(25632), minimum = 500 },	--	White Oak Composite Bow
+	{ name = AceLib.API.Items.GetNameByID(27091), minimum = 500 },	--	White Oak Grinding Wheel
+	{ name = AceLib.API.Items.GetNameByID(25631), minimum = 500 },	--	White Oak Partisan
+	{ name = AceLib.API.Items.GetNameByID(27205), minimum = 500 },	--	White Oak Ring
+	{ name = AceLib.API.Items.GetNameByID(25637), minimum = 500 },	--	White Oak Rod
+	{ name = AceLib.API.Items.GetNameByID(27093), minimum = 500 },	--	White Oak Spinning Wheel
+	{ name = AceLib.API.Items.GetNameByID(19750), minimum = 650 },	--	Zelkova Bracelets
+	{ name = AceLib.API.Items.GetNameByID(18665), minimum = 630 },	--	Zelkova Cane
+	{ name = AceLib.API.Items.GetNameByID(19748), minimum = 650 },	--	Zelkova Earrings
+	{ name = AceLib.API.Items.GetNameByID(19579), minimum = 660 },	--	Zelkova Fishing Rod
+	{ name = AceLib.API.Items.GetNameByID(18661), minimum = 630 },	--	Zelkova Longbow
+	{ name = AceLib.API.Items.GetNameByID(19928), minimum = 625 },	--	Zelkova Lumber
+	{ name = AceLib.API.Items.GetNameByID(19749), minimum = 650 },	--	Zelkova Necklace
+	{ name = AceLib.API.Items.GetNameByID(19751), minimum = 650 },	--	Zelkova Ring
+	{ name = AceLib.API.Items.GetNameByID(19585), minimum = 660 },	--	Zelkova Spinning Wheel
 
 	-- Blacksmith
-	{ name = AceLib.API.Items.GetNameByID(11933),  minimum = 350 }, --	 Adamantite Awl
-	{ name = AceLib.API.Items.GetNameByID(10602),  minimum = 320 }, --	 Adamantite Bill
-	{ name = AceLib.API.Items.GetNameByID(10590),  minimum = 320 }, --	 Adamantite Broadsword
-	{ name = AceLib.API.Items.GetNameByID(11917),  minimum = 350 }, --	 Adamantite Claw Hammer
-	{ name = AceLib.API.Items.GetNameByID(11945),  minimum = 350 }, --	 Adamantite Culinary Knife
-	{ name = AceLib.API.Items.GetNameByID(11906),  minimum = 400 }, --	 Adamantite Dolabra
-	{ name = AceLib.API.Items.GetNameByID(11921),  minimum = 350 }, --	 Adamantite File
-	{ name = AceLib.API.Items.GetNameByID(10627),  minimum = 400 }, --	 Adamantite Greatsword
-	{ name = AceLib.API.Items.GetNameByID(11910),  minimum = 400 }, --	 Adamantite Hatchet
-	{ name = AceLib.API.Items.GetNameByID(10603),  minimum = 400 }, --	 Adamantite Headsman's Axe
-	{ name = AceLib.API.Items.GetNameByID(10596),  minimum = 320 }, --	 Adamantite Jamadhars
-	{ name = AceLib.API.Items.GetNameByID(10620),  minimum = 320 }, --	 Adamantite Knives
-	{ name = AceLib.API.Items.GetNameByID(11941),  minimum = 350 }, --	 Adamantite Mortar
-	{ name = AceLib.API.Items.GetNameByID(11925),  minimum = 350 }, --	 Adamantite Pliers
-	{ name = AceLib.API.Items.GetNameByID(10632),  minimum = 320 }, --	 Adamantite Revolver
-	{ name = AceLib.API.Items.GetNameByID(11874),  minimum = 400 }, --	 Adamantite Saw
-	{ name = AceLib.API.Items.GetNameByID(11953),  minimum = 350 }, --	 Adamantite Scythe
-	{ name = AceLib.API.Items.GetNameByID(11949),  minimum = 350 }, --	 Adamantite Sledgehammer
-	{ name = AceLib.API.Items.GetNameByID(10591),  minimum = 400 }, --	 Adamantite Winglet
-	{ name = AceLib.API.Items.GetNameByID(10626),  minimum = 320 }, --	 Adamantite Zweihander
-	{ name = AceLib.API.Items.GetNameByID(10633),  minimum = 400 }, --	 Adamantite-barreled Culverin
-	{ name = AceLib.API.Items.GetNameByID(11890),  minimum = 400 }, --	 Aurum Regis Creasing Knife
-	{ name = AceLib.API.Items.GetNameByID(19542),  minimum = 510 }, --	 Doman Iron Awl
-	{ name = AceLib.API.Items.GetNameByID(18352),  minimum = 510 }, --	 Doman Iron Culverin
-	{ name = AceLib.API.Items.GetNameByID(19539),  minimum = 510 }, --	 Doman Iron File
-	{ name = AceLib.API.Items.GetNameByID(18351),  minimum = 510 }, --	 Doman Iron Greatsword
-	{ name = AceLib.API.Items.GetNameByID(19527),  minimum = 470 }, --	 Doman Iron Halfheart Saw
-	{ name = AceLib.API.Items.GetNameByID(19536),  minimum = 470 }, --	 Doman Iron Hatchet
-	{ name = AceLib.API.Items.GetNameByID(18358),  minimum = 510 }, --	 Doman Iron Uchigatana
-	{ name = AceLib.API.Items.GetNameByID(19559),  minimum = 610 }, --	 Doman Steel Claw Hammer
-	{ name = AceLib.API.Items.GetNameByID(19566),  minimum = 610 }, --	 Doman Steel Culinary Knife
-	{ name = AceLib.API.Items.GetNameByID(18501),  minimum = 560 }, --	 Doman Steel Longsword
-	{ name = AceLib.API.Items.GetNameByID(18506),  minimum = 610 }, --	 Doman Steel Main Gauches
-	{ name = AceLib.API.Items.GetNameByID(18502),  minimum = 560 }, --	 Doman Steel Patas
-	{ name = AceLib.API.Items.GetNameByID(19561),  minimum = 610 }, --	 Doman Steel Pliers
-	{ name = AceLib.API.Items.GetNameByID(19550),  minimum = 560 }, --	 Doman Steel Raising Hammer
-	{ name = AceLib.API.Items.GetNameByID(19567),  minimum = 610 }, --	 Doman Steel Sledgehammer
-	{ name = AceLib.API.Items.GetNameByID(19530),  minimum = 470 }, --	 Durium Texture Hammer
-	{ name = AceLib.API.Items.GetNameByID(18190),  minimum = 420 }, --	 Folded High Steel Knuckles
-	{ name = AceLib.API.Items.GetNameByID(11904),  minimum = 240 }, --	 Hardsilver Dolabra
-	{ name = AceLib.API.Items.GetNameByID(11909),  minimum = 290 }, --	 Hardsilver Hatchet
-	{ name = AceLib.API.Items.GetNameByID(11872),  minimum = 240 }, --	 Hardsilver Saw
-	{ name = AceLib.API.Items.GetNameByID(11884),  minimum = 240 }, --	 Hardsilver Texture Hammer
-	{ name = AceLib.API.Items.GetNameByID(19521),  minimum = 370 }, --	 High Steel Awl
-	{ name = AceLib.API.Items.GetNameByID(18191),  minimum = 420 }, --	 High Steel Battleaxe
-	{ name = AceLib.API.Items.GetNameByID(19517),  minimum = 370 }, --	 High Steel Claw Hammer
-	{ name = AceLib.API.Items.GetNameByID(19524),  minimum = 370 }, --	 High Steel Culinary Knife
-	{ name = AceLib.API.Items.GetNameByID(19514),  minimum = 320 }, --	 High Steel Dolabra
-	{ name = AceLib.API.Items.GetNameByID(19508),  minimum = 320 }, --	 High Steel Doming Hammer
-	{ name = AceLib.API.Items.GetNameByID(18039),  minimum = 300 }, --	 High Steel Guillotine
-	{ name = AceLib.API.Items.GetNameByID(18035),  minimum = 300 }, --	 High Steel Headsman's Axe
-	{ name = AceLib.API.Items.GetNameByID(18034),  minimum = 300 }, --	 High Steel Knuckles
-	{ name = AceLib.API.Items.GetNameByID(18189),  minimum = 420 }, --	 High Steel Longsword
-	{ name = AceLib.API.Items.GetNameByID(18038),  minimum = 300 }, --	 High Steel Main Gauches
-	{ name = AceLib.API.Items.GetNameByID(19519),  minimum = 370 }, --	 High Steel Pliers
-	{ name = AceLib.API.Items.GetNameByID(19526),  minimum = 370 }, --	 High Steel Scythe
-	{ name = AceLib.API.Items.GetNameByID(18046),  minimum = 300 }, --	 High Steel Tachi
-	{ name = AceLib.API.Items.GetNameByID(19509),  minimum = 320 }, --	 Koppranickel Ornamental Hammer
-	{ name = AceLib.API.Items.GetNameByID(19584),  minimum = 660 }, --	 Molybdenum Awl
-	{ name = AceLib.API.Items.GetNameByID(19580),  minimum = 660 }, --	 Molybdenum Claw Hammer
-	{ name = AceLib.API.Items.GetNameByID(19573),  minimum = 650 }, --	 Molybdenum Creasing Knife
-	{ name = AceLib.API.Items.GetNameByID(19587),  minimum = 660 }, --	 Molybdenum Culinary Knife
-	{ name = AceLib.API.Items.GetNameByID(19581),  minimum = 660 }, --	 Molybdenum File
-	{ name = AceLib.API.Items.GetNameByID(19569),  minimum = 650 }, --	 Molybdenum Halfheart Saw
-	{ name = AceLib.API.Items.GetNameByID(18658),  minimum = 630 }, --	 Molybdenum Knuckles
-	{ name = AceLib.API.Items.GetNameByID(18663),  minimum = 630 }, --	 Molybdenum Longblade
-	{ name = AceLib.API.Items.GetNameByID(19570),  minimum = 650 }, --	 Molybdenum Lump Hammer
-	{ name = AceLib.API.Items.GetNameByID(19586),  minimum = 660 }, --	 Molybdenum Mortar
-	{ name = AceLib.API.Items.GetNameByID(19577),  minimum = 650 }, --	 Molybdenum Pickaxe
-	{ name = AceLib.API.Items.GetNameByID(19582),  minimum = 660 }, --	 Molybdenum Pliers
-	{ name = AceLib.API.Items.GetNameByID(19589),  minimum = 660 }, --	 Molybdenum Scythe
-	{ name = AceLib.API.Items.GetNameByID(19588),  minimum = 660 }, --	 Molybdenum Sledgehammer
-	{ name = AceLib.API.Items.GetNameByID(18659),  minimum = 630 }, --	 Molybdenum War Axe
-	{ name = AceLib.API.Items.GetNameByID(10622),  minimum = 130 }, --	 Mythrite Claymore
-	{ name = AceLib.API.Items.GetNameByID(10587),  minimum = 190 }, --	 Mythrite Flametongue
-	{ name = AceLib.API.Items.GetNameByID(11871),  minimum = 160 }, --	 Mythrite Halfheart Saw
-	{ name = AceLib.API.Items.GetNameByID(10593),  minimum = 190 }, --	 Mythrite Jamadhars
-	{ name = AceLib.API.Items.GetNameByID(10586),  minimum = 130 }, --	 Mythrite Katzbalger
-	{ name = AceLib.API.Items.GetNameByID(11883),  minimum = 160 }, --	 Mythrite Lapidary Hammer
-	{ name = AceLib.API.Items.GetNameByID(10592),  minimum = 130 }, --	 Mythrite Patas
-	{ name = AceLib.API.Items.GetNameByID(11923),  minimum = 190 }, --	 Mythrite Pliers
-	{ name = AceLib.API.Items.GetNameByID(10616),  minimum = 130 }, --	 Mythrite Pugiones
-	{ name = AceLib.API.Items.GetNameByID(11951),  minimum = 190 }, --	 Mythrite Scythe
-	{ name = AceLib.API.Items.GetNameByID(10598),  minimum = 130 }, --	 Mythrite War Axe
-	{ name = AceLib.API.Items.GetNameByID(10623),  minimum = 190 }, --	 Mythrite Zweihander
-	{ name = AceLib.API.Items.GetNameByID(10628),  minimum = 130 }, --	 Mythrite-barreled Arquebus
-	{ name = AceLib.API.Items.GetNameByID(10629),  minimum = 190 }, --	 Mythrite-barreled Musketoon
-	{ name = AceLib.API.Items.GetNameByID(10600),  minimum = 220 }, --	 Titanium Axe
-	{ name = AceLib.API.Items.GetNameByID(11880),  minimum = 240 }, --	 Titanium Ball-pein Hammer
-	{ name = AceLib.API.Items.GetNameByID(11888),  minimum = 240 }, --	 Titanium Creasing Knife
-	{ name = AceLib.API.Items.GetNameByID(11876),  minimum = 240 }, --	 Titanium Cross-pein Hammer
-	{ name = AceLib.API.Items.GetNameByID(11944),  minimum = 270 }, --	 Titanium Culinary Knife
-	{ name = AceLib.API.Items.GetNameByID(10625),  minimum = 290 }, --	 Titanium Greatsword
-	{ name = AceLib.API.Items.GetNameByID(12525),  minimum = 330 }, --	 Titanium Ingot
-	{ name = AceLib.API.Items.GetNameByID(10595),  minimum = 290 }, --	 Titanium Knuckles
-	{ name = AceLib.API.Items.GetNameByID(10589),  minimum = 290 }, --	 Titanium Longsword
-	{ name = AceLib.API.Items.GetNameByID(11940),  minimum = 270 }, --	 Titanium Mortar
-	{ name = AceLib.API.Items.GetNameByID(12524),  minimum = 250 }, --	 Titanium Nugget
-	{ name = AceLib.API.Items.GetNameByID(10618),  minimum = 220 }, --	 Titanium Pugiones
-	{ name = AceLib.API.Items.GetNameByID(11948),  minimum = 270 }, --	 Titanium Sledgehammer
-	{ name = AceLib.API.Items.GetNameByID(10631),  minimum = 290 }, --	 Titanium-barreled Snaphance
+	{ name = AceLib.API.Items.GetNameByID(11933), minimum = 350 },	--	Adamantite Awl
+	{ name = AceLib.API.Items.GetNameByID(10602), minimum = 320 },	--	Adamantite Bill
+	{ name = AceLib.API.Items.GetNameByID(10590), minimum = 320 },	--	Adamantite Broadsword
+	{ name = AceLib.API.Items.GetNameByID(11917), minimum = 350 },	--	Adamantite Claw Hammer
+	{ name = AceLib.API.Items.GetNameByID(11945), minimum = 350 },	--	Adamantite Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(11906), minimum = 400 },	--	Adamantite Dolabra
+	{ name = AceLib.API.Items.GetNameByID(11921), minimum = 350 },	--	Adamantite File
+	{ name = AceLib.API.Items.GetNameByID(10627), minimum = 400 },	--	Adamantite Greatsword
+	{ name = AceLib.API.Items.GetNameByID(11910), minimum = 400 },	--	Adamantite Hatchet
+	{ name = AceLib.API.Items.GetNameByID(10603), minimum = 400 },	--	Adamantite Headsman's Axe
+	{ name = AceLib.API.Items.GetNameByID(10596), minimum = 320 },	--	Adamantite Jamadhars
+	{ name = AceLib.API.Items.GetNameByID(10620), minimum = 320 },	--	Adamantite Knives
+	{ name = AceLib.API.Items.GetNameByID(11941), minimum = 350 },	--	Adamantite Mortar
+	{ name = AceLib.API.Items.GetNameByID(11925), minimum = 350 },	--	Adamantite Pliers
+	{ name = AceLib.API.Items.GetNameByID(10632), minimum = 320 },	--	Adamantite Revolver
+	{ name = AceLib.API.Items.GetNameByID(11874), minimum = 400 },	--	Adamantite Saw
+	{ name = AceLib.API.Items.GetNameByID(11953), minimum = 350 },	--	Adamantite Scythe
+	{ name = AceLib.API.Items.GetNameByID(11949), minimum = 350 },	--	Adamantite Sledgehammer
+	{ name = AceLib.API.Items.GetNameByID(10591), minimum = 400 },	--	Adamantite Winglet
+	{ name = AceLib.API.Items.GetNameByID(10626), minimum = 320 },	--	Adamantite Zweihander
+	{ name = AceLib.API.Items.GetNameByID(10633), minimum = 400 },	--	Adamantite-barreled Culverin
+	{ name = AceLib.API.Items.GetNameByID(11890), minimum = 400 },	--	Aurum Regis Creasing Knife
+	{ name = AceLib.API.Items.GetNameByID(25950), minimum = 700 },	--	Bluespirit Axe
+	{ name = AceLib.API.Items.GetNameByID(27116), minimum = 700 },	--	Bluespirit Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(25954), minimum = 700 },	--	Bluespirit Guillotine
+	{ name = AceLib.API.Items.GetNameByID(25963), minimum = 700 },	--	Bluespirit Gunblade
+	{ name = AceLib.API.Items.GetNameByID(25955), minimum = 700 },	--	Bluespirit Handgonne
+	{ name = AceLib.API.Items.GetNameByID(27107), minimum = 770 },	--	Bluespirit Hatchet
+	{ name = AceLib.API.Items.GetNameByID(27106), minimum = 770 },	--	Bluespirit Pickaxe
+	{ name = AceLib.API.Items.GetNameByID(25948), minimum = 700 },	--	Bluespirit Sword
+	{ name = AceLib.API.Items.GetNameByID(25628), minimum = 500 },	--	Deepgold Anelace
+	{ name = AceLib.API.Items.GetNameByID(25795), minimum = 640 },	--	Deepgold Arquebus
+	{ name = AceLib.API.Items.GetNameByID(27092), minimum = 500 },	--	Deepgold Awl
+	{ name = AceLib.API.Items.GetNameByID(25630), minimum = 500 },	--	Deepgold Battleaxe
+	{ name = AceLib.API.Items.GetNameByID(25803), minimum = 640 },	--	Deepgold Bayonet
+	{ name = AceLib.API.Items.GetNameByID(25804), minimum = 640 },	--	Deepgold Chakrams
+	{ name = AceLib.API.Items.GetNameByID(27078), minimum = 500 },	--	Deepgold Cross-pein Hammer
+	{ name = AceLib.API.Items.GetNameByID(25793), minimum = 570 },	--	Deepgold Daggers
+	{ name = AceLib.API.Items.GetNameByID(25794), minimum = 570 },	--	Deepgold Greatsword
+	{ name = AceLib.API.Items.GetNameByID(27708), minimum = 570 },	--	Deepgold Ingot
+	{ name = AceLib.API.Items.GetNameByID(25629), minimum = 500 },	--	Deepgold Katars
+	{ name = AceLib.API.Items.GetNameByID(27094), minimum = 500 },	--	Deepgold Mortar
+	{ name = AceLib.API.Items.GetNameByID(27079), minimum = 500 },	--	Deepgold Raising Hammer
+	{ name = AceLib.API.Items.GetNameByID(27077), minimum = 500 },	--	Deepgold Saw
+	{ name = AceLib.API.Items.GetNameByID(19542), minimum = 510 },	--	Doman Iron Awl
+	{ name = AceLib.API.Items.GetNameByID(18352), minimum = 510 },	--	Doman Iron Culverin
+	{ name = AceLib.API.Items.GetNameByID(19539), minimum = 510 },	--	Doman Iron File
+	{ name = AceLib.API.Items.GetNameByID(18351), minimum = 510 },	--	Doman Iron Greatsword
+	{ name = AceLib.API.Items.GetNameByID(19527), minimum = 470 },	--	Doman Iron Halfheart Saw
+	{ name = AceLib.API.Items.GetNameByID(19536), minimum = 470 },	--	Doman Iron Hatchet
+	{ name = AceLib.API.Items.GetNameByID(18358), minimum = 510 },	--	Doman Iron Uchigatana
+	{ name = AceLib.API.Items.GetNameByID(19559), minimum = 610 },	--	Doman Steel Claw Hammer
+	{ name = AceLib.API.Items.GetNameByID(19566), minimum = 610 },	--	Doman Steel Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(18501), minimum = 560 },	--	Doman Steel Longsword
+	{ name = AceLib.API.Items.GetNameByID(18506), minimum = 610 },	--	Doman Steel Main Gauches
+	{ name = AceLib.API.Items.GetNameByID(18502), minimum = 560 },	--	Doman Steel Patas
+	{ name = AceLib.API.Items.GetNameByID(19561), minimum = 610 },	--	Doman Steel Pliers
+	{ name = AceLib.API.Items.GetNameByID(19550), minimum = 560 },	--	Doman Steel Raising Hammer
+	{ name = AceLib.API.Items.GetNameByID(19567), minimum = 610 },	--	Doman Steel Sledgehammer
+	{ name = AceLib.API.Items.GetNameByID(19530), minimum = 470 },	--	Durium Texture Hammer
+	{ name = AceLib.API.Items.GetNameByID(27155), minimum = 960 },	--	Dwarven Mythril Awl
+	{ name = AceLib.API.Items.GetNameByID(27141), minimum = 1060 },	--	Dwarven Mythril Cross-pein Hammer
+	{ name = AceLib.API.Items.GetNameByID(26284), minimum = 930 },	--	Dwarven Mythril Glaives
+	{ name = AceLib.API.Items.GetNameByID(27149), minimum = 1060 },	--	Dwarven Mythril Hatchet
+	{ name = AceLib.API.Items.GetNameByID(27143), minimum = 1060 },	--	Dwarven Mythril Lapidary Hammer
+	{ name = AceLib.API.Items.GetNameByID(26283), minimum = 930 },	--	Dwarven Mythril Manatrigger
+	{ name = AceLib.API.Items.GetNameByID(27148), minimum = 1060 },	--	Dwarven Mythril Pickaxe
+	{ name = AceLib.API.Items.GetNameByID(26280), minimum = 930 },	--	Dwarven Mythril Planisphere
+	{ name = AceLib.API.Items.GetNameByID(27153), minimum = 960 },	--	Dwarven Mythril Pliers
+	{ name = AceLib.API.Items.GetNameByID(27142), minimum = 1060 },	--	Dwarven Mythril Raising Hammer
+	{ name = AceLib.API.Items.GetNameByID(26273), minimum = 930 },	--	Dwarven Mythril Rotaries
+	{ name = AceLib.API.Items.GetNameByID(27144), minimum = 1060 },	--	Dwarven Mythril Round Knife
+	{ name = AceLib.API.Items.GetNameByID(27140), minimum = 1060 },	--	Dwarven Mythril Saw
+	{ name = AceLib.API.Items.GetNameByID(27160), minimum = 960 },	--	Dwarven Mythril Scythe
+	{ name = AceLib.API.Items.GetNameByID(27159), minimum = 960 },	--	Dwarven Mythril Sledgehammer
+	{ name = AceLib.API.Items.GetNameByID(18190), minimum = 420 },	--	Folded High Steel Knuckles
+	{ name = AceLib.API.Items.GetNameByID(11904), minimum = 240 },	--	Hardsilver Dolabra
+	{ name = AceLib.API.Items.GetNameByID(11909), minimum = 290 },	--	Hardsilver Hatchet
+	{ name = AceLib.API.Items.GetNameByID(11872), minimum = 240 },	--	Hardsilver Saw
+	{ name = AceLib.API.Items.GetNameByID(11884), minimum = 240 },	--	Hardsilver Texture Hammer
+	{ name = AceLib.API.Items.GetNameByID(19521), minimum = 370 },	--	High Steel Awl
+	{ name = AceLib.API.Items.GetNameByID(18191), minimum = 420 },	--	High Steel Battleaxe
+	{ name = AceLib.API.Items.GetNameByID(19517), minimum = 370 },	--	High Steel Claw Hammer
+	{ name = AceLib.API.Items.GetNameByID(19524), minimum = 370 },	--	High Steel Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(19514), minimum = 320 },	--	High Steel Dolabra
+	{ name = AceLib.API.Items.GetNameByID(19508), minimum = 320 },	--	High Steel Doming Hammer
+	{ name = AceLib.API.Items.GetNameByID(18039), minimum = 300 },	--	High Steel Guillotine
+	{ name = AceLib.API.Items.GetNameByID(18035), minimum = 300 },	--	High Steel Headsman's Axe
+	{ name = AceLib.API.Items.GetNameByID(18034), minimum = 300 },	--	High Steel Knuckles
+	{ name = AceLib.API.Items.GetNameByID(18189), minimum = 420 },	--	High Steel Longsword
+	{ name = AceLib.API.Items.GetNameByID(18038), minimum = 300 },	--	High Steel Main Gauches
+	{ name = AceLib.API.Items.GetNameByID(19519), minimum = 370 },	--	High Steel Pliers
+	{ name = AceLib.API.Items.GetNameByID(19526), minimum = 370 },	--	High Steel Scythe
+	{ name = AceLib.API.Items.GetNameByID(18046), minimum = 300 },	--	High Steel Tachi
+	{ name = AceLib.API.Items.GetNameByID(19509), minimum = 320 },	--	Koppranickel Ornamental Hammer
+	{ name = AceLib.API.Items.GetNameByID(19584), minimum = 660 },	--	Molybdenum Awl
+	{ name = AceLib.API.Items.GetNameByID(19580), minimum = 660 },	--	Molybdenum Claw Hammer
+	{ name = AceLib.API.Items.GetNameByID(19573), minimum = 650 },	--	Molybdenum Creasing Knife
+	{ name = AceLib.API.Items.GetNameByID(19587), minimum = 660 },	--	Molybdenum Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(19581), minimum = 660 },	--	Molybdenum File
+	{ name = AceLib.API.Items.GetNameByID(19569), minimum = 650 },	--	Molybdenum Halfheart Saw
+	{ name = AceLib.API.Items.GetNameByID(19947), minimum = 625 },	--	Molybdenum Ingot
+	{ name = AceLib.API.Items.GetNameByID(18658), minimum = 630 },	--	Molybdenum Knuckles
+	{ name = AceLib.API.Items.GetNameByID(18663), minimum = 630 },	--	Molybdenum Longblade
+	{ name = AceLib.API.Items.GetNameByID(19570), minimum = 650 },	--	Molybdenum Lump Hammer
+	{ name = AceLib.API.Items.GetNameByID(19586), minimum = 660 },	--	Molybdenum Mortar
+	{ name = AceLib.API.Items.GetNameByID(19577), minimum = 650 },	--	Molybdenum Pickaxe
+	{ name = AceLib.API.Items.GetNameByID(19582), minimum = 660 },	--	Molybdenum Pliers
+	{ name = AceLib.API.Items.GetNameByID(19589), minimum = 660 },	--	Molybdenum Scythe
+	{ name = AceLib.API.Items.GetNameByID(19588), minimum = 660 },	--	Molybdenum Sledgehammer
+	{ name = AceLib.API.Items.GetNameByID(18659), minimum = 630 },	--	Molybdenum War Axe
+	{ name = AceLib.API.Items.GetNameByID(10622), minimum = 130 },	--	Mythrite Claymore
+	{ name = AceLib.API.Items.GetNameByID(10587), minimum = 190 },	--	Mythrite Flametongue
+	{ name = AceLib.API.Items.GetNameByID(11871), minimum = 160 },	--	Mythrite Halfheart Saw
+	{ name = AceLib.API.Items.GetNameByID(10593), minimum = 190 },	--	Mythrite Jamadhars
+	{ name = AceLib.API.Items.GetNameByID(10586), minimum = 130 },	--	Mythrite Katzbalger
+	{ name = AceLib.API.Items.GetNameByID(11883), minimum = 160 },	--	Mythrite Lapidary Hammer
+	{ name = AceLib.API.Items.GetNameByID(10592), minimum = 130 },	--	Mythrite Patas
+	{ name = AceLib.API.Items.GetNameByID(11923), minimum = 190 },	--	Mythrite Pliers
+	{ name = AceLib.API.Items.GetNameByID(10616), minimum = 130 },	--	Mythrite Pugiones
+	{ name = AceLib.API.Items.GetNameByID(11951), minimum = 190 },	--	Mythrite Scythe
+	{ name = AceLib.API.Items.GetNameByID(10598), minimum = 130 },	--	Mythrite War Axe
+	{ name = AceLib.API.Items.GetNameByID(10623), minimum = 190 },	--	Mythrite Zweihander
+	{ name = AceLib.API.Items.GetNameByID(10628), minimum = 130 },	--	Mythrite-barreled Arquebus
+	{ name = AceLib.API.Items.GetNameByID(10629), minimum = 190 },	--	Mythrite-barreled Musketoon
+	{ name = AceLib.API.Items.GetNameByID(25801), minimum = 570 },	--	Stonegold Uchigatana
+	{ name = AceLib.API.Items.GetNameByID(26110), minimum = 830 },	--	Titanbronze Battleaxe
+	{ name = AceLib.API.Items.GetNameByID(27123), minimum = 900 },	--	Titanbronze Creasing Knife
+	{ name = AceLib.API.Items.GetNameByID(26109), minimum = 830 },	--	Titanbronze Fists
+	{ name = AceLib.API.Items.GetNameByID(26108), minimum = 830 },	--	Titanbronze Kilij
+	{ name = AceLib.API.Items.GetNameByID(27136), minimum = 900 },	--	Titanbronze Mortar
+	{ name = AceLib.API.Items.GetNameByID(27127), minimum = 900 },	--	Titanbronze Pickaxe
+	{ name = AceLib.API.Items.GetNameByID(27132), minimum = 900 },	--	Titanbronze Pliers
+	{ name = AceLib.API.Items.GetNameByID(27122), minimum = 900 },	--	Titanbronze Texture Hammer
+	{ name = AceLib.API.Items.GetNameByID(10600), minimum = 220 },	--	Titanium Axe
+	{ name = AceLib.API.Items.GetNameByID(11880), minimum = 240 },	--	Titanium Ball-pein Hammer
+	{ name = AceLib.API.Items.GetNameByID(11888), minimum = 240 },	--	Titanium Creasing Knife
+	{ name = AceLib.API.Items.GetNameByID(11876), minimum = 240 },	--	Titanium Cross-pein Hammer
+	{ name = AceLib.API.Items.GetNameByID(11944), minimum = 270 },	--	Titanium Culinary Knife
+	{ name = AceLib.API.Items.GetNameByID(10625), minimum = 290 },	--	Titanium Greatsword
+	{ name = AceLib.API.Items.GetNameByID(12525), minimum = 330 },	--	Titanium Ingot
+	{ name = AceLib.API.Items.GetNameByID(10595), minimum = 290 },	--	Titanium Knuckles
+	{ name = AceLib.API.Items.GetNameByID(10589), minimum = 290 },	--	Titanium Longsword
+	{ name = AceLib.API.Items.GetNameByID(11940), minimum = 270 },	--	Titanium Mortar
+	{ name = AceLib.API.Items.GetNameByID(12524), minimum = 250 },	--	Titanium Nugget
+	{ name = AceLib.API.Items.GetNameByID(10618), minimum = 220 },	--	Titanium Pugiones
+	{ name = AceLib.API.Items.GetNameByID(11948), minimum = 270 },	--	Titanium Sledgehammer
+	{ name = AceLib.API.Items.GetNameByID(10631), minimum = 290 },	--	Titanium-barreled Snaphance
 
 	-- Armorer
-	{ name = AceLib.API.Items.GetNameByID(11898),  minimum = 400 }, --	Adamantite Alembic
-	{ name = AceLib.API.Items.GetNameByID(10681),  minimum = 350 }, --	Adamantite Armor of Fending
-	{ name = AceLib.API.Items.GetNameByID(10723),  minimum = 350 }, --	Adamantite Armor of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10702),  minimum = 350 }, --	Adamantite Chain Hose of Fending
-	{ name = AceLib.API.Items.GetNameByID(10744),  minimum = 350 }, --	Adamantite Chain Hose of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10675),  minimum = 350 }, --	Adamantite Circlet of Fending
-	{ name = AceLib.API.Items.GetNameByID(11902),  minimum = 400 }, --	Adamantite Frypan
-	{ name = AceLib.API.Items.GetNameByID(10688),  minimum = 320 }, --	Adamantite Gauntlets of Fending
-	{ name = AceLib.API.Items.GetNameByID(10730),  minimum = 320 }, --	Adamantite Gauntlets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10674),  minimum = 320 }, --	Adamantite Helm of Fending
-	{ name = AceLib.API.Items.GetNameByID(10716),  minimum = 320 }, --	Adamantite Helm of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10669),  minimum = 400 }, --	Adamantite Hoplon
-	{ name = AceLib.API.Items.GetNameByID(10752),  minimum = 400 }, --	Adamantite Leg Guards of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10682),  minimum = 400 }, --	Adamantite Lorica of Fending
-	{ name = AceLib.API.Items.GetNameByID(10724),  minimum = 400 }, --	Adamantite Mail of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10696),  minimum = 350 }, --	Adamantite Plate Belt of Fending
-	{ name = AceLib.API.Items.GetNameByID(10709),  minimum = 320 }, --	Adamantite Sabatons of Fending
-	{ name = AceLib.API.Items.GetNameByID(10751),  minimum = 320 }, --	Adamantite Sabatons of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10668),  minimum = 350 }, --	Adamantite Scutum
-	{ name = AceLib.API.Items.GetNameByID(10695),  minimum = 320 }, --	Adamantite Tassets of Fending
-	{ name = AceLib.API.Items.GetNameByID(10737),  minimum = 320 }, --	Adamantite Tassets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10920),  minimum = 400 }, --	Aurum Regis Sollerets of Healing
-	{ name = AceLib.API.Items.GetNameByID(19533),  minimum = 510 }, --	Doman Iron Alembic
-	{ name = AceLib.API.Items.GetNameByID(19534),  minimum = 510 }, --	Doman Iron Frypan
-	{ name = AceLib.API.Items.GetNameByID(18363),  minimum = 470 }, --	Doman Iron Gauntlets of Fending
-	{ name = AceLib.API.Items.GetNameByID(18365),  minimum = 470 }, --	Doman Iron Greaves of Fending
-	{ name = AceLib.API.Items.GetNameByID(18372),  minimum = 470 }, --	Doman Iron Tassets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(19554),  minimum = 610 }, --	Doman Steel Alembic
-	{ name = AceLib.API.Items.GetNameByID(18517),  minimum = 610 }, --	Doman Steel Armet of Fending
-	{ name = AceLib.API.Items.GetNameByID(19555),  minimum = 610 }, --	Doman Steel Frypan Caliente
-	{ name = AceLib.API.Items.GetNameByID(18519),  minimum = 560 }, --	Doman Steel Gauntlets of Fending
-	{ name = AceLib.API.Items.GetNameByID(18531),  minimum = 560 }, --	Doman Steel Gauntlets of Striking
-	{ name = AceLib.API.Items.GetNameByID(18545),  minimum = 560 }, --	Doman Steel Greaves of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18516),  minimum = 610 }, --	Doman Steel Shield
-	{ name = AceLib.API.Items.GetNameByID(18524),  minimum = 610 }, --	Doman Steel Tabard of Maiming
-	{ name = AceLib.API.Items.GetNameByID(11899),  minimum = 160 }, --	Frypan Caliente
-	{ name = AceLib.API.Items.GetNameByID(11896),  minimum = 220 }, --	Hardsilver Alembic
-	{ name = AceLib.API.Items.GetNameByID(10689),  minimum = 400 }, --	Heavy Adamantite Gauntlets of Fending
-	{ name = AceLib.API.Items.GetNameByID(18051),  minimum = 320 }, --	High Steel Armguards of Fending
-	{ name = AceLib.API.Items.GetNameByID(18205),  minimum = 370 }, --	High Steel Barbut of Fending
-	{ name = AceLib.API.Items.GetNameByID(19513),  minimum = 320 }, --	High Steel Bomb Frypan
-	{ name = AceLib.API.Items.GetNameByID(18213),  minimum = 420 }, --	High Steel Gauntlets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18048),  minimum = 300 }, --	High Steel Hoplon
-	{ name = AceLib.API.Items.GetNameByID(18212),  minimum = 420 }, --	High Steel Mail of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18216),  minimum = 370 }, --	High Steel Plate Belt of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18056),  minimum = 320 }, --	High Steel Scale Mail of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18209),  minimum = 420 }, --	High Steel Sollerets of Fending
-	{ name = AceLib.API.Items.GetNameByID(11901),  minimum = 290 }, --	Mandragoras Frypan
-	{ name = AceLib.API.Items.GetNameByID(19575),  minimum = 660 }, --	Molybdenum Alembic
-	{ name = AceLib.API.Items.GetNameByID(18681),  minimum = 650 }, --	Molybdenum Armguards of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18687),  minimum = 650 }, --	Molybdenum Armguards of Striking
-	{ name = AceLib.API.Items.GetNameByID(19576),  minimum = 660 }, --	Molybdenum Frypan
-	{ name = AceLib.API.Items.GetNameByID(18677),  minimum = 650 }, --	Molybdenum Greaves of Fending
-	{ name = AceLib.API.Items.GetNameByID(18673),  minimum = 630 }, --	Molybdenum Headgear of Fending
-	{ name = AceLib.API.Items.GetNameByID(18679),  minimum = 630 }, --	Molybdenum Headgear of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18678),  minimum = 630 }, --	Molybdenum Plate Belt of Fending
-	{ name = AceLib.API.Items.GetNameByID(18684),  minimum = 630 }, --	Molybdenum Plate Belt of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18912),  minimum = 660 }, --	Molybdenum Tassets of Fending
-	{ name = AceLib.API.Items.GetNameByID(18918),  minimum = 660 }, --	Molybdenum Tassets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(11895),  minimum = 160 }, --	Mythrite Alembic
-	{ name = AceLib.API.Items.GetNameByID(10665),  minimum = 190 }, --	Mythrite Bladed Lantern Shield
-	{ name = AceLib.API.Items.GetNameByID(10726),  minimum = 130 }, --	Mythrite Gauntlets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10677),  minimum = 130 }, --	Mythrite Hauberk of Fending
-	{ name = AceLib.API.Items.GetNameByID(10719),  minimum = 130 }, --	Mythrite Hauberk of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10705),  minimum = 130 }, --	Mythrite Sabatons of Fending
-	{ name = AceLib.API.Items.GetNameByID(10747),  minimum = 130 }, --	Mythrite Sabatons of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10670),  minimum = 110 }, --	Mythrite Sallet of Fending
-	{ name = AceLib.API.Items.GetNameByID(10664),  minimum = 130 }, --	Mythrite Scutum
-	{ name = AceLib.API.Items.GetNameByID(10733),  minimum = 110 }, --	Mythrite Tassets of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18368),  minimum = 510 }, --	Tigerskin Coat of Maiming
-	{ name = AceLib.API.Items.GetNameByID(11897),  minimum = 290 }, --	Titanium Alembic
-	{ name = AceLib.API.Items.GetNameByID(10721),  minimum = 240 }, --	Titanium Cuirass of Maiming
-	{ name = AceLib.API.Items.GetNameByID(11900),  minimum = 220 }, --	Titanium Frypan
-	{ name = AceLib.API.Items.GetNameByID(10757),  minimum = 270 }, --	Titanium Headgear of Striking
-	{ name = AceLib.API.Items.GetNameByID(10667),  minimum = 290 }, --	Titanium Hoplon
-	{ name = AceLib.API.Items.GetNameByID(10666),  minimum = 240 }, --	Titanium Kite Shield
-	{ name = AceLib.API.Items.GetNameByID(10764),  minimum = 290 }, --	Titanium Mail of Striking
-	{ name = AceLib.API.Items.GetNameByID(10840),  minimum = 220 }, --	Titanium Mask of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10693),  minimum = 190 }, --	Titanium Plate Belt of Fending
-	{ name = AceLib.API.Items.GetNameByID(10714),  minimum = 220 }, --	Titanium Sallet of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10707),  minimum = 240 }, --	Titanium Sollerets of Fending
-	{ name = AceLib.API.Items.GetNameByID(10694),  minimum = 270 }, --	Titanium Tassets of Fending
-	{ name = AceLib.API.Items.GetNameByID(10729),  minimum = 270 }, --	Titanium Vambraces of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10855),  minimum = 270 }, --	Titanium Vambraces of Scouting
+	{ name = AceLib.API.Items.GetNameByID(11898), minimum = 400 },	--	Adamantite Alembic
+	{ name = AceLib.API.Items.GetNameByID(10681), minimum = 350 },	--	Adamantite Armor of Fending
+	{ name = AceLib.API.Items.GetNameByID(10723), minimum = 350 },	--	Adamantite Armor of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10702), minimum = 350 },	--	Adamantite Chain Hose of Fending
+	{ name = AceLib.API.Items.GetNameByID(10744), minimum = 350 },	--	Adamantite Chain Hose of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10675), minimum = 350 },	--	Adamantite Circlet of Fending
+	{ name = AceLib.API.Items.GetNameByID(11902), minimum = 400 },	--	Adamantite Frypan
+	{ name = AceLib.API.Items.GetNameByID(10688), minimum = 320 },	--	Adamantite Gauntlets of Fending
+	{ name = AceLib.API.Items.GetNameByID(10730), minimum = 320 },	--	Adamantite Gauntlets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10674), minimum = 320 },	--	Adamantite Helm of Fending
+	{ name = AceLib.API.Items.GetNameByID(10716), minimum = 320 },	--	Adamantite Helm of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10669), minimum = 400 },	--	Adamantite Hoplon
+	{ name = AceLib.API.Items.GetNameByID(10752), minimum = 400 },	--	Adamantite Leg Guards of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10682), minimum = 400 },	--	Adamantite Lorica of Fending
+	{ name = AceLib.API.Items.GetNameByID(10724), minimum = 400 },	--	Adamantite Mail of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10696), minimum = 350 },	--	Adamantite Plate Belt of Fending
+	{ name = AceLib.API.Items.GetNameByID(10709), minimum = 320 },	--	Adamantite Sabatons of Fending
+	{ name = AceLib.API.Items.GetNameByID(10751), minimum = 320 },	--	Adamantite Sabatons of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10668), minimum = 350 },	--	Adamantite Scutum
+	{ name = AceLib.API.Items.GetNameByID(10695), minimum = 320 },	--	Adamantite Tassets of Fending
+	{ name = AceLib.API.Items.GetNameByID(10737), minimum = 320 },	--	Adamantite Tassets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10920), minimum = 400 },	--	Aurum Regis Sollerets of Healing
+	{ name = AceLib.API.Items.GetNameByID(25973), minimum = 770 },	--	Bluespirit Cuirass of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25974), minimum = 700 },	--	Bluespirit Gauntlets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26006), minimum = 700 },	--	Bluespirit Greaves of Casting
+	{ name = AceLib.API.Items.GetNameByID(25972), minimum = 700 },	--	Bluespirit Helm of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25971), minimum = 700 },	--	Bluespirit Plate Belt of Fending
+	{ name = AceLib.API.Items.GetNameByID(27105), minimum = 770 },	--	Bluespirit Porxie Frypan
+	{ name = AceLib.API.Items.GetNameByID(25970), minimum = 700 },	--	Bluespirit Sabatons of Fending
+	{ name = AceLib.API.Items.GetNameByID(25976), minimum = 700 },	--	Bluespirit Sabatons of Maiming
+	{ name = AceLib.API.Items.GetNameByID(27083), minimum = 500 },	--	Deepgold Alembic
+	{ name = AceLib.API.Items.GetNameByID(25647), minimum = 500 },	--	Deepgold Cuirass of Fending
+	{ name = AceLib.API.Items.GetNameByID(25648), minimum = 500 },	--	Deepgold Gauntlets of Fending
+	{ name = AceLib.API.Items.GetNameByID(27708), minimum = 570 },	--	Deepgold Ingot
+	{ name = AceLib.API.Items.GetNameByID(25807), minimum = 640 },	--	Deepgold Mail of Fending
+	{ name = AceLib.API.Items.GetNameByID(25670), minimum = 500 },	--	Deepgold Mask of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25681), minimum = 500 },	--	Deepgold Plate Belt of Healing
+	{ name = AceLib.API.Items.GetNameByID(25657), minimum = 500 },	--	Deepgold Plate Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25663), minimum = 500 },	--	Deepgold Plate Belt of Striking
+	{ name = AceLib.API.Items.GetNameByID(25805), minimum = 640 },	--	Deepgold Shield
+	{ name = AceLib.API.Items.GetNameByID(25650), minimum = 500 },	--	Deepgold Sollerets of Fending
+	{ name = AceLib.API.Items.GetNameByID(25816), minimum = 570 },	--	Deepgold Sollerets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25829), minimum = 570 },	--	Deepgold Tassets of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25847), minimum = 570 },	--	Deepgold Tassets of Casting
+	{ name = AceLib.API.Items.GetNameByID(25811), minimum = 570 },	--	Deepgold Tassets of Fending
+	{ name = AceLib.API.Items.GetNameByID(25835), minimum = 570 },	--	Deepgold Tassets of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25806), minimum = 570 },	--	Deepgold Wings of Fending
+	{ name = AceLib.API.Items.GetNameByID(19533), minimum = 510 },	--	Doman Iron Alembic
+	{ name = AceLib.API.Items.GetNameByID(19534), minimum = 510 },	--	Doman Iron Frypan
+	{ name = AceLib.API.Items.GetNameByID(18363), minimum = 470 },	--	Doman Iron Gauntlets of Fending
+	{ name = AceLib.API.Items.GetNameByID(18365), minimum = 470 },	--	Doman Iron Greaves of Fending
+	{ name = AceLib.API.Items.GetNameByID(18372), minimum = 470 },	--	Doman Iron Tassets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(19554), minimum = 610 },	--	Doman Steel Alembic
+	{ name = AceLib.API.Items.GetNameByID(18517), minimum = 610 },	--	Doman Steel Armet of Fending
+	{ name = AceLib.API.Items.GetNameByID(19555), minimum = 610 },	--	Doman Steel Frypan Caliente
+	{ name = AceLib.API.Items.GetNameByID(18519), minimum = 560 },	--	Doman Steel Gauntlets of Fending
+	{ name = AceLib.API.Items.GetNameByID(18531), minimum = 560 },	--	Doman Steel Gauntlets of Striking
+	{ name = AceLib.API.Items.GetNameByID(18545), minimum = 560 },	--	Doman Steel Greaves of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18516), minimum = 610 },	--	Doman Steel Shield
+	{ name = AceLib.API.Items.GetNameByID(18524), minimum = 610 },	--	Doman Steel Tabard of Maiming
+	{ name = AceLib.API.Items.GetNameByID(27146), minimum = 1060 },	--	Dwarven Mythril Alembic
+	{ name = AceLib.API.Items.GetNameByID(26293), minimum = 930 },	--	Dwarven Mythril Chainmail of Maiming
+	{ name = AceLib.API.Items.GetNameByID(27147), minimum = 1060 },	--	Dwarven Mythril Frypan
+	{ name = AceLib.API.Items.GetNameByID(26286), minimum = 930 },	--	Dwarven Mythril Helm of Fending
+	{ name = AceLib.API.Items.GetNameByID(26292), minimum = 930 },	--	Dwarven Mythril Helm of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26309), minimum = 960 },	--	Dwarven Mythril Plate Belt of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26321), minimum = 960 },	--	Dwarven Mythril Plate Belt of Healing
+	{ name = AceLib.API.Items.GetNameByID(26297), minimum = 930 },	--	Dwarven Mythril Plate Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26315), minimum = 960 },	--	Dwarven Mythril Plate Belt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(26285), minimum = 960 },	--	Dwarven Mythril Shield
+	{ name = AceLib.API.Items.GetNameByID(11899), minimum = 160 },	--	Frypan Caliente
+	{ name = AceLib.API.Items.GetNameByID(11896), minimum = 220 },	--	Hardsilver Alembic
+	{ name = AceLib.API.Items.GetNameByID(10689), minimum = 400 },	--	Heavy Adamantite Gauntlets of Fending
+	{ name = AceLib.API.Items.GetNameByID(18051), minimum = 320 },	--	High Steel Armguards of Fending
+	{ name = AceLib.API.Items.GetNameByID(18205), minimum = 370 },	--	High Steel Barbut of Fending
+	{ name = AceLib.API.Items.GetNameByID(19513), minimum = 320 },	--	High Steel Bomb Frypan
+	{ name = AceLib.API.Items.GetNameByID(18213), minimum = 420 },	--	High Steel Gauntlets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18048), minimum = 300 },	--	High Steel Hoplon
+	{ name = AceLib.API.Items.GetNameByID(18212), minimum = 420 },	--	High Steel Mail of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18216), minimum = 370 },	--	High Steel Plate Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18056), minimum = 320 },	--	High Steel Scale Mail of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18209), minimum = 420 },	--	High Steel Sollerets of Fending
+	{ name = AceLib.API.Items.GetNameByID(11901), minimum = 290 },	--	Mandragoras Frypan
+	{ name = AceLib.API.Items.GetNameByID(19575), minimum = 660 },	--	Molybdenum Alembic
+	{ name = AceLib.API.Items.GetNameByID(18681), minimum = 650 },	--	Molybdenum Armguards of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18687), minimum = 650 },	--	Molybdenum Armguards of Striking
+	{ name = AceLib.API.Items.GetNameByID(19576), minimum = 660 },	--	Molybdenum Frypan
+	{ name = AceLib.API.Items.GetNameByID(18677), minimum = 650 },	--	Molybdenum Greaves of Fending
+	{ name = AceLib.API.Items.GetNameByID(18673), minimum = 630 },	--	Molybdenum Headgear of Fending
+	{ name = AceLib.API.Items.GetNameByID(18679), minimum = 630 },	--	Molybdenum Headgear of Maiming
+	{ name = AceLib.API.Items.GetNameByID(19947), minimum = 625 },	--	Molybdenum Ingot
+	{ name = AceLib.API.Items.GetNameByID(18678), minimum = 630 },	--	Molybdenum Plate Belt of Fending
+	{ name = AceLib.API.Items.GetNameByID(18684), minimum = 630 },	--	Molybdenum Plate Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18912), minimum = 660 },	--	Molybdenum Tassets of Fending
+	{ name = AceLib.API.Items.GetNameByID(18918), minimum = 660 },	--	Molybdenum Tassets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(11895), minimum = 160 },	--	Mythrite Alembic
+	{ name = AceLib.API.Items.GetNameByID(10665), minimum = 190 },	--	Mythrite Bladed Lantern Shield
+	{ name = AceLib.API.Items.GetNameByID(10726), minimum = 130 },	--	Mythrite Gauntlets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10677), minimum = 130 },	--	Mythrite Hauberk of Fending
+	{ name = AceLib.API.Items.GetNameByID(10719), minimum = 130 },	--	Mythrite Hauberk of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10705), minimum = 130 },	--	Mythrite Sabatons of Fending
+	{ name = AceLib.API.Items.GetNameByID(10747), minimum = 130 },	--	Mythrite Sabatons of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10670), minimum = 110 },	--	Mythrite Sallet of Fending
+	{ name = AceLib.API.Items.GetNameByID(10664), minimum = 130 },	--	Mythrite Scutum
+	{ name = AceLib.API.Items.GetNameByID(10733), minimum = 110 },	--	Mythrite Tassets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18368), minimum = 510 },	--	Tigerskin Coat of Maiming
+	{ name = AceLib.API.Items.GetNameByID(27125), minimum = 900 },	--	Titanbronze Alembic
+	{ name = AceLib.API.Items.GetNameByID(26150), minimum = 830 },	--	Titanbronze Headband of Scouting
+	{ name = AceLib.API.Items.GetNameByID(27126), minimum = 900 },	--	Titanbronze Moogle Frypan
+	{ name = AceLib.API.Items.GetNameByID(26149), minimum = 830 },	--	Titanbronze Tassets of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26167), minimum = 830 },	--	Titanbronze Tassets of Casting
+	{ name = AceLib.API.Items.GetNameByID(26161), minimum = 830 },	--	Titanbronze Tassets of Healing
+	{ name = AceLib.API.Items.GetNameByID(26137), minimum = 830 },	--	Titanbronze Tassets of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26155), minimum = 830 },	--	Titanbronze Tassets of Scouting
+	{ name = AceLib.API.Items.GetNameByID(11897), minimum = 290 },	--	Titanium Alembic
+	{ name = AceLib.API.Items.GetNameByID(10721), minimum = 240 },	--	Titanium Cuirass of Maiming
+	{ name = AceLib.API.Items.GetNameByID(11900), minimum = 220 },	--	Titanium Frypan
+	{ name = AceLib.API.Items.GetNameByID(10757), minimum = 270 },	--	Titanium Headgear of Striking
+	{ name = AceLib.API.Items.GetNameByID(10667), minimum = 290 },	--	Titanium Hoplon
+	{ name = AceLib.API.Items.GetNameByID(10666), minimum = 240 },	--	Titanium Kite Shield
+	{ name = AceLib.API.Items.GetNameByID(10764), minimum = 290 },	--	Titanium Mail of Striking
+	{ name = AceLib.API.Items.GetNameByID(10840), minimum = 220 },	--	Titanium Mask of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10693), minimum = 190 },	--	Titanium Plate Belt of Fending
+	{ name = AceLib.API.Items.GetNameByID(10714), minimum = 220 },	--	Titanium Sallet of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10707), minimum = 240 },	--	Titanium Sollerets of Fending
+	{ name = AceLib.API.Items.GetNameByID(10694), minimum = 270 },	--	Titanium Tassets of Fending
+	{ name = AceLib.API.Items.GetNameByID(10729), minimum = 270 },	--	Titanium Vambraces of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10855), minimum = 270 },	--	Titanium Vambraces of Scouting
 
 	-- Goldsmith
-	{ name = AceLib.API.Items.GetNameByID(11030),  minimum = 110 }, --	Agate Ring of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10982),  minimum = 110 }, --	Agate Ring of Fending
-	{ name = AceLib.API.Items.GetNameByID(11054),  minimum = 110 }, --	Agate Ring of Healing
-	{ name = AceLib.API.Items.GetNameByID(11022),  minimum = 320 }, --	Aurum Regis Bracelet of Aiming
-	{ name = AceLib.API.Items.GetNameByID(11070),  minimum = 320 }, --	Aurum Regis Bracelet of Casting
-	{ name = AceLib.API.Items.GetNameByID(10974),  minimum = 320 }, --	Aurum Regis Bracelet of Fending
-	{ name = AceLib.API.Items.GetNameByID(10998),  minimum = 320 }, --	Aurum Regis Bracelet of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10885),  minimum = 400 }, --	Aurum Regis Circlet of Healing
-	{ name = AceLib.API.Items.GetNameByID(11076),  minimum = 320 }, --	Aurum Regis Earrings of Casting
-	{ name = AceLib.API.Items.GetNameByID(11052),  minimum = 320 }, --	Aurum Regis Earrings of Healing
-	{ name = AceLib.API.Items.GetNameByID(11004),  minimum = 320 }, --	Aurum Regis Earrings of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10644),  minimum = 350 }, --	Aurum Regis Longpole
-	{ name = AceLib.API.Items.GetNameByID(10662),  minimum = 350 }, --	Aurum Regis Orrery
-	{ name = AceLib.API.Items.GetNameByID(10663),  minimum = 400 }, --	Aurum Regis Planisphere
-	{ name = AceLib.API.Items.GetNameByID(10645),  minimum = 400 }, --	Aurum Regis Staff
-	{ name = AceLib.API.Items.GetNameByID(18571),  minimum = 560 }, --	Azurite Bracelet of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18567),  minimum = 610 }, --	Azurite Choker of Healing
-	{ name = AceLib.API.Items.GetNameByID(18565),  minimum = 610 }, --	Azurite Choker of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18563),  minimum = 610 }, --	Azurite Earrings of Casting
-	{ name = AceLib.API.Items.GetNameByID(18559),  minimum = 610 }, --	Azurite Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(18578),  minimum = 560 }, --	Azurite Ring of Casting
-	{ name = AceLib.API.Items.GetNameByID(18577),  minimum = 560 }, --	Azurite Ring of Healing
-	{ name = AceLib.API.Items.GetNameByID(18575),  minimum = 560 }, --	Azurite Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(12707),  minimum = 400 }, --	Bladed Steel Jig
-	{ name = AceLib.API.Items.GetNameByID(10999),  minimum = 400 }, --	Chrysolite Bracelet of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10981),  minimum = 400 }, --	Chrysolite Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(11035),  minimum = 400 }, --	Chrysolite Ring of Aiming
-	{ name = AceLib.API.Items.GetNameByID(12547),  minimum = 370 }, --	Citrine
-	{ name = AceLib.API.Items.GetNameByID(11017),  minimum = 350 }, --	Citrine Choker of Aiming
-	{ name = AceLib.API.Items.GetNameByID(11065),  minimum = 350 }, --	Citrine Choker of Casting
-	{ name = AceLib.API.Items.GetNameByID(10969),  minimum = 350 }, --	Citrine Choker of Fending
-	{ name = AceLib.API.Items.GetNameByID(12018),  minimum = 270 }, --	Dragon Fang Earrings
-	{ name = AceLib.API.Items.GetNameByID(11893),  minimum = 270 }, --	Dragon Fang Needle
-	{ name = AceLib.API.Items.GetNameByID(18201),  minimum = 420 }, --	Dual-plated Koppranickel Planisphere
-	{ name = AceLib.API.Items.GetNameByID(19634),  minimum = 510 }, --	Durium Chaplets
-	{ name = AceLib.API.Items.GetNameByID(18354),  minimum = 510 }, --	Durium Staff
-	{ name = AceLib.API.Items.GetNameByID(12706),  minimum = 320 }, --	Goblin Jig
-	{ name = AceLib.API.Items.GetNameByID(11894),  minimum = 400 }, --	Griffin Talon Needle
-	{ name = AceLib.API.Items.GetNameByID(10986),  minimum = 350 }, --	Griffin Talon Ring of Fending
-	{ name = AceLib.API.Items.GetNameByID(11058),  minimum = 350 }, --	Griffin Talon Ring of Healing
-	{ name = AceLib.API.Items.GetNameByID(11010),  minimum = 350 }, --	Griffin Talon Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(11020),  minimum = 240 }, --	Hardsilver Bangle of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10978),  minimum = 240 }, --	Hardsilver Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(12030),  minimum = 290 }, --	Hardsilver Earrings of Gathering
-	{ name = AceLib.API.Items.GetNameByID(11050),  minimum = 240 }, --	Hardsilver Earrings of Healing
-	{ name = AceLib.API.Items.GetNameByID(10882),  minimum = 220 }, --	Hardsilver Monocle of Healing
-	{ name = AceLib.API.Items.GetNameByID(11892),  minimum = 220 }, --	Hardsilver Needle
-	{ name = AceLib.API.Items.GetNameByID(10643),  minimum = 290 }, --	Hardsilver Pole
-	{ name = AceLib.API.Items.GetNameByID(10642),  minimum = 220 }, --	Hardsilver Staff
-	{ name = AceLib.API.Items.GetNameByID(10660),  minimum = 240 }, --	Hardsilver Star Globe
-	{ name = AceLib.API.Items.GetNameByID(18951),  minimum = 660 }, --	Imperial Jade Earrings of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18949),  minimum = 660 }, --	Imperial Jade Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(18952),  minimum = 660 }, --	Imperial Jade Earrings of Healing
-	{ name = AceLib.API.Items.GetNameByID(18950),  minimum = 660 }, --	Imperial Jade Earrings of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18956),  minimum = 660 }, --	Imperial Jade Necklace of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18958),  minimum = 660 }, --	Imperial Jade Necklace of Casting
-	{ name = AceLib.API.Items.GetNameByID(18954),  minimum = 660 }, --	Imperial Jade Necklace of Fending
-	{ name = AceLib.API.Items.GetNameByID(18955),  minimum = 660 }, --	Imperial Jade Necklace of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18257),  minimum = 370 }, --	Koppranickel Bracelet of Fending
-	{ name = AceLib.API.Items.GetNameByID(18260),  minimum = 370 }, --	Koppranickel Bracelet of Healing
-	{ name = AceLib.API.Items.GetNameByID(18250),  minimum = 420 }, --	Koppranickel Earrings of Healing
-	{ name = AceLib.API.Items.GetNameByID(18248),  minimum = 420 }, --	Koppranickel Earrings of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18254),  minimum = 420 }, --	Koppranickel Necklace of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18256),  minimum = 420 }, --	Koppranickel Necklace of Casting
-	{ name = AceLib.API.Items.GetNameByID(18719),  minimum = 630 }, --	Molybdenum Earring of Casting
-	{ name = AceLib.API.Items.GetNameByID(18716),  minimum = 630 }, --	Molybdenum Earring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(11008),  minimum = 220 }, --	Mormorion Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18263),  minimum = 370 }, --	Muudhorn Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10994),  minimum = 130 }, --	Mythrite Bangle of Slaying
-	{ name = AceLib.API.Items.GetNameByID(11043),  minimum = 160 }, --	Mythrite Bracelet of Healing
-	{ name = AceLib.API.Items.GetNameByID(10754),  minimum = 130 }, --	Mythrite Circlet of Striking
-	{ name = AceLib.API.Items.GetNameByID(10977),  minimum = 160 }, --	Mythrite Earblades of Fending
-	{ name = AceLib.API.Items.GetNameByID(11072),  minimum = 130 }, --	Mythrite Earrings of Casting
-	{ name = AceLib.API.Items.GetNameByID(11983),  minimum = 130 }, --	Mythrite Goggles of Gathering
-	{ name = AceLib.API.Items.GetNameByID(11013),  minimum = 190 }, --	Mythrite Necklace of Aiming
-	{ name = AceLib.API.Items.GetNameByID(11891),  minimum = 160 }, --	Mythrite Needle
-	{ name = AceLib.API.Items.GetNameByID(10659),  minimum = 190 }, --	Mythrite Planisphere
-	{ name = AceLib.API.Items.GetNameByID(11069),  minimum = 270 }, --	Opal Bracelet of Casting
-	{ name = AceLib.API.Items.GetNameByID(11027),  minimum = 290 }, --	Opal Earrings of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10979),  minimum = 290 }, --	Opal Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(11009),  minimum = 270 }, --	Opal Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18726),  minimum = 630 }, --	Palladium Bracelet of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18723),  minimum = 630 }, --	Palladium Choker of Healing
-	{ name = AceLib.API.Items.GetNameByID(19574),  minimum = 650 }, --	Palladium Needle
-	{ name = AceLib.API.Items.GetNameByID(18669),  minimum = 650 }, --	Palladium Planisphere
-	{ name = AceLib.API.Items.GetNameByID(18732),  minimum = 630 }, --	Palladium Ring of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18730),  minimum = 630 }, --	Palladium Ring of Fending
-	{ name = AceLib.API.Items.GetNameByID(12544),  minimum = 260 }, --	Star Ruby
-	{ name = AceLib.API.Items.GetNameByID(18416),  minimum = 470 }, --	Star Spinel Bracelet of Healing
-	{ name = AceLib.API.Items.GetNameByID(18409),  minimum = 510 }, --	Star Spinel Choker of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18407),  minimum = 510 }, --	Star Spinel Earrings of Casting
-	{ name = AceLib.API.Items.GetNameByID(18406),  minimum = 510 }, --	Star Spinel Earrings of Healing
-	{ name = AceLib.API.Items.GetNameByID(18420),  minimum = 470 }, --	Star Spinel Ring of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18418),  minimum = 470 }, --	Star Spinel Ring of Fending
-	{ name = AceLib.API.Items.GetNameByID(18104),  minimum = 300 }, --	Triphane Bracelet of Healing
-	{ name = AceLib.API.Items.GetNameByID(18099),  minimum = 320 }, --	Triphane Choker of Healing
-	{ name = AceLib.API.Items.GetNameByID(18097),  minimum = 320 }, --	Triphane Choker of Slaying
-	{ name = AceLib.API.Items.GetNameByID(18093),  minimum = 320 }, --	Triphane Earrings of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18091),  minimum = 320 }, --	Triphane Earrings of Fending
-	{ name = AceLib.API.Items.GetNameByID(18108),  minimum = 300 }, --	Triphane Ring of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18110),  minimum = 300 }, --	Triphane Ring of Casting
-	{ name = AceLib.API.Items.GetNameByID(18106),  minimum = 300 }, --	Triphane Ring of Fending
-	{ name = AceLib.API.Items.GetNameByID(12017),  minimum = 160 }, --	Yeti Fang Earrings
-	{ name = AceLib.API.Items.GetNameByID(11079),  minimum = 190 }, --	Yeti Fang Ring of Casting
-	{ name = AceLib.API.Items.GetNameByID(11007),  minimum = 190 }, --	Yeti Fang Ring of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10640),  minimum = 130 }, --	Yeti Staff
+	{ name = AceLib.API.Items.GetNameByID(11030), minimum = 110 },	--	Agate Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10982), minimum = 110 },	--	Agate Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(11054), minimum = 110 },	--	Agate Ring of Healing
+	{ name = AceLib.API.Items.GetNameByID(11022), minimum = 320 },	--	Aurum Regis Bracelet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(11070), minimum = 320 },	--	Aurum Regis Bracelet of Casting
+	{ name = AceLib.API.Items.GetNameByID(10974), minimum = 320 },	--	Aurum Regis Bracelet of Fending
+	{ name = AceLib.API.Items.GetNameByID(10998), minimum = 320 },	--	Aurum Regis Bracelet of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10885), minimum = 400 },	--	Aurum Regis Circlet of Healing
+	{ name = AceLib.API.Items.GetNameByID(11076), minimum = 320 },	--	Aurum Regis Earrings of Casting
+	{ name = AceLib.API.Items.GetNameByID(11052), minimum = 320 },	--	Aurum Regis Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(11004), minimum = 320 },	--	Aurum Regis Earrings of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10644), minimum = 350 },	--	Aurum Regis Longpole
+	{ name = AceLib.API.Items.GetNameByID(10662), minimum = 350 },	--	Aurum Regis Orrery
+	{ name = AceLib.API.Items.GetNameByID(10663), minimum = 400 },	--	Aurum Regis Planisphere
+	{ name = AceLib.API.Items.GetNameByID(10645), minimum = 400 },	--	Aurum Regis Staff
+	{ name = AceLib.API.Items.GetNameByID(18571), minimum = 560 },	--	Azurite Bracelet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18567), minimum = 610 },	--	Azurite Choker of Healing
+	{ name = AceLib.API.Items.GetNameByID(18565), minimum = 610 },	--	Azurite Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18563), minimum = 610 },	--	Azurite Earrings of Casting
+	{ name = AceLib.API.Items.GetNameByID(18559), minimum = 610 },	--	Azurite Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(18578), minimum = 560 },	--	Azurite Ring of Casting
+	{ name = AceLib.API.Items.GetNameByID(18577), minimum = 560 },	--	Azurite Ring of Healing
+	{ name = AceLib.API.Items.GetNameByID(18575), minimum = 560 },	--	Azurite Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(12707), minimum = 400 },	--	Bladed Steel Jig
+	{ name = AceLib.API.Items.GetNameByID(25949), minimum = 700 },	--	Bluespirit Baghnakhs
+	{ name = AceLib.API.Items.GetNameByID(25953), minimum = 700 },	--	Bluespirit Daggers
+	{ name = AceLib.API.Items.GetNameByID(25964), minimum = 700 },	--	Bluespirit Glaives
+	{ name = AceLib.API.Items.GetNameByID(25952), minimum = 700 },	--	Bluespirit Longbow
+	{ name = AceLib.API.Items.GetNameByID(25960), minimum = 700 },	--	Bluespirit Star Globe
+	{ name = AceLib.API.Items.GetNameByID(25961), minimum = 700 },	--	Bluespirit Uchigatana
+	{ name = AceLib.API.Items.GetNameByID(10999), minimum = 400 },	--	Chrysolite Bracelet of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10981), minimum = 400 },	--	Chrysolite Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(11035), minimum = 400 },	--	Chrysolite Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(12547), minimum = 370 },	--	Citrine
+	{ name = AceLib.API.Items.GetNameByID(11017), minimum = 350 },	--	Citrine Choker of Aiming
+	{ name = AceLib.API.Items.GetNameByID(11065), minimum = 350 },	--	Citrine Choker of Casting
+	{ name = AceLib.API.Items.GetNameByID(10969), minimum = 350 },	--	Citrine Choker of Fending
+	{ name = AceLib.API.Items.GetNameByID(25862), minimum = 640 },	--	Diaspore Bracelet of Casting
+	{ name = AceLib.API.Items.GetNameByID(25856), minimum = 640 },	--	Diaspore Choker of Healing
+	{ name = AceLib.API.Items.GetNameByID(25854), minimum = 640 },	--	Diaspore Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(25850), minimum = 570 },	--	Diaspore Earrings of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25848), minimum = 570 },	--	Diaspore Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(25865), minimum = 570 },	--	Diaspore Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25864), minimum = 570 },	--	Diaspore Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(12018), minimum = 270 },	--	Dragon Fang Earrings
+	{ name = AceLib.API.Items.GetNameByID(11893), minimum = 270 },	--	Dragon Fang Needle
+	{ name = AceLib.API.Items.GetNameByID(18201), minimum = 420 },	--	Dual-plated Koppranickel Planisphere
+	{ name = AceLib.API.Items.GetNameByID(19634), minimum = 510 },	--	Durium Chaplets
+	{ name = AceLib.API.Items.GetNameByID(18354), minimum = 510 },	--	Durium Staff
+	{ name = AceLib.API.Items.GetNameByID(27224), minimum = 1060 },	--	Dwarven Mythril Bracelets
+	{ name = AceLib.API.Items.GetNameByID(27223), minimum = 1060 },	--	Dwarven Mythril Choker
+	{ name = AceLib.API.Items.GetNameByID(27222), minimum = 1060 },	--	Dwarven Mythril Ear Cuffs
+	{ name = AceLib.API.Items.GetNameByID(27145), minimum = 1060 },	--	Dwarven Mythril Needle
+	{ name = AceLib.API.Items.GetNameByID(27225), minimum = 1060 },	--	Dwarven Mythril Ring
+	{ name = AceLib.API.Items.GetNameByID(12706), minimum = 320 },	--	Goblin Jig
+	{ name = AceLib.API.Items.GetNameByID(11894), minimum = 400 },	--	Griffin Talon Needle
+	{ name = AceLib.API.Items.GetNameByID(10986), minimum = 350 },	--	Griffin Talon Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(11058), minimum = 350 },	--	Griffin Talon Ring of Healing
+	{ name = AceLib.API.Items.GetNameByID(11010), minimum = 350 },	--	Griffin Talon Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(11020), minimum = 240 },	--	Hardsilver Bangle of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10978), minimum = 240 },	--	Hardsilver Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(12030), minimum = 290 },	--	Hardsilver Earrings of Gathering
+	{ name = AceLib.API.Items.GetNameByID(11050), minimum = 240 },	--	Hardsilver Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(10882), minimum = 220 },	--	Hardsilver Monocle of Healing
+	{ name = AceLib.API.Items.GetNameByID(11892), minimum = 220 },	--	Hardsilver Needle
+	{ name = AceLib.API.Items.GetNameByID(10643), minimum = 290 },	--	Hardsilver Pole
+	{ name = AceLib.API.Items.GetNameByID(10642), minimum = 220 },	--	Hardsilver Staff
+	{ name = AceLib.API.Items.GetNameByID(10660), minimum = 240 },	--	Hardsilver Star Globe
+	{ name = AceLib.API.Items.GetNameByID(25694), minimum = 500 },	--	Hematite Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(25688), minimum = 500 },	--	Hematite Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(19966), minimum = 625 },	--	Imperial Jade
+	{ name = AceLib.API.Items.GetNameByID(18951), minimum = 660 },	--	Imperial Jade Earrings of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18949), minimum = 660 },	--	Imperial Jade Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(18952), minimum = 660 },	--	Imperial Jade Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(18950), minimum = 660 },	--	Imperial Jade Earrings of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18956), minimum = 660 },	--	Imperial Jade Necklace of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18958), minimum = 660 },	--	Imperial Jade Necklace of Casting
+	{ name = AceLib.API.Items.GetNameByID(18954), minimum = 660 },	--	Imperial Jade Necklace of Fending
+	{ name = AceLib.API.Items.GetNameByID(18955), minimum = 660 },	--	Imperial Jade Necklace of Slaying
+	{ name = AceLib.API.Items.GetNameByID(25700), minimum = 500 },	--	Islewolf Bracelet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25707), minimum = 500 },	--	Islewolf Ring of Casting
+	{ name = AceLib.API.Items.GetNameByID(25706), minimum = 500 },	--	Islewolf Ring of Healing
+	{ name = AceLib.API.Items.GetNameByID(18257), minimum = 370 },	--	Koppranickel Bracelet of Fending
+	{ name = AceLib.API.Items.GetNameByID(18260), minimum = 370 },	--	Koppranickel Bracelet of Healing
+	{ name = AceLib.API.Items.GetNameByID(18250), minimum = 420 },	--	Koppranickel Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(18248), minimum = 420 },	--	Koppranickel Earrings of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18254), minimum = 420 },	--	Koppranickel Necklace of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18256), minimum = 420 },	--	Koppranickel Necklace of Casting
+	{ name = AceLib.API.Items.GetNameByID(27212), minimum = 770 },	--	Manasilver Ear Cuffs
+	{ name = AceLib.API.Items.GetNameByID(27103), minimum = 770 },	--	Manasilver Needle
+	{ name = AceLib.API.Items.GetNameByID(18719), minimum = 630 },	--	Molybdenum Earring of Casting
+	{ name = AceLib.API.Items.GetNameByID(18716), minimum = 630 },	--	Molybdenum Earring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(11008), minimum = 220 },	--	Mormorion Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18263), minimum = 370 },	--	Muudhorn Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10994), minimum = 130 },	--	Mythrite Bangle of Slaying
+	{ name = AceLib.API.Items.GetNameByID(11043), minimum = 160 },	--	Mythrite Bracelet of Healing
+	{ name = AceLib.API.Items.GetNameByID(10754), minimum = 130 },	--	Mythrite Circlet of Striking
+	{ name = AceLib.API.Items.GetNameByID(10977), minimum = 160 },	--	Mythrite Earblades of Fending
+	{ name = AceLib.API.Items.GetNameByID(11072), minimum = 130 },	--	Mythrite Earrings of Casting
+	{ name = AceLib.API.Items.GetNameByID(11983), minimum = 130 },	--	Mythrite Goggles of Gathering
+	{ name = AceLib.API.Items.GetNameByID(11013), minimum = 190 },	--	Mythrite Necklace of Aiming
+	{ name = AceLib.API.Items.GetNameByID(11891), minimum = 160 },	--	Mythrite Needle
+	{ name = AceLib.API.Items.GetNameByID(10659), minimum = 190 },	--	Mythrite Planisphere
+	{ name = AceLib.API.Items.GetNameByID(11069), minimum = 270 },	--	Opal Bracelet of Casting
+	{ name = AceLib.API.Items.GetNameByID(11027), minimum = 290 },	--	Opal Earrings of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10979), minimum = 290 },	--	Opal Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(11009), minimum = 270 },	--	Opal Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18726), minimum = 630 },	--	Palladium Bracelet of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18723), minimum = 630 },	--	Palladium Choker of Healing
+	{ name = AceLib.API.Items.GetNameByID(19574), minimum = 650 },	--	Palladium Needle
+	{ name = AceLib.API.Items.GetNameByID(18669), minimum = 650 },	--	Palladium Planisphere
+	{ name = AceLib.API.Items.GetNameByID(18732), minimum = 630 },	--	Palladium Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18730), minimum = 630 },	--	Palladium Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(26340), minimum = 960 },	--	Petalite Bracelet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26339), minimum = 960 },	--	Petalite Bracelet of Slaying
+	{ name = AceLib.API.Items.GetNameByID(26333), minimum = 960 },	--	Petalite Choker of Fending
+	{ name = AceLib.API.Items.GetNameByID(26334), minimum = 960 },	--	Petalite Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(26332), minimum = 930 },	--	Petalite Earrings of Casting
+	{ name = AceLib.API.Items.GetNameByID(26331), minimum = 930 },	--	Petalite Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(26345), minimum = 930 },	--	Petalite Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26343), minimum = 930 },	--	Petalite Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(12544), minimum = 260 },	--	Star Ruby
+	{ name = AceLib.API.Items.GetNameByID(18416), minimum = 470 },	--	Star Spinel Bracelet of Healing
+	{ name = AceLib.API.Items.GetNameByID(18409), minimum = 510 },	--	Star Spinel Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18407), minimum = 510 },	--	Star Spinel Earrings of Casting
+	{ name = AceLib.API.Items.GetNameByID(18406), minimum = 510 },	--	Star Spinel Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(18420), minimum = 470 },	--	Star Spinel Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18418), minimum = 470 },	--	Star Spinel Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(25640), minimum = 500 },	--	Stonegold Astrometer
+	{ name = AceLib.API.Items.GetNameByID(25652), minimum = 500 },	--	Stonegold Circlet of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25642), minimum = 500 },	--	Stonegold Degen
+	{ name = AceLib.API.Items.GetNameByID(25800), minimum = 640 },	--	Stonegold Orrery
+	{ name = AceLib.API.Items.GetNameByID(26126), minimum = 900 },	--	Titanbronze Headgear of Fending
+	{ name = AceLib.API.Items.GetNameByID(26132), minimum = 900 },	--	Titanbronze Headgear of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26122), minimum = 830 },	--	Titanbronze Rapier
+	{ name = AceLib.API.Items.GetNameByID(18104), minimum = 300 },	--	Triphane Bracelet of Healing
+	{ name = AceLib.API.Items.GetNameByID(18099), minimum = 320 },	--	Triphane Choker of Healing
+	{ name = AceLib.API.Items.GetNameByID(18097), minimum = 320 },	--	Triphane Choker of Slaying
+	{ name = AceLib.API.Items.GetNameByID(18093), minimum = 320 },	--	Triphane Earrings of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18091), minimum = 320 },	--	Triphane Earrings of Fending
+	{ name = AceLib.API.Items.GetNameByID(18108), minimum = 300 },	--	Triphane Ring of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18110), minimum = 300 },	--	Triphane Ring of Casting
+	{ name = AceLib.API.Items.GetNameByID(18106), minimum = 300 },	--	Triphane Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(26180), minimum = 900 },	--	Triplite Bracelet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26182), minimum = 900 },	--	Triplite Bracelet of Casting
+	{ name = AceLib.API.Items.GetNameByID(26173), minimum = 900 },	--	Triplite Choker of Fending
+	{ name = AceLib.API.Items.GetNameByID(26171), minimum = 830 },	--	Triplite Earrings of Healing
+	{ name = AceLib.API.Items.GetNameByID(26183), minimum = 830 },	--	Triplite Ring of Fending
+	{ name = AceLib.API.Items.GetNameByID(12017), minimum = 160 },	--	Yeti Fang Earrings
+	{ name = AceLib.API.Items.GetNameByID(11079), minimum = 190 },	--	Yeti Fang Ring of Casting
+	{ name = AceLib.API.Items.GetNameByID(11007), minimum = 190 },	--	Yeti Fang Ring of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10640), minimum = 130 },	--	Yeti Staff
 
 	-- Leatherworker
-	{ name = AceLib.API.Items.GetNameByID(12566),  minimum = 360 }, --	Amphiptere Leather
-	{ name = AceLib.API.Items.GetNameByID(10775),  minimum = 110 }, --	Archaeoskin Belt of Striking
-	{ name = AceLib.API.Items.GetNameByID(10698),  minimum = 130 }, --	Archaeoskin Breeches of Fending
-	{ name = AceLib.API.Items.GetNameByID(10740),  minimum = 130 }, --	Archaeoskin Breeches of Maiming
-	{ name = AceLib.API.Items.GetNameByID(11965),  minimum = 130 }, --	Archaeoskin Gloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(11993),  minimum = 130 }, --	Archaeoskin Gloves of Gathering
-	{ name = AceLib.API.Items.GetNameByID(10894),  minimum = 110 }, --	Archaeoskin Gloves of Healing
-	{ name = AceLib.API.Items.GetNameByID(11978),  minimum = 160 }, --	Archaeoskin Jackboots of Crafting
-	{ name = AceLib.API.Items.GetNameByID(11988),  minimum = 160 }, --	Archaeoskin Jackcoat of Gathering
-	{ name = AceLib.API.Items.GetNameByID(10831),  minimum = 130 }, --	Archaeoskin Shoes of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10957),  minimum = 130 }, --	Archaeoskin Shoes of Casting
-	{ name = AceLib.API.Items.GetNameByID(12564),  minimum = 250 }, --	Dhalmel Leather
-	{ name = AceLib.API.Items.GetNameByID(10770),  minimum = 220 }, --	Dhalmelskin Armguards of Striking
-	{ name = AceLib.API.Items.GetNameByID(10945),  minimum = 220 }, --	Dhalmelskin Belt of Casting
-	{ name = AceLib.API.Items.GetNameByID(10700),  minimum = 240 }, --	Dhalmelskin Breeches of Fending
-	{ name = AceLib.API.Items.GetNameByID(10917),  minimum = 240 }, --	Dhalmelskin Crakows of Healing
-	{ name = AceLib.API.Items.GetNameByID(11967),  minimum = 240 }, --	Dhalmelskin Halfgloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10805),  minimum = 240 }, --	Dhalmelskin Jacket of Aiming
-	{ name = AceLib.API.Items.GetNameByID(11980),  minimum = 270 }, --	Dhalmelskin Shoes
-	{ name = AceLib.API.Items.GetNameByID(11971),  minimum = 320 }, --	Dragonskin Belt of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10736),  minimum = 270 }, --	Dragonskin Belt of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10918),  minimum = 290 }, --	Dragonskin Boots of Healing
-	{ name = AceLib.API.Items.GetNameByID(10701),  minimum = 290 }, --	Dragonskin Breeches of Fending
-	{ name = AceLib.API.Items.GetNameByID(10869),  minimum = 290 }, --	Dragonskin Breeches of Scouting
-	{ name = AceLib.API.Items.GetNameByID(12024),  minimum = 320 }, --	Dragonskin Choker
-	{ name = AceLib.API.Items.GetNameByID(10813),  minimum = 270 }, --	Dragonskin Gloves of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10897),  minimum = 270 }, --	Dragonskin Gloves of Healing
-	{ name = AceLib.API.Items.GetNameByID(12033),  minimum = 290 }, --	Dragonskin Ring
-	{ name = AceLib.API.Items.GetNameByID(12027),  minimum = 320 }, --	Dragonskin Wristbands
-	{ name = AceLib.API.Items.GetNameByID(19661),  minimum = 660 }, --	Fur-lined Gazelleskin Boots
-	{ name = AceLib.API.Items.GetNameByID(18090),  minimum = 300 }, --	Gaganaskin Belt of Casting
-	{ name = AceLib.API.Items.GetNameByID(18060),  minimum = 300 }, --	Gaganaskin Belt of Maiming
-	{ name = AceLib.API.Items.GetNameByID(19617),  minimum = 320 }, --	Gaganaskin Bush Hat
-	{ name = AceLib.API.Items.GetNameByID(18070),  minimum = 320 }, --	Gaganaskin Chaps of Aiming
-	{ name = AceLib.API.Items.GetNameByID(19619),  minimum = 320 }, --	Gaganaskin Gloves
-	{ name = AceLib.API.Items.GetNameByID(18068),  minimum = 320 }, --	Gaganaskin Jacket of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18053),  minimum = 320 }, --	Gaganaskin Leg Guards of Fending
-	{ name = AceLib.API.Items.GetNameByID(19616),  minimum = 320 }, --	Gaganaskin Shoes
-	{ name = AceLib.API.Items.GetNameByID(18693),  minimum = 650 }, --	Gazelleskin Armguards of Aiming
-	{ name = AceLib.API.Items.GetNameByID(19752),  minimum = 660 }, --	Gazelleskin Belt of Gathering
-	{ name = AceLib.API.Items.GetNameByID(18707),  minimum = 630 }, --	Gazelleskin Boots of Healing
-	{ name = AceLib.API.Items.GetNameByID(18682),  minimum = 650 }, --	Gazelleskin Brais of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18700),  minimum = 650 }, --	Gazelleskin Brais of Scouting
-	{ name = AceLib.API.Items.GetNameByID(19754),  minimum = 660 }, --	Gazelleskin Choker
-	{ name = AceLib.API.Items.GetNameByID(18704),  minimum = 650 }, --	Gazelleskin Coat of Healing
-	{ name = AceLib.API.Items.GetNameByID(19753),  minimum = 660 }, --	Gazelleskin Earrings
-	{ name = AceLib.API.Items.GetNameByID(19654),  minimum = 660 }, --	Gazelleskin Gloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(18689),  minimum = 630 }, --	Gazelleskin Open-toe Boots of Striking
-	{ name = AceLib.API.Items.GetNameByID(18930),  minimum = 660 }, --	Gazelleskin Ringbelt of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18924),  minimum = 660 }, --	Gazelleskin Ringbelt of Striking
-	{ name = AceLib.API.Items.GetNameByID(18702),  minimum = 630 }, --	Gazelleskin Twinbelt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18690),  minimum = 630 }, --	Gazelleskin Twinbelt of Striking
-	{ name = AceLib.API.Items.GetNameByID(19755),  minimum = 660 }, --	Gazelleskin Wristband
-	{ name = AceLib.API.Items.GetNameByID(18239),  minimum = 420 }, --	Gyuki Leather Boots of Healing
-	{ name = AceLib.API.Items.GetNameByID(19733),  minimum = 420 }, --	Gyuki Leather Earrings
-	{ name = AceLib.API.Items.GetNameByID(19624),  minimum = 420 }, --	Gyuki Leather Gloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(18219),  minimum = 370 }, --	Gyuki Leather Halfgloves of Striking
-	{ name = AceLib.API.Items.GetNameByID(19736),  minimum = 420 }, --	Gyuki Leather Ring
-	{ name = AceLib.API.Items.GetNameByID(18214),  minimum = 370 }, --	Gyuki Leather Trousers of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18228),  minimum = 370 }, --	Gyuki Leather Twinbelt of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18234),  minimum = 370 }, --	Gyuki Leather Twinbelt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(19651),  minimum = 610 }, --	Marid Leather Babouches of Gathering
-	{ name = AceLib.API.Items.GetNameByID(18522),  minimum = 560 }, --	Marid Leather Belt of Fending
-	{ name = AceLib.API.Items.GetNameByID(18551),  minimum = 560 }, --	Marid Leather Boots of Healing
-	{ name = AceLib.API.Items.GetNameByID(18544),  minimum = 610 }, --	Marid Leather Breeches of Scouting
-	{ name = AceLib.API.Items.GetNameByID(19744),  minimum = 610 }, --	Marid Leather Choker
-	{ name = AceLib.API.Items.GetNameByID(18530),  minimum = 610 }, --	Marid Leather Coat of Striking
-	{ name = AceLib.API.Items.GetNameByID(18558),  minimum = 560 }, --	Marid Leather Corset of Casting
-	{ name = AceLib.API.Items.GetNameByID(19644),  minimum = 610 }, --	Marid Leather Gloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10856),  minimum = 320 }, --	Serpentskin Armguards of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10772),  minimum = 320 }, --	Serpentskin Armguards of Striking
-	{ name = AceLib.API.Items.GetNameByID(10962),  minimum = 400 }, --	Serpentskin Bootlets of Casting
-	{ name = AceLib.API.Items.GetNameByID(10793),  minimum = 350 }, --	Serpentskin Boots of Striking
-	{ name = AceLib.API.Items.GetNameByID(10815),  minimum = 350 }, --	Serpentskin Bracers of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10871),  minimum = 400 }, --	Serpentskin Brais of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10940),  minimum = 320 }, --	Serpentskin Dress Gloves of Casting
-	{ name = AceLib.API.Items.GetNameByID(11997),  minimum = 350 }, --	Serpentskin Gloves
-	{ name = AceLib.API.Items.GetNameByID(10941),  minimum = 350 }, --	Serpentskin Gloves of Casting
-	{ name = AceLib.API.Items.GetNameByID(11969),  minimum = 350 }, --	Serpentskin Halfgloves of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10926),  minimum = 320 }, --	Serpentskin Hat of Casting
-	{ name = AceLib.API.Items.GetNameByID(10717),  minimum = 400 }, --	Serpentskin Helm of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10745),  minimum = 400 }, --	Serpentskin Hose of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10864),  minimum = 350 }, --	Serpentskin Hunting Belt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10821),  minimum = 320 }, --	Serpentskin Ringbelt of Aiming
-	{ name = AceLib.API.Items.GetNameByID(11982),  minimum = 400 }, --	Serpentskin Shoes
-	{ name = AceLib.API.Items.GetNameByID(10836),  minimum = 400 }, --	Serpentskin Thighboots of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10919),  minimum = 350 }, --	Serpentskin Thighboots of Healing
-	{ name = AceLib.API.Items.GetNameByID(10794),  minimum = 400 }, --	Serpentskin Thighboots of Striking
-	{ name = AceLib.API.Items.GetNameByID(11992),  minimum = 400 }, --	Serpentskin Vest
-	{ name = AceLib.API.Items.GetNameByID(10738),  minimum = 350 }, --	Serpentskin Voyager's Belt of Maiming
-	{ name = AceLib.API.Items.GetNameByID(18393),  minimum = 470 }, --	Tigerskin Armguards of Healing
-	{ name = AceLib.API.Items.GetNameByID(19641),  minimum = 510 }, --	Tigerskin Boots of Gathering
-	{ name = AceLib.API.Items.GetNameByID(19637),  minimum = 510 }, --	Tigerskin Cap of Gathering
-	{ name = AceLib.API.Items.GetNameByID(18401),  minimum = 510 }, --	Tigerskin Jackboots of Casting
-	{ name = AceLib.API.Items.GetNameByID(18390),  minimum = 470 }, --	Tigerskin Ringbelt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18383),  minimum = 510 }, --	Tigerskin Thighboots of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18373),  minimum = 510 }, --	Tigerskin Tricorne of Striking
-	{ name = AceLib.API.Items.GetNameByID(18375),  minimum = 470 }, --	Tigerskin Wristgloves of Striking
-	{ name = AceLib.API.Items.GetNameByID(10860),  minimum = 160 }, --	Wyvernskin Belt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10916),  minimum = 190 }, --	Wyvernskin Boots of Healing
-	{ name = AceLib.API.Items.GetNameByID(12023),  minimum = 220 }, --	Wyvernskin Choker
-	{ name = AceLib.API.Items.GetNameByID(10685),  minimum = 160 }, --	Wyvernskin Gloves of Fending
-	{ name = AceLib.API.Items.GetNameByID(11989),  minimum = 220 }, --	Wyvernskin Jerkin
-	{ name = AceLib.API.Items.GetNameByID(10923),  minimum = 190 }, --	Wyvernskin Mask of Casting
-	{ name = AceLib.API.Items.GetNameByID(10713),  minimum = 190 }, --	Wyvernskin Pot Helm of Maiming
-	{ name = AceLib.API.Items.GetNameByID(12026),  minimum = 190 }, --	Wyvernskin Wristbands
+	{ name = AceLib.API.Items.GetNameByID(12566), minimum = 360 },	--	Amphiptere Leather
+	{ name = AceLib.API.Items.GetNameByID(10775), minimum = 110 },	--	Archaeoskin Belt of Striking
+	{ name = AceLib.API.Items.GetNameByID(10698), minimum = 130 },	--	Archaeoskin Breeches of Fending
+	{ name = AceLib.API.Items.GetNameByID(10740), minimum = 130 },	--	Archaeoskin Breeches of Maiming
+	{ name = AceLib.API.Items.GetNameByID(11965), minimum = 130 },	--	Archaeoskin Gloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(11993), minimum = 130 },	--	Archaeoskin Gloves of Gathering
+	{ name = AceLib.API.Items.GetNameByID(10894), minimum = 110 },	--	Archaeoskin Gloves of Healing
+	{ name = AceLib.API.Items.GetNameByID(11978), minimum = 160 },	--	Archaeoskin Jackboots of Crafting
+	{ name = AceLib.API.Items.GetNameByID(11988), minimum = 160 },	--	Archaeoskin Jackcoat of Gathering
+	{ name = AceLib.API.Items.GetNameByID(10831), minimum = 130 },	--	Archaeoskin Shoes of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10957), minimum = 130 },	--	Archaeoskin Shoes of Casting
+	{ name = AceLib.API.Items.GetNameByID(26019), minimum = 700 },	--	Atrociraptorskin Amulet of Slaying
+	{ name = AceLib.API.Items.GetNameByID(25969), minimum = 770 },	--	Atrociraptorskin Breeches of Fending
+	{ name = AceLib.API.Items.GetNameByID(27176), minimum = 700 },	--	Atrociraptorskin Cap of Gathering
+	{ name = AceLib.API.Items.GetNameByID(26003), minimum = 770 },	--	Atrociraptorskin Coat of Casting
+	{ name = AceLib.API.Items.GetNameByID(25985), minimum = 770 },	--	Atrociraptorskin Corselet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25991), minimum = 770 },	--	Atrociraptorskin Corselet of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25984), minimum = 700 },	--	Atrociraptorskin Headgear of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26013), minimum = 770 },	--	Atrociraptorskin Necklace of Fending
+	{ name = AceLib.API.Items.GetNameByID(12564), minimum = 250 },	--	Dhalmel Leather
+	{ name = AceLib.API.Items.GetNameByID(10770), minimum = 220 },	--	Dhalmelskin Armguards of Striking
+	{ name = AceLib.API.Items.GetNameByID(10945), minimum = 220 },	--	Dhalmelskin Belt of Casting
+	{ name = AceLib.API.Items.GetNameByID(10700), minimum = 240 },	--	Dhalmelskin Breeches of Fending
+	{ name = AceLib.API.Items.GetNameByID(10917), minimum = 240 },	--	Dhalmelskin Crakows of Healing
+	{ name = AceLib.API.Items.GetNameByID(11967), minimum = 240 },	--	Dhalmelskin Halfgloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10805), minimum = 240 },	--	Dhalmelskin Jacket of Aiming
+	{ name = AceLib.API.Items.GetNameByID(11980), minimum = 270 },	--	Dhalmelskin Shoes
+	{ name = AceLib.API.Items.GetNameByID(11971), minimum = 320 },	--	Dragonskin Belt of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10736), minimum = 270 },	--	Dragonskin Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10918), minimum = 290 },	--	Dragonskin Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(10701), minimum = 290 },	--	Dragonskin Breeches of Fending
+	{ name = AceLib.API.Items.GetNameByID(10869), minimum = 290 },	--	Dragonskin Breeches of Scouting
+	{ name = AceLib.API.Items.GetNameByID(12024), minimum = 320 },	--	Dragonskin Choker
+	{ name = AceLib.API.Items.GetNameByID(10813), minimum = 270 },	--	Dragonskin Gloves of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10897), minimum = 270 },	--	Dragonskin Gloves of Healing
+	{ name = AceLib.API.Items.GetNameByID(12033), minimum = 290 },	--	Dragonskin Ring
+	{ name = AceLib.API.Items.GetNameByID(12027), minimum = 320 },	--	Dragonskin Wristbands
+	{ name = AceLib.API.Items.GetNameByID(19661), minimum = 660 },	--	Fur-lined Gazelleskin Boots
+	{ name = AceLib.API.Items.GetNameByID(18090), minimum = 300 },	--	Gaganaskin Belt of Casting
+	{ name = AceLib.API.Items.GetNameByID(18060), minimum = 300 },	--	Gaganaskin Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(19617), minimum = 320 },	--	Gaganaskin Bush Hat
+	{ name = AceLib.API.Items.GetNameByID(18070), minimum = 320 },	--	Gaganaskin Chaps of Aiming
+	{ name = AceLib.API.Items.GetNameByID(19619), minimum = 320 },	--	Gaganaskin Gloves
+	{ name = AceLib.API.Items.GetNameByID(18068), minimum = 320 },	--	Gaganaskin Jacket of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18053), minimum = 320 },	--	Gaganaskin Leg Guards of Fending
+	{ name = AceLib.API.Items.GetNameByID(19616), minimum = 320 },	--	Gaganaskin Shoes
+	{ name = AceLib.API.Items.GetNameByID(19997), minimum = 625 },	--	Gazelle Leather
+	{ name = AceLib.API.Items.GetNameByID(18693), minimum = 650 },	--	Gazelleskin Armguards of Aiming
+	{ name = AceLib.API.Items.GetNameByID(19752), minimum = 660 },	--	Gazelleskin Belt of Gathering
+	{ name = AceLib.API.Items.GetNameByID(18707), minimum = 630 },	--	Gazelleskin Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(18682), minimum = 650 },	--	Gazelleskin Brais of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18700), minimum = 650 },	--	Gazelleskin Brais of Scouting
+	{ name = AceLib.API.Items.GetNameByID(19754), minimum = 660 },	--	Gazelleskin Choker
+	{ name = AceLib.API.Items.GetNameByID(18704), minimum = 650 },	--	Gazelleskin Coat of Healing
+	{ name = AceLib.API.Items.GetNameByID(19753), minimum = 660 },	--	Gazelleskin Earrings
+	{ name = AceLib.API.Items.GetNameByID(19654), minimum = 660 },	--	Gazelleskin Gloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(18689), minimum = 630 },	--	Gazelleskin Open-toe Boots of Striking
+	{ name = AceLib.API.Items.GetNameByID(18930), minimum = 660 },	--	Gazelleskin Ringbelt of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18924), minimum = 660 },	--	Gazelleskin Ringbelt of Striking
+	{ name = AceLib.API.Items.GetNameByID(18702), minimum = 630 },	--	Gazelleskin Twinbelt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18690), minimum = 630 },	--	Gazelleskin Twinbelt of Striking
+	{ name = AceLib.API.Items.GetNameByID(19755), minimum = 660 },	--	Gazelleskin Wristband
+	{ name = AceLib.API.Items.GetNameByID(25828), minimum = 570 },	--	Gliderskin Boots of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25840), minimum = 640 },	--	Gliderskin Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(25815), minimum = 640 },	--	Gliderskin Breeches of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25826), minimum = 570 },	--	Gliderskin Gloves of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25832), minimum = 570 },	--	Gliderskin Gloves of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25810), minimum = 640 },	--	Gliderskin Thighboots of Fending
+	{ name = AceLib.API.Items.GetNameByID(25834), minimum = 570 },	--	Gliderskin Thighboots of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25822), minimum = 570 },	--	Gliderskin Thighboots of Striking
+	{ name = AceLib.API.Items.GetNameByID(18239), minimum = 420 },	--	Gyuki Leather Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(19733), minimum = 420 },	--	Gyuki Leather Earrings
+	{ name = AceLib.API.Items.GetNameByID(19624), minimum = 420 },	--	Gyuki Leather Gloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(18219), minimum = 370 },	--	Gyuki Leather Halfgloves of Striking
+	{ name = AceLib.API.Items.GetNameByID(19736), minimum = 420 },	--	Gyuki Leather Ring
+	{ name = AceLib.API.Items.GetNameByID(18214), minimum = 370 },	--	Gyuki Leather Trousers of Maiming
+	{ name = AceLib.API.Items.GetNameByID(18228), minimum = 370 },	--	Gyuki Leather Twinbelt of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18234), minimum = 370 },	--	Gyuki Leather Twinbelt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(19651), minimum = 610 },	--	Marid Leather Babouches of Gathering
+	{ name = AceLib.API.Items.GetNameByID(18522), minimum = 560 },	--	Marid Leather Belt of Fending
+	{ name = AceLib.API.Items.GetNameByID(18551), minimum = 560 },	--	Marid Leather Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(18544), minimum = 610 },	--	Marid Leather Breeches of Scouting
+	{ name = AceLib.API.Items.GetNameByID(19744), minimum = 610 },	--	Marid Leather Choker
+	{ name = AceLib.API.Items.GetNameByID(18530), minimum = 610 },	--	Marid Leather Coat of Striking
+	{ name = AceLib.API.Items.GetNameByID(18558), minimum = 560 },	--	Marid Leather Corset of Casting
+	{ name = AceLib.API.Items.GetNameByID(19644), minimum = 610 },	--	Marid Leather Gloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10856), minimum = 320 },	--	Serpentskin Armguards of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10772), minimum = 320 },	--	Serpentskin Armguards of Striking
+	{ name = AceLib.API.Items.GetNameByID(10962), minimum = 400 },	--	Serpentskin Bootlets of Casting
+	{ name = AceLib.API.Items.GetNameByID(10793), minimum = 350 },	--	Serpentskin Boots of Striking
+	{ name = AceLib.API.Items.GetNameByID(10815), minimum = 350 },	--	Serpentskin Bracers of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10871), minimum = 400 },	--	Serpentskin Brais of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10940), minimum = 320 },	--	Serpentskin Dress Gloves of Casting
+	{ name = AceLib.API.Items.GetNameByID(11997), minimum = 350 },	--	Serpentskin Gloves
+	{ name = AceLib.API.Items.GetNameByID(10941), minimum = 350 },	--	Serpentskin Gloves of Casting
+	{ name = AceLib.API.Items.GetNameByID(11969), minimum = 350 },	--	Serpentskin Halfgloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10926), minimum = 320 },	--	Serpentskin Hat of Casting
+	{ name = AceLib.API.Items.GetNameByID(10717), minimum = 400 },	--	Serpentskin Helm of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10745), minimum = 400 },	--	Serpentskin Hose of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10864), minimum = 350 },	--	Serpentskin Hunting Belt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10821), minimum = 320 },	--	Serpentskin Ringbelt of Aiming
+	{ name = AceLib.API.Items.GetNameByID(11982), minimum = 400 },	--	Serpentskin Shoes
+	{ name = AceLib.API.Items.GetNameByID(10836), minimum = 400 },	--	Serpentskin Thighboots of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10919), minimum = 350 },	--	Serpentskin Thighboots of Healing
+	{ name = AceLib.API.Items.GetNameByID(10794), minimum = 400 },	--	Serpentskin Thighboots of Striking
+	{ name = AceLib.API.Items.GetNameByID(11992), minimum = 400 },	--	Serpentskin Vest
+	{ name = AceLib.API.Items.GetNameByID(10738), minimum = 350 },	--	Serpentskin Voyager's Belt of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25678), minimum = 500 },	--	Smilodonskin Armguards of Healing
+	{ name = AceLib.API.Items.GetNameByID(25686), minimum = 500 },	--	Smilodonskin Boots of Casting
+	{ name = AceLib.API.Items.GetNameByID(27163), minimum = 500 },	--	Smilodonskin Gloves of Crafting
+	{ name = AceLib.API.Items.GetNameByID(27168), minimum = 500 },	--	Smilodonskin Gloves of Gathering
+	{ name = AceLib.API.Items.GetNameByID(25672), minimum = 500 },	--	Smilodonskin Gloves of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25656), minimum = 500 },	--	Smilodonskin Leggings of Maiming
+	{ name = AceLib.API.Items.GetNameByID(27201), minimum = 500 },	--	Smilodonskin Tool Belt
+	{ name = AceLib.API.Items.GetNameByID(25649), minimum = 500 },	--	Smilodonskin Trousers of Fending
+	{ name = AceLib.API.Items.GetNameByID(27200), minimum = 1060 },	--	Swallowskin Boots
+	{ name = AceLib.API.Items.GetNameByID(27197), minimum = 1060 },	--	Swallowskin Coat
+	{ name = AceLib.API.Items.GetNameByID(27193), minimum = 1060 },	--	Swallowskin Fingerless Gloves
+	{ name = AceLib.API.Items.GetNameByID(27198), minimum = 1060 },	--	Swallowskin Gloves
+	{ name = AceLib.API.Items.GetNameByID(26306), minimum = 930 },	--	Swallowskin Gloves of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26294), minimum = 930 },	--	Swallowskin Gloves of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26300), minimum = 930 },	--	Swallowskin Gloves of Striking
+	{ name = AceLib.API.Items.GetNameByID(26305), minimum = 930 },	--	Swallowskin Robe of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26317), minimum = 960 },	--	Swallowskin Robe of Healing
+	{ name = AceLib.API.Items.GetNameByID(27195), minimum = 1060 },	--	Swallowskin Shoes
+	{ name = AceLib.API.Items.GetNameByID(26302), minimum = 930 },	--	Swallowskin Shoes of Striking
+	{ name = AceLib.API.Items.GetNameByID(27226), minimum = 960 },	--	Swallowskin Survival Belt
+	{ name = AceLib.API.Items.GetNameByID(27221), minimum = 960 },	--	Swallowskin Tool Belt
+	{ name = AceLib.API.Items.GetNameByID(18393), minimum = 470 },	--	Tigerskin Armguards of Healing
+	{ name = AceLib.API.Items.GetNameByID(19641), minimum = 510 },	--	Tigerskin Boots of Gathering
+	{ name = AceLib.API.Items.GetNameByID(19637), minimum = 510 },	--	Tigerskin Cap of Gathering
+	{ name = AceLib.API.Items.GetNameByID(18401), minimum = 510 },	--	Tigerskin Jackboots of Casting
+	{ name = AceLib.API.Items.GetNameByID(18390), minimum = 470 },	--	Tigerskin Ringbelt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18383), minimum = 510 },	--	Tigerskin Thighboots of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18373), minimum = 510 },	--	Tigerskin Tricorne of Striking
+	{ name = AceLib.API.Items.GetNameByID(18375), minimum = 470 },	--	Tigerskin Wristgloves of Striking
+	{ name = AceLib.API.Items.GetNameByID(10860), minimum = 160 },	--	Wyvernskin Belt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10916), minimum = 190 },	--	Wyvernskin Boots of Healing
+	{ name = AceLib.API.Items.GetNameByID(12023), minimum = 220 },	--	Wyvernskin Choker
+	{ name = AceLib.API.Items.GetNameByID(10685), minimum = 160 },	--	Wyvernskin Gloves of Fending
+	{ name = AceLib.API.Items.GetNameByID(11989), minimum = 220 },	--	Wyvernskin Jerkin
+	{ name = AceLib.API.Items.GetNameByID(10923), minimum = 190 },	--	Wyvernskin Mask of Casting
+	{ name = AceLib.API.Items.GetNameByID(10713), minimum = 190 },	--	Wyvernskin Pot Helm of Maiming
+	{ name = AceLib.API.Items.GetNameByID(12026), minimum = 190 },	--	Wyvernskin Wristbands
+	{ name = AceLib.API.Items.GetNameByID(26130), minimum = 900 },	--	Zonureskin Caligae of Fending
+	{ name = AceLib.API.Items.GetNameByID(26136), minimum = 900 },	--	Zonureskin Caligae of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26127), minimum = 900 },	--	Zonureskin Coat of Fending
+	{ name = AceLib.API.Items.GetNameByID(26164), minimum = 830 },	--	Zonureskin Fingerless Gloves of Casting
+	{ name = AceLib.API.Items.GetNameByID(26158), minimum = 830 },	--	Zonureskin Fingerless Gloves of Healing
+	{ name = AceLib.API.Items.GetNameByID(26140), minimum = 830 },	--	Zonureskin Fingerless Gloves of Striking
+	{ name = AceLib.API.Items.GetNameByID(27182), minimum = 900 },	--	Zonureskin Jacket of Crafting
+	{ name = AceLib.API.Items.GetNameByID(27187), minimum = 900 },	--	Zonureskin Robe of Gathering
 
 	-- Weaver
-	{ name = AceLib.API.Items.GetNameByID(18076),  minimum = 300 }, --	Bloodhempen Brais of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18064),  minimum = 300 }, --	Bloodhempen Brais of Striking
-	{ name = AceLib.API.Items.GetNameByID(18086),  minimum = 320 }, --	Bloodhempen Chestwrap of Casting
-	{ name = AceLib.API.Items.GetNameByID(18082),  minimum = 300 }, --	Bloodhempen Culottes of Healing
-	{ name = AceLib.API.Items.GetNameByID(19615),  minimum = 320 }, --	Bloodhempen Skirt
-	{ name = AceLib.API.Items.GetNameByID(18074),  minimum = 320 }, --	Bloodhempen Vest of Scouting
-	{ name = AceLib.API.Items.GetNameByID(12592),  minimum = 360 }, --	Chimerical Felt
-	{ name = AceLib.API.Items.GetNameByID(10891),  minimum = 350 }, --	Chimerical Felt Alb of Healing
-	{ name = AceLib.API.Items.GetNameByID(10703),  minimum = 400 }, --	Chimerical Felt Breeches of Fending
-	{ name = AceLib.API.Items.GetNameByID(10913),  minimum = 400 }, --	Chimerical Felt Breeches of Healing
-	{ name = AceLib.API.Items.GetNameByID(10800),  minimum = 320 }, --	Chimerical Felt Cap of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10842),  minimum = 320 }, --	Chimerical Felt Cap of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10758),  minimum = 320 }, --	Chimerical Felt Cap of Striking
-	{ name = AceLib.API.Items.GetNameByID(10912),  minimum = 350 }, --	Chimerical Felt Chausses of Healing
-	{ name = AceLib.API.Items.GetNameByID(10801),  minimum = 400 }, --	Chimerical Felt Coif of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10947),  minimum = 320 }, --	Chimerical Felt Corset of Casting
-	{ name = AceLib.API.Items.GetNameByID(10905),  minimum = 320 }, --	Chimerical Felt Corset of Healing
-	{ name = AceLib.API.Items.GetNameByID(10849),  minimum = 350 }, --	Chimerical Felt Cyclas of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10765),  minimum = 350 }, --	Chimerical Felt Cyclas of Striking
-	{ name = AceLib.API.Items.GetNameByID(11964),  minimum = 400 }, --	Chimerical Felt Doublet of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10898),  minimum = 320 }, --	Chimerical Felt Gloves of Healing
-	{ name = AceLib.API.Items.GetNameByID(10927),  minimum = 400 }, --	Chimerical Felt Hat of Casting
-	{ name = AceLib.API.Items.GetNameByID(10828),  minimum = 350 }, --	Chimerical Felt Hose of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10884),  minimum = 320 }, --	Chimerical Felt Klobuk of Healing
-	{ name = AceLib.API.Items.GetNameByID(10933),  minimum = 350 }, --	Chimerical Felt Robe of Casting
-	{ name = AceLib.API.Items.GetNameByID(10822),  minimum = 350 }, --	Chimerical Felt Sash of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10948),  minimum = 350 }, --	Chimerical Felt Sash of Casting
-	{ name = AceLib.API.Items.GetNameByID(10850),  minimum = 400 }, --	Chimerical Felt Tabard of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10766),  minimum = 400 }, --	Chimerical Felt Tabard of Striking
-	{ name = AceLib.API.Items.GetNameByID(12005),  minimum = 400 }, --	Chimerical Felt Trousers
-	{ name = AceLib.API.Items.GetNameByID(19655),  minimum = 660 }, --	Cropped Twinsilk Slops
-	{ name = AceLib.API.Items.GetNameByID(10806),  minimum = 290 }, --	Hallowed Ramie Doublet of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10890),  minimum = 290 }, --	Hallowed Ramie Doublet of Healing
-	{ name = AceLib.API.Items.GetNameByID(10953),  minimum = 290 }, --	Hallowed Ramie Gaskins of Casting
-	{ name = AceLib.API.Items.GetNameByID(10911),  minimum = 290 }, --	Hallowed Ramie Gaskins of Healing
-	{ name = AceLib.API.Items.GetNameByID(10820),  minimum = 270 }, --	Hallowed Ramie Sash of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10946),  minimum = 270 }, --	Hallowed Ramie Sash of Casting
-	{ name = AceLib.API.Items.GetNameByID(11961),  minimum = 220 }, --	Holy Rainbow Coatee
-	{ name = AceLib.API.Items.GetNameByID(11966),  minimum = 190 }, --	Holy Rainbow Gloves
-	{ name = AceLib.API.Items.GetNameByID(11984),  minimum = 190 }, --	Holy Rainbow Hat
-	{ name = AceLib.API.Items.GetNameByID(10797),  minimum = 160 }, --	Holy Rainbow Hat of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10951),  minimum = 160 }, --	Holy Rainbow Sarouel of Casting
-	{ name = AceLib.API.Items.GetNameByID(10699),  minimum = 160 }, --	Holy Rainbow Sarouel of Fending
-	{ name = AceLib.API.Items.GetNameByID(10741),  minimum = 160 }, --	Holy Rainbow Sarouel of Maiming
-	{ name = AceLib.API.Items.GetNameByID(10846),  minimum = 190 }, --	Holy Rainbow Shirt of Scouting
-	{ name = AceLib.API.Items.GetNameByID(10762),  minimum = 190 }, --	Holy Rainbow Shirt of Striking
-	{ name = AceLib.API.Items.GetNameByID(11979),  minimum = 220 }, --	Holy Rainbow Shoes
-	{ name = AceLib.API.Items.GetNameByID(19632),  minimum = 510 }, --	Kudzu Cap of Crafting
-	{ name = AceLib.API.Items.GetNameByID(18402),  minimum = 470 }, --	Kudzu Corset of Casting
-	{ name = AceLib.API.Items.GetNameByID(18391),  minimum = 470 }, --	Kudzu Hat of Healing
-	{ name = AceLib.API.Items.GetNameByID(18400),  minimum = 470 }, --	Kudzu Longkilt of Casting
-	{ name = AceLib.API.Items.GetNameByID(18364),  minimum = 470 }, --	Kudzu Longkilt of Fending
-	{ name = AceLib.API.Items.GetNameByID(18392),  minimum = 510 }, --	Kudzu Robe of Healing
-	{ name = AceLib.API.Items.GetNameByID(18388),  minimum = 470 }, --	Kudzu Trousers of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18380),  minimum = 510 }, --	Kudzu Tunic of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10761),  minimum = 130 }, --	Rainbow Bolero of Striking
-	{ name = AceLib.API.Items.GetNameByID(10796),  minimum = 110 }, --	Rainbow Cap of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10922),  minimum = 110 }, --	Rainbow Cap of Casting
-	{ name = AceLib.API.Items.GetNameByID(10852),  minimum = 110 }, --	Rainbow Halfgloves of Scouting
-	{ name = AceLib.API.Items.GetNameByID(11012),  minimum = 130 }, --	Rainbow Ribbon of Aiming
-	{ name = AceLib.API.Items.GetNameByID(10964),  minimum = 130 }, --	Rainbow Ribbon of Fending
-	{ name = AceLib.API.Items.GetNameByID(10901),  minimum = 110 }, --	Rainbow Sash of Healing
-	{ name = AceLib.API.Items.GetNameByID(10908),  minimum = 130 }, --	Rainbow Slops of Healing
-	{ name = AceLib.API.Items.GetNameByID(12590),  minimum = 230 }, --	Ramie Cloth
-	{ name = AceLib.API.Items.GetNameByID(11962),  minimum = 270 }, --	Ramie Doublet of Crafting
-	{ name = AceLib.API.Items.GetNameByID(10938),  minimum = 220 }, --	Ramie Halfgloves of Casting
-	{ name = AceLib.API.Items.GetNameByID(10990),  minimum = 220 }, --	Ramie Ribbon of Slaying
-	{ name = AceLib.API.Items.GetNameByID(10889),  minimum = 240 }, --	Ramie Robe of Healing
-	{ name = AceLib.API.Items.GetNameByID(10952),  minimum = 240 }, --	Ramie Tonban of Casting
-	{ name = AceLib.API.Items.GetNameByID(10826),  minimum = 240 }, --	Ramie Trousers of Aiming
-	{ name = AceLib.API.Items.GetNameByID(12003),  minimum = 270 }, --	Ramie Trousers of Gathering
-	{ name = AceLib.API.Items.GetNameByID(11957),  minimum = 240 }, --	Ramie Turban of Crafting
-	{ name = AceLib.API.Items.GetNameByID(18217),  minimum = 370 }, --	Ruby Cotton Bandana of Striking
-	{ name = AceLib.API.Items.GetNameByID(19625),  minimum = 420 }, --	Ruby Cotton Bottoms
-	{ name = AceLib.API.Items.GetNameByID(19623),  minimum = 420 }, --	Ruby Cotton Coatee
-	{ name = AceLib.API.Items.GetNameByID(18224),  minimum = 420 }, --	Ruby Cotton Gambison
-	{ name = AceLib.API.Items.GetNameByID(18230),  minimum = 420 }, --	Ruby Cotton Gilet of Scouting
-	{ name = AceLib.API.Items.GetNameByID(18244),  minimum = 420 }, --	Ruby Cotton Longkilt
-	{ name = AceLib.API.Items.GetNameByID(18246),  minimum = 370 }, --	Ruby Cotton Sash of Casting
-	{ name = AceLib.API.Items.GetNameByID(18238),  minimum = 420 }, --	Ruby Cotton Smalls
-	{ name = AceLib.API.Items.GetNameByID(18554),  minimum = 610 }, --	Serge Gambison of Casting
-	{ name = AceLib.API.Items.GetNameByID(18535),  minimum = 560 }, --	Serge Hat of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18553),  minimum = 560 }, --	Serge Hat of Casting
-	{ name = AceLib.API.Items.GetNameByID(19657),  minimum = 660 }, --	Serge Hood
-	{ name = AceLib.API.Items.GetNameByID(18538),  minimum = 610 }, --	Serge Hose of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18550),  minimum = 610 }, --	Serge Hose of Healing
-	{ name = AceLib.API.Items.GetNameByID(19652),  minimum = 660 }, --	Serge Knit Cap
-	{ name = AceLib.API.Items.GetNameByID(19658),  minimum = 660 }, --	Serge Poncho
-	{ name = AceLib.API.Items.GetNameByID(19645),  minimum = 610 }, --	Serge Sarouel of Crafting
-	{ name = AceLib.API.Items.GetNameByID(19650),  minimum = 610 }, --	Serge Sarouel of Gathering
-	{ name = AceLib.API.Items.GetNameByID(19659),  minimum = 660 }, --	Serge Work Gloves
-	{ name = AceLib.API.Items.GetNameByID(18942),  minimum = 650 }, --	Twinsilk Corset of Healing
-	{ name = AceLib.API.Items.GetNameByID(18709),  minimum = 630 }, --	Twinsilk Hood of Casting
-	{ name = AceLib.API.Items.GetNameByID(18703),  minimum = 630 }, --	Twinsilk Hood of Healing
-	{ name = AceLib.API.Items.GetNameByID(18714),  minimum = 630 }, --	Twinsilk Sash of Casting
-	{ name = AceLib.API.Items.GetNameByID(18694),  minimum = 650 }, --	Twinsilk Slops of Aiming
-	{ name = AceLib.API.Items.GetNameByID(18712),  minimum = 650 }, --	Twinsilk Slops of Casting
-	{ name = AceLib.API.Items.GetNameByID(19660),  minimum = 660 }, --	Twinsilk Slops of Gathering
-	{ name = AceLib.API.Items.GetNameByID(18706),  minimum = 650 }, --	Twinsilk Slops of Healing
-	{ name = AceLib.API.Items.GetNameByID(19653),  minimum = 660 }, --	Twinsilk Suspenders
+	{ name = AceLib.API.Items.GetNameByID(18076), minimum = 300 },	--	Bloodhempen Brais of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18064), minimum = 300 },	--	Bloodhempen Brais of Striking
+	{ name = AceLib.API.Items.GetNameByID(18086), minimum = 320 },	--	Bloodhempen Chestwrap of Casting
+	{ name = AceLib.API.Items.GetNameByID(18082), minimum = 300 },	--	Bloodhempen Culottes of Healing
+	{ name = AceLib.API.Items.GetNameByID(19615), minimum = 320 },	--	Bloodhempen Skirt
+	{ name = AceLib.API.Items.GetNameByID(18074), minimum = 320 },	--	Bloodhempen Vest of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25682), minimum = 500 },	--	Brightlinen Cap of Casting
+	{ name = AceLib.API.Items.GetNameByID(27167), minimum = 500 },	--	Brightlinen Coat of Gathering
+	{ name = AceLib.API.Items.GetNameByID(25677), minimum = 500 },	--	Brightlinen Cyclas of Healing
+	{ name = AceLib.API.Items.GetNameByID(27162), minimum = 500 },	--	Brightlinen Doublet Vest of Crafting
+	{ name = AceLib.API.Items.GetNameByID(25664), minimum = 500 },	--	Brightlinen Hood of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25658), minimum = 500 },	--	Brightlinen Hood of Striking
+	{ name = AceLib.API.Items.GetNameByID(25673), minimum = 500 },	--	Brightlinen Hose of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25653), minimum = 500 },	--	Brightlinen Tabard of Maiming
+	{ name = AceLib.API.Items.GetNameByID(12592), minimum = 360 },	--	Chimerical Felt
+	{ name = AceLib.API.Items.GetNameByID(10891), minimum = 350 },	--	Chimerical Felt Alb of Healing
+	{ name = AceLib.API.Items.GetNameByID(10703), minimum = 400 },	--	Chimerical Felt Breeches of Fending
+	{ name = AceLib.API.Items.GetNameByID(10913), minimum = 400 },	--	Chimerical Felt Breeches of Healing
+	{ name = AceLib.API.Items.GetNameByID(10800), minimum = 320 },	--	Chimerical Felt Cap of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10842), minimum = 320 },	--	Chimerical Felt Cap of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10758), minimum = 320 },	--	Chimerical Felt Cap of Striking
+	{ name = AceLib.API.Items.GetNameByID(10912), minimum = 350 },	--	Chimerical Felt Chausses of Healing
+	{ name = AceLib.API.Items.GetNameByID(10801), minimum = 400 },	--	Chimerical Felt Coif of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10947), minimum = 320 },	--	Chimerical Felt Corset of Casting
+	{ name = AceLib.API.Items.GetNameByID(10905), minimum = 320 },	--	Chimerical Felt Corset of Healing
+	{ name = AceLib.API.Items.GetNameByID(10849), minimum = 350 },	--	Chimerical Felt Cyclas of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10765), minimum = 350 },	--	Chimerical Felt Cyclas of Striking
+	{ name = AceLib.API.Items.GetNameByID(11964), minimum = 400 },	--	Chimerical Felt Doublet of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10898), minimum = 320 },	--	Chimerical Felt Gloves of Healing
+	{ name = AceLib.API.Items.GetNameByID(10927), minimum = 400 },	--	Chimerical Felt Hat of Casting
+	{ name = AceLib.API.Items.GetNameByID(10828), minimum = 350 },	--	Chimerical Felt Hose of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10884), minimum = 320 },	--	Chimerical Felt Klobuk of Healing
+	{ name = AceLib.API.Items.GetNameByID(10933), minimum = 350 },	--	Chimerical Felt Robe of Casting
+	{ name = AceLib.API.Items.GetNameByID(10822), minimum = 350 },	--	Chimerical Felt Sash of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10948), minimum = 350 },	--	Chimerical Felt Sash of Casting
+	{ name = AceLib.API.Items.GetNameByID(10850), minimum = 400 },	--	Chimerical Felt Tabard of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10766), minimum = 400 },	--	Chimerical Felt Tabard of Striking
+	{ name = AceLib.API.Items.GetNameByID(12005), minimum = 400 },	--	Chimerical Felt Trousers
+	{ name = AceLib.API.Items.GetNameByID(19655), minimum = 660 },	--	Cropped Twinsilk Slops
+	{ name = AceLib.API.Items.GetNameByID(27196), minimum = 1060 },	--	Dwarven Cotton Bandana
+	{ name = AceLib.API.Items.GetNameByID(27191), minimum = 1060 },	--	Dwarven Cotton Beret
+	{ name = AceLib.API.Items.GetNameByID(27199), minimum = 1060 },	--	Dwarven Cotton Breeches
+	{ name = AceLib.API.Items.GetNameByID(26307), minimum = 960 },	--	Dwarven Cotton Gaskins of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26325), minimum = 930 },	--	Dwarven Cotton Gaskins of Casting
+	{ name = AceLib.API.Items.GetNameByID(26319), minimum = 930 },	--	Dwarven Cotton Gaskins of Healing
+	{ name = AceLib.API.Items.GetNameByID(26295), minimum = 930 },	--	Dwarven Cotton Gaskins of Maiming
+	{ name = AceLib.API.Items.GetNameByID(26313), minimum = 960 },	--	Dwarven Cotton Gaskins of Scouting
+	{ name = AceLib.API.Items.GetNameByID(26301), minimum = 930 },	--	Dwarven Cotton Gaskins of Striking
+	{ name = AceLib.API.Items.GetNameByID(27192), minimum = 1060 },	--	Dwarven Cotton Jacket
+	{ name = AceLib.API.Items.GetNameByID(26322), minimum = 930 },	--	Dwarven Cotton Petasos of Casting
+	{ name = AceLib.API.Items.GetNameByID(27194), minimum = 1060 },	--	Dwarven Cotton Trousers
+	{ name = AceLib.API.Items.GetNameByID(26304), minimum = 960 },	--	Dwarven Cotton Turban of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10806), minimum = 290 },	--	Hallowed Ramie Doublet of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10890), minimum = 290 },	--	Hallowed Ramie Doublet of Healing
+	{ name = AceLib.API.Items.GetNameByID(10953), minimum = 290 },	--	Hallowed Ramie Gaskins of Casting
+	{ name = AceLib.API.Items.GetNameByID(10911), minimum = 290 },	--	Hallowed Ramie Gaskins of Healing
+	{ name = AceLib.API.Items.GetNameByID(10820), minimum = 270 },	--	Hallowed Ramie Sash of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10946), minimum = 270 },	--	Hallowed Ramie Sash of Casting
+	{ name = AceLib.API.Items.GetNameByID(11961), minimum = 220 },	--	Holy Rainbow Coatee
+	{ name = AceLib.API.Items.GetNameByID(11966), minimum = 190 },	--	Holy Rainbow Gloves
+	{ name = AceLib.API.Items.GetNameByID(11984), minimum = 190 },	--	Holy Rainbow Hat
+	{ name = AceLib.API.Items.GetNameByID(10797), minimum = 160 },	--	Holy Rainbow Hat of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10951), minimum = 160 },	--	Holy Rainbow Sarouel of Casting
+	{ name = AceLib.API.Items.GetNameByID(10699), minimum = 160 },	--	Holy Rainbow Sarouel of Fending
+	{ name = AceLib.API.Items.GetNameByID(10741), minimum = 160 },	--	Holy Rainbow Sarouel of Maiming
+	{ name = AceLib.API.Items.GetNameByID(10846), minimum = 190 },	--	Holy Rainbow Shirt of Scouting
+	{ name = AceLib.API.Items.GetNameByID(10762), minimum = 190 },	--	Holy Rainbow Shirt of Striking
+	{ name = AceLib.API.Items.GetNameByID(11979), minimum = 220 },	--	Holy Rainbow Shoes
+	{ name = AceLib.API.Items.GetNameByID(25827), minimum = 640 },	--	Iridescent Bottoms of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25845), minimum = 640 },	--	Iridescent Bottoms of Casting
+	{ name = AceLib.API.Items.GetNameByID(25839), minimum = 640 },	--	Iridescent Bottoms of Healing
+	{ name = AceLib.API.Items.GetNameByID(25821), minimum = 640 },	--	Iridescent Bottoms of Striking
+	{ name = AceLib.API.Items.GetNameByID(25830), minimum = 570 },	--	Iridescent Hat of Scouting
+	{ name = AceLib.API.Items.GetNameByID(25812), minimum = 570 },	--	Iridescent Hood of Maiming
+	{ name = AceLib.API.Items.GetNameByID(25843), minimum = 640 },	--	Iridescent Top of Casting
+	{ name = AceLib.API.Items.GetNameByID(25837), minimum = 640 },	--	Iridescent Top of Healing
+	{ name = AceLib.API.Items.GetNameByID(19632), minimum = 510 },	--	Kudzu Cap of Crafting
+	{ name = AceLib.API.Items.GetNameByID(18402), minimum = 470 },	--	Kudzu Corset of Casting
+	{ name = AceLib.API.Items.GetNameByID(18391), minimum = 470 },	--	Kudzu Hat of Healing
+	{ name = AceLib.API.Items.GetNameByID(18400), minimum = 470 },	--	Kudzu Longkilt of Casting
+	{ name = AceLib.API.Items.GetNameByID(18364), minimum = 470 },	--	Kudzu Longkilt of Fending
+	{ name = AceLib.API.Items.GetNameByID(18392), minimum = 510 },	--	Kudzu Robe of Healing
+	{ name = AceLib.API.Items.GetNameByID(18388), minimum = 470 },	--	Kudzu Trousers of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18380), minimum = 510 },	--	Kudzu Tunic of Aiming
+	{ name = AceLib.API.Items.GetNameByID(26129), minimum = 900 },	--	Ovim Wool Bottoms of Fending
+	{ name = AceLib.API.Items.GetNameByID(26139), minimum = 900 },	--	Ovim Wool Coat of Striking
+	{ name = AceLib.API.Items.GetNameByID(27184), minimum = 900 },	--	Ovim Wool Gaskins of Crafting
+	{ name = AceLib.API.Items.GetNameByID(27189), minimum = 900 },	--	Ovim Wool Gaskins of Gathering
+	{ name = AceLib.API.Items.GetNameByID(26151), minimum = 830 },	--	Ovim Wool Jacket of Scouting
+	{ name = AceLib.API.Items.GetNameByID(26159), minimum = 830 },	--	Ovim Wool Skirt of Healing
+	{ name = AceLib.API.Items.GetNameByID(26163), minimum = 830 },	--	Ovim Wool Tunic of Casting
+	{ name = AceLib.API.Items.GetNameByID(26144), minimum = 830 },	--	Ovim Wool Ushanka of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25979), minimum = 770 },	--	Pixie Cotton Acton of Striking
+	{ name = AceLib.API.Items.GetNameByID(25987), minimum = 770 },	--	Pixie Cotton Brais of Aiming
+	{ name = AceLib.API.Items.GetNameByID(25993), minimum = 770 },	--	Pixie Cotton Brais of Scouting
+	{ name = AceLib.API.Items.GetNameByID(27174), minimum = 700 },	--	Pixie Cotton Breeches of Crafting
+	{ name = AceLib.API.Items.GetNameByID(25981), minimum = 770 },	--	Pixie Cotton Culottes of Striking
+	{ name = AceLib.API.Items.GetNameByID(27171), minimum = 700 },	--	Pixie Cotton Hat of Crafting
+	{ name = AceLib.API.Items.GetNameByID(25996), minimum = 700 },	--	Pixie Cotton Hood of Healing
+	{ name = AceLib.API.Items.GetNameByID(27211), minimum = 770 },	--	Pixie Cotton Sash
+	{ name = AceLib.API.Items.GetNameByID(10761), minimum = 130 },	--	Rainbow Bolero of Striking
+	{ name = AceLib.API.Items.GetNameByID(10796), minimum = 110 },	--	Rainbow Cap of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10922), minimum = 110 },	--	Rainbow Cap of Casting
+	{ name = AceLib.API.Items.GetNameByID(10852), minimum = 110 },	--	Rainbow Halfgloves of Scouting
+	{ name = AceLib.API.Items.GetNameByID(11012), minimum = 130 },	--	Rainbow Ribbon of Aiming
+	{ name = AceLib.API.Items.GetNameByID(10964), minimum = 130 },	--	Rainbow Ribbon of Fending
+	{ name = AceLib.API.Items.GetNameByID(10901), minimum = 110 },	--	Rainbow Sash of Healing
+	{ name = AceLib.API.Items.GetNameByID(10908), minimum = 130 },	--	Rainbow Slops of Healing
+	{ name = AceLib.API.Items.GetNameByID(12590), minimum = 230 },	--	Ramie Cloth
+	{ name = AceLib.API.Items.GetNameByID(11962), minimum = 270 },	--	Ramie Doublet of Crafting
+	{ name = AceLib.API.Items.GetNameByID(10938), minimum = 220 },	--	Ramie Halfgloves of Casting
+	{ name = AceLib.API.Items.GetNameByID(10990), minimum = 220 },	--	Ramie Ribbon of Slaying
+	{ name = AceLib.API.Items.GetNameByID(10889), minimum = 240 },	--	Ramie Robe of Healing
+	{ name = AceLib.API.Items.GetNameByID(10952), minimum = 240 },	--	Ramie Tonban of Casting
+	{ name = AceLib.API.Items.GetNameByID(10826), minimum = 240 },	--	Ramie Trousers of Aiming
+	{ name = AceLib.API.Items.GetNameByID(12003), minimum = 270 },	--	Ramie Trousers of Gathering
+	{ name = AceLib.API.Items.GetNameByID(11957), minimum = 240 },	--	Ramie Turban of Crafting
+	{ name = AceLib.API.Items.GetNameByID(18217), minimum = 370 },	--	Ruby Cotton Bandana of Striking
+	{ name = AceLib.API.Items.GetNameByID(19625), minimum = 420 },	--	Ruby Cotton Bottoms
+	{ name = AceLib.API.Items.GetNameByID(19623), minimum = 420 },	--	Ruby Cotton Coatee
+	{ name = AceLib.API.Items.GetNameByID(18224), minimum = 420 },	--	Ruby Cotton Gambison
+	{ name = AceLib.API.Items.GetNameByID(18230), minimum = 420 },	--	Ruby Cotton Gilet of Scouting
+	{ name = AceLib.API.Items.GetNameByID(18244), minimum = 420 },	--	Ruby Cotton Longkilt
+	{ name = AceLib.API.Items.GetNameByID(18246), minimum = 370 },	--	Ruby Cotton Sash of Casting
+	{ name = AceLib.API.Items.GetNameByID(18238), minimum = 420 },	--	Ruby Cotton Smalls
+	{ name = AceLib.API.Items.GetNameByID(18554), minimum = 610 },	--	Serge Gambison of Casting
+	{ name = AceLib.API.Items.GetNameByID(18535), minimum = 560 },	--	Serge Hat of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18553), minimum = 560 },	--	Serge Hat of Casting
+	{ name = AceLib.API.Items.GetNameByID(19657), minimum = 660 },	--	Serge Hood
+	{ name = AceLib.API.Items.GetNameByID(18538), minimum = 610 },	--	Serge Hose of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18550), minimum = 610 },	--	Serge Hose of Healing
+	{ name = AceLib.API.Items.GetNameByID(19652), minimum = 660 },	--	Serge Knit Cap
+	{ name = AceLib.API.Items.GetNameByID(19658), minimum = 660 },	--	Serge Poncho
+	{ name = AceLib.API.Items.GetNameByID(19645), minimum = 610 },	--	Serge Sarouel of Crafting
+	{ name = AceLib.API.Items.GetNameByID(19650), minimum = 610 },	--	Serge Sarouel of Gathering
+	{ name = AceLib.API.Items.GetNameByID(19659), minimum = 660 },	--	Serge Work Gloves
+	{ name = AceLib.API.Items.GetNameByID(19987), minimum = 625 },	--	Twinsilk
+	{ name = AceLib.API.Items.GetNameByID(18942), minimum = 650 },	--	Twinsilk Corset of Healing
+	{ name = AceLib.API.Items.GetNameByID(18709), minimum = 630 },	--	Twinsilk Hood of Casting
+	{ name = AceLib.API.Items.GetNameByID(18703), minimum = 630 },	--	Twinsilk Hood of Healing
+	{ name = AceLib.API.Items.GetNameByID(18714), minimum = 630 },	--	Twinsilk Sash of Casting
+	{ name = AceLib.API.Items.GetNameByID(18694), minimum = 650 },	--	Twinsilk Slops of Aiming
+	{ name = AceLib.API.Items.GetNameByID(18712), minimum = 650 },	--	Twinsilk Slops of Casting
+	{ name = AceLib.API.Items.GetNameByID(19660), minimum = 660 },	--	Twinsilk Slops of Gathering
+	{ name = AceLib.API.Items.GetNameByID(18706), minimum = 650 },	--	Twinsilk Slops of Healing
+	{ name = AceLib.API.Items.GetNameByID(19653), minimum = 660 },	--	Twinsilk Suspenders
 
 	-- Alchemist
-	{ name = AceLib.API.Items.GetNameByID(10652),  minimum = 110 }, --	Archaeoskin Codex
-	{ name = AceLib.API.Items.GetNameByID(10646),  minimum = 110 }, --	Archaeoskin Grimoire
-	{ name = AceLib.API.Items.GetNameByID(10650),  minimum = 320 }, --	Book of Aurum Regis
-	{ name = AceLib.API.Items.GetNameByID(19883),  minimum = 510 }, --	Commanding Craftsman's Tea
-	{ name = AceLib.API.Items.GetNameByID(19882),  minimum = 470 }, --	Competent Craftsman's Tea
-	{ name = AceLib.API.Items.GetNameByID(10654),  minimum = 240 }, --	Dhalmelskin Codex
-	{ name = AceLib.API.Items.GetNameByID(10648),  minimum = 240 }, --	Dhalmelskin Grimoire
-	{ name = AceLib.API.Items.GetNameByID(12623),  minimum = 320 }, --	Draconian Potion of Dexterity
-	{ name = AceLib.API.Items.GetNameByID(12625),  minimum = 350 }, --	Draconian Potion of Intelligence
-	{ name = AceLib.API.Items.GetNameByID(12626),  minimum = 350 }, --	Draconian Potion of Mind
-	{ name = AceLib.API.Items.GetNameByID(12622),  minimum = 320 }, --	Draconian Potion of Strength
-	{ name = AceLib.API.Items.GetNameByID(12624),  minimum = 350 }, --	Draconian Potion of Vitality
-	{ name = AceLib.API.Items.GetNameByID(10655),  minimum = 290 }, --	Dragonskin Codex
-	{ name = AceLib.API.Items.GetNameByID(10649),  minimum = 290 }, --	Dragonskin Grimoire
-	{ name = AceLib.API.Items.GetNameByID(12603),  minimum = 360 }, --	Enchanted Aurum Regis Ink
-	{ name = AceLib.API.Items.GetNameByID(12602),  minimum = 250 }, --	Enchanted Hardsilver Ink
-	{ name = AceLib.API.Items.GetNameByID(18668),  minimum = 630 }, --	Gazelleskin Codex
-	{ name = AceLib.API.Items.GetNameByID(18667),  minimum = 630 }, --	Gazelleskin Grimoire
-	{ name = AceLib.API.Items.GetNameByID(18200),  minimum = 370 }, --	Gyuki Leather Codex
-	{ name = AceLib.API.Items.GetNameByID(18199),  minimum = 370 }, --	Gyuki Leather Grimoire
-	{ name = AceLib.API.Items.GetNameByID(10637),  minimum = 270 }, --	Hallowed Chestnut Wand
-	{ name = AceLib.API.Items.GetNameByID(10635),  minimum = 160 }, --	Holy Cedar Wand
-	{ name = AceLib.API.Items.GetNameByID(19887),  minimum = 660 }, --	Infusion of Dexterity
-	{ name = AceLib.API.Items.GetNameByID(19889),  minimum = 660 }, --	Infusion of Intelligence
-	{ name = AceLib.API.Items.GetNameByID(19890),  minimum = 650 }, --	Infusion of Mind
-	{ name = AceLib.API.Items.GetNameByID(19886),  minimum = 660 }, --	Infusion of Strength
-	{ name = AceLib.API.Items.GetNameByID(19888),  minimum = 650 }, --	Infusion of Vitality
-	{ name = AceLib.API.Items.GetNameByID(18044),  minimum = 320 }, --	Koppranickel Codex
-	{ name = AceLib.API.Items.GetNameByID(18043),  minimum = 320 }, --	Koppranickel Index
-	{ name = AceLib.API.Items.GetNameByID(18512),  minimum = 610 }, --	Marid Leather Codex
-	{ name = AceLib.API.Items.GetNameByID(18511),  minimum = 610 }, --	Marid Leather Grimoire
-	{ name = AceLib.API.Items.GetNameByID(10651),  minimum = 400 }, --	Noble Gold
-	{ name = AceLib.API.Items.GetNameByID(10657),  minimum = 400 }, --	Noble's Codex
-	{ name = AceLib.API.Items.GetNameByID(10656),  minimum = 320 }, --	Noble's Picatrix
-	{ name = AceLib.API.Items.GetNameByID(19885),  minimum = 370 }, --	Potent Spiritbond Potion
-	{ name = AceLib.API.Items.GetNameByID(18356),  minimum = 510 }, --	Tigerskin Codex
-	{ name = AceLib.API.Items.GetNameByID(18355),  minimum = 510 }, --	Tigerskin Grimoire
-	{ name = AceLib.API.Items.GetNameByID(10653),  minimum = 160 }, --	Wyvernskin Codex
-	{ name = AceLib.API.Items.GetNameByID(10647),  minimum = 160 }, --	Wyvernskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(10652), minimum = 110 },	--	Archaeoskin Codex
+	{ name = AceLib.API.Items.GetNameByID(10646), minimum = 110 },	--	Archaeoskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(25958), minimum = 700 },	--	Bluespirit Grimoire
+	{ name = AceLib.API.Items.GetNameByID(10650), minimum = 320 },	--	Book of Aurum Regis
+	{ name = AceLib.API.Items.GetNameByID(19883), minimum = 510 },	--	Commanding Craftsman's Tea
+	{ name = AceLib.API.Items.GetNameByID(19882), minimum = 470 },	--	Competent Craftsman's Tea
+	{ name = AceLib.API.Items.GetNameByID(27955), minimum = 500 },	--	Crimson Firesand
+	{ name = AceLib.API.Items.GetNameByID(27959), minimum = 900 },	--	Cunning Craftsman's Syrup
+	{ name = AceLib.API.Items.GetNameByID(10654), minimum = 240 },	--	Dhalmelskin Codex
+	{ name = AceLib.API.Items.GetNameByID(10648), minimum = 240 },	--	Dhalmelskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(12623), minimum = 320 },	--	Draconian Potion of Dexterity
+	{ name = AceLib.API.Items.GetNameByID(12625), minimum = 350 },	--	Draconian Potion of Intelligence
+	{ name = AceLib.API.Items.GetNameByID(12626), minimum = 350 },	--	Draconian Potion of Mind
+	{ name = AceLib.API.Items.GetNameByID(12622), minimum = 320 },	--	Draconian Potion of Strength
+	{ name = AceLib.API.Items.GetNameByID(12624), minimum = 350 },	--	Draconian Potion of Vitality
+	{ name = AceLib.API.Items.GetNameByID(10655), minimum = 290 },	--	Dragonskin Codex
+	{ name = AceLib.API.Items.GetNameByID(10649), minimum = 290 },	--	Dragonskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(26278), minimum = 930 },	--	Dwarven Mythril Grimoire
+	{ name = AceLib.API.Items.GetNameByID(12603), minimum = 360 },	--	Enchanted Aurum Regis Ink
+	{ name = AceLib.API.Items.GetNameByID(27781), minimum = 930 },	--	Enchanted Dimythrite Ink
+	{ name = AceLib.API.Items.GetNameByID(12602), minimum = 250 },	--	Enchanted Hardsilver Ink
+	{ name = AceLib.API.Items.GetNameByID(27772), minimum = 700 },	--	Enchanted Manasilver Ink
+	{ name = AceLib.API.Items.GetNameByID(19903), minimum = 625 },	--	Enchanted Palladium Ink
+	{ name = AceLib.API.Items.GetNameByID(18668), minimum = 630 },	--	Gazelleskin Codex
+	{ name = AceLib.API.Items.GetNameByID(18667), minimum = 630 },	--	Gazelleskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(25799), minimum = 570 },	--	Gliderskin Codex
+	{ name = AceLib.API.Items.GetNameByID(27770), minimum = 640 },	--	Grade 1 Intelligence Alkahest
+	{ name = AceLib.API.Items.GetNameByID(27771), minimum = 640 },	--	Grade 1 Mind Alkahest
+	{ name = AceLib.API.Items.GetNameByID(27767), minimum = 640 },	--	Grade 1 Strength Alkahest
+	{ name = AceLib.API.Items.GetNameByID(27769), minimum = 640 },	--	Grade 1 Vitality Alkahest
+	{ name = AceLib.API.Items.GetNameByID(27765), minimum = 500 },	--	Growth Formula Iota
+	{ name = AceLib.API.Items.GetNameByID(18200), minimum = 370 },	--	Gyuki Leather Codex
+	{ name = AceLib.API.Items.GetNameByID(18199), minimum = 370 },	--	Gyuki Leather Grimoire
+	{ name = AceLib.API.Items.GetNameByID(10637), minimum = 270 },	--	Hallowed Chestnut Wand
+	{ name = AceLib.API.Items.GetNameByID(10635), minimum = 160 },	--	Holy Cedar Wand
+	{ name = AceLib.API.Items.GetNameByID(19887), minimum = 660 },	--	Infusion of Dexterity
+	{ name = AceLib.API.Items.GetNameByID(19889), minimum = 660 },	--	Infusion of Intelligence
+	{ name = AceLib.API.Items.GetNameByID(19890), minimum = 650 },	--	Infusion of Mind
+	{ name = AceLib.API.Items.GetNameByID(19886), minimum = 660 },	--	Infusion of Strength
+	{ name = AceLib.API.Items.GetNameByID(19888), minimum = 650 },	--	Infusion of Vitality
+	{ name = AceLib.API.Items.GetNameByID(18044), minimum = 320 },	--	Koppranickel Codex
+	{ name = AceLib.API.Items.GetNameByID(18043), minimum = 320 },	--	Koppranickel Index
+	{ name = AceLib.API.Items.GetNameByID(18512), minimum = 610 },	--	Marid Leather Codex
+	{ name = AceLib.API.Items.GetNameByID(18511), minimum = 610 },	--	Marid Leather Grimoire
+	{ name = AceLib.API.Items.GetNameByID(10651), minimum = 400 },	--	Noble Gold
+	{ name = AceLib.API.Items.GetNameByID(10657), minimum = 400 },	--	Noble's Codex
+	{ name = AceLib.API.Items.GetNameByID(10656), minimum = 320 },	--	Noble's Picatrix
+	{ name = AceLib.API.Items.GetNameByID(19885), minimum = 370 },	--	Potent Spiritbond Potion
+	{ name = AceLib.API.Items.GetNameByID(27777), minimum = 830 },	--	Refined Natron
+	{ name = AceLib.API.Items.GetNameByID(18356), minimum = 510 },	--	Tigerskin Codex
+	{ name = AceLib.API.Items.GetNameByID(18355), minimum = 510 },	--	Tigerskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(27787), minimum = 1060 },	--	Tincture of Dexterity
+	{ name = AceLib.API.Items.GetNameByID(27789), minimum = 1060 },	--	Tincture of Intelligence
+	{ name = AceLib.API.Items.GetNameByID(27786), minimum = 1060 },	--	Tincture of Strength
+	{ name = AceLib.API.Items.GetNameByID(10653), minimum = 160 },	--	Wyvernskin Codex
+	{ name = AceLib.API.Items.GetNameByID(10647), minimum = 160 },	--	Wyvernskin Grimoire
+	{ name = AceLib.API.Items.GetNameByID(26119), minimum = 900 },	--	Zonureskin Codex
 
 	-- Culinarian
-	{ name = AceLib.API.Items.GetNameByID(12861),  minimum = 160 }, --	Baked Onion Soup
-	{ name = AceLib.API.Items.GetNameByID(12856),  minimum = 320 }, --	Baked Pipira Pira
-	{ name = AceLib.API.Items.GetNameByID(19811),  minimum = 320 }, --	Baklava
-	{ name = AceLib.API.Items.GetNameByID(12862),  minimum = 220 }, --	Beet Soup
-	{ name = AceLib.API.Items.GetNameByID(12892),  minimum = 370 }, --	Birch Syrup
-	{ name = AceLib.API.Items.GetNameByID(19823),  minimum = 630 }, --	Boiled Amberjack Head
-	{ name = AceLib.API.Items.GetNameByID(19809),  minimum = 370 }, --	Buckwheat Tea
-	{ name = AceLib.API.Items.GetNameByID(19828),  minimum = 370 }, --	Charred Charr
-	{ name = AceLib.API.Items.GetNameByID(19814),  minimum = 650 }, --	Chirashi-zushi
-	{ name = AceLib.API.Items.GetNameByID(12864),  minimum = 400 }, --	Clam Chowder
-	{ name = AceLib.API.Items.GetNameByID(12858),  minimum = 320 }, --	Cockatrice Meatballs
-	{ name = AceLib.API.Items.GetNameByID(19833),  minimum = 470 }, --	Crab Croquette
-	{ name = AceLib.API.Items.GetNameByID(12860),  minimum = 400 }, --	Deep-fried Okeanis
-	{ name = AceLib.API.Items.GetNameByID(12869),  minimum = 290 }, --	Dhalmel Fricassee
-	{ name = AceLib.API.Items.GetNameByID(12867),  minimum = 220 }, --	Dhalmel Gratin
-	{ name = AceLib.API.Items.GetNameByID(19807),  minimum = 630 }, --	Doman Tea
-	{ name = AceLib.API.Items.GetNameByID(19820),  minimum = 610 }, --	Egg Foo Young
-	{ name = AceLib.API.Items.GetNameByID(12863),  minimum = 270 }, --	Emerald Soup
-	{ name = AceLib.API.Items.GetNameByID(12845),  minimum = 130 }, --	Fig Bavarois
-	{ name = AceLib.API.Items.GetNameByID(19835),  minimum = 610 }, --	Fish Stew
-	{ name = AceLib.API.Items.GetNameByID(12843),  minimum = 320 }, --	Frozen Spirits
-	{ name = AceLib.API.Items.GetNameByID(19831),  minimum = 510 }, --	Gameni
-	{ name = AceLib.API.Items.GetNameByID(12855),  minimum = 220 }, --	Grilled Sweetfish
-	{ name = AceLib.API.Items.GetNameByID(19822),  minimum = 420 }, --	Grilled Turban
-	{ name = AceLib.API.Items.GetNameByID(12850),  minimum = 190 }, --	Ishgardian Muffin
-	{ name = AceLib.API.Items.GetNameByID(12842),  minimum = 190 }, --	Ishgardian Tea
-	{ name = AceLib.API.Items.GetNameByID(19819),  minimum = 650 }, --	Jerked Jhammel
-	{ name = AceLib.API.Items.GetNameByID(19830),  minimum = 660 }, --	Jhammel Moussaka
-	{ name = AceLib.API.Items.GetNameByID(12849),  minimum = 240 }, --	Kaiser Roll
-	{ name = AceLib.API.Items.GetNameByID(19838),  minimum = 370 }, --	Kasha
-	{ name = AceLib.API.Items.GetNameByID(12851),  minimum = 350 }, --	Liver-cheese Sandwich
-	{ name = AceLib.API.Items.GetNameByID(19808),  minimum = 320 }, --	Loquat Juice
-	{ name = AceLib.API.Items.GetNameByID(12847),  minimum = 350 }, --	Marron Glace
-	{ name = AceLib.API.Items.GetNameByID(19829),  minimum = 650 }, --	Miso Dengaku
-	{ name = AceLib.API.Items.GetNameByID(19834),  minimum = 470 }, --	Miso Soup with Tofu
-	{ name = AceLib.API.Items.GetNameByID(12854),  minimum = 400 }, --	Morel Salad
-	{ name = AceLib.API.Items.GetNameByID(19839),  minimum = 560 }, --	Nomad Meat Pie
-	{ name = AceLib.API.Items.GetNameByID(19821),  minimum = 630 }, --	Onigara-yaki
-	{ name = AceLib.API.Items.GetNameByID(19813),  minimum = 610 }, --	Persimmon Pudding
-	{ name = AceLib.API.Items.GetNameByID(19816),  minimum = 420 }, --	Popoto Soba
-	{ name = AceLib.API.Items.GetNameByID(12859),  minimum = 290 }, --	Royal Eggs
-	{ name = AceLib.API.Items.GetNameByID(12853),  minimum = 190 }, --	Sauteed Porcini
-	{ name = AceLib.API.Items.GetNameByID(13743),  minimum = 270 }, --	Sesame Cookie
-	{ name = AceLib.API.Items.GetNameByID(19817),  minimum = 510 }, --	Shorlog
-	{ name = AceLib.API.Items.GetNameByID(12846),  minimum = 220 }, --	Sohm Al Tart
-	{ name = AceLib.API.Items.GetNameByID(19824),  minimum = 660 }, --	Steamed Grouper
-	{ name = AceLib.API.Items.GetNameByID(19832),  minimum = 560 }, --	Steppe Salad
-	{ name = AceLib.API.Items.GetNameByID(19827),  minimum = 660 }, --	Stewed River Bream
-	{ name = AceLib.API.Items.GetNameByID(12866),  minimum = 160 }, --	Stuffed Cabbage Rolls
-	{ name = AceLib.API.Items.GetNameByID(12868),  minimum = 400 }, --	Stuffed Chysahl
-	{ name = AceLib.API.Items.GetNameByID(19825),  minimum = 510 }, --	Sweet and Sour Frogs' Legs
-	{ name = AceLib.API.Items.GetNameByID(19826),  minimum = 560 }, --	Tempura Platter
-	{ name = AceLib.API.Items.GetNameByID(19837),  minimum = 560 }, --	Warrior's Stew
+	{ name = AceLib.API.Items.GetNameByID(27860), minimum = 700 },	--	Baguette
+	{ name = AceLib.API.Items.GetNameByID(27869), minimum = 830 },	--	Baked Megapiranha
+	{ name = AceLib.API.Items.GetNameByID(12861), minimum = 160 },	--	Baked Onion Soup
+	{ name = AceLib.API.Items.GetNameByID(12856), minimum = 320 },	--	Baked Pipira Pira
+	{ name = AceLib.API.Items.GetNameByID(19811), minimum = 320 },	--	Baklava
+	{ name = AceLib.API.Items.GetNameByID(12862), minimum = 220 },	--	Beet Soup
+	{ name = AceLib.API.Items.GetNameByID(27876), minimum = 960 },	--	Blood Bouillabaisse
+	{ name = AceLib.API.Items.GetNameByID(27864), minimum = 770 },	--	Blood Tomato Salad
+	{ name = AceLib.API.Items.GetNameByID(12892), minimum = 370 },	--	Birch Syrup
+	{ name = AceLib.API.Items.GetNameByID(19823), minimum = 630 },	--	Boiled Amberjack Head
+	{ name = AceLib.API.Items.GetNameByID(27858), minimum = 640 },	--	Broad Bean Salad
+	{ name = AceLib.API.Items.GetNameByID(19809), minimum = 370 },	--	Buckwheat Tea
+	{ name = AceLib.API.Items.GetNameByID(19828), minimum = 370 },	--	Charred Charr
+	{ name = AceLib.API.Items.GetNameByID(19814), minimum = 650 },	--	Chirashi-zushi
+	{ name = AceLib.API.Items.GetNameByID(12864), minimum = 400 },	--	Clam Chowder
+	{ name = AceLib.API.Items.GetNameByID(12858), minimum = 320 },	--	Cockatrice Meatballs
+	{ name = AceLib.API.Items.GetNameByID(19833), minimum = 470 },	--	Crab Croquette
+	{ name = AceLib.API.Items.GetNameByID(12860), minimum = 400 },	--	Deep-fried Okeanis
+	{ name = AceLib.API.Items.GetNameByID(12869), minimum = 290 },	--	Dhalmel Fricassee
+	{ name = AceLib.API.Items.GetNameByID(12867), minimum = 220 },	--	Dhalmel Gratin
+	{ name = AceLib.API.Items.GetNameByID(19807), minimum = 630 },	--	Doman Tea
+	{ name = AceLib.API.Items.GetNameByID(19820), minimum = 610 },	--	Egg Foo Young
+	{ name = AceLib.API.Items.GetNameByID(12863), minimum = 270 },	--	Emerald Soup
+	{ name = AceLib.API.Items.GetNameByID(27874), minimum = 930 },	--	Espresso con Panna
+	{ name = AceLib.API.Items.GetNameByID(12845), minimum = 130 },	--	Fig Bavarois
+	{ name = AceLib.API.Items.GetNameByID(19835), minimum = 610 },	--	Fish Stew
+	{ name = AceLib.API.Items.GetNameByID(12843), minimum = 320 },	--	Frozen Spirits
+	{ name = AceLib.API.Items.GetNameByID(19831), minimum = 510 },	--	Gameni
+	{ name = AceLib.API.Items.GetNameByID(27839), minimum = 570 },	--	Garden Beet Sugar
+	{ name = AceLib.API.Items.GetNameByID(27842), minimum = 700 },	--	Golden Honey
+	{ name = AceLib.API.Items.GetNameByID(27859), minimum = 640 },	--	Grilled Platinum Bream
+	{ name = AceLib.API.Items.GetNameByID(27853), minimum = 500 },	--	Grilled Rail
+	{ name = AceLib.API.Items.GetNameByID(12855), minimum = 220 },	--	Grilled Sweetfish
+	{ name = AceLib.API.Items.GetNameByID(19822), minimum = 420 },	--	Grilled Turban
+	{ name = AceLib.API.Items.GetNameByID(12850), minimum = 190 },	--	Ishgardian Muffin
+	{ name = AceLib.API.Items.GetNameByID(12842), minimum = 190 },	--	Ishgardian Tea
+	{ name = AceLib.API.Items.GetNameByID(27881), minimum = 1060 },	--	Jellie Harcot
+	{ name = AceLib.API.Items.GetNameByID(19819), minimum = 650 },	--	Jerked Jhammel
+	{ name = AceLib.API.Items.GetNameByID(19830), minimum = 660 },	--	Jhammel Moussaka
+	{ name = AceLib.API.Items.GetNameByID(12849), minimum = 240 },	--	Kaiser Roll
+	{ name = AceLib.API.Items.GetNameByID(19838), minimum = 370 },	--	Kasha
+	{ name = AceLib.API.Items.GetNameByID(27880), minimum = 1060 },	--	Lemonade
+	{ name = AceLib.API.Items.GetNameByID(12851), minimum = 350 },	--	Liver-cheese Sandwich
+	{ name = AceLib.API.Items.GetNameByID(19808), minimum = 320 },	--	Loquat Juice
+	{ name = AceLib.API.Items.GetNameByID(12847), minimum = 350 },	--	Marron Glace
+	{ name = AceLib.API.Items.GetNameByID(19829), minimum = 650 },	--	Miso Dengaku
+	{ name = AceLib.API.Items.GetNameByID(19834), minimum = 470 },	--	Miso Soup with Tofu
+	{ name = AceLib.API.Items.GetNameByID(27875), minimum = 930 },	--	Mist Spinach Saute
+	{ name = AceLib.API.Items.GetNameByID(12854), minimum = 400 },	--	Morel Salad
+	{ name = AceLib.API.Items.GetNameByID(27868), minimum = 830 },	--	Mushroom Skewer
+	{ name = AceLib.API.Items.GetNameByID(19839), minimum = 560 },	--	Nomad Meat Pie
+	{ name = AceLib.API.Items.GetNameByID(27863), minimum = 770 },	--	Nut Bake
+	{ name = AceLib.API.Items.GetNameByID(19821), minimum = 625 },	--	Onigara-yaki
+	{ name = AceLib.API.Items.GetNameByID(27879), minimum = 1060 },	--	Ovim Cordon Bleu
+	{ name = AceLib.API.Items.GetNameByID(27882), minimum = 1060 },	--	Oysters on the Half Shell
+	{ name = AceLib.API.Items.GetNameByID(19813), minimum = 610 },	--	Persimmon Pudding
+	{ name = AceLib.API.Items.GetNameByID(27862), minimum = 700 },	--	Pixie Apple Pie
+	{ name = AceLib.API.Items.GetNameByID(27871), minimum = 900 },	--	Popoto au Gratin
+	{ name = AceLib.API.Items.GetNameByID(19816), minimum = 420 },	--	Popoto Soba
+	{ name = AceLib.API.Items.GetNameByID(27854), minimum = 500 },	--	Purple Carrot Juice
+	{ name = AceLib.API.Items.GetNameByID(27867), minimum = 830 },	--	Roast Ovim
+	{ name = AceLib.API.Items.GetNameByID(12859), minimum = 290 },	--	Royal Eggs
+	{ name = AceLib.API.Items.GetNameByID(12853), minimum = 190 },	--	Sauteed Porcini
+	{ name = AceLib.API.Items.GetNameByID(13743), minimum = 270 },	--	Sesame Cookie
+	{ name = AceLib.API.Items.GetNameByID(19817), minimum = 510 },	--	Shorlog
+	{ name = AceLib.API.Items.GetNameByID(12846), minimum = 220 },	--	Sohm Al Tart
+	{ name = AceLib.API.Items.GetNameByID(27840), minimum = 640 },	--	Squid Ink
+	{ name = AceLib.API.Items.GetNameByID(19824), minimum = 660 },	--	Steamed Grouper
+	{ name = AceLib.API.Items.GetNameByID(19832), minimum = 560 },	--	Steppe Salad
+	{ name = AceLib.API.Items.GetNameByID(19827), minimum = 660 },	--	Stewed River Bream
+	{ name = AceLib.API.Items.GetNameByID(12866), minimum = 160 },	--	Stuffed Cabbage Rolls
+	{ name = AceLib.API.Items.GetNameByID(12868), minimum = 400 },	--	Stuffed Chysahl
+	{ name = AceLib.API.Items.GetNameByID(19825), minimum = 510 },	--	Sweet and Sour Frogs' Legs
+	{ name = AceLib.API.Items.GetNameByID(19826), minimum = 560 },	--	Tempura Platter
+	{ name = AceLib.API.Items.GetNameByID(27841), minimum = 700 },	--	Upland Wheat Flour
+	{ name = AceLib.API.Items.GetNameByID(19837), minimum = 560 },	--	Warrior's Stew
 }
 
 ffxiv_task_craft = inheritsFrom(ml_task)
