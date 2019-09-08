@@ -267,7 +267,7 @@ c_precastbuff.requirestopfishing = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
 	local fs = Player:GetFishingState()
-	if (MIsLoading() or MIsCasting() or IsFlying() or fs == 9) then
+	if (MIsLoading() or MIsCasting() or IsFlying() or (fs ~= 0 and fs ~= 4)) then
 		return false
 	end
 	
@@ -357,8 +357,6 @@ function c_precastbuff:evaluate()
 			c_precastbuff.requiredismount = true
 			return true
 		end
-	else
-		
 		if (ShouldEat()) then
 			c_precastbuff.activity = "eat"
 			c_precastbuff.requirestop = false
@@ -366,7 +364,7 @@ function c_precastbuff:evaluate()
 			c_precastbuff.requirestopfishing = true
 			return true
 		end
-		
+	else		
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
@@ -3111,33 +3109,72 @@ function ffxiv_task_fish:Draw()
 	-- Settings
 	if (tabname == GetString("Settings")) then
 		
+		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
 		GUI:NextColumn()
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
 		end
-		GUI_Capture(GUI:Checkbox("##Use Cordials",gFishUseCordials),"gFishUseCordials");
+		GUI:Columns()
+		GUI:Separator()
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Cordials")
+		GUI:Separator()
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for High Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a High Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Watered Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
+		end
+		GUI:NextColumn()
+		local CordialWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(CordialWidth)
+		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI_DrawIntMinMax(GetString("##High Cordial If    <= (Min GP)"),"gFishhighCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a High Cordial.")
+		end
+		GUI_DrawIntMinMax(GetString("##Cordial If         <= (Min GP)"),"gFishnormCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Cordial.")
+		end
+		GUI_DrawIntMinMax(GetString("##Watered Cordial If <= (Min GP)"),"gFishwateredCordialsGP",10,50,50,700);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
+		end
+		GUI:PopItemWidth()
+		GUI:Columns()
 		GUI:Columns()
 		--Stealth Settings
 		GUI:Separator()
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Stealth")
+		GUI:Separator()
+		GUI:Text("Detect Range")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before applying Stealth.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Remove Range")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Remove Range")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before removing Stealth.")
 		end
@@ -3161,7 +3198,7 @@ function ffxiv_task_fish:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
 		end
-		GUI:Columns()		
+		GUI:Columns()
 		GUI:Separator()
 	end
 	-- Collectables

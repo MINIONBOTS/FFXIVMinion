@@ -3652,7 +3652,7 @@ function c_dointeract:evaluate()
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
-							if (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
+							if not ml_task_hub:CurrentTask().touchOnly and (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
 								d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
 								Player:Stop()
 								return true

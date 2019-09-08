@@ -347,10 +347,11 @@ function c_movetonode:evaluate()
 			local gpos = gatherable.pos
 			local ppos = Player.pos
 			local minimumGP = GetMinGP()	
-			
+			local touchOnly = false
 			local noGPitem = ""
 			local task = ffxiv_gather.currentTask
 			if (table.valid(task)) then
+				touchOnly = IsNull(task.touchonly,false)
 				noGPitem = IsNull(task.nogpitem,"")
 			end
 			
@@ -359,7 +360,7 @@ function c_movetonode:evaluate()
 			if (not reachable) then
 			
 				-- Might stop just out of range to wait for GP, don't need to be super accurate
-				if (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
+				if not touchOnly and (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
 					ml_global_information.ShowInformation(GetString("[Information]: Waiting for ["..tostring(minimumGP).."] GP."), 3000)
 					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
@@ -372,7 +373,7 @@ function c_movetonode:evaluate()
 				return true
 			else	
 				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)				
-				if (Player.gp.current >= minimumGP or noGPitem ~= "") then
+				if (Player.gp.current >= minimumGP or noGPitem ~= "" or touchOnly) then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
@@ -467,13 +468,14 @@ function e_movetonode:execute()
 			newTask.useTeleport = false
 			
 			local dist3d = math.distance3d(ppos,pos)
-			
+			local touchOnly = false
 			local minimumGP = GetMinGP()
 			local task = ffxiv_gather.currentTask
 			local noGPitem = ""
 			local marker = ml_marker_mgr.currentMarker
 			if (table.valid(task)) then
 				noGPitem = IsNull(task.nogpitem,"")
+				touchOnly = IsNull(task.touchonly,false)
 			elseif (table.valid(marker)) then
 				noGPitem = IsNull(marker.nogpitem,"")
 			end
@@ -518,7 +520,7 @@ function e_movetonode:execute()
 					d("[MoveToNode]: Need to use manual. ")
 					return
 				end
-				if (Player.gp.current < newTask.minGP and Player.gp.current < Player.gp.max) then
+				if not touchOnly and (Player.gp.current < newTask.minGP and Player.gp.current < Player.gp.max) then
 					if (dist3d > 8 or IsFlying() or (dist3d > 2 and IsDiving())) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = pos
@@ -541,6 +543,7 @@ function e_movetonode:execute()
 			if IsDiving() then
 				newTask.interactRange3d = 2.99
 			end
+			newTask.touchOnly = touchOnly
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.navid = ml_task_hub:CurrentTask().gatherid
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
@@ -1348,8 +1351,16 @@ function ffxiv_gather.CheckBuffs(item)
 		end
 	end
 	
+	local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
+	local maxAttempts = false
+	if (gatherable and gatherable.gatherattempts and gatherable.gatherattemptsmax) then
+		if (gatherable.gatherattempts == gatherable.gatherattemptsmax) or (gatherable.contentid > 4) then
+			maxAttempts = true
+		end
+	end
+	
 	local hasCollect = HasBuffs(Player,"805")
-	local isCollectable = (Player.gp.current >= collectCost) and (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
+	local isCollectable = ((maxAttempts and Player.gp.current >= collectCost)) and (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
 	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 		local collect = ActionList:Get(1,ffxiv_gather.collectors[Player.job])
 		if (collect and collect:IsReady(Player.id)) then
@@ -1367,39 +1378,42 @@ function ffxiv_gather.CheckBuffs(item)
 	return false
 end
 
+function ffxiv_gather.GetLowestValue(...)
+	local lowestValue = math.huge
+	
+	local vals = {...}
+	if (table.valid(vals)) then
+		for k,value in pairs(vals) do
+			if (value < lowestValue) then
+				lowestValue = value
+			end
+		end
+	end
+	
+	return lowestValue
+end
 function CanUseCordialSoon()
 	local minimumGP = GetMinGP()
 	local useCordials = false
-	
-	local useDeficit = true
-	
-	if minimumGP > 0 then
-		useDeficit = false
-	end
-	
-	local profile, task;
-	if (IsFisher(Player.job)) then
-		profile = ffxiv_fish.profileData
-		task = ffxiv_fish.currentTask
-		useCordials = gFishUseCordials
-	elseif (IsGatherer(Player.job)) then
-		profile = ffxiv_gather.profileData
-		task = ffxiv_gather.currentTask
-		useCordials = gGatherUseCordials
-	end
-	
-	local marker = ml_marker_mgr.currentMarker
+		
+	local task = ffxiv_gather.currentTask
 	if (table.valid(task)) then
-		useCordials = IsNull(task.usecordials,useCordials)
-	elseif (table.valid(marker)) then
-		useCordials = IsNull(marker.usecordials,useCordials)
-	end
-
-	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
-		useCordials = GUI_Get(useCordials)
+		if (task.usecordials and type(task.usecordials) == "string") then
+			local ok, ret = LoadString("return " .. task.usecordials)
+			if (ok and ret ~= nil) then
+				if (ret == true) then
+					useCordials = true
+				end
+			end
+		end
 	end
 	
-	
+	local highGp, normGp, wateredGP = ghighCordialsGP, gnormCordialsGP, gwateredCordialsGP
+	if IsFisher(Player.job) then
+		highGp = gFishhighCordialsGP
+		normGp = gFishnormCordialsGP
+		wateredGP = gFishwateredCordialsGP
+	end
 	
 	if (useCordials) then
 		local cordialQuick, cordialQuickAction = GetItem(1016911)
@@ -1407,10 +1421,8 @@ function CanUseCordialSoon()
 			cordialQuick, cordialQuickAction = GetItem(16911)
 		end
 		local cordialNormal, cordialNormalAction = GetItem(1006141)
-		local cordialNormalRecovery = 350
 		if (not cordialNormal) then
 			cordialNormal, cordialNormalAction = GetItem(6141)
-			cordialNormalRecovery = 300
 		end
 		local cordialHigh, cordialHighAction = GetItem(1012669)
 		if (not cordialHigh) then
@@ -1418,55 +1430,34 @@ function CanUseCordialSoon()
 		end
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
+		local missingNormal = (cordialNormalAction == nil)
+		local missingQuick = (cordialQuickAction == nil)
+		local lowestRequired = ffxiv_gather.GetLowestValue(highGp,normGp,wateredGP)
 		
-		if ((minimumGP - Player.gp.current) >= 100) then		
-			if cordialHigh and ((gpDeficit >= 350) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
-				if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Min. High cordial.")
-					return true, cordialHigh
+		if gpDeficit >= lowestRequired then		
+			if not IsFisher(Player.job) or (IsFisher(Player.job) and (HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51)) then
+				--if cordialHigh and ((gpDeficit >= highGp) or ((missingNormal and (gpDeficit >= normGp)) and (missingQuick and (gpDeficit >= wateredGP)))) then
+				if cordialHigh and (gpDeficit >= highGp) then
+					if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+						gdd("[CanUseCordialSoon]: Returning Min. High cordial.")
+						return true, cordialHigh
+					end
+				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick and (gpDeficit >= wateredGP))) then
+				elseif cordialNormal and (gpDeficit >= normGp) then
+					if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+						gdd("[CanUseCordialSoon]: Returning Min. Cordial.")
+						return true, cordialNormal
+					end
+				elseif cordialQuick and (gpDeficit >= wateredGP) then
+					if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+						gdd("[CanUseCordialSoon]: Returning Min. Quick cordial.")
+						return true, cordialQuick
+					end
 				end
-			elseif cordialNormal and ((gpDeficit >= (cordialNormalRecovery - 50)) or (cordialQuickAction == nil)) then
-				if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Min. Cordial.")
-					return true, cordialNormal
-				end
-			elseif cordialQuick then
-				if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Min. Quick cordial.")
-					return true, cordialQuick
-				end
-			end
-		end
-		
-		if useDeficit then
-			if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or ((gpDeficit >= 300) and (cordialQuickAction == nil and cordialNormalAction == nil)) or ((gpDeficit >= 150) and (cordialQuickAction == nil))) then
-				if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Deficit. High cordial.")
-					return true, cordialHigh
-				end
-			elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or ((gpDeficit >= 100) and (cordialQuickAction == nil))) then
-				if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Deficit. Cordial.")
-					return true, cordialNormal
-				end
-			elseif cordialQuick and (gpDeficit >= (gwateredCordialsGP)) then
-				if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-					--d("[CanUseCordialSoon]: Returning Deficit. Quick cordial.")
-					return true, cordialQuick
-				end
-			end
-		end
-		
-		local usedPatience = (IsFisher(Player.job) and HasBuff(Player,764) and Player:GetFishingState() == 0 and gpDeficit > 200)
-		if (usedPatience) then
-			if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-				return true, cordialHigh
-			elseif (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-				return true, cordialNormal
 			end
 		end
 	else
-		ml_debug("[CanUseCordialSoons]: Can't use cordials on this task.",2)
+		--ml_debug("[ffxiv_gather.CanUseCordialSoons]: Can't use cordials on this task.",2)
 	end
 	
 	return false, nil
@@ -1475,44 +1466,34 @@ end
 function CanUseCordial()
 	local minimumGP = GetMinGP()
 	local useCordials = false
-	
-	local useDeficit = true
-	
-	if minimumGP > 0 then
-		useDeficit = false
-	end
-		
-	local profile, task;
-	if (IsFisher(Player.job)) then
-		profile = ffxiv_fish.profileData
-		task = ffxiv_fish.currentTask
-		useCordials = gFishUseCordials
-	elseif (IsGatherer(Player.job)) then
-		profile = ffxiv_gather.profileData
-		task = ffxiv_gather.currentTask
-		useCordials = gGatherUseCordials
-	end
-	
-	local marker = ml_marker_mgr.currentMarker
+			
+	local task = ffxiv_gather.currentTask
 	if (table.valid(task)) then
-		useCordials = IsNull(task.usecordials,useCordials)
-	elseif (table.valid(marker)) then
-		useCordials = IsNull(marker.usecordials,useCordials)
+		if (task.usecordials and type(task.usecordials) == "string") then
+			local ok, ret = LoadString("return " .. task.usecordials)
+			if (ok and ret ~= nil) then
+				if (ret == true) then
+					useCordials = true
+				end
+			end
+		end
 	end
 	
-	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
-		useCordials = GUI_Get(useCordials)
+	local highGp, normGp, wateredGP = ghighCordialsGP, gnormCordialsGP, gwateredCordialsGP
+	if IsFisher(Player.job) then
+		highGp = gFishhighCordialsGP
+		normGp = gFishnormCordialsGP
+		wateredGP = gFishwateredCordialsGP
 	end
+	
 	if (useCordials) then
 		local cordialQuick, cordialQuickAction = GetItem(1016911)
 		if (not cordialQuick) then
 			cordialQuick, cordialQuickAction = GetItem(16911)
 		end
 		local cordialNormal, cordialNormalAction = GetItem(1006141)
-		local cordialNormalRecovery = 350
 		if (not cordialNormal) then
 			cordialNormal, cordialNormalAction = GetItem(6141)
-			cordialNormalRecovery = 300
 		end
 		local cordialHigh, cordialHighAction = GetItem(1012669)
 		if (not cordialHigh) then
@@ -1520,60 +1501,34 @@ function CanUseCordial()
 		end		
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
+		local missingNormal = (cordialNormalAction == nil)
+		local missingQuick = (cordialQuickAction == nil)
+		local lowestRequired = ffxiv_gather.GetLowestValue(highGp,normGp,wateredGP)
 		
-		if not IsFisher(Player.job) then
-	--d("(minimumGP - Player.gp.current) ["..tostring((minimumGP - Player.gp.current)).."]")
-	--d("((minimumGP - Player.gp.current) >= 100) ["..tostring(((minimumGP - Player.gp.current) >= 100)).."]")
-			if ((minimumGP - Player.gp.current) >= 100) then		
-				if cordialHigh and ((gpDeficit >= 350) or (cordialQuickAction == nil and cordialNormalAction == nil)) then
+		if gpDeficit >= lowestRequired then			
+			if not IsFisher(Player.job) or (IsFisher(Player.job) and (HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51)) then
+				--if cordialHigh and ((gpDeficit >= highGp) or (missingNormal and missingQuick)) then
+				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
-						d("[CanUseCordial]: Returning Min. High cordial.")
+						gdd("[CanUseCordial]: Returning High cordial.")
 						return true, cordialHigh
 					end
-				elseif cordialNormal and ((gpDeficit >= (cordialNormalRecovery - 50)) or (cordialQuickAction == nil)) then
+				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick)) then
+				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-						d("[CanUseCordial]: Returning Min. Cordial.")
+						gdd("[CanUseCordial]: Returning Cordial.")
 						return true, cordialNormal
 					end
-				elseif cordialQuick then
+				elseif cordialQuick and (gpDeficit >= wateredGP) then
 					if (cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
-						d("[CanUseCordial]: Returning Min. Quick cordial.")
+						gdd("[CanUseCordial]: Returning Quick cordial.")
 						return true, cordialQuick
 					end
-				end
-			end
-			
-			if useDeficit then
-				if cordialHigh and ((gpDeficit >= (ghighCordialsGP)) or ((gpDeficit >= 300) and (cordialQuickAction == nil and cordialNormalAction == nil)) or ((gpDeficit >= 150) and (cordialQuickAction == nil))) then
-					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
-						d("[CanUseCordial]: Returning Deficit. High cordial.")
-						return true, cordialHigh
-					end
-				elseif cordialNormal and ((gpDeficit >= (gnormCordialsGP)) or ((gpDeficit >= 100) and (cordialQuickAction == nil))) then
-					if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-						d("[CanUseCordial]: Returning Deficit. Cordial.")
-						return true, cordialNormal
-					end
-				elseif cordialQuick and (gpDeficit >= (gwateredCordialsGP)) then
-					if (cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
-						d("[CanUseCordial]: Returning Deficit. Quick cordial.")
-						return true, cordialQuick
-					end
-				end
-			end
-		else
-			if (HasBuff(Player,764,0,40)) and gpDeficit > 200 then
-				if cordialHigh and ((gpDeficit >= 350) or (cordialNormalAction == nil)) then
-					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
-						return true, cordialHigh
-					end
-				elseif (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-					return true, cordialNormal
 				end
 			end
 		end
 	else
-		gd("[CanUseCordials]: Can't use cordials on this task.",1)
+		--fd("[ffxiv_gather.CanUseCordials]: Can't use cordials on this task.",1)
 	end
 	
 	return false, nil
@@ -3454,8 +3409,8 @@ d("begin random delay")
     return false
 end
 function e_gatherrandomdelay:execute()
-	local minWait = 1 * 500
-	local maxWait = 5 * 1000
+	local minWait = gGatherRandomDelayMin * 1000
+	local maxWait = gGatherRandomDelayMax * 1000
 	local waitTime = math.random(minWait,maxWait)
 d("delay time = "..tostring(waitTime/1000).." seconds")
 	ml_global_information.Await(waitTime)
@@ -3580,10 +3535,17 @@ function ffxiv_task_gather:UIInit()
 		--end
 	--end
 	
+	gGatherRandomDelayMin = ffxivminion.GetSetting("gGatherRandomDelayMin",1)
+	gGatherRandomDelayMax = ffxivminion.GetSetting("gGatherRandomDelayMax",5)
+	
 	gGatherUseCordials = ffxivminion.GetSetting("gGatherUseCordials",true)
 	ghighCordialsGP = ffxivminion.GetSetting("ghighCordialsGP",200)
 	gnormCordialsGP = ffxivminion.GetSetting("gnormCordialsGP",300)
 	gwateredCordialsGP = ffxivminion.GetSetting("gwateredCordialsGP",150)
+	
+	gFishhighCordialsGP = ffxivminion.GetSetting("gFishhighCordialsGP",200)
+	gFishnormCordialsGP = ffxivminion.GetSetting("gFishnormCordialsGP",300)
+	gFishwateredCordialsGP = ffxivminion.GetSetting("gFishwateredCordialsGP",150)
 	
 	gQuickstartMaps = ffxivminion.GetSetting("gQuickstartMaps",false)
 	gQuickstartGardening = ffxivminion.GetSetting("gQuickstartGardening",false)
@@ -3737,25 +3699,10 @@ function ffxiv_task_gather:Draw()
 	if (tabname == GetString("Settings")) then
 		
 		GUI:Columns(2)
+		GUI:Separator()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Allow use of Cordials for GP.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - High Cordial")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a High Cordial.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - Cordial")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a Cordial.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP - Watered Cordial")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a Watered Cordial.")
 		end
 		GUI:NextColumn()
 		local CordialWidth = GUI:GetContentRegionAvail()
@@ -3764,32 +3711,60 @@ function ffxiv_task_gather:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
 		end
+		GUI:Columns()
+		GUI:Separator()
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Cordials")
+		GUI:Separator()
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Allow use of Cordials for GP.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for High Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a High Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Cordial.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Watered Cordial Usage")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
+		end
+		GUI:NextColumn()
+		local CordialWidth = GUI:GetContentRegionAvail()
+		GUI:PushItemWidth(CordialWidth)
 		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
 		GUI_DrawIntMinMax(GetString("##High Cordial If    <= (Min GP)"),"ghighCordialsGP",10,50,50,700);
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a High Cordial.")
+			GUI:SetTooltip("Missing GP required before using a High Cordial.")
 		end
 		GUI_DrawIntMinMax(GetString("##Cordial If         <= (Min GP)"),"gnormCordialsGP",10,50,50,700);
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a Cordial.")
+			GUI:SetTooltip("Missing GP required before using a Cordial.")
 		end
 		GUI_DrawIntMinMax(GetString("##Watered Cordial If <= (Min GP)"),"gwateredCordialsGP",10,50,50,700);
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Min GP required before using a Watered Cordial.")
+			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
 		GUI:PopItemWidth()
 		GUI:Columns()
 		--Stealth Settings
 		GUI:Separator()
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Detect Range")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Stealth")
+		GUI:Separator()
+		GUI:Text("Detect Range")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before applying Stealth.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Stealth - Remove Range")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Remove Range")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before removing Stealth.")
 		end
@@ -3812,6 +3787,31 @@ function ffxiv_task_gather:Draw()
 		GUI_Capture(GUI:Checkbox("##Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
+		end
+		GUI:Columns()
+		GUI:Separator()
+		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Random Delay")
+		GUI:Separator()
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Min Delay")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Minimum time to wait after Gathering a node.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Max Delay")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Maximum time to wait after Gathering a node.")
+		end
+		GUI:NextColumn()
+		GUI_DrawIntMinMax(GetString("##gGatherRandomDelayMin"),"gGatherRandomDelayMin",1,1,0,5);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Minimum time to wait after Gathering a node.")
+		end
+		GUI_DrawIntMinMax(GetString("##gGatherRandomDelayMax"),"gGatherRandomDelayMax",1,1,0,5);
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Maximum time to wait after Gathering a node.")
 		end
 		GUI:Columns()
 		GUI:Separator()
