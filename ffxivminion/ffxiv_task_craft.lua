@@ -2152,6 +2152,19 @@ function ffxiv_task_craft:UIInit()
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
 	gCraftFoodIndex = IsNull(GetKeyByValue(gCraftFood,gFoods),1)
+	
+	local currentFood = gFoods[gCraftFoodIndex]
+	if (gCraftFood ~= currentfood) then
+		if (table.valid(gFoods)) then
+			for i,food in pairs(gFoods) do
+				if (food == Mode) then
+					gCraftFoodIndex = i
+					gCraftFood =  gFoods[gCraftFoodIndex]
+				end
+			end
+		end
+	end
+		
 	glastAlertUpdate = 0
 	gUseCPTea = ffxivminion.GetSetting("gUseCPTea",false)
 	-- Order Stuff
@@ -2234,9 +2247,9 @@ function ffxiv_task_craft:UIInit()
 	gCraftMarkerOrProfileIndex = ffxivminion.GetSetting("gCraftMarkerOrProfileIndex",1)
 	
 	if gCraftMarkerOrProfileIndex == 1 then
-		self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Gearsets,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs("Craft List,Settings,Collectable,Debug",true)
 	elseif gCraftMarkerOrProfileIndex == 2 then
-		self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Gearsets,Debug",true)
+		self.GUI.main_tabs = GUI_CreateTabs("Settings,Collectable,Debug",true)
 	end
 end
 
@@ -2259,10 +2272,10 @@ function ffxiv_task_craft:Draw()
 	local tabs = self.GUI.main_tabs
 	-- Craft Mode Selections.
 	GUI:Separator()
+	local MarkerOrProfileWidth = (GUI:GetContentRegionAvail() - 10)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Craft Mode")
-	GUI:SameLine()
-	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
-	GUI:PushItemWidth(MarkerOrProfileWidth-8)
+	GUI:SameLine(100)
+	GUI:PushItemWidth(MarkerOrProfileWidth - 100)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gCraftMarkerOrProfileIndex", "gCraftMarkerOrProfile", gCraftMarkerOrProfileOptions)
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
@@ -2278,10 +2291,10 @@ function ffxiv_task_craft:Draw()
 	
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile")) 
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Profile Tooltip")) end
-		GUI:SameLine()
+		GUI:SameLine(100)
 		
-		local profileWidth = GUI:GetContentRegionAvail()
-		GUI:PushItemWidth(profileWidth-68)
+		local newButtonWidth = (MarkerOrProfileWidth - 10) / 2
+		GUI:PushItemWidth(MarkerOrProfileWidth - 100)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gCraftProfileIndex", "gCraftProfile", ffxiv_craft.profilesDisplay)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Profile Tooltip")) end
 		GUI:PopItemWidth()
@@ -2294,15 +2307,15 @@ function ffxiv_task_craft:Draw()
 			ffxiv_craft.ResetOrders()
 		end
 		GUI:PopItemWidth()
-		GUI:SameLine()
-		if (GUI:ImageButton("##main-order-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
-			if (gCraftProfile ~= GetString("none")) then
-				ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
-			end
+		--GUI:SameLine()
+		
+		if (GUI:Button("Craft Orders",newButtonWidth,20)) and gCraftProfile ~= GetString("none") then
+			ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
 		end
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Opens the Crafting Order Editor.")) end
-		GUI:SameLine(0,5)
-		if (GUI:ImageButton("##main-order-add",ml_global_information.path.."\\GUI\\UI_Textures\\addon.png", 14, 14)) then
+		GUI:SameLine()
+		
+		if (GUI:Button("New Profile",newButtonWidth ,20)) then
 			local vars = {
 				{
 					["type"] = "string",
@@ -2650,21 +2663,40 @@ function ffxiv_task_craft:Draw()
 	-- Crafting Settings
 	if (tabname == GetString("Settings")) then
 		
+		GUI:Separator()
 		-- Label Column
 		GUI:Columns(2)
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))		
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
+		GUI:NextColumn()
+		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
+		GUI:Columns()
+		
+		GUI:Separator()
+		GUI:Columns(2)		
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Tea Type"))
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Tea Boosts.")) end
+		GUI:NextColumn()
+		if (gTeaSelection ~= gCraftTeaList) then
+			gCraftTeaList = gTeaSelection
+		end
+		GUI_Combo("##tea", "gCraftTeaTypeIndex", "gCraftTeaList", gTeaSelection)
+		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
+		GUI:Columns()
+		
+		GUI:Separator()
+		GUI:Columns(2)		
+		
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Current Active Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Tea Type"))
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Tea Boosts.")) end
 		GUI:NextColumn()
 		
 		-- Data column
 		local CraftStatusWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CraftStatusWidth-8)
-		
+			
 		GUI:InputText("##Current Active Food",gCraftFood,GUI.InputTextFlags_ReadOnly)
 		GUI_Combo("##food", "gCraftFoodIndex", "gCraftFood", gFoods)
 		if (GUI:IsItemHovered()) then
@@ -2685,18 +2717,8 @@ function ffxiv_task_craft:Draw()
 		end
 		GUI:PopStyleColor(2)		
 		
-		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of Experience boost manuals.")) end
-		
-		if (gTeaSelection ~= gCraftTeaList) then
-			gCraftTeaList = gTeaSelection
-		end
-		GUI_Combo("##tea", "gCraftTeaTypeIndex", "gCraftTeaList", gTeaSelection)
-		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Allow use of CP boost Tea.")) end
-		
 		GUI:Columns()
 		
-		GUI:Separator()
 		if gCraftMarkerOrProfileIndex ~= 1 then
 			GUI:Columns(2)
 			GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Collectable"))
@@ -2792,11 +2814,6 @@ function ffxiv_task_craft:Draw()
 			end
 		GUI:Columns()
 		end
-	end
-	-- Class Gear Sets
-	if (tabname == GetString("Gearsets")) then
-		GUI:Separator();
-		GUI:Text("Please set Gearsets in Advanced Settings Auto-Equip Tab");
 	end
 	if (tabname == GetString("Debug")) then
 		GUI:Columns(2)

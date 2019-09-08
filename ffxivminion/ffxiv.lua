@@ -725,12 +725,24 @@ function ffxivminion.SetMainVars()
 	gTradeInviteMessage = ffxivminion.GetSetting("gTradeInviteMessage",false)
 	gTradeInviteMessages = ffxivminion.GetSetting("gTradeInviteMessages","?;/shrug")
 	
-	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
-	gFoodIndex = 1
-	gFoods = {GetString("none")}
-	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific",true)
 	gFoodAvailableOnly = ffxivminion.GetSetting("gFoodAvailableOnly",true)
 	ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
+	gFoodIndex = IsNull(GetKeyByValue(gFood,gFoods),1)
+	gFoods = {GetString("none")}
+	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific",true)
+	
+	local currentFood = gFoods[gFoodIndex]
+	if (gFood ~= currentfood) then
+		if (table.valid(gFoods)) then
+			for i,food in pairs(gFoods) do
+				if (food == Mode) then
+					gFoodIndex = i
+					gFood =  gFoods[gFoodIndex]
+				end
+			end
+		end
+	end
 	
 	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
 	gTeleportHack = ffxivminion.GetSetting("gTeleportHack",false)
@@ -1430,11 +1442,10 @@ function ml_global_information.DrawMainFull()
 					end
 					
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:BeginGroup()
+					--GUI:BeginGroup()
 					GUI:Text(GetString("botMode")) 
-					GUI:SameLine()
-					
-					GUI:PushItemWidth(-65)
+					GUI:SameLine(110)
+					GUI:PushItemWidth(contentwidth - 165)
 					local modeChanged = GUI_Combo("##"..GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
 					GUI:PopItemWidth()
 					if (modeChanged) then
@@ -1446,7 +1457,7 @@ function ml_global_information.DrawMainFull()
 							Settings.FFXIVMINION.gBotModes = Settings.FFXIVMINION.gBotModes
 						end
 					end
-					GUI:EndGroup()
+					--GUI:EndGroup()
 					
 					if (GUI:IsItemHovered()) then 
 						GUI:SetTooltip("Assist: Handles combat with a selected skill profile while you do the moving.\
@@ -1461,12 +1472,14 @@ Quest: Completes quests based on a questing profile.\
 					end
 					
 					GUI:SameLine(0,5)
-					if (GUI:Button("Help!",60,20)) then
+					if (GUI:Button("Help!",55,20)) then
 						ffxivminion.GUI.help.open = not ffxivminion.GUI.help.open
 					end
 					
 					GUI:AlignFirstTextHeightToWidgets()	
-					GUI:Text(GetString("Skill Profile")) GUI:SameLine()
+					GUI:Text(GetString("Skill Profile"))
+					GUI:SameLine(110)
+					--GUI:PushItemWidth(mainFrameWidth - 100)
 					
 					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					GUI:PushItemWidth(-1 * (IIF(acrValid,75,65)))
@@ -1492,18 +1505,20 @@ Quest: Completes quests based on a questing profile.\
 					
 					GUI:SameLine()
 					
-					if (not acrValid) and (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
-						if gSkillProfileIndex ~= 1 then
-							SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
-						else
-							d("Invalid skill profile")
+					if (not acrValid) then
+						if (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
+							if gSkillProfileIndex ~= 1 then
+								SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
+							else
+								d("Invalid skill profile")
+							end
 						end
-					elseif (acrValid) and (GUI:Button(GetString("ACR"),30,20)) then
+						GUI:SameLine(0,8)
+						if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
+							SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
+						end
+					elseif (acrValid) and (GUI:Button(GetString("ACR"),55,20)) then
 						ACR.OpenProfileOptions()
-					end
-					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
-						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 					end
 					
 					GUI:Separator()

@@ -1439,18 +1439,18 @@ function CanUseCordialSoon()
 				--if cordialHigh and ((gpDeficit >= highGp) or ((missingNormal and (gpDeficit >= normGp)) and (missingQuick and (gpDeficit >= wateredGP)))) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-						gd("[CanUseCordialSoon]: Returning Min. High cordial.")
+						gdd("[CanUseCordialSoon]: Returning Min. High cordial.")
 						return true, cordialHigh
 					end
 				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick and (gpDeficit >= wateredGP))) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-						gd("[CanUseCordialSoon]: Returning Min. Cordial.")
+						gdd("[CanUseCordialSoon]: Returning Min. Cordial.")
 						return true, cordialNormal
 					end
 				elseif cordialQuick and (gpDeficit >= wateredGP) then
 					if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-						gd("[CanUseCordialSoon]: Returning Min. Quick cordial.")
+						gdd("[CanUseCordialSoon]: Returning Min. Quick cordial.")
 						return true, cordialQuick
 					end
 				end
@@ -1510,18 +1510,18 @@ function CanUseCordial()
 				--if cordialHigh and ((gpDeficit >= highGp) or (missingNormal and missingQuick)) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
-						gd("[CanUseCordial]: Returning High cordial.")
+						gdd("[CanUseCordial]: Returning High cordial.")
 						return true, cordialHigh
 					end
 				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick)) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-						gd("[CanUseCordial]: Returning Cordial.")
+						gdd("[CanUseCordial]: Returning Cordial.")
 						return true, cordialNormal
 					end
 				elseif cordialQuick and (gpDeficit >= wateredGP) then
 					if (cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
-						gd("[CanUseCordial]: Returning Quick cordial.")
+						gdd("[CanUseCordial]: Returning Quick cordial.")
 						return true, cordialQuick
 					end
 				end
@@ -1886,7 +1886,7 @@ function e_nodeprebuff:execute()
 	local activityitemid = e_nodeprebuff.itemid
 	local requirestop = e_nodeprebuff.requirestop
 	local requiredismount = e_nodeprebuff.requiredismount
-	
+	d("activity = "..tostring(activity))
 	if (requirestop and Player:IsMoving()) then
 		Player:PauseMovement()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
@@ -3589,6 +3589,7 @@ end
 
 function ffxiv_task_gather:Draw()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
+	local MarkerOrProfileWidth = (GUI:GetContentRegionAvail() - 10)
 	if FFXIV_Common_BotRunning then 
 		local currentMarker = ml_marker_mgr.currentMarker
 		if (table.valid(currentMarker)) then
@@ -3640,10 +3641,10 @@ function ffxiv_task_gather:Draw()
 	
 	-- Gather Mode Selections.
 	GUI:Separator()
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Mode")
-	GUI:SameLine()
-	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
-	GUI:PushItemWidth(MarkerOrProfileWidth-8)
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text("Gather Mode")
+	GUI:SameLine(100)
+	GUI:PushItemWidth(MarkerOrProfileWidth-100)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gGatherMarkerOrProfileIndex", "gGatherMarkerOrProfile", gGatherMarkerOrProfileOptions)
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
@@ -3660,10 +3661,10 @@ function ffxiv_task_gather:Draw()
 		if gGatherProfileIndex ~= 1 then
 			gGatherProfileIndex = 1
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Mode")
-		GUI:SameLine()
-		local MarkerModeWidth = GUI:GetContentRegionAvail() 
-		GUI:PushItemWidth(MarkerModeWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Marker Mode")
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth-100)
 		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
 		if (modeChanged) then
 			local uuid = GetUUID()
@@ -3674,10 +3675,10 @@ function ffxiv_task_gather:Draw()
 			end
 		end
 	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
-		GUI:SameLine()
-		local ProfileWidth = GUI:GetContentRegionAvail() 
-		GUI:PushItemWidth(ProfileWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Profile"))
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth-100)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
 		if (profileChanged) then
 			ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
@@ -3699,13 +3700,14 @@ function ffxiv_task_gather:Draw()
 	if (tabname == GetString("Settings")) then
 		
 		GUI:Columns(2)
+		local CordialWidth = GUI:GetContentRegionAvail() - 10
 		GUI:Separator()
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
 		end
 		GUI:NextColumn()
-		local CordialWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CordialWidth)
 		GUI_Capture(GUI:Checkbox("##"..GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		if (GUI:IsItemHovered()) then
@@ -3714,26 +3716,30 @@ function ffxiv_task_gather:Draw()
 		GUI:Columns()
 		GUI:Separator()
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Cordials")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Cordials")
 		GUI:Separator()
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Use Cordials")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for High Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Missing GP for High Cordial Usage")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a High Cordial.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Missing GP for Cordial Usage")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Cordial.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Watered Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Missing GP for Watered Cordial Usage")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
 		GUI:NextColumn()
-		local CordialWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CordialWidth)
 		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
 		if (GUI:IsItemHovered()) then
@@ -3773,8 +3779,7 @@ function ffxiv_task_gather:Draw()
 			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
 		end
 		GUI:NextColumn()
-		local StealthWidth = GUI:GetContentRegionAvail()
-		GUI:PushItemWidth(StealthWidth)
+		GUI:PushItemWidth(CordialWidth)
 		GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before applying Stealth.")
@@ -3805,6 +3810,7 @@ function ffxiv_task_gather:Draw()
 			GUI:SetTooltip("Maximum time to wait after Gathering a node.")
 		end
 		GUI:NextColumn()
+		GUI:PushItemWidth(CordialWidth)
 		GUI_DrawIntMinMax(GetString("##gGatherRandomDelayMin"),"gGatherRandomDelayMin",1,1,0,5);
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Minimum time to wait after Gathering a node.")
@@ -3813,6 +3819,7 @@ function ffxiv_task_gather:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Maximum time to wait after Gathering a node.")
 		end
+		GUI:PopItemWidth()
 		GUI:Columns()
 		GUI:Separator()
 	end
@@ -3878,10 +3885,10 @@ function ffxiv_task_gather:Draw()
 		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
 		local currentMap = ml_marker_mgr.activeMap
 		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Type")
-		GUI:SameLine()
-		local MarkerTypeWidth = GUI:GetContentRegionAvail()
-		GUI:PushItemWidth(MarkerTypeWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Marker Type")
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth-100)
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
 		if (modeChanged) then
 			ml_marker_mgr.UpdateMarkerSelector()

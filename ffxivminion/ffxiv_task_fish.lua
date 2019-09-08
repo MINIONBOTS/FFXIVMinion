@@ -377,7 +377,7 @@ function c_precastbuff:evaluate()
 			end					
 		end
 	end
-	
+	d("failed out")
 	return false
 end
 function e_precastbuff:execute()
@@ -386,6 +386,7 @@ function e_precastbuff:execute()
 	local requirestopfishing = c_precastbuff.requirestopfishing
 	local requiredismount = c_precastbuff.requiredismount
 	local activity = c_precastbuff.activity
+	d("activity = "..tostring(activity))
 	
 	local fs = Player:GetFishingState()
 	if (fs ~= 0 and requirestopfishing) then
@@ -2999,6 +3000,7 @@ function ffxiv_task_fish:UIInit()
 end
 
 function ffxiv_task_fish:Draw()
+	local MarkerOrProfileWidth = (GUI:GetContentRegionAvail() - 10)
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	if FFXIV_Common_BotRunning then 
 		local currentMarker = ml_marker_mgr.currentMarker
@@ -3048,10 +3050,10 @@ function ffxiv_task_fish:Draw()
 		end	
 	GUI:Separator()
 	end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Mode")
-	GUI:SameLine()
-	local MarkerOrProfileWidth = GUI:GetContentRegionAvail() 
-	GUI:PushItemWidth(MarkerOrProfileWidth-8)
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text("Fish Mode")
+	GUI:SameLine(100)
+	GUI:PushItemWidth(MarkerOrProfileWidth-100)
 	local MarkerOrProfile = GUI_Combo("##FishMarkerOrProfile", "gFishMarkerOrProfileIndex", "gFishMarkerOrProfile", gFishMarkerOrProfileOptions)
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
@@ -3071,10 +3073,10 @@ function ffxiv_task_fish:Draw()
 			gFishProfileIndex = 1
 			gFishProfile = GetString("None")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Mode")
-		GUI:SameLine()
-		local MarkerModeWidth = GUI:GetContentRegionAvail() 
-		GUI:PushItemWidth(MarkerModeWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Marker Mode")
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth - 100)
 		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
 		if (modeChanged) then
 			local uuid = GetUUID()
@@ -3086,10 +3088,10 @@ function ffxiv_task_fish:Draw()
 		end
 	-- Profile Options
 	elseif gFishMarkerOrProfileIndex == 2 then
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile"))
-		GUI:SameLine()
-		local profileWidth = GUI:GetContentRegionAvail() 
-		GUI:PushItemWidth(profileWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Profile"))
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth - 100)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gFishProfileIndex", "gFishProfile", ffxiv_fish.profilesDisplay)
 		if (profileChanged) then
 			ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
@@ -3111,7 +3113,9 @@ function ffxiv_task_fish:Draw()
 		
 		GUI:Separator()
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Exp Manuals"))
+		local CordialWidth = GUI:GetContentRegionAvail() - 10
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Use Exp Manuals"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Experience boost manuals.")
 		end
@@ -3142,7 +3146,6 @@ function ffxiv_task_fish:Draw()
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
 		GUI:NextColumn()
-		local CordialWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(CordialWidth)
 		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
 		if (GUI:IsItemHovered()) then
@@ -3161,7 +3164,6 @@ function ffxiv_task_fish:Draw()
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
 		GUI:PopItemWidth()
-		GUI:Columns()
 		GUI:Columns()
 		--Stealth Settings
 		GUI:Separator()
@@ -3183,8 +3185,7 @@ function ffxiv_task_fish:Draw()
 			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
 		end
 		GUI:NextColumn()
-		local StealthWidth = GUI:GetContentRegionAvail()
-		GUI:PushItemWidth(StealthWidth)
+		GUI:PushItemWidth(CordialWidth)
 		GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Enemy range before applying Stealth.")
@@ -3270,10 +3271,10 @@ function ffxiv_task_fish:Draw()
 		local currentType = ml_marker_mgr.templateDisplayMap[gMarkerType]
 		local currentMap = ml_marker_mgr.activeMap
 		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Marker Type")
-		GUI:SameLine()
-		local MarkerTypeWidth = GUI:GetContentRegionAvail()
-		GUI:PushItemWidth(MarkerTypeWidth-8)
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text("Marker Type")
+		GUI:SameLine(100)
+		GUI:PushItemWidth(MarkerOrProfileWidth - 100)
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
 		if (modeChanged) then
 			ml_marker_mgr.UpdateMarkerSelector()
