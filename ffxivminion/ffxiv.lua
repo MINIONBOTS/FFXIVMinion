@@ -1417,6 +1417,17 @@ function ml_global_information.DrawMainFull()
 						GUI:Text("Bot Status:") GUI:SameLine()
 						GUI:TextColored(1,.1,.2,1,"NOT RUNNING")
 					end
+					GUI:SameLine((contentwidth - 20),5)
+					GUI:Image(ml_global_information.GetMainIcon(),14,14)
+					if (GUI:IsItemHovered()) then
+						if (GUI:IsMouseClicked(0)) then
+							if (ml_global_information.drawMode == 1) then
+								ml_global_information.drawMode = 0
+							else
+								ml_global_information.drawMode = 1
+							end
+						end
+					end
 					
 					GUI:AlignFirstTextHeightToWidgets()
 					GUI:BeginGroup()
@@ -1450,19 +1461,8 @@ Quest: Completes quests based on a questing profile.\
 					end
 					
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##help",ml_global_information.path.."\\GUI\\UI_Textures\\questionmark.png", 14, 14)) then
-						ffxivminion.GUI.help.open = true
-					end
-					GUI:SameLine(0,5)
-					GUI:Image(ml_global_information.GetMainIcon(),14,14)
-					if (GUI:IsItemHovered()) then
-						if (GUI:IsMouseClicked(0)) then
-							if (ml_global_information.drawMode == 1) then
-								ml_global_information.drawMode = 0
-							else
-								ml_global_information.drawMode = 1
-							end
-						end
+					if (GUI:Button("Help!",60,20)) then
+						ffxivminion.GUI.help.open = not ffxivminion.GUI.help.open
 					end
 					
 					GUI:AlignFirstTextHeightToWidgets()	
