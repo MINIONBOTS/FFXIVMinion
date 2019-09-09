@@ -1807,29 +1807,11 @@ function c_collectibleaddoncraft:evaluate()
 			local lastCraft = ffxiv_craft.lastCraft --= { id = synthData.itemid, name = synthData.name }
 			
 			if (table.valid(lastCraft) and table.valid(gCraftCollectablePresets)) then
-				for i,collectable in pairsByKeys(gCraftCollectablePresets) do
-					if (string.valid(collectable.name) and type(collectable.value) == "number") then
-						local foundMatch = false
-						if (lastCraft.name == collectable.name) then
-							foundMatch = true
-						else
-							local itemid = AceLib.API.Items.GetIDByName(collectable.name)
-							if (itemid and itemid == lastCraft.id ) then
-								foundMatch = true
-							end
-						end
-						
-						if (foundMatch) then
-							if (info.collectability >= tonumber(collectable.value)) then
-								validCollectible = true
-							else
-								gd("Collectibility was too low ["..tostring(info.collectability).."].",1)
-							end
-						end
-					end
-					
-					if (validCollectible) then
-						break
+				local thisCollectable = gCraftCollectablePresets[lastCraft.id]
+				if thisCollectable then
+				
+					if (info.collectability >= tonumber(thisCollectable.value)) then
+						validCollectible = true
 					end
 				end
 			end
@@ -2144,7 +2126,25 @@ function ffxiv_task_craft:UIInit()
 	
 	gCraftOrderSelectIndex = 1
 	gCraftOrderSelect = "CRP"
+	gCraftDictionarySelectKeepSettings = ffxivminion.GetSetting("gCraftDictionarySelectKeepSettings",false)
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
+	grefreshCollectables = ffxivminion.GetSetting("grefreshCollectables",0)
+	
+	if grefreshCollectables < 20190909 then
+		gCraftCollectablePresets = {}
+		GUI_Set("gCraftCollectablePresets",{})
+		for k,v in pairs(ffxiv_craft.collectibles) do
+			--local newCollectable = { name = v.name, value = v.minimum }
+			gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			--table.insert(gCraftCollectablePresets,newCollectable)
+		end
+		Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
+		
+		grefreshCollectables = 20190909
+		Settings.FFXIVMINION.grefreshCollectables = grefreshCollectables
+		d("[Craft] Collectables Updated")
+	end
+	
 		
 	gTeaSelection = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
 	gCraftTeaList = ffxivminion.GetSetting("gCraftTeaList",GetString("none"))
@@ -2274,8 +2274,8 @@ function ffxiv_task_craft:Draw()
 	GUI:Separator()
 	local MarkerOrProfileWidth = (GUI:GetContentRegionAvail() - 10)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Craft Mode")
-	GUI:SameLine(100)
-	GUI:PushItemWidth(MarkerOrProfileWidth - 100)
+	GUI:SameLine(110)
+	GUI:PushItemWidth(MarkerOrProfileWidth - 110)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gCraftMarkerOrProfileIndex", "gCraftMarkerOrProfile", gCraftMarkerOrProfileOptions)
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
@@ -2291,10 +2291,10 @@ function ffxiv_task_craft:Draw()
 	
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Profile")) 
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Profile Tooltip")) end
-		GUI:SameLine(100)
+		GUI:SameLine(110)
 		
 		local newButtonWidth = (MarkerOrProfileWidth - 10) / 2
-		GUI:PushItemWidth(MarkerOrProfileWidth - 100)
+		GUI:PushItemWidth(MarkerOrProfileWidth - 110)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gCraftProfileIndex", "gCraftProfile", ffxiv_craft.profilesDisplay)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Profile Tooltip")) end
 		GUI:PopItemWidth()
@@ -2432,7 +2432,13 @@ function ffxiv_task_craft:Draw()
 			for id,order in spairs(orders) do
 			GUI:AlignFirstTextHeightToWidgets(); 
 			if order.collect then
-				GUI:Text("(C) " .. tostring(order.name));
+				if gCraftCollectablePresets[order.item] then
+					GUI:TextColored(.1,1,.2,1,"(C) " .. tostring(order.name))
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Has Collectable Info")) end
+				else
+					GUI:TextColored(1,.1,.2,1,"(C) " .. tostring(order.name))
+					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Collectable Info Missing")) end
+				end
 			else
 				GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
 			end	
@@ -2759,8 +2765,7 @@ function ffxiv_task_craft:Draw()
 		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
 			GUI_Set("gCraftCollectablePresets",{})
 			for k,v in pairs(ffxiv_craft.collectibles) do
-				local newCollectable = { name = v.name, value = v.minimum }
-				table.insert(gCraftCollectablePresets,newCollectable)
+				gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
 			end
 			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 		end
@@ -2787,7 +2792,9 @@ function ffxiv_task_craft:Draw()
 				GUI:PushItemWidth(CollectableWidth1-8)
 				local newName = GUI:InputText("##craft-collectablepair-name"..tostring(i),collectable.name)
 				if (newName ~= collectable.name) then
-					gCraftCollectablePresets[i].name = newName
+					local newValue = gCraftCollectablePresets[i].value
+					local newIndex = IsNull(AceLib.API.Items.GetIDByName(newName),i)
+					gCraftCollectablePresets[newIndex] = { name = newName, value = newValue }
 					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 				end
 				if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Case-sensitive item name for the item to become a collectable.")) end
@@ -2902,6 +2909,9 @@ end
 
 function ffxiv_craft.AddToProfile()
 	local recipeid = tonumber(gCraftOrderAddRecipeID) or 0
+	if not ffxiv_craft.orders then
+		ffxiv_craft.orders = {}
+	end
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
 		local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
@@ -3281,7 +3291,13 @@ function ffxiv_craft.Draw( event, ticks )
 										
 					for id,order in spairs(orders) do
 						if order.collect then
-							GUI:Text("(C) " .. tostring(order.name));
+							if gCraftCollectablePresets[order.item] then
+								GUI:TextColored(.1,1,.2,1,"(C) " .. tostring(order.name))
+								if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Has Collectable Info")) end
+							else
+								GUI:TextColored(1,.1,.2,1,"(C) " .. tostring(order.name))
+								if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Collectable Info Missing")) end
+							end
 						else
 							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
 						end				
@@ -3456,7 +3472,7 @@ function ffxiv_craft.Draw( event, ticks )
 						--d("found dictionary for k = "..tostring(k))
 						GUI:PushItemWidth(300)
 						local selectionChanged = GUI_Combo(tostring(k-4).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
-						if (selectionChanged) then
+						if (selectionChanged) and not gCraftDictionarySelectKeepSettings then
 							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
 							if (thisRecipe) then
 								gCraftOrderAddID = thisRecipe.recipeid
@@ -3631,6 +3647,11 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Separator()
 					GUI:Spacing()
 					
+					local newVal, changed = GUI:Checkbox("Keep setings on change",gCraftDictionarySelectKeepSettings)
+					if (changed) then
+						gCraftDictionarySelectKeepSettings = newVal
+						Settings.FFXIVMINION.gCraftDictionarySelectKeepSettings = gCraftDictionarySelectKeepSettings
+					end
 					if (GUI:Button("Add to Profile",250,20)) then
 					
 						d("Adding Recipe id ["..gCraftOrderAddRecipeID.."]")
