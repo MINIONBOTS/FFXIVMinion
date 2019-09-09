@@ -1471,7 +1471,7 @@ Quest: Completes quests based on a questing profile.\
 ") 
 					end
 					
-					GUI:SameLine(0,5)
+					GUI:SameLine()
 					if (GUI:Button("Help!",55,20)) then
 						ffxivminion.GUI.help.open = not ffxivminion.GUI.help.open
 					end
@@ -1479,14 +1479,12 @@ Quest: Completes quests based on a questing profile.\
 					GUI:AlignFirstTextHeightToWidgets()	
 					GUI:Text(GetString("Skill Profile"))
 					GUI:SameLine(110)
-					--GUI:PushItemWidth(mainFrameWidth - 100)
 					
 					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
-					GUI:PushItemWidth(-1 * (IIF(acrValid,75,65)))
+					GUI:PushItemWidth(contentwidth - 165)
 					local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					GUI:PopItemWidth()
 					if (skillsChanged) then
-						-- todo, fix this once ACR is updated again.
 						if acrValid then
 							gSkillProfileIndex = 1
 						else
