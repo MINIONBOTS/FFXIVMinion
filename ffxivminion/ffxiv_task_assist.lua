@@ -221,61 +221,147 @@ function ffxiv_task_assist.EndElement(strTooltip)
 end
 
 function ffxiv_task_assist:Draw()
+	local mainWidth = (GUI:GetContentRegionAvail() - 10)
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = GUI:GetStyle().windowpadding.y
 	local framePaddingY = GUI:GetStyle().framepadding.y
 	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(10),true)
-	GUI:PushItemWidth(120)
+	--GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(10),true)
+	--GUI:PushItemWidth(120)
 	
-	ffxiv_task_assist.StartElement("Targeting Assist")
-	GUI_Combo("##"..GetString("assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-	ffxiv_task_assist.EndElement("None: Use manual targetting.\
+	GUI:Separator()
+	GUI:Columns(2)
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Targeting Assist"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("None: Use manual targetting.\
 Lowest Health: Targets the lowest health target within range.\
 Nearest: Targets the closest target within range.\
 Tank Assist: Targets whatever your tank is targetting.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Priority"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Prioritize Damage or Healing.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Start Combat"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
+	end
+	GUI:NextColumn()
+	local columnWidth = GUI:GetContentRegionAvail() - 10
+	GUI:PushItemWidth(columnWidth)
+	
+	GUI_Combo("##"..GetString("##assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("None: Use manual targetting.\
+Lowest Health: Targets the lowest health target within range.\
+Nearest: Targets the closest target within range.\
+Tank Assist: Targets whatever your tank is targetting.")
+	end
 
-	ffxiv_task_assist.StartElement("Priority")
 	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
-	ffxiv_task_assist.EndElement("Prioritize Damage or Healing.")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Prioritize Damage or Healing.")
+	end
 	
-	ffxiv_task_assist.StartElement("Follow Target")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
-	ffxiv_task_assist.EndElement("Attempts to continually follow the target (useful in PvP).")
-	
-	ffxiv_task_assist.StartElement("Face Target")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
-
-	ffxiv_task_assist.EndElement("Attempts to continually face the target.\
-		Warning:  Dangerous if using Standard movement mode.")
-	
-	ffxiv_task_assist.StartElement("Use Client Autoface")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace", function () ml_global_information.GetMovementInfo(false) end)
-	ffxiv_task_assist.EndElement("This option enables the client auto-face option.")
-	
-	ffxiv_task_assist.StartElement("Set Legacy Movement")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy", function () ml_global_information.GetMovementInfo(false) end)
-	ffxiv_task_assist.EndElement("This option sets Legacy movement mode.")
-	
-	ffxiv_task_assist.StartElement("Start Combat")
 	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
-	ffxiv_task_assist.EndElement("If this option is off, the bot will not attack a mob that is not in combat already.")
-	
-	ffxiv_task_assist.StartElement("Auto-Confirm Duty")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
-	ffxiv_task_assist.EndElement("Auto accepts Duty confirmation.")
-	
-	ffxiv_task_assist.StartElement("Auto FATE Sync")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Auto FATE Sync"),gAssistSyncFate),"gAssistSyncFate")
-	ffxiv_task_assist.EndElement("Automatically sync to FATE if necessary, requires a target.")
-	
-	ffxiv_task_assist.StartElement("Quest Helpers")
-	GUI_Capture(GUI:Checkbox("##"..GetString("Quest Helpers"),gQuestHelpers),"gQuestHelpers")
-	ffxiv_task_assist.EndElement("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
+	end
 	
 	GUI:PopItemWidth()
-	GUI:EndChild()
+	GUI:Columns()
+	GUI:Separator()
+	GUI:Columns(2)
+	
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Follow Target"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Face Target"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Attempts to continually face the target.\
+Warning:  Dangerous if using Standard movement mode.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Use Client Autoface"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("This option enables the client auto-face option.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Set Legacy Movement"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("This option sets Legacy movement mode.")
+	end
+	
+	
+	GUI:NextColumn()
+	GUI:PushItemWidth(columnWidth)
+	
+	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
+	end	
+	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Attempts to continually face the target.\
+Warning:  Dangerous if using Standard movement mode.")
+	end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace", function () ml_global_information.GetMovementInfo(false) end)
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("This option enables the client auto-face option.")
+	end	
+	GUI_Capture(GUI:Checkbox("##"..GetString("Set Legacy Movement"),gAssistUseLegacy),"gAssistUseLegacy", function () ml_global_information.GetMovementInfo(false) end)
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("This option sets Legacy movement mode.")
+	end
+
+	
+	GUI:PopItemWidth()
+	GUI:Columns()
+	GUI:Separator()
+	GUI:Columns(2)
+	
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Auto-Confirm Duty"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Auto accepts Duty confirmation.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Auto FATE Sync"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Automatically sync to FATE if necessary, requires a target.")
+	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("Quest Helpers"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
+	end
+	
+	
+	GUI:NextColumn()
+	GUI:PushItemWidth(columnWidth)
+	GUI_Capture(GUI:Checkbox("##"..GetString("Auto-Confirm Duty"),gAssistConfirmDuty),"gAssistConfirmDuty")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Auto accepts Duty confirmation.")
+	end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Auto FATE Sync"),gAssistSyncFate),"gAssistSyncFate")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Automatically sync to FATE if necessary, requires a target.")
+	end
+	GUI_Capture(GUI:Checkbox("##"..GetString("Quest Helpers"),gQuestHelpers),"gQuestHelpers")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
+	end
+	
+	GUI:PopItemWidth()
+	GUI:Columns()
+	GUI:Separator()
 end
 
 c_assistyesno = inheritsFrom( ml_cause )

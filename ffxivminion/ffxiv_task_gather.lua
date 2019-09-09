@@ -3643,8 +3643,8 @@ function ffxiv_task_gather:Draw()
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() 
 	GUI:Text("Gather Mode")
-	GUI:SameLine(100)
-	GUI:PushItemWidth(MarkerOrProfileWidth-100)
+	GUI:SameLine(110)
+	GUI:PushItemWidth(MarkerOrProfileWidth-110)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gGatherMarkerOrProfileIndex", "gGatherMarkerOrProfile", gGatherMarkerOrProfileOptions)
 	if (MarkerOrProfile) then
 		-- Update tabs on change.
@@ -3663,8 +3663,8 @@ function ffxiv_task_gather:Draw()
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
 		GUI:Text("Marker Mode")
-		GUI:SameLine(100)
-		GUI:PushItemWidth(MarkerOrProfileWidth-100)
+		GUI:SameLine(110)
+		GUI:PushItemWidth(MarkerOrProfileWidth-110)
 		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
 		if (modeChanged) then
 			local uuid = GetUUID()
@@ -3677,8 +3677,8 @@ function ffxiv_task_gather:Draw()
 	elseif gGatherMarkerOrProfileIndex == 2 then -- Profile stuff.
 		GUI:AlignFirstTextHeightToWidgets() 
 		GUI:Text(GetString("Profile"))
-		GUI:SameLine(100)
-		GUI:PushItemWidth(MarkerOrProfileWidth-100)
+		GUI:SameLine(110)
+		GUI:PushItemWidth(MarkerOrProfileWidth-110)
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
 		if (profileChanged) then
 			ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
@@ -3887,8 +3887,8 @@ function ffxiv_task_gather:Draw()
 		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
 		GUI:AlignFirstTextHeightToWidgets() 
 		GUI:Text("Marker Type")
-		GUI:SameLine(100)
-		GUI:PushItemWidth(MarkerOrProfileWidth-100)
+		GUI:SameLine(110)
+		GUI:PushItemWidth(MarkerOrProfileWidth-110)
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
 		if (modeChanged) then
 			ml_marker_mgr.UpdateMarkerSelector()
