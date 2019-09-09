@@ -1475,6 +1475,9 @@ Quest: Completes quests based on a questing profile.\
 					if (GUI:Button("Help!",55,20)) then
 						ffxivminion.GUI.help.open = not ffxivminion.GUI.help.open
 					end
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip(GetString("Help, Report and Faqs."))
+					end
 					
 					GUI:AlignFirstTextHeightToWidgets()	
 					GUI:Text(GetString("Skill Profile"))
@@ -1500,6 +1503,10 @@ Quest: Completes quests based on a questing profile.\
 							SkillMgr.UseProfile(gSkillProfile)
 						end
 					end
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Please ensure _SHB profiles are used for Shadowbringer expansion. \
+(Not applicable for Monk or Ninja)"))
+						end
 					
 					GUI:SameLine()
 					
@@ -1511,9 +1518,15 @@ Quest: Completes quests based on a questing profile.\
 								d("Invalid skill profile")
 							end
 						end
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Skill Profile Filters."))
+						end
 						GUI:SameLine(0,8)
-						if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 14, 14)) then
+						if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 14, 14)) then
 							SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
+						end
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(GetString("Skill Profile Editor."))
 						end
 					elseif (acrValid) and (GUI:Button(GetString("ACR"),55,20)) then
 						ACR.OpenProfileOptions()
