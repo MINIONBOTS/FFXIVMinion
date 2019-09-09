@@ -2165,11 +2165,7 @@ function e_collectiblegame:execute()
 		gd("Item current wear ["..tostring(info.wear).."].",1)
 		gd("Item max wear ["..tostring(info.wearmax).."].",1)
 				
-		if (info.rarity > 0 and
-			(((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or 
-			(info.rarity == info.raritymax) or
-			(info.wear == 30)))
-		then
+		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax))) then
 			UseControlAction("GatheringMasterpiece","Collect")
 			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 			return
@@ -2179,36 +2175,58 @@ function e_collectiblegame:execute()
 				e_collectiblegame.timer = Now() + 2500
 				return
 			else
-				local methodicals = {
-					[16] = 4075,
-					[17] = 4089,
-				}
-				local discernings = {
-					[16] = 4078,
-					[17] = 4092,
-				}
-							
-				for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-					if (tonumber(skill.id) == discernings[Player.job]) then
-						gd("[CollectableGame]: Profile is set to handle collectables, do not use auto-skills.",3)
-						e_collectiblegame.timer = Now() + 500
-						return
-					end
-				end
-							
-				gd("[CollectableGame]: Attempting to use auto-skills.",3)
-				local methodical = ActionList:Get(1,methodicals[Player.job])
-				local discerning = ActionList:Get(1,discernings[Player.job])
+				if (info.wear == 30) then
+					UseControlAction("GatheringMasterpiece","Collect")
+					ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+					return
+				else
+					local methodicals = {
+						[16] = 4075,
+						[17] = 4089,
+					}
+					local discernings = {
+						[16] = 4078,
+						[17] = 4092,
+					}
+					local impulsive2s = {
+						[16] = 301,
+						[17] = 302,
+					}
+					local impulsive1s = {
+						[16] = 4077,
+						[17] = 4091,
+					}
+								
+					gd("[CollectableGame]: Attempting to use auto-skills.",3)
+					local methodical = ActionList:Get(1,methodicals[Player.job])
+					local discerning = ActionList:Get(1,discernings[Player.job])
+					local impulsive2 = ActionList:Get(1,impulsive2s[Player.job])
+					local impulsive1 = ActionList:Get(1,impulsive1s[Player.job])
 				
-				if (discerning and discerning:IsReady(Player.id) and info.rarity <= 1) then
-					if (not HasBuffs(Player,"757")) then
-						discerning:Cast()
+					if not HasBuffs(Player,"757") then
+						if (discerning and discerning:IsReady(Player.id) and info.rarity < 1) then
+							discerning:Cast()
+							e_collectiblegame.timer = Now() + 2500
+							return
+						end
+					end
+					if HasBuffs(Player,"757") or (info.wear >= 20) then
+						if (methodical and methodical:IsReady(Player.id)) then
+							methodical:Cast()
+							e_collectiblegame.timer = Now() + 2500
+							return
+						end
+					end
+					if (impulsive2 and impulsive2:IsReady(Player.id)) then
+						impulsive2:Cast()
 						e_collectiblegame.timer = Now() + 2500
 						return
 					end
-				end
-							
-				if (HasBuffs(Player,"757") or Player.gp.current < 200) then
+					if (impulsive1 and impulsive1:IsReady(Player.id)) then
+						impulsive1:Cast()
+						e_collectiblegame.timer = Now() + 2500
+						return
+					end
 					if (methodical and methodical:IsReady(Player.id)) then
 						methodical:Cast()
 						e_collectiblegame.timer = Now() + 2500
@@ -3562,6 +3580,22 @@ function ffxiv_task_gather:UIInit()
 	gGatherQuickSlotIndex = GetKeyByValue(gGatherQuickSlot,quickslot)
 	
 	gGatherCollectablePresets = ffxivminion.GetSetting("gGatherCollectablePresets",{})	
+	
+	--[[grefreshGatheringCollectables = ffxivminion.GetSetting("grefreshGatheringCollectables",0)
+	if grefreshGatheringCollectables < 20190910 then
+		gGatherCollectablePresets = {}
+		GUI_Set("gGatherCollectablePresets",{})
+		for k,v in pairs(ffxiv_gather.collectibles) do
+			--local newCollectable = { name = v.name, value = v.minimum }
+			gGatherCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			--table.insert(gGatherCollectablePresets,newCollectable)
+		end
+		Settings.FFXIVMINION.gGatherCollectablePresets = gGatherCollectablePresets
+		
+		grefreshGatheringCollectables = 20190910
+		Settings.FFXIVMINION.grefreshGatheringCollectables = grefreshGatheringCollectables
+		d("[Gather] Collectables Updated")
+	end]]
 	gGatherTaskFilterID = 0
 	gGatherTaskFilterAlias = ""
 	
