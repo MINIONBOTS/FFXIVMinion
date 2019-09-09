@@ -2165,11 +2165,7 @@ function e_collectiblegame:execute()
 		gd("Item current wear ["..tostring(info.wear).."].",1)
 		gd("Item max wear ["..tostring(info.wearmax).."].",1)
 				
-		if (info.rarity > 0 and
-			(((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or 
-			(info.rarity == info.raritymax) or
-			(info.wear == 30)))
-		then
+		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax))) then
 			UseControlAction("GatheringMasterpiece","Collect")
 			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 			return
@@ -2188,31 +2184,26 @@ function e_collectiblegame:execute()
 					[17] = 4092,
 				}
 							
-				for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-					if (tonumber(skill.id) == discernings[Player.job]) then
-						gd("[CollectableGame]: Profile is set to handle collectables, do not use auto-skills.",3)
-						e_collectiblegame.timer = Now() + 500
-						return
-					end
-				end
-							
 				gd("[CollectableGame]: Attempting to use auto-skills.",3)
 				local methodical = ActionList:Get(1,methodicals[Player.job])
 				local discerning = ActionList:Get(1,discernings[Player.job])
 				
-				if (discerning and discerning:IsReady(Player.id) and info.rarity <= 1) then
+				if (info.wear == 30) then
+					UseControlAction("GatheringMasterpiece","Collect")
+					ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+					return
+				elseif (discerning and discerning:IsReady(Player.id) and info.rarity <= 1) then
 					if (not HasBuffs(Player,"757")) then
 						discerning:Cast()
 						e_collectiblegame.timer = Now() + 2500
 						return
 					end
-				end
-							
-				if (HasBuffs(Player,"757") or Player.gp.current < 200) then
-					if (methodical and methodical:IsReady(Player.id)) then
-						methodical:Cast()
-						e_collectiblegame.timer = Now() + 2500
-						return
+					if (HasBuffs(Player,"757") or Player.gp.current < 200) then
+						if (methodical and methodical:IsReady(Player.id)) then
+							methodical:Cast()
+							e_collectiblegame.timer = Now() + 2500
+							return
+						end
 					end
 				end
 			end
