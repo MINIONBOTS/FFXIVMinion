@@ -1439,18 +1439,18 @@ function CanUseCordialSoon()
 				--if cordialHigh and ((gpDeficit >= highGp) or ((missingNormal and (gpDeficit >= normGp)) and (missingQuick and (gpDeficit >= wateredGP)))) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
-						gdd("[CanUseCordialSoon]: Returning Min. High cordial.")
+						gd("[CanUseCordialSoon]: Returning Min. High cordial.")
 						return true, cordialHigh
 					end
 				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick and (gpDeficit >= wateredGP))) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
-						gdd("[CanUseCordialSoon]: Returning Min. Cordial.")
+						gd("[CanUseCordialSoon]: Returning Min. Cordial.")
 						return true, cordialNormal
 					end
 				elseif cordialQuick and (gpDeficit >= wateredGP) then
 					if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
-						gdd("[CanUseCordialSoon]: Returning Min. Quick cordial.")
+						gd("[CanUseCordialSoon]: Returning Min. Quick cordial.")
 						return true, cordialQuick
 					end
 				end
@@ -1510,18 +1510,18 @@ function CanUseCordial()
 				--if cordialHigh and ((gpDeficit >= highGp) or (missingNormal and missingQuick)) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
-						gdd("[CanUseCordial]: Returning High cordial.")
+						gd("[CanUseCordial]: Returning High cordial.")
 						return true, cordialHigh
 					end
 				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick)) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
-						gdd("[CanUseCordial]: Returning Cordial.")
+						gd("[CanUseCordial]: Returning Cordial.")
 						return true, cordialNormal
 					end
 				elseif cordialQuick and (gpDeficit >= wateredGP) then
 					if (cordialQuick and cordialQuickAction and not cordialQuickAction.isoncd) then
-						gdd("[CanUseCordial]: Returning Quick cordial.")
+						gd("[CanUseCordial]: Returning Quick cordial.")
 						return true, cordialQuick
 					end
 				end
