@@ -1479,38 +1479,37 @@ Quest: Completes quests based on a questing profile.\
 						GUI:SetTooltip(GetString("Help, Report and Faqs."))
 					end
 					
-					GUI:AlignFirstTextHeightToWidgets()	
-					GUI:Text(GetString("Skill Profile"))
-					GUI:SameLine(110)
-					
 					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
-					GUI:PushItemWidth(contentwidth - 165)
-					local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
-					GUI:PopItemWidth()
-					if (skillsChanged) then
-						if acrValid then
-							gSkillProfileIndex = 1
-						else
-							local uuid = GetUUID()
-							if ( string.valid(uuid) ) then
-								gSMDefaultProfiles[Player.job] = gSkillProfile
-								Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
-								Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
-							else
-								d("UUID was invalid.")
-							end
-							
-							SkillMgr.UseProfile(gSkillProfile)
-						end
-					end
-						if (GUI:IsItemHovered()) then
-							GUI:SetTooltip(GetString("Please ensure _SHB profiles are used for Shadowbringer expansion. \
-(Not applicable for Monk or Ninja)"))
-						end
-					
-					GUI:SameLine()
-					
 					if (not acrValid) then
+						GUI:AlignFirstTextHeightToWidgets()	
+						GUI:Text(GetString("Skill Profile"))
+						GUI:SameLine(110)
+						
+						GUI:PushItemWidth(contentwidth - 165)
+						local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
+						GUI:PopItemWidth()
+						if (skillsChanged) then
+							if acrValid then
+								gSkillProfileIndex = 1
+							else
+								local uuid = GetUUID()
+								if ( string.valid(uuid) ) then
+									gSMDefaultProfiles[Player.job] = gSkillProfile
+									Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
+									Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
+								else
+									d("UUID was invalid.")
+								end
+								
+								SkillMgr.UseProfile(gSkillProfile)
+							end
+						end
+							if (GUI:IsItemHovered()) then
+								GUI:SetTooltip(GetString("Please ensure _SHB profiles are used for Shadowbringer expansion. \
+(Not applicable for Monk or Ninja)"))
+							end
+						
+						GUI:SameLine()
 						if (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
 							if gSkillProfileIndex ~= 1 then
 								SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
@@ -1528,8 +1527,14 @@ Quest: Completes quests based on a questing profile.\
 						if (GUI:IsItemHovered()) then
 							GUI:SetTooltip(GetString("Skill Profile Editor."))
 						end
-					elseif (acrValid) and (GUI:Button(GetString("ACR"),55,20)) then
-						ACR.OpenProfileOptions()
+					elseif (acrValid) then
+					
+						GUI:AlignFirstTextHeightToWidgets()	
+						GUI:Text("ACR Active")
+						GUI:SameLine(110)
+						if (GUI:Button(GetString("ACR Options"),150,20)) then
+							ACR.OpenProfileOptions()
+						end
 					end
 					
 					GUI:Separator()
