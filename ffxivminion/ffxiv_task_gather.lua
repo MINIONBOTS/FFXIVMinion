@@ -1886,7 +1886,7 @@ function e_nodeprebuff:execute()
 	local activityitemid = e_nodeprebuff.itemid
 	local requirestop = e_nodeprebuff.requirestop
 	local requiredismount = e_nodeprebuff.requiredismount
-	d("activity = "..tostring(activity))
+	
 	if (requirestop and Player:IsMoving()) then
 		Player:PauseMovement()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
