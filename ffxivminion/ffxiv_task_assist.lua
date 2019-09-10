@@ -192,11 +192,38 @@ function ffxiv_task_assist:UIInit()
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
 	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("highestHealth"), GetString("nearest"), GetString("tankAssist") }
-	FFXIV_Assist_ModeIndex = GetKeyByValue(FFXIV_Assist_Mode,FFXIV_Assist_Modes)
+	FFXIV_Assist_ModeIndex = IsNull(GetKeyByValue(FFXIV_Assist_Mode,FFXIV_Assist_Modes),1)
+	
+	local currentMode = FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]
+	if (FFXIV_Assist_Mode ~= currentMode) then
+		if (table.valid(FFXIV_Assist_Modes)) then
+			for i,food in pairs(FFXIV_Assist_Modes) do
+				if (food == Mode) then
+					FFXIV_Assist_ModeIndex = i
+					FFXIV_Assist_Mode =  FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]
+				end
+			end
+		end
+	end
+	
+	
 	
 	FFXIV_Assist_Priority = ffxivminion.GetSetting("FFXIV_Assist_Priority", GetString("dps"))
 	FFXIV_Assist_Priorities = { GetString("dps"), GetString("healer") }
-	FFXIV_Assist_PriorityIndex = GetKeyByValue(FFXIV_Assist_Priority,FFXIV_Assist_Priorities)
+	FFXIV_Assist_PriorityIndex = IsNull(GetKeyByValue(FFXIV_Assist_Priority,FFXIV_Assist_Priorities),1)
+	
+	
+	local currentMode = FFXIV_Assist_Priorities[FFXIV_Assist_PriorityIndex]
+	if (FFXIV_Assist_Priority ~= currentMode) then
+		if (table.valid(FFXIV_Assist_Priorities)) then
+			for i,food in pairs(FFXIV_Assist_Priorities) do
+				if (food == Mode) then
+					FFXIV_Assist_PriorityIndex = i
+					FFXIV_Assist_Priority =  FFXIV_Assist_Priorities[FFXIV_Assist_PriorityIndex]
+				end
+			end
+		end
+	end
 	
 	self.GUI.main_tabs = GUI_CreateTabs("settings",true)
 end
