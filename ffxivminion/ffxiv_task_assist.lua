@@ -198,7 +198,8 @@ function ffxiv_task_assist:UIInit()
 	if (FFXIV_Assist_Mode ~= currentMode) then
 		if (table.valid(FFXIV_Assist_Modes)) then
 			for i,mode in pairs(FFXIV_Assist_Modes) do
-				if (mode == currentMode) then
+				if (mode == Retranslate(FFXIV_Assist_Mode)) then
+					d("new mode = "..tostring(mode))
 					FFXIV_Assist_ModeIndex = i
 					FFXIV_Assist_Mode =  FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]
 				end
@@ -217,7 +218,8 @@ function ffxiv_task_assist:UIInit()
 	if (FFXIV_Assist_Priority ~= currentMode) then
 		if (table.valid(FFXIV_Assist_Priorities)) then
 			for i,mode in pairs(FFXIV_Assist_Priorities) do
-				if (mode == currentMode) then
+				if (mode == Retranslate(FFXIV_Assist_Priority)) then
+					d("new mode = "..tostring(mode))
 					FFXIV_Assist_PriorityIndex = i
 					FFXIV_Assist_Priority =  FFXIV_Assist_Priorities[FFXIV_Assist_PriorityIndex]
 				end
