@@ -118,9 +118,9 @@ function ffxiv_radar.DrawCall(event, ticks )
 							local Size = GUI:GetContentRegionAvail()
 							GUI:PushItemWidth(Size) ffxiv_radar.CustomName = GUI:InputText("##CustomName", ffxiv_radar.CustomName) GUI:PopItemWidth() GUI:NextColumn()
 							if GUI:Button("Get", 40, 20) then 
-								if Player:GetTarget() ~= nil then
-									local contentid = Player:GetTarget().contentid
-									ffxiv_radar.ContentID = Player:GetTarget().contentid
+								local playerTarget = Player:GetTarget()
+								if playerTarget ~= nil then
+									ffxiv_radar.ContentID = playerTarget.contentid
 								end
 							end
 							GUI:NextColumn()
