@@ -2134,9 +2134,10 @@ function ffxiv_task_craft:UIInit()
 		gCraftCollectablePresets = {}
 		GUI_Set("gCraftCollectablePresets",{})
 		for k,v in pairs(ffxiv_craft.collectibles) do
-			--local newCollectable = { name = v.name, value = v.minimum }
-			gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
-			--table.insert(gCraftCollectablePresets,newCollectable)
+			local newID = AceLib.API.Items.GetIDByName(v.name)
+			if newID then
+				gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			end
 		end
 		Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
 		
@@ -2765,7 +2766,10 @@ function ffxiv_task_craft:Draw()
 		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
 			GUI_Set("gCraftCollectablePresets",{})
 			for k,v in pairs(ffxiv_craft.collectibles) do
-				gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			local newID = AceLib.API.Items.GetIDByName(v.name)
+				if newID then
+					gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+				end
 			end
 			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 		end
