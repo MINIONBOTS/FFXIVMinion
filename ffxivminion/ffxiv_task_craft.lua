@@ -2126,7 +2126,7 @@ function ffxiv_task_craft:UIInit()
 	
 	gCraftOrderSelectIndex = 1
 	gCraftOrderSelect = "CRP"
-	gCraftDictionarySelectKeepSettings = ffxivminion.GetSetting("gCraftDictionarySelectKeepSettings",false)
+	gCraftDictionarySelectKeepSettings = false
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 	grefreshCollectables = ffxivminion.GetSetting("grefreshCollectables",0)
 	
