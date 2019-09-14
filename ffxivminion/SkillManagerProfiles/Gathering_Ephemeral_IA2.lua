@@ -51,6 +51,7 @@ local obj1 = {
 	["mingp"] = 600;
 	["skills"] = {
 		[1] = {
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "757";
 			["gpstart"] = 600;
 			["id"] = 301;
@@ -174,6 +175,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[12] = {
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "758";
 			["gatherrequiresmark"] = "backup";
 			["gpstart"] = 600;

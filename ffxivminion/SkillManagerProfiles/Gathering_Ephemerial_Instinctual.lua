@@ -40,6 +40,8 @@ local obj1 = {
 		[34] = false;
 		[35] = false;
 		[36] = false;
+		[37] = false;
+		[38] = false;
 	};
 	["filters"] = {
 		[1] = "";
@@ -51,6 +53,7 @@ local obj1 = {
 	["mingp"] = 600;
 	["skills"] = {
 		[1] = {
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "760";
 			["gatheraddsmark"] = "1";
 			["gpstart"] = 600;
@@ -59,6 +62,7 @@ local obj1 = {
 			["prio"] = 1;
 		};
 		[2] = {
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "758";
 			["gatheraddsmark"] = "2";
 			["gatherrequiresmark"] = "1";
@@ -69,6 +73,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[3] = {
+			["collwearlt"] = 20;
 			["gatheraddsmark"] = "3";
 			["gatherrequiresmark"] = "2";
 			["gpstart"] = 600;
@@ -78,6 +83,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[4] = {
+			["collwearlt"] = 20;
 			["gatheraddsmark"] = "4";
 			["gatherrequiresmark"] = "3";
 			["gpstart"] = 600;
@@ -87,6 +93,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[5] = {
+			["collwearlt"] = 20;
 			["gatheraddsmark"] = "5";
 			["gatherrequiresmark"] = "4";
 			["gpstart"] = 600;
@@ -97,6 +104,7 @@ local obj1 = {
 		};
 		[6] = {
 			["collraritygt"] = 360;
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "760";
 			["gatheraddsmark"] = "6";
 			["gatherrequiresmark"] = "5";
@@ -107,6 +115,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[7] = {
+			["collwearlt"] = 20;
 			["gatheraddsbuff"] = "757";
 			["gatheraddsmark"] = "6";
 			["gatherrequiresmark"] = "5";
@@ -117,6 +126,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[8] = {
+			["collwearlt"] = 20;
 			["gatherrequiresmark"] = "6";
 			["gpstart"] = 600;
 			["id"] = 4076;
