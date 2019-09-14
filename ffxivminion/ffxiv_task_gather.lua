@@ -14,6 +14,7 @@ ffxiv_gather.collectors = {
 	[16] = 4074,
 	[17] = 4088,
 }
+ffxiv_gather.sticklerProfiles = {}
 
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
@@ -2079,9 +2080,33 @@ function e_collectiblegame:execute()
 		return 
 	end
 	
+	local sticklerAvaliable = false
+		
+	if (table.valid(ffxiv_gather.sticklerProfiles) and ffxiv_gather.sticklerProfiles[gSkillProfile] ~= nil) then
+		sticklerAvaliable = ffxiv_gather.sticklerProfiles[gSkillProfile]
+	else
+		if table.valid(SkillMgr.ProfileRaw.skills) then
+		local stickler = false
+			for i,e in pairs(SkillMgr.ProfileRaw.skills) do
+			
+				if In(e.id,4593,4594) then
+					stickler = true
+					break
+				end
+			end
+			if stickler then
+				ffxiv_gather.sticklerProfiles[gSkillProfile] = true
+			else
+			
+				ffxiv_gather.sticklerProfiles[gSkillProfile] = false
+			end
+		end
+	end
+	
 	gd("[CollectableGame]: Checking collectable info.",1)
 	local info = GetControlData("GatheringMasterpiece")
 	if (table.valid(info)) then
+		
 		local valuepairs = {
 			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
 			[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
@@ -2165,7 +2190,9 @@ function e_collectiblegame:execute()
 		gd("Item current wear ["..tostring(info.wear).."].",1)
 		gd("Item max wear ["..tostring(info.wearmax).."].",1)
 				
-		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax))) then
+		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax)) or 
+			(info.wear == 30 and not sticklerAvaliable)) then
+			
 			UseControlAction("GatheringMasterpiece","Collect")
 			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 			return
@@ -2175,7 +2202,7 @@ function e_collectiblegame:execute()
 				e_collectiblegame.timer = Now() + 2500
 				return
 			else
-				if (info.wear == 30) then
+				if (info.wear >= 30) then
 					UseControlAction("GatheringMasterpiece","Collect")
 					ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 					return
