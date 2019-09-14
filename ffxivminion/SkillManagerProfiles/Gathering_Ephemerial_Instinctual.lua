@@ -150,6 +150,7 @@ local obj1 = {
 			["singleuseonly"] = false;
 		};
 		[11] = {
+			["collwearlt"] = 20;
 			["id"] = 302;
 			["name"] = "Impulsive Appraisal II";
 			["prio"] = 11;
