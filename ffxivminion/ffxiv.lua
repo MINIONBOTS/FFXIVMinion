@@ -1485,7 +1485,7 @@ Quest: Completes quests based on a questing profile.\
 						GUI:Text(GetString("Skill Profile"))
 						GUI:SameLine(110)
 						
-						GUI:PushItemWidth(contentwidth - 165)
+						GUI:PushItemWidth(contentwidth - 103)
 						local skillsChanged = GUI_Combo("##"..GetString("Skill Profile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 						GUI:PopItemWidth()
 						if (skillsChanged) then
@@ -1509,8 +1509,7 @@ Quest: Completes quests based on a questing profile.\
 (Not applicable for Monk or Ninja)"))
 							end
 						
-						GUI:SameLine()
-						if (GUI:ImageButton("##main-skillmanager-filters",ml_global_information.path.."\\GUI\\UI_Textures\\filter.png", 14, 14)) then
+						if (GUI:Button(GetString("Skill Filters"),(contentwidth / 2) - 4,20)) then
 							if gSkillProfileIndex ~= 1 then
 								SkillMgr.GUI.filters.open = not SkillMgr.GUI.filters.open
 							else
@@ -1521,7 +1520,7 @@ Quest: Completes quests based on a questing profile.\
 							GUI:SetTooltip(GetString("Skill Profile Filters."))
 						end
 						GUI:SameLine(0,8)
-						if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 14, 14)) then
+						if (GUI:Button(GetString("Skill Manager"),(contentwidth / 2) - 5,20)) then
 							SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 						end
 						if (GUI:IsItemHovered()) then
