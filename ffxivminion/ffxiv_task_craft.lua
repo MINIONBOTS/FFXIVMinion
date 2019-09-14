@@ -3476,21 +3476,23 @@ function ffxiv_craft.Draw( event, ticks )
 						--d("found dictionary for k = "..tostring(k))
 						GUI:PushItemWidth(300)
 						local selectionChanged = GUI_Combo(tostring(k-4).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
-						if (selectionChanged) and not gCraftDictionarySelectKeepSettings then
+						if (selectionChanged) then
 							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
 							if (thisRecipe) then
 								gCraftOrderAddID = thisRecipe.recipeid
 								gCraftOrderAddRecipeID = thisRecipe.recipeid
-								gCraftOrderAddAmount = 1
-								gCraftOrderAddCollect = false
-								gCraftOrderAddRequireHQ = false
-								gCraftOrderAddRequireCP = 0
-								gCraftOrderAddCountHQ = true
-								gCraftOrderAddQuick = false
-								gCraftOrderAddHQ = false
-								gCraftOrderAddIfNecessary = false
-								gCraftOrderAddSkillProfileIndex = 1
-								gCraftOrderAddSkillProfile = GetString("none")
+								if not gCraftDictionarySelectKeepSettings then
+									gCraftOrderAddAmount = 1
+									gCraftOrderAddCollect = false
+									gCraftOrderAddRequireHQ = false
+									gCraftOrderAddRequireCP = 0
+									gCraftOrderAddCountHQ = true
+									gCraftOrderAddQuick = false
+									gCraftOrderAddHQ = false
+									gCraftOrderAddIfNecessary = false
+									gCraftOrderAddSkillProfileIndex = 1
+									gCraftOrderAddSkillProfile = GetString("none")
+								end
 							end
 							for j = 5,80,5 do
 								if (j ~= k) then
@@ -3650,8 +3652,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Spacing()
 					GUI:Separator()
 					GUI:Spacing()
-					
-					local newVal, changed = GUI:Checkbox("Keep setings on change",gCraftDictionarySelectKeepSettings)
+					local newVal, changed = GUI:Checkbox("Keep settings on change",gCraftDictionarySelectKeepSettings)
 					if (changed) then
 						gCraftDictionarySelectKeepSettings = newVal
 						Settings.FFXIVMINION.gCraftDictionarySelectKeepSettings = gCraftDictionarySelectKeepSettings
