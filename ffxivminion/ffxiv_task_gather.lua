@@ -1394,26 +1394,32 @@ function ffxiv_gather.GetLowestValue(...)
 	return lowestValue
 end
 function CanUseCordialSoon()
-	local minimumGP = GetMinGP()
 	local useCordials = false
-		
-	local task = ffxiv_gather.currentTask
-	if (table.valid(task)) then
-		if (task.usecordials and type(task.usecordials) == "string") then
-			local ok, ret = LoadString("return " .. task.usecordials)
-			if (ok and ret ~= nil) then
-				if (ret == true) then
-					useCordials = true
-				end
-			end
-		end
-	end
 	
 	local highGp, normGp, wateredGP = ghighCordialsGP, gnormCordialsGP, gwateredCordialsGP
-	if IsFisher(Player.job) then
+	local profile, task;
+	if (IsFisher(Player.job)) then
+		profile = ffxiv_fish.profileData
+		task = ffxiv_fish.currentTask
+		useCordials = gFishUseCordials
 		highGp = gFishhighCordialsGP
 		normGp = gFishnormCordialsGP
 		wateredGP = gFishwateredCordialsGP
+	elseif (IsGatherer(Player.job)) then
+		profile = ffxiv_gather.profileData
+		task = ffxiv_gather.currentTask
+		useCordials = gGatherUseCordials
+	end
+	
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		useCordials = IsNull(task.usecordials,useCordials)
+	elseif (table.valid(marker)) then
+		useCordials = IsNull(marker.usecordials,useCordials)
+	end
+	
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
 	end
 	
 	if (useCordials) then
@@ -1465,26 +1471,32 @@ function CanUseCordialSoon()
 end
 
 function CanUseCordial()
-	local minimumGP = GetMinGP()
 	local useCordials = false
-			
-	local task = ffxiv_gather.currentTask
-	if (table.valid(task)) then
-		if (task.usecordials and type(task.usecordials) == "string") then
-			local ok, ret = LoadString("return " .. task.usecordials)
-			if (ok and ret ~= nil) then
-				if (ret == true) then
-					useCordials = true
-				end
-			end
-		end
-	end
 	
 	local highGp, normGp, wateredGP = ghighCordialsGP, gnormCordialsGP, gwateredCordialsGP
-	if IsFisher(Player.job) then
+	local profile, task;
+	if (IsFisher(Player.job)) then
+		profile = ffxiv_fish.profileData
+		task = ffxiv_fish.currentTask
+		useCordials = gFishUseCordials
 		highGp = gFishhighCordialsGP
 		normGp = gFishnormCordialsGP
 		wateredGP = gFishwateredCordialsGP
+	elseif (IsGatherer(Player.job)) then
+		profile = ffxiv_gather.profileData
+		task = ffxiv_gather.currentTask
+		useCordials = gGatherUseCordials
+	end
+	
+	local marker = ml_marker_mgr.currentMarker
+	if (table.valid(task)) then
+		useCordials = IsNull(task.usecordials,useCordials)
+	elseif (table.valid(marker)) then
+		useCordials = IsNull(marker.usecordials,useCordials)
+	end
+	
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
 	end
 	
 	if (useCordials) then
