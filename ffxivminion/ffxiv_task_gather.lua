@@ -1475,6 +1475,7 @@ function CanUseCordial()
 	
 	local highGp, normGp, wateredGP = ghighCordialsGP, gnormCordialsGP, gwateredCordialsGP
 	local profile, task;
+	local usePatience, usePatience2;
 	if (IsFisher(Player.job)) then
 		profile = ffxiv_fish.profileData
 		task = ffxiv_fish.currentTask
@@ -1491,8 +1492,12 @@ function CanUseCordial()
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		useCordials = IsNull(task.usecordials,useCordials)
+		usePatience = IsNull(task.usepatience,false)
+		usePatience2 = IsNull(task.usepatience2,false)
 	elseif (table.valid(marker)) then
 		useCordials = IsNull(marker.usecordials,useCordials)
+		usePatience = IsNull(marker.usepatience,false)
+		usePatience2 = IsNull(marker.usepatience2,false)
 	end
 	
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
@@ -1519,7 +1524,7 @@ function CanUseCordial()
 		local lowestRequired = ffxiv_gather.GetLowestValue(highGp,normGp,wateredGP)
 		
 		if gpDeficit >= lowestRequired then			
-			if not IsFisher(Player.job) or (IsFisher(Player.job) and (HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51)) then
+			if IsGatherer(Player.job) or (IsFisher(Player.job) and ((HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51) or (not usePatience and not usePatience2))) then
 				--if cordialHigh and ((gpDeficit >= highGp) or (missingNormal and missingQuick)) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
