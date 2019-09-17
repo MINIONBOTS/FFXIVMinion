@@ -27,6 +27,7 @@ function ffxiv_marker_mgr.BasicDraw(marker)
 	
 	GUI:PushItemWidth(75)
 	GUI:Text("Radius");
+	GUI:SameLine(0,10);
 	marker.fields.maxradius, changed = GUI:InputInt("##maxradius",marker.fields.maxradius,0,0); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
@@ -42,11 +43,14 @@ function ffxiv_marker_mgr.BasicDraw(marker)
 	marker.fields.pos.h, changed = GUI:InputFloat("##posh",marker.fields.pos.h,0,0,3); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
 	
-	if (GUI:Button("Set New Position")) then
+	if (GUI:Button("Set New Position",180,20)) then
 		local myPos = Player.pos
 		marker.fields.pos.x, marker.fields.pos.y, marker.fields.pos.z, marker.fields.pos.h = myPos.x, myPos.y, myPos.z, myPos.h
 		dowrite = true
 	end
+	GUI:Separator();
+	GUI:Spacing()
+	GUI:Spacing()
 	
 	if (dowrite) then
 		ml_marker_mgr.WriteMarkerFile()
@@ -137,13 +141,15 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	local changed, dowrite, newindex = false, false, nil
 	
 	GUI:PushItemWidth(75)
-	GUI:Text("Gather Time");
+	GUI:Text("Max Gather Time");
+	GUI:SameLine(0,10)
 	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
-	GUI:Text("Node Search Timeout");
-	marker.fields.timeout, changed = GUI:InputInt("##timeout",marker.fields.timeout,0,0); if (changed) then dowrite = true end
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Set a timeout for when to failover to the next marker in a list if no gathering nodes are found.")
-	end
+	--GUI:Text("Node Search Timeout");
+	--GUI:SameLine(0,10)
+	--marker.fields.timeout, changed = GUI:InputInt("##timeout",marker.fields.timeout,0,0); if (changed) then dowrite = true end
+	--if (GUI:IsItemHovered()) then
+	--	GUI:SetTooltip("Set a timeout for when to failover to the next marker in a list if no gathering nodes are found.")
+	--end
 	GUI:PopItemWidth()
 
 	GUI:PushItemWidth(75)
@@ -171,48 +177,57 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	
 	GUI:PushItemWidth(75)
 	marker.fields.usecordials, changed = GUI:Checkbox("Use Cordials",marker.fields.usecordials); if (changed) then dowrite = true end
-	marker.fields.gardening, changed = GUI:Checkbox("Gardening Items",marker.fields.gardening); if (changed) then dowrite = true end
-	marker.fields.chocofood, changed = GUI:Checkbox("Chocobo Food",marker.fields.chocofood); if (changed) then dowrite = true end
-	marker.fields.rares, changed = GUI:Checkbox("Rare Items",marker.fields.rares); if (changed) then dowrite = true end
-	marker.fields.specialrares, changed = GUI:Checkbox("Special Rare Items",marker.fields.specialrares); if (changed) then dowrite = true end
-	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
-	GUI:SameLine(0,10)
-	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
 	GUI:PopItemWidth()
+	if (GUI:CollapsingHeader("Settings","gathersettings")) then
+		GUI:PushItemWidth(75)
+		marker.fields.gardening, changed = GUI:Checkbox("Gardening Items",marker.fields.gardening); if (changed) then dowrite = true end
+		marker.fields.chocofood, changed = GUI:Checkbox("Chocobo Food",marker.fields.chocofood); if (changed) then dowrite = true end
+		marker.fields.rares, changed = GUI:Checkbox("Rare Items",marker.fields.rares); if (changed) then dowrite = true end
+		marker.fields.specialrares, changed = GUI:Checkbox("Special Rare Items",marker.fields.specialrares); if (changed) then dowrite = true end
+		marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
+		GUI:SameLine(0,10)
+		marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
+		GUI:PopItemWidth()
+	end
 	
-	GUI:PushItemWidth(200)
-	GUI:Text("Node Whitelist");
-	marker.fields.whitelist, changed = GUI:InputText("##whitelist",marker.fields.whitelist); if (changed) then dowrite = true end
-	if (GUI:Button("Whitelist Node")) then
-		local target = Player:GetTarget()
-		if (table.valid(target)) then
-			if (marker.fields.whitelist == "") then
-				marker.fields.whitelist = tostring(target.contentid)
-			else
-				if (not string.contains(marker.fields.whitelist,tostring(target.contentid))) then
-					marker.fields.whitelist = marker.fields.whitelist..";"..tostring(target.contentid)
+	if (GUI:CollapsingHeader("Whitelist","gatherwhitelist")) then
+		GUI:PushItemWidth(200)
+		GUI:Text("Node Whitelist");
+		marker.fields.whitelist, changed = GUI:InputText("##whitelist",marker.fields.whitelist); if (changed) then dowrite = true end
+		if (GUI:Button("Whitelist Node")) then
+			local target = Player:GetTarget()
+			if (table.valid(target)) then
+				if (marker.fields.whitelist == "") then
+					marker.fields.whitelist = tostring(target.contentid)
+				else
+					if (not string.contains(marker.fields.whitelist,tostring(target.contentid))) then
+						marker.fields.whitelist = marker.fields.whitelist..";"..tostring(target.contentid)
+					end
 				end
+				dowrite = true
 			end
-			dowrite = true
 		end
 	end
 	
-	GUI:Text("Node Blacklist");
-	marker.fields.blacklist, changed = GUI:InputText("##blacklist",marker.fields.blacklist); if (changed) then dowrite = true end
-	if (GUI:Button("Blacklist Node")) then
-		local target = Player:GetTarget()
-		if (table.valid(target)) then
-			if (marker.fields.blacklist == "") then
-				marker.fields.blacklist = tostring(target.contentid)
-			else
-				if (not string.contains(marker.fields.blacklist,tostring(target.contentid))) then
-					marker.fields.blacklist = marker.fields.blacklist..";"..tostring(target.contentid)
+	if (GUI:CollapsingHeader("Blacklist","gatherblacklist")) then
+		GUI:PushItemWidth(200)
+		GUI:Text("Node Blacklist");
+		marker.fields.blacklist, changed = GUI:InputText("##blacklist",marker.fields.blacklist); if (changed) then dowrite = true end
+		if (GUI:Button("Blacklist Node")) then
+			local target = Player:GetTarget()
+			if (table.valid(target)) then
+				if (marker.fields.blacklist == "") then
+					marker.fields.blacklist = tostring(target.contentid)
+				else
+					if (not string.contains(marker.fields.blacklist,tostring(target.contentid))) then
+						marker.fields.blacklist = marker.fields.blacklist..";"..tostring(target.contentid)
+					end
 				end
+				dowrite = true
 			end
-			dowrite = true
 		end
+		GUI:PopItemWidth()
 	end
-	GUI:PopItemWidth()
 	
 	if (dowrite) then
 		ml_marker_mgr.WriteMarkerFile()
@@ -222,21 +237,20 @@ end
 function ffxiv_marker_mgr.BuildGather()
 	local fields = {
 		minlevel = 1,
-		maxlevel = 70,
+		maxlevel = 80,
 		maxradius = 100,
 		mincontentlevel = 1,
-		maxcontentlevel = 70,
-		maxradius = 0,
+		maxcontentlevel = 80,
 		item1 = "",
 		item2 = "",
 		item3 = "",
 		whitelist = "",
 		blacklist = "",
 		maps = "Any",
-		gardening = true,
-		chocofood = true,
-		rares = true,
-		specialrares = true,
+		gardening = false,
+		chocofood = false,
+		rares = false,
+		specialrares = false,
 		favoritem = 0,
 		usestealth = false,
 		dangerousarea = false,
@@ -244,7 +258,7 @@ function ffxiv_marker_mgr.BuildGather()
 		mingp = 0,
 		usecordials = false,
 		nogpitem = "",
-		timeout = 0,
+		timeout = 2,
 	}
 	
 	local draw = function (self)
@@ -275,35 +289,47 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	GUI:Text("Bait Choice(s)");
 	marker.fields.baitname, changed = GUI:InputText("##baitname",marker.fields.baitname); if (changed) then dowrite = true end
 	
-	GUI:PushItemWidth(75)
-	marker.fields.usemooch, changed = GUI:Checkbox("Use Mooch",marker.fields.usemooch); if (changed) then dowrite = true end
-	marker.fields.usemooch2, changed = GUI:Checkbox("Use Mooch II",marker.fields.usemooch2); if (changed) then dowrite = true end
-	marker.fields.usepatience, changed = GUI:Checkbox("Use Patience I",marker.fields.usepatience); if (changed) then dowrite = true end
-	marker.fields.usepatience2, changed = GUI:Checkbox("Use Patience II",marker.fields.usepatience2); if (changed) then dowrite = true end
-	marker.fields.usefisheyes, changed = GUI:Checkbox("Use Fish Eyes",marker.fields.usefisheyes); if (changed) then dowrite = true end
-	marker.fields.usesnagging, changed = GUI:Checkbox("Use Snagging",marker.fields.usesnagging); if (changed) then dowrite = true end
-	marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
-	marker.fields.usedoublehook, changed = GUI:Checkbox("Use Double Hook",marker.fields.usedoublehook); if (changed) then dowrite = true end
-	marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
-	GUI:SameLine(0,10)
-	marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
-	GUI:PopItemWidth()
+	if (GUI:CollapsingHeader("Settings##fish","fishsettings")) then
+		GUI:PushItemWidth(75)
+		marker.fields.usemooch, changed = GUI:Checkbox("Use Mooch",marker.fields.usemooch); if (changed) then dowrite = true end
+		marker.fields.usemooch2, changed = GUI:Checkbox("Use Mooch II",marker.fields.usemooch2); if (changed) then dowrite = true end
+		marker.fields.usepatience, changed = GUI:Checkbox("Use Patience I",marker.fields.usepatience); if (changed) then dowrite = true end
+		marker.fields.usepatience2, changed = GUI:Checkbox("Use Patience II",marker.fields.usepatience2); if (changed) then dowrite = true end
+		marker.fields.usefisheyes, changed = GUI:Checkbox("Use Fish Eyes",marker.fields.usefisheyes); if (changed) then dowrite = true end
+		marker.fields.usesnagging, changed = GUI:Checkbox("Use Snagging",marker.fields.usesnagging); if (changed) then dowrite = true end
+		marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
+		marker.fields.usedoublehook, changed = GUI:Checkbox("Use Double Hook",marker.fields.usedoublehook); if (changed) then dowrite = true end
+		marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
+		GUI:SameLine(0,10)
+		marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
+		GUI:PopItemWidth()
+	end
 	
-	GUI:PushItemWidth(200)
-	GUI:Text("Moochable Fish");
-	marker.fields.moochables, changed = GUI:InputText("##moochables",marker.fields.moochables); if (changed) then dowrite = true end
+	if (GUI:CollapsingHeader("Lists##fish","fishsettings2")) then
+		GUI:PushItemWidth(200)
+		GUI:Text("Moochable Fish");
+		marker.fields.moochables, changed = GUI:InputText("##moochables",marker.fields.moochables); if (changed) then dowrite = true end
+		GUI:Text("Identical Cast Fish");
+		marker.fields.identicalcastables, changed = GUI:InputText("##identicalcastables",marker.fields.identicalcastables); if (changed) then dowrite = true end
+		GUI:Text("Surface Slap Fish");
+		marker.fields.surfaceslaplist, changed = GUI:InputText("##surfaceslaplist",marker.fields.surfaceslaplist); if (changed) then dowrite = true end
+	end
 	
+	if (GUI:CollapsingHeader("Whitelist##fish","fishWhitelist")) then
 	GUI:Text("Whitelist Fish");
 	GUI:Text("NQ"); GUI:SameLine(0,5); 
 	marker.fields.whitelist, changed = GUI:InputText("##whitelist",marker.fields.whitelist); if (changed) then dowrite = true end
 	GUI:Text("HQ"); GUI:SameLine(0,5);
 	marker.fields.whitelistHQ, changed = GUI:InputText("##whitelistHQ",marker.fields.whitelistHQ); if (changed) then dowrite = true end
+	end
 	
+	if (GUI:CollapsingHeader("Blacklist##fish","fishBlacklist")) then
 	GUI:Text("Blacklist Fish");
 	GUI:Text("NQ"); GUI:SameLine(0,5); 
 	marker.fields.blacklist, changed = GUI:InputText("##blacklist",marker.fields.blacklist); if (changed) then dowrite = true end
 	GUI:Text("HQ"); GUI:SameLine(0,5);
 	marker.fields.blacklistHQ, changed = GUI:InputText("##blacklistHQ",marker.fields.blacklistHQ); if (changed) then dowrite = true end
+	end
 
 	GUI:PopItemWidth()
 	
@@ -315,7 +341,7 @@ end
 function ffxiv_marker_mgr.BuildFishing()
 	local fields = {
 		minlevel = 1,
-		maxlevel = 70,
+		maxlevel = 80,
 		maxradius = 100,
 		baitname = "",
 		usefisheyes = false,
@@ -327,6 +353,8 @@ function ffxiv_marker_mgr.BuildFishing()
 		usechum = false,
 		usedoublehook = false,
 		moochables = "",
+		identicalcastables = "",
+		surfaceslaplist = "",
 		whitelist = "",
 		whitelistHQ = "",
 		blacklist = "",

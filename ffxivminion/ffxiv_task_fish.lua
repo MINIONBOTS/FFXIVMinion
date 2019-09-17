@@ -364,7 +364,6 @@ function c_precastbuff:evaluate()
 			c_precastbuff.requirestopfishing = true
 			return true
 		end
-	else		
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
@@ -377,7 +376,6 @@ function c_precastbuff:evaluate()
 			end					
 		end
 	end
-	d("failed out")
 	return false
 end
 function e_precastbuff:execute()
@@ -457,11 +455,21 @@ function c_identicalcast:evaluate()
 	if (HasBuffs(Player,1804) or HasBuffs(Player,1803)) then
 		return false
 	end
+	
 	local fs = Player:GetFishingState()
 	if (fs == 4) then
 		local UseIdenticalCast = false
 		local task = ffxiv_fish.currentTask
-		local identCastables = IsNull(task.identicalcastables,"")
+		local marker = ml_marker_mgr.currentMarker
+		
+		local identCastables = ""
+		if (table.valid(task)) then
+			identCastables = IsNull(task.identicalcastables,"")
+		elseif (table.valid(marker)) then
+			identCastables = IsNull(marker.identicalcastables,"")
+		elseif gFishMarkerOrProfileIndex == 3 then
+			identCastables = gFishQuickIdenticalcastables
+		end
 
 		if (identCastables ~= "") then
 			UseIdenticalCast = true
@@ -507,7 +515,16 @@ function c_surfaceslap:evaluate()
 	if (fs == 4) then
 		local Cast = false
 		local task = ffxiv_fish.currentTask
-		local surfaceSlapList = IsNull(task.surfaceslaplist,"")
+		local marker = ml_marker_mgr.currentMarker
+		
+		local surfaceSlapList = ""
+		if (table.valid(task)) then
+			surfaceSlapList = IsNull(task.surfaceslaplist,"")
+		elseif (table.valid(marker)) then
+			surfaceSlapList = IsNull(marker.surfaceslaplist,"")
+		elseif gFishMarkerOrProfileIndex == 3 then
+			surfaceSlapList = gFishQuickSurfaceSlap
+		end
 
 		if surfaceSlapList ~= "" then
 			Cast = true
@@ -2966,7 +2983,8 @@ function ffxiv_task_fish:UIInit()
 	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})
 	
 	gFishQuickBait = ffxivminion.GetSetting("gFishQuickBait", GetString("None"))
-	local baitKey = { GetString("None"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Salmon Roe"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Snurble Fly"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+	local baitKey = { GetString("None"),GetString("Baitbugs"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Brass Spoon Lure"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crab Ball"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Desert Dessert Frog"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Freshwater Boilie"),GetString("Fruit Worm"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Jerked Ovim"),GetString("Krill Cage Feeder"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Marble Nymph"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Moyebi Shrimp"),GetString("Mythril Spoon Lure"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Robber Ball"),GetString("Rolling Stone"),GetString("Salmon Roe"),GetString("Saltwater Boilie"),GetString("Sand Gecko"),GetString("Sand Leech"),GetString("Short Bill Minnow"),GetString("Shrimp Cage Feeder"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Snurble Fly"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Squid Strip"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+
 	gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey)
 	
 	gQuickstartMooch = ffxivminion.GetSetting("gQuickstartMooch",false)
@@ -2977,6 +2995,8 @@ function ffxiv_task_fish:UIInit()
 	gQuickstartFishEyes = ffxivminion.GetSetting("gQuickstartFishEyes",false)
 	gQuickstartChum = ffxivminion.GetSetting("gQuickstartChum",false)
 	gQuickstartDH = ffxivminion.GetSetting("gQuickstartDH",false)
+	gFishQuickIdenticalcastables = ffxivminion.GetSetting("gFishQuickIdenticalcastables","")
+	gFishQuickSurfaceSlap = ffxivminion.GetSetting("gFishQuickSurfaceSlap","")
 	
 	-- New Marker/Profile Settings
 	gFishMarkerOrProfileOptions = { GetString("Markers"), GetString("Profile"), GetString("Quick Start Mode") }
@@ -3349,7 +3369,7 @@ function ffxiv_task_fish:Draw()
 		GUI:EndChild()
 	end
 	if (tabname == GetString("Quick Start")) then
-		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(9),true)
+		GUI:BeginChild("##header-QS",-8,GUI_GetFrameHeight(11),true)
 		GUI:Columns(2)
 		
 	
@@ -3389,12 +3409,20 @@ function ffxiv_task_fish:Draw()
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Double Hook.")
 		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Identical Cast List")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Identical Cast List.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Surface Slap List")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Surface Slap List.")
+		end
 		
 		GUI:NextColumn()
 		
 		local MarkerTypeWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(MarkerTypeWidth-8)
-		local baitKey = { GetString("None"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Salmon Roe"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Snurble Fly"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+		local baitKey = {GetString("None"),GetString("Baitbugs"),GetString("Balloon Bug"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Brass Spoon Lure"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Caddisfly Larva"),GetString("Chocobo Fly"),GetString("Crab Ball"),GetString("Crayfish Ball"),GetString("Crow Fly"),GetString("Desert Dessert Frog"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Freshwater Boilie"),GetString("Fruit Worm"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Jerked Ovim"),GetString("Krill Cage Feeder"),GetString("Live Shrimp"),GetString("Lugworm"),GetString("Magma Worm"),GetString("Marble Nymph"),GetString("Midge Basket"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Moyebi Shrimp"),GetString("Mythril Spoon Lure"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Pill Bug"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Robber Ball"),GetString("Rolling Stone"),GetString("Salmon Roe"),GetString("Saltwater Boilie"),GetString("Sand Gecko"),GetString("Sand Leech"),GetString("Short Bill Minnow"),GetString("Shrimp Cage Feeder"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Snurble Fly"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Squid Strip"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
 		gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey) or GetString("None")
 		if (baitKey[gFishBaitIndex] ~= gFishQuickBait) then
 			gFishQuickBait = baitKey[gFishBaitIndex]
@@ -3435,6 +3463,14 @@ function ffxiv_task_fish:Draw()
 		GUI_Capture(GUI:Checkbox("##Double Hook",gQuickstartDH),"gQuickstartDH")
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Double Hook.")
+		end
+		GUI_Capture(GUI:InputText("##IdenticalCast",gFishQuickIdenticalcastables),"gFishQuickIdenticalcastables")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Identical Cast List.")
+		end
+		GUI_Capture(GUI:InputText("##surfaceslap",gFishQuickSurfaceSlap),"gFishQuickSurfaceSlap")
+		if (GUI:IsItemHovered()) then 
+			GUI:SetTooltip("Surface Slap List.")
 		end
 		
 		GUI:Columns()
