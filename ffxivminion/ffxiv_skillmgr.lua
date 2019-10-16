@@ -4614,7 +4614,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	if (castable) then
-		SkillMgr.DebugOutput(prio, "Skill ["..tostring(prio).."] was castable.")
+		d(prio, "Skill ["..tostring(prio).."] was castable.")
 		return targetTable.TID
 	end
 	
@@ -5199,11 +5199,17 @@ function SkillMgr.AddDefaultConditions()
 		
 		local plist = EntityList("myparty")
 		local partySize = TableSize(plist)
+		local npcTeam = TableSize(MEntityList("alive,chartype=9,targetable,maxdistance2d=100"))
 		
-		if ( skill.onlysolo and partySize > 0) then
-			if (IsCompanionSummoned()) then
-				return (partySize - 1) > 0
-			else
+		if (skill.onlysolo) then
+			d(skill.prio)
+			if (partySize > 0) then
+				if (IsCompanionSummoned()) then
+					return (partySize - 1) > 0
+				else
+					return true
+				end
+			elseif (npcTeam > 0) then
 				return true
 			end
 		elseif ( skill.onlyparty) then
@@ -5212,13 +5218,16 @@ function SkillMgr.AddDefaultConditions()
 					return false
 				end				
 			end
-			if (partySize == 0) then
+			if (partySize == 0 and npcTeam == 0) then
 				return true
 			end
 		end
 		
 		if ( tonumber(skill.partysizelt) > 0 ) then
 			if ((partySize + 1) > tonumber(skill.partysizelt)) then
+				return true
+			end
+			if (npcTeam > tonumber(skill.partysizelt)) then
 				return true
 			end
 		end
