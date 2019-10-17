@@ -52,7 +52,7 @@ local obj1 = {
 	};
 	["skills"] = {
 		[1] = {
-			["alias"] = "-- Utility --";
+			["alias"] = "----- Utility -----";
 			["id"] = 1;
 			["maxRange"] = 3;
 			["name"] = "Away";
@@ -101,7 +101,7 @@ local obj1 = {
 			["trg"] = "Player";
 		};
 		[6] = {
-			["alias"] = "-- Priority --";
+			["alias"] = "----- Priority -----";
 			["id"] = 1;
 			["maxRange"] = 3;
 			["name"] = "Away";
