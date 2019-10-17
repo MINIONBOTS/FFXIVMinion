@@ -5202,7 +5202,6 @@ function SkillMgr.AddDefaultConditions()
 		local npcTeam = TableSize(MEntityList("alive,chartype=9,targetable,maxdistance2d=100"))
 		
 		if (skill.onlysolo) then
-			d(skill.prio)
 			if (partySize > 0) then
 				if (IsCompanionSummoned()) then
 					return (partySize - 1) > 0
