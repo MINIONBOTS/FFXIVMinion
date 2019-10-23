@@ -100,7 +100,7 @@ SkillMgr.preCombat = false
 SkillMgr.knownDebuffs = "1,3,4,5,6,7,9,10,14,15,17,18,19,20,26,28,30,32,34,36,38,54,55,58,59,62,67,181,19​3,210,213,215,216,240,250,267,275,280,284,268,285,235,269,270,271,272,273,283,28​6,287,288,320,339,343,407,442,48​2,485,503,509,530,532,533,534,535,559,560,561,5​64,569,571,605,610,619,620,642,643,666,677,686,723,785,801,893,910,926"
 SkillMgr.doLoad = true
 
-if (GetGameRegion() == 1) then
+if (GetGameRegion() ~= 3) then
 	SkillMgr.StartingProfiles = {
 		[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB",
 		[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
@@ -899,7 +899,7 @@ function SkillMgr.ModuleInit()
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	gSMProfileUpdates = ffxivminion.GetSetting("gSMProfileUpdates",0)
 
-	if (GetGameRegion() == 1) and gSMProfileUpdates < 20190818 then
+	if (GetGameRegion() ~= 3) and gSMProfileUpdates < 20190818 then
 		if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == "Paladin") then
 			gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB"
 		end
@@ -4614,7 +4614,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	if (castable) then
-		SkillMgr.DebugOutput(prio, "Skill ["..tostring(prio).."] was castable.")
+		d(prio, "Skill ["..tostring(prio).."] was castable.")
 		return targetTable.TID
 	end
 	
@@ -5199,11 +5199,16 @@ function SkillMgr.AddDefaultConditions()
 		
 		local plist = EntityList("myparty")
 		local partySize = TableSize(plist)
+		local npcTeam = TableSize(MEntityList("alive,chartype=9,targetable,maxdistance2d=100"))
 		
-		if ( skill.onlysolo and partySize > 0) then
-			if (IsCompanionSummoned()) then
-				return (partySize - 1) > 0
-			else
+		if (skill.onlysolo) then
+			if (partySize > 0) then
+				if (IsCompanionSummoned()) then
+					return (partySize - 1) > 0
+				else
+					return true
+				end
+			elseif (npcTeam > 0) then
 				return true
 			end
 		elseif ( skill.onlyparty) then
@@ -5212,13 +5217,16 @@ function SkillMgr.AddDefaultConditions()
 					return false
 				end				
 			end
-			if (partySize == 0) then
+			if (partySize == 0 and npcTeam == 0) then
 				return true
 			end
 		end
 		
 		if ( tonumber(skill.partysizelt) > 0 ) then
 			if ((partySize + 1) > tonumber(skill.partysizelt)) then
+				return true
+			end
+			if (npcTeam > tonumber(skill.partysizelt)) then
 				return true
 			end
 		end
