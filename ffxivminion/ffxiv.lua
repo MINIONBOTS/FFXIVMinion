@@ -37,11 +37,9 @@ if (ffxivminion.gameRegion == 1) then
 		[9] = {	"None","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.loginservers = {
-		[1] = { "静语庄园","红玉海","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥","延夏","白金幻象","潮风亭","神拳痕","白银乡","旅人栈桥","龙巢神殿"},
-		-- [1] = { "静语庄园","红玉海","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥","延夏","白金幻象","潮风亭","神拳痕","白银乡"}, changed 05.10.19
-		-- "红玉海","延夏","静语庄园","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥","白银乡","神拳痕","潮风亭","白金幻象" old list - changed 5/14/19, request of CN users
-	}
+	ffxivminion.loginservers = {		
+		[1] = { "静语庄园","红玉海","幻影群岛","萌芽池","神意之地","拉诺西亚","摩杜纳","紫水栈桥","延夏","白金幻象","潮风亭","神拳痕","白银乡","旅人栈桥", "龙巢神殿","拂晓之间"},
+    }
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
 		[1] = { "톤베리","모그리","초코보","카벙클" },
