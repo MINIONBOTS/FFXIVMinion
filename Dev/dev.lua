@@ -1670,6 +1670,40 @@ function dev.DrawCall(event, ticks )
 			end
 --  END SHOPLIST
 
+			-- cbk: itemexchange List
+			if ( GUI:TreeNode("Item Exchange List")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local slist = Inventory:GetItemExchangeList()
+					if (table.valid(slist)) then
+						for id, e in pairs(slist) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devIElist"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devIElist2"..tostring(id),tostring(e.slot))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devIElist3"..tostring(id),tostring(e.id))
+								GUI:BulletText(".id2") GUI:SameLine(200) GUI:InputText("##devIElist4"..tostring(id),tostring(e.id2))							
+								GUI:BulletText(".price1") GUI:SameLine(200) GUI:InputText("##devIElist5"..tostring(id),tostring(e.price1))
+								GUI:BulletText(".price2") GUI:SameLine(200) GUI:InputText("##devIElist6"..tostring(id),tostring(e.price2))
+								GUI:BulletText(".price3") GUI:SameLine(200) GUI:InputText("##devIElist7"..tostring(id),tostring(e.price3))
+								
+								GUI:BulletText(".type1") GUI:SameLine(200) GUI:InputText("##devIElist5"..tostring(id),tostring(e.type1))
+								GUI:BulletText(".type2") GUI:SameLine(200) GUI:InputText("##devIElist6"..tostring(id),tostring(e.type2))
+								GUI:BulletText(".type3") GUI:SameLine(200) GUI:InputText("##devIElist7"..tostring(id),tostring(e.type3))
+								
+								if (GUI:Button("BuyShopItem2##"..tostring(id),150,15) ) then Inventory:BuyShopItem(e.id) end
+								
+								GUI:TreePop()
+							end
+						end					
+					else
+						GUI:Text("No NPC Shop List Available...")
+					end				
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end
+--  END SHOPLIST
+
 			-- cbk: ServerList
 			if ( GUI:TreeNode("ServerList")) then
 				GUI:PushItemWidth(200)
