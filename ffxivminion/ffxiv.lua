@@ -386,7 +386,8 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 		--d("SelectOKMessage: "..SelectOKMessage)
 		--d("QueueMessage: "..QueueMessage)
 		if SelectOKMessage ~= "" then
-			if string.contains(SelectOKMessage,QueueMessage) == true then
+			-- detection for CN language not working, temporarily disable skip
+			if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage,QueueMessage) == true then
 				d("Waiting In Login Queue...")
 				ml_global_information.Await(1000, 2000, function () return (IsControlOpen("SelectOk")) end)
 			else
