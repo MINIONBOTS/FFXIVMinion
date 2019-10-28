@@ -378,8 +378,8 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
 			[3] = "Ce Monde est plein.", -- FR
 			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
-			[4] = "현재 서버가 혼잡합니다.", -- CN
-			[6] = "需要排队处理登录信息" -- KR
+			[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN  
+			[6] = "현재 서버가 혼잡합니다." -- KR
 		}
 		local ClientLanguage = GetGameLanguage() or 1
 		local QueueMessage = QueueString[ClientLanguage]
