@@ -3701,6 +3701,113 @@ end
 function e_dointeract:execute()
 end
 
+c_classexchange = inheritsFrom( ml_cause )
+e_classexchange = inheritsFrom( ml_effect )
+c_classexchange.Item = 0
+c_classexchange.count = 0
+c_classexchange.set = false
+c_classexchange.time = 0
+c_classexchange.npcids = {
+	[8] = 1028326,
+	[9] = 1027233,
+	[10] = 1027233,
+	[11] = 1027233,
+	[12] = 1028326,
+	[13] = 1028326,
+	[14] = 1027235,
+	[15] = 1027235,
+	[16] = 1027236,
+	[17] = 1027236,
+	[18] = 1027237,
+}
+function c_classexchange:evaluate()
+
+	if TimeSince(c_classexchange.time) < 1000 then
+		return 
+	end
+	
+	if (IsControlOpen("HugeCraftworksSupply")) then
+		local npcid = c_classexchange.npcids[Player.job]	
+		local data = GetControlData("HugeCraftworksSupply")
+		
+		local turninCount = data.neededamount 
+		local itemID = data.itemid
+		local esteemLevel = data.esteemlevel
+		local currentEsteem = data.esteem
+		local deliverReady = data.slotsfilled > 0
+		local uuid = GetUUID()
+		
+		if Settings.FFXIVMINION.classturnins == nil then 
+			Settings.FFXIVMINION.classturnins = {} 
+		end
+		if Settings.FFXIVMINION.classturnins[uuid] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid] = {} 
+		end
+		if Settings.FFXIVMINION.classturnins[uuid][npcid] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid][npcid] = {} 
+		end
+		Settings.FFXIVMINION.classturnins[uuid][npcid] = {yeild = data.neededamount, esteem = currentEsteem, esteemlevel = esteemLevel}
+		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
+			
+			
+		local currentCount = (ItemCount(itemID + 1000000))
+		local item, itemAction = GetItem(itemID + 1000000)
+		if (not item or (currentCount < turninCount)) then
+			item, itemAction = GetItem(itemID)
+			currentCount = ItemCount(itemID,false)
+		end			
+		if not c_classexchange.set then
+			if (IsControlOpen("InputNumeric")) then
+				UseControlAction("InputNumeric","EnterAmount",currentCount)
+				--d("setting item count "..tostring(currentCount))
+				c_classexchange.set = true
+				c_classexchange.time = Now()
+				return
+			end
+			if item and (currentCount >= turninCount) then
+				c_classexchange.count = currentCount
+				item:HandOver()
+				c_classexchange.time = Now()
+				ml_global_information.Await(1000)
+				return
+			end
+		end
+		if deliverReady then
+			d("delivering")
+			UseControlAction("HugeCraftworksSupply","Deliver")
+			c_classexchange.set = false
+			c_classexchange.time = Now()
+			ml_task_hub:CurrentTask().completed = true
+		end
+		
+		d("Closing Window")
+		UseControlAction("HugeCraftworksSupply","Close")
+		c_classexchange.time = Now()
+		ml_task_hub:CurrentTask().completed = true
+	end	
+	
+	if (IsControlOpen("HugeCraftworksSupplyResult")) then
+		d("Closing Result Window")
+		UseControlAction("HugeCraftworksSupplyResult","Close")
+	end
+	
+	if (IsControlOpen("JournalAccept")) then
+		d("Accepting Quest")
+		UseControlAction("JournalAccept","Accept")
+		Settings.FFXIVMINION.classturnins[uuid][npcid] = nil
+		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
+		ml_task_hub:CurrentTask().completed = true
+	end
+	return false
+end
+function e_classexchange:execute()
+	if (IsControlOpen("HugeCraftworksSupply")) then
+		d("delivering Window")
+		UseControlAction("HugeCraftworksSupply","Deliver")
+		ml_task_hub:CurrentTask().completed = true
+	end
+end
+
 c_scripexchange = inheritsFrom( ml_cause )
 e_scripexchange = inheritsFrom( ml_effect )
 c_scripexchange.lastItem = 0
