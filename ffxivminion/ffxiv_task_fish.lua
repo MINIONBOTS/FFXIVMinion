@@ -2549,6 +2549,13 @@ function ffxiv_fish.NeedsStealth()
 		return false
 	end
 
+	if Player.level < 8 then
+		return false
+	end	
+	if GameRegion() == 1 then
+		return false
+	end
+	
 	local useStealth = false
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -2926,6 +2933,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_fishing = ml_element:create( "Fishing", c_isfishing, e_isfishing, 1 )
     self:add(ke_fishing, self.process_elements)
+	
+	local ke_enableSneak = ml_element:create( "EnableSneak", c_gathersneak, e_gathersneak, 260 )
+    self:add( ke_enableSneak, self.process_elements)
    
     self:AddTaskCheckCEs()
 end

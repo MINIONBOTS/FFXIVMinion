@@ -3111,6 +3111,40 @@ function e_gathernextprofilemap:execute()
 	end
 end
 
+c_gathersneak = inheritsFrom( ml_cause )
+e_gathersneak = inheritsFrom( ml_effect )
+function c_gathersneak:evaluate()
+
+	if GameRegion() ~= 1 then
+		return false
+	end
+	if (HasBuff(Player.id, 47)) then
+		return false
+	end
+	
+	local sneak = nil
+	if (Player.job == FFXIV.JOBS.BOTANIST) then
+		sneak = ActionList:Get(1,304)
+	elseif (Player.job == FFXIV.JOBS.MINER) then
+		sneak = ActionList:Get(1,303)
+	elseif (Player.job == FFXIV.JOBS.FISHER) then
+		sneak = ActionList:Get(1,305)
+	end
+	
+	if (sneak) then
+		if (sneak and sneak:IsReady(Player.id)) then
+			if (sneak:Cast()) then
+				ml_global_information.Await(2500, function () return HasBuff(Player.id,47) end)
+			end
+			return true
+		end
+	end
+	return false
+end
+function e_gathersneak:execute()
+	-- nothing to do here
+end
+
 c_gatherstealth = inheritsFrom( ml_cause )
 e_gatherstealth = inheritsFrom( ml_effect )
 e_gatherstealth.timer = 0
@@ -3119,6 +3153,9 @@ function c_gatherstealth:evaluate()
 		return false
 	end
 	
+	if GameRegion() == 1 then
+		return false
+	end
 	local useStealth = false
 	local task = ffxiv_gather.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -3268,7 +3305,9 @@ function ffxiv_gather.NeedsStealth()
 	if Player.level < 8 then
 		return false
 	end	
-
+	if GameRegion() == 1 then
+		return false
+	end
 	local useStealth = true
 	local task = ffxiv_gather.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -3545,6 +3584,9 @@ function ffxiv_task_gather:Init()
 	
 	local ke_returnToBase = ml_element:create( "ReturnToBase", c_returntobase, e_returntobase, 20 )
     self:add(ke_returnToBase, self.process_elements)
+	
+	local ke_enableSneak = ml_element:create( "EnableSneak", c_gathersneak, e_gathersneak, 260 )
+    self:add( ke_enableSneak, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

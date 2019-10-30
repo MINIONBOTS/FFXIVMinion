@@ -2530,9 +2530,7 @@ function e_returntomarker:execute()
 		newTask.useTeleport = true
 	end
 	
-	if (markerType == "Mining" or
-		markerType == "Botany")
-	then
+	if (markerType == "Mining" or markerType == "Botany") then
 		newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	elseif (markerType == "Fishing") then
 		newTask.stealthFunction = ffxiv_fish.NeedsStealth
@@ -2581,6 +2579,9 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
+	if GameRegion() == 1 then
+		return false
+	end
 	local needsStealth = ml_global_information.needsStealth
 	ml_global_information.canStealth = ml_global_information.needsStealth
 	local hasStealth = HasBuff(Player.id,47)
