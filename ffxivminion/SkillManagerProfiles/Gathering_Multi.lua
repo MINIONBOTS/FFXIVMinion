@@ -40,6 +40,8 @@ local obj1 = {
 		[34] = false;
 		[35] = false;
 		[36] = false;
+		[37] = false;
+		[38] = false;
 	};
 	["filters"] = {
 		[1] = "";
@@ -57,14 +59,14 @@ local obj1 = {
 			["prio"] = 1;
 		};
 		[2] = {
-			["gpnbuff"] = "218";
+			["gpnbuff"] = "218+805";
 			["id"] = 295;
 			["itemchancemax"] = 25;
 			["name"] = "Sharp Vision III";
 			["prio"] = 2;
 		};
 		[3] = {
-			["gpnbuff"] = "218";
+			["gpnbuff"] = "218+805";
 			["id"] = 237;
 			["itemchancemax"] = 25;
 			["name"] = "Sharp Vision II";
@@ -97,6 +99,7 @@ local obj1 = {
 		};
 		[7] = {
 			["gathermax"] = true;
+			["gpnbuff"] = "805";
 			["id"] = 222;
 			["name"] = "Blessed Harvest";
 			["prio"] = 7;
@@ -104,7 +107,7 @@ local obj1 = {
 		[8] = {
 			["gatheraddsbuff"] = "1286";
 			["gpbuff"] = "219";
-			["gpnbuff"] = "1286";
+			["gpnbuff"] = "1286+805";
 			["id"] = 273;
 			["name"] = "Bountiful Harvest II";
 			["prio"] = 8;
@@ -112,12 +115,13 @@ local obj1 = {
 		[9] = {
 			["gatheraddsbuff"] = "1286";
 			["gpbuff"] = "219";
-			["gpnbuff"] = "1286";
+			["gpnbuff"] = "1286+805";
 			["id"] = 4073;
 			["name"] = "Bountiful Yield";
 			["prio"] = 9;
 		};
 	};
+	["update"] = 20191030;
 	["version"] = 3;
 }
 return obj1
