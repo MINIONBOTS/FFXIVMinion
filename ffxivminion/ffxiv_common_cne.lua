@@ -3727,6 +3727,20 @@ function c_classexchange:evaluate()
 	end
 	
 	if (IsControlOpen("HugeCraftworksSupply")) then
+	
+		local uuid = GetUUID()		
+		if Settings.FFXIVMINION.classturnins == nil then 
+			Settings.FFXIVMINION.classturnins = {} 
+		end
+		if Settings.FFXIVMINION.classturnins[uuid] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid] = {} 
+		end
+		for i,npc in pairs(c_classexchange.npcids) do
+			if not Settings.FFXIVMINION.classturnins[uuid][npc] then
+				Settings.FFXIVMINION.classturnins[uuid][npc] = {} 
+			end
+		end
+		
 		local npcid = c_classexchange.npcids[Player.job]	
 		local data = GetControlData("HugeCraftworksSupply")
 		
@@ -3735,17 +3749,7 @@ function c_classexchange:evaluate()
 		local esteemLevel = data.esteemlevel
 		local currentEsteem = data.esteem
 		local deliverReady = data.slotsfilled > 0
-		local uuid = GetUUID()
 		
-		if Settings.FFXIVMINION.classturnins == nil then 
-			Settings.FFXIVMINION.classturnins = {} 
-		end
-		if Settings.FFXIVMINION.classturnins[uuid] == nil then 
-			Settings.FFXIVMINION.classturnins[uuid] = {} 
-		end
-		if Settings.FFXIVMINION.classturnins[uuid][npcid] == nil then 
-			Settings.FFXIVMINION.classturnins[uuid][npcid] = {} 
-		end
 		Settings.FFXIVMINION.classturnins[uuid][npcid] = {yeild = data.neededamount, esteem = currentEsteem, esteemlevel = esteemLevel}
 		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			
@@ -3759,7 +3763,6 @@ function c_classexchange:evaluate()
 		if not c_classexchange.set then
 			if (IsControlOpen("InputNumeric")) then
 				UseControlAction("InputNumeric","EnterAmount",currentCount)
-				--d("setting item count "..tostring(currentCount))
 				c_classexchange.set = true
 				c_classexchange.time = Now()
 				return
@@ -3773,31 +3776,21 @@ function c_classexchange:evaluate()
 			end
 		end
 		if deliverReady then
-			d("delivering")
 			UseControlAction("HugeCraftworksSupply","Deliver")
 			c_classexchange.set = false
 			c_classexchange.time = Now()
+			if Settings.FFXIVMINION.classturnins[uuid][npcid].esteem then
+				Settings.FFXIVMINION.classturnins[uuid][npcid].esteem = nil
+				Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
+			end
 			ml_task_hub:CurrentTask().completed = true
 		end
 		
-		d("Closing Window")
 		UseControlAction("HugeCraftworksSupply","Close")
 		c_classexchange.time = Now()
 		ml_task_hub:CurrentTask().completed = true
 	end	
 	
-	if (IsControlOpen("HugeCraftworksSupplyResult")) then
-		d("Closing Result Window")
-		UseControlAction("HugeCraftworksSupplyResult","Close")
-	end
-	
-	if (IsControlOpen("JournalAccept")) then
-		d("Accepting Quest")
-		UseControlAction("JournalAccept","Accept")
-		Settings.FFXIVMINION.classturnins[uuid][npcid] = nil
-		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
-		ml_task_hub:CurrentTask().completed = true
-	end
 	return false
 end
 function e_classexchange:execute()
