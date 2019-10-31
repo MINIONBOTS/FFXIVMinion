@@ -892,7 +892,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(860, "Duty_3619", true)
 		ml_mesh_mgr.SetDefaultMesh(863, "Duty_3631", true)
 		ml_mesh_mgr.SetDefaultMesh(864, "Duty_3638", true)
-		
+		ml_mesh_mgr.SetDefaultMesh(893, "Duty_3682", true) -- The Imperial Palace
 		
 	end
 	
