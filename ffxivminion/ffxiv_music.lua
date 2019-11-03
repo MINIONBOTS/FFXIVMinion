@@ -40,6 +40,21 @@ ffxiv_music = {
 	is_playing = false,
 	
 	actions = {
+		["b#"] = 8, ["c"] = 8, 
+		["c#"] = 9, ["d-"] = 9, 
+		["d"] = 10, 
+		["d#"] = 11, ["e-"] = 11, 
+		["e"] = 12, ["f-"] = 12, 
+		["e#"] = 13, ["f"] = 13, 
+		["f#"] = 14, ["g-"] = 14,
+		["g"] = 15, 
+		["g#"] = 16, ["a-"] = 16, 
+		["a"] = 17, 
+		["a#"] = 18, ["b-"] = 18, 
+		["b"] = 19, ["c-"] = 19, 
+	},
+	
+	actions_cnkr = {
 		["b#"] = 1, ["c"] = 1, 
 		["c#"] = 2, ["d-"] = 2, 
 		["d"] = 3, 
@@ -393,15 +408,23 @@ end
 function ffxiv_music.DoAction(note, octave)	
 	--d("play note ["..tostring(note).."],["..tostring(octave).."]")
 	
-	local actions = ffxiv_music.actions
+	local actions;
+	if (ffxivminion.gameRegion == 1) then
+		actions = ffxiv_music.actions
+	else
+		actions = ffxiv_music.actions_cnkr
+	end
 	local control = GetControl("PerformanceMode")
 	if (control) then
 		if (note == "c" and octave > 1) then
-			control:PushButton(24,12)
-			control:PushButton(23,12)
-			ffxiv_music.last_note = 12
+			control:PushButton(24,20)
+			control:PushButton(23,20)
+			ffxiv_music.last_note = 20
 		else
-			local noteid = actions[note]
+			local noteid = note
+			if (type(noteid) == "string") then
+				noteid = actions[note]
+			end
 			if (noteid) then
 				control:PushButton(24,ffxiv_music.last_note)
 				control:PushButton(23,noteid-1)
@@ -563,10 +586,10 @@ function ffxiv_music.ParseMML(track)
 				local length = string.match(args, "%d+")
 				if (tonumber(length) ~= nil) then
 					length = math.abs(length)
-					--d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
+					d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
 					notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
 				else
-					--d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
+					d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
 					notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
 				end
 
