@@ -3761,6 +3761,7 @@ function c_classexchange:evaluate()
 				UseControlAction("InputNumeric","EnterAmount",currentCount)
 				c_classexchange.set = true
 				c_classexchange.time = Now()
+				ml_global_information.Await(1000)
 				return
 			end
 			if item and (currentCount >= turninCount) then
@@ -3771,7 +3772,7 @@ function c_classexchange:evaluate()
 				return
 			end
 		end
-		if deliverReady then
+		if deliverReady or c_classexchange.set then
 			UseControlAction("HugeCraftworksSupply","Deliver")
 			c_classexchange.set = false
 			c_classexchange.time = Now()
@@ -3781,6 +3782,8 @@ function c_classexchange:evaluate()
 				Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			end
 			ml_task_hub:CurrentTask().completed = true
+			ml_global_information.Await(1000)
+			return
 		end
 		
 		UseControlAction("HugeCraftworksSupply","Close")
