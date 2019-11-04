@@ -1558,7 +1558,7 @@ function CanUseExpManual()
 	end
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		if (Player.level >= 70 and MissingBuff(Player,46)) then
+		if (Player.level >= 70 and Player.level < 80 and  MissingBuff(Player,46)) then
             local revised, action = GetItem(26553)
             if (revised and action and not action.isoncd) then
                 --d("Can use revised manual.")

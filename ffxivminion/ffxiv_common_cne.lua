@@ -3725,23 +3725,10 @@ function c_classexchange:evaluate()
 	if TimeSince(c_classexchange.time) < 1000 then
 		return 
 	end
+	local uuid = GetUUID()
+	local npcid = c_classexchange.npcids[Player.job]	
 	
 	if (IsControlOpen("HugeCraftworksSupply")) then
-	
-		local uuid = GetUUID()		
-		if Settings.FFXIVMINION.classturnins == nil then 
-			Settings.FFXIVMINION.classturnins = {} 
-		end
-		if Settings.FFXIVMINION.classturnins[uuid] == nil then 
-			Settings.FFXIVMINION.classturnins[uuid] = {} 
-		end
-		for i,npc in pairs(c_classexchange.npcids) do
-			if not Settings.FFXIVMINION.classturnins[uuid][npc] then
-				Settings.FFXIVMINION.classturnins[uuid][npc] = {} 
-			end
-		end
-		
-		local npcid = c_classexchange.npcids[Player.job]	
 		local data = GetControlData("HugeCraftworksSupply")
 		
 		local turninCount = data.neededamount 
@@ -3749,7 +3736,6 @@ function c_classexchange:evaluate()
 		local esteemLevel = data.esteemlevel
 		local currentEsteem = data.esteem
 		local deliverReady = data.slotsfilled > 0
-		local uuid = GetUUID()
 		
 		if Settings.FFXIVMINION.classturnins == nil then 
 			Settings.FFXIVMINION.classturnins = {} 
