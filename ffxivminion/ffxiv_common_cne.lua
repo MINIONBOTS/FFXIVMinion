@@ -3749,7 +3749,17 @@ function c_classexchange:evaluate()
 		local esteemLevel = data.esteemlevel
 		local currentEsteem = data.esteem
 		local deliverReady = data.slotsfilled > 0
+		local uuid = GetUUID()
 		
+		if Settings.FFXIVMINION.classturnins == nil then 
+			Settings.FFXIVMINION.classturnins = {} 
+		end
+		if Settings.FFXIVMINION.classturnins[uuid] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid] = {} 
+		end
+		if Settings.FFXIVMINION.classturnins[uuid][npcid] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid][npcid] = {} 
+		end
 		Settings.FFXIVMINION.classturnins[uuid][npcid] = {yeild = data.neededamount, esteem = currentEsteem, esteemlevel = esteemLevel}
 		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			
@@ -3779,8 +3789,9 @@ function c_classexchange:evaluate()
 			UseControlAction("HugeCraftworksSupply","Deliver")
 			c_classexchange.set = false
 			c_classexchange.time = Now()
-			if Settings.FFXIVMINION.classturnins[uuid][npcid].esteem then
+			if Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel then
 				Settings.FFXIVMINION.classturnins[uuid][npcid].esteem = nil
+				Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel = nil
 				Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			end
 			ml_task_hub:CurrentTask().completed = true
@@ -3791,6 +3802,21 @@ function c_classexchange:evaluate()
 		ml_task_hub:CurrentTask().completed = true
 	end	
 	
+	if (IsControlOpen("HugeCraftworksSupplyResult")) then
+		d("Closing Result Window")
+		UseControlAction("HugeCraftworksSupplyResult","Close")
+	end
+	
+	if (IsControlOpen("JournalAccept")) then
+		d("Accepting Quest")
+		UseControlAction("JournalAccept","Accept")
+		if Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel then
+			Settings.FFXIVMINION.classturnins[uuid][npcid].esteem = nil
+			Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel = nil
+			Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
+		end
+		ml_task_hub:CurrentTask().completed = true
+	end
 	return false
 end
 function e_classexchange:execute()
