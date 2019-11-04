@@ -417,9 +417,15 @@ function ffxiv_music.DoAction(note, octave)
 	local control = GetControl("PerformanceMode")
 	if (control) then
 		if (note == "c" and octave > 1) then
-			control:PushButton(24,20)
-			control:PushButton(23,20)
-			ffxiv_music.last_note = 20
+			if (ffxivminion.gameRegion == 1) then
+				control:PushButton(24,20)
+				control:PushButton(23,19)
+				ffxiv_music.last_note = 20
+			else
+				control:PushButton(24,12)
+				control:PushButton(23,11)
+				ffxiv_music.last_note = 12
+			end
 		else
 			local noteid = note
 			if (type(noteid) == "string") then
