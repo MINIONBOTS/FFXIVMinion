@@ -1276,11 +1276,11 @@ function dev.DrawCall(event, ticks )
 															GUI:TreePop()
 														end
 													end
-																										
+
 													local action = item:GetAction()
 													if (table.valid(action)) then
 														if ( GUI:TreeNode("Action: "..tostring(action.id).." - "..action.name)) then --rather slow making 6000+ names :D
-														--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+															--if ( GUI:TreeNode(tostring(actionid).." - ")) then
 															GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
 															GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
 															GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
@@ -1304,52 +1304,79 @@ function dev.DrawCall(event, ticks )
 													else
 														GUI:BulletText("No Action Available")
 													end
-													
-													if (GUI:Button("Cast()##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast())) end 
+
+													if (GUI:Button("Cast()##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast())) end
 													GUI:SameLine(0,20)
-													if (GUI:Button("Cast(Player)##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast(Player.id))) end 
+													if (GUI:Button("Cast(Player)##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast(Player.id))) end
 													GUI:SameLine(0,20)
 													local tar = Player:GetTarget() or Player
-													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end 
-													
+													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end
+
 													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Discard()##"..tostring(slot),100,15) ) then d("Discard Result: "..tostring(item:Discard())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("RetrieveMateria()##"..tostring(slot),100,15) ) then d("RetrieveMateria Result: "..tostring(item:RetrieveMateria())) end
-													
+
 													if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
 
-													
-													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then 
+
+													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then
 														if ( item:CanCast(5, 5) ) then -- Can Cast check of Actiontype "General" , Action "desynthesis" on the item
-															d("Salvage Result: "..tostring(item:Salvage())) 
+															d("Salvage Result: "..tostring(item:Salvage()))
 														end
 													end
 													GUI:SameLine(0,20)
-													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then 
+													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then
 														if ( item:CanCast(5, 21) ) then -- Can Cast check of Actiontype "General" , Action "purify" on the item
-															d("Purify Result: "..tostring(item:Purify())) 
+															d("Purify Result: "..tostring(item:Purify()))
 														end
 													end
 													GUI:SameLine(0,20)
-													if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then 
+													if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then
 														if ( item:CanCast(5, 14) ) then -- Can Cast check of Actiontype "General" , Action "materialize" on the item
-															d("Convert Result: "..tostring(item:Convert())) 
+															d("Convert Result: "..tostring(item:Convert()))
 														end
 													end
-                                                    
+
 													if (GUI:Button("Transmute()##"..tostring(slot),100,15) ) then d("Transmute Result: "..tostring(item:Transmute())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("SelectFeed()##"..tostring(slot),100,15) ) then d("SelectFeed Result: "..tostring(item:SelectFeed())) end
 													GUI:SameLine(0,20)
 													if (GUI:Button("Reward()##"..tostring(slot),100,15) ) then d("Reward Result: "..tostring(item:Reward())) end
-													
+
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
+
+													local nextAvailableBag = -1
+													local nextAvailableSlot = -1
+
+													-- the goal of this loop is to show the difference between Move(qty) and Split(). Split() will call the in game function and requires
+													-- no further calculations, Move(qty) is more flexible but requires more work
+													-- in this case, Move() and Move(qty) will intentionally ignore all previous bags, and only consider the current and remaining bags
+
+													for b = item.type, 3 do -- item.type is Parent BagID for some reason
+														local invList = Inventory:Get(b):GetList()
+														local found = false
+														for s = 1, 35 do
+															if (invList[s] == nil) then
+																nextAvailableBag = b
+																nextAvailableSlot = s-1
+																found = true
+																break
+															end
+														end
+														if (found) then break end
+													end
+
+													if (GUI:Button("Split()##" .. tostring(slot), 100, 15)) then d("Split Result: " .. tostring(item:Split(1))) end
+													GUI:SameLine(0, 20)
+													if (GUI:Button("Move()##" .. tostring(slot), 100, 15) and nextAvailableBag ~= -1 and nextAvailableSlot ~= -1) then d("Move Result: " .. tostring(item:Move(nextAvailableBag, nextAvailableSlot))) end
+													GUI:SameLine(0, 20)
+													if (GUI:Button("Move(qty)##" .. tostring(slot), 100, 15) and nextAvailableBag ~= -1 and nextAvailableSlot ~= -1) then d("Move(qty) Result: " .. tostring(item:Move(nextAvailableBag, nextAvailableSlot, 1))) end
 
 													GUI:Separator()
 													GUI:TreePop()
