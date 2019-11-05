@@ -3722,6 +3722,10 @@ c_classexchange.npcids = {
 }
 function c_classexchange:evaluate()
 
+	if (IsControlOpen("HelpWindow")) then
+		UseControlAction("HelpWindow","Close")
+		return
+	end
 	if TimeSince(c_classexchange.time) < 1000 then
 		return 
 	end
@@ -3729,6 +3733,7 @@ function c_classexchange:evaluate()
 	local npcid = c_classexchange.npcids[Player.job]	
 	
 	if (IsControlOpen("HugeCraftworksSupply")) then
+	local doTurnin = true
 		local data = GetControlData("HugeCraftworksSupply")
 		
 		local turninCount = data.neededamount 
@@ -3746,7 +3751,12 @@ function c_classexchange:evaluate()
 		if Settings.FFXIVMINION.classturnins[uuid][npcid] == nil then 
 			Settings.FFXIVMINION.classturnins[uuid][npcid] = {} 
 		end
-		Settings.FFXIVMINION.classturnins[uuid][npcid] = {yeild = data.neededamount, esteem = currentEsteem, esteemlevel = esteemLevel}
+		if Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel] == nil then 
+			Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel] = {} 
+			doTurnin = false
+		end
+		
+		Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel] = {yeild = data.neededamount, esteem = currentEsteem}
 		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			
 			
@@ -3772,13 +3782,13 @@ function c_classexchange:evaluate()
 				return
 			end
 		end
-		if deliverReady or c_classexchange.set then
+		if (deliverReady or c_classexchange.set) and doTurnin then
 			UseControlAction("HugeCraftworksSupply","Deliver")
 			c_classexchange.set = false
 			c_classexchange.time = Now()
-			if Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel then
-				Settings.FFXIVMINION.classturnins[uuid][npcid].esteem = nil
-				Settings.FFXIVMINION.classturnins[uuid][npcid].esteemlevel = nil
+			if Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel] then
+				Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel].esteem = nil
+				Settings.FFXIVMINION.classturnins[uuid][npcid][esteemLevel].complete = true
 				Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 			end
 			ml_task_hub:CurrentTask().completed = true
