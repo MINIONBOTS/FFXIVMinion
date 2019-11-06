@@ -941,7 +941,9 @@ function ffxivminion.HandleInit()
 	
 	local uuid = GetUUID()
 	if Settings.FFXIVMINION.classturnins == nil then 
-		Settings.FFXIVMINION.classturnins = {} 
+		Settings.FFXIVMINION.classturnins = {}
+	end	
+	if not Settings.FFXIVMINION.classturnins[uuid] then
 		Settings.FFXIVMINION.classturnins[uuid] = {} 
 		if table.valid(c_classexchange.npcids) then
 			for i,e in pairs(c_classexchange.npcids) do
