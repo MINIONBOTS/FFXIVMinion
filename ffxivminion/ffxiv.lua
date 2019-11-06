@@ -942,6 +942,7 @@ function ffxivminion.HandleInit()
 	local uuid = GetUUID()
 	if Settings.FFXIVMINION.classturnins == nil then 
 		Settings.FFXIVMINION.classturnins = {}
+		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 	end	
 	if not Settings.FFXIVMINION.classturnins[uuid] then
 		Settings.FFXIVMINION.classturnins[uuid] = {} 
@@ -950,6 +951,7 @@ function ffxivminion.HandleInit()
 				Settings.FFXIVMINION.classturnins[uuid][e] = {}
 			end
 		end
+		Settings.FFXIVMINION.classturnins = Settings.FFXIVMINION.classturnins
 	end
 	
 	gForceAutoEquip = false
