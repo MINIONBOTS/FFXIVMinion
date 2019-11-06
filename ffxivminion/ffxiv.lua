@@ -938,6 +938,18 @@ function ffxivminion.HandleInit()
 	spotList.draw = spotList.DefaultDraw2
 	--]]
 	
+	
+	local uuid = GetUUID()
+	if Settings.FFXIVMINION.classturnins == nil then 
+		Settings.FFXIVMINION.classturnins = {} 
+		Settings.FFXIVMINION.classturnins[uuid] = {} 
+		if table.valid(c_classexchange.npcids) then
+			for i,e in pairs(c_classexchange.npcids) do
+				Settings.FFXIVMINION.classturnins[uuid][e] = {}
+			end
+		end
+	end
+	
 	gForceAutoEquip = false
 	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SETTINGS", name = "Settings", onClick = function() ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open end, tooltip = "Open the FFXIVMinion settings."},"FFXIVMINION##MENU_HEADER")
 end
