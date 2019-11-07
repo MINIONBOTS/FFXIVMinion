@@ -585,10 +585,22 @@ function dev.DrawCall(event, ticks )
 					-- Takes in no args for just the list, or a recipe id to compare if its the correct index
 					local ciList = Crafting:GetSelectedCraftInfo(dev.craftrecipe)
 					if(ciList ~= nil) then 
+						GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##deCIL001"..tostring(id),tostring(string.format( "%X",ciList.ptr)))
 						GUI:BulletText(".class") GUI:SameLine(200) GUI:InputText("##deCIL0"..tostring(id),tostring(ciList.class))
 						GUI:BulletText(".page") GUI:SameLine(200) GUI:InputText("##deCIL1"..tostring(id),tostring(ciList.page))
 						GUI:BulletText(".selectedindex") GUI:SameLine(200) GUI:InputText("##deCIL2"..tostring(id),tostring(ciList.selectedindex))
 						GUI:BulletText(".iscorrectindex") GUI:SameLine(200) GUI:InputText("##deCIL3"..tostring(id),tostring(ciList.iscorrectindex))
+						GUI:BulletText(".recipeid") GUI:SameLine(200) GUI:InputText("##deCIL4"..tostring(id),tostring(ciList.recipeid))
+						
+						GUI:BulletText(".itemid") GUI:SameLine(200) GUI:InputText("##deCIL5"..tostring(id),tostring(ciList.itemid))
+						GUI:BulletText(".difficulty") GUI:SameLine(200) GUI:InputText("##deCIL6"..tostring(id),tostring(ciList.difficulty))
+						GUI:BulletText(".durability") GUI:SameLine(200) GUI:InputText("##deCIL7"..tostring(id),tostring(ciList.durability))
+						GUI:BulletText(".qualitymax") GUI:SameLine(200) GUI:InputText("##deCIL8"..tostring(id),tostring(ciList.qualitymax))
+						GUI:BulletText(".recommendedcraftsmanship") GUI:SameLine(200) GUI:InputText("##deCIL9"..tostring(id),tostring(ciList.recommendedcraftsmanship))					
+						GUI:BulletText(".canquicksynth") GUI:SameLine(200) GUI:InputText("##deCIL10"..tostring(id),tostring(ciList.canquicksynth))	
+						
+						
+						
 						GUI:TreePop()
 					end
 
