@@ -1723,6 +1723,20 @@ function GetControlStrings(strControl,numString)
 	return nil
 end
 
+function GetControlRawData(strControl,index)
+	local controls = MGetControls()
+	if (controls) then
+		local control = controls[strControl]
+		if (control) then
+			local datas = control:GetRawData()
+			if (table.valid(datas)) then
+				return datas[index]
+			end
+		end
+	end
+	return nil
+end
+
 function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,ignoreOpen)
 	local preDelay = IsNull(preDelay,0)
 	local postDelay = IsNull(postDelay,0)
