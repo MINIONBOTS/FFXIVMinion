@@ -5336,6 +5336,22 @@ function IsPVPMap(mapid)
 		[551] = true,
 		[552] = true,
 		[554] = true,
+		
+		[127] = true,
+		[130] = true,
+		[143] = true,
+		[145] = true,
+		[180] = true,
+		[201] = true,
+		[228] = true,
+		[230] = true,
+		[233] = true,
+		[277] = true,
+		[476] = true,
+		[478] = true,
+		[479] = true,
+		[580] = true,
+		[599] = true,
 	}
 	return (pvpMaps[mapid] ~= nil)
 end
