@@ -1494,8 +1494,22 @@ Quest: Completes quests based on a questing profile.\
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip(GetString("Help, Report and Faqs."))
 					end
+					local acrEnabled = false					
+					if (IsGatherer(Player.job)) then
+						if (gACREnabledGather) then
+							acrEnabled = true
+						end
+					elseif (IsCrafter(Player.job)) then
+						if (gACREnabledCraft) then
+							acrEnabled = true
+						end
+					elseif (IsFighter(Player.job)) then
+						if (gACREnabled) then
+							acrEnabled = true
+						end
+					end
+					local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					
-					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					if (not acrValid) then
 						GUI:AlignFirstTextHeightToWidgets()	
 						GUI:Text(GetString("Skill Profile"))
