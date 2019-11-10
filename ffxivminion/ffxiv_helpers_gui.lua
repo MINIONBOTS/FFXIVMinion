@@ -395,7 +395,9 @@ function GUI_DrawVerticalTabs(tTabs,name)
 	local events = tTabs.events
 	local tabs = tTabs.tabs
 	
+	local updateSelected = 0
 	for i,tab in pairsByKeys(tabs) do
+	
 		if (table.valid(tab)) then
 			local selected_color = { r = .05, g = .05, b = .05, a = 1 }
 			local hovered_color = { r = .2, g = .2, b = .2, a = 1 }
@@ -408,7 +410,7 @@ function GUI_DrawVerticalTabs(tTabs,name)
 			GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,4)
 			if (tab.isselected) then
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, selected_color.r, selected_color.g, selected_color.b, selected_color.a)
-				GUI:BeginChild("##vertical-tab-"..selected.name,-8,GUI_GetFrameHeight(.8), true)
+				GUI:BeginChild("##vertical-tab-"..selected.name,-8,Sellout.GetFrameHeight(.8), true)
 				GUI:TextColored(1,1,.4,selected.a,selected.name)
 				GUI:EndChild()
 				GUI:PopStyleColor()
@@ -416,13 +418,13 @@ function GUI_DrawVerticalTabs(tTabs,name)
 				returnIndex, returnName = i, selected.name
 			elseif (tab.ishovered) then
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, hovered_color.r, hovered_color.g, hovered_color.b, hovered_color.a)
-				GUI:BeginChild("##vertical-tab-"..hovered.name,0,GUI_GetFrameHeight(.8), true)
+				GUI:BeginChild("##vertical-tab-"..hovered.name,0,Sellout.GetFrameHeight(.8), true)
 				GUI:TextColored(1,1,.7,hovered.a,hovered.name)
 				GUI:EndChild()
 				GUI:PopStyleColor()
 			else
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, normal_color.r, normal_color.g, normal_color.b, normal_color.a)
-				GUI:BeginChild("##vertical-tab-"..normal.name,0,GUI_GetFrameHeight(.8), true)
+				GUI:BeginChild("##vertical-tab-"..normal.name,0,Sellout.GetFrameHeight(.8), true)
 				GUI:TextColored(1,1,1,normal.a,normal.name)
 				GUI:EndChild()
 				GUI:PopStyleColor()
@@ -449,14 +451,17 @@ function GUI_DrawVerticalTabs(tTabs,name)
 					if (tab.onClick and type(tab.onClick) == "function") then
 						tab.onClick()
 					end
-					tabs[i].isselected = true
-					
-					for k,tab2 in pairs(tabs) do
-						if (i ~= k and tab2.isselected) then
-							tabs[k].isselected = false
-						end
-					end
+					updateSelected = i
 				end
+			end
+		end
+	end
+
+	if (updateSelected ~= 0) then
+		tabs[updateSelected].isselected = true
+		for k,tab2 in pairs(tabs) do
+			if (k ~= updateSelected and tab2.isselected) then
+				tabs[k].isselected = false
 			end
 		end
 	end
