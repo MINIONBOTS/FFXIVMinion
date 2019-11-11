@@ -1390,6 +1390,9 @@ function dev.DrawCall(event, ticks )
 													GUI:SameLine(0, 20)
 													if (GUI:Button("Move(qty)##" .. tostring(slot), 100, 15) and nextAvailableBag ~= -1 and nextAvailableSlot ~= -1) then d("Move(qty) Result: " .. tostring(item:Move(nextAvailableBag, nextAvailableSlot, 1))) end
 
+													if (GUI:Button("LowerQuality()##" .. tostring(slot), 100, 15)) then d("LowerItemQuality Result: " .. tostring(item:LowerQuality())) end
+
+
 													GUI:Separator()
 													GUI:TreePop()
 												end
