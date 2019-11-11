@@ -2210,8 +2210,8 @@ function e_collectiblegame:execute()
 		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax)) or 
 			(info.wear == 30 and not sticklerAvaliable)) then
 			
-			UseControlAction("GatheringMasterpiece","Collect")
-			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+			UseControlAction("GatheringMasterpiece","Collect",0,500)
+			ml_global_information.Await(1500, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 			return
 		else
 			if (SkillMgr.Gather()) then
@@ -2220,8 +2220,8 @@ function e_collectiblegame:execute()
 				return
 			else
 				if (info.wear >= 30) then
-					UseControlAction("GatheringMasterpiece","Collect")
-					ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+					UseControlAction("GatheringMasterpiece","Collect",0,500)
+					ml_global_information.Await(1500, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
 					return
 				else
 					local methodicals = {
@@ -2361,12 +2361,12 @@ function c_collectibleaddongather:evaluate()
 			
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.")
-				UseControlAction(addonName,"No")
+				UseControlAction(addonName,"No",0,500)
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.")
-				UseControlAction(addonName,"Yes")
+				UseControlAction(addonName,"Yes",0,500)
 			end
-			ml_global_information.Await(3000, function () return not IsControlOpen(addonName) end)				
+			ml_global_information.Await(1000, 3000, function () return not IsControlOpen(addonName) end)				
 			return true
 		end
 	end

@@ -1818,10 +1818,10 @@ function c_collectibleaddoncraft:evaluate()
 
 			if (not validCollectible) then
 				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
-				UseControlAction(addonName,"No")
+				UseControlAction(addonName,"No",0,500)
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
-				UseControlAction(addonName,"Yes")
+				UseControlAction(addonName,"Yes",0,500)
 			end
 			ml_global_information.Await(2000, 3000, function () return not IsControlOpen("Synthesis") end)						
 			return true
