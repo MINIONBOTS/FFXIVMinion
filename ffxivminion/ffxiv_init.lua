@@ -355,6 +355,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(439, "The Lightfeather Proving Grounds", true)
 		ml_mesh_mgr.SetDefaultMesh(433, "Fortemps Manor", true)
 		ml_mesh_mgr.SetDefaultMesh(456, "Ruling Chamber", true)
+		ml_mesh_mgr.SetDefaultMesh(886, "The Firmament", true)
 		
 		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire", enforce)
 		
