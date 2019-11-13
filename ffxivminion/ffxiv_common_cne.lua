@@ -1349,7 +1349,7 @@ function c_getmovementpath:evaluate()
 			
 			local dist = math.distance2d(gotoPos,Player.pos)
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
-			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) or (dist < tonumber(gMountDist) and (tonumber(gotoPos.y) >= Player.pos.y + 5 and tonumber(gotoPos.y) <= Player.pos.y - 5)) then
+			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) or (dist < tonumber(gMountDist) and (tonumber(gotoPos.y) >= Player.pos.y + 8 and tonumber(gotoPos.y) <= Player.pos.y - 10)) then
 				ml_debug("[GetMovementPath]: rebuilding non-flying path..")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
 				ml_debug("[GetMovementPath]: no fly pathLength found, lenght: = "..tostring(pathLength))
