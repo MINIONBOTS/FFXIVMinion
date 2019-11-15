@@ -39,6 +39,9 @@ local obj1 = {
 		[33] = false;
 		[34] = false;
 		[35] = false;
+		[36] = false;
+		[37] = false;
+		[38] = false;
 	};
 	["filters"] = {
 		[1] = "";
@@ -90,7 +93,14 @@ local obj1 = {
 			["name"] = "Llymlaen's Ward";
 			["prio"] = 6;
 		};
+		[7] = {
+			["gathermax"] = true;
+			["id"] = 282;
+			["name"] = "The Twelve's Bounty";
+			["prio"] = 7;
+		};
 	};
+	["update"] = 20191115;
 	["version"] = 3;
 }
 return obj1
