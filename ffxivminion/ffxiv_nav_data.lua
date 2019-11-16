@@ -912,8 +912,16 @@ ffxiv_map_nav.data = {
 		[886] = {
 			{id = 886, cost = 1, x = 152, y = -20, z = 63, b = 1031682 
 				, requires = {
-					["GameRegion() == 1"] = true,
+					["QuestCompleted(3672)"] = true,
 				},
+			},
+			{id = 886, cost = 1, x = -63, y = 11, z = 43, b = 70 , i = 2
+				, requires =  {
+					["QuestCompleted(3672)"] = true,
+				}
+				, conversationstrings = {
+                   ["E"] = "Travel to the Firmament.",
+                },
 			},
 		},
 	},
