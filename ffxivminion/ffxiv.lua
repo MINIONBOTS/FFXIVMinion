@@ -1504,8 +1504,14 @@ Quest: Completes quests based on a questing profile.\
 							acrEnabled = true
 						end
 					elseif (IsFighter(Player.job)) then
-						if (gACREnabled) then
-							acrEnabled = true
+						if (IsPVPMap(Player.localmapid)) then
+							if (gACREnabledPVP) then
+								acrEnabled = true
+							end
+						else
+							if (gACREnabled) then
+								acrEnabled = true
+							end
 						end
 					end
 					local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])

@@ -3739,7 +3739,7 @@ function IsGatherer(jobID)
 end
 function IsFighter(jobID)
 	local jobID = tonumber(jobID)
-	if ((jobID >= 0 and jobID <= 8) or
+	if ((jobID >= 0 and jobID <= 7) or
 		(jobID >= 19))
 	then
 		return true
