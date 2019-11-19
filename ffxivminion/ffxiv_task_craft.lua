@@ -2798,6 +2798,9 @@ function ffxiv_task_craft:Draw()
 				if (newName ~= collectable.name) then
 					local newValue = gCraftCollectablePresets[i].value
 					local newIndex = IsNull(AceLib.API.Items.GetIDByName(newName),i)
+					if newIndex ~= i then
+						gCraftCollectablePresets[i] = nil
+					end
 					gCraftCollectablePresets[newIndex] = { name = newName, value = newValue }
 					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 				end
@@ -3507,6 +3510,21 @@ function ffxiv_craft.Draw( event, ticks )
 					end					
 				end
 				if (gCraftOrderAddRecipeID ~= 0) then
+					local acrEnabled = false					
+					if (IsGatherer(Player.job)) then
+						if (gACREnabledGather) then
+							acrEnabled = true
+						end
+					elseif (IsCrafter(Player.job)) then
+						if (gACREnabledCraft) then
+							acrEnabled = true
+						end
+					elseif (IsFighter(Player.job)) then
+						if (gACREnabled) then
+							acrEnabled = true
+						end
+					end
+					local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					
 					GUI:Separator()
 				
@@ -3514,7 +3532,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Amount to Craft")); 
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect")); 
-					if (not gCraftOrderAddQuick) then
+					if (not gCraftOrderAddQuick) and not acrValid then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
 					end
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Required CP")); 
@@ -3531,9 +3549,13 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI_Capture(GUI:InputInt("##Amount to Craft",gCraftOrderAddAmount,0,0),"gCraftOrderAddAmount")
 					GUI:PopItemWidth()
 					GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderAddCollect),"gCraftOrderAddCollect")
-					if (not gCraftOrderAddQuick) then
+					if (not gCraftOrderAddQuick) and not acrValid then
 						GUI:PushItemWidth(250)
+						
+						gCraftOrderAddSkillProfileIndex = IsNull(GetKeyByValue(gCraftOrderAddSkillProfile,SkillMgr.profiles),1)
 						GUI_Combo(GetString("##skillProfile1"), "gCraftOrderAddSkillProfileIndex", "gCraftOrderAddSkillProfile", SkillMgr.profiles)
+						
+						
 						GUI:PopItemWidth()
 					end
 					
