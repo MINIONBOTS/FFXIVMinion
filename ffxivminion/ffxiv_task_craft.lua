@@ -1475,11 +1475,13 @@ function e_startcraft:execute()
 											d("[Craft]: Order is set to use Maximum ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
 											Crafting:SetCraftingMats(i-1,hqAmountMax) -- set max
 											ml_global_information.Await(math.random(150,300))
+											ml_task_hub:CurrentTask().matsSet = true
 											return
-										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq < ingredient.inventoryhq)) then -- set as much as currently possible
+										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq <= ingredient.inventoryhq)) then -- set as much as currently possible
 											d("[Craft]: Order is set use as much HQ as I Currently have of ["..tostring(ingredient.inventoryhq).."] HQ of ["..ingredient.name.."].")
 											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq) -- set what i have
 											ml_global_information.Await(math.random(150,300))
+											ml_task_hub:CurrentTask().matsSet = true
 											return
 										elseif (ingredient.inventoryhq < hqAmountMin) then
 											d("[Craft]: Stop crafting item, not enough HQ Items of ["..ingredient.name.."].")
@@ -1496,6 +1498,7 @@ function e_startcraft:execute()
 												d("[Craft]: Order is set to use HQ mats if necessary, need ["..tostring((ingredient.needed - ingredient.inventorynq)).."] of ["..ingredient.name.."].")
 												Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
 												ml_global_information.Await(math.random(150,300))
+												ml_task_hub:CurrentTask().matsSet = true
 												return
 											else
 												d("[Craft]: Not enough materials including HQ.")
