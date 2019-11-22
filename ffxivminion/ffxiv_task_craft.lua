@@ -1482,6 +1482,11 @@ function e_startcraft:execute()
 											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq) -- set what i have
 											ml_global_information.Await(math.random(150,300))
 											return
+										elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) and ((ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then 
+											d("[Craft]: Backup selection")
+											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+											ml_global_information.Await(math.random(150,300))
+											return
 										elseif (ingredient.inventoryhq < hqAmountMin) then
 											d("[Craft]: Stop crafting item, not enough HQ Items of ["..ingredient.name.."].")
 											e_craftlimit:execute()
