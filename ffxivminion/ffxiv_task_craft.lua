@@ -1,5 +1,6 @@
 ffxiv_craft = {}
 
+ffxiv_craft.resetRecipe = false
 ffxiv_craft.tracking = {
 	measurementDelay = 0,
 	quickTimer = 0,
@@ -1475,13 +1476,11 @@ function e_startcraft:execute()
 											d("[Craft]: Order is set to use Maximum ["..tostring(hqAmountMax).."] HQ of ["..ingredient.name.."].")
 											Crafting:SetCraftingMats(i-1,hqAmountMax) -- set max
 											ml_global_information.Await(math.random(150,300))
-											ml_task_hub:CurrentTask().matsSet = true
 											return
-										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq <= ingredient.inventoryhq)) then -- set as much as currently possible
+										elseif ((ingredient.inventoryhq >= hqAmountMin) and (ingredient.inventoryhq < hqAmountMax) and (ingredient.selectedhq < ingredient.inventoryhq)) then -- set as much as currently possible
 											d("[Craft]: Order is set use as much HQ as I Currently have of ["..tostring(ingredient.inventoryhq).."] HQ of ["..ingredient.name.."].")
 											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq) -- set what i have
 											ml_global_information.Await(math.random(150,300))
-											ml_task_hub:CurrentTask().matsSet = true
 											return
 										elseif (ingredient.inventoryhq < hqAmountMin) then
 											d("[Craft]: Stop crafting item, not enough HQ Items of ["..ingredient.name.."].")
@@ -1498,7 +1497,6 @@ function e_startcraft:execute()
 												d("[Craft]: Order is set to use HQ mats if necessary, need ["..tostring((ingredient.needed - ingredient.inventorynq)).."] of ["..ingredient.name.."].")
 												Crafting:SetCraftingMats(i-1,(ingredient.needed - ingredient.inventorynq))
 												ml_global_information.Await(math.random(150,300))
-												ml_task_hub:CurrentTask().matsSet = true
 												return
 											else
 												d("[Craft]: Not enough materials including HQ.")
@@ -1576,6 +1574,8 @@ function e_startcraft:execute()
 							ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
 							ml_task_hub:CurrentTask().matsSet = false
 							ml_task_hub:CurrentTask().recipeSelected = false
+							ffxiv_craft.resetRecipe = true
+							ml_task_hub:CurrentTask().allowWindowOpen = true
 							ml_global_information.Await(2500)
 							return
 						else
@@ -2034,7 +2034,10 @@ function ffxiv_task_craftitems:Init()
     self:add(ke_craft, self.process_elements)   
 	
 	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 50 )
-    self:add(ke_opencraftlog, self.process_elements)
+    self:add(ke_opencraftlog, self.process_elements)    
+			
+	local ke_resetCraft = ml_element:create( "ResetCraft", c_resetcraft, e_resetcraft, 1000 )
+    self:add(ke_resetCraft, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
@@ -3902,4 +3905,19 @@ function ffxiv_craft.Draw( event, ticks )
 	end
 end
 
+c_resetcraft = inheritsFrom( ml_cause )
+e_resetcraft = inheritsFrom( ml_effect )
+function c_resetcraft:evaluate()
+	if ffxiv_craft.resetRecipe then
+		if (IsControlOpen("RecipeNote")) then
+			ffxiv_craft.ToggleCraftingLog()
+			ffxiv_craft.resetRecipe = false
+			return true
+		end
+	end
+	return false
+end
+
+function e_resetcraft:execute()
+end
 RegisterEventHandler("Gameloop.Draw", ffxiv_craft.Draw, "ffxiv_craft.Draw")
