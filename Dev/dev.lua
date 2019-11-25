@@ -286,6 +286,20 @@ function dev.DrawCall(event, ticks )
                         if GUI:Button("Set Legacy") then Player:SetMoveMode(1) end
 						GUI:TreePop()
 					end
+
+					if (GUI:TreeNode("Gearsets")) then
+						for i, gs in ipairs(Player:GetGearSetList()) do
+							if (GUI:TreeNode(tostring(i) .. " - " .. gs.name)) then
+								GUI:BulletText("Name") GUI:SameLine(200) GUI:InputText("##devgearsetname" .. tostring(i), gs.name)
+								GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devgearsetjob" .. tostring(i), gs.job)
+								if (GUI:Button("Equip##" .. "devgs" .. tostring(i), 100, 15)) then
+									SendTextCommand("/gs equip " .. tostring(i)) -- the command is "/gs equip 1" where 1 is the index of the gear set, GetGearSetList() returns them in order
+								end
+								GUI:TreePop()
+							end
+						end
+						GUI:TreePop()
+					end
 				else
 					GUI:Text("Not Ingame...")
 				end
