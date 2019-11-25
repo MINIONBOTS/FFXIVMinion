@@ -2521,3 +2521,70 @@ function ffxiv_misc_scripexchange:Init()
 
 	self:AddTaskCheckCEs()
 end
+
+ffxiv_misc_exchange = inheritsFrom(ml_task)
+function ffxiv_misc_exchange.Create()
+    local newinst = inheritsFrom(ffxiv_misc_exchange)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MISC_SCRIPEXCHANGE"
+	
+	newinst.categories = {}
+	newinst.loaded = false
+		
+	newinst.id = 1031677
+	newinst.mapid = 886
+	newinst.pos = {
+		x = 50, y = -16, z = 168
+	}
+	
+    return newinst
+end
+
+function ffxiv_misc_exchange:task_complete_eval()
+	local checkedAll = true
+	for i = 0,10 do
+		if (self.categories[i] ~= true) then
+			checkedAll = false
+		end
+	end
+	return checkedAll
+end
+
+function ffxiv_misc_exchange:task_complete_execute()
+	local supply = GetControl("MasterPieceSupply")
+	if (supply and supply:IsOpen()) then
+		supply:Close()	
+		ml_global_information.Await(1500, function () return not IsControlOpen("MasterPieceSupply") end) 
+		return
+	end
+	self.completed = true
+end
+
+function ffxiv_misc_exchange:Init()
+	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
+    self:add( ke_moveToMap, self.process_elements)
+	
+	local ke_scripExchange = ml_element:create( "ScripExchange", c_scripexchange, e_scripexchange, 100 )
+	self:add( ke_scripExchange, self.process_elements)
+	
+	local ke_Exchange = ml_element:create( "Exchange", c_exchange, e_exchange, 100 )
+	self:add( ke_Exchange, self.process_elements)
+	
+	local ke_selectConvIndex = ml_element:create( "SelectConvIndex", c_selectconvindex, e_selectconvindex, 90 )
+    self:add( ke_selectConvIndex, self.process_elements)
+	
+	local ke_positionLocked = ml_element:create( "PositionLocked", c_positionlocked, e_positionlocked, 80 )
+    self:add( ke_positionLocked, self.process_elements)
+	
+	local ke_interact = ml_element:create( "Interact", c_moveandinteract, e_moveandinteract, 10 )
+    self:add( ke_interact, self.process_elements)
+
+	self:AddTaskCheckCEs()
+end

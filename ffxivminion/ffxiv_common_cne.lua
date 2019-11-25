@@ -3397,14 +3397,29 @@ function c_switchclass:evaluate()
 		
 		local override = ml_task_hub:CurrentTask().override
 		local gsvar = "gGearset"..tostring(class)
+		local searchList = Player:GetGearSetList()
+		local newSet = _G[gsvar]
+		
+		if table.valid(searchList) then
+			if (In(tonumber(newSet),0) or (tonumber(newSet) ~= 0 and (not string.contains(searchList[tonumber(newSet)].name,ffxivminion.classes[class])))) then
+				if ffxivminion.classes[class] then
+					for i,e in spairs(searchList) do
+						if (string.contains(e.name,ffxivminion.classes[class])) then
+							newSet = i
+						end
+					end
+				end
+			end
+		end
+		
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
 			e_switchclass.blockOnly = true
 			return true
-		elseif (_G[gsvar] ~= 0) then
-			local commandString = "/gs change "..tostring(_G[gsvar])
+		elseif (tonumber(newSet) ~= 0) then
+			local commandString = "/gs change "..tostring(newSet)
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
 			e_switchclass.blockOnly = true
@@ -3881,21 +3896,23 @@ function c_scripexchange:evaluate()
 	
 	c_scripexchange.lastItem = 0
 	c_scripexchange.handoverComplete = false
-	
-	if (not IsControlOpen("MasterPieceSupply")) then
+	local addonName = "MasterPieceSupply"
+	local addonCatagory = "SelectCategory"
+	local addonComplete = "CompleteDelivery"
+	if (not IsControlOpen(addonName)) then
 		return false
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction("MasterPieceSupply","SelectCategory",0)
+			UseControlAction(addonName,addonCatagory,0)
 			c_scripexchange.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
 	end
 	
-	local currentCategory = GetControlData("MasterPieceSupply","category")
-	local currentItems = GetControlData("MasterPieceSupply","items")
-	local checkedCategories = ml_task_hub:CurrentTask().categories
+	local currentCategory = GetControlData(addonName,"category")
+	local currentItems = GetControlData(addonName,"items")
+	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
 	local currentCheck = 0
 	for i = 0,10 do
 		if (checkedCategories[i] ~= true) then
@@ -3906,7 +3923,7 @@ function c_scripexchange:evaluate()
 	
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
-		UseControlAction("MasterPieceSupply","SelectCategory",currentCheck)
+		UseControlAction(addonName,addonCatagory,currentCheck)
 		c_scripexchange.lastSwitch = Now()
 		return true
 	else
@@ -3925,7 +3942,7 @@ function c_scripexchange:evaluate()
 						c_scripexchange.lastItem = itemdata.itemid
 						c_scripexchange.handoverComplete = false
 						
-						local completeret = UseControlAction("MasterPieceSupply","CompleteDelivery",index-1)
+						local completeret = UseControlAction(addonName,addonComplete,index-1)
 						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
 						return true
 					else
@@ -3947,4 +3964,127 @@ function c_scripexchange:evaluate()
 end
 function e_scripexchange:execute()
 	--don't really need this
+end
+
+c_exchange = inheritsFrom( ml_cause )
+e_exchange = inheritsFrom( ml_effect )
+c_exchange.lastItem = 0
+c_exchange.lastComplete = 0
+c_exchange.lastSwitch = 0
+c_exchange.lastOpen = 0
+c_exchange.attempts = 0
+c_exchange.handoverComplete = false
+function c_exchange:evaluate()
+	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_exchange.lastComplete) < 5000) then
+		if (not IsControlOpen("_NotificationParty")) then
+			UseControlAction("SelectYesno","Yes")
+			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
+			return
+		end
+	end	
+	
+	if (IsControlOpen("Request")) then
+		if (c_exchange.handoverComplete) then
+			d("[ScripExchange]: Completing handover process.")
+			UseControlAction("Request","HandOver")
+			c_exchange.handoverComplete = false
+			c_exchange.lastComplete = Now()
+			return true
+		else
+			local items = GetItems({c_exchange.lastItem},{0,1,2,3})
+			
+			if (table.valid(items)) then
+				d("[ScripExchange]: Found ["..tostring(table.size(items)).."] possible items.")
+				for i, itemdata in pairs(items) do
+					if (itemdata) then
+						local item = itemdata.item
+						if (item) then
+							local result = item:HandOver()
+							d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
+							if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
+								c_exchange.handoverComplete = true
+								c_exchange.attempts = 0
+								return true
+							end
+						end
+					end
+				end
+			else
+				d("[ScripExchange]: Couldn't find item ["..tostring(c_exchange.lastItem).."]")
+			end
+		end
+		return false
+	end
+	
+	c_exchange.lastItem = 0
+	c_exchange.handoverComplete = false
+	local addonName = "HWDSupply"
+	local addonCatagory = "SetTabIndex"
+	local addonComplete = "SetIndex"
+		
+	if (not IsControlOpen(addonName)) then
+		return false
+	else
+		if (not ml_task_hub:CurrentTask().loaded) then
+			ml_global_information.Await(1000)
+			UseControlAction(addonName,addonCatagory,0)
+			c_exchange.lastSwitch = Now() + 1000
+			ml_task_hub:CurrentTask().loaded = true
+		end
+	end
+	local catagoryData = GetControlRawData("HWDSupply",30)
+	local currentCategory = nil
+	if catagoryData then
+		currentCategory = catagoryData.value
+	end
+	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()
+	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
+	local currentCheck = 0
+	for i = 0,10 do
+		if (checkedCategories[i] ~= true) then
+			currentCheck = i
+			break
+		end
+	end
+	
+	if (currentCategory ~= currentCheck) then
+		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
+		UseControlAction(addonName,addonCatagory,currentCheck)
+		c_exchange.lastSwitch = Now()
+		return true
+	else
+		if (table.isa(currentItems)) then
+			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
+			for index,itemdata in pairs(currentItems[currentCategory + 8]) do
+				
+				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
+				if ((currentamount + itemdata.reward) <= 10000) then
+					
+					local itemNumbers = GetControlRawData("HWDSupply",35 + (index * 14)).value
+					if itemNumbers > 0 then
+						--local originalQuantity = itemdata.ownedquantity
+						c_exchange.lastItem = itemdata.itemid + 500000
+						c_exchange.handoverComplete = false
+						c_exchange.attempts = c_exchange.attempts + 1
+						local completeret = UseControlAction(addonName,addonComplete,index-1)
+						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
+						return true
+					else
+						d("[ScripExchange]: Owned 0.")
+					end
+				else
+					--d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
+				end
+			end
+			
+			if (TimeSince(c_exchange.lastSwitch) > 500) then
+				ml_task_hub:CurrentTask().categories[currentCheck] = true
+			end
+			return true
+		end
+	end
+	
+	return false
+end
+function e_exchange:execute()
 end
