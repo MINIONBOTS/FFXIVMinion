@@ -3081,18 +3081,23 @@ function c_selectconvindex:evaluate()
 end
 function e_selectconvindex:execute()	
 	local conversationstrings = IsNull(ml_task_hub:CurrentTask().conversationstrings,{})
+	local checkedIndexes = IsNull(ml_task_hub:CurrentTask().checked,{})
+	
 	if (table.valid(conversationstrings)) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
-			for selectindex,convo in pairs(convoList) do
-				local cleanedline = CleanConvoLine(convo)
-				for k,v in pairs(conversationstrings) do
-					local cleanedv = CleanConvoLine(v)
-					if (string.contains(cleanedline,cleanedv)) then
-						d("Use conversation line ["..tostring(convo).."]")
-						SelectConversationLine(selectindex)
-						ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
-						return false
+			for k,v in pairs(conversationstrings) do
+				for selectindex,convo in pairs(convoList) do
+					if not (checkedIndexes[k]) then
+						local cleanedv = CleanConvoLine(v)
+						local cleanedline = CleanConvoLine(convo)						
+						if (string.contains(cleanedline,cleanedv)) then
+							d("Use conversation line ["..tostring(convo).."]")
+							SelectConversationLine(selectindex)
+							checkedIndexes[k] = true
+							ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
+							return false
+						end
 					end
 				end
 			end

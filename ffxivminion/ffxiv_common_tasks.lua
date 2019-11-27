@@ -1896,6 +1896,7 @@ function ffxiv_nav_interact.Create()
 	newinst.killParent = false
 	newinst.abort = nil
 	newinst.alwaysMount = false
+	newinst.checked = {}
 	
 	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true
@@ -2003,6 +2004,7 @@ function ffxiv_misc_shopping.Create()
 	newinst.id = 0
 	newinst.mapid = 0
 	newinst.pos = {}
+	newinst.checked = {}
 	
     return newinst
 end
@@ -2464,6 +2466,7 @@ function ffxiv_misc_scripexchange.Create()
     newinst.name = "MISC_SCRIPEXCHANGE"
 	
 	newinst.categories = {}
+	newinst.checked = {}
 	newinst.loaded = false
 	
 	local appraiser = FindNearestCollectableAppraiser()
@@ -2536,6 +2539,7 @@ function ffxiv_misc_exchange.Create()
     newinst.name = "MISC_SCRIPEXCHANGE"
 	
 	newinst.categories = {}
+	newinst.checked = {}
 	newinst.loaded = false
 		
 	newinst.id = 1031677
