@@ -2558,10 +2558,10 @@ function ffxiv_misc_exchange:task_complete_eval()
 end
 
 function ffxiv_misc_exchange:task_complete_execute()
-	local supply = GetControl("MasterPieceSupply")
+	local supply = GetControl("HWDSupply")
 	if (supply and supply:IsOpen()) then
 		supply:Close()	
-		ml_global_information.Await(1500, function () return not IsControlOpen("MasterPieceSupply") end) 
+		ml_global_information.Await(1500, function () return not IsControlOpen("HWDSupply") end) 
 		return
 	end
 	self.completed = true
