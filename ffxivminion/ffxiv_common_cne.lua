@@ -3917,7 +3917,7 @@ function c_scripexchange:evaluate()
 	
 	local currentCategory = GetControlData(addonName,"category")
 	local currentItems = GetControlData(addonName,"items")
-	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
+	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7})
 	local currentCheck = 0
 	for i = 0,10 do
 		if (checkedCategories[i] ~= true) then
