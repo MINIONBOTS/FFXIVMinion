@@ -859,6 +859,7 @@ SkillMgr.Variables = {
 	SKM_GMaxAttempts = { default = 0, cast = "number", profile = "maxgatherattempts", readable = "", section = "gathering"},
 	SKM_HasItem = { default = "", cast = "string", profile = "hasitem", readable = "", section = "gathering"},
 	SKM_IsItem = { default = "", cast = "string", profile = "isitem", readable = "", section = "gathering"},
+	SKM_QTY = { default = 0, cast = "number", profile = "quantity", readable = "", section = "gathering"},
 	SKM_UNSP = { default = false, cast = "boolean", profile = "isunspoiled", readable = "", section = "gathering"},
 	SKM_EPHE = { default = false, cast = "boolean", profile = "isephemeral", readable = "", section = "gathering"},
 	SKM_LGND = { default = false, cast = "boolean", profile = "islegendary", readable = "", section = "gathering"},
@@ -3674,6 +3675,11 @@ function SkillMgr.Gather(item)
 						end
 					end
 					
+					if (tonumber(skill.quantity) > 0 and node.quantity < tonumber(skill.quantity)) 	then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] quantity."..tonumber(skill.quantity).."")
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] node quantity."..tonumber(node.quantity).."")
+						castable = false 
+					end
 					if (toboolean(skill.isunspoiled) and not IsUnspoiled(node.contentid)) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unspoiled status.")
 						castable = false
@@ -6777,6 +6783,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("GP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("GP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
 		GUI:Separator();
+		GUI:Text(GetString("Quantity >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QTY",SKM_QTY,0,0),"SKM_QTY"); GUI:NextColumn();
 		GUI:Text(GetString("Has Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_HasItem",SKM_HasItem),"SKM_HasItem"); GUI:NextColumn();	
 		GUI:Text(GetString("Is Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_IsItem",SKM_IsItem),"SKM_IsItem"); GUI:NextColumn();
 		GUI:Separator();
