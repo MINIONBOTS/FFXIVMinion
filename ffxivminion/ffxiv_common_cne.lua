@@ -3094,12 +3094,9 @@ function e_selectconvindex:execute()
 						if (string.contains(cleanedline,cleanedv)) then
 							d("Use conversation line ["..tostring(convo).."]")
 							SelectConversationLine(selectindex)
-							ml_global_information.AwaitSuccess(2000, function () 
-								if not (table.valid(GetConversationList())) then
-									checkedIndexes[k] = true
-									return false		
-								end
-							end)
+							checkedIndexes[k] = true
+							ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
+							return false
 						end
 					end
 				end
