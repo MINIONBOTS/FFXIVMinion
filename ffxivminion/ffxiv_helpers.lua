@@ -4221,26 +4221,28 @@ function GetAetheryteByMapID(mapid, p)
 			local size = TableSize(choices)
 			if (size > 1) then
 			
-				if (choices[1].best and type(choices[1].best) == "function") then
-					if (choices[1].best() == true) then
-						bestID = choices[1].aethid
-					end
-				end
-				
-				if (bestID == nil) then
-					if (choices[2].best and type(choices[2].best) == "function") then
-						if (choices[2].best() == true) then
-							bestID = choices[2].aethid
+				local closest,closestDistance = nil,5000
+				for i,choice in pairsByKeys(choices) do
+					if (choice.aethid) then
+						if (choice.best and type(choice.best) == "function") then
+							if (choice.best() == true) then
+								closest = choice.aethid
+								break
+							end
+						end
+					
+						local dist = Distance2D(pos.x, pos.z, choice.x, choice.z)
+						if not closest or (dist < closestDistance) then
+							closest = choice.aethid
+							closestDistance = dist
 						end
 					end
 				end
 				
-				if (bestID == nil) then
-					local distance1 = Distance2D(pos.x, pos.z, choices[1].x, choices[1].z)
-					local distance2 = Distance2D(pos.x, pos.z, choices[2].x, choices[2].z)
-					bestID = ((distance1 < distance2) and choices[1].aethid) or choices[2].aethid
+				if (closest) then
+					bestID = closest
 				end
-				
+					
 				if (bestID ~= nil) then
 					for index,aetheryte in pairs(list) do
 						if (aetheryte.id == bestID) then
