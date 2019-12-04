@@ -100,71 +100,37 @@ SkillMgr.preCombat = false
 SkillMgr.knownDebuffs = "1,3,4,5,6,7,9,10,14,15,17,18,19,20,26,28,30,32,34,36,38,54,55,58,59,62,67,181,19​3,210,213,215,216,240,250,267,275,280,284,268,285,235,269,270,271,272,273,283,28​6,287,288,320,339,343,407,442,48​2,485,503,509,530,532,533,534,535,559,560,561,5​64,569,571,605,610,619,620,642,643,666,677,686,723,785,801,893,910,926"
 SkillMgr.doLoad = true
 
-if (GetGameRegion() ~= 3) then
-	SkillMgr.StartingProfiles = {
-		[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB",
-		[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
-		[FFXIV.JOBS.MARAUDER] = "Warrior_SHB",
-		[FFXIV.JOBS.WARRIOR] = "Warrior_SHB",
-		[FFXIV.JOBS.PUGILIST] = "Monk", -- works for SHB
-		[FFXIV.JOBS.MONK] = "Monk", -- works for SHB
-		[FFXIV.JOBS.LANCER] = "Dragoon_SHB",
-		[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB",
-		[FFXIV.JOBS.ARCHER] = "Bard_SHB",
-		[FFXIV.JOBS.BARD] = "Bard_SHB",
-		[FFXIV.JOBS.CONJURER] = "Whitemage_SHB",
-		[FFXIV.JOBS.WHITEMAGE] = "Whitemage_SHB",
-		[FFXIV.JOBS.THAUMATURGE] = "Blackmage_SHB",
-		[FFXIV.JOBS.BLACKMAGE] = "Blackmage_SHB",
-		[FFXIV.JOBS.ARCANIST] = "Summoner_SHB",
-		[FFXIV.JOBS.SUMMONER] = "Summoner_SHB",
-		[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB",
-		[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
-		[FFXIV.JOBS.MINER] = "Gathering_Leveling",
-		[FFXIV.JOBS.ROGUE] = "Rogue",-- works for SHB
-		[FFXIV.JOBS.NINJA] = "Ninja",-- works for SHB
-		[FFXIV.JOBS.MACHINIST] = "Machinist_SHB",
-		[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB",
-		[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB",
-		[FFXIV.JOBS.SAMURAI] = "Samurai_SHB",
-		[FFXIV.JOBS.REDMAGE] = "Redmage_SHB",
-		[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
-		[FFXIV.JOBS.DANCER] = "Dancer",
-		[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
-	}
-else
-	SkillMgr.StartingProfiles = {
-		[FFXIV.JOBS.GLADIATOR] = "Paladin",
-		[FFXIV.JOBS.PALADIN] = "Paladin",
-		[FFXIV.JOBS.MARAUDER] = "Warrior",
-		[FFXIV.JOBS.WARRIOR] = "Warrior",
-		[FFXIV.JOBS.PUGILIST] = "Monk",
-		[FFXIV.JOBS.MONK] = "Monk",
-		[FFXIV.JOBS.LANCER] = "Dragoon",
-		[FFXIV.JOBS.DRAGOON] = "Dragoon",
-		[FFXIV.JOBS.ARCHER] = "Bard",
-		[FFXIV.JOBS.BARD] = "Bard",
-		[FFXIV.JOBS.CONJURER] = "Whitemage",
-		[FFXIV.JOBS.WHITEMAGE] = "Whitemage",
-		[FFXIV.JOBS.THAUMATURGE] = "Blackmage",
-		[FFXIV.JOBS.BLACKMAGE] = "Blackmage",
-		[FFXIV.JOBS.ARCANIST] = "Summoner",
-		[FFXIV.JOBS.SUMMONER] = "Summoner",
-		[FFXIV.JOBS.SCHOLAR] = "Scholar",
-		[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
-		[FFXIV.JOBS.MINER] = "Gathering_Leveling",
-		[FFXIV.JOBS.ROGUE] = "Rogue",
-		[FFXIV.JOBS.NINJA] = "Ninja",
-		[FFXIV.JOBS.MACHINIST] = "Machinist",
-		[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian",
-		[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
-		[FFXIV.JOBS.SAMURAI] = "Samurai",
-		[FFXIV.JOBS.REDMAGE] = "Redmage",
-		[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
-		[FFXIV.JOBS.DANCER] = "Dancer",
-		[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
-	}
-end
+SkillMgr.StartingProfiles = {
+	[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB",
+	[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
+	[FFXIV.JOBS.MARAUDER] = "Warrior_SHB",
+	[FFXIV.JOBS.WARRIOR] = "Warrior_SHB",
+	[FFXIV.JOBS.PUGILIST] = "Monk", -- works for SHB
+	[FFXIV.JOBS.MONK] = "Monk", -- works for SHB
+	[FFXIV.JOBS.LANCER] = "Dragoon_SHB",
+	[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB",
+	[FFXIV.JOBS.ARCHER] = "Bard_SHB",
+	[FFXIV.JOBS.BARD] = "Bard_SHB",
+	[FFXIV.JOBS.CONJURER] = "Whitemage_SHB",
+	[FFXIV.JOBS.WHITEMAGE] = "Whitemage_SHB",
+	[FFXIV.JOBS.THAUMATURGE] = "Blackmage_SHB",
+	[FFXIV.JOBS.BLACKMAGE] = "Blackmage_SHB",
+	[FFXIV.JOBS.ARCANIST] = "Summoner_SHB",
+	[FFXIV.JOBS.SUMMONER] = "Summoner_SHB",
+	[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB",
+	[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
+	[FFXIV.JOBS.MINER] = "Gathering_Leveling",
+	[FFXIV.JOBS.ROGUE] = "Rogue",-- works for SHB
+	[FFXIV.JOBS.NINJA] = "Ninja",-- works for SHB
+	[FFXIV.JOBS.MACHINIST] = "Machinist_SHB",
+	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB",
+	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB",
+	[FFXIV.JOBS.SAMURAI] = "Samurai_SHB",
+	[FFXIV.JOBS.REDMAGE] = "Redmage_SHB",
+	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
+	[FFXIV.JOBS.DANCER] = "Dancer",
+	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
+}
 
 SkillMgr.ExtraProfiles = {
 	"Aetherial_Gathering",
@@ -900,7 +866,7 @@ function SkillMgr.ModuleInit()
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	gSMProfileUpdates = ffxivminion.GetSetting("gSMProfileUpdates",0)
 
-	if (GetGameRegion() ~= 3) and gSMProfileUpdates < 20190818 then
+	if gSMProfileUpdates < 20190818 then
 		if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) or (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == "Paladin") then
 			gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB"
 		end
