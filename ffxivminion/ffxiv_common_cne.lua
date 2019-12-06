@@ -3073,9 +3073,17 @@ end
 c_selectconvindex = inheritsFrom( ml_cause )
 e_selectconvindex = inheritsFrom( ml_effect )
 c_selectconvindex.unexpected = 0
+c_selectconvindex.reset = 0
+c_selectconvindex.lastmenu = ""
+c_selectconvindex.selected = 0
 function c_selectconvindex:evaluate()	
 	if (c_selectconvindex.unexpected > 5) then
 		c_selectconvindex.unexpected = 0
+	end
+	if (TimeSince(c_selectconvindex.reset) > 10000) then
+		c_selectconvindex.reset = 0
+		c_selectconvindex.lastmenu = ""
+		ml_task_hub:CurrentTask().checked = {}
 	end
 	return (IsControlOpen("SelectIconString") or IsControlOpen("SelectString"))
 end
@@ -3086,6 +3094,12 @@ function e_selectconvindex:execute()
 	if (table.valid(conversationstrings)) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
+			if c_selectconvindex.lastmenu ~= "" then
+				if convoList[1] ~= c_selectconvindex.lastmenu then
+					checkedIndexes[c_selectconvindex.selected] = true
+				end
+			end
+			c_selectconvindex.lastmenu = convoList[1]
 			for k,v in pairs(conversationstrings) do
 				for selectindex,convo in pairs(convoList) do
 					if not (checkedIndexes[k]) then
@@ -3094,8 +3108,8 @@ function e_selectconvindex:execute()
 						if (string.contains(cleanedline,cleanedv)) then
 							d("Use conversation line ["..tostring(convo).."]")
 							SelectConversationLine(selectindex)
-							checkedIndexes[k] = true
 							ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
+							c_selectconvindex.selected = k
 							return false
 						end
 					end
