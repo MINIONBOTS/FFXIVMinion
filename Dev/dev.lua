@@ -447,6 +447,15 @@ function dev.DrawCall(event, ticks )
 												GUI:BulletText("IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
 												GUI:BulletText("CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
 												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
+												
+												if (action.type == 1) then
+													GUI:BulletText(".attacktype") GUI:SameLine(200) GUI:InputText("##devac26"..tostring(actionid),tostring(action.attacktype))
+													GUI:BulletText(".cooldowngroup") GUI:SameLine(200) GUI:InputText("##devac27"..tostring(actionid),tostring(action.cooldowngroup))
+													GUI:BulletText(".statusgainedid") GUI:SameLine(200) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
+													GUI:BulletText(".secondarycostid") GUI:SameLine(200) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
+													GUI:BulletText(".aspect") GUI:SameLine(200) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
+												end
+
 												if (action.type == 13) then
 													GUI:BulletText(".canfly") GUI:SameLine(200) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
 												end												
