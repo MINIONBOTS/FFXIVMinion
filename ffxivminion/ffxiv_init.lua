@@ -437,8 +437,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(175, "Wolves' Den Pier", enforce)
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves' Den Pier", enforce)
 		ml_mesh_mgr.SetDefaultMesh(186, "Wolves' Den Pier", enforce)
-		ml_mesh_mgr.SetDefaultMesh(250, "Wolves' Den Pier", enforce)
-		ml_mesh_mgr.SetDefaultMesh(888, "[PVP] Onsal Hakair", enforce)
+		ml_mesh_mgr.SetDefaultMesh(250, "Wolves' Den Pier", enforce)		
 
 		
 		--ml_mesh_mgr.SetDefaultMesh(376, "Frontlines", enforce)
@@ -446,6 +445,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(554, "[PVP] - Fields of Glory (Shatter)", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(729, "[PVP] - Astragalos (Rival Wings)", enforce)
+		ml_mesh_mgr.SetDefaultMesh(888, "[PVP] Onsal Hakair", enforce)
 		
 		 -- Housing
 		ml_mesh_mgr.SetDefaultMesh(339, "[Housing] Mist", enforce)
