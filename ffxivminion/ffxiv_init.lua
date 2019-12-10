@@ -438,6 +438,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves' Den Pier", enforce)
 		ml_mesh_mgr.SetDefaultMesh(186, "Wolves' Den Pier", enforce)
 		ml_mesh_mgr.SetDefaultMesh(250, "Wolves' Den Pier", enforce)
+		ml_mesh_mgr.SetDefaultMesh(888, "[PVP] Onsal Hakair", enforce)
+
 		
 		--ml_mesh_mgr.SetDefaultMesh(376, "Frontlines", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter", enforce)
