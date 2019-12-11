@@ -5354,6 +5354,7 @@ function IsPVPMap(mapid)
 		[479] = true,
 		[580] = true,
 		[599] = true,
+		[888] = true,
 	}
 	return (pvpMaps[mapid] ~= nil)
 end
