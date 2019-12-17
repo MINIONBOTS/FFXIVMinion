@@ -5340,21 +5340,16 @@ function IsPVPMap(mapid)
 		[554] = true,
 		
 		[127] = true,
-		[130] = true,
 		[143] = true,
-		[145] = true,
-		[180] = true,
 		[201] = true,
 		[228] = true,
 		[230] = true,
 		[233] = true,
 		[277] = true,
 		[476] = true,
-		[478] = true,
 		[479] = true,
 		[580] = true,
 		[599] = true,
-		[888] = true,
 	}
 	return (pvpMaps[mapid] ~= nil)
 end
@@ -8063,6 +8058,7 @@ function GetRequiredPitch(pos,noadjustment)
 end
 function IsNormalMap(mapid)
 	local maps = {
+		[130] = true,
 		[134] = true,
 		[135] = true,
 		[137] = true,
@@ -8080,7 +8076,6 @@ function IsNormalMap(mapid)
 		[155] = true,
 		[156] = true,
 		[180] = true,
-		[250] = true,
 		[130] = true,
 		[182] = true,
 		[131] = true,
