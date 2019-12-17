@@ -7362,7 +7362,7 @@ function TestConditions(conditions)
 			if (ValidTable(conditionset)) then
 				for condition,value in pairs(conditionset) do
 					
-					if (memoize.conditions[condition]) then
+					if (memoize.conditions[condition] ~= nil) then
 						if (memoize.conditions[condition] ~= value) then
 							return false
 						end
@@ -7406,7 +7406,7 @@ function TestConditions(conditions)
 	else
 		if (ValidTable(conditions)) then
 			for condition,value in pairs(conditions) do
-				if (memoize.conditions[condition]) then
+				if (memoize.conditions[condition] ~= nil) then
 					if (memoize.conditions[condition] ~= value) then
 						return false
 					end
