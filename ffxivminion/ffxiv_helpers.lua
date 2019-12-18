@@ -5303,11 +5303,30 @@ end
 function IsPVPMap(mapid)
 	local mapid = tonumber(mapid) or 0
 	local pvpMaps = {
+		
+		[250] = true, -- Wolves Den
+		[376] = true, --   the Borderland Ruins (Secure)
+		[431] = true, --   Seal Rock (Seize)
+		[525] = true, --   the Feast (4 on 4 - Training)
+		[527] = true, --   the Feast (4 on 4 - Ranked)
+		[554] = true, --   the Fields of Glory (Shatter)
+		[619] = true, --   the Feast (Custom Match - Feasting Grounds)
+		[632] = true, --   the Feast (4 on 4 - Training)
+		[644] = true, --   the Feast (4 on 4 - Ranked)
+		[646] = true, --   the Feast (Custom Match - Lichenweed)
+		[729] = true, --   Astragalos
+		[745] = true, --   the Feast (Team Ranked)
+		[765] = true, --   the Feast (Ranked)
+		[766] = true, --   the Feast (Training)
+		[767] = true, --   the Feast (Custom Match - Crystal Tower)
+		[767] = true, --   the Feast (Team Custom Match - Crystal Tower)
+		[791] = true, --   Hidden Gorge
+		[888] = true, --   Onsal Hakair (Danshig Naadam)
+		--[[
 		[149] = true,
 		[175] = true,
 		[184] = true,
 		[186] = true,
-		[250] = true,
 		[336] = true,
 		[337] = true,
 		[352] = true,
@@ -5349,7 +5368,7 @@ function IsPVPMap(mapid)
 		[476] = true,
 		[479] = true,
 		[580] = true,
-		[599] = true,
+		[599] = true,]]
 	}
 	return (pvpMaps[mapid] ~= nil)
 end
