@@ -5305,6 +5305,14 @@ function IsPVPMap(mapid)
 	local pvpMaps = {
 		
 		[250] = true, -- Wolves Den
+		[336] = true, -- Wolves Den
+		[337] = true, -- Wolves Den
+		[175] = true, -- Wolves Den
+		[352] = true, -- Wolves Den
+		[186] = true, -- Wolves Den
+		
+		[422] = true, -- Frontlines - Slaughter
+		
 		[376] = true, --   the Borderland Ruins (Secure)
 		[431] = true, --   Seal Rock (Seize)
 		[525] = true, --   the Feast (4 on 4 - Training)
@@ -5322,53 +5330,24 @@ function IsPVPMap(mapid)
 		[767] = true, --   the Feast (Team Custom Match - Crystal Tower)
 		[791] = true, --   Hidden Gorge
 		[888] = true, --   Onsal Hakair (Danshig Naadam)
-		--[[
-		[149] = true,
-		[175] = true,
-		[184] = true,
-		[186] = true,
-		[336] = true,
-		[337] = true,
-		[352] = true,
-		[376] = true,
-		[422] = true,
-		[431] = true,
-		[502] = true,
-		[506] = true,
-		[518] = true,
-		[525] = true,
-		[526] = true,
-		[527] = true,
-		[528] = true,
-		[537] = true,
-		[538] = true,
-		[539] = true,
-		[540] = true,
-		[541] = true,
-		[542] = true,
-		[543] = true,
-		[544] = true,
-		[545] = true,
-		[546] = true,
-		[547] = true,
-		[548] = true,
-		[549] = true,
-		[550] = true,
-		[551] = true,
-		[552] = true,
-		[554] = true,
 		
-		[127] = true,
-		[143] = true,
-		[201] = true,
-		[228] = true,
-		[230] = true,
-		[233] = true,
-		[277] = true,
-		[476] = true,
-		[479] = true,
-		[580] = true,
-		[599] = true,]]
+		[537] = true, -- The Fold ??
+		[538] = true, -- The Fold ??
+		[539] = true, -- The Fold ??
+		[540] = true, -- The Fold ??
+		[541] = true, -- The Fold ??
+		[542] = true, -- The Fold ??
+		[543] = true, -- The Fold ??
+		[544] = true, -- The Fold ??
+		[545] = true, -- The Fold ??
+		[546] = true, -- The Fold ??
+		[547] = true, -- The Fold ??
+		[548] = true, -- The Fold ??
+		[549] = true, -- The Fold ??
+		[550] = true, -- The Fold ??
+		[551] = true, -- The Fold ??
+		
+		
 	}
 	return (pvpMaps[mapid] ~= nil)
 end
