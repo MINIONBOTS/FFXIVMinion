@@ -5313,6 +5313,7 @@ function IsPVPMap(mapid)
 		
 		[422] = true, -- Frontlines - Slaughter
 		
+		[149] = true, --   The Feasting Grounds
 		[376] = true, --   the Borderland Ruins (Secure)
 		[431] = true, --   Seal Rock (Seize)
 		[525] = true, --   the Feast (4 on 4 - Training)
