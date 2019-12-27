@@ -92,6 +92,7 @@ function dev.DrawCall(event, ticks )
 											if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
 											GUI:SameLine()
 											if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+											
 										else
 											if (GUI:Button("Close",100,15) ) then d("Closing Control Result: "..tostring(e:Close())) end
 											GUI:SameLine()
@@ -2049,6 +2050,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("IsMounted") GUI:SameLine(200) GUI:InputText("##dev38", tostring(c.ismounted))
 		GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##dev21",tostring(c.job))
 		GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##dev22",tostring(c.level))
+		GUI:BulletText("PvPTeam") GUI:SameLine(200) GUI:InputText("##dev672",tostring(c.pvpteam))
 		GUI:BulletText("GrandCompany") GUI:SameLine(200) GUI:InputText("##dev41",tostring(c.grandcompany))
 		GUI:BulletText("GrandCompanyRank") GUI:SameLine(200) GUI:InputText("##dev42",tostring(c.grandcompanyrank))
 		GUI:BulletText("Aggro") GUI:SameLine(200) GUI:InputText("##dev24",tostring(c.aggro))
