@@ -3639,12 +3639,11 @@ function SkillMgr.Gather(item)
 								castable = false
 							end
 						end
-					end
-					
-					if (tonumber(skill.quantity) > 0 and node.quantity < tonumber(skill.quantity)) 	then 
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] quantity."..tonumber(skill.quantity).."")
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] node quantity."..tonumber(node.quantity).."")
-						castable = false 
+						if (tonumber(skill.quantity) > 0 and item.quantity < tonumber(skill.quantity)) 	then 
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] quantity."..tonumber(skill.quantity).."")
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] item quantity."..tonumber(item.quantity).."")
+							castable = false 
+						end
 					end
 					if (toboolean(skill.isunspoiled) and not IsUnspoiled(node.contentid)) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unspoiled status.")
