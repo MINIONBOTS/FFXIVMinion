@@ -1588,6 +1588,16 @@ function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then
 		return false
 	end
+	if (ml_task_hub:CurrentTask().useAethernet == false) then
+		return false
+	end
+	if Player.localmapid == 478 then
+		local walkDist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,107,207,109)
+		if (walkDist <= 80) then		
+			return false
+		end
+	end
+		
 	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
