@@ -1588,6 +1588,16 @@ function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then
 		return false
 	end
+	if (ml_task_hub:CurrentTask().useAethernet == false) then
+		return false
+	end
+	if Player.localmapid == 478 then
+		local walkDist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,107,207,109)
+		if (walkDist <= 80) then		
+			return false
+		end
+	end
+		
 	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
@@ -3501,7 +3511,7 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4362) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then

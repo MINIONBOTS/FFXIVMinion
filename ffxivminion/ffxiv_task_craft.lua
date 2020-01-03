@@ -1671,7 +1671,7 @@ function c_precraftbuff:evaluate()
 		if gCraftMarkerOrProfileIndex == 1 then
 			isCollectable = ml_task_hub:CurrentTask().useCollect
 		end
-		if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
+		if Player.level >= 50 and ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 			local collect = ActionList:Get(1,ffxiv_craft.collectors[Player.job])
 			if (collect) then
 				e_precraftbuff.activity = "usecollect"
