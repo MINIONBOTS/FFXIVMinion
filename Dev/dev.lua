@@ -455,6 +455,8 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText(".statusgainedid") GUI:SameLine(200) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
 													GUI:BulletText(".secondarycostid") GUI:SameLine(200) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
 													GUI:BulletText(".aspect") GUI:SameLine(200) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
+													GUI:BulletText(".category") GUI:SameLine(200) GUI:InputText("##devac31"..tostring(actionid),tostring(action.category))
+													GUI:BulletText(".primarycosttype") GUI:SameLine(200) GUI:InputText("##devac32"..tostring(actionid),tostring(action.primarycosttype))
 												end
 
 												if (action.type == 13) then
