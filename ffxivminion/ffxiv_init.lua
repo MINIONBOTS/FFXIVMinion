@@ -621,7 +621,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Orbonne Monastery", enforce)
 		
 		-- Raid Alliance SHB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
+		ml_mesh_mgr.SetDefaultMesh(882, "[Raid] The Copied Factory", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
 		
