@@ -5811,7 +5811,7 @@ function SkillMgr.AddDefaultConditions()
 		local tlistAE = nil
 		if (tecount > 0 or tecount2 > 0) then
 			local targets = {}
-			tlistAE = EntityList("alive,attackable,maxdistance="..tostring(terange)..",distanceto="..tostring(TID))
+			tlistAE = EntityList("alive,attackable,maxdistance2d="..tostring(terange)..",distanceto="..tostring(TID))
 			for i,entity in pairs(tlistAE) do
 				table.insert(targets,entity)
 			end
