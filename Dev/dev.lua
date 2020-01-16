@@ -1480,6 +1480,50 @@ function dev.DrawCall(event, ticks )
 			end
 --  END LOOTLIST
 			
+			-- cbk: MapObjects
+			if ( GUI:TreeNode("MapObjects")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then					
+					dev.mapobjectlisttype = GUI:InputInt("MapList##", dev.mapobjectlisttype or 1)
+					if(dev.mapobjectlisttype > 3) then dev.mapobjectlisttype = 3 end
+					local list = GetMapObjects(dev.mapobjectlisttype)
+					if(table.valid(list))then
+						for id, e in pairs(list) do
+							if ( GUI:TreeNode(tostring(id).." - "..tostring(e.name))) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##mapobj1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##mapobj2"..tostring(id),tostring(e.id))								
+								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##mapobj3"..tostring(id),tostring(e.type))
+								GUI:BulletText(".pos") GUI:SameLine(200) GUI:InputFloat3( "##mapobj4", e.pos.x, e.pos.y, e.pos.z, 2, GUI.InputTextFlags_ReadOnly)
+								if(e.entity)then
+									local player = e.entity
+									GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",player.ptr)))
+									GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(player.id))
+									GUI:BulletText(".guid") GUI:SameLine(200) GUI:InputText("##devpa9"..tostring(id),tostring(player.guid))								
+									GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(player.mapid))
+									GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(player.isleader))								
+									GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(player.region))
+									GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(player.onmesh))
+									local p = player.pos
+									GUI:BulletText(".pos") GUI:SameLine(200)  GUI:InputFloat3( "##devpa6", p.x, p.y, p.z, 2, GUI.InputTextFlags_ReadOnly)
+									local h = player.hp
+									GUI:BulletText(".hp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa7", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+									h = player.mp
+									GUI:BulletText(".mp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa8", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+									GUI:BulletText(".shield") GUI:SameLine(200)  GUI:InputText("##devpa9"..tostring(id),tostring(player.shield))
+									GUI:BulletText(".job") GUI:SameLine(200)  GUI:InputText("##devpa10"..tostring(id),tostring(player.job))
+									GUI:BulletText(".state") GUI:SameLine(200)  GUI:InputText("##devpa11"..tostring(id),tostring(player.state))
+									GUI:BulletText(".level") GUI:SameLine(200)  GUI:InputText("##devpa12"..tostring(id),tostring(player.level))
+								end
+								GUI:TreePop()
+							end
+						end
+					end
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+			-- END MapObjects
+
 			-- cbk: Movement
 			if ( GUI:TreeNode("Movement")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
@@ -1538,9 +1582,9 @@ function dev.DrawCall(event, ticks )
 							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
 								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(e.id))
-								GUI:BulletText(".guid") GUI:SameLine(200) GUI:InputText("##devpa9"..tostring(id),tostring(e.guid))
+								GUI:BulletText(".guid") GUI:SameLine(200) GUI:InputText("##devpa9"..tostring(id),tostring(e.guid))								
 								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(e.mapid))
-								GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))
+								GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))								
 								GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(e.region))
 								GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(e.onmesh))
 								local p = e.pos
@@ -1548,7 +1592,11 @@ function dev.DrawCall(event, ticks )
                                 local h = e.hp
                                 GUI:BulletText(".hp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa7", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
                                 h = e.mp
-                                GUI:BulletText(".mp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa8", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+								GUI:BulletText(".mp") GUI:SameLine(200)  GUI:InputFloat3( "##devpa8", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+								GUI:BulletText(".shield") GUI:SameLine(200)  GUI:InputText("##devpa9"..tostring(id),tostring(e.shield))
+								GUI:BulletText(".job") GUI:SameLine(200)  GUI:InputText("##devpa10"..tostring(id),tostring(e.job))
+								GUI:BulletText(".state") GUI:SameLine(200)  GUI:InputText("##devpa11"..tostring(id),tostring(e.state))
+								GUI:BulletText(".level") GUI:SameLine(200)  GUI:InputText("##devpa12"..tostring(id),tostring(e.level))
 								if (GUI:Button("Kick##"..tostring(id),50,15) ) then Player:KickPartyMember(e.guid) end
 								GUI:TreePop()
 							end
