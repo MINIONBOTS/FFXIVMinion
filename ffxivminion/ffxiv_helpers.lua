@@ -7843,8 +7843,16 @@ function HasInteractWindows()
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
 end
 
+function GetDutyCompleted(mapid)
+	local currentData = ffxivminion.DutyCurrentData[mapid]
+	if (currentData ~= nil) then
+		return currentData
+	end
+	return false
+end
+
 function HasAllCurrents(mapid)
-	local currentData = GetAetherCurrentData(mapid)
+	local currentData = ffxivminion.AetherCurrentData[mapid]
 	local tsize = table.size(currentData)
 	if (tsize > 0 and tsize < 20) then
 		for i = 1, tsize do
@@ -7859,32 +7867,13 @@ end
 
 function GetAetherCurrentData(mapid)
 	
-	if (table.valid(ff.lastaetherCurrent)) then
-		if ff.lastaetherCurrent[mapid] ~= nil  then 
-			if ff.lastaetherCurrent[mapid] > Now()  then 
-				if (IsControlOpen("AetherCurrent")) then
-					ActionList:Get(10,67):Cast()
-				end
-				return ff.aetherCurrent[mapid]
-			end
-		end
-	end
-	
 	local status = {}
-	local aeclist = Player:GetAetherCurrentsList()
-	if (not IsControlOpen("AetherCurrent")) then
-		ActionList:Get(10,67):Cast()
-		ml_global_information.AwaitSuccess(2000,5000, function () return TableSize(aeclist) < 20 end)
-	end
-	
-	if (table.valid(aeclist)) then
-		if (aeclist[mapid]) then
-			status = aeclist[mapid].status
-			ff.aetherCurrent[mapid] = status
-			ff.lastaetherCurrent[mapid] = Now() + 300000
+	if (table.valid(ffxivminion.AetherCurrentData)) then
+		if ffxivminion.AetherCurrentData[mapid] ~= nil then
+			status = ffxivminion.AetherCurrentData[mapid]
 		end
-	end	
-		
+	end
+
 	return status
 end
 

@@ -8,6 +8,9 @@ ffxivminion.tradeDeclines = 0
 ffxivminion.declineTimer = 0
 ffxivminion.scripExchange = {}
 ffxivminion.lastScripExchangeUpdate = {}
+ffxivminion.AetherCurrentData = {}
+ffxivminion.AetherCurrentCompleted = false
+ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 
 ffxivminion.loginvars = {
@@ -418,6 +421,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information:ToggleRun() -- convert
 	end
 	
+	if (c_getCurrentInfo:evaluate()) then
+		e_getCurrentInfo:execute()
+	end
+	if (c_getDutyComplete:evaluate()) then
+		e_getDutyComplete:execute()
+	end
 	--FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
 	
 	if (ml_mesh_mgr) then

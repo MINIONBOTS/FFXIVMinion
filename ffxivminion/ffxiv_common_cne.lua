@@ -10,6 +10,51 @@
 --into the process list since there is no need to queue another combat task until the
 --previous combat task is completed and control returns to the parent task.
 ---------------------------------------------------------------------------------------------
+c_getCurrentInfo = inheritsFrom( ml_cause )
+e_getCurrentInfo = inheritsFrom( ml_effect )
+function c_getCurrentInfo:evaluate()
+    
+	if (IsControlOpen("AetherCurrent")) and not ffxivminion.AetherCurrentCompleted then
+		ActionList:Get(10,67):Cast()
+	end
+	if (not IsControlOpen("AetherCurrent")) and not ffxivminion.AetherCurrentCompleted then
+		ffxivminion.AetherCurrentCompleted = true
+	end
+	
+    return not table.valid(ffxivminion.AetherCurrentData)
+end
+function e_getCurrentInfo:execute()
+
+	local status = {}
+	local aeclist = Player:GetAetherCurrentsList()
+	if (not IsControlOpen("AetherCurrent")) then
+		ActionList:Get(10,67):Cast()
+		ml_global_information.AwaitSuccess(2000,5000, function () return TableSize(aeclist) < 20 end)
+	end
+	
+	if (table.valid(aeclist)) then
+		for i,e in pairs(aeclist) do 
+			ffxivminion.AetherCurrentData[e.mapid] = aeclist[e.mapid].status
+		end
+	end	
+end
+c_getDutyComplete = inheritsFrom( ml_cause )
+e_getDutyComplete = inheritsFrom( ml_effect )
+function c_getDutyComplete:evaluate()
+    	
+    return not table.valid(ffxivminion.DutyCurrentData)
+end
+function e_getDutyComplete:execute()
+
+	local status = {}
+	local currentList = Duty:GetCompleteDutyList()
+	
+	if (table.valid(currentList)) then
+		for i,e in pairs(currentList) do 
+			ffxivminion.DutyCurrentData[e.mapid] = e.completed
+		end
+	end	
+end
 
 ---------------------------------------------------------------------------------------------
 --ADD_KILLTARGET: If (current target hp > 0) Then (add longterm killtarget task)
