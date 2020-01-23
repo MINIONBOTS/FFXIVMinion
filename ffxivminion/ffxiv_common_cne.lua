@@ -3503,7 +3503,13 @@ c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
 function c_skipcutscene:evaluate()
-	if (gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
+	-- unsafe
+	local noskip = {
+		[217] = true,
+		[224] = true,
+	}
+
+	if (noskip[Player.localmapid] ~= true and gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
 		local totalUI = 0
 		for i=0,165 do
 			if (GetUIPermission(i) == 1) then
