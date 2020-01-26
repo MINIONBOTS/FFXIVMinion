@@ -7853,8 +7853,8 @@ end
 
 function HasAllCurrents(mapid)
 	local currentData = ffxivminion.AetherCurrentData[mapid]
+	if (table.valid(currentData)) then
 	local tsize = table.size(currentData)
-	if (tsize > 0 and tsize < 20) then
 		for i = 1, tsize do
 			if (currentData[i] == false) then
 				return false
