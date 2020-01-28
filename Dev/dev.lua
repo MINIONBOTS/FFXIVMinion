@@ -1603,7 +1603,34 @@ function dev.DrawCall(event, ticks )
 						end
 					else
 						GUI:Text("No PartyMembers Available...")
+					end	
+			-- crossworld party
+			if ( GUI:TreeNode("CrossWorldParty")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local plist = EntityList.crossworldparty
+					if (table.valid(plist)) then
+						for id, e in pairs(plist) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+								GUI:BulletText(".partyindex") GUI:SameLine(200) GUI:InputText("##devcpa1"..tostring(id),tostring(e.partyindex))
+								GUI:BulletText(".isonline") GUI:SameLine(200) GUI:InputText("##devcpa1"..tostring(id),tostring(e.isonline))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devcpa1"..tostring(id),tostring(e.id))
+								GUI:BulletText(".guid") GUI:SameLine(200) GUI:InputText("##devcpa9"..tostring(id),tostring(e.guid))	
+								GUI:BulletText(".level") GUI:SameLine(200)  GUI:InputText("##devcpa12"..tostring(id),tostring(e.level))								
+								GUI:BulletText(".job") GUI:SameLine(200)  GUI:InputText("##devcpa10"..tostring(id),tostring(e.job))
+								GUI:BulletText(".iscrossworld") GUI:SameLine(200)  GUI:InputText("##devcpa12"..tostring(id),tostring(e.iscrossworld))
+								GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devcpa3"..tostring(id),tostring(e.isleader))	
+								if (GUI:Button("Kick##"..tostring(id),50,15) ) then Player:KickPartyMember(e.guid) end
+								GUI:TreePop()
+							end
+						end
+					else
+						GUI:Text("No CrossWorldParty Available...")
 					end				
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end					
 					GUI:PopItemWidth()
 				end
 				GUI:TreePop()
