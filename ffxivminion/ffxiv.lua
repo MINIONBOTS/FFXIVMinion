@@ -425,6 +425,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			e_getCurrentInfo:execute()
 		elseif (IsControlOpen("AetherCurrent")) and ffxivminion.AetherCurrentCompleted then
 			ActionList:Get(10,67):Cast()
+			ffxivminion.AetherCurrentCompleted = false
 		end
 		if (c_getDutyComplete:evaluate()) then
 			e_getDutyComplete:execute()

@@ -13,11 +13,7 @@
 c_getCurrentInfo = inheritsFrom( ml_cause )
 e_getCurrentInfo = inheritsFrom( ml_effect )
 function c_getCurrentInfo:evaluate()
-    
-	if (IsControlOpen("AetherCurrent")) and not ffxivminion.AetherCurrentCompleted then
-		ActionList:Get(10,67):Cast()
-	end
-	
+
     return not table.valid(ffxivminion.AetherCurrentData)
 end
 function e_getCurrentInfo:execute()
