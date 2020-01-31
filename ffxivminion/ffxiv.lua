@@ -420,12 +420,15 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information.autoStartQueued = false
 		ml_global_information:ToggleRun() -- convert
 	end
-	
-	if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
-		e_getCurrentInfo:execute()
-	end
-	if (c_getDutyComplete:evaluate()) then
-		e_getDutyComplete:execute()
+	if IsNormalMap(Player.localmapid) then
+		if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
+			e_getCurrentInfo:execute()
+		elseif (IsControlOpen("AetherCurrent")) and ffxivminion.AetherCurrentCompleted then
+			ActionList:Get(10,67):Cast()
+		end
+		if (c_getDutyComplete:evaluate()) then
+			e_getDutyComplete:execute()
+		end
 	end
 	--FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
 	

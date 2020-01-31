@@ -17,9 +17,6 @@ function c_getCurrentInfo:evaluate()
 	if (IsControlOpen("AetherCurrent")) and not ffxivminion.AetherCurrentCompleted then
 		ActionList:Get(10,67):Cast()
 	end
-	if (not IsControlOpen("AetherCurrent")) and not ffxivminion.AetherCurrentCompleted then
-		ffxivminion.AetherCurrentCompleted = true
-	end
 	
     return not table.valid(ffxivminion.AetherCurrentData)
 end
@@ -37,6 +34,7 @@ function e_getCurrentInfo:execute()
 			ffxivminion.AetherCurrentData[e.mapid] = aeclist[e.mapid].status
 		end
 	end	
+	ffxivminion.AetherCurrentCompleted = true
 end
 c_getDutyComplete = inheritsFrom( ml_cause )
 e_getDutyComplete = inheritsFrom( ml_effect )
