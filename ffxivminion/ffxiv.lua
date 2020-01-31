@@ -421,9 +421,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information:ToggleRun() -- convert
 	end
 	
-	--if (c_getCurrentInfo:evaluate()) then
-	--	e_getCurrentInfo:execute()
-	--end
+	if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
+		e_getCurrentInfo:execute()
+	end
 	if (c_getDutyComplete:evaluate()) then
 		e_getDutyComplete:execute()
 	end
