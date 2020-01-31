@@ -1255,14 +1255,22 @@ end
 
 function ffxivminion.AddMode(name, task)
 	--d("added mode ["..name.."] with type ["..tostring(type(task)).."]")
-	task.friendly = name
-	ffxivminion.modesToLoad[name] = task
+	if task then
+		task.friendly = name
+		ffxivminion.modesToLoad[name] = task
+	end
 end
 
 -- New GUI methods.
 function ffxivminion.FillFoodOptions(availableonly)
 	local availableonly = IsNull(availableonly,false)
-	local allFoods = AceLib.API.Items.GetAllFoods(availableonly)
+	local allFoods
+	if AceLib then
+		allFoods = AceLib.API.Items.GetAllFoods(availableonly)
+	else
+		allFoods = {}
+	end
+	
 
 	ml_global_information.foods = {}
 	if (table.valid(allFoods)) then
