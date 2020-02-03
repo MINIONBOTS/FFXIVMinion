@@ -821,7 +821,10 @@ function dev.DrawCall(event, ticks )
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(150)
 					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:GetFishingState()))
-					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))
+					GUI:BulletText("GetGigHead") GUI:SameLine(200) GUI:InputText("##devfi5",tostring(Player:GetGigHead()))
+					GUI:BulletText("LastCatchId") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(Player:GetLastCatchId()))
+					
+					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))					
 					if (not dev.fishbait) then dev.fishbait = 0 end
 					GUI:BulletText("Bait itemID") GUI:SameLine(200) dev.fishbait = GUI:InputText("##devfi2",dev.fishbait) 
 					GUI:SameLine()
