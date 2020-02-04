@@ -895,6 +895,12 @@ function ffxivminion.SetMainVars()
 		assert(loadstring(gAutoGrindCode))
 	end
 	
+	ffxivminion.AutoGearsetsVersion = 20200204
+	gAutoGearsets = ffxivminion.GetSetting("gAutoGearsets",0)
+	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
+		SetGearsetInfo()
+		gAutoGearsets = ffxivminion.AutoGearsetsVersion
+	end
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
 	Hacks:SkipCutscene(gSkipCutscene)
