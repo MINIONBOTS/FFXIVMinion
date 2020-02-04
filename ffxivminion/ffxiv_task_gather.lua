@@ -3153,7 +3153,7 @@ function c_gatherstealth:evaluate()
 		return false
 	end
 	
-	if GameRegion() == 1 then
+	if GameRegion() ~= 3 then
 		return false
 	end
 	local useStealth = false
@@ -3305,7 +3305,7 @@ function ffxiv_gather.NeedsStealth()
 	if Player.level < 8 then
 		return false
 	end	
-	if GameRegion() == 1 then
+	if GameRegion() ~= 3 then
 		return false
 	end
 	local useStealth = true
