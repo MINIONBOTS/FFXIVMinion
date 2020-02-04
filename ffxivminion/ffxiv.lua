@@ -648,6 +648,26 @@ function ffxivminion.GetSetting(strSetting,default)
 	return Settings.FFXIVMINION[strSetting]	
 end
 
+function SetGearsetInfo()
+d("Test reset")
+	local searchList = Player:GetGearSetList()
+	local newSets = {}
+	
+	if table.valid(searchList) then
+		for i,e in spairs(searchList) do
+			local cleanedName = string.gsub(e.name,"[^0-9]","")
+			if not newSets[e.job] then
+				newSets[e.job] = tonumber(cleanedName)
+				_G["gGearset"..tostring(e.job)] = i
+			else
+				if cleanedName > newSets[e.job] then
+					newSets[e.job] = tonumber(cleanedName)
+					_G["gGearset"..tostring(e.job)] = i
+				end
+			end
+		end
+	end
+end
 function ffxivminion.SetMainVars()
 	-- Login
 	local uuid = GetUUID()
@@ -897,7 +917,7 @@ function ffxivminion.SetMainVars()
 	
 	ffxivminion.AutoGearsetsVersion = 20200204
 	gAutoGearsets = ffxivminion.GetSetting("gAutoGearsets",0)
-	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
+	if Settings.FFXIVMINION.gAutoGearsets < ffxivminion.AutoGearsetsVersion then
 		SetGearsetInfo()
 		gAutoGearsets = ffxivminion.AutoGearsetsVersion
 	end

@@ -6,27 +6,6 @@ ff.lastFail = 0
 ff.lastaetherCurrent = {}
 ff.aetherCurrent = {}
 
-function SetGearsetInfo()
-
-	local searchList = Player:GetGearSetList()
-	local newSets = {}
-	
-	if table.valid(searchList) then
-		for i,e in spairs(searchList) do
-			local cleanedName = string.gsub(e.name,"[^0-9]","")
-			if not newSets[e.job] then
-				newSets[e.job] = tonumber(cleanedName)
-				_G["gGearset"..tostring(e.job)] = i
-			else
-				if cleanedName > newSets[e.job] then
-					newSets[e.job] = tonumber(cleanedName)
-					_G["gGearset"..tostring(e.job)] = i
-				end
-			end
-		end
-	end
-end
-
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
 		local validEntities = {}
