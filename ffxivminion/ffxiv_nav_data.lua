@@ -273,13 +273,13 @@ ffxiv_map_nav.data = {
 			{id = 842, cost = 1, x = 351, y = -26, z = -370, h = 3.13, b = 1029791
 				, requires =  {
 					["GetQuestInfo(3279,'step') > 1 or QuestCompleted(3279)"] = true,
-					["GameRegion() ~= 1"] = true,
+					["GameRegion() == 3"] = true,
 				}
 			},
 			{id = 842, cost = 1, x = 351, y = -26, z = -370, h = 3.13, b = 1029828 -- 5.1 changed id
 				, requires =  {
 					["GetQuestInfo(3279,'step') > 1 or QuestCompleted(3279)"] = true,
-					["GameRegion() == 1"] = true,
+					["GameRegion() ~= 3"] = true,
 				}
 			},
 		},

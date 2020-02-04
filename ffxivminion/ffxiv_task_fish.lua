@@ -2552,7 +2552,7 @@ function ffxiv_fish.NeedsStealth()
 	if Player.level < 8 then
 		return false
 	end	
-	if GameRegion() == 1 then
+	if GameRegion() ~= 3 then
 		return false
 	end
 	
