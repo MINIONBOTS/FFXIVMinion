@@ -2628,7 +2628,7 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
-	if GameRegion() ~= 3 then
+	if ffxivminion.gameRegion ~= 3 then
 		return false
 	end
 	local needsStealth = ml_global_information.needsStealth
