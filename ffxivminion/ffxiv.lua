@@ -660,7 +660,7 @@ d("Test reset")
 				newSets[e.job] = tonumber(cleanedName)
 				_G["gGearset"..tostring(e.job)] = i
 			else
-				if cleanedName > newSets[e.job] then
+				if IsNull(tonumber(cleanedName),0) > newSets[e.job] then
 					newSets[e.job] = tonumber(cleanedName)
 					_G["gGearset"..tostring(e.job)] = i
 				end
@@ -918,8 +918,8 @@ function ffxivminion.SetMainVars()
 	ffxivminion.AutoGearsetsVersion = 20200204
 	gAutoGearsets = ffxivminion.GetSetting("gAutoGearsets",0)
 	if Settings.FFXIVMINION.gAutoGearsets < ffxivminion.AutoGearsetsVersion then
-		SetGearsetInfo()
 		gAutoGearsets = ffxivminion.AutoGearsetsVersion
+		SetGearsetInfo()
 	end
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
