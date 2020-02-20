@@ -533,6 +533,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(840, "[Dungeon] The Twinning", enforce)
 		ml_mesh_mgr.SetDefaultMesh(841, "[Dungeon] Akadaemia Anyder", enforce)
 		ml_mesh_mgr.SetDefaultMesh(884, "[Dungeon] The Grand Cosmos", enforce)
+		ml_mesh_mgr.SetDefaultMesh(898, "[Dungeon] Anamnesis Anyder", enforce)
 		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
