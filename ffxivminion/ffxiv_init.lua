@@ -900,6 +900,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(890, "Lyhe Mheg", true) -- Lyhe Mheg (Pixies map)
 		ml_mesh_mgr.SetDefaultMesh(891, "Lyhe Mheg (Rank Quest)", true) -- Lyhe Mheg (Pixies Rank Quest)
 		ml_mesh_mgr.SetDefaultMesh(893, "Duty_3682", true) -- The Imperial Palace
+		ml_mesh_mgr.SetDefaultMesh(918, "[Dungeon] Anamnesis Anyder", enforce)
 		
 	end
 	
