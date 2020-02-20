@@ -503,7 +503,7 @@ function e_startcraft:execute()
 											return
 										elseif ((ingredient.selectedhq + ingredient.selectednq) < ingredient.needed) and ((ingredient.inventoryhq + ingredient.inventorynq) >= ingredient.needed) then 
 											d("[Craft]: Backup selection")
-											Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+											Crafting:SetCraftingMats(i-1,math.min(ingredient.needed,ingredient.inventoryhq))
 											ml_global_information.Await(math.random(150,300))
 											return
 										elseif (ingredient.inventoryhq < hqAmountMin) then
@@ -835,13 +835,19 @@ function c_collectibleaddoncraft:evaluate()
 			
 			local reqValue = 0
 			local thisCraft = ""
+				d("info.itemid = "..tostring(info.itemid))
 			
-			if (table.valid(lastCraft) and table.valid(gCraftCollectablePresets)) then
-				local thisCollectable = gCraftCollectablePresets[lastCraft.id]
-				if (thisCollectable == nil) then
-					thisCollectable = gCraftCollectablePresets[lastCraft.id-500000] -- backup coverage, item might report as it's collectable id
+			if (table.valid(gCraftCollectablePresets)) then
+				local thisCollectable = gCraftCollectablePresets[info.itemid]
+				
+				if (info.itemid > 500000) and (info.itemid < 1000000) then
+					thisCollectable = gCraftCollectablePresets[info.itemid - 500000]
+					d("new info.itemid = "..tostring(info.itemid - 500000))
 				end
+				
 				if thisCollectable then
+					d("Item trating = "..tostring(info.collectability))
+					d("Min trating = "..tostring(thisCollectable.value))
 					thisCraft = thisCollectable.name
 					reqValue = tonumber(thisCollectable.value)
 					if (info.collectability >= reqValue) then
