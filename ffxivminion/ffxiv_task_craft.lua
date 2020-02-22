@@ -1450,16 +1450,16 @@ function ffxiv_task_craft:Draw()
 	
 		GUI:Separator();
 		GUI:Columns(10, "#craft-manage-orders", true)
-		GUI:SetColumnOffset(1, 160);
-		GUI:SetColumnOffset(2, 210);
-		GUI:SetColumnOffset(3, 260);
-		GUI:SetColumnOffset(4, 310);
-		GUI:SetColumnOffset(5, 360);
-		GUI:SetColumnOffset(6, 400);
-		GUI:SetColumnOffset(7, 430); -- up icon
-		GUI:SetColumnOffset(8, 460); -- down icon
-		GUI:SetColumnOffset(9, 505);
-		GUI:SetColumnOffset(10, 580);
+			GUI:SetColumnOffset(1, 260);
+			GUI:SetColumnOffset(2, 310);
+			GUI:SetColumnOffset(3, 360);
+			GUI:SetColumnOffset(4, 410);
+			GUI:SetColumnOffset(5, 460);
+			GUI:SetColumnOffset(6, 500);
+			GUI:SetColumnOffset(7, 530); -- up icon
+			GUI:SetColumnOffset(8, 560); -- down icon
+			GUI:SetColumnOffset(9, 605);
+			GUI:SetColumnOffset(10, 680);
 		
 		GUI:Text("Item"); GUI:NextColumn();
 		GUI:Text("Total"); GUI:NextColumn();
