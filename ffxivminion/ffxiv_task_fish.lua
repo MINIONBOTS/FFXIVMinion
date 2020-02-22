@@ -3177,7 +3177,7 @@ function ffxiv_task_fish:Draw()
 		end
 		GUI:NextColumn()
 		GUI:PushItemWidth(CordialWidth)
-		GUI_Capture(GUI:Checkbox("##Use Cordials",gGatherUseCordials),"gGatherUseCordials");
+		GUI_Capture(GUI:Checkbox("##Use Cordials",gFishUseCordials),"gFishUseCordials");
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
