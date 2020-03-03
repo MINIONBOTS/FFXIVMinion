@@ -3546,6 +3546,7 @@ function c_skipcutscene:evaluate()
 	local noskip = {
 		[217] = true,
 		[224] = true,
+		[900] = true,
 	}
 
 	if (noskip[Player.localmapid] ~= true and gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
