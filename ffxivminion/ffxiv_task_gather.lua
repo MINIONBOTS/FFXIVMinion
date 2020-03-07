@@ -18,6 +18,8 @@ ffxiv_gather.sticklerProfiles = {}
 
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
+ffxiv_task_gather.addon_process_elements = {}
+ffxiv_task_gather.addon_overwatch_elements = {}
 function ffxiv_task_gather.Create()
     if gGatherMarkerOrProfileIndex == 1 then
 		if Player.job == 16 then 
@@ -3588,7 +3590,24 @@ function ffxiv_task_gather:Init()
 	local ke_enableSneak = ml_element:create( "EnableSneak", c_gathersneak, e_gathersneak, 260 )
     self:add( ke_enableSneak, self.process_elements)
     
+	self:InitExtras()
     self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_gather:InitExtras()
+	local overwatch_elements = self.addon_overwatch_elements
+	if (table.valid(overwatch_elements)) then
+		for i,element in pairs(overwatch_elements) do
+			self:add(element, self.overwatch_elements)
+		end
+	end
+	
+	local process_elements = self.addon_process_elements
+	if (table.valid(process_elements)) then
+		for i,element in pairs(process_elements) do
+			self:add(element, self.process_elements)
+		end
+	end
 end
 
 function ffxiv_task_gather.SetModeOptions()

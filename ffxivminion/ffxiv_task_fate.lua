@@ -2,6 +2,8 @@
 --TASK_FATE: Longterm Goal - Complete a fate event successfully
 ---------------------------------------------------------------------------------------------
 ffxiv_task_fate = inheritsFrom(ml_task)
+ffxiv_task_fate.addon_process_elements = {}
+ffxiv_task_fate.addon_overwatch_elements = {}
 
 ffxiv_task_fate.tracking = {
 	measurementDelay = 0,
@@ -823,13 +825,29 @@ function ffxiv_task_fate:Init()
 	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 50 )
     self:add( ke_moveToFate, self.process_elements)
 	
-	
-	
     local ke_moveWithFate = ml_element:create( "MoveWithFate", c_movewithfate, e_movewithfate, 45 )
     self:add( ke_moveWithFate, self.process_elements)
 	
 	local ke_moveChainFate = ml_element:create( "MoveChainFate", c_movetochainlocation, e_movetochainlocation, 40 )
     self:add( ke_moveChainFate, self.process_elements)
+	
+	self:InitExtras()
+end
+
+function ffxiv_task_fate:InitExtras()
+	local overwatch_elements = self.addon_overwatch_elements
+	if (table.valid(overwatch_elements)) then
+		for i,element in pairs(overwatch_elements) do
+			self:add(element, self.overwatch_elements)
+		end
+	end
+	
+	local process_elements = self.addon_process_elements
+	if (table.valid(process_elements)) then
+		for i,element in pairs(process_elements) do
+			self:add(element, self.process_elements)
+		end
+	end
 end
 
 c_endfate = inheritsFrom( ml_cause )

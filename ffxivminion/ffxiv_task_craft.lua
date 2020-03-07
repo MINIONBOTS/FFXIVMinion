@@ -60,6 +60,8 @@ ffxiv_craft.collectibles = {
 
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
+ffxiv_task_craft.addon_process_elements = {}
+ffxiv_task_craft.addon_overwatch_elements = {}
 function ffxiv_task_craft.Create()
     local newinst = inheritsFrom(ffxiv_task_craft)
     
@@ -1113,6 +1115,24 @@ function ffxiv_task_craft:Init()
 	
 	local ke_selectCraft = ml_element:create( "SelectCraft", c_selectcraft, e_selectcraft, 100 )
     self:add(ke_selectCraft, self.process_elements)
+	
+	self:InitExtras()
+end
+
+function ffxiv_task_craft:InitExtras()
+	local overwatch_elements = self.addon_overwatch_elements
+	if (table.valid(overwatch_elements)) then
+		for i,element in pairs(overwatch_elements) do
+			self:add(element, self.overwatch_elements)
+		end
+	end
+	
+	local process_elements = self.addon_process_elements
+	if (table.valid(process_elements)) then
+		for i,element in pairs(process_elements) do
+			self:add(element, self.process_elements)
+		end
+	end
 end
 
 function ffxiv_task_craft.SetModeOptions()

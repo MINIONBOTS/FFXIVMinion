@@ -1,4 +1,7 @@
 ffxiv_task_huntlog = inheritsFrom(ml_task)
+ffxiv_task_huntlog.addon_process_elements = {}
+ffxiv_task_huntlog.addon_overwatch_elements = {}
+
 --Translate jobs down to their class equivalent.
 ffxiv_task_huntlog.jobTranslate = {
 	[19] = 1,
@@ -464,8 +467,26 @@ function ffxiv_task_huntlog:Init()
 	local ke_moveToPos = ml_element:create( "MoveToPos", c_huntlogmovetopos, e_huntlogmovetopos, 10 )
     self:add(ke_moveToPos, self.process_elements)
 	
+	self:InitExtras()
     self:AddTaskCheckCEs()
 end
+
+function ffxiv_task_huntlog:InitExtras()
+	local overwatch_elements = self.addon_overwatch_elements
+	if (table.valid(overwatch_elements)) then
+		for i,element in pairs(overwatch_elements) do
+			self:add(element, self.overwatch_elements)
+		end
+	end
+	
+	local process_elements = self.addon_process_elements
+	if (table.valid(process_elements)) then
+		for i,element in pairs(process_elements) do
+			self:add(element, self.process_elements)
+		end
+	end
+end
+
 function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gDoGCHuntLog" )	then
