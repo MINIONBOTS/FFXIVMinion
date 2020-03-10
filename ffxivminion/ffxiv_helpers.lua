@@ -5,6 +5,10 @@ ff.lastPath = 0
 ff.lastFail = 0
 ff.lastaetherCurrent = {}
 ff.aetherCurrent = {}
+ff.mapsections = {
+	[399] = 0,
+}
+
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
@@ -6535,6 +6539,7 @@ function Transport399(pos1,pos2)
 			return true, function()
 				local newTask = ffxiv_task_movetomap.Create()
 				newTask.destMapID = 478
+				ff.mapsections[399] = GetHinterlandsSection(pos2)
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
