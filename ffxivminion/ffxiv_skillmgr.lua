@@ -950,7 +950,7 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
-	gSMCraftConditions = { GetString("notused"),GetString("excellent"),GetString("good"),GetString("normal"),GetString("poor") }
+	gSMCraftConditions = { GetString("notused"),GetString("excellent"),GetString("good"),GetString("normal"),GetString("poor"),GetString("centered"),GetString("sturdy"),GetString("pliant") }
 	gSMCraftConditionIndex = 1
 	
 	gSMBattleStatuses = { GetString("In Combat"), GetString("Out of Combat"), GetString("Any") }
