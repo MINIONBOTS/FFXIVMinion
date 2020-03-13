@@ -3478,7 +3478,7 @@ function c_switchclass:evaluate()
 		local newSet = _G[gsvar]
 		
 		if table.valid(searchList) then
-			if (In(tonumber(newSet),0) or (tonumber(newSet) ~= 0 and (not string.contains(searchList[tonumber(newSet)].name,ffxivminion.classes[class])))) then
+			if (In(tonumber(newSet),0) or searchList[tonumber(newSet)] == nil or (tonumber(newSet) ~= 0 and (not string.contains(searchList[tonumber(newSet)].name,ffxivminion.classes[class])))) then
 				if ffxivminion.classes[class] then
 					for i,e in spairs(searchList) do
 						if (string.contains(e.name,ffxivminion.classes[class])) then
