@@ -1952,7 +1952,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("GameVersion") GUI:SameLine(200) GUI:InputText("##devUT1",tostring(GetGameVersion()))
 					GUI:BulletText("GameLanguage") GUI:SameLine(200) GUI:InputText("##devUT2",tostring(GetGameLanguage()))
 					GUI:BulletText("GetGameRegion") GUI:SameLine(200) GUI:InputText("##devUT3",tostring(GetGameRegion()))
-				
+					GUI:BulletText("GetCurrentWeather") GUI:SameLine(200) GUI:InputText("##devUT4",tostring(GetCurrentWeather()))
 
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
