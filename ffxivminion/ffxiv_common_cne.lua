@@ -1365,6 +1365,7 @@ c_getmovementpath = inheritsFrom( ml_cause )
 e_getmovementpath = inheritsFrom( ml_effect )
 c_getmovementpath.lastFallback = 0
 c_getmovementpath.lastGoal = {}
+c_getmovementpath.lastOptimalPath = 0
 function c_getmovementpath:evaluate()
 	if not Player.onmesh then
 		return false
@@ -1392,37 +1393,50 @@ function c_getmovementpath:evaluate()
 			end
 			
 			local pathLength = 0
-			
 			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
 			
 			local dist = math.distance2d(gotoPos,Player.pos)
 			-- Attempt to get a path that doesn't require cubes for stealth pathing.
+			--[=[
 			if (gBotMode == GetString("NavTest") and gTestNoFly) or (ml_global_information.needsStealth and not IsFlying() and not IsDiving() and not Player.incombat and not ml_task_hub:CurrentTask().alwaysMount) or (dist < tonumber(gMountDist) and (tonumber(gotoPos.y) >= Player.pos.y - 8 and tonumber(gotoPos.y) <= Player.pos.y + 8)) then
 				ml_debug("[GetMovementPath]: rebuilding non-flying path..")
 				pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),0,(GLOBAL.CUBE.AIR + GLOBAL.CUBE.AVOID),navid)
 				ml_debug("[GetMovementPath]: no fly pathLength found, lenght: = "..tostring(pathLength))
 			end
+			]=]
+			
+			if (table.valid(c_getmovementpath.lastGoal)) then
+				d("new goal distance:"..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)))
+			end
+			
 			
 			if (gBotMode ~= GetString("NavTest") or (gBotMode == GetString("NavTest") and not gTestNoFly)) and (pathLength <= 0) then
 				-- attempt to get a path with no avoidance first
-				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 1) then
+				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 2) then
 					if (NavigationManager.ShowCells == nil ) then
 					-- old nav version:
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor((GLOBAL.FLOOR.BORDER + GLOBAL.FLOOR.AVOID),IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
 					else
 					-- new nav version:
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,IsNull(ml_task_hub:CurrentTask().cubefilters,0)),navid)
+						if (pathLength > 0) then
+							--d("found optimal path")
+							c_getmovementpath.lastOptimalPath = Now()
+						end
 					end
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					ml_debug("[GetMovementPath]: pathLength with no avoids = "..tostring(pathLength))
 				end
 				
-				if (pathLength <= 0) then
-					ml_debug("[GetMovementPath]: rebuild cube path..")
-					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
-					c_getmovementpath.lastFallback = Now()
-					c_getmovementpath.lastGoal = gotoPos
-					ml_debug("[GetMovementPath]: pathLength cube path = "..tostring(pathLength))
+				if (TimeSince(c_getmovementpath.lastOptimalPath) > 2000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 2) then
+					if (pathLength <= 0) then
+						--d("found non-optimal path")
+						ml_debug("[GetMovementPath]: rebuild cube path..")
+						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
+						c_getmovementpath.lastFallback = Now()
+						c_getmovementpath.lastGoal = gotoPos
+						ml_debug("[GetMovementPath]: pathLength cube path = "..tostring(pathLength))
+					end
 				end
 			end
 			
