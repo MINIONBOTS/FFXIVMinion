@@ -1053,6 +1053,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 		return -1337
 	end
 	
+	--d("moveto: path to ["..tostring(x)..","..tostring(y)..","..tostring(z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
 	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
@@ -1082,7 +1083,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		return -1337
 	end
 	
-	if (x == nil or y == nil or z == nil ) then -- yes this happens regularly inside fates, because some of the puzzle code calls moveto nil/nil/nil
+	if (x == nil or y == nil or z == nil) then -- yes this happens regularly inside fates, because some of the puzzle code calls moveto nil/nil/nil
 		d("[NAVIGATION]: Invalid Move To Position :["..tostring(x)..","..tostring(y)..","..tostring(z).."]")
 		return 0
 	end
@@ -1122,6 +1123,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
+	--d("building path to ["..tostring(newGoal.x)..","..tostring(newGoal.y)..","..tostring(newGoal.z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	ml_navigation.lastPathUpdate = Now()
 	
@@ -1158,6 +1160,7 @@ function Player:Stop(resetpath)
 	
 	ffnav.isascending = false
 	ffnav.isdescending = false	
+	ffnav.descentAttempts = 0
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
@@ -1811,25 +1814,28 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
-						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then																					
-							local canLand = true
+						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then	
+							local canLand = (dist2D < 1.5 and dist3D < 3)
 							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
 							if (not hit) then
 								canLand = false
 							end	
 							if (not canLand) then
-								if (nextnode.is_end and nextnode.ground and dist2D < 2 and dist3D < 4) then
+								if (nextnode.is_end and nextnode.ground and dist2D < 1.5 and dist3D < 3) then
 									canLand = true
 								end
 							end
-					
-							if (canLand and not nextnode.is_cube and nextnode.ground and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
-								
-								Descend(true)
-								return false
+							
+							if (ffnav.descentAttempts < 2) then
+								if (canLand and not nextnode.is_cube and nextnode.ground and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+									ffnav.descentAttempts = ffnav.descentAttempts + 1
+									Descend(true)
+									return false
+								end
 							end
 
 							-- We landed now and can continue our path..
+							ffnav.descentAttempts = 0
 							ml_navigation.lastconnectionid = nextnode.navconnectionid		
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
@@ -1840,6 +1846,7 @@ function ml_navigation.Navigate(event, ticks )
 					if (not IsFlying() and not IsDiving()) then
 						ffnav.isascending = false
 						ffnav.isdescending = false
+						ffnav.descentAttempts = 0
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
@@ -1883,6 +1890,10 @@ function ml_navigation.Navigate(event, ticks )
 									
 								elseif (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
+									d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode)).."].")
+									d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
+									d("[Navigation] - Node tags - floor ["..tostring(nextnode.is_floor).."], cube ["..tostring(nextnode.is_cube).."], ground ["..tostring(nextnode.ground).."], ground_water ["..tostring(nextnode.ground_water).."], ground_border ["..tostring(nextnode.ground_border).."], ground_avoid ["..tostring(nextnode.ground_avoid).."], air ["..tostring(nextnode.air).."], water ["..tostring(nextnode.water).."], air_avoid ["..tostring(nextnode.air_avoid).."].")									
+									
 									if (Player:IsMoving()) then
 										Player:StopMovement()
 										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
@@ -2227,6 +2238,7 @@ ffnav.forceDescent = 0
 ffnav.descentPos = {}
 ffnav.isascending = false
 ffnav.isdescending = false
+ffnav.descentAttempts = 0
 
 function ffnav.CompactPath()
 	local newPath = {}
