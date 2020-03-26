@@ -3117,9 +3117,6 @@ c_gathersneak = inheritsFrom( ml_cause )
 e_gathersneak = inheritsFrom( ml_effect )
 function c_gathersneak:evaluate()
 
-	if GameRegion() == 3 then
-		return false
-	end
 	if (HasBuff(Player.id, 47)) then
 		return false
 	end

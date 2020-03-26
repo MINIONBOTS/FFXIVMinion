@@ -2618,7 +2618,7 @@ c_stealthupdate = inheritsFrom( ml_cause )
 e_stealthupdate = inheritsFrom( ml_effect )
 c_stealthupdate.timer = 0
 function c_stealthupdate:evaluate()	
-	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
+	--[[local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
 	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
 	
 		local fs = tonumber(Player:GetFishingState())
@@ -2634,7 +2634,7 @@ function c_stealthupdate:evaluate()
 		if (ml_global_information.needsStealth ~= false) then
 			ml_global_information.needsStealth = false
 		end	
-	end
+	end]]
 	
 	return false
 end
@@ -2651,9 +2651,9 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
-	if ffxivminion.gameRegion ~= 3 then
+	--[[if ffxivminion.gameRegion ~= 3 then -- keep this in case it comes back??
 		return false
-	end
+	end]]
 	local needsStealth = ml_global_information.needsStealth
 	ml_global_information.canStealth = ml_global_information.needsStealth
 	local hasStealth = HasBuff(Player.id,47)
