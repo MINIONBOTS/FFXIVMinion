@@ -3572,6 +3572,7 @@ SkillMgr.MatchingGatherSkills = {
 	["The Giving Land"] 		={ [16] = 4589, [17] = 4590 },
 	["Pick Clean"] 				={ [16] = 4587, [17] = 4588 },
 	["Mountaineer / Pioneer"] 	={ [16] = 4605, [17] = 4606 },
+	["Twelve Bounty"] 			={ [16] = 280, [17] = 282 },
 }
 
 function SkillMgr.Gather(item)
