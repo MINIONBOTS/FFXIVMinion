@@ -667,7 +667,11 @@ function c_precraftbuff:evaluate()
 				local foodStack = foodDetails.buffstackid
 				
 				local food, action = GetItem(foodID)
-				if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,180)) then
+				local timer = 180
+				if (ffxivminion.gameRegion == 3) then
+					timer = 30
+				end
+				if (food and action and not action.isoncd and MissingBuffX(Player,48,foodStack,timer)) then
 					cd("[PreCraftBuff]: Need to eat.",3)
 					e_precraftbuff.activity = "eat"
 					e_precraftbuff.id = foodID
