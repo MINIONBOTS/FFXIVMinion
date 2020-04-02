@@ -2651,9 +2651,11 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
-	--[[if ffxivminion.gameRegion ~= 3 then -- keep this in case it comes back??
+	--[=[
+	if ffxivminion.gameRegion ~= 4 then
+		d("return stealth as false because no longer exists")
 		return false
-	end]]
+	end
 	local needsStealth = ml_global_information.needsStealth
 	ml_global_information.canStealth = ml_global_information.needsStealth
 	local hasStealth = HasBuff(Player.id,47)
@@ -2721,7 +2723,7 @@ function c_dostealth:evaluate()
 			c_dostealth.dropStealth = true
 			return true
 		end
-	end
+	end]=]
 	
 	return false
 end
