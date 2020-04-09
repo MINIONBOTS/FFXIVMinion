@@ -4133,6 +4133,11 @@ function c_exchange:evaluate()
 		end
 	end
 	local catagoryData = GetControlRawData("HWDSupply",30)
+	if ffxivminion.gameRegion == 1 then
+		catagoryData = GetControlRawData("HWDSupply",63)
+	end
+	
+	
 	local currentCategory = nil
 	if catagoryData then
 		currentCategory = catagoryData.value
@@ -4154,23 +4159,31 @@ function c_exchange:evaluate()
 		return true
 	else
 		if (table.isa(currentItems)) then
-			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
-			for index,itemdata in pairs(currentItems[currentCategory + 8]) do
+			--d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
+			d("table.valid = "..tostring(table.valid(currentItems[currentCategory + 8])))
+			for index,itemdata in spairs(currentItems[currentCategory + 8]) do
 				
 				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
 				if ((currentamount + itemdata.reward) <= 10000) then
 					
 					local itemNumbers = GetControlRawData("HWDSupply",35 + (index * 14)).value
+					local turninIndex = (index-1)
+					if ffxivminion.gameRegion == 1 then
+						itemNumbers = GetControlRawData("HWDSupply",90 + (index * 20)).value -- catagory 1 was 250
+						turninIndex = (GetControlRawData("HWDSupply",91 + (index * 20)).value - 1)
+					end
+					--d("Item Count = "..tostring(itemNumbers))
+					--d("turninIndex = "..tostring(turninIndex))
 					if itemNumbers > 0 then
 						--local originalQuantity = itemdata.ownedquantity
 						c_exchange.lastItem = itemdata.itemid + 500000
 						c_exchange.handoverComplete = false
 						c_exchange.attempts = c_exchange.attempts + 1
-						local completeret = UseControlAction(addonName,addonComplete,index-1)
+						local completeret = UseControlAction(addonName,addonComplete,turninIndex)
 						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
 						return true
 					else
-						d("[ScripExchange]: Owned 0.")
+						--d("[ScripExchange]: Owned 0.")
 					end
 				else
 					--d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
