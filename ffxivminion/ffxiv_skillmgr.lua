@@ -2686,7 +2686,7 @@ function SkillMgr.IsSummoningPet()
 end
 
 function SkillMgr.IsReviveSkill(skillID)
-    if (skillID == 173 or skillID == 125 or skillID == 3603) then
+    if (skillID == 173 or skillID == 125 or skillID == 3603 or skillID == 18317) then
         return true
     end
     return false
