@@ -2618,7 +2618,7 @@ c_stealthupdate = inheritsFrom( ml_cause )
 e_stealthupdate = inheritsFrom( ml_effect )
 c_stealthupdate.timer = 0
 function c_stealthupdate:evaluate()	
-	--[[local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
+	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
 	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
 	
 		local fs = tonumber(Player:GetFishingState())
@@ -2634,7 +2634,7 @@ function c_stealthupdate:evaluate()
 		if (ml_global_information.needsStealth ~= false) then
 			ml_global_information.needsStealth = false
 		end	
-	end]]
+	end
 	
 	return false
 end
@@ -2651,9 +2651,7 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
-	--[=[
-	if ffxivminion.gameRegion ~= 4 then
-		d("return stealth as false because no longer exists")
+	if ffxivminion.gameRegion ~= 3 then
 		return false
 	end
 	local needsStealth = ml_global_information.needsStealth
@@ -2723,7 +2721,7 @@ function c_dostealth:evaluate()
 			c_dostealth.dropStealth = true
 			return true
 		end
-	end]=]
+	end
 	
 	return false
 end
@@ -4111,6 +4109,9 @@ function c_exchange:evaluate()
 				end
 			else
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_exchange.lastItem).."]")
+				if (TimeSince(c_exchange.lastSwitch) > 2000) then
+					UseControlAction("Request","Cancel")
+				end
 			end
 		end
 		return false
@@ -4118,16 +4119,13 @@ function c_exchange:evaluate()
 	
 	c_exchange.lastItem = 0
 	c_exchange.handoverComplete = false
-	local addonName = "HWDSupply"
-	local addonCatagory = "SetTabIndex"
-	local addonComplete = "SetIndex"
 		
-	if (not IsControlOpen(addonName)) then
+	if (not IsControlOpen("HWDSupply")) then
 		return false
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction(addonName,addonCatagory,0)
+			UseControlAction("HWDSupply","SetTabIndex",0)
 			c_exchange.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
@@ -4144,6 +4142,12 @@ function c_exchange:evaluate()
 	end
 	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()
 	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7})
+	
+	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
+		UseControlAction("HWDSupply","Close")
+		ml_task_hub:CurrentTask().completed = true
+		return true
+	end
 	local currentCheck = 0
 	for i = 0,7 do
 		if (checkedCategories[i] ~= true) then
@@ -4154,13 +4158,12 @@ function c_exchange:evaluate()
 	
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
-		UseControlAction(addonName,addonCatagory,currentCheck)
+		UseControlAction("HWDSupply","SetTabIndex",currentCheck)
 		c_exchange.lastSwitch = Now()
 		return true
 	else
 		if (table.isa(currentItems)) then
 			--d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
-			d("table.valid = "..tostring(table.valid(currentItems[currentCategory + 8])))
 			for index,itemdata in spairs(currentItems[currentCategory + 8]) do
 				
 				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
@@ -4179,7 +4182,7 @@ function c_exchange:evaluate()
 						c_exchange.lastItem = itemdata.itemid + 500000
 						c_exchange.handoverComplete = false
 						c_exchange.attempts = c_exchange.attempts + 1
-						local completeret = UseControlAction(addonName,addonComplete,turninIndex)
+						local completeret = UseControlAction("HWDSupply","SetIndex",turninIndex)
 						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
 						return true
 					else
