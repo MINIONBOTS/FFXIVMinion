@@ -4119,6 +4119,11 @@ function c_exchange:evaluate()
 	
 	c_exchange.lastItem = 0
 	c_exchange.handoverComplete = false
+	if c_exchange.attempts > 20 then
+		UseControlAction("HWDSupply","Close")
+		c_exchange.attempts = 0
+	end
+		
 		
 	if (not IsControlOpen("HWDSupply")) then
 		return false
@@ -4134,8 +4139,14 @@ function c_exchange:evaluate()
 	if ffxivminion.gameRegion == 1 then
 		catagoryData = GetControlRawData("HWDSupply",63)
 	end
+	local currencyCount = IsNull(Inventory:GetSpecialCurrencies()[28063].count,0)
 	
-	
+	if ((currencyCount) >= 10000) then
+		UseControlAction("HWDSupply","Close")
+		ml_task_hub:CurrentTask().completed = true
+		return true
+	end
+				
 	local currentCategory = nil
 	if catagoryData then
 		currentCategory = catagoryData.value
@@ -4163,43 +4174,43 @@ function c_exchange:evaluate()
 		return true
 	else
 		if (table.isa(currentItems)) then
-			--d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
-			for index,itemdata in spairs(currentItems[currentCategory + 8]) do
+			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
+			local currentIndex = 0
+			for i = 94, 400, 20  do
+				currentIndex = currentIndex +1
+				local itemid = 0
+				local itemNumbers = 0
+				local item = (GetControlRawData("HWDSupply",i - 1))
+				if item then
+					itemid = (GetControlRawData("HWDSupply",i - 1).value)
+					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
+				end
 				
-				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
-				if ((currentamount + itemdata.reward) <= 10000) then
-					
-					local itemNumbers = GetControlRawData("HWDSupply",35 + (index * 14)).value
-					local turninIndex = (index-1)
-					if ffxivminion.gameRegion == 1 then
-						itemNumbers = GetControlRawData("HWDSupply",90 + (index * 20)).value -- catagory 1 was 250
-						turninIndex = (GetControlRawData("HWDSupply",91 + (index * 20)).value - 1)
-					end
-					--d("Item Count = "..tostring(itemNumbers))
-					--d("turninIndex = "..tostring(turninIndex))
-					if itemNumbers > 0 then
-						--local originalQuantity = itemdata.ownedquantity
-						c_exchange.lastItem = itemdata.itemid + 500000
-						c_exchange.handoverComplete = false
-						c_exchange.attempts = c_exchange.attempts + 1
-						local completeret = UseControlAction("HWDSupply","SetIndex",turninIndex)
-						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
-						return true
-					else
-						--d("[ScripExchange]: Owned 0.")
-					end
-				else
-					--d("[ScripExchange]: Max scrip count for this item is reached, do not turn in.")
+				d("itemid = "..tostring(itemid))
+				d("itemNumbers = "..tostring(itemNumbers))
+				d("currentIndex TEST = "..tostring(currentIndex))
+				
+				if itemNumbers > 0 and itemid ~= 0 then
+					c_exchange.lastItem = itemid
+					c_exchange.handoverComplete = false
+					c_exchange.attempts = c_exchange.attempts + 1
+					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex)
+					d("[ScripExchange]: Attempting to turn in item at index ["..tostring(currentIndex).."].")
+					ml_global_information.Await(500)
+					return true
 				end
 			end
 			
-			if (TimeSince(c_exchange.lastSwitch) > 500) then
+			if (TimeSince(c_exchange.lastSwitch) > 1000) then
 				ml_task_hub:CurrentTask().categories[currentCheck] = true
 			end
 			return true
 		end
 	end
-	
+	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
+		UseControlAction("HWDSupply","Close")
+		ml_task_hub:CurrentTask().completed = true
+	end
 	return false
 end
 function e_exchange:execute()
