@@ -3176,9 +3176,25 @@ function e_selectconvindex:execute()
 				for selectindex,convo in pairs(convoList) do
 					if not (checkedIndexes[k]) then
 						local cleanedv = CleanConvoLine(v)
+						local cleanedline = CleanConvoLine(convo)
+
+						if In(cleanedv,cleanedline) then
+							d("Use Primary check conversation line ["..tostring(convo).."]")
+							SelectConversationLine(selectindex)
+							ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
+							c_selectconvindex.selected = k
+							return false
+						end
+					end
+				end
+			end
+			for k,v in pairs(conversationstrings) do
+				for selectindex,convo in pairs(convoList) do
+					if not (checkedIndexes[k]) then
+						local cleanedv = CleanConvoLine(v)
 						local cleanedline = CleanConvoLine(convo)						
 						if (string.contains(cleanedline,cleanedv)) then
-							d("Use conversation line ["..tostring(convo).."]")
+							d("Use alternate check conversation line ["..tostring(convo).."]")
 							SelectConversationLine(selectindex)
 							ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
 							c_selectconvindex.selected = k
@@ -4071,6 +4087,7 @@ c_exchange.lastComplete = 0
 c_exchange.lastSwitch = 0
 c_exchange.lastOpen = 0
 c_exchange.attempts = 0
+c_exchange.itemMin = 0
 c_exchange.handoverComplete = false
 function c_exchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_exchange.lastComplete) < 5000) then
@@ -4092,14 +4109,15 @@ function c_exchange:evaluate()
 			local items = GetItems({c_exchange.lastItem},{0,1,2,3})
 			
 			if (table.valid(items)) then
-				d("[ScripExchange]: Found ["..tostring(table.size(items)).."] possible items.")
+				--d("[ScripExchange]: Found ["..tostring(table.size(items)).."] possible items.")
 				for i, itemdata in pairs(items) do
 					if (itemdata) then
 						local item = itemdata.item
-						if (item) then
+						if (item and item.collectability >= c_exchange.itemMin) then
 							local result = item:HandOver()
 							d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
-							if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
+							d("min collectability = "..tostring(c_exchange.itemMin))
+							if (result ~= nil and (In(result,1,true ,65536,10,0))) then
 								c_exchange.handoverComplete = true
 								c_exchange.attempts = 0
 								return true
@@ -4107,6 +4125,9 @@ function c_exchange:evaluate()
 						end
 					end
 				end
+				d("[ScripExchange]: no valid item ["..tostring(c_exchange.lastItem).."]")
+				UseControlAction("Request","Cancel")
+				return true
 			else
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_exchange.lastItem).."]")
 				if (TimeSince(c_exchange.lastSwitch) > 2000) then
@@ -4118,6 +4139,7 @@ function c_exchange:evaluate()
 	end
 	
 	c_exchange.lastItem = 0
+	c_exchange.itemMin = 0
 	c_exchange.handoverComplete = false
 	if c_exchange.attempts > 20 then
 		UseControlAction("HWDSupply","Close")
@@ -4135,23 +4157,22 @@ function c_exchange:evaluate()
 			ml_task_hub:CurrentTask().loaded = true
 		end
 	end
+	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()	
 	local catagoryData = GetControlRawData("HWDSupply",30)
 	if ffxivminion.gameRegion == 1 then
 		catagoryData = GetControlRawData("HWDSupply",63)
+	end	
+	local currentCategory = nil
+	if catagoryData then
+		currentCategory = catagoryData.value
 	end
 	local currencyCount = IsNull(Inventory:GetSpecialCurrencies()[28063].count,0)
-	
 	if ((currencyCount) >= 10000) then
 		UseControlAction("HWDSupply","Close")
 		ml_task_hub:CurrentTask().completed = true
 		return true
 	end
-				
-	local currentCategory = nil
-	if catagoryData then
-		currentCategory = catagoryData.value
-	end
-	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()
+		
 	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7})
 	
 	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
@@ -4174,7 +4195,7 @@ function c_exchange:evaluate()
 		return true
 	else
 		if (table.isa(currentItems)) then
-			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
+			--d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
 			local currentIndex = 0
 			for i = 94, 400, 20  do
 				currentIndex = currentIndex +1
@@ -4186,12 +4207,13 @@ function c_exchange:evaluate()
 					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
 				end
 				
-				d("itemid = "..tostring(itemid))
-				d("itemNumbers = "..tostring(itemNumbers))
-				d("currentIndex TEST = "..tostring(currentIndex))
+				--d("itemid = "..tostring(itemid))
+				--d("itemNumbers = "..tostring(itemNumbers))
+				--d("currentIndex TEST = "..tostring(currentIndex))
 				
 				if itemNumbers > 0 and itemid ~= 0 then
 					c_exchange.lastItem = itemid
+					c_exchange.itemMin = currentItems[currentCategory + 8][itemid - 500000].collectmin
 					c_exchange.handoverComplete = false
 					c_exchange.attempts = c_exchange.attempts + 1
 					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex)

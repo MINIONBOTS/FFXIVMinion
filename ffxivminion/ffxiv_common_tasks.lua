@@ -2057,6 +2057,18 @@ function ffxiv_misc_shopping:task_complete_execute()
 		ml_global_information.Await(1500, function () return not IsControlOpen("Shop") end) 
 		return false
 	end
+	local shop = GetControl("ShopExchangeCurrency")
+	if (shop and shop:IsOpen()) then
+		shop:Close()	
+		ml_global_information.Await(1500) 
+		return false
+	end
+	local shop = GetControl("ShopExchangeItemv")
+	if (shop and shop:IsOpen()) then
+		shop:Close()	
+		ml_global_information.Await(1500) 
+		return false
+	end
 	
 	local shopSelect = GetControl("SelectString")
 	if (shopSelect and shopSelect:IsOpen()) then
