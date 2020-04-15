@@ -1276,7 +1276,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= "Assist" then
+	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= GetString("assistMode") then
 		Player:Stop()
 	end
 	SkillMgr.receivedMacro = {}
