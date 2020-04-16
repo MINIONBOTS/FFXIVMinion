@@ -1027,11 +1027,12 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
-	local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+	-- Removed, confirmed can teleport from inns patch 5.2 ? unconfirmed previous
+	--[=[local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
 	if (noTeleportMaps[Player.localmapid]) then
-		d("Cannot teleport to that map.")
+		d("Cannot teleport from this map.")
 		return false
-	end
+	end]=]
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID) then
