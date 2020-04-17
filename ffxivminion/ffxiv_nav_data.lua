@@ -1373,6 +1373,14 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
+		[843] =
+		{
+			{id = 843, cost = 1, x = 63, y = 1.72, z = 250, h = 1.3, b = 1027231, i = 1 
+				--, requires = {
+					--["GetQuestInfo(3291,'step') >= 4 or QuestCompleted(3291)"] = true,
+				--},
+			},
+		},
         [844] = {
             {id = 844, cost = 1, x = 118, y = 14, z = 7, h = -1.61, b = 1027230
 				, requires = {
@@ -1414,6 +1422,12 @@ ffxiv_map_nav.data = {
 			},
         },
     },
+	[843] =
+	{
+		[819] = {
+			{id = 819, cost = 1, x = 0, y = 0, z = 4, h = 0, g = 2009759},
+		},
+	},
 	[844] =
     {
         [842] = {
