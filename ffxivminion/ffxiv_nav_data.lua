@@ -917,6 +917,20 @@ ffxiv_map_nav.data = {
                 },
 			},
 		},
+		[429] =
+		{
+			{id = 429, cost = 1, x = 84.5, y = 15, z = 33.96, h = -3, b = 1011193, i = 1 
+				--, requires = {
+					--["GetQuestInfo(3291,'step') >= 4 or QuestCompleted(3291)"] = true,
+				--},
+			},
+		},
+	},
+	[429] =
+	{
+		[418] = {
+			{id = 418, cost = 1, x = 0, y = 0, z = 7, h = 0, g = 2005628},
+		},
 	},
 	[886] = {
 		[418] = {
@@ -1205,8 +1219,22 @@ ffxiv_map_nav.data = {
 					["GetQuestInfo(2476,'step') == 255 or QuestCompleted(2476)"] = true,
 				},
 			},
-        },    
+        },	
+		[629] =
+		{
+			{id = 629, cost = 1, x = -86.2, y = 19, z = -198.7, h = 3, b = 1018981, i = 1 
+				--, requires = {
+					--["GetQuestInfo(3291,'step') >= 4 or QuestCompleted(3291)"] = true,
+				--},
+			},
+		},
     },
+	[629] =
+	{
+		[628] = {
+			{id = 628, cost = 1, x = 0, y = 0, z = 5, h = 0, g = 2007707},
+		},
+	},
 	[635] =
 	{
 		[612] = {
