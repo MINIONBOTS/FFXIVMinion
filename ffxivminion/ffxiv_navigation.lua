@@ -816,9 +816,16 @@ function ml_navigation:IsDestinationClose(ppos,goal)
 end
 
 -- Often  used function to determine if the next node in the path is reached
-function ml_navigation:IsGoalClose(ppos,node)
+function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	local goaldist,goaldist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,node)
+	local lastdist,lastdist2d,lastgoal,lastgoal2d;
+	if (table.valid(lastnode)) then
+		lastdist,lastdist2d = ml_navigation:GetRaycast_Player_Node_Distance(lastnode,ppos)
+		lastgoal,lastgoal2d = ml_navigation:GetRaycast_Player_Node_Distance(lastnode,node)
+	end
 	local clear3d,clear2d = ml_navigation.GetClearance(node)
+	
+	--d("lastdist:"..tostring(lastdist)..",lastgoal:"..tostring(lastgoal))
 	
 	--d("[Navigation]: Goal 3D ["..tostring(goaldist).."] , 2D ["..tostring(goaldist2d).."]")
 	--d("[Navigation]: Clearance 3D ["..tostring(clear3d).."] , 2D ["..tostring(clear2d).."]")
@@ -923,30 +930,36 @@ function ml_navigation:IsGoalClose(ppos,node)
 	elseif (Player.ismounted) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dmount"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dmount"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
-			self:ResetOMCHandler()
-			if ( nc and In(ncsubtype,1,2,3,4)) then	
-				self.omc_id = nc.id
-				self.omc_details = nc
-				if(ncdirectionFromA~=nil) then
-					self.omc_direction = ncdirectionFromA == true and 1 or 2
+			if (lastdist2d == nil or lastdist2d >= lastgoal2d) then
+				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
+				self:ResetOMCHandler()
+				if ( nc and In(ncsubtype,1,2,3,4)) then	
+					self.omc_id = nc.id
+					self.omc_details = nc
+					if(ncdirectionFromA~=nil) then
+						self.omc_direction = ncdirectionFromA == true and 1 or 2
+					end
 				end
+				--d("close enough, mounted")
+				return true
 			end
-			--d("close enough, mounted")
-			return true
 		end
 	else
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dwalk"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dwalk"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
-			self:ResetOMCHandler()
-			if ( nc and In(ncsubtype,1,2,3,4)) then	
-				self.omc_id = nc.id
-				self.omc_details = nc
-				if(ncdirectionFromA~=nil) then
-					self.omc_direction = ncdirectionFromA == true and 1 or 2
+			if (lastdist2d == nil or lastdist2d >= lastgoal2d) then
+				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
+				self:ResetOMCHandler()
+				if ( nc and In(ncsubtype,1,2,3,4)) then	
+					self.omc_id = nc.id
+					self.omc_details = nc
+					if(ncdirectionFromA~=nil) then
+						self.omc_direction = ncdirectionFromA == true and 1 or 2
+					end
 				end
+				--d("close enough, walking")
+				return true
 			end
-			--d("close enough, walking")
-			return true
 		end
 	end
 	self.omc_direction = 0
@@ -1134,10 +1147,12 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		else
 			ml_navigation:ResetCurrentPath()
 		end
+		local ppos = Player.pos
+		ml_navigation.startposition = { x=0, y=0, z=0 }
 		ml_navigation.targetposition = { x=0, y=0, z=0 }
 		ml_navigation.lasttargetid = nil
-		
 	else
+		ml_navigation.startposition = { x=ppos.x, y=ppos.y, z=ppos.z }
 		ml_navigation.targetposition = newGoal
 		ml_navigation.lasttargetid = targetid	
 	end
@@ -1302,7 +1317,11 @@ function ml_navigation.Navigate(event, ticks )
 						ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
 						return
 					end
-				
+					
+					local lastnode = ml_navigation.path[ml_navigation.pathindex - 1]
+					if (lastnode == nil) then 
+						lastnode = ml_navigation.startposition 
+					end
 					local nextnode = ml_navigation.path[ml_navigation.pathindex]
 					local nextnextnode = ml_navigation.path[ml_navigation.pathindex + 1]
 					
@@ -1503,7 +1522,7 @@ function ml_navigation.Navigate(event, ticks )
 								ml_navigation.omc_starttimer = ticks
 							end
 							ml_navigation.GUI.lastAction = "Walk NavConnection"
-							ml_navigation:NavigateToNode(ppos,nextnode,1000)
+							ml_navigation:NavigateToNode(ppos,nextnode,lastnode,1000)
 							return
 						end
 						
@@ -1617,7 +1636,7 @@ function ml_navigation.Navigate(event, ticks )
 						if ( ncsubtype == 5 ) then
 							
 							ml_navigation.GUI.lastAction = "Portal OMC"
-							ml_navigation:NavigateToNode(ppos,nextnode,2000)
+							ml_navigation:NavigateToNode(ppos,nextnode,lastnode,2000)
 							return
 						end
 						
@@ -1625,7 +1644,7 @@ function ml_navigation.Navigate(event, ticks )
 						if ( ncsubtype == 6 ) then
 							
 							ml_navigation.GUI.lastAction = "Custom OMC"
-							ml_navigation:NavigateToNode(ppos,nextnode,1500)	
+							ml_navigation:NavigateToNode(ppos,nextnode,lastnode,1500)	
 							return							
 						end
 					end
@@ -1688,7 +1707,7 @@ function ml_navigation.Navigate(event, ticks )
 															
 							-- Check if the next node is reached:
 							local dist3D = math.distance3d(nextnode,ppos)
-							if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
+							if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
 								-- We reached the node
 								--d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")	
 								
@@ -1814,7 +1833,7 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
-						if ( ml_navigation:IsGoalClose(ppos,nextnode)) then	
+						if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
 							local canLand = (dist2D < 1.5 and dist3D < 3)
 							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
 							if (not hit) then
@@ -1850,7 +1869,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
-						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode))
+						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
 							--d("isCubeCon:"..tostring(isCubeCon))
@@ -1879,7 +1898,7 @@ function ml_navigation.Navigate(event, ticks )
 							elseif (nextnode.water or (navcon and navcon.type == 3 and (nextnextnode and nextnextnode.water))) then
 								
 								-- For connecting to the weird tunnel exists in underwater towns.
-								ml_navigation:NavigateToNode(ppos,nextnode)	
+								ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	
 								return
 								
 							elseif (not IsFlying() and CanFlyInZone()) then
@@ -1890,7 +1909,7 @@ function ml_navigation.Navigate(event, ticks )
 									
 								elseif (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
-									d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode)).."].")
+									d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode,lastnode)).."].")
 									d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
 									d("[Navigation] - Node tags - floor ["..tostring(nextnode.is_floor).."], cube ["..tostring(nextnode.is_cube).."], ground ["..tostring(nextnode.ground).."], ground_water ["..tostring(nextnode.ground_water).."], ground_border ["..tostring(nextnode.ground_border).."], ground_avoid ["..tostring(nextnode.ground_avoid).."], air ["..tostring(nextnode.air).."], water ["..tostring(nextnode.water).."], air_avoid ["..tostring(nextnode.air_avoid).."].")									
 									
@@ -1942,7 +1961,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 						else
 							--d("[Navigation]: Navigate to node, backup.")
-							ml_navigation:NavigateToNode(ppos,nextnode)	
+							ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	
 						end
 					end
 				
@@ -1972,7 +1991,7 @@ end
 RegisterEventHandler("Gameloop.Draw", ml_navigation.DebugDraw, "ml_navigation.DebugDraw")
 
 -- Used by multiple places in the Navigate() function above, so I'll put it here ...no redudant code...
-function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adjustedHeading)
+function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththreshold, adjustedHeading)
 	local adjustedHeading = IsNull(adjustedHeading,0)
 	
 	-- Check if we left our path
@@ -1986,7 +2005,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold, adju
 				
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-	if ( ml_navigation:IsGoalClose(ppos,nextnode)) then
+	if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
 		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 		
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
