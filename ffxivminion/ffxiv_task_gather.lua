@@ -3148,6 +3148,7 @@ c_gatherstealth = inheritsFrom( ml_cause )
 e_gatherstealth = inheritsFrom( ml_effect )
 e_gatherstealth.timer = 0
 function c_gatherstealth:evaluate()
+	--[=[
 	if (IsFlying() or ml_task_hub:CurrentTask().name == "MOVE_WITH_FLIGHT") then
 		return false
 	end
@@ -3280,7 +3281,7 @@ function c_gatherstealth:evaluate()
 		if (HasBuffs(Player,"47")) then
 			return true
 		end
-	end
+	end]=]
  
     return false
 end
@@ -3298,7 +3299,7 @@ function e_gatherstealth:execute()
 end
 
 function ffxiv_gather.NeedsStealth()
-	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
+	--[=[if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
 	if Player.level < 8 then
@@ -3421,7 +3422,7 @@ function ffxiv_gather.NeedsStealth()
 		--d("Task is not set to use stealth.")
 	end
 	
-	--d("Defaulted out of function.")
+	--d("Defaulted out of function.")]=]
 	return false
 end
 
@@ -3894,41 +3895,6 @@ function ffxiv_task_gather:Draw()
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
 		GUI:PopItemWidth()
-		GUI:Columns()
-		--Stealth Settings
-		GUI:Separator()
-		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Stealth")
-		GUI:Separator()
-		GUI:Text("Detect Range")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Enemy range before applying Stealth.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Remove Range")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Enemy range before removing Stealth.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Smart Stealth")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
-		end
-		GUI:NextColumn()
-		GUI:PushItemWidth(CordialWidth)
-		GUI_DrawIntMinMax("##Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Enemy range before applying Stealth.")
-		end
-		GUI_DrawIntMinMax("##Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Enemy range before removing Stealth.")
-		end
-		GUI:PopItemWidth()
-		GUI_Capture(GUI:Checkbox("##Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Smarter Stealth based on players direction and mob.")
-		end
 		GUI:Columns()
 		GUI:Separator()
 		GUI:Columns(2)
