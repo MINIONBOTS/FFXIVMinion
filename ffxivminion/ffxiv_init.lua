@@ -418,7 +418,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(621, "The Lochs", enforce)
 		ml_mesh_mgr.SetDefaultMesh(622, "The Azim Steppe", enforce)
 		
-		ml_mesh_mgr.SetDefaultMesh(628, "Kugane", enforce) 
+		ml_mesh_mgr.SetDefaultMesh(628, "Kugane", enforce)
+		ml_mesh_mgr.SetDefaultMesh(735, "The Prima Vista Tiring Room", enforce)
+		ml_mesh_mgr.SetDefaultMesh(736, "The Prima Vista Bridge", enforce)
 		ml_mesh_mgr.SetDefaultMesh(635, "Rhalgr's Reach", enforce)
 		ml_mesh_mgr.SetDefaultMesh(639, "Ruby Bazaar Offices", enforce)
 		
