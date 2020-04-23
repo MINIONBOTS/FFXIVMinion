@@ -4209,7 +4209,8 @@ function c_exchange:evaluate()
 				local itemNumbers = 0
 				local minRating = 50
 				local item = (GetControlRawData("HWDSupply",i - 1))
-				if item then
+				local indexCorrect = (currentItems and currentItems[item] and currentItems[item].class == currentCategory + 8)
+				if item and indexCorrect then
 					itemid = (GetControlRawData("HWDSupply",i - 1).value)
 					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
 					minRating = GetControlRawData("HWDSupply",i + 4).value
