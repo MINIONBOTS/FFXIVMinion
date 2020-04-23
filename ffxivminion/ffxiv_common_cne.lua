@@ -4207,19 +4207,24 @@ function c_exchange:evaluate()
 				currentIndex = currentIndex +1
 				local itemid = 0
 				local itemNumbers = 0
+				local minRating = 50
 				local item = (GetControlRawData("HWDSupply",i - 1))
 				if item then
 					itemid = (GetControlRawData("HWDSupply",i - 1).value)
 					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
+					minRating = GetControlRawData("HWDSupply",i + 4).value
 				end
 				
-				--d("itemid = "..tostring(itemid))
-				--d("itemNumbers = "..tostring(itemNumbers))
-				--d("currentIndex TEST = "..tostring(currentIndex))
+				d("itemid = "..tostring(itemid))
+				d("itemNumbers = "..tostring(itemNumbers))
+				d("minRating = "..tostring(minRating))
+				d("currentIndex TEST = "..tostring(currentIndex))
 				
 				if itemNumbers > 0 and itemid ~= 0 then
 					c_exchange.lastItem = itemid
-					c_exchange.itemMin = currentItems[currentCategory + 8][itemid - 500000].collectmin
+					d("currentCategory = "..tostring(currentCategory))
+					d("current Class = "..tostring(currentCategory + 8))
+					c_exchange.itemMin = minRating
 					c_exchange.handoverComplete = false
 					c_exchange.attempts = c_exchange.attempts + 1
 					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex)
