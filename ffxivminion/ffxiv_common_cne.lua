@@ -4220,6 +4220,7 @@ function c_exchange:evaluate()
 				d("itemNumbers = "..tostring(itemNumbers))
 				d("minRating = "..tostring(minRating))
 				d("currentIndex TEST = "..tostring(currentIndex))
+				d("indexCorrect TEST = "..tostring(indexCorrect))
 				
 				if itemNumbers > 0 and itemid ~= 0 then
 					c_exchange.lastItem = itemid
