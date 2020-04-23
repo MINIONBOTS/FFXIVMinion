@@ -4209,23 +4209,26 @@ function c_exchange:evaluate()
 				local itemNumbers = 0
 				local minRating = 50
 				local item = (GetControlRawData("HWDSupply",i - 1))
-				local indexCorrect = (currentItems and currentItems[item] and currentItems[item].class == currentCategory + 8)
-				if item and indexCorrect then
+				local indexCorrect = false
+				d("item = "..tostring(item))
+				if item then
 					itemid = (GetControlRawData("HWDSupply",i - 1).value)
 					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
 					minRating = GetControlRawData("HWDSupply",i + 4).value
+					d("currentItems[itemid] = "..tostring(currentItems[currentCategory + 8][itemid - 500000]))
+					if currentItems[currentCategory + 8][itemid - 500000] then
+						indexCorrect = true
+					end
+					d("itemid = "..tostring(itemid))
+					d("itemNumbers = "..tostring(itemNumbers))
+					d("minRating = "..tostring(minRating))
+					d("currentIndex TEST = "..tostring(currentIndex))
+					d("indexCorrect TEST = "..tostring(indexCorrect))
 				end
 				
-				d("itemid = "..tostring(itemid))
-				d("itemNumbers = "..tostring(itemNumbers))
-				d("minRating = "..tostring(minRating))
-				d("currentIndex TEST = "..tostring(currentIndex))
-				d("indexCorrect TEST = "..tostring(indexCorrect))
 				
-				if itemNumbers > 0 and itemid ~= 0 then
+				if itemNumbers > 0 and itemid ~= 0 and indexCorrect then
 					c_exchange.lastItem = itemid
-					d("currentCategory = "..tostring(currentCategory))
-					d("current Class = "..tostring(currentCategory + 8))
 					c_exchange.itemMin = minRating
 					c_exchange.handoverComplete = false
 					c_exchange.attempts = c_exchange.attempts + 1
