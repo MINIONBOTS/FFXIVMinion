@@ -823,6 +823,7 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 		lastdist,lastdist2d = ml_navigation:GetRaycast_Player_Node_Distance(lastnode,ppos)
 		lastgoal,lastgoal2d = ml_navigation:GetRaycast_Player_Node_Distance(lastnode,node)
 	end
+	local isLast = (ml_navigation.path[ml_navigation.pathindex+1]==nil)
 	local clear3d,clear2d = ml_navigation.GetClearance(node)
 	
 	--d("lastdist:"..tostring(lastdist)..",lastgoal:"..tostring(lastgoal))
@@ -890,16 +891,18 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	if (Player.flying.isflying) then
 		--d("index = "..tostring(ml_navigation.pathindex)..", y = "..tostring(node.y)..",goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
-			self:ResetOMCHandler()
-			if ( nc and In(ncsubtype,1,2,3,4)) then				
-				self.omc_id = nc.id
-				self.omc_details = nc
-				if(ncdirectionFromA~=nil) then
-					self.omc_direction = ncdirectionFromA == true and 1 or 2
+			--if (lastdist == nil or lastdist >= lastgoal) then
+				self:ResetOMCHandler()
+				if ( nc and In(ncsubtype,1,2,3,4)) then				
+					self.omc_id = nc.id
+					self.omc_details = nc
+					if(ncdirectionFromA~=nil) then
+						self.omc_direction = ncdirectionFromA == true and 1 or 2
+					end
 				end
-			end
-			--d("close enough, flying")
-			return true
+				--d("close enough, flying")
+				return true
+			--end
 		end
 	elseif (Player.diving.isdiving) then
 		--d("diving goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3ddive"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2ddive"]))
@@ -930,7 +933,7 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	elseif (Player.ismounted) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dmount"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dmount"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
-			if (lastdist2d == nil or lastdist2d >= lastgoal2d) then
+			if (isLast or lastdist == nil or lastdist >= lastgoal) then
 				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then	
@@ -947,7 +950,7 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	else
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dwalk"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dwalk"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
-			if (lastdist2d == nil or lastdist2d >= lastgoal2d) then
+			if (isLast or lastdist == nil or lastdist >= lastgoal) then
 				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then	

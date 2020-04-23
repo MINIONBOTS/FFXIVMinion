@@ -4031,6 +4031,16 @@ function GetAetheryteByMapID(mapid, p)
 		mapid = 418
 	elseif (mapid == 399 and myMap ~= 478) then
 		mapid = 478
+	elseif (In(mapid,177) and not In(myMap,177,128,129)) then
+		mapid = 129
+	elseif (In(mapid,178) and not In(myMap,178,130,131)) then
+		mapid = 130
+	elseif (In(mapid,179) and not In(myMap,179,132,133)) then
+		mapid = 132
+	elseif (In(mapid,629,628) and not In(myMap,629,628)) then
+		mapid = 628
+	elseif (In(mapid,843,819) and not In(myMap,843,819)) then
+		mapid = 819
 	end
 	
 	if 	(myMap == 131 and mapid == 130) or
