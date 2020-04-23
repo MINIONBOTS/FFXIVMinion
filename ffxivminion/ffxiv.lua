@@ -420,23 +420,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information.autoStartQueued = false
 		ml_global_information:ToggleRun() -- convert
 	end
-	if IsNormalMap(Player.localmapid) then
-		if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
-			e_getCurrentInfo:execute()
-		elseif (IsControlOpen("AetherCurrent")) and ffxivminion.AetherCurrentCompleted then
-			ActionList:Get(10,67):Cast()
-			ffxivminion.AetherCurrentCompleted = false
-		end
-		if (c_getDutyComplete:evaluate()) then
-			e_getDutyComplete:execute()
-		end
-	end
-	--FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
-	
+		
+		--FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
+		
 	if (ml_mesh_mgr) then
-		if (not IsControlOpen("NowLoading")) then
-			if (Player) then
-				if (ml_global_information.queueLoader == true) then
+		if (Player) then
+			if (ml_global_information.queueLoader == true) then
+				if (not IsControlOpen("NowLoading")) then
 					ml_global_information.Player_Aetherytes = GetAetheryteList(true)
 					Hacks:Disable3DRendering(gDisableDrawing)
 					ml_global_information.queueLoader = false
@@ -454,16 +444,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, 0)
 				end
 			end
-		else
-			if (ml_global_information.queueLoader == false) then
-				Hacks:Disable3DRendering(false)
-				ml_global_information.queueLoader = true
-			end
 		end
-		
-		--if (MIsLoading()) then
-			--return false
-		--end
 	end
 	
 	if (c_skiptalk:evaluate()) then
@@ -473,20 +454,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	if (c_skipcutscene:evaluate()) then
 		e_skipcutscene:execute()
 		--return false
-	end
-	
-	if (IsControlOpen("MasterPieceSupply")) then
-		local category = GetControlData("MasterPieceSupply","category")
-		if (not ffxivminion.lastScripExchangeUpdate[category] or TimeSince(ffxivminion.lastScripExchangeUpdate[category]) > 600000) then
-			local items = GetControlData("MasterPieceSupply","items")
-			if (table.valid(items)) then
-				ffxivminion.scripExchange[category] = {}
-				for i,item in pairs(items) do
-					ffxivminion.scripExchange[category][HQToID(item.itemid)] = true
-				end
-				ffxivminion.lastScripExchangeUpdate[category] = Now()
-			end
-		end
 	end
 	
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
@@ -504,7 +471,39 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information.nextRun = tickcount + pulseTime
 		ml_global_information.lastPulseShortened = false
 		
-        --ml_global_information.lastrun = tickcount
+		if (ml_mesh_mgr) then
+			if (IsControlOpen("NowLoading")) then
+				if (ml_global_information.queueLoader == false) then
+					Hacks:Disable3DRendering(false)
+					ml_global_information.queueLoader = true
+				end
+			end
+		end
+		
+		if IsNormalMap(Player.localmapid) then
+			if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
+				e_getCurrentInfo:execute()
+			elseif (IsControlOpen("AetherCurrent")) and ffxivminion.AetherCurrentCompleted then
+				ActionList:Get(10,67):Cast()
+				ffxivminion.AetherCurrentCompleted = false
+			end
+			if (c_getDutyComplete:evaluate()) then
+				e_getDutyComplete:execute()
+			end
+		end
+		if (IsControlOpen("MasterPieceSupply")) then
+			local category = GetControlData("MasterPieceSupply","category")
+			if (not ffxivminion.lastScripExchangeUpdate[category] or TimeSince(ffxivminion.lastScripExchangeUpdate[category]) > 600000) then
+				local items = GetControlData("MasterPieceSupply","items")
+				if (table.valid(items)) then
+					ffxivminion.scripExchange[category] = {}
+					for i,item in pairs(items) do
+						ffxivminion.scripExchange[category][HQToID(item.itemid)] = true
+					end
+					ffxivminion.lastScripExchangeUpdate[category] = Now()
+				end
+			end
+		end
 		
 		if (gBotMode ~= GetString("assistMode")) then ffxivminion.UpdateGlobals() end
 		
