@@ -447,14 +447,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (c_skiptalk:evaluate()) then
-		e_skiptalk:execute()
-		--return false
-	end
-	if (c_skipcutscene:evaluate()) then
-		e_skipcutscene:execute()
-		--return false
-	end
 	
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
 		return false
@@ -466,7 +458,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		SkillMgr.OnUpdate()
 	end
 	
-	if (Now() >= ml_global_information.nextRun) then
+	if (tickcount >= ml_global_information.nextRun) then
 		
 		ml_global_information.nextRun = tickcount + pulseTime
 		ml_global_information.lastPulseShortened = false
@@ -500,7 +492,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					for i,item in pairs(items) do
 						ffxivminion.scripExchange[category][HQToID(item.itemid)] = true
 					end
-					ffxivminion.lastScripExchangeUpdate[category] = Now()
+					ffxivminion.lastScripExchangeUpdate[category] = tickcount
 				end
 			end
 		end
@@ -548,6 +540,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 						ml_global_information.repairTimer = tickcount
 					end
 				end
+			end
+			if (c_skiptalk:evaluate()) then
+				e_skiptalk:execute()
+			end
+			if (c_skipcutscene:evaluate()) then
+				e_skipcutscene:execute()
 			end
 			
 			-- TODO: This section could potentially cause some FPS drops, need to rework a bit.
