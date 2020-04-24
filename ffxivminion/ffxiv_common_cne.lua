@@ -1944,9 +1944,9 @@ function c_mount:evaluate()
 		return false
 	end
 	
-	if (HasBuffs(Player,"47") and ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount) then
+	--[[if (HasBuffs(Player,"47") and ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount) then
 		return false
-	end
+	end]]
 	
 	e_mount.id = 0
 	
@@ -2050,9 +2050,9 @@ function c_battlemount:evaluate()
 		return false
 	end
 	
-	if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
+	--[[if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
 		return false
-	end
+	end]]
 	
 	e_battlemount.id = 0
 	
@@ -2603,11 +2603,11 @@ function e_returntomarker:execute()
 		newTask.useTeleport = true
 	end
 	
-	if (markerType == "Mining" or markerType == "Botany") then
+	--[[if (markerType == "Mining" or markerType == "Botany") then
 		newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	elseif (markerType == "Fishing") then
 		newTask.stealthFunction = ffxiv_fish.NeedsStealth
-	end
+	end]]
 	
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -2619,7 +2619,7 @@ c_stealthupdate = inheritsFrom( ml_cause )
 e_stealthupdate = inheritsFrom( ml_effect )
 c_stealthupdate.timer = 0
 function c_stealthupdate:evaluate()	
-	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
+	--[=[local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
 	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
 	
 		local fs = tonumber(Player:GetFishingState())
@@ -2635,7 +2635,7 @@ function c_stealthupdate:evaluate()
 		if (ml_global_information.needsStealth ~= false) then
 			ml_global_information.needsStealth = false
 		end	
-	end
+	end]=]
 	
 	return false
 end
@@ -2652,7 +2652,7 @@ function c_dostealth:evaluate()
 	c_dostealth.addStealth = false
 	c_dostealth.dropStealth = false
 
-	if ffxivminion.gameRegion ~= 3 then
+	--[=[if ffxivminion.gameRegion ~= 3 then
 		return false
 	end
 	local needsStealth = ml_global_information.needsStealth
@@ -2722,7 +2722,7 @@ function c_dostealth:evaluate()
 			c_dostealth.dropStealth = true
 			return true
 		end
-	end
+	end]=]
 	
 	return false
 end
