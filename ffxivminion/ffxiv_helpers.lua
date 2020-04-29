@@ -7958,6 +7958,87 @@ function FindNearestCollectableAppraiser()
 	
 	return nil
 end
+function GetLowestValue(...)
+	local lowestValue = math.huge
+	
+	local vals = {...}
+	if (table.valid(vals)) then
+		for k,value in pairs(vals) do
+			if (value < lowestValue) then
+				lowestValue = value
+			end
+		end
+	end
+	
+	return lowestValue
+end
+function FindClosestCity()
+	local idyllshire = { aethid = 75, mapid = 478 }
+	local rhalgr = { aethid = 104, mapid = 635 }
+	local gridania = { aethid = 25, mapid = 132 }
+	local limsa = { aethid = 8, mapid = 139 }
+	local uldah = { aethid = 9, mapid = 131 }
+	local eulmore = { aethid = 134, mapid = 820 }
+	
+	if (Player.localmapid == idyllshire.mapid) then
+		return idyllshire
+	elseif (Player.localmapid == rhalgr.mapid) then
+		return rhalgr
+	elseif (Player.localmapid == gridania.mapid) then
+		return gridania
+	elseif (Player.localmapid == limsa.mapid) then
+		return limsa
+	elseif (Player.localmapid == uldah.mapid) then
+		return uldah
+	elseif (Player.localmapid == eulmore.mapid) then
+		return eulmore
+	else
+		local hasIdyllshire, hasRhalgr, hasEulmore, hasGridania, hasLimsa, hasUldah = false, false, false, false, false, false, false
+		local idyllshireCost, rhalgrCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost = 1000, 1000, 1000, 1000, 1000, 1000, 1000
+		local gil = GilCount()
+		local attuned = GetAttunedAetheryteList()
+		if (table.valid(attuned)) then
+			for id,aetheryte in pairs(attuned) do
+				if (aetheryte.id == idyllshire.aethid and gil >= aetheryte.price) then
+					hasIdyllshire = true
+					idyllshireCost = aetheryte.price
+				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
+					hasRhalgr = true
+					rhalgrCost = aetheryte.price
+				elseif QuestCompleted(3603) and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
+					hasEulmore = true
+					eulmoreCost = aetheryte.price
+				elseif (aetheryte.id == gridania.aethid and gil >= aetheryte.price) then
+					hasGridania = true
+					gridaniaCost = aetheryte.price
+				elseif (aetheryte.id == limsa.aethid and gil >= aetheryte.price) then
+					hasLimsa = true
+					limsaCost = aetheryte.price
+				elseif (aetheryte.id == uldah.aethid and gil >= aetheryte.price) then
+					hasUldah = true
+					uldahCost = aetheryte.price
+				end
+			end
+		end
+		
+		local cheapest = GetLowestValue(idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost)
+		if (cheapest ==  idyllshireCost) then
+			return idyllshire.mapid
+		elseif (cheapest ==  rhalgrCost) then
+			return rhalgr.mapid
+		elseif (cheapest ==  eulmoreCost) then
+			return eulmore.mapid
+		elseif (cheapest ==  gridaniaCost) then
+			return gridania.mapid
+		elseif (cheapest ==  limsaCost) then
+			return limsa.mapid
+		elseif (uldahCost) then
+			return uldah.mapid
+		end
+	end
+	
+	return 0
+end
 function MoveDirectly3D(pos)
 	local ppos = Player.pos
 	if (pos ~= nil) then
