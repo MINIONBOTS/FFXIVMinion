@@ -914,6 +914,11 @@ ffxiv_map_nav.data = {
 				}
 				, conversationstrings = {
                    ["E"] = "Travel to the Firmament.",
+                   ["J"] = "蒼天街転送",
+                   ["G"] = "Himmelsstadt",
+                   ["F"] = "Azurée",
+                   --["CN"] = "",
+                   --["KR"] = "",
                 },
 			},
 		},
