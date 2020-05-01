@@ -650,17 +650,26 @@ end
 function SetGearsetInfo()
 	local searchList = Player:GetGearSetList()
 	local newSets = {}
-	
+	d("---------- Look for this debug ----------")
+	d("---------- Look for this debug ----------")
+	d("---------- Look for this debug ----------")
+	d("----------- Set gearset stuff -----------")
+	d("---------- Look for this debug ----------")
+	d("---------- Look for this debug ----------")
+	d("---------- Look for this debug ----------")
+	d("---------- Look for this debug ----------")
 	if table.valid(searchList) then
 		for i,e in spairs(searchList) do
 			local cleanedName = string.gsub(e.name,"[^0-9]","")
 			if not newSets[e.job] then
 				newSets[e.job] = tonumber(cleanedName)
 				_G["gGearset"..tostring(e.job)] = i
+				Settings.FFXIVMINION["gGearset"..tostring(e.job)] = i
 			else
 				if IsNull(tonumber(cleanedName),0) > newSets[e.job] then
 					newSets[e.job] = tonumber(cleanedName)
 					_G["gGearset"..tostring(e.job)] = i
+					Settings.FFXIVMINION["gGearset"..tostring(e.job)] = i
 				end
 			end
 		end
@@ -910,7 +919,7 @@ function ffxivminion.SetMainVars()
 		assert(loadstring(gAutoGrindCode))
 	end
 	
-	ffxivminion.AutoGearsetsVersion = 20200204
+	ffxivminion.AutoGearsetsVersion = 20200501
 	gAutoGearsets = ffxivminion.GetSetting("gAutoGearsets",0)
 	if gAutoGearsets < ffxivminion.AutoGearsetsVersion then
 		gAutoGearsets = ffxivminion.AutoGearsetsVersion
