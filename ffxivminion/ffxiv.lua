@@ -648,7 +648,6 @@ function ffxivminion.GetSetting(strSetting,default)
 end
 
 function SetGearsetInfo()
-d("Test reset")
 	local searchList = Player:GetGearSetList()
 	local newSets = {}
 	
@@ -913,9 +912,10 @@ function ffxivminion.SetMainVars()
 	
 	ffxivminion.AutoGearsetsVersion = 20200204
 	gAutoGearsets = ffxivminion.GetSetting("gAutoGearsets",0)
-	if Settings.FFXIVMINION.gAutoGearsets < ffxivminion.AutoGearsetsVersion then
+	if gAutoGearsets < ffxivminion.AutoGearsetsVersion then
 		gAutoGearsets = ffxivminion.AutoGearsetsVersion
 		SetGearsetInfo()
+		Settings.FFXIVMINION.gAutoGearsets = gAutoGearsets
 	end
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
