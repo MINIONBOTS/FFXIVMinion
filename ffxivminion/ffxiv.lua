@@ -1491,11 +1491,11 @@ function ml_global_information.DrawMainFull()
 					ffxivminion.GUI.x = x; ffxivminion.GUI.y = y; ffxivminion.GUI.width = width; ffxivminion.GUI.height = height;
 					
 					if (FFXIV_Common_BotRunning) then
-						GUI:Text("Bot Status:") GUI:SameLine()
-						GUI:TextColored(.1,1,.2,1,"RUNNING")
+						GUI:Text(GetString("Bot Status:")) GUI:SameLine()
+						GUI:TextColored(.1,1,.2,1,GetString("RUNNING"))
 					else
-						GUI:Text("Bot Status:") GUI:SameLine()
-						GUI:TextColored(1,.1,.2,1,"NOT RUNNING")
+						GUI:Text(GetString("Bot Status:")) GUI:SameLine()
+						GUI:TextColored(1,.1,.2,1,GetString("NOT RUNNING"))
 					end
 					GUI:SameLine((contentwidth - 20),5)
 					GUI:Image(ml_global_information.GetMainIcon(),14,14)
@@ -1540,7 +1540,7 @@ Quest: Completes quests based on a questing profile.\
 					end
 					
 					GUI:SameLine()
-					if (GUI:Button("Help!",55,20)) then
+					if (GUI:Button(GetString("Help!"),55,20)) then
 						ffxivminion.GUI.help.open = not ffxivminion.GUI.help.open
 					end
 					if (GUI:IsItemHovered()) then
@@ -1617,7 +1617,7 @@ Quest: Completes quests based on a questing profile.\
 					elseif (acrValid) then
 					
 						GUI:AlignFirstTextHeightToWidgets()	
-						GUI:Text("ACR Active")
+						GUI:Text(GetString("ACR Active"))
 						GUI:SameLine(110)
 						if (GUI:Button(GetString("ACR Options"),150,20)) then
 							ACR.OpenProfileOptions()
@@ -1723,7 +1723,7 @@ Quest: Completes quests based on a questing profile.\
 					if (GUI:Button(GetString("Advanced Settings"),contentwidth,20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
-					if (GUI:Button("Start / Stop",contentwidth,20)) then
+					if (GUI:Button(GetString("Start / Stop"),contentwidth,20)) then
 						ml_global_information.ToggleRun()	
 					end
 				end
@@ -1796,7 +1796,7 @@ function ml_global_information.DrawSmall()
 				
 				if gBotMode == "NavTest" then
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Distance 3d".." = "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
+					GUI:Text(GetString("Distance 3d").." = "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,gTestMapX,gTestMapY,gTestMapZ)))
 				end
 					
 				GUI:End()
@@ -1834,7 +1834,7 @@ function ml_global_information.DrawSettings()
 				if (tabindex == 9) then
 					GUI:BeginChild("##main-header-unstuck",0,GUI_GetFrameHeight(10),true)
 				
-					GUI:Text("Options if stuck");
+					GUI:Text(GetString("Options if stuck"));
 					GUI_Capture(GUI:Checkbox(GetString("Attempt to remesh area"),gStuckRemesh),"gStuckRemesh");
 					GUI_Capture(GUI:Checkbox(GetString("Return if available"),gStuckReturn),"gStuckReturn");
 					GUI_Capture(GUI:Checkbox(GetString("Teleport to local Aetheryte"),gStuckTeleport),"gStuckTeleport");
@@ -1897,7 +1897,7 @@ function ml_global_information.DrawSettings()
 						ffxivminion.FillMountOptions()
 					end
 					GUI:SameLine(0,5)
-					GUI_Capture(GUI:Checkbox("Show Available Mounts Only",gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
+					GUI_Capture(GUI:Checkbox(GetString("Show Available Mounts Only"),gMountAvailableOnly),"gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
 					end	
@@ -1912,12 +1912,12 @@ function ml_global_information.DrawSettings()
 						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 					end
 					GUI:SameLine(0,5)
-					GUI_Capture(GUI:Checkbox("Show Usable Only##food",gFoodAvailableOnly),"gFoodAvailableOnly");
+					GUI_Capture(GUI:Checkbox(GetString("Show Usable Only").."##food",gFoodAvailableOnly),"gFoodAvailableOnly");
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, only available items will be shown.")
 					end
 					GUI:SameLine(0,5)
-					GUI_Capture(GUI:Checkbox("Enforce Specifics",gFoodSpecific),"gFoodSpecific");
+					GUI_Capture(GUI:Checkbox(GetString("Enforce Specifics"),gFoodSpecific),"gFoodSpecific");
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("This option will force this specific food to be used, even if another one is currently in use.")
 					end
@@ -1939,7 +1939,7 @@ function ml_global_information.DrawSettings()
 					);
 					
 					GUI:Spacing(); GUI:Spacing(); GUI:Spacing()
-					GUI:Text("Gearsets");
+					GUI:Text(GetString("Gearsets"));
 					
 					GUI:BeginChild("##main-header-autoequip-gearsets",0,GUI_GetFrameHeight(8),true)
 					local classlookup = {}
@@ -2002,12 +2002,12 @@ function ml_global_information.DrawSettings()
 				if (tabindex == 4) then
 					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(5),true)
 					
-					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
-					GUI_Capture(GUI:Checkbox("/busy After Trade invite",gTradeInviteBusy),"gTradeInviteBusy");
-					GUI_Capture(GUI:Checkbox("Send Message After Trade Invite.",gTradeInviteMessage),"gTradeInviteMessage");
-					GUI_Capture(GUI:InputText("Message Options",gTradeInviteMessages),"gTradeInviteMessages");
+					GUI_Capture(GUI:Checkbox(GetString("Decline Party Invites"),gDeclinePartyInvites),"gDeclinePartyInvites");
+					GUI_Capture(GUI:Checkbox(GetString("/busy After Trade invite"),gTradeInviteBusy),"gTradeInviteBusy");
+					GUI_Capture(GUI:Checkbox(GetString("Send Message After Trade Invite."),gTradeInviteMessage),"gTradeInviteMessage");
+					GUI_Capture(GUI:InputText(GetString("Message Options"),gTradeInviteMessages),"gTradeInviteMessages");
 					
-					if (GUI:Button("Modify Auto-Grind")) then
+					if (GUI:Button(GetString("Modify Auto-Grind"))) then
 						ffxivminion.GUI.autogrind.open = true
 						ffxivminion.GUI.autogrind.error_text = ""
 					end
@@ -2046,7 +2046,7 @@ function ml_global_information.DrawSettings()
 					GUI:BeginChild("##Eureka-header-playerhpmptp",0,GUI_GetFrameHeight(8),true)
 					GUI:PushItemWidth(120)
 
-					GUI:Text("Eureka Only");
+					GUI:Text(GetString("Eureka Only"));
 					GUI_DrawIntMinMax(GetString("Avoid HP##Eureka"),"gEurekaAvoidHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaAvoidHP",gEurekaAvoidHP) end )
 					GUI_DrawIntMinMax(GetString("Rest HP##Eureka"),"gEurekaRestHP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaRestHP",gEurekaRestHP) end)
 					GUI_DrawIntMinMax(GetString("Rest MP##Eureka"),"gEurekaRestMP",1,10,0,100,function () ffxivminion.SaveClassSettings("gEurekaRestMP",gEurekaRestMP) end)
@@ -2374,7 +2374,7 @@ function ml_global_information.DrawAutoGrindEditor()
 				
 				local width, height = GUI:GetWindowSize()
 				
-				if (GUI:Button("Reset to Default")) then
+				if (GUI:Button(GetString("Reset to Default"))) then
 					GUI_Set("gAutoGrindCode",ffxivminion.AutoGrindDefault)
 					GetBestGrindMap = GetBestGrindMapDefault
 				end
@@ -2386,7 +2386,7 @@ function ml_global_information.DrawAutoGrindEditor()
 				end
 				
 				if (ffxivminion.GUI.autogrind.modified) then
-					if (GUI:Button("Apply",width,20)) then
+					if (GUI:Button(GetString("Apply"),width,20)) then
 						local f = loadstring(gAutoGrindCode)
 						if (f ~= nil) then
 							GetBestGrindMap = f
@@ -2445,7 +2445,7 @@ function ml_global_information.DrawHelper() -- Helper Window
 					craftMode                       = "Crafting",
 				]]--
 				
-				GUI:Text("Current Bot Mode: "..gBotMode)
+				GUI:Text(GetString("Current Bot Mode: ")..gBotMode)
 				GUI:Separator()
 				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
 				local tabs = ffxivminion.GUI.help.main_tabs
@@ -2460,17 +2460,17 @@ function ml_global_information.DrawHelper() -- Helper Window
 					Settings.minionlib.ShowNavPath = true
 					
 					
-					GUI:Text("Report issues in the Forum or Discord Channel.")
+					GUI:Text(GetString("Report issues in the Forum or Discord Channel."))
 					GUI:Spacing();
 					GUI:Spacing();
-					GUI:Text("Please provide : ")
-					GUI:Text("An image of your ENTIRE SCREEN with your report.")
-					GUI:Text("This tab must be included in the image.")
-					GUI:Text("Hide your Char name!!")
+					GUI:Text(GetString("Please provide : "))
+					GUI:Text(GetString("An image of your ENTIRE SCREEN with your report."))
+					GUI:Text(GetString("This tab must be included in the image."))
+					GUI:Text(GetString("Hide your Char name!!"))
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Separator()
-					GUI:Text("Navmesh:")
+					GUI:Text(GetString("Navmesh:"))
 					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
 					if (NavigationManager.ShowCells == nil ) then
 						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
@@ -2590,7 +2590,7 @@ Do you have materials?"))
 GUI:Text(GetString("I'm doing the 1-70 quests and above level 30,\
 but I still don't have my Chocobo.  Why?"))
 
-GUI:TextColored(1,.1,.2,1,("Most likely it's still doing side quests and hasn't\
+GUI:TextColored(1,.1,.2,1,GetString("Most likely it's still doing side quests and hasn't\
 advanced the main quest line far enough to get your\
 chocobo, that's totally normal.\
 Also make sure you've configured the bot to select \
@@ -2599,7 +2599,7 @@ a grand company."))
 GUI:Text(GetString("Why is it stuck at the quest asking for my \
 chocobo name?"))
 
-GUI:TextColored(1,.1,.2,1,("You've either configured the bot to use an \
+GUI:TextColored(1,.1,.2,1,GetString("You've either configured the bot to use an \
 invalid name or haven't chosen one."))
 					else
 						GUI:Text(GetString("Accepting help and Faq suggestions"))
