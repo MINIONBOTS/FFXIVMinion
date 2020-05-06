@@ -7896,7 +7896,7 @@ function FindNearestCollectableAppraiser()
 	local idyllshire = { id = 1012300, aethid = 75, mapid = 478, pos = {x = -18.3, y = 206.5, z = 45.1} }
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
-	local gridania = { id = 1003076, aethid = 25, mapid = 133, pos = {x = 143, y = 13, z = -103} }
+	local gridania = { id = 1003076, aethid = 2, mapid = 133, pos = {x = 143, y = 13, z = -103} }
 	local limsa = { id = 1003632, aethid = 8, mapid = 139, pos = {x = -257, y = 16, z = 40} }
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
