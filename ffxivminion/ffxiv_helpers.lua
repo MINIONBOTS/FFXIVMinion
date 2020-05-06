@@ -7975,7 +7975,7 @@ end
 function FindClosestCity()
 	local idyllshire = { aethid = 75, mapid = 478 }
 	local rhalgr = { aethid = 104, mapid = 635 }
-	local gridania = { aethid = 25, mapid = 132 }
+	local gridania = { aethid = 2, mapid = 132 }
 	local limsa = { aethid = 8, mapid = 139 }
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
@@ -8022,17 +8022,17 @@ function FindClosestCity()
 		end
 		
 		local cheapest = GetLowestValue(idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost)
-		if (cheapest ==  idyllshireCost) then
+		if hasIdyllshire and (cheapest == idyllshireCost) then
 			return idyllshire.mapid
-		elseif (cheapest ==  rhalgrCost) then
+		elseif hasRhalgr and (cheapest == rhalgrCost) then
 			return rhalgr.mapid
-		elseif (cheapest ==  eulmoreCost) then
+		elseif hasEulmore and (cheapest == eulmoreCost) then
 			return eulmore.mapid
-		elseif (cheapest ==  gridaniaCost) then
+		elseif hasGridania and (cheapest == gridaniaCost) then
 			return gridania.mapid
-		elseif (cheapest ==  limsaCost) then
+		elseif hasLimsa and (cheapest == limsaCost) then
 			return limsa.mapid
-		elseif (uldahCost) then
+		elseif hasUldah and (cheapest == uldahCost) then
 			return uldah.mapid
 		end
 	end
