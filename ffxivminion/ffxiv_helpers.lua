@@ -7980,6 +7980,18 @@ function FindClosestCity()
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
 	
+	local inns = {
+		[177] = "Mizzenmast Inn",
+		[178] = "The Hourglass",
+		[179] = "The Roost",
+		[429] = "Cloud Nine",
+		[629] = "Bokairo Inn",
+		[843] = "The Pendants Personal Suite"
+	}
+	if inns[Player.localmapid] then
+		return Player.localmapid
+	end
+	
 	if (Player.localmapid == idyllshire.mapid) then
 		return idyllshire
 	elseif (Player.localmapid == rhalgr.mapid) then
