@@ -7896,7 +7896,7 @@ function FindNearestCollectableAppraiser()
 	local idyllshire = { id = 1012300, aethid = 75, mapid = 478, pos = {x = -18.3, y = 206.5, z = 45.1} }
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
-	local gridania = { id = 1003076, aethid = 25, mapid = 133, pos = {x = 143, y = 13, z = -103} }
+	local gridania = { id = 1003076, aethid = 2, mapid = 133, pos = {x = 143, y = 13, z = -103} }
 	local limsa = { id = 1003632, aethid = 8, mapid = 139, pos = {x = -257, y = 16, z = 40} }
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
@@ -7975,10 +7975,22 @@ end
 function FindClosestCity()
 	local idyllshire = { aethid = 75, mapid = 478 }
 	local rhalgr = { aethid = 104, mapid = 635 }
-	local gridania = { aethid = 25, mapid = 132 }
+	local gridania = { aethid = 2, mapid = 132 }
 	local limsa = { aethid = 8, mapid = 139 }
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
+	
+	local inns = {
+		[177] = "Mizzenmast Inn",
+		[178] = "The Hourglass",
+		[179] = "The Roost",
+		[429] = "Cloud Nine",
+		[629] = "Bokairo Inn",
+		[843] = "The Pendants Personal Suite"
+	}
+	if inns[Player.localmapid] then
+		return Player.localmapid
+	end
 	
 	if (Player.localmapid == idyllshire.mapid) then
 		return idyllshire
@@ -8022,17 +8034,17 @@ function FindClosestCity()
 		end
 		
 		local cheapest = GetLowestValue(idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost)
-		if (cheapest ==  idyllshireCost) then
+		if hasIdyllshire and (cheapest == idyllshireCost) then
 			return idyllshire.mapid
-		elseif (cheapest ==  rhalgrCost) then
+		elseif hasRhalgr and (cheapest == rhalgrCost) then
 			return rhalgr.mapid
-		elseif (cheapest ==  eulmoreCost) then
+		elseif hasEulmore and (cheapest == eulmoreCost) then
 			return eulmore.mapid
-		elseif (cheapest ==  gridaniaCost) then
+		elseif hasGridania and (cheapest == gridaniaCost) then
 			return gridania.mapid
-		elseif (cheapest ==  limsaCost) then
+		elseif hasLimsa and (cheapest == limsaCost) then
 			return limsa.mapid
-		elseif (uldahCost) then
+		elseif hasUldah and (cheapest == uldahCost) then
 			return uldah.mapid
 		end
 	end

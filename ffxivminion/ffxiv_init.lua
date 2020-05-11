@@ -1633,7 +1633,8 @@ function ml_global_information.Init()
 				[832] = "The Gold Saucer",
 				[833] = "The Howling Eye",
 				[834] = "The Howling Eye",
-				[839] = "East Shroud"
+				[839] = "East Shroud",
+				[843] = "The Pendants Personal Suite",
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
 				return IAmTooLazy[mapid]

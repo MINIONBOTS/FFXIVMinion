@@ -1343,7 +1343,7 @@ function ffxiv_task_craft:Draw()
 	-- Craft Mode Selections.
 	GUI:Separator()
 	local MarkerOrProfileWidth = (GUI:GetContentRegionAvail() - 10)
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Craft Mode")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Craft Mode"))
 	GUI:SameLine(110)
 	GUI:PushItemWidth(MarkerOrProfileWidth - 110)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gCraftMarkerOrProfileIndex", "gCraftMarkerOrProfile", gCraftMarkerOrProfileOptions)
@@ -1379,13 +1379,13 @@ function ffxiv_task_craft:Draw()
 		GUI:PopItemWidth()
 		--GUI:SameLine()
 		
-		if (GUI:Button("Craft Orders",newButtonWidth,20)) and gCraftProfile ~= GetString("none") then
+		if (GUI:Button(GetString("Craft Orders"),newButtonWidth,20)) and gCraftProfile ~= GetString("none") then
 			ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
 		end
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Opens the Crafting Order Editor.")) end
 		GUI:SameLine()
 		
-		if (GUI:Button("New Profile",newButtonWidth ,20)) then
+		if (GUI:Button(GetString("New Profile"),newButtonWidth ,20)) then
 			local vars = {
 				{
 					["type"] = "string",
@@ -1456,14 +1456,14 @@ function ffxiv_task_craft:Draw()
 				if (requiredItems > 0) then
 					remainingCount = (requiredItems - (itemcount - startingCount))
 					GUI:PushItemWidth(50)
-					GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##remainingCount",remainingCount,GUI.InputTextFlags_ReadOnly)
+					GUI:Text(GetString("Remaining Count of Current Item: ")); GUI:SameLine(); GUI:InputText("##remainingCount",remainingCount,GUI.InputTextFlags_ReadOnly)
 					GUI:PopItemWidth()
 				else
 					local orders = ffxiv_craft.orders
 					if (table.valid(orders)) then
 						local maxCount = IsNull(orders[ml_task_hub:CurrentTask().key].maxcount,"Inf")
 						GUI:PushItemWidth(50)
-						GUI:Text("Remaining Count of Current Item: "); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
+						GUI:Text(GetString("Remaining Count of Current Item: ")); GUI:SameLine(); GUI:InputText("##CountRemaining",maxCount,GUI.InputTextFlags_ReadOnly) 
 						if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Based from total item count only.")) end
 				
 						GUI:PopItemWidth()
@@ -1485,16 +1485,16 @@ function ffxiv_task_craft:Draw()
 			GUI:SetColumnOffset(9, 605);
 			GUI:SetColumnOffset(10, 680);
 		
-		GUI:Text("Item"); GUI:NextColumn();
-		GUI:Text("Total"); GUI:NextColumn();
-		GUI:Text("Norm"); GUI:NextColumn();
-		GUI:Text("HQ"); GUI:NextColumn();
-		GUI:Text("COL"); GUI:NextColumn();
-		GUI:Text("Edit"); GUI:NextColumn();
+		GUI:Text(GetString("Item")); GUI:NextColumn();
+		GUI:Text(GetString("Total")); GUI:NextColumn();
+		GUI:Text(GetString("Norm")); GUI:NextColumn();
+		GUI:Text(GetString("HQ")); GUI:NextColumn();
+		GUI:Text(GetString("COL")); GUI:NextColumn();
+		GUI:Text(GetString("Edit")); GUI:NextColumn();
 		GUI:NextColumn(); -- up icon
 		GUI:NextColumn(); -- down icon
-		GUI:Text("Skip"); GUI:NextColumn();
-		GUI:Text("Alert"); GUI:NextColumn();
+		GUI:Text(GetString("Skip")); GUI:NextColumn();
+		GUI:Text(GetString("Alert")); GUI:NextColumn();
 		GUI:Separator();
 		
 		local orders = ffxiv_craft.orders
@@ -1581,7 +1581,7 @@ function ffxiv_task_craft:Draw()
 					elseif (GUI:IsMouseClicked(1)) then
 						doPriorityTop = id
 					end
-					GUI:SetTooltip("Right click will update old profile task numbering on move.")
+					GUI:SetTooltip(GetString("Right click will update old profile task numbering on move."))
 				end
 				if (doPriorityUp ~= 0 and doPriorityUp ~= 1) then
 					
@@ -1646,8 +1646,23 @@ function ffxiv_task_craft:Draw()
 				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				
-				local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
+				local acrEnabled = false					
+				if (IsGatherer(Player.job)) then
+					if (gACREnabledGather) then
+						acrEnabled = true
+					end
+				elseif (IsCrafter(Player.job)) then
+					if (gACREnabledCraft) then
+						acrEnabled = true
+					end
+				elseif (IsFighter(Player.job)) then
+					if (gACREnabled) then
+						acrEnabled = true
+					end
+				end
+				local uiAlert = IsNull(order["uialert"],nil)
 				
+				local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 				if uiAlert == "skip" then
 					local child_color = { r = 1, g = .90, b = .33, a = .0 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
@@ -1655,20 +1670,20 @@ function ffxiv_task_craft:Draw()
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##skip-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skip")
+					GUI:Text(GetString("Skip"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
 					GUI:PopStyleVar()
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
-				elseif uiAlert == "skillprofile" then
+				elseif uiAlert == "skillprofile" and not acrValid then
 					local child_color = { r = 1, g = .90, b = .33, a = .75 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
 					GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##skillprofile-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Skill")
+					GUI:Text(GetString("Skill"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
@@ -1681,7 +1696,7 @@ function ffxiv_task_craft:Draw()
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Mats")
+					GUI:Text(GetString("Mats"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
@@ -1694,7 +1709,7 @@ function ffxiv_task_craft:Draw()
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##lowcp-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("CP")
+					GUI:Text(GetString("CP"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
@@ -1707,7 +1722,7 @@ function ffxiv_task_craft:Draw()
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##cantCraft-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("Alert")
+					GUI:Text(GetString("Alert"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
@@ -1720,7 +1735,7 @@ function ffxiv_task_craft:Draw()
 					GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 					GUI:BeginChild("##canCraft-"..tostring(id),50,20,true)
 					GUI:AlignFirstTextHeightToWidgets()
-					GUI:Text("OK")
+					GUI:Text(GetString("OK"))
 					GUI:EndChild()
 					GUI:PopStyleColor()
 					GUI:PopStyleVar()
@@ -1776,11 +1791,11 @@ function ffxiv_task_craft:Draw()
 		GUI:InputText("##Current Active Food",gCraftFood,GUI.InputTextFlags_ReadOnly)
 		GUI_Combo("##food", "gCraftFoodIndex", "gCraftFood", gFoods)
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("This option will override any Profile food choice.")
+			GUI:SetTooltip(GetString("This option will override any Profile food choice."))
 		end
 		GUI_Capture(GUI:Checkbox("##Show Usable Onlyfood",gFoodAvailableOnly),"gFoodAvailableOnly");
 		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("If this option is on, only available items will be shown.")
+			GUI:SetTooltip(GetString("If this option is on, only available items will be shown."))
 		end
 		GUI:SameLine(0,5)
 		
@@ -1832,7 +1847,7 @@ function ffxiv_task_craft:Draw()
 	-- Collectable Table
 	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
-		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
+		if (GUI:Button(GetString("Use Known Defaults"),CollectableFullWidth,20)) then
 			GUI_Set("gCraftCollectablePresets",{})
 			for k,v in pairs(ffxiv_craft.collectibles) do
 			local newID = AceLib.API.Items.GetIDByName(v.name)
@@ -1842,7 +1857,7 @@ function ffxiv_task_craft:Draw()
 			end
 			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 		end
-		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
+		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
 			table.insert(gCraftCollectablePresets,newCollectable)
 			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
@@ -2221,14 +2236,14 @@ function ffxiv_craft.InspectRecipe(key)
 	
 	GUI:Columns(2, "##craft-recipe-inspection", true)
 	GUI:SetColumnOffset(1, 200); GUI:SetColumnOffset(2, 400)
-	GUI:Text("Can Craft"); GUI:NextColumn(); GUI:Text(gCraftInspectCanCraft); GUI:NextColumn();
-	GUI:Text("Amount Craftable"); GUI:NextColumn(); GUI:Text(gCraftInspectCraftable); GUI:NextColumn();
+	GUI:Text(GetString("Can Craft")); GUI:NextColumn(); GUI:Text(gCraftInspectCanCraft); GUI:NextColumn();
+	GUI:Text(GetString("Amount Craftable")); GUI:NextColumn(); GUI:Text(gCraftInspectCraftable); GUI:NextColumn();
 	
-	GUI:Text("Progress"); GUI:NextColumn(); GUI:Text(gCraftInspectProgress); GUI:NextColumn();
-	GUI:Text("Durability"); GUI:NextColumn(); GUI:Text(gCraftInspectDurability); GUI:NextColumn();
-	GUI:Text("Craftsmanship"); GUI:NextColumn(); GUI:Text(gCraftInspectCraftsmanship); GUI:NextColumn();
-	GUI:Text("Control"); GUI:NextColumn(); GUI:Text(gCraftInspectControl); GUI:NextColumn();
-	GUI:Text("Equipment"); GUI:NextColumn(); GUI:Text(gCraftInspectREquip); GUI:NextColumn();
+	GUI:Text(GetString("Progress")); GUI:NextColumn(); GUI:Text(gCraftInspectProgress); GUI:NextColumn();
+	GUI:Text(GetString("Durability")); GUI:NextColumn(); GUI:Text(gCraftInspectDurability); GUI:NextColumn();
+	GUI:Text(GetString("Craftsmanship")); GUI:NextColumn(); GUI:Text(gCraftInspectCraftsmanship); GUI:NextColumn();
+	GUI:Text(GetString("Control")); GUI:NextColumn(); GUI:Text(gCraftInspectControl); GUI:NextColumn();
+	GUI:Text(GetString("Equipment")); GUI:NextColumn(); GUI:Text(gCraftInspectREquip); GUI:NextColumn();
 	if (gCraftInspectCrystal1 ~= "") then
 		GUI:Text(gCraftInspectCrystal1); GUI:NextColumn(); GUI:Text(gCraftInspectCAmount1); GUI:NextColumn();
 	end
@@ -2356,13 +2371,13 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Separator();
 					GUI:Columns(7, "#craft-manage-orders", true)
 					GUI:SetColumnOffset(1, 125); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 300); GUI:SetColumnOffset(4, 340); GUI:SetColumnOffset(5, 380); GUI:SetColumnOffset(6, 440);  GUI:SetColumnOffset(7, 650);	 			
-					GUI:Text("Item"); GUI:NextColumn();
-					GUI:Text("Recipe"); GUI:NextColumn();
-					GUI:Text("Amount"); GUI:NextColumn();
-					GUI:Text("Skip"); GUI:NextColumn();
-					GUI:Text("Edit"); GUI:NextColumn();
-					GUI:Text("Remove"); GUI:NextColumn();
-					GUI:Text("Alert"); GUI:NextColumn();
+					GUI:Text(GetString("Item")); GUI:NextColumn();
+					GUI:Text(GetString("Recipe")); GUI:NextColumn();
+					GUI:Text(GetString("Amount")); GUI:NextColumn();
+					GUI:Text(GetString("Skip")); GUI:NextColumn();
+					GUI:Text(GetString("Edit")); GUI:NextColumn();
+					GUI:Text(GetString("Remove")); GUI:NextColumn();
+					GUI:Text(GetString("Alert")); GUI:NextColumn();
 					GUI:Separator();
 										
 					for id,order in spairs(orders) do
@@ -2447,7 +2462,21 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-						
+						local acrEnabled = false					
+						if (IsGatherer(Player.job)) then
+							if (gACREnabledGather) then
+								acrEnabled = true
+							end
+						elseif (IsCrafter(Player.job)) then
+							if (gACREnabledCraft) then
+								acrEnabled = true
+							end
+						elseif (IsFighter(Player.job)) then
+							if (gACREnabled) then
+								acrEnabled = true
+							end
+						end
+						local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 						local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 						if uiAlert == "skip" then
 							local child_color = { r = 1, g = .90, b = .33, a = .0 }
@@ -2456,20 +2485,20 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##skip-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("Skip")
+							GUI:Text(GetString("Skip"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
 							GUI:PopStyleVar()
 							if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Recipie Set to Skip.")) end
-						elseif uiAlert == "skillprofile" then
+						elseif uiAlert == "skillprofile" and not acrValid then
 							local child_color = { r = 1, g = .90, b = .33, a = .75 }
 							GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
 							GUI:PushStyleVar(GUI.StyleVar_WindowPadding,6,0)
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##skillprofile-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("Skill")
+							GUI:Text(GetString("Skill"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
@@ -2482,7 +2511,7 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##lowmats-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("Mats")
+							GUI:Text(GetString("Mats"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
@@ -2495,7 +2524,7 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##lowcp-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("CP")
+							GUI:Text(GetString("CP"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
@@ -2508,7 +2537,7 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##cantCraft-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("Alert")
+							GUI:Text(GetString("Alert"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
@@ -2521,7 +2550,7 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 							GUI:BeginChild("##canCraft-"..tostring(id),50,20,true)
 							GUI:AlignFirstTextHeightToWidgets()
-							GUI:Text("OK")
+							GUI:Text(GetString("OK"))
 							GUI:EndChild()
 							GUI:PopStyleColor()
 							GUI:PopStyleVar()
@@ -2575,7 +2604,7 @@ function ffxiv_craft.Draw( event, ticks )
 						end
 						GUI:PopItemWidth()
 					else
-						GUI:Text("Could not find display dictionary for ["..gCraftOrderSelect.."] with attempt level ["..tostring(k).."]")
+						GUI:Text(GetString("Could not find display dictionary for [")..gCraftOrderSelect.."] with attempt level ["..tostring(k).."]")
 					end					
 				end
 				if (gCraftOrderAddRecipeID ~= 0) then
@@ -2655,11 +2684,11 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 325); GUI:SetColumnOffset(3, 425); GUI:SetColumnOffset(4, 525);
 							GUI:AlignFirstTextHeightToWidgets()
 							
-							GUI:Text("Ingredient"); GUI:NextColumn();
-							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Min HQ Amount"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
-							GUI:Text("Use All HQ"); GUI:NextColumn();
+							GUI:Text(GetString("Ingredient")); GUI:NextColumn();
+							GUI:Text(GetString("Required")); GUI:NextColumn();
+							GUI:Text(GetString("Min HQ Amount")); GUI:NextColumn();
+							GUI:Text(GetString("Max HQ Amount")); GUI:NextColumn();
+							GUI:Text(GetString("Use All HQ")); GUI:NextColumn();
 							
 							GUI:Separator();
 							
@@ -2689,7 +2718,7 @@ function ffxiv_craft.Draw( event, ticks )
 										ffxiv_craft.UpdateOrderElement()
 									end
 									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+										GUI:SetTooltip(GetString("Minimum amount of HQ items to use for this item in the craft."))
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -2713,7 +2742,7 @@ function ffxiv_craft.Draw( event, ticks )
 										ffxiv_craft.UpdateOrderElement()
 									end
 									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
+										GUI:SetTooltip(GetString("Max amount of HQ items to use for this item in the craft."))
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -2736,19 +2765,19 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Columns(1)
 						else
-							GUI:Text("Could not find recipe details.")
+							GUI:Text(GetString("Could not find recipe details."))
 						end					
 					end
 					
 					GUI:Spacing()
 					GUI:Separator()
 					GUI:Spacing()
-					local newVal, changed = GUI:Checkbox("Keep settings on change",gCraftDictionarySelectKeepSettings)
+					local newVal, changed = GUI:Checkbox(GetString("Keep settings on change"),gCraftDictionarySelectKeepSettings)
 					if (changed) then
 						gCraftDictionarySelectKeepSettings = newVal
 						Settings.FFXIVMINION.gCraftDictionarySelectKeepSettings = gCraftDictionarySelectKeepSettings
 					end
-					if (GUI:Button("Add to Profile",250,20)) then
+					if (GUI:Button(GetString("Add to Profile"),250,20)) then
 					
 						d("Adding Recipe id ["..gCraftOrderAddRecipeID.."]")
 						ffxiv_craft.AddToProfile()
@@ -2790,7 +2819,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end
 					GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderEditCollect),"gCraftOrderEditCollect")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Use Collect Synth Buff.")
+						GUI:SetTooltip(GetString("Use Collect Synth Buff."))
 					end
 					if (orders.collect ~= gCraftOrderEditCollect) then
 						orders.collect = gCraftOrderEditCollect
@@ -2813,7 +2842,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI_Capture(GUI:InputInt("##RequiredCP1",gCraftOrderEditRequiredCP,0,0),"gCraftOrderEditRequiredCP")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Min Cp to craft Item.")
+						GUI:SetTooltip(GetString("Min Cp to craft Item."))
 					end
 					if (orders.requiredcp ~= gCraftOrderEditRequiredCP) then
 						orders.requiredcp = gCraftOrderEditRequiredCP
@@ -2822,7 +2851,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI_Capture(GUI:Checkbox("##RequireHQ2",gCraftOrderEditRequireHQ),"gCraftOrderEditRequireHQ")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Only count if item Was HQ.")
+						GUI:SetTooltip(GetString("Only count if item Was HQ."))
 					end
 					if (orders.requirehq ~= gCraftOrderEditRequireHQ) then
 						orders.requirehq = gCraftOrderEditRequireHQ
@@ -2832,7 +2861,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI_Capture(GUI:Checkbox("##Count HQ",gCraftOrderEditCountHQ),"gCraftOrderEditCountHQ")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Count if HQ and Normal items.")
+						GUI:SetTooltip(GetString("Count if HQ and Normal items."))
 					end
 					if (orders.counthq ~= gCraftOrderEditCountHQ) then
 						orders.counthq = gCraftOrderEditCountHQ
@@ -2840,7 +2869,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end
 					GUI_Capture(GUI:Checkbox("##Use QuickSynth",gCraftOrderEditQuick),"gCraftOrderEditQuick")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Quicksynth Items.")
+						GUI:SetTooltip(GetString("Quicksynth Items."))
 					end
 					if (orders.usequick ~= gCraftOrderEditQuick) then
 						orders.usequick = gCraftOrderEditQuick
@@ -2849,7 +2878,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI_Capture(GUI:Checkbox("##Use HQ Items",gCraftOrderEditHQ),"gCraftOrderEditHQ")
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Use Hq materials. (Advanced)")
+						GUI:SetTooltip(GetString("Use Hq materials. (Advanced)"))
 					end
 					if (orders.usehq ~= gCraftOrderEditHQ) then
 						orders.usehq = gCraftOrderEditHQ
@@ -2878,11 +2907,11 @@ function ffxiv_craft.Draw( event, ticks )
 							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 325); GUI:SetColumnOffset(3, 425); GUI:SetColumnOffset(4, 525);
 							GUI:AlignFirstTextHeightToWidgets()
 							
-							GUI:Text("Ingredient"); GUI:NextColumn();
-							GUI:Text("Required"); GUI:NextColumn();
-							GUI:Text("Min HQ Amount"); GUI:NextColumn();
-							GUI:Text("Max HQ Amount"); GUI:NextColumn();
-							GUI:Text("Use All HQ"); GUI:NextColumn();
+							GUI:Text(GetString("Ingredient")); GUI:NextColumn();
+							GUI:Text(GetString("Required")); GUI:NextColumn();
+							GUI:Text(GetString("Min HQ Amount")); GUI:NextColumn();
+							GUI:Text(GetString("Max HQ Amount")); GUI:NextColumn();
+							GUI:Text(GetString("Use All HQ")); GUI:NextColumn();
 							GUI:Separator();
 							
 							for i = 1,6 do
@@ -2909,7 +2938,7 @@ function ffxiv_craft.Draw( event, ticks )
 										ffxiv_craft.UpdateOrderElement()
 									end
 									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Minimum amount of HQ items to use for this item in the craft.")
+										GUI:SetTooltip(GetString("Minimum amount of HQ items to use for this item in the craft."))
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -2934,7 +2963,7 @@ function ffxiv_craft.Draw( event, ticks )
 										ffxiv_craft.UpdateOrderElement()
 									end
 									if (GUI:IsItemHovered()) then
-										GUI:SetTooltip("Max amount of HQ items to use for this item in the craft.")
+										GUI:SetTooltip(GetString("Max amount of HQ items to use for this item in the craft."))
 									end
 									GUI:PopItemWidth()
 									GUI:NextColumn();
@@ -2958,7 +2987,7 @@ function ffxiv_craft.Draw( event, ticks )
 							
 							GUI:Columns(1)
 						else
-							GUI:Text("Could not find recipe details.")
+							GUI:Text(GetString("Could not find recipe details."))
 						end					
 					end
 				end
