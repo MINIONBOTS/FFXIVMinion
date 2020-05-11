@@ -2150,6 +2150,10 @@ end
 function ffxiv_misc_switchclass:task_complete_eval()
 	local class = self.class
 	
+	if (IsControlOpen("RecipeNote")) then
+		ffxiv_craft.ToggleCraftingLog()
+	end
+	
 	if (Player.job ~= class) then
 		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
 		if (Busy() or Player.incombat) then
