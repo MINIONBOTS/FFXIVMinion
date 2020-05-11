@@ -395,6 +395,8 @@ function GUI_DrawVerticalTabs(tTabs,name)
 	local events = tTabs.events
 	local tabs = tTabs.tabs
 	
+	local hovered, selected, normal, hoveredName, selectedName, normalName;
+	
 	local updateSelected = 0
 	for i,tab in pairsByKeys(tabs) do
 	
@@ -407,25 +409,29 @@ function GUI_DrawVerticalTabs(tTabs,name)
 			selected = tab.selected
 			normal = tab.normal
 			
+			hoveredName = GetString(hovered.name)
+			selectedName = GetString(selected.name)
+			normalName = GetString(normal.name)
+			
 			GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,4)
 			if (tab.isselected) then
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, selected_color.r, selected_color.g, selected_color.b, selected_color.a)
-				GUI:BeginChild("##vertical-tab-"..selected.name,-8,GUI_GetFrameHeight(.8), true)
-				GUI:TextColored(1,1,.4,selected.a,selected.name)
+				GUI:BeginChild("##vertical-tab-"..selectedName,-8,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,.4,selected.a,selectedName)
 				GUI:EndChild()
 				GUI:PopStyleColor()
 				
-				returnIndex, returnName = i, selected.name
+				returnIndex, returnName = i, selectedName
 			elseif (tab.ishovered) then
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, hovered_color.r, hovered_color.g, hovered_color.b, hovered_color.a)
-				GUI:BeginChild("##vertical-tab-"..hovered.name,0,GUI_GetFrameHeight(.8), true)
-				GUI:TextColored(1,1,.7,hovered.a,hovered.name)
+				GUI:BeginChild("##vertical-tab-"..hoveredName,0,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,.7,hovered.a,hoveredName)
 				GUI:EndChild()
 				GUI:PopStyleColor()
 			else
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, normal_color.r, normal_color.g, normal_color.b, normal_color.a)
-				GUI:BeginChild("##vertical-tab-"..normal.name,0,GUI_GetFrameHeight(.8), true)
-				GUI:TextColored(1,1,1,normal.a,normal.name)
+				GUI:BeginChild("##vertical-tab-"..normalName,0,GUI_GetFrameHeight(.8), true)
+				GUI:TextColored(1,1,1,normal.a,normalName)
 				GUI:EndChild()
 				GUI:PopStyleColor()
 			end
@@ -484,6 +490,7 @@ function GUI_DrawTabs(tTabs)
 	
 	local events = tTabs.events
 	local tabs = tTabs.tabs
+	local hovered, selected, normal, hoveredName, selectedName, normalName;
 	
 	for i,tab in pairsByKeys(tabs) do
 		if (table.valid(tab)) then
@@ -495,24 +502,28 @@ function GUI_DrawTabs(tTabs)
 			selected = tab.selected
 			normal = tab.normal
 			
+			hoveredName = GetString(hovered.name)
+			selectedName = GetString(selected.name)
+			normalName = GetString(normal.name)
+			
 			if (tab.isselected) then
 				if (selected.r > 1 or selected.g > 1 or selected.b > 1) then
-					GUI:TextColored(GUI:ColorConvertRGBtoHSV(selected.r,selected.g,selected.b),selected.a,selected.name)
+					GUI:TextColored(GUI:ColorConvertRGBtoHSV(selected.r,selected.g,selected.b),selected.a,selectedName)
 				else
-					GUI:TextColored(selected.r,selected.g,selected.b,selected.a,selected.name)
+					GUI:TextColored(selected.r,selected.g,selected.b,selected.a,selectedName)
 				end
-				returnIndex, returnName = i, selected.name
+				returnIndex, returnName = i, selectedName
 			elseif (tab.ishovered) then
 				if (hovered.r > 1 or hovered.g > 1 or hovered.b > 1) then
-					GUI:TextColored(GUI:ColorConvertRGBtoHSV(hovered.r,hovered.g,hovered.b),hovered.a,hovered.name)
+					GUI:TextColored(GUI:ColorConvertRGBtoHSV(hovered.r,hovered.g,hovered.b),hovered.a,hoveredName)
 				else
-					GUI:TextColored(hovered.r,hovered.g,hovered.b,hovered.a,hovered.name)
+					GUI:TextColored(hovered.r,hovered.g,hovered.b,hovered.a,hoveredName)
 				end
 			else
 				if (normal.r > 1 or normal.g > 1 or normal.b > 1) then
-					GUI:TextColored(GUI:ColorConvertRGBtoHSV(normal.r,normal.g,normal.b),normal.a,normal.name)
+					GUI:TextColored(GUI:ColorConvertRGBtoHSV(normal.r,normal.g,normal.b),normal.a,normalName)
 				else
-					GUI:TextColored(normal.r,normal.g,normal.b,normal.a,normal.name)
+					GUI:TextColored(normal.r,normal.g,normal.b,normal.a,normalName)
 				end
 			end
 			
