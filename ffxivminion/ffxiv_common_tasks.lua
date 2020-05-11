@@ -2152,6 +2152,7 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	
 	if (IsControlOpen("RecipeNote")) then
 		ffxiv_craft.ToggleCraftingLog()
+		return false
 	end
 	
 	if (Player.job ~= class) then
