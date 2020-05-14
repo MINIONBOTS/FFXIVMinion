@@ -3939,6 +3939,9 @@ end
 
 function GetUnattunedCurrents()
 	local currentList = {}
+	if not QuestCompleted(1597) then
+		return nil
+	end
 	for map,currentdata in pairs(ffxiv_aethercurrent_data) do
 		for j,current in pairs(currentdata) do
 			local valid = true
@@ -7979,18 +7982,6 @@ function FindClosestCity()
 	local limsa = { aethid = 8, mapid = 139 }
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
-	
-	local inns = {
-		[177] = "Mizzenmast Inn",
-		[178] = "The Hourglass",
-		[179] = "The Roost",
-		[429] = "Cloud Nine",
-		[629] = "Bokairo Inn",
-		[843] = "The Pendants Personal Suite"
-	}
-	if inns[Player.localmapid] then
-		return Player.localmapid
-	end
 	
 	if (Player.localmapid == idyllshire.mapid) then
 		return idyllshire
