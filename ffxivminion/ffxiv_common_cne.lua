@@ -13,7 +13,9 @@
 c_getCurrentInfo = inheritsFrom( ml_cause )
 e_getCurrentInfo = inheritsFrom( ml_effect )
 function c_getCurrentInfo:evaluate()
-
+	if not QuestCompleted(1597) then
+		return false
+	end
     return not table.valid(ffxivminion.AetherCurrentData)
 end
 function e_getCurrentInfo:execute()
@@ -4098,7 +4100,7 @@ c_exchange.handoverComplete = false
 function c_exchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_exchange.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes")
+			UseControlAction("SelectYesno","Yes",nil,1000)
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return
 		end
@@ -4107,7 +4109,7 @@ function c_exchange:evaluate()
 	if (IsControlOpen("Request")) then
 		if (c_exchange.handoverComplete) then
 			d("[ScripExchange]: Completing handover process.")
-			UseControlAction("Request","HandOver")
+			UseControlAction("Request","HandOver",nil,1000)
 			c_exchange.handoverComplete = false
 			c_exchange.lastComplete = Now()
 			return true
@@ -4132,12 +4134,12 @@ function c_exchange:evaluate()
 					end
 				end
 				d("[ScripExchange]: no valid item ["..tostring(c_exchange.lastItem).."]")
-				UseControlAction("Request","Cancel")
+				UseControlAction("Request","Cancel",nil,1000)
 				return true
 			else
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_exchange.lastItem).."]")
 				if (TimeSince(c_exchange.lastSwitch) > 2000) then
-					UseControlAction("Request","Cancel")
+					UseControlAction("Request","Cancel",nil,1000)
 				end
 			end
 		end
@@ -4148,7 +4150,7 @@ function c_exchange:evaluate()
 	c_exchange.itemMin = 0
 	c_exchange.handoverComplete = false
 	if c_exchange.attempts > 20 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",nil,1000)
 		c_exchange.attempts = 0
 	end
 		
@@ -4158,7 +4160,7 @@ function c_exchange:evaluate()
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction("HWDSupply","SetTabIndex",0)
+			UseControlAction("HWDSupply","SetTabIndex",0,1000)
 			c_exchange.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
@@ -4174,7 +4176,7 @@ function c_exchange:evaluate()
 	end
 	local currencyCount = IsNull(Inventory:GetSpecialCurrencies()[28063].count,0)
 	if ((currencyCount) >= 10000) then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",nil,1000)
 		ml_task_hub:CurrentTask().completed = true
 		return true
 	end
@@ -4182,7 +4184,7 @@ function c_exchange:evaluate()
 	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7})
 	
 	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",nil,1000)
 		ml_task_hub:CurrentTask().completed = true
 		return true
 	end
@@ -4196,7 +4198,7 @@ function c_exchange:evaluate()
 	
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
-		UseControlAction("HWDSupply","SetTabIndex",currentCheck)
+		UseControlAction("HWDSupply","SetTabIndex",currentCheck,1000)
 		c_exchange.lastSwitch = Now()
 		return true
 	else
@@ -4232,7 +4234,7 @@ function c_exchange:evaluate()
 					c_exchange.itemMin = minRating
 					c_exchange.handoverComplete = false
 					c_exchange.attempts = c_exchange.attempts + 1
-					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex)
+					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex,1000)
 					d("[ScripExchange]: Attempting to turn in item at index ["..tostring(currentIndex).."].")
 					ml_global_information.Await(500)
 					return true
@@ -4246,7 +4248,7 @@ function c_exchange:evaluate()
 		end
 	end
 	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",nil,1000)
 		ml_task_hub:CurrentTask().completed = true
 	end
 	return false
