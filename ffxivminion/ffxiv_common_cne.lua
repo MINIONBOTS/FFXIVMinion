@@ -4109,7 +4109,7 @@ function c_exchange:evaluate()
 	if (IsControlOpen("Request")) then
 		if (c_exchange.handoverComplete) then
 			d("[ScripExchange]: Completing handover process.")
-			UseControlAction("Request","HandOver",0,1000)
+			UseControlAction("Request","HandOver")
 			c_exchange.handoverComplete = false
 			c_exchange.lastComplete = Now()
 			return true
