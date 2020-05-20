@@ -4146,8 +4146,6 @@ function c_exchange:evaluate()
 		return false
 	end
 	
-	c_exchange.lastItem = 0
-	c_exchange.itemMin = 0
 	c_exchange.handoverComplete = false
 	if c_exchange.attempts > 20 then
 		UseControlAction("HWDSupply","Close",0,1000)
@@ -4195,7 +4193,9 @@ function c_exchange:evaluate()
 			break
 		end
 	end
-	
+	d("check items for valid turnin, reset current item id.")
+	c_exchange.lastItem = 0
+	c_exchange.itemMin = 0
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
 		UseControlAction("HWDSupply","SetTabIndex",currentCheck,1000)
