@@ -3973,8 +3973,8 @@ c_scripexchange.handoverComplete = false
 function c_scripexchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes", 0, 1000)
-			--ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
+			UseControlAction("SelectYesno","Yes")
+			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return
 		end
 	end	
