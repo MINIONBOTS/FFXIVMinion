@@ -979,7 +979,7 @@ function SkillMgr.ModuleInit()
 	gSMTargets = { "Target","Ground Target","Player","Cast Target","Party","PartyS","Low TP","Low MP","Pet","Ally","Tank","Tankable Target","Tanked Target","Heal Priority","Dead Ally","Dead Party" }
 	gSMTarget = 1
 	
-	gSMTargetTypes = { "Any","Tank","DPS","Caster","Healer" }
+	gSMTargetTypes = { "Any","Tank","DPS","Caster","Healer","RangeDPS","MeleeDPS" }
 	gSMTargetType = 1
 	
 	gSMPlayerTargets = { "Any","Enemy","Player" }
