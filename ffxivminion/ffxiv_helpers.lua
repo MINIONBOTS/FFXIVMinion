@@ -3582,6 +3582,29 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
 		}
+	elseif (rolestring == "MeleeDPS") then
+      		return {
+  			[FFXIV.JOBS.DRAGOON] = true,
+			[FFXIV.JOBS.LANCER] = true,
+			[FFXIV.JOBS.MONK] = true,
+			[FFXIV.JOBS.PUGILIST] = true,
+  			[FFXIV.JOBS.ROGUE] = true,
+			[FFXIV.JOBS.NINJA] = true,
+         		[FFXIV.JOBS.SAMURAI] = true,
+		}
+	elseif (rolestring == "RangeDPS") then
+		return {
+			[FFXIV.JOBS.ARCHER] = true,
+			[FFXIV.JOBS.BARD] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.DANCER] = true,
+			[FFXIV.JOBS.MACHINIST] = true,
+			[FFXIV.JOBS.ARCANIST] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.SUMMONER] = true,
+			[FFXIV.JOBS.THAUMATURGE] = true,
+			[FFXIV.JOBS.REDMAGE] = true,
+		}
 	end
 	return nil
 end
