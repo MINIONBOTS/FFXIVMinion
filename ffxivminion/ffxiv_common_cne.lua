@@ -3549,8 +3549,10 @@ function e_switchclass:execute()
 	if (weapon) then
 		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
+		gForceAutoEquip = true
 		ml_global_information.Await(1000, 3000, function () return Player.job ~= job end)
 		ml_global_information.lastEquip = 0
+		e_recommendequip.lastEquip = {}
 	end
 end
 
