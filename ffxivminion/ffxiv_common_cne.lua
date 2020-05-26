@@ -3510,22 +3510,10 @@ function c_switchclass:evaluate()
 			return false
 		end
 		
+		SetGearsetInfo()
 		local override = ml_task_hub:CurrentTask().override
 		local gsvar = "gGearset"..tostring(class)
-		local searchList = Player:GetGearSetList()
 		local newSet = _G[gsvar]
-		
-		if table.valid(searchList) then
-			if (In(tonumber(newSet),0) or searchList[tonumber(newSet)] == nil or (tonumber(newSet) ~= 0 and (not string.contains(searchList[tonumber(newSet)].name,ffxivminion.classes[class])))) then
-				if ffxivminion.classes[class] then
-					for i,e in spairs(searchList) do
-						if (string.contains(e.name,ffxivminion.classes[class])) then
-							newSet = i
-						end
-					end
-				end
-			end
-		end
 		
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)

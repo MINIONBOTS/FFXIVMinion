@@ -2162,8 +2162,9 @@ function ffxiv_misc_switchclass:task_complete_eval()
 			return false
 		end
 		
+		SetGearsetInfo()
 		local override = self.override
-		local gsvar = "gGearset"..tostring(Player.job)
+		local gsvar = "gGearset"..tostring(class)
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
 			SendTextCommand(commandString)
