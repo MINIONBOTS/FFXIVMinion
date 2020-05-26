@@ -3540,6 +3540,9 @@ function c_switchclass:evaluate()
 	return false
 end
 function e_switchclass:execute()
+	if (IsControlOpen("SelectYesno") and not IsControlOpen("_NotificationParty")) then
+		UseControlAction("SelectYesno","Yes",0)
+	end
 	if (e_switchclass.blockOnly) then
 		return false
 	end
