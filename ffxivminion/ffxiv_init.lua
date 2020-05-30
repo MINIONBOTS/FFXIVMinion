@@ -621,7 +621,7 @@ function ml_global_information.Init()
 		-- Raid Alliance SB
 		ml_mesh_mgr.SetDefaultMesh(734, "[Raid] The Royal City of Rabanastre", enforce)
 		ml_mesh_mgr.SetDefaultMesh(776, "[Raid] The Ridorana Lighthouse", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(826, "[Raid] The Orbonne Monastery", enforce)
+		ml_mesh_mgr.SetDefaultMesh(826, "[Raid] The Orbonne Monastery", enforce)
 		
 		-- Raid Alliance SHB
 		ml_mesh_mgr.SetDefaultMesh(882, "[Raid] The Copied Factory", enforce)
