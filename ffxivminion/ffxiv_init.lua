@@ -609,19 +609,19 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the ImmaculateEX", enforce)
 		
 		-- Raid Alliance ARR
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Labyrinth of the Ancients", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Syrcus Tower", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The World of Darkness", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(372, "[Raid] Syrcus Tower", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
 		
 		-- Raid Alliance HW
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Void Ark", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(508, "[Raid] The Void Ark", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Weeping City of Mhach", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Dun Scaith", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(627, "[Raid] Dun Scaith", enforce)
 		
 		-- Raid Alliance SB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Royal City of Rabanastre", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Ridorana Lighthouse", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Orbonne Monastery", enforce)
+		ml_mesh_mgr.SetDefaultMesh(734, "[Raid] The Royal City of Rabanastre", enforce)
+		ml_mesh_mgr.SetDefaultMesh(776, "[Raid] The Ridorana Lighthouse", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(826, "[Raid] The Orbonne Monastery", enforce)
 		
 		-- Raid Alliance SHB
 		ml_mesh_mgr.SetDefaultMesh(882, "[Raid] The Copied Factory", enforce)
