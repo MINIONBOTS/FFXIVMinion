@@ -1705,9 +1705,20 @@ function c_useaethernet:evaluate(mapid, pos)
 	else
 		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
+		local gatedist = 10000
+		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
+														Player.localmapid,
+														ml_task_hub:CurrentTask().destMapID	)
+			if (table.valid(gate)) then
+				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
+				gatedist = Distance3DT(gatepos,Player.pos)
+			end
+		end
+		local closestDist = GetLowestValue(gatedist,gotoDist)
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
-				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
+				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
 				--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 				e_useaethernet.nearest = nearestAethernet
 				e_useaethernet.destination = bestAethernet
