@@ -364,7 +364,7 @@ function c_movetonode:evaluate()
 			
 				-- Might stop just out of range to wait for GP, don't need to be super accurate
 				if not touchOnly and (Player.gp.current < Player.gp.max and Player.gp.current < minimumGP and gatherable.distance2d <= 10) then
-					ml_global_information.ShowInformation(GetString("[Information]: Waiting for").." ["..tostring(minimumGP).."] GP.", 3000)
+					ml_global_information.ShowInformation(GetString("[Information]: Waiting for ").." ["..tostring(minimumGP).."] GP.", 3000)
 					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 				end
@@ -395,7 +395,7 @@ function c_movetonode:evaluate()
 						Player:SetTarget(gatherable.id)
 					end
 					
-					ml_global_information.ShowInformation(GetString("[Information]: Waiting for").." ["..tostring(minimumGP).."] GP.", 3000)
+					ml_global_information.ShowInformation(GetString("[Information]: Waiting for ").." ["..tostring(minimumGP).."] GP.", 3000)
 					ml_global_information.Await(3000)
 					e_movetonode.blockOnly = true
 					return true

@@ -2150,6 +2150,11 @@ end
 function ffxiv_misc_switchclass:task_complete_eval()
 	local class = self.class
 	
+	if (IsControlOpen("RecipeNote")) then
+		ffxiv_craft.ToggleCraftingLog()
+		return false
+	end
+	
 	if (Player.job ~= class) then
 		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
 		if (Busy() or Player.incombat) then
@@ -2157,8 +2162,9 @@ function ffxiv_misc_switchclass:task_complete_eval()
 			return false
 		end
 		
+		SetGearsetInfo()
 		local override = self.override
-		local gsvar = "gGearset"..tostring(Player.job)
+		local gsvar = "gGearset"..tostring(class)
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
 			SendTextCommand(commandString)
@@ -2495,6 +2501,9 @@ function ffxiv_misc_scripexchange.Create()
 		}
 	end
 	
+	newinst.skipTalkVal = gSkipTalk
+	gSkipTalk = true
+	
     return newinst
 end
 
@@ -2515,6 +2524,7 @@ function ffxiv_misc_scripexchange:task_complete_execute()
 		ml_global_information.Await(1500, function () return not IsControlOpen("MasterPieceSupply") end) 
 		return
 	end
+	gSkipTalk = self.skipTalkVal
 	self.completed = true
 end
 
@@ -2560,6 +2570,9 @@ function ffxiv_misc_exchange.Create()
 		x = 50, y = -16, z = 168
 	}
 	
+	newinst.skipTalkVal = gSkipTalk
+	gSkipTalk = true
+	
     return newinst
 end
 
@@ -2580,6 +2593,7 @@ function ffxiv_misc_exchange:task_complete_execute()
 		ml_global_information.Await(1500, function () return not IsControlOpen("HWDSupply") end) 
 		return
 	end
+	gSkipTalk = newinst.skipTalkVal
 	self.completed = true
 end
 
@@ -2587,11 +2601,11 @@ function ffxiv_misc_exchange:Init()
 	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
     self:add( ke_moveToMap, self.process_elements)
 	
+	local ke_Exchange = ml_element:create( "Exchange", c_exchange, e_exchange, 110 )
+	self:add( ke_Exchange, self.process_elements)
+	
 	local ke_scripExchange = ml_element:create( "ScripExchange", c_scripexchange, e_scripexchange, 100 )
 	self:add( ke_scripExchange, self.process_elements)
-	
-	local ke_Exchange = ml_element:create( "Exchange", c_exchange, e_exchange, 100 )
-	self:add( ke_Exchange, self.process_elements)
 	
 	local ke_selectConvIndex = ml_element:create( "SelectConvIndex", c_selectconvindex, e_selectconvindex, 90 )
     self:add( ke_selectConvIndex, self.process_elements)

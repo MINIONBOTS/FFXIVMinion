@@ -13,7 +13,9 @@
 c_getCurrentInfo = inheritsFrom( ml_cause )
 e_getCurrentInfo = inheritsFrom( ml_effect )
 function c_getCurrentInfo:evaluate()
-
+	if not QuestCompleted(1597) then
+		return false
+	end
     return not table.valid(ffxivminion.AetherCurrentData)
 end
 function e_getCurrentInfo:execute()
@@ -1703,9 +1705,20 @@ function c_useaethernet:evaluate(mapid, pos)
 	else
 		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
+		local gatedist = 10000
+		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
+														Player.localmapid,
+														ml_task_hub:CurrentTask().destMapID	)
+			if (table.valid(gate)) then
+				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
+				gatedist = Distance3DT(gatepos,Player.pos)
+			end
+		end
+		local closestDist = GetLowestValue(gatedist,gotoDist)
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
-				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
+				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
 				--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 				e_useaethernet.nearest = nearestAethernet
 				e_useaethernet.destination = bestAethernet
@@ -3508,22 +3521,10 @@ function c_switchclass:evaluate()
 			return false
 		end
 		
+		SetGearsetInfo()
 		local override = ml_task_hub:CurrentTask().override
 		local gsvar = "gGearset"..tostring(class)
-		local searchList = Player:GetGearSetList()
 		local newSet = _G[gsvar]
-		
-		if table.valid(searchList) then
-			if (In(tonumber(newSet),0) or searchList[tonumber(newSet)] == nil or (tonumber(newSet) ~= 0 and (not string.contains(searchList[tonumber(newSet)].name,ffxivminion.classes[class])))) then
-				if ffxivminion.classes[class] then
-					for i,e in spairs(searchList) do
-						if (string.contains(e.name,ffxivminion.classes[class])) then
-							newSet = i
-						end
-					end
-				end
-			end
-		end
 		
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
@@ -3550,6 +3551,9 @@ function c_switchclass:evaluate()
 	return false
 end
 function e_switchclass:execute()
+	if (IsControlOpen("SelectYesno") and not IsControlOpen("_NotificationParty")) then
+		UseControlAction("SelectYesno","Yes",0)
+	end
 	if (e_switchclass.blockOnly) then
 		return false
 	end
@@ -3559,8 +3563,10 @@ function e_switchclass:execute()
 	if (weapon) then
 		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
+		gForceAutoEquip = true
 		ml_global_information.Await(1000, 3000, function () return Player.job ~= job end)
 		ml_global_information.lastEquip = 0
+		e_recommendequip.lastEquip = {}
 	end
 end
 
@@ -4098,8 +4104,8 @@ c_exchange.handoverComplete = false
 function c_exchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_exchange.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes")
-			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
+			UseControlAction("SelectYesno","Yes",0,1000)
+			--ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return
 		end
 	end	
@@ -4132,23 +4138,21 @@ function c_exchange:evaluate()
 					end
 				end
 				d("[ScripExchange]: no valid item ["..tostring(c_exchange.lastItem).."]")
-				UseControlAction("Request","Cancel")
+				UseControlAction("Request","Cancel",0,1000)
 				return true
 			else
 				d("[ScripExchange]: Couldn't find item ["..tostring(c_exchange.lastItem).."]")
 				if (TimeSince(c_exchange.lastSwitch) > 2000) then
-					UseControlAction("Request","Cancel")
+					UseControlAction("Request","Cancel",0,1000)
 				end
 			end
 		end
 		return false
 	end
 	
-	c_exchange.lastItem = 0
-	c_exchange.itemMin = 0
 	c_exchange.handoverComplete = false
 	if c_exchange.attempts > 20 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",0,1000)
 		c_exchange.attempts = 0
 	end
 		
@@ -4158,7 +4162,7 @@ function c_exchange:evaluate()
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction("HWDSupply","SetTabIndex",0)
+			UseControlAction("HWDSupply","SetTabIndex",0,1000)
 			c_exchange.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
@@ -4174,7 +4178,7 @@ function c_exchange:evaluate()
 	end
 	local currencyCount = IsNull(Inventory:GetSpecialCurrencies()[28063].count,0)
 	if ((currencyCount) >= 10000) then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",0,1000)
 		ml_task_hub:CurrentTask().completed = true
 		return true
 	end
@@ -4182,7 +4186,7 @@ function c_exchange:evaluate()
 	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7})
 	
 	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",0,1000)
 		ml_task_hub:CurrentTask().completed = true
 		return true
 	end
@@ -4193,10 +4197,12 @@ function c_exchange:evaluate()
 			break
 		end
 	end
-	
+	d("check items for valid turnin, reset current item id.")
+	c_exchange.lastItem = 0
+	c_exchange.itemMin = 0
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
-		UseControlAction("HWDSupply","SetTabIndex",currentCheck)
+		UseControlAction("HWDSupply","SetTabIndex",currentCheck,1000)
 		c_exchange.lastSwitch = Now()
 		return true
 	else
@@ -4232,9 +4238,8 @@ function c_exchange:evaluate()
 					c_exchange.itemMin = minRating
 					c_exchange.handoverComplete = false
 					c_exchange.attempts = c_exchange.attempts + 1
-					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex)
+					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex,1000)
 					d("[ScripExchange]: Attempting to turn in item at index ["..tostring(currentIndex).."].")
-					ml_global_information.Await(500)
 					return true
 				end
 			end
@@ -4246,7 +4251,7 @@ function c_exchange:evaluate()
 		end
 	end
 	if table.size(ml_task_hub:CurrentTask().categories) == 8 then
-		UseControlAction("HWDSupply","Close")
+		UseControlAction("HWDSupply","Close",0,1000)
 		ml_task_hub:CurrentTask().completed = true
 	end
 	return false
