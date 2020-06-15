@@ -4168,6 +4168,14 @@ function c_exchange:evaluate()
 		end
 	end
 	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()	
+	local controlData = GetControlData("HWDSupply")
+	if not table.valid(controlData) then
+		return false
+	end
+	if not table.valid(controlData["HWDSupply"]) then
+		return false
+	end
+	
 	local catagoryData = GetControlRawData("HWDSupply",30)
 	if ffxivminion.gameRegion == 1 then
 		catagoryData = GetControlRawData("HWDSupply",63)
@@ -4207,40 +4215,23 @@ function c_exchange:evaluate()
 		return true
 	else
 		if (table.isa(currentItems)) then
-			--d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
-			local currentIndex = 0
-			for i = 94, 400, 20  do
-				currentIndex = currentIndex +1
-				local itemid = 0
-				local itemNumbers = 0
-				local minRating = 50
-				local item = (GetControlRawData("HWDSupply",i - 1))
-				local indexCorrect = false
-				d("item = "..tostring(item))
-				if item then
-					itemid = (GetControlRawData("HWDSupply",i - 1).value)
-					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
-					minRating = GetControlRawData("HWDSupply",i + 4).value
-					d("currentItems[itemid] = "..tostring(currentItems[currentCategory + 8][itemid - 500000]))
-					if currentItems[currentCategory + 8][itemid - 500000] then
-						indexCorrect = true
+			d("[ScripExchange]: Found items list for category ["..tostring(currentCategory).."].")
+			for i,e in pairs(controlData["HWDSupply"])  do
+				if e.tabindex == currentCategory then
+					local itemid = e.itemid
+					local itemNumbers = e.quantity
+					local minRating = e.collectabilitymin
+					
+					
+					if e.quantity > 0 then
+						c_exchange.lastItem = e.itemid + 500000
+						c_exchange.itemMin = e.collectabilitymin
+						c_exchange.handoverComplete = false
+						c_exchange.attempts = c_exchange.attempts + 1
+						local completeret = UseControlAction("HWDSupply","SetIndex",e.index,1000)
+						d("[ScripExchange]: Attempting to turn in item at index ["..tostring(e.index).."].")
+						return true
 					end
-					d("itemid = "..tostring(itemid))
-					d("itemNumbers = "..tostring(itemNumbers))
-					d("minRating = "..tostring(minRating))
-					d("currentIndex TEST = "..tostring(currentIndex))
-					d("indexCorrect TEST = "..tostring(indexCorrect))
-				end
-				
-				
-				if itemNumbers > 0 and itemid ~= 0 and indexCorrect then
-					c_exchange.lastItem = itemid
-					c_exchange.itemMin = minRating
-					c_exchange.handoverComplete = false
-					c_exchange.attempts = c_exchange.attempts + 1
-					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex,1000)
-					d("[ScripExchange]: Attempting to turn in item at index ["..tostring(currentIndex).."].")
-					return true
 				end
 			end
 			
