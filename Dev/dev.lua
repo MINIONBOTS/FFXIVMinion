@@ -1244,8 +1244,8 @@ function dev.DrawCall(event, ticks )
 									if (table.valid(bag)) then
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devbag1"..tostring(id),tostring(string.format( "%X",bag.ptr)))
 										GUI:BulletText("Slots/Free/Used") GUI:SameLine(200) GUI:InputInt3("##devbag2"..tostring(id),tostring(bag.size),tostring(bag.free),tostring(bag.used))
-										
-										local ilist = bag:GetList()
+										if (GUI:Button("Sort()##",100,15) ) then d(Inventory:SortInventory()) end
+										local ilist = bag:GetList() -- can also use bag:GetSortedItemList()
 										if (table.valid(ilist)) then
 											for slot, item in pairs(ilist) do
 												if ( GUI:TreeNode(tostring(slot).." - "..item.name)) then
