@@ -583,7 +583,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Containment Bay Z1T9EX", enforce)
 		
 		-- Trials SB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Pool of Tribute", enforce)
+		ml_mesh_mgr.SetDefaultMesh(674, "[Trial] The Pool of Tribute", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Emanation", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Royal Menagerie", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Jade Stoa", enforce)
