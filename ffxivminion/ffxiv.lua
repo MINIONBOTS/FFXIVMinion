@@ -281,7 +281,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 10000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
 		end	
 	end
@@ -327,9 +327,10 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 				end	
 			end
 		else
-			if (UseControlAction("_TitleMenu","Start")) then
-				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-				ffxivminion.loginvars.datacenterSelected = true
+			if IsControlOpen("_TitleMenu") then		
+				if (UseControlAction("_TitleMenu","Start")) then
+					ml_global_information.Await(1000, 10000, function () return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+				end
 			end
 		end
 	end
