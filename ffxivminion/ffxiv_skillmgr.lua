@@ -120,8 +120,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB",
 	[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
 	[FFXIV.JOBS.MINER] = "Gathering_Leveling",
-	[FFXIV.JOBS.ROGUE] = "Rogue",
-	[FFXIV.JOBS.NINJA] = "Ninja",
+	[FFXIV.JOBS.ROGUE] = "Ninja52",
+	[FFXIV.JOBS.NINJA] = "Ninja52",
 	[FFXIV.JOBS.MACHINIST] = "Machinist_SHB",
 	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB",
 	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB",
@@ -157,6 +157,7 @@ SkillMgr.ExtraProfiles = {
 	
 	"[Craft] 30+ 2 Skill Complete",
 	"[Craft] 70+ 2 Skill Complete",
+	"Ninja52",
 }
 
 SkillMgr.lastCheckDetails = {}
