@@ -266,8 +266,8 @@ local obj1 = {
 			["levelmin"] = 35,
 			["maxRange"] = 0,
 			["name"] = "Ten (Katon)",
-			["npskill"] = "18805,18806,18807",
 			["prio"] = 18,
+			["pskill"] = "2261",
 			["trg"] = "Player",
 		},
 		[19] = {
@@ -537,7 +537,7 @@ local obj1 = {
 			["maxRange"] = 0,
 			["name"] = "Gust Slash",
 			["pcskill"] = "2240",
-			["prio"] = 37,
+			["prio"] = 36,
 			["ptrg"] = "Enemy",
 		},
 		[37] = {
@@ -548,7 +548,7 @@ local obj1 = {
 			["levelmin"] = 30,
 			["maxRange"] = 0,
 			["name"] = "Shadow Fang",
-			["prio"] = 36,
+			["prio"] = 37,
 			["ptrg"] = "Enemy",
 			["thpadv"] = 2,
 		},
@@ -642,7 +642,7 @@ local obj1 = {
 			["trg"] = "Player",
 		},
 	},
-	["update"] = 20200804;
+	["update"] = 20200804,
 	["version"] = 3,
 }
 return obj1
