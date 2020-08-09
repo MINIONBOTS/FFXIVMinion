@@ -651,6 +651,8 @@ function dev.DrawCall(event, ticks )
 						GUI:PushItemWidth(200)
 						GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dutyinfo_name",tostring(info.name))
 						GUI:BulletText(".timer") GUI:SameLine(200) GUI:InputText("##dutyinfo_timer",tostring(info.timer))
+						GUI:BulletText(".dutytype") GUI:SameLine(200) GUI:InputText("##dutyinfo_type",tostring(info.dutytype))
+						GUI:BulletText(".dutystep") GUI:SameLine(200) GUI:InputText("##dutyinfo_step",tostring(info.dutystep))
 						GUI:PopItemWidth()	
 					else
 						GUI:Text("Not in duty ...")
