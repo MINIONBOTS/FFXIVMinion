@@ -520,7 +520,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Drowned City of Skalla", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Hells' Lid", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Fractal ContinuumHM", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Swallow's Compass", enforce)
+		ml_mesh_mgr.SetDefaultMesh(768, "[Dungeon] The Swallow's Compass", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Burn", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Saint Mocianne's ArboretumHM", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Ghimlyt Dark", enforce)
@@ -573,7 +573,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Final Steps of Faith", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Containment Bay S1T7", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Containment Bay P1T6", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Containment Bay Z1T9", enforce)
+		ml_mesh_mgr.SetDefaultMesh(637, "[Trial] Containment Bay Z1T9", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Limitless BlueEX", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Thok ast ThokEX", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Minstrel's Ballad Thordan's Reign", enforce)
@@ -583,7 +583,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Containment Bay Z1T9EX", enforce)
 		
 		-- Trials SB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Pool of Tribute", enforce)
+		ml_mesh_mgr.SetDefaultMesh(674, "[Trial] The Pool of Tribute", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Emanation", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Royal Menagerie", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Jade Stoa", enforce)
@@ -609,19 +609,19 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the ImmaculateEX", enforce)
 		
 		-- Raid Alliance ARR
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Labyrinth of the Ancients", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Syrcus Tower", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The World of Darkness", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(372, "[Raid] Syrcus Tower", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
 		
 		-- Raid Alliance HW
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Void Ark", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(508, "[Raid] The Void Ark", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Weeping City of Mhach", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Dun Scaith", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(627, "[Raid] Dun Scaith", enforce)
 		
 		-- Raid Alliance SB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Royal City of Rabanastre", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Ridorana Lighthouse", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Orbonne Monastery", enforce)
+		ml_mesh_mgr.SetDefaultMesh(734, "[Raid] The Royal City of Rabanastre", enforce)
+		ml_mesh_mgr.SetDefaultMesh(776, "[Raid] The Ridorana Lighthouse", enforce)
+		ml_mesh_mgr.SetDefaultMesh(826, "[Raid] The Orbonne Monastery", enforce)
 		
 		-- Raid Alliance SHB
 		ml_mesh_mgr.SetDefaultMesh(882, "[Raid] The Copied Factory", enforce)
@@ -782,6 +782,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(675, "Western La Noscea", true)
 		ml_mesh_mgr.SetDefaultMesh(676, "Duty_2585", true)
 		ml_mesh_mgr.SetDefaultMesh(678, "Duty_2418", true)
+		ml_mesh_mgr.SetDefaultMesh(679, "The Royal Airship Landing", true)
 		ml_mesh_mgr.SetDefaultMesh(699, "Duty_2907", true)
 		ml_mesh_mgr.SetDefaultMesh(700, "Duty_2909", true)
 		ml_mesh_mgr.SetDefaultMesh(701, "Duty_2627", true)
@@ -804,6 +805,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(722, "Duty_2927", true)
 		ml_mesh_mgr.SetDefaultMesh(723, "Duty_2952", true)
 		ml_mesh_mgr.SetDefaultMesh(726, "Duty_2950", true)
+		ml_mesh_mgr.SetDefaultMesh(730, "Transparency", true)
+		ml_mesh_mgr.SetDefaultMesh(746, "The Jade Stoa", true)
+		ml_mesh_mgr.SetDefaultMesh(758, "The Jade Stoa", true)
+		ml_mesh_mgr.SetDefaultMesh(810, "Hells' Kier", true)
+		ml_mesh_mgr.SetDefaultMesh(811, "Hells' Kier", true)
 		ml_mesh_mgr.SetDefaultMesh(865, "Duty_3262", true)
 		ml_mesh_mgr.SetDefaultMesh(867, "Duty_3250", true)		
 		ml_mesh_mgr.SetDefaultMesh(868, "Duty_3254", true)
@@ -1635,6 +1641,7 @@ function ml_global_information.Init()
 				[834] = "The Howling Eye",
 				[839] = "East Shroud",
 				[843] = "The Pendants Personal Suite",
+				[915] = "Gangos",
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
 				return IAmTooLazy[mapid]

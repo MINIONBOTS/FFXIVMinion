@@ -28,6 +28,8 @@ ffxivminion.loginvars = {
 
 if (ffxivminion.gameRegion == 1) then
 	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light","Crystal" }
+elseif (ffxivminion.gameRegion == 2) then
+    ffxivminion.logincenters = { "None","陆行鸟","莫古力","猫小胖" }
 else
 	ffxivminion.logincenters = { "Main" }
 end
@@ -45,9 +47,12 @@ if (ffxivminion.gameRegion == 1) then
 		[9] = {	"None","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.loginservers = {
-		[1] = { "红玉海","神意之地","拉诺西亚","幻影群岛","萌芽池","宇宙和音","沃仙曦染","晨曦王座","白银乡","白金幻象","神拳痕","潮风亭","旅人栈桥","拂晓之间","龙巢神殿","梦羽宝境","紫水栈桥","延夏","静语庄园","摩杜纳","海猫茶屋","柔风海湾","琥珀原"},
-    }   
+    ffxivminion.loginservers = {
+        [1] = { "None" },
+        [2] = { "宇宙和音","幻影群岛","拉诺西亚","晨曦王座","沃仙曦染","神意之地","红玉海","萌芽池" },
+        [3] = { "拂晓之间","旅人栈桥","梦羽宝境","潮风亭","白金幻象","白银乡","神拳痕","龙巢神殿" },
+        [4] = { "延夏","摩杜纳","柔风海湾","琥珀原","紫水栈桥","静语庄园","海猫茶屋",}
+    } 
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
 		[1] = { "톤베리","모그리","초코보","카벙클" },
@@ -281,7 +286,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
-				ml_global_information.Await(1000, 60000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+				ml_global_information.Await(1000, 10000, function () return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
 		end	
 	end
@@ -327,9 +332,10 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 				end	
 			end
 		else
-			if (UseControlAction("_TitleMenu","Start")) then
-				ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-				ffxivminion.loginvars.datacenterSelected = true
+			if IsControlOpen("_TitleMenu") then		
+				if (UseControlAction("_TitleMenu","Start")) then
+					ml_global_information.Await(1000, 10000, function () return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+				end
 			end
 		end
 	end

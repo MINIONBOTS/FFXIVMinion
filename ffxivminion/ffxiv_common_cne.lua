@@ -1705,9 +1705,20 @@ function c_useaethernet:evaluate(mapid, pos)
 	else
 		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
+		local gatedist = 10000
+		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
+														Player.localmapid,
+														ml_task_hub:CurrentTask().destMapID	)
+			if (table.valid(gate)) then
+				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
+				gatedist = Distance3DT(gatepos,Player.pos)
+			end
+		end
+		local closestDist = GetLowestValue(gatedist,gotoDist)
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
-				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
+				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
 				--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 				e_useaethernet.nearest = nearestAethernet
 				e_useaethernet.destination = bestAethernet
@@ -3598,7 +3609,7 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,4647,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071,4200,4254) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
@@ -4158,6 +4169,14 @@ function c_exchange:evaluate()
 		end
 	end
 	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()	
+	local controlData = GetControlData("HWDSupply")
+	if not table.valid(controlData) then
+		return false
+	end
+	if not table.valid(controlData["HWDSupply"]) then
+		return false
+	end
+	
 	local catagoryData = GetControlRawData("HWDSupply",30)
 	if ffxivminion.gameRegion == 1 then
 		catagoryData = GetControlRawData("HWDSupply",63)
@@ -4206,20 +4225,20 @@ function c_exchange:evaluate()
 				local minRating = 50
 				local item = (GetControlRawData("HWDSupply",i - 1))
 				local indexCorrect = false
-				d("item = "..tostring(item))
+				--d("item = "..tostring(item))
 				if item then
 					itemid = (GetControlRawData("HWDSupply",i - 1).value)
 					itemNumbers = GetControlRawData("HWDSupply",i + 16).value
 					minRating = GetControlRawData("HWDSupply",i + 4).value
-					d("currentItems[itemid] = "..tostring(currentItems[currentCategory + 8][itemid - 500000]))
+					--d("currentItems[itemid] = "..tostring(currentItems[currentCategory + 8][itemid - 500000]))
 					if currentItems[currentCategory + 8][itemid - 500000] then
 						indexCorrect = true
 					end
-					d("itemid = "..tostring(itemid))
+					--[[d("itemid = "..tostring(itemid))
 					d("itemNumbers = "..tostring(itemNumbers))
 					d("minRating = "..tostring(minRating))
 					d("currentIndex TEST = "..tostring(currentIndex))
-					d("indexCorrect TEST = "..tostring(indexCorrect))
+					d("indexCorrect TEST = "..tostring(indexCorrect))]]
 				end
 				
 				
@@ -4230,6 +4249,8 @@ function c_exchange:evaluate()
 					c_exchange.attempts = c_exchange.attempts + 1
 					local completeret = UseControlAction("HWDSupply","SetIndex",currentIndex,1000)
 					d("[ScripExchange]: Attempting to turn in item at index ["..tostring(currentIndex).."].")
+					d("[ScripExchange]: Attempting to turn in item id of ["..tostring(itemid).."].")
+					d("[ScripExchange]: Rating of ["..tostring(minRating).."].")
 					return true
 				end
 			end

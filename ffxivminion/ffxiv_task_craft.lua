@@ -1197,7 +1197,7 @@ function ffxiv_task_craft:UIInit()
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 	gRefreshCollectables = ffxivminion.GetSetting("gRefreshCollectables",0)
 	
-	if gRefreshCollectables < 20200201 then
+	if gRefreshCollectables < 20200807 then
 		gCraftCollectablePresets = {}
 		GUI_Set("gCraftCollectablePresets",{})
 		for k,v in pairs(ffxiv_craft.collectibles) do
@@ -1210,7 +1210,7 @@ function ffxiv_task_craft:UIInit()
 		AceLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
 		Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
 		
-		gRefreshCollectables = 20200201
+		gRefreshCollectables = 20200807
 		Settings.FFXIVMINION.gRefreshCollectables = gRefreshCollectables
 		d("[Craft] Collectables Updated")
 	end
@@ -1848,14 +1848,9 @@ function ffxiv_task_craft:Draw()
 	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
 		if (GUI:Button(GetString("Use Known Defaults"),CollectableFullWidth,20)) then
-			GUI_Set("gCraftCollectablePresets",{})
-			for k,v in pairs(ffxiv_craft.collectibles) do
-			local newID = AceLib.API.Items.GetIDByName(v.name)
-				if newID then
-					gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
-				end
-			end
-			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
+			gCraftCollectablePresets = {}
+			AceLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
+			Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
 		end
 		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }

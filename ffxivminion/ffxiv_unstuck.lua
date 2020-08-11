@@ -54,7 +54,11 @@ function c_stuck:evaluate()
 			return
 		end
 	end
-	
+	if ml_task_hub:CurrentTask() then
+		if ml_task_hub:CurrentTask():ParentTask() == "MISC_SHOPPING" then
+			return false
+		end
+	end
 	e_stuck.state = {}
 	e_stuck.blockOnly = false
 	e_stuck.task = ""
