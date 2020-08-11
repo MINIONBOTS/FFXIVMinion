@@ -2086,15 +2086,20 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:TreePop()
 	end
 	if ( GUI:TreeNode("Bars Data") ) then
+		GUI:PushItemWidth(250)
 		local h = c.hp
 		GUI:BulletText("Health") GUI:SameLine(200)  GUI:InputFloat3( "##dev9", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
+		GUI:PushItemWidth(100)
+			GUI:SameLine() GUI:InputFloat("##dev9.1", h.extra, 2, GUI.InputTextFlags_ReadOnly)
+		GUI:PopItemWidth()
 		h = c.mp
 		GUI:BulletText("MP") GUI:SameLine(200)  GUI:InputFloat3( "##dev10", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
 		h = c.cp
 		GUI:BulletText("CP") GUI:SameLine(200)  GUI:InputFloat3( "##dev11", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
 		h = c.gp
 		GUI:BulletText("GP") GUI:SameLine(200)  GUI:InputFloat3( "##dev12", h.current, h.max, h.percent, 2, GUI.InputTextFlags_ReadOnly)
-		GUI:BulletText("TP") GUI:SameLine(200) GUI:InputText("##dev13",tostring(c.tp))	
+		GUI:BulletText("TP") GUI:SameLine(200) GUI:InputText("##dev13",tostring(c.tp))
+		GUI:PopItemWidth()		
 		GUI:TreePop()
 	end
 	local p = c.pos

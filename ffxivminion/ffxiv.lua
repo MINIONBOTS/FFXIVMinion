@@ -12,6 +12,11 @@ ffxivminion.AetherCurrentData = {}
 ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
+ffxivminion.patchLevel = {
+	[1] = 5.3,
+	[2] = 5.2,
+	[3] = 5.1
+}
 
 ffxivminion.loginvars = {
 	reset = true,

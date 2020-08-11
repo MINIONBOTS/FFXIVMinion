@@ -1887,6 +1887,7 @@ function c_mount:evaluate()
 	end
 	
 	c_mount.blockOnly = false
+	local patchLevel = GetPatchLevel()
 	
 	local myPos = Player.pos
 	local gotoPos = ml_task_hub:CurrentTask().pos
@@ -1981,7 +1982,7 @@ function c_mount:evaluate()
 			if (table.valid(mountlist)) then
 				--First pass, look for our named mount.
 				for id,acMount in pairsByKeys(mountlist) do
-					if (acMount.name == gMountName and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+					if (acMount.name == gMountName and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 						if (acMount:IsReady(Player.id)) then
 							e_mount.id = acMount.id
 							return true
@@ -1991,7 +1992,7 @@ function c_mount:evaluate()
 				
 				--Second pass, look for any mount as backup.
 				for id,acMount in pairsByKeys(mountlist) do
-					if (acMount:IsReady(Player.id) and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+					if (acMount:IsReady(Player.id) and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 						e_mount.id = acMount.id
 						return true
 					end

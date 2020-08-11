@@ -9,6 +9,14 @@ ff.mapsections = {
 	[399] = 0,
 }
 
+function GetPatchLevel()
+	local gr = ffxivminion.gameRegion
+	if (IsNull(gr,0) == 0) then
+		gr = GetGameRegion()
+		ffxivminion.gameRegion = gr
+	end
+	return ffxivminion.patchLevel[gr]
+end
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
@@ -3168,6 +3176,7 @@ function ActionIsReady(id, category)
 end
 function Mount(id)
 	local mountID = id or 0
+	local patchLevel = GetPatchLevel()
 	
 	if (IsMounted() or IsMounting()) then
 		ml_debug("Cannot mount while mounted or mounting.")
@@ -3180,7 +3189,7 @@ function Mount(id)
 			if (table.valid(mounts)) then
 				--First pass, look for our named mount.
 				for mountid,mountaction in pairsByKeys(mounts) do
-					if (mountaction.name == gMountName and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+					if (mountaction.name == gMountName and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 						if (mountaction:IsReady(Player.id)) then
 							mountaction:Cast()
 							return true
@@ -3190,7 +3199,7 @@ function Mount(id)
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do
-				if (mountid == mountID and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+				if (mountid == mountID and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 					if (mountaction:IsReady()) then
 						mountaction:Cast()
 						return true
@@ -3201,7 +3210,7 @@ function Mount(id)
 		
 		--Second pass, look for any mount as backup.
 		for mountid,mountaction in pairsByKeys(mounts) do
-			if (mountaction:IsReady(Player.id) and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or not CanFlyInZone())) then
+			if (mountaction:IsReady(Player.id) and ((mountaction.canfly and (mountid > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 				mountaction:Cast()
 				return true
 			end
@@ -7198,6 +7207,12 @@ function Transport818(pos1,pos2)
 end
 
 function CanFlyInZone()
+	if (GetPatchLevel() >= 5.35) then
+	--if (QuestCompleted(524)) then
+		--return true
+	--end 
+	end
+	
 	if (Player.flying) then
 		if (Player.flying.canflyinzone) then
 			return true
