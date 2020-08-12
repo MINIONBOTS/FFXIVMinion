@@ -3968,15 +3968,158 @@ function e_classexchange:execute()
 	end
 end
 
-c_scripexchange = inheritsFrom( ml_cause )
-e_scripexchange = inheritsFrom( ml_effect )
-c_scripexchange.lastItem = 0
-c_scripexchange.lastComplete = 0
-c_scripexchange.lastSwitch = 0
-c_scripexchange.lastOpen = 0
-c_scripexchange.handoverComplete = false
-function c_scripexchange:evaluate()
-	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange.lastComplete) < 5000) then
+function FindCSIndex(itemid)
+	if (IsControlOpen("CollectablesShop")) then
+		local list = GetControlRawData("CollectablesShop")
+		if (table.isa(list)) then
+			if (itemid < 500000) then
+				itemid = itemid + 500000
+			end
+			for index, data in pairs(list) do			
+				if (data.type == "uint32" and data.value == itemid) then
+					return list[index-1].value
+				end
+			end	
+		end
+	end
+	return nil
+end
+
+function GetCSAvailable(itemid)
+	if (IsControlOpen("CollectablesShop")) then
+		local list = GetControlRawData("CollectablesShop")
+		if (table.isa(list)) then
+			if (itemid < 500000) then
+				itemid = itemid + 500000
+			end
+			for index, data in pairs(list) do			
+				if (data.type == "uint32" and data.value == itemid) then
+					return list[index-2].value ~= 131072
+				end
+			end	
+		end
+	end
+	return false
+end
+
+-- new NA version
+c_scripexchange_na = inheritsFrom( ml_cause )
+e_scripexchange_na = inheritsFrom( ml_effect )
+c_scripexchange_na.lastItem = 0
+c_scripexchange_na.lastComplete = 0
+c_scripexchange_na.lastSwitch = 0
+c_scripexchange_na.lastOpen = 0
+c_scripexchange_na.handoverComplete = false
+function c_scripexchange_na:evaluate()
+	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange_na.lastComplete) < 5000) then
+		if (not IsControlOpen("_NotificationParty")) then
+			UseControlAction("SelectYesno","Yes")
+			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
+			return false
+		end
+	end	
+	
+	c_scripexchange_na.handoverComplete = false
+	local addonName = "CollectablesShop"
+	local addonCategory = "SelectCategory"
+	local addonComplete = "Trade"
+	if (not IsControlOpen(addonName)) then
+		return false
+	else
+		if (not ml_task_hub:CurrentTask().loaded) then
+			ml_global_information.Await(1000)
+			UseControlAction(addonName,addonCategory,0)
+			c_scripexchange_na.lastSwitch = Now() + 1000
+			c_scripexchange_na.lastItem = 0
+			ml_task_hub:CurrentTask().loaded = true
+		end
+	end
+	
+	local items = ml_task_hub:CurrentTask().items
+	if (not table.valid(items)) then
+		for i = 0,10 do
+			ml_task_hub:CurrentTask().categories[i] = true
+		end
+		return false
+	end
+	
+	local currentCategory = -1
+	local categoryData = GetControlRawData("CollectablesShop",15)
+	if (categoryData) then
+		currentCategory= categoryData.value
+	end
+	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
+	local currentCheck = 0
+	for i = 0,10 do
+		if (checkedCategories[i] ~= true) then
+			currentCheck = i
+			break
+		end
+	end
+	
+	if (currentCategory ~= currentCheck) then
+		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."], currently ["..tostring(currentCategory).."].")
+		UseControlAction(addonName,addonCategory,currentCheck)
+		c_scripexchange_na.lastSwitch = Now()
+		return true
+	else
+		if (table.valid(items)) then
+			for itemid,_ in pairs(items) do
+				
+				--31013 AceLib.API.Items.IsRewardCapped(31013)
+				if (AceLib.API.Items.IsRewardCapped(itemid)) then
+					ml_task_hub:CurrentTask().items[itemid] = nil
+					return true
+				end
+				
+				if (itemid < 500000) then
+					itemid = itemid + 500000
+				end
+				--d("checking itemid ["..tostring(itemid).."]")
+				local index = FindCSIndex(itemid)
+				if (index ~= nil) then
+					--d("checking index ["..tostring(index).."]")
+					if (GetCSAvailable(itemid)) then
+						if (c_scripexchange_na.lastItem == itemid) then
+							--d("attempting trade")
+							UseControlAction(addonName,"Trade",0,0,1000)
+							return true
+						else
+							--d("selecting index")
+							c_scripexchange_na.lastItem = itemid
+							UseControlAction(addonName,"SelectIndex",index,0,1000)
+							return true
+						end
+					else
+						ml_task_hub:CurrentTask().items[itemid] = nil
+						return true
+					end
+				end
+			end
+		end
+			
+		if (TimeSince(c_scripexchange_na.lastSwitch) > 500) then
+			ml_task_hub:CurrentTask().categories[currentCheck] = true
+		end
+		return true
+	end
+	
+	return false
+end
+function e_scripexchange_na:execute()
+	--don't really need this
+end
+
+-- old version
+c_scripexchange_cnkr = inheritsFrom( ml_cause )
+e_scripexchange_cnkr = inheritsFrom( ml_effect )
+c_scripexchange_cnkr.lastItem = 0
+c_scripexchange_cnkr.lastComplete = 0
+c_scripexchange_cnkr.lastSwitch = 0
+c_scripexchange_cnkr.lastOpen = 0
+c_scripexchange_cnkr.handoverComplete = false
+function c_scripexchange_cnkr:evaluate()
+	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange_cnkr.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
 			UseControlAction("SelectYesno","Yes")
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
@@ -3985,18 +4128,18 @@ function c_scripexchange:evaluate()
 	end	
 	
 	if (IsControlOpen("Request")) then
-		if (c_scripexchange.handoverComplete) then
+		if (c_scripexchange_cnkr.handoverComplete) then
 			d("[ScripExchange]: Completing handover process.")
 			UseControlAction("Request","HandOver")
-			c_scripexchange.handoverComplete = false
-			c_scripexchange.lastComplete = Now()
+			c_scripexchange_cnkr.handoverComplete = false
+			c_scripexchange_cnkr.lastComplete = Now()
 			return true
 		else
 			local items = {}
 			if gSOEFilterArmory then 
-				items = GetItems({c_scripexchange.lastItem},{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
+				items = GetItems({c_scripexchange_cnkr.lastItem},{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3500})
 			else
-				items = GetItems({c_scripexchange.lastItem},{0,1,2,3})
+				items = GetItems({c_scripexchange_cnkr.lastItem},{0,1,2,3})
 			end
 			
 			if (table.valid(items)) then
@@ -4008,31 +4151,31 @@ function c_scripexchange:evaluate()
 							local result = item:HandOver()
 							d("[ScripExchange]: Handing over item ["..tostring(item.name).."], collectability ["..tostring(item.collectability).."], result ["..tostring(result).."].")
 							if (result ~= nil and (result == 1 or result == true or result == 65536 or result == 10)) then
-								c_scripexchange.handoverComplete = true
+								c_scripexchange_cnkr.handoverComplete = true
 								return true
 							end
 						end
 					end
 				end
 			else
-				d("[ScripExchange]: Couldn't find item ["..tostring(c_scripexchange.lastItem).."]")
+				d("[ScripExchange]: Couldn't find item ["..tostring(c_scripexchange_cnkr.lastItem).."]")
 			end
 		end
 		return false
 	end
 	
-	c_scripexchange.lastItem = 0
-	c_scripexchange.handoverComplete = false
+	c_scripexchange_cnkr.lastItem = 0
+	c_scripexchange_cnkr.handoverComplete = false
 	local addonName = "MasterPieceSupply"
-	local addonCatagory = "SelectCategory"
+	local addonCategory = "SelectCategory"
 	local addonComplete = "CompleteDelivery"
 	if (not IsControlOpen(addonName)) then
 		return false
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction(addonName,addonCatagory,0)
-			c_scripexchange.lastSwitch = Now() + 1000
+			UseControlAction(addonName,addonCategory,0)
+			c_scripexchange_cnkr.lastSwitch = Now() + 1000
 			ml_task_hub:CurrentTask().loaded = true
 		end
 	end
@@ -4050,8 +4193,8 @@ function c_scripexchange:evaluate()
 	
 	if (currentCategory ~= currentCheck) then
 		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."]")
-		UseControlAction(addonName,addonCatagory,currentCheck)
-		c_scripexchange.lastSwitch = Now()
+		UseControlAction(addonName,addonCategory,currentCheck)
+		c_scripexchange_cnkr.lastSwitch = Now()
 		return true
 	else
 		if (table.isa(currentItems)) then
@@ -4066,8 +4209,8 @@ function c_scripexchange:evaluate()
 				if ((currentamount + itemdata.scripreward) <= 2000) then
 					if (itemdata.ownedquantity >= itemdata.requiredquantity) then
 						local originalQuantity = itemdata.ownedquantity
-						c_scripexchange.lastItem = itemdata.itemid
-						c_scripexchange.handoverComplete = false
+						c_scripexchange_cnkr.lastItem = itemdata.itemid
+						c_scripexchange_cnkr.handoverComplete = false
 						
 						local completeret = UseControlAction(addonName,addonComplete,index-1)
 						--d("[ScripExchange]: Attempting to turn in item at index ["..tostring(index).."].")
@@ -4080,7 +4223,7 @@ function c_scripexchange:evaluate()
 				end
 			end
 			
-			if (TimeSince(c_scripexchange.lastSwitch) > 500) then
+			if (TimeSince(c_scripexchange_cnkr.lastSwitch) > 500) then
 				ml_task_hub:CurrentTask().categories[currentCheck] = true
 			end
 			return true
@@ -4089,8 +4232,14 @@ function c_scripexchange:evaluate()
 	
 	return false
 end
-function e_scripexchange:execute()
+function e_scripexchange_cnkr:execute()
 	--don't really need this
+end
+
+if (GetPatchLevel() >= 5.3) then
+	c_scripexchange = c_scripexchange_na
+else
+	c_scripexchange = c_scripexchange_cnkr
 end
 
 c_exchange = inheritsFrom( ml_cause )

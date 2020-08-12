@@ -1751,7 +1751,11 @@ function GetControlRawData(strControl,index)
 		if (control) then
 			local datas = control:GetRawData()
 			if (table.valid(datas)) then
-				return datas[index]
+				if (index == nil) then
+					return datas
+				else
+					return datas[index]
+				end
 			end
 		end
 	end

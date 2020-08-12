@@ -2518,10 +2518,18 @@ function ffxiv_misc_scripexchange:task_complete_eval()
 end
 
 function ffxiv_misc_scripexchange:task_complete_execute()
-	local supply = GetControl("MasterPieceSupply")
+	local addonName = "MasterPieceSupply"
+	if (GetPatchLevel() >= 5.3) then
+		addonName = "CollectablesShop"
+	end
+	
+	d("finishing task, scripexchange")
+	
+	local supply = GetControl(addonName)
 	if (supply and supply:IsOpen()) then
+		d("attempt to close control " .. addonName)
 		supply:Close()	
-		ml_global_information.Await(1500, function () return not IsControlOpen("MasterPieceSupply") end) 
+		ml_global_information.Await(1500, function () return not IsControlOpen(addonName) end) 
 		return
 	end
 	gSkipTalk = self.skipTalkVal
