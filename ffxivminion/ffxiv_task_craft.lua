@@ -232,6 +232,9 @@ function c_craftlimit:evaluate()
 			local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 			local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 			local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+			if In(ffxivminion.gameRegion,1) then
+				itemcountCollectable = 0
+			end
 			local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
 			
 			if (requireCollect) then
@@ -343,6 +346,9 @@ function c_startcraft:evaluate()
 				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+				if In(ffxivminion.gameRegion,1) then
+					itemcountCollectable = 0
+				end
 				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
 				
 				
@@ -696,12 +702,14 @@ function c_precraftbuff:evaluate()
 		if gCraftMarkerOrProfileIndex == 1 then
 			isCollectable = ml_task_hub:CurrentTask().useCollect
 		end
-		if Player.level >= 50 and ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
-			local collect = ActionList:Get(1,ffxiv_craft.collectors[Player.job])
-			if (collect) then
-				e_precraftbuff.activity = "usecollect"
-				e_precraftbuff.requiresLogClose = true
-				return true
+		if In(ffxivminion.gameRegion,2,3) then
+			if Player.level >= 50 and ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
+				local collect = ActionList:Get(1,ffxiv_craft.collectors[Player.job])
+				if (collect) then
+					e_precraftbuff.activity = "usecollect"
+					e_precraftbuff.requiresLogClose = true
+					return true
+				end
 			end
 		end
 		
@@ -945,7 +953,8 @@ function e_selectcraft:execute()
 					d("new task = "..tostring(id))
 					local itemid = order.item
 					local itemcount = 0
-					if (order.collect) then
+					local collectable = order.collect and In(ffxivminion.gameRegion,2,3)
+					if (collectable) then
 						itemcount = itemcount + ItemCount(itemid + 500000)
 					elseif (order.requirehq) then
 						itemcount = itemcount + ItemCount(itemid + 1000000)
@@ -960,13 +969,13 @@ function e_selectcraft:execute()
 					newTask.requiredItems = order.amount
 					cd("[SelectCraft]: Required Amount :"..tostring(order.amount)..".",3)
 					newTask.requireHQ = order.requirehq
-					newTask.requireCollect = order.collect
+					newTask.requireCollect = collectable
 					newTask.requiredCP = order.requiredcp
 					cd("[SelectCraft]: Required requiredcp :"..tostring(order.requiredcp)..".",2)
 					newTask.countHQ = order.counthq
 					newTask.itemid = order.item
 					newTask.useQuick = order.usequick
-					newTask.useCollect = order.collect
+					newTask.useCollect = collectable
 					newTask.useHQ = order.usehq
 					newTask.ifNecessary = order.ifnecessary
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
@@ -1501,7 +1510,8 @@ function ffxiv_task_craft:Draw()
 		if (table.valid(orders)) then
 			for id,order in spairs(orders) do
 			GUI:AlignFirstTextHeightToWidgets(); 
-			if order.collect then
+			local collectable = order.collect and In(ffxivminion.gameRegion,2,3)
+			if (collectable) then
 				if gCraftCollectablePresets[order.item] then
 					GUI:TextColored(.1,1,.2,1,"(C) " .. tostring(order.name))
 					if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Has Collectable Info")) end
@@ -1516,6 +1526,9 @@ function ffxiv_task_craft:Draw()
 				itemcountNorm = order["itemcountnorm"]
 				itemcountHQ = order["itemcounthq"]
 				itemcountCollectable = order["itemcountcollectable"]
+				if In(ffxivminion.gameRegion,1) then
+					itemcountCollectable = 0
+				end
 				GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcount",itemcount,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
@@ -1661,7 +1674,6 @@ function ffxiv_task_craft:Draw()
 					end
 				end
 				local uiAlert = IsNull(order["uialert"],nil)
-				
 				local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 				if uiAlert == "skip" then
 					local child_color = { r = 1, g = .90, b = .33, a = .0 }
@@ -2145,13 +2157,10 @@ function ffxiv_craft.UpdateAlertElement()
 				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+				if In(ffxivminion.gameRegion,1) then
+					itemcountCollectable = 0
+				end
 				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
-				
-				--cd("itemid = "..tostring(itemid))
-				--cd("itemcountnorm = "..tostring(itemcountnorm))
-				--cd("itemcountHQ = "..tostring(itemcountHQ))
-				--cd("itemcountCollectable = "..tostring(itemcountCollectable))
-				--cd("itemcount = "..tostring(itemcount))
 				
 				if order["itemcount"] ~= itemcount then
 					order["itemcount"]= itemcount
@@ -2376,7 +2385,8 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Separator();
 										
 					for id,order in spairs(orders) do
-						if order.collect then
+						local collectable = order.collect and In(ffxivminion.gameRegion,2,3)
+						if (collectable) then
 							if gCraftCollectablePresets[order.item] then
 								GUI:TextColored(.1,1,.2,1,"(C) " .. tostring(order.name))
 								if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Has Collectable Info")) end
@@ -2457,21 +2467,21 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
-						local acrEnabled = false					
+						local gACREnabledCraft = false					
 						if (IsGatherer(Player.job)) then
-							if (gACREnabledGather) then
-								acrEnabled = true
+							if (ggACREnabledCraftGather) then
+								gACREnabledCraft = true
 							end
 						elseif (IsCrafter(Player.job)) then
-							if (gACREnabledCraft) then
-								acrEnabled = true
+							if (ggACREnabledCraftCraft) then
+								gACREnabledCraft = true
 							end
 						elseif (IsFighter(Player.job)) then
-							if (gACREnabled) then
-								acrEnabled = true
+							if (ggACREnabledCraft) then
+								gACREnabledCraft = true
 							end
 						end
-						local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+						local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 						local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 						if uiAlert == "skip" then
 							local child_color = { r = 1, g = .90, b = .33, a = .0 }
@@ -2603,28 +2613,30 @@ function ffxiv_craft.Draw( event, ticks )
 					end					
 				end
 				if (gCraftOrderAddRecipeID ~= 0) then
-					local acrEnabled = false					
+					local gACREnabledCraft = false					
 					if (IsGatherer(Player.job)) then
-						if (gACREnabledGather) then
-							acrEnabled = true
+						if (ggACREnabledCraftGather) then
+							gACREnabledCraft = true
 						end
 					elseif (IsCrafter(Player.job)) then
-						if (gACREnabledCraft) then
-							acrEnabled = true
+						if (ggACREnabledCraftCraft) then
+							gACREnabledCraft = true
 						end
 					elseif (IsFighter(Player.job)) then
-						if (gACREnabled) then
-							acrEnabled = true
+						if (ggACREnabledCraft) then
+							gACREnabledCraft = true
 						end
 					end
-					local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					
 					GUI:Separator()
 				
 					GUI:Columns(2)
 					
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Amount to Craft")); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect")); 
+					if (In(ffxivminion.gameRegion,2,3)) then
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect")); 
+					end
 					if (not gCraftOrderAddQuick) and not acrValid then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
 					end
@@ -2641,7 +2653,9 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:PushItemWidth(250)
 					GUI_Capture(GUI:InputInt("##Amount to Craft",gCraftOrderAddAmount,0,0),"gCraftOrderAddAmount")
 					GUI:PopItemWidth()
-					GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderAddCollect),"gCraftOrderAddCollect")
+					if (In(ffxivminion.gameRegion,2,3)) then
+						GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderAddCollect),"gCraftOrderAddCollect")
+					end
 					if (not gCraftOrderAddQuick) and not acrValid then
 						GUI:PushItemWidth(250)
 						
@@ -2788,8 +2802,11 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Columns(2)
 					
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Amount to Craft")); 
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect"));   
-					if (not gCraftOrderEditQuick) then
+					if (In(ffxivminion.gameRegion,2,3)) then
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect"));  
+					end
+					local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					if (not gCraftOrderEditQuick) and not acrValid then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
 					end  
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Required CP"));   
@@ -2812,22 +2829,28 @@ function ffxiv_craft.Draw( event, ticks )
 						orders.amount = gCraftOrderEditAmount
 						ffxiv_craft.UpdateOrderElement()
 					end
-					GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderEditCollect),"gCraftOrderEditCollect")
+					if (In(ffxivminion.gameRegion,2,3)) then
+						GUI_Capture(GUI:Checkbox("##Use Collect",gCraftOrderEditCollect),"gCraftOrderEditCollect")
+					end
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip(GetString("Use Collect Synth Buff."))
-					end
-					if (orders.collect ~= gCraftOrderEditCollect) then
-						orders.collect = gCraftOrderEditCollect
-						ffxiv_craft.UpdateOrderElement()
-					end
-					if gCraftOrderEditCollect == true then
-						gCraftOrderEditQuick = false
+					end 
+					if In(ffxivminion.gameRegion,2,3) then
+						if (orders.collect ~= gCraftOrderEditCollect) then
+							orders.collect = gCraftOrderEditCollect
+							ffxiv_craft.UpdateOrderElement()
+						end
+						if gCraftOrderEditCollect == true then
+							gCraftOrderEditQuick = false
+						end
+					else
+						orders.collect = false
 					end
 					
-					if (not gCraftOrderEditQuick) then
+					if (not gCraftOrderEditQuick) and not acrValid then
 						GUI:PushItemWidth(250)
-						GUI_Combo(GetString("##skillProfile"), "gCraftOrderEditSkillProfileIndex", "gCraftOrderEditSkillProfile", SkillMgr.profiles)
-						
+						GUI_Capture(GUI:Combo("##skillProfile", IsNull(gCraftOrderEditSkillProfileIndex,1), SkillMgr.profiles ),"gCraftOrderEditSkillProfileIndex")
+					
 						GUI:PopItemWidth()
 					end
 					if (orders.skillprofile ~= gCraftOrderEditSkillProfile) then
