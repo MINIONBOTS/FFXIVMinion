@@ -10,6 +10,7 @@ ffxiv_craft.crafts = {
 	["CRP"] = 8,	["BSM"] = 9,	["ARM"] = 10,	["GSM"] = 11,
 	["LTW"] = 12,	["WVR"] = 13,	["ALC"] = 14,	["CUL"] = 15,
 }
+ffxiv_craft.itemCounts = {}
 ffxiv_craft.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\CraftProfiles\]]
 ffxiv_craft.profiles = {}
 ffxiv_craft.profilesDisplay = {}
@@ -217,22 +218,12 @@ function c_craftlimit:evaluate()
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
-			local getcounts = {}
-			getcounts[itemid] = true
-			getcounts[itemid + 1000000] = true
-			getcounts[itemid + 500000] = true
-			
-			local getcountsorted = {}
-			for itemid,_ in pairs(getcounts) do
-				table.insert(getcountsorted,itemid)
-			end
-			
-			local itemcounts = ItemCounts(getcountsorted)
-			
+			local itemcounts = ffxiv_craft.itemCounts
 			local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 			local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 			local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
 			if In(ffxivminion.gameRegion,1) then
+				itemcountnorm = itemcountnorm + itemcountCollectable
 				itemcountCollectable = 0
 			end
 			local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
@@ -317,6 +308,7 @@ e_startcraft = inheritsFrom( ml_effect )
 e_startcraft.blocktime = 0
 function c_startcraft:evaluate()
 	e_startcraft.blocktime = 0
+	
 	if (not ffxiv_craft.IsCrafting() and (IsControlOpen("RecipeNote") or IsControlOpen("SynthesisSimpleDialog"))) then
 		
 		if (ffxiv_craft.UsingProfile() and gCraftMarkerOrProfileIndex == 1) then
@@ -331,26 +323,15 @@ function c_startcraft:evaluate()
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 				
-				local getcounts = {}
-				getcounts[itemid] = true
-				getcounts[itemid + 1000000] = true
-				getcounts[itemid + 500000] = true
-				
-				local getcountsorted = {}
-				for itemid,_ in pairs(getcounts) do
-					table.insert(getcountsorted,itemid)
-				end
-				
-				local itemcounts = ItemCounts(getcountsorted)
-				
+				local itemcounts = ffxiv_craft.itemCounts
 				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
 				if In(ffxivminion.gameRegion,1) then
+					itemcountnorm = itemcountnorm + itemcountCollectable
 					itemcountCollectable = 0
 				end
 				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
-				
 				
 				if (requireCollect) then
 					itemcount = itemcountCollectable
@@ -950,18 +931,25 @@ function e_selectcraft:execute()
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
 
 				if (canCraft) or (order.ifnecessary) then
-					d("new task = "..tostring(id))
 					local itemid = order.item
-					local itemcount = 0
 					local collectable = order.collect and In(ffxivminion.gameRegion,2,3)
+					
+				
+					local itemcounts = ffxiv_craft.itemCounts
+					local itemcountnorm = IsNull(itemcounts[itemid].count,0)
+					local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
+					local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
+					if In(ffxivminion.gameRegion,1) then
+						itemcountnorm = itemcountnorm + itemcountCollectable
+						itemcountCollectable = 0
+					end
+					local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
 					if (collectable) then
-						itemcount = itemcount + ItemCount(itemid + 500000)
-					elseif (order.requirehq) then
-						itemcount = itemcount + ItemCount(itemid + 1000000)
-					elseif (order.counthq) then
-						itemcount = itemcount + ItemCount(itemid,true)
-					else
-						itemcount = itemcount + ItemCount(itemid)
+						itemcount = itemcountCollectable
+					elseif (requireHQ) then
+						itemcount = itemcountHQ
+					elseif (countHQ) then
+						itemcount = itemcountnorm + itemcountHQ
 					end
 					
 					newTask.startingCount = itemcount
@@ -1526,9 +1514,6 @@ function ffxiv_task_craft:Draw()
 				itemcountNorm = order["itemcountnorm"]
 				itemcountHQ = order["itemcounthq"]
 				itemcountCollectable = order["itemcountcollectable"]
-				if In(ffxivminion.gameRegion,1) then
-					itemcountCollectable = 0
-				end
 				GUI:NextColumn()
 				GUI:AlignFirstTextHeightToWidgets(); GUI:InputText("##itemcount",itemcount,GUI.InputTextFlags_ReadOnly) ; 
 				GUI:NextColumn()
@@ -2089,7 +2074,9 @@ function ffxiv_craft.UpdateAlertElement()
 				table.insert(getcountsorted,itemid)
 			end
 			
-			local itemcounts = ItemCounts(getcountsorted)
+			ffxiv_craft.itemCounts = ItemCounts(getcountsorted)
+			local itemcounts = ffxiv_craft.itemCounts
+			
 			for id,order in pairs(orders) do
 			
 				if order["uialert"] == nil then
@@ -2158,6 +2145,7 @@ function ffxiv_craft.UpdateAlertElement()
 				local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 				local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
 				if In(ffxivminion.gameRegion,1) then
+					itemcountnorm = itemcountnorm + itemcountCollectable
 					itemcountCollectable = 0
 				end
 				local itemcount = itemcountnorm + itemcountHQ + itemcountCollectable
@@ -2396,7 +2384,7 @@ function ffxiv_craft.Draw( event, ticks )
 							end
 						else
 							GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name);
-						end				
+						end
 						GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.id); GUI:NextColumn()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.amount); GUI:NextColumn()
