@@ -217,8 +217,23 @@ function c_craftlimit:evaluate()
 			local countHQ = ml_task_hub:CurrentTask().countHQ
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
+
+			local getcounts = {}
+			for id,order in pairs(orders) do
+				local itemid = order.item
+				getcounts[itemid] = true
+				getcounts[itemid + 1000000] = true
+				getcounts[itemid + 500000] = true
+			end
 			
+			local getcountsorted = {}
+			for itemid,_ in pairs(getcounts) do
+				table.insert(getcountsorted,itemid)
+			end
+			
+			ffxiv_craft.itemCounts = ItemCounts(getcountsorted)
 			local itemcounts = ffxiv_craft.itemCounts
+			
 			local itemcountnorm = IsNull(itemcounts[itemid].count,0)
 			local itemcountHQ = IsNull(itemcounts[itemid + 1000000].count,0)
 			local itemcountCollectable = IsNull(itemcounts[itemid + 500000].count,0)
