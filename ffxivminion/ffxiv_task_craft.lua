@@ -219,11 +219,14 @@ function c_craftlimit:evaluate()
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 
 			local getcounts = {}
-			for id,order in pairs(orders) do
-				local itemid = order.item
-				getcounts[itemid] = true
-				getcounts[itemid + 1000000] = true
-				getcounts[itemid + 500000] = true
+			local orders = ffxiv_craft.orders
+			if table.valid(orders) then
+				for id,order in pairs(orders) do
+					local itemid = order.item
+					getcounts[itemid] = true
+					getcounts[itemid + 1000000] = true
+					getcounts[itemid + 500000] = true
+				end
 			end
 			
 			local getcountsorted = {}
