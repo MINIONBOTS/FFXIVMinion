@@ -824,7 +824,30 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(150)
 					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:GetFishingState()))
 					GUI:BulletText("GetGigHead") GUI:SameLine(200) GUI:InputText("##devfi5",tostring(Player:GetGigHead()))
-					GUI:BulletText("LastCatchId") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(Player:GetLastCatchId()))
+					local lastCatchID = Player:GetLastCatchId()
+					if (dev.lastCatchID == nil) then
+						dev.lastCatchID = 0
+						dev.lastCatchReset = true
+						dev.lastCatchName = ""
+					end
+					if (tonumber(lastCatchID) ~= nil) then
+						if (lastCatchID == 0) then
+							dev.lastCatchReset = true
+						elseif (lastCatchID ~= 0 and dev.lastCatchReset) then
+							dev.lastCatchID = lastCatchID
+							if (lastCatchID > 1000000) then
+								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
+							elseif (lastCatchID > 500000 and lastCatchID < 600000) then
+								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
+							else
+								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+							end
+						end
+					end
+					
+					GUI:BulletText("LastCatchId") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(lastCatchID))
+					GUI:BulletText("LastCatch (ID)") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(dev.lastCatchID))
+					GUI:BulletText("LastCatch (Name)") GUI:SameLine(200) GUI:InputText("##devfi6.1",tostring(dev.lastCatchName ))
 					
 					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))					
 					if (not dev.fishbait) then dev.fishbait = 0 end
