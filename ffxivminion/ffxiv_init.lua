@@ -609,7 +609,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the ImmaculateEX", enforce)
 		
 		-- Raid Alliance ARR
-		--ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
+		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(372, "[Raid] Syrcus Tower", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
 		

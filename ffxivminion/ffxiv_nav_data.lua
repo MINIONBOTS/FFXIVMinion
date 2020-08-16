@@ -628,7 +628,16 @@ ffxiv_map_nav.data = {
 	[134] =
 	{
 		[129] = {
-			{id = 129, cost = 5, x = -43.422066,	z = 153.802917,	    y = 35.445602,	h = -1.105748},
+			{id = 129, cost = 5, x = -43.422066, z = 153.802917, y = 35.445602, h = -1.105748
+				, requires = {
+					["ffxivminion.patchLevel[ffxivminion.gameRegion] < 5.3"] = true,
+				}
+			},
+			{id = 129, cost = 5, x = -50, z = 157, y = 34, h = -1.15
+				, requires = {
+					["ffxivminion.patchLevel[ffxivminion.gameRegion] >= 5.3"] = true,
+				}
+			},
 		},
 		[135] = {
 			{id = 135, cost = 5, x = 203.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325},
