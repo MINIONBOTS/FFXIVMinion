@@ -611,7 +611,7 @@ function ml_global_information.Init()
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
 		ml_mesh_mgr.SetDefaultMesh(372, "[Raid] Syrcus Tower", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
+		ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
 		
 		-- Raid Alliance HW
 		--ml_mesh_mgr.SetDefaultMesh(508, "[Raid] The Void Ark", enforce)
