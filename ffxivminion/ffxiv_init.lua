@@ -629,6 +629,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(882, "[Raid] The Copied Factory", enforce)
 		ml_mesh_mgr.SetDefaultMesh(896, "[Raid] The Copied Factory", enforce)
 		ml_mesh_mgr.SetDefaultMesh(917, "[Raid] The Puppets' Bunker", enforce)
+		ml_mesh_mgr.SetDefaultMesh(928, "[Raid] The Puppets' Bunker", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
 		
 		-- Raids ARR
