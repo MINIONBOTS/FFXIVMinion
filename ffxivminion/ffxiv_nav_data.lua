@@ -640,7 +640,16 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[135] = {
-			{id = 135, cost = 5, x = 203.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325},
+			{id = 135, cost = 5, x = 203.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325
+				, requires = {
+					["ffxivminion.patchLevel[ffxivminion.gameRegion] < 5.3"] = true,
+				}
+			},
+			{id = 135, cost = 5, x = 209.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325
+				, requires = {
+					["ffxivminion.patchLevel[ffxivminion.gameRegion] >= 5.3"] = true,
+				}
+			},
 		},
 		[137] = {
 			{id = 137, cost = 5, x = -163.673187,	z = -734.864807,	y = 35.884563,	h = 2.833870},
