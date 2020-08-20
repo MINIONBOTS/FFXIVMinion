@@ -3994,7 +3994,7 @@ function GetCSAvailable(itemid)
 			end
 			for index, data in pairs(list) do			
 				if (data.type == "uint32" and data.value == itemid) then
-					return list[index-2].value ~= 131072
+					return not In(list[index-2].value,131072,131073)
 				end
 			end	
 		end
@@ -4006,20 +4006,17 @@ end
 c_scripexchange_na = inheritsFrom( ml_cause )
 e_scripexchange_na = inheritsFrom( ml_effect )
 c_scripexchange_na.lastItem = 0
-c_scripexchange_na.lastComplete = 0
 c_scripexchange_na.lastSwitch = 0
-c_scripexchange_na.lastOpen = 0
-c_scripexchange_na.handoverComplete = false
+c_scripexchange_na.lastSwitchAttempts = 0
 function c_scripexchange_na:evaluate()
-	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange_na.lastComplete) < 5000) then
+	if (IsControlOpen("SelectYesno") and Player.alive) then
 		if (not IsControlOpen("_NotificationParty")) then
 			UseControlAction("SelectYesno","Yes")
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return false
 		end
-	end	
+	end
 	
-	c_scripexchange_na.handoverComplete = false
 	local addonName = "CollectablesShop"
 	local addonCategory = "SelectCategory"
 	local addonComplete = "Trade"
@@ -4028,10 +4025,11 @@ function c_scripexchange_na:evaluate()
 	else
 		if (not ml_task_hub:CurrentTask().loaded) then
 			ml_global_information.Await(1000)
-			UseControlAction(addonName,addonCategory,0)
-			c_scripexchange_na.lastSwitch = Now() + 1000
+			--UseControlAction(addonName,addonCategory,0)
+			c_scripexchange_na.lastSwitch = 0
+			c_scripexchange_na.lastSwitchAttempts = 0
 			c_scripexchange_na.lastItem = 0
-			ml_task_hub:CurrentTask().loaded = true
+			ml_task_hub:CurrentTask().loaded = true			
 		end
 	end
 	
@@ -4048,8 +4046,28 @@ function c_scripexchange_na:evaluate()
 	if (categoryData) then
 		currentCategory= categoryData.value
 	end
-	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
+	local categoryLevels = {
+		[0] = FFXIV.JOBS.CARPENTER,
+		[1] = FFXIV.JOBS.BLACKSMITH,
+		[2] = FFXIV.JOBS.ARMORER,
+		[3] = FFXIV.JOBS.GOLDSMITH,
+		[4] = FFXIV.JOBS.LEATHERWORKER,
+		[5] = FFXIV.JOBS.WEAVER,
+		[6] = FFXIV.JOBS.ALCHEMIST,
+		[7] = FFXIV.JOBS.CULINARIAN,
+		[8] = FFXIV.JOBS.MINER,
+		[9] = FFXIV.JOBS.BOTANIST,
+		[10] = FFXIV.JOBS.FISHER,
+	}
+	
+	for i = 0,10 do
+		if (Player.levels[categoryLevels[i]] < 50) then
+			ml_task_hub:CurrentTask().categories[i] = true
+		end
+	end
+	
 	local currentCheck = 0
+	local checkedCategories = IsNull(ml_task_hub:CurrentTask().categories,{0,1,2,3,4,5,6,7,8,9,10})
 	for i = 0,10 do
 		if (checkedCategories[i] ~= true) then
 			currentCheck = i
@@ -4057,12 +4075,34 @@ function c_scripexchange_na:evaluate()
 		end
 	end
 	
+	local uncheckedCategories = ""
+	for i = 0,10 do
+		if (checkedCategories[i] ~= true) then
+			if (uncheckedCategories == "") then
+				uncheckedCategories = tostring(i)
+			else
+				uncheckedCategories = uncheckedCategories..","..tostring(i)
+			end
+		end
+	end
+	
 	if (currentCategory ~= currentCheck) then
-		d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."], currently ["..tostring(currentCategory).."].")
-		UseControlAction(addonName,addonCategory,currentCheck)
-		c_scripexchange_na.lastSwitch = Now()
+		if (c_scripexchange_na.lastSwitchAttempts > 1) then
+			d("[ScripExchange]: Current attempts:"..tostring(c_scripexchange_na.lastSwitchAttempts))
+			ml_task_hub:CurrentTask().categories[currentCheck] = true
+			c_scripexchange_na.lastSwitchAttempts  = 0
+			d("[ScripExchange]: Category ["..tostring(currentCheck).."] failed, try next.")
+		else
+			if (TimeSince(c_scripexchange_na.lastSwitch) > 500) then
+				d("[ScripExchange]: Switch to category ["..tostring(currentCheck).."], currently ["..tostring(currentCategory).."].")
+				UseControlAction(addonName,addonCategory,currentCheck)
+				c_scripexchange_na.lastSwitch = Now()
+				c_scripexchange_na.lastSwitchAttempts = c_scripexchange_na.lastSwitchAttempts + 1
+			end
+		end
 		return true
 	else
+		c_scripexchange_na.lastSwitchAttempts = 0
 		if (table.valid(items)) then
 			for itemid,_ in pairs(items) do
 				
@@ -4075,17 +4115,16 @@ function c_scripexchange_na:evaluate()
 				if (itemid < 500000) then
 					itemid = itemid + 500000
 				end
-				--d("checking itemid ["..tostring(itemid).."]")
+				d("[ScripExchange]: Checking item ["..tostring(itemid).."]")
 				local index = FindCSIndex(itemid)
 				if (index ~= nil) then
-					--d("checking index ["..tostring(index).."]")
+					d("[ScripExchange]: Checking index ["..tostring(index).."]")
 					if (GetCSAvailable(itemid)) then
 						if (c_scripexchange_na.lastItem == itemid) then
-							--d("attempting trade")
+							d("[ScripExchange]: Attempting trade.")
 							UseControlAction(addonName,"Trade",0,0,1000)
 							return true
 						else
-							--d("selecting index")
 							c_scripexchange_na.lastItem = itemid
 							UseControlAction(addonName,"SelectIndex",index,0,1000)
 							return true
