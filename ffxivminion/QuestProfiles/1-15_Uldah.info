@@ -4,7 +4,7 @@ local multiRefObjects = {
 } -- multiRefObjects
 local obj1 = {
 	["names"] = {
-		["us"] = "(1-15) Uldah";
+		["en"] = "(1-15) Uldah";
 		["de"] = "(1-15) Uldah";
 		["fr"] = "(1-15) Uldah";
 		["jp"] = "(1-15) ウルダハ";
