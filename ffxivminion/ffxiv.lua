@@ -838,63 +838,6 @@ function ffxivminion.SetMainVars()
 	gEurekaFleeMP = ffxivminion.GetSetting("gEurekaFleeMP",0)
 	gEurekaAntidote = ffxivminion.GetSetting("gEurekaAntidote",false)
 	
-	-- Role Skills
-	gRoleSkillAutoset = ffxivminion.GetSetting("gRoleSkillAutoset",true)
-	
-	gRoleSkillRampart = ffxivminion.GetSetting("gRoleSkillRampart",true)
-	gRoleSkillLowBlow = ffxivminion.GetSetting("gRoleSkillLowBlow",true)
-	gRoleSkillProvoke = ffxivminion.GetSetting("gRoleSkillProvoke",true)
-	gRoleSkillConvalescence = ffxivminion.GetSetting("gRoleSkillConvalescence",true)
-	gRoleSkillAnticipation = ffxivminion.GetSetting("gRoleSkillAnticipation",true)
-	gRoleSkillReprisal = ffxivminion.GetSetting("gRoleSkillReprisal",true)
-	gRoleSkillAwareness = ffxivminion.GetSetting("gRoleSkillAwareness",true)
-	gRoleSkillInterject = ffxivminion.GetSetting("gRoleSkillInterject",true)
-	gRoleSkillUltimatum = ffxivminion.GetSetting("gRoleSkillUltimatum",true)
-	gRoleSkillShirk = ffxivminion.GetSetting("gRoleSkillShirk",true)
-	
-	gRoleSkillClericstance = ffxivminion.GetSetting("gRoleSkillClericstance",true)
-	gRoleSkillBreakSkill = ffxivminion.GetSetting("gRoleSkillBreakSkill",true)
-	gRoleSkillProtect = ffxivminion.GetSetting("gRoleSkillProtect",true)
-	gRoleSkillEsuna = ffxivminion.GetSetting("gRoleSkillEsuna",true)
-	gRoleSkillLucid = ffxivminion.GetSetting("gRoleSkillLucid",true)
-	gRoleSkillSwiftcast = ffxivminion.GetSetting("gRoleSkillSwiftcast",true)
-	gRoleSkillEye = ffxivminion.GetSetting("gRoleSkillEye",true)
-	gRoleSkillLargesse = ffxivminion.GetSetting("gRoleSkillLargesse",true)
-	gRoleSkillSurecast = ffxivminion.GetSetting("gRoleSkillSurecast",true)
-	gRoleSkillRescue = ffxivminion.GetSetting("gRoleSkillRescue",true)
-	
-	gRoleSkillCasterBreakSkill = ffxivminion.GetSetting("gRoleSkillCasterBreakSkill",true)
-	gRoleSkillCasterLucid = ffxivminion.GetSetting("gRoleSkillCasterLucid",true)
-	gRoleSkillCasterSwiftcast = ffxivminion.GetSetting("gRoleSkillCasterSwiftcast",true)
-	gRoleSkillCasterSurecast = ffxivminion.GetSetting("gRoleSkillCasterSurecast",true)
-	gRoleSkillAddle = ffxivminion.GetSetting("gRoleSkillAddle",true)
-	gRoleSkillDrain = ffxivminion.GetSetting("gRoleSkillDrain",true)
-	gRoleSkillDiversion = ffxivminion.GetSetting("gRoleSkillDiversion",true)
-	gRoleSkillApoc = ffxivminion.GetSetting("gRoleSkillApoc",true)
-	gRoleSkillMana = ffxivminion.GetSetting("gRoleSkillMana",true)
-	gRoleSkillErase = ffxivminion.GetSetting("gRoleSkillErase",true)
-	
-	gRoleSkillSecondWind = ffxivminion.GetSetting("gRoleSkillSecondWind",true)
-	gRoleSkillArmsLength = ffxivminion.GetSetting("gRoleSkillArmsLength",true)
-	gRoleSkillLegSweep = ffxivminion.GetSetting("gRoleSkillLegSweep",true)
-	gRoleSkillMeleeDiversion = ffxivminion.GetSetting("gRoleSkillMeleeDiversion",true)
-	gRoleSkillInvigorate = ffxivminion.GetSetting("gRoleSkillInvigorate",true)
-	gRoleSkillBloodbath = ffxivminion.GetSetting("gRoleSkillBloodbath",true)
-	gRoleSkillGoad = ffxivminion.GetSetting("gRoleSkillGoad",true)
-	gRoleSkillFeint = ffxivminion.GetSetting("gRoleSkillFeint",true)
-	gRoleSkillCrutch = ffxivminion.GetSetting("gRoleSkillCrutch",true)
-	gRoleSkillTrueNorth = ffxivminion.GetSetting("gRoleSkillTrueNorth",true)
-	
-	gRoleSkillRangedSecondWind = ffxivminion.GetSetting("gRoleSkillRangedSecondWind",true)
-	gRoleSkillFootGraze = ffxivminion.GetSetting("gRoleSkillFootGraze",true)
-	gRoleSkillLegGraze = ffxivminion.GetSetting("gRoleSkillLegGraze",true)
-	gRoleSkillPeloton = ffxivminion.GetSetting("gRoleSkillPeloton",true)
-	gRoleSkillRangedInvigorate = ffxivminion.GetSetting("gRoleSkillRangedInvigorate",true)
-	gRoleSkillTactician = ffxivminion.GetSetting("gRoleSkillTactician",true)
-	gRoleSkillRefresh = ffxivminion.GetSetting("gRoleSkillRefresh",true)
-	gRoleSkillHeadGraze = ffxivminion.GetSetting("gRoleSkillHeadGraze",true)
-	gRoleSkillArmGraze = ffxivminion.GetSetting("gRoleSkillArmGraze",true)
-	gRoleSkillPalisade = ffxivminion.GetSetting("gRoleSkillPalisade",true)
 	
 	gStuckReturn = ffxivminion.GetSetting("gStuckReturn",true)
 	gStuckTeleport = ffxivminion.GetSetting("gStuckTeleport",false)
@@ -1020,6 +963,7 @@ function ffxivminion.SwitchMode(mode)
 		ml_global_information.mainTask = task
 		
 		if (FFXIV_Common_BotRunning) then
+			ffxivminion.DutyCurrentData = {}
 			ml_global_information:ToggleRun()
 		end
 	end
@@ -1735,6 +1679,7 @@ Quest: Completes quests based on a questing profile.\
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
 					if (GUI:Button(GetString("Start / Stop"),contentwidth,20)) then
+						ffxivminion.DutyCurrentData = {}
 						ml_global_information.ToggleRun()	
 					end
 				end
@@ -1776,6 +1721,7 @@ function ml_global_information.DrawSmall()
 				GUI:EndChild()
 				if (GUI:IsItemHovered()) then
 					if (GUI:IsMouseClicked(0)) then
+						ffxivminion.DutyCurrentData = {}
 						ml_global_information.ToggleRun()
 					end
 				end	

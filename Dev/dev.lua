@@ -1297,6 +1297,13 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("Price") GUI:SameLine(200) GUI:InputText("##devbag26"..tostring(slot),tostring(item.price))
 													GUI:BulletText("MateriaSlotCount") GUI:SameLine(200) GUI:InputText("##devbag28"..tostring(slot),tostring(item.materiaslotcount))
 													GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devbag25"..tostring(slot),tostring(item:IsReady()))
+
+													
+													GUI:BulletText("Rarity") GUI:SameLine(200) GUI:InputText("##devbag30"..tostring(slot),tostring(item.rarity))
+													GUI:BulletText("IsUnique") GUI:SameLine(200) GUI:InputText("##devbag31"..tostring(slot),tostring(item.isunique))
+													GUI:BulletText("IsUntradeable") GUI:SameLine(200) GUI:InputText("##devbag32"..tostring(slot),tostring(item.isuntradeable))
+													GUI:BulletText("IsBinding") GUI:SameLine(200) GUI:InputText("##devbag33"..tostring(slot),tostring(item.isbinding))
+													
 													local tar = Player:GetTarget()
 													if ( tar ) then
 														GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devbag24"..tostring(slot),tostring(item:IsReady(tar.id)))

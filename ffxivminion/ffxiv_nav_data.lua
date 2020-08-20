@@ -630,17 +630,26 @@ ffxiv_map_nav.data = {
 		[129] = {
 			{id = 129, cost = 5, x = -43.422066, z = 153.802917, y = 35.445602, h = -1.105748
 				, requires = {
-					["ffxivminion.patchLevel[ffxivminion.gameRegion] < 5.3"] = true,
+					["GetPatchLevel() < 5.3"] = true,
 				}
 			},
 			{id = 129, cost = 5, x = -50, z = 157, y = 34, h = -1.15
 				, requires = {
-					["ffxivminion.patchLevel[ffxivminion.gameRegion] >= 5.3"] = true,
+					["GetPatchLevel() >= 5.3"] = true,
 				}
 			},
 		},
 		[135] = {
-			{id = 135, cost = 5, x = 203.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325},
+			{id = 135, cost = 5, x = 203.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325
+				, requires = {
+					["GetPatchLevel() < 5.3"] = true,
+				}
+			},
+			{id = 135, cost = 5, x = 209.290405,	z = 285.331512,	    y = 65.182816,	h = 1.558325
+				, requires = {
+					["GetPatchLevel() >= 5.3"] = true,
+				}
+			},
 		},
 		[137] = {
 			{id = 137, cost = 5, x = -163.673187,	z = -734.864807,	y = 35.884563,	h = 2.833870},
@@ -652,7 +661,16 @@ ffxiv_map_nav.data = {
 	[135] =
 	{
 		[128] = {
-			{id = 128, cost = 5, x = -52.436810,	z = 116.130196,	    y = 75.830246,	h = -1.584678},
+			{id = 128, cost = 5, x = -52.436810,	z = 116.130196,	    y = 75.830246,	h = -1.584678
+				, requires = {
+					["GetPatchLevel() < 5.3"] = true,
+				}
+			},
+			{id = 128, cost = 5, x = -63.436810,	z = 115,	    y = 75.830246,	h = -1.64
+				, requires = {
+					["GetPatchLevel() >= 5.3"] = true,
+				}
+			},
 		},
 		[134] = {
 			{id = 134, cost = 5, x = 230.518661,	z = -342.391663,	y = 74.490341,	h = -2.258913},
@@ -743,7 +761,16 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[134] = {
-			{id = 134, cost = 5, x = 811.963623,	z = 390.644775,	    y = 49.586365,	h = 0.378320},
+			{id = 134, cost = 5, x = 811.963623,	z = 390.644775,	    y = 49.586365,	h = 0.378320
+				, requires = {
+					["GetPatchLevel() < 5.3"] = true,
+				}
+			},
+			{id = 134, cost = 5, x = 813.963623,	z = 395.644775,	    y = 49.586365,	h = 0.46
+				, requires = {
+					["GetPatchLevel() >= 5.3"] = true,
+				}
+			},
 		},
 		[139] = {
 			{id = 139, cost = 5, x = 410.657715,	z = -10.786478,	    y = 30.619648,	h = 2.819475},
