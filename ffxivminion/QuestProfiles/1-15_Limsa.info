@@ -5156,120 +5156,149 @@ local obj1 = {
 			["steps"] = {
 				[1] = {
 					["id"] = 1002633;
-					["itemreward"] = false;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = 232.91700744629;
-						["y"] = 113.09996032715;
-						["z"] = -241.95207214355;
+						["x"] = 232.47;
+						["y"] = 113.1;
+						["z"] = -243.88;
 					};
 					["type"] = "start";
 				};
 				[2] = {
+					["dismountdistance"] = 20;
 					["id"] = 2001272;
 					["index"] = 1;
-					["itemreward"] = false;
+					["interactrange"] = 3;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
+					["noteleport"] = true;
 					["pos"] = {
-						["x"] = 219.44088745117;
-						["y"] = 113.09999084473;
-						["z"] = -244.89398193359;
+						["x"] = 219.62;
+						["y"] = 113.1;
+						["z"] = -247.19;
 					};
 					["type"] = "interact";
 				};
 				[3] = {
+					["complete"] = {
+						["I8AL"] = 1;
+					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
+					["dismountdistance"] = 20;
 					["id"] = 2001246;
 					["index"] = 2;
-					["itemreward"] = false;
+					["interactrange"] = 3;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
+					["noteleport"] = true;
 					["pos"] = {
-						["x"] = 119.22164154053;
-						["y"] = 71.535972595215;
-						["z"] = -163.67216491699;
+						["x"] = 121.45;
+						["y"] = 72.56;
+						["z"] = -165.82;
 					};
 					["type"] = "interact";
 				};
 				[4] = {
+					["complete"] = {
+						["I8BL"] = 2;
+					};
+					["condition"] = {
+						["I8BL"] = 3;
+					};
 					["id"] = 2001243;
 					["index"] = 2;
 					["itemid"] = 2000350;
-					["itemreward"] = false;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = 135.62242126465;
-						["y"] = 75.010032653809;
-						["z"] = -151.20001220703;
+						["x"] = 133.5;
+						["y"] = 74.44;
+						["z"] = -152.79;
 					};
 					["type"] = "useitem";
 				};
 				[5] = {
+					["complete"] = {
+						["I8BL"] = 1;
+					};
+					["condition"] = {
+						["I8BL"] = 2;
+					};
 					["id"] = 2001244;
 					["index"] = 2;
 					["itemid"] = 2000350;
-					["itemreward"] = false;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = 121.40349578857;
-						["y"] = 69.3544921875;
-						["z"] = -130.35705566406;
+						["x"] = 122.96;
+						["y"] = 69.82;
+						["z"] = -132.76;
 					};
 					["type"] = "useitem";
 				};
 				[6] = {
+					["complete"] = {
+						["I8AL"] = 2;
+					};
+					["condition"] = {
+						["I8AL"] = 1;
+					};
+					["dismountdistance"] = 20;
 					["id"] = 2001247;
 					["index"] = 2;
-					["itemreward"] = false;
+					["interactrange"] = 3;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
+					["noteleport"] = true;
 					["pos"] = {
-						["x"] = 108.7130355835;
-						["y"] = 65.361663818359;
-						["z"] = -119.5069732666;
+						["x"] = 107.81;
+						["y"] = 65.32;
+						["z"] = -122.09;
 					};
 					["type"] = "interact";
 				};
 				[7] = {
+					["complete"] = {
+						["I8BL"] = 0;
+					};
+					["condition"] = {
+						["I8BL"] = 1;
+					};
 					["id"] = 2001245;
 					["index"] = 2;
 					["itemid"] = 2000350;
-					["itemreward"] = false;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = 114.31259155273;
-						["y"] = 64.16024017334;
-						["z"] = -100.50911712646;
+						["x"] = 113.5;
+						["y"] = 64.32;
+						["z"] = -103.2;
 					};
 					["type"] = "useitem";
 				};
 				[8] = {
+					["complete"] = {
+						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AL"] = 2;
+					};
+					["dismountdistance"] = 20;
 					["id"] = 2001248;
 					["index"] = 2;
-					["itemreward"] = false;
+					["interactrange"] = 3;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
+					["noteleport"] = true;
 					["pos"] = {
-						["x"] = 118.58377838135;
-						["y"] = 63.728622436523;
-						["z"] = -82.581527709961;
+						["x"] = 118.73;
+						["y"] = 63.71;
+						["z"] = -81.47;
 					};
 					["type"] = "interact";
 				};
 				[9] = {
 					["id"] = 1002633;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
 					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = 232.35481262207;
-						["y"] = 113.0980682373;
-						["z"] = -241.15882873535;
+						["x"] = 232.47;
+						["y"] = 113.1;
+						["z"] = -243.88;
 					};
 					["type"] = "complete";
 				};
