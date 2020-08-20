@@ -3101,11 +3101,11 @@ c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 e_recommendequip.lastEquip = {}
 function c_recommendequip:evaluate()
-	if (not gAutoEquip or Busy() or Player.incombat or not IsNormalMap(Player.localmapid)) then
+	if (Busy() or Player.incombat or not IsNormalMap(Player.localmapid)) then
 		return false
 	end	
 	
-	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
+	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) and not gForceAutoEquip then
 		ml_debug("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
 		return false
 	end
