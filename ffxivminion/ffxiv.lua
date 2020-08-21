@@ -772,6 +772,7 @@ function ffxivminion.SetMainVars()
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	gUseExpManuals = ffxivminion.GetSetting("gUseExpManuals",true)
 	gDeclinePartyInvites = ffxivminion.GetSetting("gDeclinePartyInvites",true)
+	gDeclinePartyTeleport = ffxivminion.GetSetting("gDeclinePartyTeleport",true)
 	gTradeInviteBusy = ffxivminion.GetSetting("gTradeInviteBusy",true)
 	gTradeInviteMessage = ffxivminion.GetSetting("gTradeInviteMessage",false)
 	gTradeInviteMessages = ffxivminion.GetSetting("gTradeInviteMessages","?;/shrug")
@@ -1423,6 +1424,22 @@ function ffxivminion.ClearAddons()
 			SendTextCommand("/decline")
 		end
 	end
+	
+	if (IsControlOpen("_NotificationTelepo") and toboolean(gDeclinePartyTeleport)) then
+		if (IsControlOpen("SelectYesno")) then
+			if(ffxivminion.declineTimer == 0) then
+				ffxivminion.declineTimer = Now() + math.random(3000,5000)
+			elseif(Now() > ffxivminion.declineTimer) then
+				if (not ffxivminion.inviteDeclined) then
+					UseControlAction("SelectYesno","No")
+					ffxivminion.inviteDeclined = true
+					ffxivminion.declineTimer = 0
+				end
+			end
+		else
+			SendTextCommand("/decline")
+		end
+	end
 end
 
 function ml_global_information.DrawMainFull()
@@ -1957,9 +1974,10 @@ function ml_global_information.DrawSettings()
 				end
 			
 				if (tabindex == 4) then
-					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(5),true)
+					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(6),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("Decline Party Invites"),gDeclinePartyInvites),"gDeclinePartyInvites");
+					GUI_Capture(GUI:Checkbox(GetString("Decline Party Teleport"),gDeclinePartyTeleport),"gDeclinePartyTeleport");
 					GUI_Capture(GUI:Checkbox(GetString("/busy After Trade invite"),gTradeInviteBusy),"gTradeInviteBusy");
 					GUI_Capture(GUI:Checkbox(GetString("Send Message After Trade Invite."),gTradeInviteMessage),"gTradeInviteMessage");
 					GUI_Capture(GUI:InputText(GetString("Message Options"),gTradeInviteMessages),"gTradeInviteMessages");
