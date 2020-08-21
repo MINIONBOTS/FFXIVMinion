@@ -420,7 +420,6 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "My First Gladius";
 			["prereq"] = {
-				["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
 				["GetQuestInfo(568,'I8AH') == 2 or QuestCompleted(568)"] = true;
 			};
 			["steps"] = {
@@ -436,10 +435,6 @@ local obj1 = {
 					["type"] = "start";
 				};
 				[2] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
-					};
 					["dismountdistance"] = 20;
 					["id"] = 1001739;
 					["index"] = 1;
@@ -458,8 +453,6 @@ local obj1 = {
 						["GetQuestInfo(253,'I8AL') == 3"] = true;
 					};
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
 						["GetQuestInfo(253,'I8AL') < 3"] = true;
 					};
 					["id"] = 262;
@@ -477,8 +470,6 @@ local obj1 = {
 						["GetQuestInfo(253,'I8BH') == 3"] = true;
 					};
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
 						["GetQuestInfo(253,'I8BH') < 3"] = true;
 					};
 					["id"] = 632;
@@ -496,8 +487,6 @@ local obj1 = {
 						["step"] = 255;
 					};
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
 						["GetQuestInfo(253,'I8AL') == 3"] = true;
 						["GetQuestInfo(253,'I8BH') == 3"] = true;
 					};
@@ -512,10 +501,6 @@ local obj1 = {
 					["type"] = "kill";
 				};
 				[6] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Paladin','None')"] = true;
-					};
 					["id"] = 1001739;
 					["mapid"] = 131;
 					["pos"] = {
@@ -527,232 +512,11 @@ local obj1 = {
 				};
 			};
 		};
-		[533] = {
-			["job"] = 2;
-			["level"] = 1;
-			["name"] = "My First Hora";
-			["prereq"] = {
-				["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-				["GetQuestInfo(569,'I8AH') >= 2 or QuestCompleted(569)"] = true;
-			};
-			["steps"] = {
-				[1] = {
-					["id"] = 1001286;
-					["mapid"] = 130;
-					["oncomplete"] = "ml_global_information.lastEquip = 0 e_recommendequip.lastEquip[Player.job] = 0 gForceAutoEquip = true";
-					["pos"] = {
-						["x"] = -86.579368591309;
-						["y"] = 2.0999350547791;
-						["z"] = -50.800659179688;
-					};
-					["type"] = "start";
-				};
-				[2] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-					};
-					["dismountdistance"] = 20;
-					["id"] = 1003817;
-					["index"] = 1;
-					["interactrange"] = 3;
-					["mapid"] = 130;
-					["noteleport"] = true;
-					["pos"] = {
-						["x"] = -75.885833740234;
-						["y"] = 2.0000050067902;
-						["z"] = -42.427322387695;
-					};
-					["type"] = "interact";
-				};
-				[3] = {
-					["complete"] = {
-						["GetQuestInfo(533,'I8BH') == 3"] = true;
-					};
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-						["GetQuestInfo(533,'I8BH') < 3"] = true;
-					};
-					["id"] = 632;
-					["index"] = 2;
-					["mapid"] = 141;
-					["pos"] = {
-						["x"] = -125.30027008057;
-						["y"] = 9.703896522522;
-						["z"] = 270.43954467773;
-					};
-					["type"] = "kill";
-				};
-				[4] = {
-					["complete"] = {
-						["GetQuestInfo(533,'I8AL') == 3"] = true;
-					};
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-						["GetQuestInfo(533,'I8AL') < 3"] = true;
-					};
-					["id"] = 262;
-					["index"] = 2;
-					["mapid"] = 141;
-					["pos"] = {
-						["x"] = -125.30027008057;
-						["y"] = 9.703896522522;
-						["z"] = 270.43954467773;
-					};
-					["type"] = "kill";
-				};
-				[5] = {
-					["complete"] = {
-						["GetQuestInfo(533,'I8BL') == 3"] = true;
-					};
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-						["GetQuestInfo(533,'I8BL') < 3"] = true;
-					};
-					["id"] = 318;
-					["index"] = 2;
-					["mapid"] = 141;
-					["pos"] = {
-						["x"] = 57.227348327637;
-						["y"] = 2.328733921051;
-						["z"] = 276.65573120117;
-					};
-					["type"] = "kill";
-				};
-				[6] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Monk','None')"] = true;
-					};
-					["id"] = 1003817;
-					["mapid"] = 130;
-					["pos"] = {
-						["x"] = -75.999305725098;
-						["y"] = 2.0000050067902;
-						["z"] = -42.256011962891;
-					};
-					["type"] = "complete";
-				};
-			};
-		};
-		[311] = {
-			["job"] = 3;
-			["level"] = 1;
-			["name"] = "My First Axe";
-			["prereq"] = {
-				["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-				["QuestCompleted(108) or GetQuestInfo(108,'step') == 255"] = true;
-			};
-			["steps"] = {
-				[1] = {
-					["id"] = 1000926;
-					["mapid"] = 128;
-					["oncomplete"] = "ml_global_information.lastEquip = 0 e_recommendequip.lastEquip[Player.job] = 0 gForceAutoEquip = true";
-					["pos"] = {
-						["x"] = -8.1276378631592;
-						["y"] = 44.999862670898;
-						["z"] = -246.50617980957;
-					};
-					["type"] = "start";
-				};
-				[2] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-					};
-					["dismountdistance"] = 20;
-					["id"] = 1000927;
-					["index"] = 1;
-					["interactrange"] = 3;
-					["mapid"] = 128;
-					["noteleport"] = true;
-					["pos"] = {
-						["x"] = -1.0410536527634;
-						["y"] = 44.999885559082;
-						["z"] = -254.43919372559;
-					};
-					["type"] = "interact";
-				};
-				[3] = {
-					["complete"] = {
-						["GetQuestInfo(311,'I8AL') == 3"] = true;
-					};
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-						["GetQuestInfo(311,'I8AL') < 3"] = true;
-					};
-					["id"] = 417;
-					["index"] = 2;
-					["mapid"] = 134;
-					["pos"] = {
-						["x"] = 134.03521728516;
-						["y"] = 46.390766143799;
-						["z"] = 111.09021759033;
-					};
-					["type"] = "kill";
-				};
-				[4] = {
-					["complete"] = {
-						["GetQuestInfo(311,'I8BL') == 3"] = true;
-					};
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-						["GetQuestInfo(311,'I8BL') < 3"] = true;
-					};
-					["id"] = 49;
-					["index"] = 2;
-					["mapid"] = 134;
-					["pos"] = {
-						["x"] = 89.179481506348;
-						["y"] = 47.122566223145;
-						["z"] = 174.89903259277;
-					};
-					["type"] = "kill";
-				};
-				[5] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-						["GetQuestInfo(311,'I8AL') == 3"] = true;
-						["GetQuestInfo(311,'I8BL') == 3"] = true;
-					};
-					["id"] = 392;
-					["index"] = 2;
-					["mapid"] = 134;
-					["pos"] = {
-						["x"] = 62.610008239746;
-						["y"] = 49.421901702881;
-						["z"] = 194.47343444824;
-					};
-					["type"] = "kill";
-				};
-				[6] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Warrior','None')"] = true;
-					};
-					["id"] = 1000927;
-					["mapid"] = 128;
-					["pos"] = {
-						["x"] = -1.3253588676453;
-						["y"] = 44.999885559082;
-						["z"] = -254.88735961914;
-					};
-					["type"] = "complete";
-				};
-			};
-		};
 		[345] = {
 			["job"] = 7;
 			["level"] = 1;
-			["name"] = "My First Scepter";
+			["name"] = "Way of the Thaumaturge";
 			["prereq"] = {
-				["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
 				["QuestCompleted(570) or GetQuestInfo(570,'step') == 255"] = true;
 			};
 			["steps"] = {
@@ -768,10 +532,6 @@ local obj1 = {
 					["type"] = "start";
 				};
 				[2] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
-					};
 					["dismountdistance"] = 20;
 					["id"] = 1001709;
 					["index"] = 1;
@@ -790,8 +550,6 @@ local obj1 = {
 						["GetQuestInfo(345,'I8AL') == 3"] = true;
 					};
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
 						["GetQuestInfo(345,'I8AL') < 3"] = true;
 					};
 					["id"] = 262;
@@ -809,8 +567,6 @@ local obj1 = {
 						["GetQuestInfo(345,'I8BH') == 3"] = true;
 					};
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
 						["GetQuestInfo(345,'I8BH') < 3"] = true;
 					};
 					["id"] = 632;
@@ -825,8 +581,6 @@ local obj1 = {
 				};
 				[5] = {
 					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
 						["GetQuestInfo(345,'I8AL') == 3"] = true;
 						["GetQuestInfo(345,'I8BH') == 3"] = true;
 					};
@@ -841,10 +595,290 @@ local obj1 = {
 					["type"] = "kill";
 				};
 				[6] = {
-					["condition"] = {
-						["QuestOpts_Class_Quests_Disable"] = false;
-						["In(QuestOpts_Class80_Job,'Blackmage','None')"] = true;
+					["id"] = 1001708;
+					["mapid"] = 130;
+					["pos"] = {
+						["x"] = -249.30154418945;
+						["y"] = 18;
+						["z"] = 80.117263793945;
 					};
+					["type"] = "complete";
+				};
+			};
+		};
+		[533] = {
+			["job"] = 2;
+			["level"] = 1;
+			["name"] = "My First Hora";
+			["prereq"] = {
+				["GetQuestInfo(569,'I8AH') >= 2 or QuestCompleted(569)"] = true;
+			};
+			["steps"] = {
+				[1] = {
+					["id"] = 1001286;
+					["mapid"] = 130;
+					["oncomplete"] = "ml_global_information.lastEquip = 0 e_recommendequip.lastEquip[Player.job] = 0 gForceAutoEquip = true";
+					["pos"] = {
+						["x"] = -86.579368591309;
+						["y"] = 2.0999350547791;
+						["z"] = -50.800659179688;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["dismountdistance"] = 20;
+					["id"] = 1003817;
+					["index"] = 1;
+					["interactrange"] = 3;
+					["mapid"] = 130;
+					["noteleport"] = true;
+					["pos"] = {
+						["x"] = -75.885833740234;
+						["y"] = 2.0000050067902;
+						["z"] = -42.427322387695;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["GetQuestInfo(533,'I8BH') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(533,'I8BH') < 3"] = true;
+					};
+					["id"] = 632;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = -125.30027008057;
+						["y"] = 9.703896522522;
+						["z"] = 270.43954467773;
+					};
+					["type"] = "kill";
+				};
+				[4] = {
+					["complete"] = {
+						["GetQuestInfo(533,'I8AL') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(533,'I8AL') < 3"] = true;
+					};
+					["id"] = 262;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = -125.30027008057;
+						["y"] = 9.703896522522;
+						["z"] = 270.43954467773;
+					};
+					["type"] = "kill";
+				};
+				[5] = {
+					["complete"] = {
+						["GetQuestInfo(533,'I8BL') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(533,'I8BL') < 3"] = true;
+					};
+					["id"] = 318;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = 57.227348327637;
+						["y"] = 2.328733921051;
+						["z"] = 276.65573120117;
+					};
+					["type"] = "kill";
+				};
+				[6] = {
+					["id"] = 1003817;
+					["mapid"] = 130;
+					["pos"] = {
+						["x"] = -75.999305725098;
+						["y"] = 2.0000050067902;
+						["z"] = -42.256011962891;
+					};
+					["type"] = "complete";
+				};
+			};
+		};
+		[311] = {
+			["job"] = 3;
+			["level"] = 1;
+			["name"] = "My First Axe";
+			["prereq"] = {
+				["QuestCompleted(108) or GetQuestInfo(108,'step') == 255"] = true;
+			};
+			["steps"] = {
+				[1] = {
+					["id"] = 1000926;
+					["mapid"] = 128;
+					["oncomplete"] = "ml_global_information.lastEquip = 0 e_recommendequip.lastEquip[Player.job] = 0 gForceAutoEquip = true";
+					["pos"] = {
+						["x"] = -8.1276378631592;
+						["y"] = 44.999862670898;
+						["z"] = -246.50617980957;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["dismountdistance"] = 20;
+					["id"] = 1000927;
+					["index"] = 1;
+					["interactrange"] = 3;
+					["mapid"] = 128;
+					["noteleport"] = true;
+					["pos"] = {
+						["x"] = -1.0410536527634;
+						["y"] = 44.999885559082;
+						["z"] = -254.43919372559;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["GetQuestInfo(311,'I8AL') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(311,'I8AL') < 3"] = true;
+					};
+					["id"] = 417;
+					["index"] = 2;
+					["mapid"] = 134;
+					["pos"] = {
+						["x"] = 134.03521728516;
+						["y"] = 46.390766143799;
+						["z"] = 111.09021759033;
+					};
+					["type"] = "kill";
+				};
+				[4] = {
+					["complete"] = {
+						["GetQuestInfo(311,'I8BL') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(311,'I8BL') < 3"] = true;
+					};
+					["id"] = 49;
+					["index"] = 2;
+					["mapid"] = 134;
+					["pos"] = {
+						["x"] = 89.179481506348;
+						["y"] = 47.122566223145;
+						["z"] = 174.89903259277;
+					};
+					["type"] = "kill";
+				};
+				[5] = {
+					["condition"] = {
+						["GetQuestInfo(311,'I8AL') == 3"] = true;
+						["GetQuestInfo(311,'I8BL') == 3"] = true;
+					};
+					["id"] = 392;
+					["index"] = 2;
+					["mapid"] = 134;
+					["pos"] = {
+						["x"] = 62.610008239746;
+						["y"] = 49.421901702881;
+						["z"] = 194.47343444824;
+					};
+					["type"] = "kill";
+				};
+				[6] = {
+					["id"] = 1000927;
+					["mapid"] = 128;
+					["pos"] = {
+						["x"] = -1.3253588676453;
+						["y"] = 44.999885559082;
+						["z"] = -254.88735961914;
+					};
+					["type"] = "complete";
+				};
+			};
+		};
+		[345] = {
+			["job"] = 7;
+			["level"] = 1;
+			["name"] = "My First Scepter";
+			["prereq"] = {
+				["QuestCompleted(570) or GetQuestInfo(570,'step') == 255"] = true;
+			};
+			["steps"] = {
+				[1] = {
+					["id"] = 1002279;
+					["mapid"] = 130;
+					["oncomplete"] = "ml_global_information.lastEquip = 0 e_recommendequip.lastEquip[Player.job] = 0 gForceAutoEquip = true";
+					["pos"] = {
+						["x"] = -198.21441650391;
+						["y"] = 18;
+						["z"] = 61.267364501953;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["dismountdistance"] = 20;
+					["id"] = 1001709;
+					["index"] = 1;
+					["interactrange"] = 3;
+					["mapid"] = 130;
+					["noteleport"] = true;
+					["pos"] = {
+						["x"] = -239.11993408203;
+						["y"] = 18.700000762939;
+						["z"] = 85.370239257813;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["GetQuestInfo(345,'I8AL') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(345,'I8AL') < 3"] = true;
+					};
+					["id"] = 262;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = -86.298919677734;
+						["y"] = 10.676375389099;
+						["z"] = 285.97241210938;
+					};
+					["type"] = "kill";
+				};
+				[4] = {
+					["complete"] = {
+						["GetQuestInfo(345,'I8BH') == 3"] = true;
+					};
+					["condition"] = {
+						["GetQuestInfo(345,'I8BH') < 3"] = true;
+					};
+					["id"] = 632;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = -69.304039001465;
+						["y"] = 10.522602081299;
+						["z"] = 289.01025390625;
+					};
+					["type"] = "kill";
+				};
+				[5] = {
+					["condition"] = {
+						["GetQuestInfo(345,'I8AL') == 3"] = true;
+						["GetQuestInfo(345,'I8BH') == 3"] = true;
+					};
+					["id"] = 318;
+					["index"] = 2;
+					["mapid"] = 141;
+					["pos"] = {
+						["x"] = 51.87829208374;
+						["y"] = 2.9069457054138;
+						["z"] = 277.15563964844;
+					};
+					["type"] = "kill";
+				};
+				[6] = {
 					["id"] = 1001708;
 					["mapid"] = 130;
 					["pos"] = {
