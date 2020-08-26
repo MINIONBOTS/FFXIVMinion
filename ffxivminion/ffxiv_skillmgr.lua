@@ -1730,6 +1730,7 @@ function SkillMgr.ReadFile(strFile)
 		if (validJob) then			
 			SkillMgr.SkillProfile = profile.skills
 		end
+		gSkillManagerMingp = IsNull(profile.mingp,0)
 	else
 		SkillMgr.ProfileRaw = {}
 		d(e)
@@ -1834,7 +1835,7 @@ function SkillMgr.WriteToFile(strFile)
 			end
 		end
 	end
-	
+	info.mingp = gSkillManagerMingp
 	info.filters = {
 		[1] = gSkillManagerFilter1,
 		[2] = gSkillManagerFilter2,
@@ -6797,6 +6798,15 @@ function SkillMgr.DrawManager()
 			local tabs = SkillMgr.GUI.manager.main_tabs
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
+				
+				GUI:PushItemWidth(50)
+				local val,changed = GUI:InputInt(GetString("Profile Node Min GP"),IsNull(gSkillManagerMingp,0),0,0)
+				if (gSkillManagerMingp ~= val) then
+					gSkillManagerMingp = val
+					SkillMgr.SaveProfile()
+				end
+				GUI:PopItemWidth()
+					
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
 					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
