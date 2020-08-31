@@ -2054,33 +2054,33 @@ function ffxiv_misc_shopping:task_complete_execute()
 	local shop = GetControl("Shop")
 	if (shop and shop:IsOpen()) then
 		shop:Close()	
-		ml_global_information.Await(1500, function () return not IsControlOpen("Shop") end) 
+		ml_global_information.Await(2000) 
 		return false
 	end
 	local shop = GetControl("ShopExchangeCurrency")
 	if (shop and shop:IsOpen()) then
 		shop:Close()	
-		ml_global_information.Await(1500) 
+		ml_global_information.Await(2000) 
 		return false
 	end
-	local shop = GetControl("ShopExchangeItemv")
+	local shop = GetControl("ShopExchangeItem")
 	if (shop and shop:IsOpen()) then
 		shop:Close()	
-		ml_global_information.Await(1500) 
+		ml_global_information.Await(2000) 
 		return false
 	end
 	
 	local shopSelect = GetControl("SelectString")
 	if (shopSelect and shopSelect:IsOpen()) then
 		shopSelect:Close()	
-		ml_global_information.Await(1500, function () return not IsControlOpen("SelectString") end) 
+		ml_global_information.Await(2000) 
 		return false
 	end
 	
 	local shopSelectIcon = GetControl("SelectIconString")
 	if (shopSelectIcon and shopSelectIcon:IsOpen()) then
 		shopSelectIcon:Close()	
-		ml_global_information.Await(1500, function () return not IsControlOpen("SelectIconString") end) 
+		ml_global_information.Await(2000) 
 		return false
 	end
 	
