@@ -2010,6 +2010,12 @@ function ffxiv_misc_shopping.Create()
 end
 
 function ffxiv_misc_shopping:task_complete_eval()
+
+	if (ffxiv_fish.IsFishing()) then
+		ffxiv_fish.StopFishing()
+		return false
+	end
+	
 	local itemid;
 	local itemtable = self.itemid
 	if (table.valid(itemtable)) then
