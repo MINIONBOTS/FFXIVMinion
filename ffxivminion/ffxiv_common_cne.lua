@@ -12,27 +12,38 @@
 ---------------------------------------------------------------------------------------------
 c_getCurrentInfo = inheritsFrom( ml_cause )
 e_getCurrentInfo = inheritsFrom( ml_effect )
+e_getCurrentInfo.timer = 0
 function c_getCurrentInfo:evaluate()
 	if not QuestCompleted(1597) then
+		return false
+	end
+	if TimeSince(e_getCurrentInfo.timer) < 2000 then
 		return false
 	end
     return not table.valid(ffxivminion.AetherCurrentData)
 end
 function e_getCurrentInfo:execute()
-
-	local status = {}
-	local aeclist = Player:GetAetherCurrentsList()
 	if (not IsControlOpen("AetherCurrent")) then
 		ActionList:Get(10,67):Cast()
-		ml_global_information.AwaitSuccess(2000,5000, function () return TableSize(aeclist) < 20 end)
+		return
 	end
-	
-	if (table.valid(aeclist)) then
-		for i,e in pairs(aeclist) do 
-			ffxivminion.AetherCurrentData[e.mapid] = aeclist[e.mapid].status
-		end
-	end	
-	ffxivminion.AetherCurrentCompleted = true
+	e_getCurrentInfo.timer = Now()
+	if (IsControlOpen("AetherCurrent")) then
+		local status = {}
+		local aeclist = Player:GetAetherCurrentsList()
+		if (table.valid(aeclist)) then
+			for i,e in pairs(aeclist) do 
+				if table.size(e.status) < 20 then
+					ffxivminion.AetherCurrentData[e.mapid] = aeclist[e.mapid].status
+				else
+					return false
+				end
+			end
+		else
+			return false
+		end	
+		ffxivminion.AetherCurrentCompleted = true
+	end
 end
 c_getDutyComplete = inheritsFrom( ml_cause )
 e_getDutyComplete = inheritsFrom( ml_effect )
