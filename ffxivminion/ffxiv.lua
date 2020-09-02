@@ -27,35 +27,35 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.logincenters = { "None","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light","Crystal" }
+	ffxivminion.logincenters = { "-","Elemental","Gaia","Mana","Aether","Primal","Chaos","Light","Crystal" }
 elseif (ffxivminion.gameRegion == 2) then
-    ffxivminion.logincenters = { "None","陆行鸟","莫古力","猫小胖" }
+    ffxivminion.logincenters = { "-","陆行鸟","莫古力","猫小胖" }
 else
 	ffxivminion.logincenters = { "Main" }
 end
 
 if (ffxivminion.gameRegion == 1) then
 	ffxivminion.loginservers = {
-		[1] = { "None" },
-		[2] = {	"None","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
-		[3] = { "None","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
-		[4] = {	"None","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
-		[5] = { "None","Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren" },
-		[6] = {	"None","Behemoth","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Ultros" },
-		[7] = {	"None","Spriggan","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
-		[8] = {	"None","Twintania","Lich","Odin","Phoenix","Shiva","Zodiark" },
-		[9] = {	"None","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
+		[1] = { "-" },
+		[2] = {	"-","Aegis","Atomos","Carbuncle","Garuda","Gungnir","Kujata","Ramuh","Tonberry","Typhon","Unicorn" },
+		[3] = { "-","Alexander","Bahamut","Durandal","Fenrir","Ifrit","Ridill","Tiamat","Ultima","Valefor","Yojimbo","Zeromus" },
+		[4] = {	"-","Anima","Asura","Belias","Chocobo","Hades","Ixion","Mandragora","Pandaemonium","Shinryu","Titan","Masamune" },
+		[5] = { "-","Adamantoise","Cactuar","Faerie","Gilgamesh","Jenova","Midgardsormr","Sargatanas","Siren" },
+		[6] = {	"-","Behemoth","Excalibur","Exodus","Famfrit","Hyperion","Lamia","Leviathan","Ultros" },
+		[7] = {	"-","Spriggan","Cerberus","Louisoix","Moogle","Omega","Ragnarok" },
+		[8] = {	"-","Twintania","Lich","Odin","Phoenix","Shiva","Zodiark" },
+		[9] = {	"-","Balmung","Brynhildr","Coeurl","Diabolos","Goblin","Malboro","Mateus","Zalera" },
 	}
 elseif (ffxivminion.gameRegion == 2) then
     ffxivminion.loginservers = {
-        [1] = { "None" },
-        [2] = { "宇宙和音","幻影群岛","拉诺西亚","晨曦王座","沃仙曦染","神意之地","红玉海","萌芽池" },
-        [3] = { "拂晓之间","旅人栈桥","梦羽宝境","潮风亭","白金幻象","白银乡","神拳痕","龙巢神殿" },
-        [4] = { "延夏","摩杜纳","柔风海湾","琥珀原","紫水栈桥","静语庄园","海猫茶屋",}
+        [1] = { "-" },
+        [2] = { "-","宇宙和音","幻影群岛","拉诺西亚","晨曦王座","沃仙曦染","神意之地","红玉海","萌芽池" },
+        [3] = { "-","拂晓之间","旅人栈桥","梦羽宝境","潮风亭","白金幻象","白银乡","神拳痕","龙巢神殿" },
+        [4] = { "-","延夏","摩杜纳","柔风海湾","琥珀原","紫水栈桥","静语庄园","海猫茶屋",}
     } 
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
-		[1] = { "톤베리","모그리","초코보","카벙클" },
+		[1] = { "-","톤베리","모그리","초코보","카벙클" },
 	}
 end
 
