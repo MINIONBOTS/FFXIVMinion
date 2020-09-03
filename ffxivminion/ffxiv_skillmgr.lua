@@ -1722,8 +1722,8 @@ function SkillMgr.ReadFile(strFile)
 			for prio,skilldata in pairs(profile.skills) do
 				if table.valid(skilldata) then
 					for i,e in pairs(skilldata) do
-						if type(e) == "string" then
-							d("changing file data from "..tostring(e).." to ".. tostring(Retranslate(e)))
+						if type(e) == "string" and e ~= "" then
+							--d("changing file data from "..tostring(e).." to ".. tostring(Retranslate(e)))
 							skilldata[i] = Retranslate(e)
 							needsSave = true
 						end
