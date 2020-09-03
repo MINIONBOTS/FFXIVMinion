@@ -437,26 +437,26 @@ SkillMgr.Variables = {
 	SKM_OnlySolo = { default = false, cast = "boolean", profile = "onlysolo", readable = "", section = "fighting", group = ""  },
 	SKM_OnlyParty = { default = false, cast = "boolean", profile = "onlyparty", readable = "", section = "fighting", group = ""  },
 	SKM_PartySizeLT = { default = 0, cast = "number", profile = "partysizelt", readable = "", section = "fighting", group = ""  },
-	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", readable = "", section = "fighting", group = ""  },
-	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting", group = ""  },
-	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", readable = "", section = "fighting", group = ""  },
-	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", readable = "", section = "fighting", group = ""  },
-	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", readable = "", section = "fighting", group = ""  },
-	SKM_ComboSkill = { default = "Auto", cast = "string", profile = "comboskill", readable = "", section = "fighting", group = ""  },
+	SKM_FilterOne = { default = GetString("Ignore"), cast = "string", profile = "filterone", readable = "", section = "fighting", group = ""  },
+	SKM_FilterTwo = { default = GetString("Ignore"), cast = "string", profile = "filtertwo", section = "fighting", group = ""  },
+	SKM_FilterThree = { default = GetString("Ignore"), cast = "string", profile = "filterthree", readable = "", section = "fighting", group = ""  },
+	SKM_FilterFour = { default = GetString("Ignore"), cast = "string", profile = "filterfour", readable = "", section = "fighting", group = ""  },
+	SKM_FilterFive = { default = GetString("Ignore"), cast = "string", profile = "filterfive", readable = "", section = "fighting", group = ""  },
+	SKM_ComboSkill = { default = GetString("Auto"), cast = "string", profile = "comboskill", readable = "", section = "fighting", group = ""  },
 	--SKM_MPLock = { default = false, cast = "boolean", profile = "mplock", section = "fighting" },
 	--SKM_MPLocked = { default = false, cast = "boolean", profile = "mplocked", section = "fighting" },
 	--SKM_MPLockPer = { default = 0, cast = "number", profile = "mplockper", section = "fighting" },
-	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", readable = "", section = "fighting", group = ""  },
-	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", readable = "", section = "fighting", group = ""  },
+	SKM_TRG = { default = GetString("Target"), cast = "string", profile = "trg", readable = "", section = "fighting", group = ""  },
+	SKM_TRGTYPE = { default = GetString("Any"), cast = "string", profile = "trgtype", readable = "", section = "fighting", group = ""  },
 	SKM_TRGSELF = { default = false, cast = "boolean", profile = "trgself", readable = "", section = "fighting", group = "" },
 	SKM_NPC = { default = false, cast = "boolean", profile = "npc", readable = "", section = "fighting", group = ""  },
-	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", readable = "", section = "fighting", group = "" },
-	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", readable = "", section = "fighting", group = ""  },
+	SKM_PTRG = { default = GetString("Any"), cast = "string", profile = "ptrg", readable = "", section = "fighting", group = "" },
+	SKM_PGTRG = { default = GetString("Direct"), cast = "string", profile = "pgtrg", readable = "", section = "fighting", group = ""  },
 	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", readable = "", section = "fighting", group = ""  },
-	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", readable = "", section = "fighting", group = ""  },
-	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", readable = "", section = "fighting", group = ""  },
-	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", readable = "", section = "fighting", group = ""  },
-	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", readable = "", section = "fighting", group = ""  },
+	SKM_HPRIO1 = { default = GetString("none"), cast = "string", profile = "hprio1", readable = "", section = "fighting", group = ""  },
+	SKM_HPRIO2 = { default = GetString("none"), cast = "string", profile = "hprio2", readable = "", section = "fighting", group = ""  },
+	SKM_HPRIO3 = { default = GetString("none"), cast = "string", profile = "hprio3", readable = "", section = "fighting", group = ""  },
+	SKM_HPRIO4 = { default = GetString("none"), cast = "string", profile = "hprio4", readable = "", section = "fighting", group = ""  },
 	SKM_MinR = { default = 0, cast = "number", profile = "minRange", readable = "", section = "fighting", group = ""  },
 	SKM_MaxR = { default = 24, cast = "number", profile = "maxRange", readable = "", section = "fighting", group = "", useData = "range" },
 	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", readable = "", section = "fighting", group = ""   },
@@ -508,8 +508,8 @@ SkillMgr.Variables = {
 	SKM_TEHPAvgGT = { default = 0, cast = "number", profile = "tehpavggt", readable = "", section = "fighting", group = ""   },
 	
 	SKM_TERange = { default = 0, cast = "number", profile = "terange", readable = "", section = "fighting", group = "" , useData = "radius" },
-	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", readable = "", section = "fighting", group = ""  },
-	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", readable = "", section = "fighting", group = ""  },
+	SKM_TECenter = { default = GetString("Auto"), cast = "string", profile = "tecenter", readable = "", section = "fighting", group = ""  },
+	SKM_TELevel = { default = GetString("Any"), cast = "string", profile = "televel", readable = "", section = "fighting", group = ""  },
 	SKM_TACount = { default = 0, cast = "number", profile = "tacount", readable = "", section = "fighting", group = ""   },
 	SKM_TARange = { default = 0, cast = "number", profile = "tarange", readable = "", section = "fighting", group = "", useData = "radius" },
 	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", readable = "", section = "fighting", group = ""   },
@@ -518,10 +518,10 @@ SkillMgr.Variables = {
 	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", readable = "", section = "fighting", group = ""  },
 	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", readable = "", section = "fighting", group = ""   },
 	
-	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", readable = "", section = "fighting", group = ""  },
+	SKM_TBuffOwner = { default = GetString("Player"), cast = "string", profile = "tbuffowner", readable = "", section = "fighting", group = ""  },
 	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", readable = "", section = "fighting", group = ""  },
 	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", readable = "", section = "fighting", group = ""   },
-	SKM_TNBuffOwner = { default = "Player", cast = "string", profile = "tnbuffowner", readable = "", section = "fighting", group = ""  },
+	SKM_TNBuffOwner = { default = GetString("Player"), cast = "string", profile = "tnbuffowner", readable = "", section = "fighting", group = ""  },
 	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", readable = "", section = "fighting", group = ""  },
 	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", readable = "", section = "fighting", group = ""   },
 	
@@ -541,8 +541,8 @@ SkillMgr.Variables = {
 	
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", readable = "", section = "fighting", group = ""   },
 	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", readable = "", section = "fighting", group = ""   },
-	SKM_PPos = { default = "None", cast = "string", profile = "ppos", readable = "", section = "fighting", group = "" },
-	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", readable = "", section = "fighting", group = "" },
+	SKM_PPos = { default = GetString("none"), cast = "string", profile = "ppos", readable = "", section = "fighting", group = "" },
+	SKM_OffGCD = { default = GetString("Auto"), cast = "string", profile = "gcd", readable = "", section = "fighting", group = "" },
 	SKM_OffGCDTime = { default = 1.5, cast = "number", profile = "gcdtime", readable = "", section = "fighting", group = "" },
 	SKM_OffGCDTimeLT = { default = 2.5, cast = "number", profile = "gcdtimelt", readable = "", section = "fighting", group = "" },
 	
@@ -602,146 +602,146 @@ SkillMgr.Variables = {
 	-- Macro Vars.
 	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", readable = "", section = "fighting" },
 	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", readable = "", section = "fighting" },
-	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", readable = "", section = "fighting" },
+	SKM_M1ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m1actiontarget", readable = "", section = "fighting" },
 	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", readable = "", section = "fighting" },
 	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", readable = "", section = "fighting" },
 	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M2ACTIONTYPE = { default = "Action", cast = "string", profile = "m2actiontype", readable = "", section = "fighting" },
 	SKM_M2ACTIONID = { default = 0, cast = "number", profile = "m2actionid", readable = "", section = "fighting" },
-	SKM_M2ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m2actiontarget", readable = "", section = "fighting" },
+	SKM_M2ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m2actiontarget", readable = "", section = "fighting" },
 	SKM_M2ACTIONWAIT = { default = 100, cast = "number", profile = "m2actionwait", readable = "", section = "fighting" },
 	SKM_M2ACTIONMSG = { default = "", cast = "string", profile = "m2actionmsg", readable = "", section = "fighting" },
 	SKM_M2ACTIONCOMPLETE = { default = "", cast = "string", profile = "m2actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M3ACTIONTYPE = { default = "Action", cast = "string", profile = "m3actiontype", readable = "", section = "fighting" },
 	SKM_M3ACTIONID = { default = 0, cast = "number", profile = "m3actionid", readable = "", section = "fighting" },
-	SKM_M3ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m3actiontarget", readable = "", section = "fighting" },
+	SKM_M3ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m3actiontarget", readable = "", section = "fighting" },
 	SKM_M3ACTIONWAIT = { default = 100, cast = "number", profile = "m3actionwait", readable = "", section = "fighting" },
 	SKM_M3ACTIONMSG = { default = "", cast = "string", profile = "m3actionmsg", readable = "", section = "fighting" },
 	SKM_M3ACTIONCOMPLETE = { default = "", cast = "string", profile = "m3actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M4ACTIONTYPE = { default = "Action", cast = "string", profile = "m4actiontype", readable = "", section = "fighting" },
 	SKM_M4ACTIONID = { default = 0, cast = "number", profile = "m4actionid", readable = "", section = "fighting" },
-	SKM_M4ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m4actiontarget", readable = "", section = "fighting" },
+	SKM_M4ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m4actiontarget", readable = "", section = "fighting" },
 	SKM_M4ACTIONWAIT = { default = 100, cast = "number", profile = "m4actionwait", readable = "", section = "fighting" },
 	SKM_M4ACTIONMSG = { default = "", cast = "string", profile = "m4actionmsg", readable = "", section = "fighting" },
 	SKM_M4ACTIONCOMPLETE = { default = "", cast = "string", profile = "m4actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M5ACTIONTYPE = { default = "Action", cast = "string", profile = "m5actiontype", readable = "", section = "fighting" },
 	SKM_M5ACTIONID = { default = 0, cast = "number", profile = "m5actionid", readable = "", section = "fighting" },
-	SKM_M5ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m5actiontarget", readable = "", section = "fighting" },
+	SKM_M5ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m5actiontarget", readable = "", section = "fighting" },
 	SKM_M5ACTIONWAIT = { default = 100, cast = "number", profile = "m5actionwait", readable = "", section = "fighting" },
 	SKM_M5ACTIONMSG = { default = "", cast = "string", profile = "m5actionmsg", readable = "", section = "fighting" },
 	SKM_M5ACTIONCOMPLETE = { default = "", cast = "string", profile = "m5actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M6ACTIONTYPE = { default = "Action", cast = "string", profile = "m6actiontype", readable = "", section = "fighting" },
 	SKM_M6ACTIONID = { default = 0, cast = "number", profile = "m6actionid", readable = "", section = "fighting" },
-	SKM_M6ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m6actiontarget", readable = "", section = "fighting" },
+	SKM_M6ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m6actiontarget", readable = "", section = "fighting" },
 	SKM_M6ACTIONWAIT = { default = 100, cast = "number", profile = "m6actionwait", readable = "", section = "fighting" },
 	SKM_M6ACTIONMSG = { default = "", cast = "string", profile = "m6actionmsg", readable = "", section = "fighting" },
 	SKM_M6ACTIONCOMPLETE = { default = "", cast = "string", profile = "m6actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M7ACTIONTYPE = { default = "Action", cast = "string", profile = "m7actiontype", readable = "", section = "fighting" },
 	SKM_M7ACTIONID = { default = 0, cast = "number", profile = "m7actionid", readable = "", section = "fighting" },
-	SKM_M7ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m7actiontarget", readable = "", section = "fighting" },
+	SKM_M7ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m7actiontarget", readable = "", section = "fighting" },
 	SKM_M7ACTIONWAIT = { default = 100, cast = "number", profile = "m7actionwait", readable = "", section = "fighting" },
 	SKM_M7ACTIONMSG = { default = "", cast = "string", profile = "m7actionmsg", readable = "", section = "fighting" },
 	SKM_M7ACTIONCOMPLETE = { default = "", cast = "string", profile = "m7actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M8ACTIONTYPE = { default = "Action", cast = "string", profile = "m8actiontype", readable = "", section = "fighting" },
 	SKM_M8ACTIONID = { default = 0, cast = "number", profile = "m8actionid", readable = "", section = "fighting" },
-	SKM_M8ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m8actiontarget", readable = "", section = "fighting" },
+	SKM_M8ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m8actiontarget", readable = "", section = "fighting" },
 	SKM_M8ACTIONWAIT = { default = 100, cast = "number", profile = "m8actionwait", readable = "", section = "fighting" },
 	SKM_M8ACTIONMSG = { default = "", cast = "string", profile = "m8actionmsg", readable = "", section = "fighting" },
 	SKM_M8ACTIONCOMPLETE = { default = "", cast = "string", profile = "m8actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M9ACTIONTYPE = { default = "Action", cast = "string", profile = "m9actiontype", readable = "", section = "fighting" },
 	SKM_M9ACTIONID = { default = 0, cast = "number", profile = "m9actionid", readable = "", section = "fighting" },
-	SKM_M9ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m9actiontarget", readable = "", section = "fighting" },
+	SKM_M9ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m9actiontarget", readable = "", section = "fighting" },
 	SKM_M9ACTIONWAIT = { default = 100, cast = "number", profile = "m9actionwait", readable = "", section = "fighting" },
 	SKM_M9ACTIONMSG = { default = "", cast = "string", profile = "m9actionmsg", readable = "", section = "fighting" },
 	SKM_M9ACTIONCOMPLETE = { default = "", cast = "string", profile = "m9actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M10ACTIONTYPE = { default = "Action", cast = "string", profile = "m10actiontype", readable = "", section = "fighting" },
 	SKM_M10ACTIONID = { default = 0, cast = "number", profile = "m10actionid", readable = "", section = "fighting" },
-	SKM_M10ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m10actiontarget", readable = "", section = "fighting" },
+	SKM_M10ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m10actiontarget", readable = "", section = "fighting" },
 	SKM_M10ACTIONWAIT = { default = 100, cast = "number", profile = "m10actionwait", readable = "", section = "fighting" },
 	SKM_M10ACTIONMSG = { default = "", cast = "string", profile = "m10actionmsg", readable = "", section = "fighting" },
 	SKM_M10ACTIONCOMPLETE = { default = "", cast = "string", profile = "m10actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M11ACTIONTYPE = { default = "Action", cast = "string", profile = "m11actiontype", readable = "", section = "fighting" },
 	SKM_M11ACTIONID = { default = 0, cast = "number", profile = "m11actionid", readable = "", section = "fighting" },
-	SKM_M11ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m11actiontarget", readable = "", section = "fighting" },
+	SKM_M11ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m11actiontarget", readable = "", section = "fighting" },
 	SKM_M11ACTIONWAIT = { default = 100, cast = "number", profile = "m11actionwait", readable = "", section = "fighting" },
 	SKM_M11ACTIONMSG = { default = "", cast = "string", profile = "m11actionmsg", readable = "", section = "fighting" },
 	SKM_M11ACTIONCOMPLETE = { default = "", cast = "string", profile = "m11actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M12ACTIONTYPE = { default = "Action", cast = "string", profile = "m12actiontype", readable = "", section = "fighting" },
 	SKM_M12ACTIONID = { default = 0, cast = "number", profile = "m12actionid", readable = "", section = "fighting" },
-	SKM_M12ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m12actiontarget", readable = "", section = "fighting" },
+	SKM_M12ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m12actiontarget", readable = "", section = "fighting" },
 	SKM_M12ACTIONWAIT = { default = 100, cast = "number", profile = "m12actionwait", readable = "", section = "fighting" },
 	SKM_M12ACTIONMSG = { default = "", cast = "string", profile = "m12actionmsg", readable = "", section = "fighting" },
 	SKM_M12ACTIONCOMPLETE = { default = "", cast = "string", profile = "m12actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M13ACTIONTYPE = { default = "Action", cast = "string", profile = "m13actiontype", readable = "", section = "fighting" },
 	SKM_M13ACTIONID = { default = 0, cast = "number", profile = "m13actionid", readable = "", section = "fighting" },
-	SKM_M13ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m13actiontarget", readable = "", section = "fighting" },
+	SKM_M13ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m13actiontarget", readable = "", section = "fighting" },
 	SKM_M13ACTIONWAIT = { default = 100, cast = "number", profile = "m13actionwait", readable = "", section = "fighting" },
 	SKM_M13ACTIONMSG = { default = "", cast = "string", profile = "m13actionmsg", readable = "", section = "fighting" },
 	SKM_M13ACTIONCOMPLETE = { default = "", cast = "string", profile = "m13actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M14ACTIONTYPE = { default = "Action", cast = "string", profile = "m14actiontype", readable = "", section = "fighting" },
 	SKM_M14ACTIONID = { default = 0, cast = "number", profile = "m14actionid", readable = "", section = "fighting" },
-	SKM_M14ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m14actiontarget", readable = "", section = "fighting" },
+	SKM_M14ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m14actiontarget", readable = "", section = "fighting" },
 	SKM_M14ACTIONWAIT = { default = 100, cast = "number", profile = "m14actionwait", readable = "", section = "fighting" },
 	SKM_M14ACTIONMSG = { default = "", cast = "string", profile = "m14actionmsg", readable = "", section = "fighting" },
 	SKM_M14ACTIONCOMPLETE = { default = "", cast = "string", profile = "m14actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M15ACTIONTYPE = { default = "Action", cast = "string", profile = "m15actiontype", readable = "", section = "fighting" },
 	SKM_M15ACTIONID = { default = 0, cast = "number", profile = "m15actionid", readable = "", section = "fighting" },
-	SKM_M15ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m15actiontarget", readable = "", section = "fighting" },
+	SKM_M15ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m15actiontarget", readable = "", section = "fighting" },
 	SKM_M15ACTIONWAIT = { default = 100, cast = "number", profile = "m15actionwait", readable = "", section = "fighting" },
 	SKM_M15ACTIONMSG = { default = "", cast = "string", profile = "m15actionmsg", readable = "", section = "fighting" },
 	SKM_M15ACTIONCOMPLETE = { default = "", cast = "string", profile = "m15actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M16ACTIONTYPE = { default = "Action", cast = "string", profile = "m16actiontype", readable = "", section = "fighting" },
 	SKM_M16ACTIONID = { default = 0, cast = "number", profile = "m16actionid", readable = "", section = "fighting" },
-	SKM_M16ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m16actiontarget", readable = "", section = "fighting" },
+	SKM_M16ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m16actiontarget", readable = "", section = "fighting" },
 	SKM_M16ACTIONWAIT = { default = 100, cast = "number", profile = "m16actionwait", readable = "", section = "fighting" },
 	SKM_M16ACTIONMSG = { default = "", cast = "string", profile = "m16actionmsg", readable = "", section = "fighting" },
 	SKM_M16ACTIONCOMPLETE = { default = "", cast = "string", profile = "m16actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M17ACTIONTYPE = { default = "Action", cast = "string", profile = "m17actiontype", readable = "", section = "fighting" },
 	SKM_M17ACTIONID = { default = 0, cast = "number", profile = "m17actionid", readable = "", section = "fighting" },
-	SKM_M17ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m17actiontarget", readable = "", section = "fighting" },
+	SKM_M17ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m17actiontarget", readable = "", section = "fighting" },
 	SKM_M17ACTIONWAIT = { default = 100, cast = "number", profile = "m17actionwait", readable = "", section = "fighting" },
 	SKM_M17ACTIONMSG = { default = "", cast = "string", profile = "m17actionmsg", readable = "", section = "fighting" },
 	SKM_M17ACTIONCOMPLETE = { default = "", cast = "string", profile = "m17actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M18ACTIONTYPE = { default = "Action", cast = "string", profile = "m18actiontype", readable = "", section = "fighting" },
 	SKM_M18ACTIONID = { default = 0, cast = "number", profile = "m18actionid", readable = "", section = "fighting" },
-	SKM_M18ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m18actiontarget", readable = "", section = "fighting" },
+	SKM_M18ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m18actiontarget", readable = "", section = "fighting" },
 	SKM_M18ACTIONWAIT = { default = 100, cast = "number", profile = "m18actionwait", readable = "", section = "fighting" },
 	SKM_M18ACTIONMSG = { default = "", cast = "string", profile = "m18actionmsg", readable = "", section = "fighting" },
 	SKM_M18ACTIONCOMPLETE = { default = "", cast = "string", profile = "m18actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M19ACTIONTYPE = { default = "Action", cast = "string", profile = "m19actiontype", readable = "", section = "fighting" },
 	SKM_M19ACTIONID = { default = 0, cast = "number", profile = "m19actionid", readable = "", section = "fighting" },
-	SKM_M19ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m19actiontarget", readable = "", section = "fighting" },
+	SKM_M19ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m19actiontarget", readable = "", section = "fighting" },
 	SKM_M19ACTIONWAIT = { default = 100, cast = "number", profile = "m19actionwait", readable = "", section = "fighting" },
 	SKM_M19ACTIONMSG = { default = "", cast = "string", profile = "m19actionmsg", readable = "", section = "fighting" },
 	SKM_M19ACTIONCOMPLETE = { default = "", cast = "string", profile = "m19actioncomplete", readable = "", section = "fighting" },
 
 	SKM_M20ACTIONTYPE = { default = "Action", cast = "string", profile = "m20actiontype", readable = "", section = "fighting" },
 	SKM_M20ACTIONID = { default = 0, cast = "number", profile = "m20actionid", readable = "", section = "fighting" },
-	SKM_M20ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m20actiontarget", readable = "", section = "fighting" },
+	SKM_M20ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m20actiontarget", readable = "", section = "fighting" },
 	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", readable = "", section = "fighting" },
 	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", readable = "", section = "fighting" },
 	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", readable = "", section = "fighting" },
 	
 	-- Buff Vars.
-	--SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", readable = "", section = "fighting" },
+	--SKM_B1TARGET = { default = GetString("Target"), cast = "string", profile = "b1target", readable = "", section = "fighting" },
 	--SKM_B1QUALIFIER = { default = "HasBuff", cast = "string", profile = "b1qualifier", readable = "", section = "fighting" },
 	
 	--[[
@@ -750,9 +750,9 @@ SkillMgr.Variables = {
 	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", readable = "", section = "fighting"  },
 	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", readable = "", section = "fighting"   },
 	
-	SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", readable = "", section = "fighting" },
+	SKM_B1TARGET = { default = GetString("Target"), cast = "string", profile = "b1target", readable = "", section = "fighting" },
 	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", readable = "", section = "fighting" },
-	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", readable = "", section = "fighting" },
+	SKM_M1ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m1actiontarget", readable = "", section = "fighting" },
 	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", readable = "", section = "fighting" },
 	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", readable = "", section = "fighting" },
 	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", readable = "", section = "fighting" },
@@ -965,45 +965,45 @@ function SkillMgr.ModuleInit()
 	gSMBattleStatuses = { GetString("In Combat"), GetString("Out of Combat"), GetString("Any") }
 	gSMBattleStatusIndex = 1
 	
-	gSMFilterStatuses = { "Ignore","On","Off" }
+	gSMFilterStatuses = { GetString("Ignore"),GetString("On"),GetString("Off") }
 	gSMFilter1Index = 1
 	gSMFilter2Index = 1
 	gSMFilter3Index = 1
 	gSMFilter4Index = 1
 	gSMFilter5Index = 1
 	
-	gSMHealPriorities = { "Self","Tank","Party","Any","None" }
+	gSMHealPriorities = { GetString("Self"),GetString("Tank"),GetString("Party"),GetString("Any"),GetString("none") }
 	gSMHealPriority1 = 1
 	gSMHealPriority2 = 1
 	gSMHealPriority3 = 1
 	gSMHealPriority4 = 1
 	
-	gSMBuffOwners = { "Player","Any" }
+	gSMBuffOwners = { GetString("Player"),GetString("Any") }
 	gSMBuffOwner = 1
 	gSMBuffOwnerN = 1
 	
-	gSMOffGCDSettings = { "Auto","True","False" }
+	gSMOffGCDSettings = { GetString("Auto"),GetString("True"),GetString("False") }
 	gSMOffGCDSetting = 1
 	
-	gSMTargets = { "Target","Ground Target","Player","Cast Target","Party","PartyS","Low TP","Low MP","Pet","Ally","Tank","Tankable Target","Tanked Target","Heal Priority","Dead Ally","Dead Party" }
+	gSMTargets = { GetString("Target"),GetString("Ground Target"),GetString("Player"),GetString("Cast Target"),GetString("Party"),GetString("PartyS"),GetString("Low TP"),GetString("Low MP"),GetString("Pet"),GetString("Ally"),GetString("Tank"),GetString("Tankable Target"),GetString("Tanked Target"),GetString("Heal Priority"),GetString("Dead Ally"),GetString("Dead Party") }
 	gSMTarget = 1
 	
-	gSMTargetTypes = { "Any","Tank","DPS","Caster","Healer","RangeDPS","MeleeDPS" }
+	gSMTargetTypes = { GetString("Any"),GetString("Tank"),GetString("DPS"),GetString("Caster"),GetString("Healer"),GetString("RangeDPS"),GetString("MeleeDPS") }
 	gSMTargetType = 1
 	
-	gSMPlayerTargets = { "Any","Enemy","Player" }
+	gSMPlayerTargets = { GetString("Any"),GetString("Enemy"),GetString("Player") }
 	gSMPlayerTarget = 1
 	
-	gSMPlayerGroundTargetPositions = { "Direct","Behind","Near" }
+	gSMPlayerGroundTargetPositions = { GetString("Direct"),GetString("Behind"),GetString("Near") }
 	gSMPlayerGroundTargetPosition = 1
 	
-	gSMPlayerPositions = { "None","Front","Flanking","Behind" }
+	gSMPlayerPositions = { GetString("none"),GetString("Front"),GetString("Flanking"),GetString("Behind") }
 	gSMPlayerPosition = 1
 	
-	gSMAOECenters = { "Auto","Self","Target" }
+	gSMAOECenters = { GetString("Auto"),GetString("Self"),GetString("Target") }
 	gSMAOECenter = 1
 	
-	gSMAOELevels = { "0","2","4","6","Any" }
+	gSMAOELevels = { "0","2","4","6",GetString("Any") }
 	gSMAOELevel = 1
 	
 	for i = 1,5 do
@@ -1405,7 +1405,7 @@ function SkillMgr.ParseMacro(data)
 			elseif (itype == "Action") then
 				local actionid = IsNull(iparams[1],0)
 				local actiontype = IsNull(iparams[2],0)
-				local targetidentifier = IsNull(iparams[3],"Target")
+				local targetidentifier = IsNull(iparams[3],GetString("Target"))
 				local msg = IsNull(iparams[4],"")
 				local completion = IsNull(iparams[5],"")
 				local actionwait = IsNull(iparams[6],false)
@@ -1439,7 +1439,7 @@ function SkillMgr.ParseMacro(data)
 						
 						local target;
 						local targetid;
-						if (targetidentifier == "Target" or targetidentifer == "Ground Target") then
+						if (targetidentifier == GetString("Target") or targetidentifer == GetString("Ground Target")) then
 							local myTarget = Player:GetTarget()
 							if (myTarget) then
 								target = myTarget
@@ -1448,7 +1448,7 @@ function SkillMgr.ParseMacro(data)
 								--d("Fail out of this action, no target.")
 								return false
 							end
-						elseif (targetidentifier == "Player" or targetidentifer == "Ground Player") then
+						elseif (targetidentifier == GetString("Player") or targetidentifer == "Ground Player") then
 							target = Player
 							targetid = Player.id
 						end
@@ -1457,7 +1457,7 @@ function SkillMgr.ParseMacro(data)
 						local action = SkillMgr.GetAction(actionid,actiontype)
 						if (action) then
 
-							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
+							if (targetidentifer == GetString("Ground Target") or targetidentifer == "Ground Player") then
 								local tpos = target.pos
 								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
 								
@@ -1718,6 +1718,22 @@ function SkillMgr.ReadFile(strFile)
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
 	if (table.valid(profile)) then
+		if (table.valid(profile.skills)) then
+			for prio,skilldata in pairs(profile.skills) do
+				if table.valid(skilldata) then
+					for i,e in pairs(skilldata) do
+						if type(e) == "string" then
+							d("changing file data from "..tostring(e).." to ".. tostring(Retranslate(e)))
+							skilldata[i] = Retranslate(e)
+							needsSave = true
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	if (table.valid(profile)) then
 		SkillMgr.ProfileRaw = profile
 		if (table.valid(profile.classes)) then
 			validJob = false
@@ -1733,7 +1749,6 @@ function SkillMgr.ReadFile(strFile)
 		gSkillManagerMingp = IsNull(profile.mingp,0)
 	else
 		SkillMgr.ProfileRaw = {}
-		d(e)
 		return false
 	end
 	
@@ -1805,6 +1820,10 @@ function SkillMgr.ReadFile(strFile)
 	end
 
 	SkillMgr.CheckProfileValidity()
+	--[[if needsSave then
+		SkillMgr.WriteToFile(gSkillProfile)
+		d("saved")
+	end]]
 end
 
 --All writes to the profiles should come through this function.
@@ -2454,7 +2473,7 @@ function SkillMgr.AddSkillToProfile(skill)
 			if (v.section == "fighting") then
 				if (v.profile == "stype") then
 					if (skType == 11) then
-						SkillMgr.SkillProfile[newskillprio][v.profile] = "Pet"
+						SkillMgr.SkillProfile[newskillprio][v.profile] = GetString("Pet")
 					else
 						SkillMgr.SkillProfile[newskillprio][v.profile] = "Action"
 					end
@@ -2943,7 +2962,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						break
 						
 					elseif (skill.stype == "Action") then
-						if (skill.trg == "Ground Target") then
+						if (skill.trg == GetString("Ground Target")) then
 						
 							local action = SkillMgr.GetAction(skill.id,1)
 							local entity = MGetEntity(TID)
@@ -3035,13 +3054,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		
 		-- Start Pet Loop
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-			if (skill.stype == "Pet") then	
+			if (skill.stype == GetString("Pet")) then	
 			
 				local result = SkillMgr.CanCast(prio, entity, preCombat)
 				if (result ~= 0) then
 					local TID = result
 					
-					if (skill.trg == "Ground Target") then
+					if (skill.trg == GetString("Ground Target")) then
 					
 						local s = SkillMgr.GetAction(skill.id,11)
 						local entity = MGetEntity(TID)
@@ -3821,6 +3840,7 @@ function SkillMgr.Gather(item)
 										end
 									)
 								end
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] was cast.")
 								return true
 							end	
 						else
@@ -3978,11 +3998,11 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		return nil
 	end
 	
-	if (skill.trg == "Target") then
+	if (skill.trg == GetString("Target")) then
 		if (target.id == Player.id) then
 			return nil
 		end
-	elseif ( skill.trg == "Tankable Target") then
+	elseif ( skill.trg == GetString("Tankable Target")) then
 		local newtarget = SkillMgr.GetTankableTarget(maxrange)
 		if (newtarget) then
 			target = newtarget
@@ -3990,7 +4010,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Tanked Target") then
+	elseif ( skill.trg == GetString("Tanked Target")) then
 		local newtarget = SkillMgr.GetTankedTarget(maxrange)
 		if (newtarget) then
 			target = newtarget
@@ -3998,7 +4018,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Pet" ) then
+	elseif ( skill.trg == GetString("Pet") ) then
 		local valid = false
 		if (SkillMgr.IsPetSummonActive(skillid)) then
 			if (table.valid(pet)) then
@@ -4019,7 +4039,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		if (not valid) then
 			return nil
 		end
-	elseif ( skill.trg == "Party" ) then
+	elseif ( skill.trg == GetString("Party") ) then
 		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
 			local newtarget = MPartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
@@ -4051,7 +4071,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		end
-	elseif ( skill.trg == "PartyS" ) then
+	elseif ( skill.trg == GetString("PartyS") ) then
 		if (not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
 			local newtarget = MPartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
@@ -4077,7 +4097,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		end
-	elseif ( skill.trg == "Tank" ) then
+	elseif ( skill.trg == GetString("Tank") ) then
 		local ally = MGetBestTankHealTarget( maxrange )
 		if ( ally and ally.id ~= PID) then
 			target = ally
@@ -4085,7 +4105,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Ally" ) then
+	elseif ( skill.trg == GetString("Ally") ) then
 		local ally = nil
 		if ( skill.npc  ) then
 			ally = MGetBestHealTarget( true, maxrange )
@@ -4097,9 +4117,9 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			target = ally
 			TID = ally.id
 		end	
-	elseif ( skill.trg == "Dead Party" or skill.trg == "Dead Ally") then
+	elseif ( skill.trg == GetString("Dead Party") or skill.trg == GetString("Dead Ally")) then
 		local ally = nil
-		if (skill.trg == "Dead Party") then
+		if (skill.trg == GetString("Dead Party")) then
 			ally = GetBestRevive( true, skill.trgtype )
 		else
 			ally = GetBestRevive( false, skill.trgtype )
@@ -4118,7 +4138,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Casting Target" ) then
+	elseif ( skill.trg == GetString("Casting Target") ) then
 		local ci = entity.castinginfo
 		if ( ci ) then
 			target = EntityList:Get(ci.channeltargetid)
@@ -4126,7 +4146,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "SMN DoT" ) then
+	elseif ( skill.trg == GetString("SMN DoT") ) then
 		local newtarget = GetBestDoTTarget()
 		if (newtarget) then
 			target = newtarget
@@ -4134,7 +4154,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "SMN Bane" ) then
+	elseif ( skill.trg == GetString("SMN Bane") ) then
 		local newtarget = GetBestBaneTarget()
 		if (newtarget) then
 			target = newtarget
@@ -4142,9 +4162,9 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Player" ) then
+	elseif ( skill.trg == GetString("Player") ) then
 		TID = PID
-	elseif ( skill.trg == "Low TP" ) then
+	elseif ( skill.trg == GetString("Low TP") ) then
 		local ally = GetLowestTPParty( maxrange, skill.trgtype, skill.trgself )
 		if ( ally ) then
 			target = ally
@@ -4152,7 +4172,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Low MP" ) then
+	elseif ( skill.trg == GetString("Low MP") ) then
 		local ally = GetLowestMPParty( maxrange, skill.trgtype, skill.trgself )
 		if ( ally ) then
 			target = ally
@@ -4160,7 +4180,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Heal Priority" and tonumber(skill.hpriohp) > 0 ) then
+	elseif ( skill.trg == GetString("Heal Priority") and tonumber(skill.hpriohp) > 0 ) then
 		local priorities = {
 			[1] = skill.hprio1,
 			[2] = skill.hprio2,
@@ -4171,20 +4191,20 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		local requiredHP = tonumber(skill.hpriohp)
 		
 		local healTargets = {}
-		healTargets["Self"] = Player
-		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
+		healTargets[GetString("Self")] = Player
+		healTargets[GetString("Tank")] = MGetBestTankHealTarget( maxrange )
 		if ( skill.npc  ) then
-			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
-			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
+			healTargets[GetString("Party")] = MGetBestPartyHealTarget( true, maxrange )
+			healTargets[GetString("Any")] = MGetBestHealTarget( true, maxrange, requiredHP )
 		else
-			healTargets["Party"] = MGetBestPartyHealTarget( false, maxrange )
-			healTargets["Any"] = MGetBestHealTarget( false, maxrange, requiredHP ) 
+			healTargets[GetString("Party")] = MGetBestPartyHealTarget( false, maxrange )
+			healTargets[GetString("Any")] = MGetBestHealTarget( false, maxrange, requiredHP ) 
 		end
 		
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets["Tank"] and healTargets["Tank"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets["Party"] and healTargets["Party"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets["Any"] and healTargets["Any"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets[GetString("Self")] and healTargets[GetString("Self")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets[GetString("Tank")] and healTargets[GetString("Tank")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets[GetString("Party")] and healTargets[GetString("Party")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets[GetString("Any")] and healTargets[GetString("Any")].name or "nil")..".")
 		
 		local ally = nil
 		for i,trgstring in ipairs(priorities) do
@@ -4194,7 +4214,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 					
 					local buffCheckPassed = true
 					if (not IsNullString(skill.tbuff)) then
-						local owner = (skill.tbuffowner == "Player") and PID or nil
+						local owner = (skill.tbuffowner == GetString("Player")) and PID or nil
 						local duration = tonumber(skill.tbuffdura) or 0
 						if not HasBuffs(htarget, skill.tbuff, duration, owner) then 
 							buffCheckPassed = false
@@ -4202,7 +4222,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 					end
 					
 					if (not IsNullString(skill.tnbuff)) then
-						local owner = (skill.tnbuffowner == "Player") and PID or nil
+						local owner = (skill.tnbuffowner == GetString("Player")) and PID or nil
 						local duration = tonumber(skill.tnbuffdura) or 0
 						if not MissingBuffs(htarget, skill.tnbuff, duration, owner) then 
 							buffCheckPassed = false
@@ -4258,11 +4278,11 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		return nil
 	end
 	
-	if (skill.trg == "Target") then
+	if (skill.trg == GetString("Target")) then
 		if (target.id == Player.id) then
 			return nil
 		end
-	elseif ( skill.trg == "Tankable Target") then
+	elseif ( skill.trg == GetString("Tankable Target")) then
 		local newtarget = SkillMgr.GetTankableTarget(maxrange)
 		if (newtarget) then
 			target = newtarget
@@ -4270,7 +4290,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Tanked Target") then
+	elseif ( skill.trg == GetString("Tanked Target")) then
 		local newtarget = SkillMgr.GetTankedTarget(maxrange)
 		if (newtarget) then
 			target = newtarget
@@ -4278,7 +4298,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Pet" ) then
+	elseif ( skill.trg == GetString("Pet") ) then
 		if ( pet ) then
 			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
 				return nil 
@@ -4289,7 +4309,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			TID = PID
 		end
-	elseif ( skill.trg == "Party" ) then
+	elseif ( skill.trg == GetString("Party") ) then
 		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
 			local newtarget = MPartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
@@ -4321,7 +4341,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 				return nil
 			end
 		end
-	elseif ( skill.trg == "PartyS" ) then
+	elseif ( skill.trg == GetString("PartyS") ) then
 		if (not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
 			local newtarget = MPartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
@@ -4347,7 +4367,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 				return nil
 			end
 		end
-	elseif ( skill.trg == "Tank" ) then
+	elseif ( skill.trg == GetString("Tank") ) then
 		local ally = MGetBestTankHealTarget( maxrange )
 		if ( ally and ally.id ~= PID) then
 			target = ally
@@ -4355,7 +4375,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Ally" ) then
+	elseif ( skill.trg == GetString("Ally") ) then
 		local ally = nil
 		if ( skill.npc  ) then
 			ally = MGetBestHealTarget( true, maxrange )
@@ -4367,9 +4387,9 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 			target = ally
 			TID = ally.id
 		end	
-	elseif ( skill.trg == "Dead Party" or skill.trg == "Dead Ally") then
+	elseif ( skill.trg == GetString("Dead Party") or skill.trg == GetString("Dead Ally")) then
 		local ally = nil
-		if (skill.trg == "Dead Party") then
+		if (skill.trg == GetString("Dead Party")) then
 			ally = GetBestRevive( true, skill.trgtype )
 		else
 			ally = GetBestRevive( false, skill.trgtype )
@@ -4388,7 +4408,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Casting Target" ) then
+	elseif ( skill.trg == GetString("Casting Target") ) then
 		local ci = entity.castinginfo
 		if ( ci ) then
 			target = EntityList:Get(ci.channeltargetid)
@@ -4396,7 +4416,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "SMN DoT" ) then
+	elseif ( skill.trg == GetString("SMN DoT") ) then
 		local newtarget = GetBestDoTTarget()
 		if (newtarget) then
 			target = newtarget
@@ -4404,7 +4424,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "SMN Bane" ) then
+	elseif ( skill.trg == GetString("SMN Bane") ) then
 		local newtarget = GetBestBaneTarget()
 		if (newtarget) then
 			target = newtarget
@@ -4412,9 +4432,9 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Player" ) then
+	elseif ( skill.trg == GetString("Player") ) then
 		TID = PID
-	elseif ( skill.trg == "Low TP" ) then
+	elseif ( skill.trg == GetString("Low TP") ) then
 		local ally = GetLowestTPParty( maxrange, skill.trgtype )
 		if ( ally ) then
 			target = ally
@@ -4422,7 +4442,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Low MP" ) then
+	elseif ( skill.trg == GetString("Low MP") ) then
 		local ally = GetLowestMPParty( maxrange, skill.trgtype )
 		if ( ally ) then
 			target = ally
@@ -4430,7 +4450,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		else
 			return nil
 		end
-	elseif ( skill.trg == "Heal Priority" and tonumber(skill.hpriohp) > 0 ) then
+	elseif ( skill.trg == GetString("Heal Priority") and tonumber(skill.hpriohp) > 0 ) then
 		local priorities = {
 			[1] = skill.hprio1,
 			[2] = skill.hprio2,
@@ -4441,20 +4461,20 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		local requiredHP = tonumber(skill.hpriohp)
 		
 		local healTargets = {}
-		healTargets["Self"] = Player
-		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
+		healTargets[GetString("Self")] = Player
+		healTargets[GetString("Tank")] = MGetBestTankHealTarget( maxrange )
 		if ( skill.npc  ) then
-			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
-			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
+			healTargets[GetString("Party")] = MGetBestPartyHealTarget( true, maxrange )
+			healTargets[GetString("Any")] = MGetBestHealTarget( true, maxrange, requiredHP )
 		else
-			healTargets["Party"] = MGetBestPartyHealTarget( false, maxrange )
-			healTargets["Any"] = MGetBestHealTarget( false, maxrange, requiredHP ) 
+			healTargets[GetString("Party")] = MGetBestPartyHealTarget( false, maxrange )
+			healTargets[GetString("Any")] = MGetBestHealTarget( false, maxrange, requiredHP ) 
 		end
 		
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets["Tank"] and healTargets["Tank"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets["Party"] and healTargets["Party"].name or "nil")..".")
-		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets["Any"] and healTargets["Any"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets[GetString("Self")] and healTargets[GetString("Self")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets[GetString("Tank")] and healTargets[GetString("Tank")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets[GetString("Party")] and healTargets[GetString("Party")].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets[GetString("Any")] and healTargets[GetString("Any")].name or "nil")..".")
 		
 		local ally = nil
 		for i,trgstring in ipairs(priorities) do
@@ -4525,7 +4545,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
-	if (skill.stype == "Pet") then 
+	if (skill.stype == GetString("Pet")) then 
 		realskilldata = SkillMgr.GetAction(skillid,11) 
 	else
 		realskilldata = SkillMgr.GetAction(skillid,1)
@@ -4556,7 +4576,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	local castable = true
 	
 	local maxrange = realskilldata.range
-	if (skill.stype == "Pet") then
+	if (skill.stype == GetString("Pet")) then
 		petRangeRadius = GetPetSkillRangeRadius(skill.id)
 		if (petRangeRadius) then
 			maxrange = petRangeRadius.range
@@ -4586,7 +4606,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
 			realskilldata.isfacing = realskilldata:IsFacing(targetTable.TID)
 		end
-	elseif (skill.stype == "Pet") then
+	elseif (skill.stype == GetString("Pet")) then
 		realskilldata = SkillMgr.GetAction(skillid,11) --targetTable.TID) 
 		if (realskilldata) then
 			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
@@ -4606,7 +4626,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 			if (type(condition.eval) == "function") then
 				if (condition.eval()) then
 					castable = false		
-					SkillMgr.DebugOutput( prio, "Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]" )
+					SkillMgr.DebugOutput( prio, "Condition ["..condition.name.."] failed its check for "..skill.name.." ["..tostring(prio).."]" )
 				end
 			end
 			if (not castable) then
@@ -4839,7 +4859,7 @@ function SkillMgr.AddDefaultConditions()
 			if (not realskilldata.isoncd) then
 				return false
 			end
-		elseif (skill.trg == "Ground Target" and realskilldata.isready) then
+		elseif (skill.trg == GetString("Ground Target") and realskilldata.isready) then
 			return false
 		elseif (skill.type == 11 and realskilldata.isready) then
 			return false
@@ -4856,7 +4876,7 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if (skill.gcd == "Auto") then
+		if (skill.gcd == GetString("Auto")) then
 			if (math.abs(SkillMgr.gcdTime - realskilldata.recasttime) > .1) then
 				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtime = "..tostring(skill.gcdtime)..", IsGCDReady: "..tostring(SkillMgr.IsGCDReady(skill.gcdtime)))
 				if (SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job)) then
@@ -4868,7 +4888,7 @@ function SkillMgr.AddDefaultConditions()
 					return true
 				end
 			end
-		elseif (skill.gcd == "True") then
+		elseif (skill.gcd == GetString("True")) then
 			if ((SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job))) then
 				return true
 			end
@@ -4885,7 +4905,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (skill.trg == "Target") then
+		if (skill.trg == GetString("Target")) then
 			if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
 				if (not IsValidHealTarget(target)) then
 					return true
@@ -5202,9 +5222,9 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = MGetTarget()
 		
-		if ( skill.ptrg ~= "Any" ) then
-			if (( skill.ptrg == "Enemy" and (not target or not target.attackable)) or 
-				( skill.ptrg == "Player" and (not target or target.type ~= 1))) 
+		if ( skill.ptrg ~= GetString("Any") ) then
+			if (( skill.ptrg == GetString("Enemy") and (not target or not target.attackable)) or 
+				( skill.ptrg == GetString("Player") and (not target or target.type ~= 1))) 
 			then 
 				return true 
 			end
@@ -5300,7 +5320,7 @@ function SkillMgr.AddDefaultConditions()
 		
 		if (((skill.combat == "Out of Combat") and Player.incombat) or
 			((skill.combat == "In Combat") and (preCombat == true)) or
-			((skill.combat == "In Combat") and not Player.incombat and skill.trg ~= "Target") or
+			((skill.combat == "In Combat") and not Player.incombat and skill.trg ~= GetString("Target")) or
 			((skill.combat == "In Combat") and not Player.incombat and not target.attackable))
 		then 
 			return true
@@ -5315,16 +5335,16 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if 	((gAssistFilter1 and skill.filterone == "Off") or 
-			(not gAssistFilter1 and skill.filterone == "On" ) or 
-			(gAssistFilter2 and skill.filtertwo == "Off") or
-			(not gAssistFilter2 and skill.filtertwo == "On" ) or
-			(gAssistFilter3 and skill.filterthree == "Off") or
-			(not gAssistFilter3 and skill.filterthree == "On" ) or
-			(gAssistFilter4 and skill.filterfour == "Off") or
-			(not gAssistFilter4 and skill.filterfour == "On" ) or
-			(gAssistFilter5 and skill.filterfive == "Off") or
-			(not gAssistFilter5 and skill.filterfive == "On" ))
+		if 	((gAssistFilter1 and skill.filterone == GetString("Off")) or 
+			(not gAssistFilter1 and skill.filterone == GetString("On") ) or 
+			(gAssistFilter2 and skill.filtertwo == GetString("Off")) or
+			(not gAssistFilter2 and skill.filtertwo == GetString("On") ) or
+			(gAssistFilter3 and skill.filterthree == GetString("Off")) or
+			(not gAssistFilter3 and skill.filterthree == GetString("On") ) or
+			(gAssistFilter4 and skill.filterfour == GetString("Off")) or
+			(not gAssistFilter4 and skill.filterfour == GetString("On") ) or
+			(gAssistFilter5 and skill.filterfive == GetString("Off")) or
+			(not gAssistFilter5 and skill.filterfive == GetString("On") ))
 		then
 			return true
 		end
@@ -5573,7 +5593,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ( skill.trg == "Player" ) then								
+		if ( skill.trg == GetString("Player") ) then								
 			if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
 				local partymemberlist = EntityList("myparty,type=1")
 				if ( partymemberlist) then
@@ -5628,19 +5648,21 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	
 	conditional = { name = "Target Job Checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (skill.trgtype ~= GetString("any") and target.job ~= nil) then
+		
+		if (GetString(skill.trgtype) ~= GetString("Any") and target.job ~= nil) then
 			local found = true
 			local roleString = GetRoleString(target.job)
-			if skill.trgtype ~= roleString then 
+			if not skill.trgtype ~= roleString then 
 				found = false
 			end
-			if skill.trgtype == "Caster" and IsCaster(target.job) then
+			if skill.trgtype == GetString("Caster") and IsCaster(target.job) then
 				found = true
 			end
 			if not found then 
@@ -5659,7 +5681,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (skill.trg ~= "Dead Ally" and skill.trg ~= "Dead Party") then
+		if (skill.trg ~= GetString("Dead Ally") and skill.trg ~= GetString("Dead Party")) then
 			if ( target.hp.current == 0 ) then
 				return true
 			end
@@ -5675,10 +5697,10 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ( skill.ppos ~= "None" ) then 
-			if ((skill.ppos == "Flanking" and not IsFlanking(target)) or
-				(skill.ppos == "Behind" and not IsBehind(target)) or
-				(skill.ppos == "Front" and not IsFront(target)))
+		if ( skill.ppos ~= GetString("none") ) then 
+			if ((skill.ppos == GetString("Flanking") and not IsFlanking(target)) or
+				(skill.ppos == GetString("Behind") and not IsBehind(target)) or
+				(skill.ppos == GetString("Front") and not IsFront(target)))
 			then
 				return true
 			end						
@@ -5728,7 +5750,7 @@ function SkillMgr.AddDefaultConditions()
 		local PID = Player.id
 		
 		if (not IsNullString(skill.tbuff)) then
-			local owner = (skill.tbuffowner == "Player") and PID or nil
+			local owner = (skill.tbuffowner == GetString("Player")) and PID or nil
 			local duration = tonumber(skill.tbuffdura) or 0
 			if not HasBuffs(target, skill.tbuff, duration, owner) then 
 				return true 
@@ -5736,7 +5758,7 @@ function SkillMgr.AddDefaultConditions()
 		end
 		
 		if (not IsNullString(skill.tnbuff)) then
-			local owner = (skill.tnbuffowner == "Player") and PID or nil
+			local owner = (skill.tnbuffowner == GetString("Player")) and PID or nil
 			local duration = tonumber(skill.tnbuffdura) or 0
 			if not MissingBuffs(target, skill.tnbuff, duration, owner) then 
 				return true 
@@ -5803,16 +5825,16 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local TID = SkillMgr.CurrentTID
 		
-		if (skill.tecenter == "Auto") then
+		if (skill.tecenter == GetString("Auto")) then
 			if (skill.frontalconeaoe ) then
 				TID = Player.id
 			elseif ((realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) or skill.frontalconeaoe ) then
 				TID = target.id
 			end
 		else
-			if (skill.tecenter == "Self") then
+			if (skill.tecenter == GetString("Self")) then
 				TID = Player.id
-			elseif (skill.tecenter == "Target") then
+			elseif (skill.tecenter == GetString("Target")) then
 				TID = target.id
 			end
 		end
@@ -5861,7 +5883,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		end	
 		
-		if (table.valid(tlistAE) and skill.televel ~= "Any") then
+		if (table.valid(tlistAE) and skill.televel ~= GetString("Any")) then
 			local level = tonumber(Player.level) + tonumber(skill.televel)
 			for _, entity in pairs(tlistAE) do
 				if entity.level > level then
@@ -6012,6 +6034,7 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
 end
 
 function SkillMgr.Capture(newVal,varName)
@@ -6488,7 +6511,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("party"),"battle-party-header")) then
+	if (GUI:CollapsingHeader(GetString("Party"),"battle-party-header")) then
 		GUI:Columns(2,"#battle-party-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6506,7 +6529,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader(GetString("target"),"battle-target-header")) then
+	if (GUI:CollapsingHeader(GetString("Target"),"battle-target-header")) then
 		GUI:Columns(2,"#battle-target-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
