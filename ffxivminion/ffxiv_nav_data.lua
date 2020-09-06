@@ -1386,6 +1386,13 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
+		[895] = {
+			{id = 895, cost = 1, x = 737.23, y = 285.02, z = -83.46, b = 2010832
+				, requires = {
+					["GetQuestInfo(3718,'step') > 2 or QuestCompleted(3718)"] = true,
+				},
+			},
+		},
     },
 	[815] =
     {
@@ -1537,6 +1544,15 @@ ffxiv_map_nav.data = {
     {
         [759] = {
             {id = 759, cost = 1, x = -50, y = 0, z = -32, h = 0.00, b = 1032885},
+        },
+    }, 
+	[895] =
+    {
+        [814] = {
+            {id = 814, cost = 1, x = 1.27, y = 0.00, z = 1.96, b = 2010829},
+        },
+        [896] = {
+            {id = 896, cost = 1, x = -0.06, y = 0.00, z = -93.86, b = 2010830},
         },
     },
 }-- set reference for mesh mgr
