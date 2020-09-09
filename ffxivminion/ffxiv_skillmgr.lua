@@ -1717,6 +1717,9 @@ function SkillMgr.ReadFile(strFile)
 	
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
+	
+	-- need a better solution, temp removal
+	--[=[
 	if (table.valid(profile)) then
 		if (table.valid(profile.skills)) then
 			for prio,skilldata in pairs(profile.skills) do
@@ -1732,6 +1735,7 @@ function SkillMgr.ReadFile(strFile)
 			end
 		end
 	end
+	--]=]
 	
 	if (table.valid(profile)) then
 		SkillMgr.ProfileRaw = profile
