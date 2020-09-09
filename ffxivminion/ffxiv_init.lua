@@ -914,6 +914,7 @@ function ml_global_information.Init()
 		
 		ml_mesh_mgr.SetDefaultMesh(900, "The Endeavor", true)
 		ml_mesh_mgr.SetDefaultMesh(901, "The Diadem", true)
+		ml_mesh_mgr.SetDefaultMesh(959, "The Diadem", true)
 		
 	end
 	
