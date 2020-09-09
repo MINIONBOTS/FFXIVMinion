@@ -3261,8 +3261,8 @@ function SkillMgr.Craft()
 		SkillMgr.currentIngenStack = SkillMgr.GetBuffStacks(pbuffs,255)
 		SkillMgr.currentIngen2Stack = SkillMgr.GetBuffStacks(pbuffs,256)
 		SkillMgr.currentWasteNot2Stack = SkillMgr.GetBuffStacks(pbuffs,257)
-		SkillMgr.currentManipStack = SkillMgr.GetBuffStacks(pbuffs,258)
-		SkillMgr.currentInnoStack = SkillMgr.GetBuffStacks(pbuffs,259)
+		SkillMgr.currentManipStack = SkillMgr.GetBuffStacks(pbuffs,1164)
+		SkillMgr.currentInnoStack = SkillMgr.GetBuffStacks(pbuffs,2189)
 		SkillMgr.currentCZoneStack = SkillMgr.GetBuffStacks(pbuffs,261)
 		SkillMgr.currentSH2Stack = SkillMgr.GetBuffStacks(pbuffs,262)
 		SkillMgr.currentMakersStack = SkillMgr.GetBuffStacks(pbuffs,878)
@@ -3518,7 +3518,7 @@ function SkillMgr.Craft()
 								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
 							elseif (skillid == 100108) then
 								SkillMgr.checkHT = true
-							elseif (skillid == 278) then
+							elseif (In(skillid, 4574, 4575, 4576, 4577, 4578, 4579, 4580, 4581)) then
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
 							end
 
