@@ -1717,26 +1717,6 @@ function SkillMgr.ReadFile(strFile)
 	
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
-	
-	-- need a better solution, temp removal
-	--[=[
-	if (table.valid(profile)) then
-		if (table.valid(profile.skills)) then
-			for prio,skilldata in pairs(profile.skills) do
-				if table.valid(skilldata) then
-					for i,e in pairs(skilldata) do
-						if type(e) == "string" and e ~= "" then
-							--d("changing file data from "..tostring(e).." to ".. tostring(Retranslate(e)))
-							skilldata[i] = Retranslate(e)
-							needsSave = true
-						end
-					end
-				end
-			end
-		end
-	end
-	--]=]
-	
 	if (table.valid(profile)) then
 		SkillMgr.ProfileRaw = profile
 		if (table.valid(profile.classes)) then
@@ -6833,6 +6813,23 @@ function SkillMgr.DrawManager()
 					SkillMgr.SaveProfile()
 				end
 				GUI:PopItemWidth()
+				
+				if (GUI:Button(GetString("Retranslate Profile"),200,25)) then
+					local skills = SkillMgr.SkillProfile
+					if (table.valid(skills)) then
+						for prio,skilldata in pairs(skills) do
+							if table.valid(skilldata) then
+								for i,e in pairs(skilldata) do
+									if type(e) == "string" and e ~= "" then
+										--d("changing file data from "..tostring(e).." to ".. tostring(Retranslate(e)))
+										skilldata[i] = Retranslate(e)
+									end
+								end
+							end
+						end
+					end
+					SkillMgr.SaveProfile()
+				end
 					
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
 					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
