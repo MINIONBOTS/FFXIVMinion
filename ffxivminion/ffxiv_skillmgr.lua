@@ -787,26 +787,18 @@ SkillMgr.Variables = {
 	SKM_QUALMAX = { default = 0, cast = "number", profile = "qualitymax", readable = "", section = "crafting"},
 	SKM_QUALMINPer = { default = 0, cast = "number", profile = "qualityminper", readable = "", section = "crafting"},
 	SKM_QUALMAXPer = { default = 0, cast = "number", profile = "qualitymaxper", readable = "", section = "crafting"},
-	SKM_CONDITION = { default = "NotUsed", cast = "string", list = true, profile = "condition", readable = "", section = "crafting"},
+	SKM_CONDITION = { default = GetString("notused"), cast = "string", list = true, profile = "condition", readable = "", section = "crafting"},
 	
 	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", readable = "", section = "crafting"},
 	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", readable = "", section = "crafting"},
 	SKM_IQSTACKMAX = { default = 0, cast = "number", profile = "iqstackmax", readable = "", section = "crafting"},
 	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", readable = "", section = "crafting"},
 	SKM_GSSTACKMIN = { default = 0, cast = "number", profile = "gsstackmin", readable = "", section = "crafting"},
-	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", readable = "", section = "crafting"},
-	SKM_SH2STACKMIN = { default = 0, cast = "number", profile = "sh2stackmin", readable = "", section = "crafting"},
-	SKM_SH12STACKMIN = { default = 0, cast = "number", profile = "sh12stackmin", readable = "", section = "crafting"},
-	SKM_INGENSTACKMIN = { default = 0, cast = "number", profile = "ingenstackmin", readable = "", section = "crafting"},
-	SKM_INGEN2STACKMIN = { default = 0, cast = "number", profile = "ingen2stackmin", readable = "", section = "crafting"},
 	SKM_WNSTACKMIN = { default = 0, cast = "number", profile = "wnstackmin", readable = "", section = "crafting"},
 	SKM_WN2STACKMIN = { default = 0, cast = "number", profile = "wn2stackmin", readable = "", section = "crafting"},
 	SKM_MANIPSTACKMIN = { default = 0, cast = "number", profile = "manipstackmin", readable = "", section = "crafting"},
+	SKM_MANIPSTACKMAX = { default = 0, cast = "number", profile = "manipstackmax", readable = "", section = "crafting"},
 	SKM_INNOSTACKMIN = { default = 0, cast = "number", profile = "innostackmin", readable = "", section = "crafting"},
-	SKM_CZONESTACKMIN = { default = 0, cast = "number", profile = "czonestackmin", readable = "", section = "crafting"},
-	SKM_MAKERSSTACKMIN = { default = 0, cast = "number", profile = "makersstackmin", readable = "", section = "crafting"},
-	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", readable = "", section = "crafting"},	
-	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", readable = "", section = "crafting"},
 	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", readable = "", section = "crafting"},
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", readable = "", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", readable = "", section = "crafting"},
@@ -959,9 +951,10 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
-	gSMCraftConditions = { GetString("notused"),GetString("excellent"),GetString("good"),GetString("normal"),GetString("poor"),GetString("centered"),GetString("sturdy"),GetString("pliant") }
+	gSMCraftConditions = { GetString("notused"), GetString("excellent"), GetString("good"), GetString("normal"), GetString("poor"), GetString("centered"), GetString("sturdy"), GetString("pliant") }
 	gSMCraftConditionIndex = 1
-	
+	gSMCraftConditionsCache = {}
+
 	gSMBattleStatuses = { GetString("In Combat"), GetString("Out of Combat"), GetString("Any") }
 	gSMBattleStatusIndex = 1
 	
@@ -3093,7 +3086,6 @@ if (GetGameRegion() == 1) then
 		["Focused Touch"] = { [8] = 100243, [9] = 100244, [10] = 100245, [11] = 100246, [12] = 100247, [13] = 100248, [14] = 100249, [15] = 100250, },
 		["Great Strides"] = { [8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 265, [13] = 264, [14] = 266, [15] = 267, },
 		["Hasty Touch"] = { [8] = 100355, [9] = 100356, [10] = 100357, [11] = 100358, [12] = 100359, [13] = 100360, [14] = 100361, [15] = 100362, },
-		["Ingenuity"] = { [8] = 4623, [9] = 4624, [10] = 4625, [11] = 4626, [12] = 4627, [13] = 4628, [14] = 4629, [15] = 4630, },
 		["Inner Quiet"] = { [8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259, },
 		["Innovation"] = { [8] = 19004, [9] = 19005, [10] = 19006, [11] = 19007, [12] = 19008, [13] = 19009, [14] = 19010, [15] = 19011, },
 		["Intensive Synthesis"] = { [8] = 100315, [9] = 100316, [10] = 100317, [11] = 100318, [12] = 100319, [13] = 100320, [14] = 100321, [15] = 100322, },
@@ -3108,7 +3100,6 @@ if (GetGameRegion() == 1) then
 		["Prudent Touch"] = { [8] = 100227, [9] = 100228, [10] = 100229, [11] = 100230, [12] = 100231, [13] = 100232, [14] = 100233, [15] = 100234, },
 		["Rapid Synthesis"] = { [8] = 100363, [9] = 100364, [10] = 100365, [11] = 100366, [12] = 100367, [13] = 100368, [14] = 100369, [15] = 100370, },
 		["Reflect"] = { [8] = 100387, [9] = 100388, [10] = 100389, [11] = 100390, [12] = 100391, [13] = 100392, [14] = 100393, [15] = 100394, },
-		["Reuse"] = { [8] = 4597, [9] = 4598, [10] = 4599, [11] = 4600, [12] = 4602, [13] = 4601, [14] = 4603, [15] = 4604, },
 		["Standard Touch"] = { [8] = 100004, [9] = 100018, [10] = 100034, [11] = 100078, [12] = 100048, [13] = 100064, [14] = 100093, [15] = 100109, },
 		["Trained Eye"] = { [8] = 100283, [9] = 100284, [10] = 100285, [11] = 100286, [12] = 100287, [13] =100288, [14] = 100289, [15] = 100290, },
 		["Tricks of the Trade"] = { [8] = 100371, [9] = 100372, [10] = 100373, [11] = 100374, [12] = 100375, [13] = 100376, [14] = 100377, [15] = 100378, },
@@ -3121,69 +3112,50 @@ else
 	SkillMgr.MatchingCraftSkills = {
 		--Basic Skills
 		-- CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL
-		["Basic Synth"] 	={[8] = 100001, [9] = 100015, [10] = 100030, [11] = 100075, [12] = 100045, [13] = 100060, [14] = 100090, [15] = 100105 },
-		["Basic Touch"] 	={[8] = 100002, [9] = 100016, [10] = 100031, [11] = 100076, [12] = 100046, [13] = 100061, [14] = 100091, [15] = 100106 },
-		["Masters Mend"] 	={[8] = 100003, [9] = 100017, [10] = 100032, [11] = 100077, [12] = 100047, [13] = 100062, [14] = 100092, [15] = 100107 },
-		["Standard Touch"] 	={[8] = 100004, [9] = 100018, [10] = 100034, [11] = 100078, [12] = 100048, [13] = 100064, [14] = 100093, [15] = 100109 },
-		["Mend II"]   		={[8] = 100005, [9] = 100019, [10] = 100035, [11] = 100079, [12] = 100049, [13] = 100065, [14] = 100094, [15] = 100110 },
-		["Standard Synth"] 	={[8] = 100007, [9] = 100021, [10] = 100037, [11] = 100080, [12] = 100051, [13] = 100067, [14] = 100096, [15] = 100111 },
-		["Advanced Touch"] 	={[8] = 100008, [9] = 100022, [10] = 100038, [11] = 100081, [12] = 100052, [13] = 100068, [14] = 100097, [15] = 100112 },
-		["Observe"]        	={[8] = 100010, [9] = 100023, [10] = 100040, [11] = 100082, [12] = 100053, [13] = 100070, [14] = 100099, [15] = 100113 },
-		["Byregots Brow"] 	={[8] = 100120, [9] = 100121, [10] = 100122, [11] = 100123, [12] = 100124, [13] = 100125, [14] = 100126, [15] = 100127 },
-		["Precise Touch"]  	={[8] = 100128, [9] = 100129, [10] = 100130, [11] = 100131, [12] = 100132, [13] = 100133, [14] = 100134, [15] = 100135 },
-		["Innovative"]  	={[8] = 100137, [9] = 100138, [10] = 100139, [11] = 100140, [12] = 100141, [13] = 100142, [14] = 100143, [15] = 100144 },
-		["Byregots Miracle"]={[8] = 100145, [9] = 100146, [10] = 100147, [11] = 100148, [12] = 100149, [13] = 100150, [14] = 100151, [15] = 100152 },
-		["Nymeias Wheel"]  	={[8] = 100153, [9] = 100154, [10] = 100155, [11] = 100156, [12] = 100157, [13] = 100158, [14] = 100159, [15] = 100160 },
-		["Trained Hand"]  	={[8] = 100161, [9] = 100162, [10] = 100163, [11] = 100164, [12] = 100165, [13] = 100166, [14] = 100167, [15] = 100168 },
-		["Satisfaction"]  	={[8] = 100169, [9] = 100170, [10] = 100171, [11] = 100172, [12] = 100173, [13] = 100174, [14] = 100175, [15] = 100176 },
-		["Heart"]  			={[8] = 100179, [9] = 100180, [10] = 100181, [11] = 100182, [12] = 100183, [13] = 100184, [14] = 100185, [15] = 100186 },
-		["Whistle Work"]  	={[8] = 100187, [9] = 100188, [10] = 100189, [11] = 100190, [12] = 100191, [13] = 100192, [14] = 100193, [15] = 100194 },
-		["Hasty Touch II"]      	={[8] = 100195, [9] = 100196, [10] = 100197, [11] = 100198, [12] = 100199, [13] = 100200, [14] = 100201, [15] = 100202 },
-		["Careful Synthesis III"]   ={[8] = 100203, [9] = 100204, [10] = 100205, [11] = 100206, [12] = 100207, [13] = 100208, [14] = 100209, [15] = 100210 },
-		["Rapid Synthesis II"]      ={[8] = 100211, [9] = 100212, [10] = 100213, [11] = 100214, [12] = 100215, [13] = 100216, [14] = 100217, [15] = 100218 },
-		["Patient Touch"]      		={[8] = 100219, [9] = 100220, [10] = 100221, [11] = 100222, [12] = 100223, [13] = 100224, [14] = 100225, [15] = 100226 },
-		["Manipulation II"]      	={[8] = 4574, [9] = 4575, [10] = 4576, [11] = 4577, [12] = 4578, [13] = 4579, [14] = 4580, [15] = 4581 },
-		["Prudent Touch"]      		={[8] = 100227, [9] = 100228, [10] = 100229, [11] = 100230, [12] = 100231, [13] = 100232, [14] = 100233, [15] = 100234 },
-		["Focused Synthesis"]      	={[8] = 100235, [9] = 100236, [10] = 100237, [11] = 100238, [12] = 100239, [13] = 100240, [14] = 100241, [15] = 100242 },
-		["Focused Touch"]      		={[8] = 100243, [9] = 100244, [10] = 100245, [11] = 100246, [12] = 100247, [13] = 100248, [14] = 100249, [15] = 100250 },
-		["Initial Preparations"]    ={[8] = 100251, [9] = 100252, [10] = 100253, [11] = 100254, [12] = 100255, [13] = 100256, [14] = 100257, [15] = 100258 },
-		["Specialty: Reinforce"]    ={[8] = 100259, [9] = 100260, [10] = 100261, [11] = 100262, [12] = 100263, [13] = 100264, [14] = 100265, [15] = 100266 },
-		["Specialty: Refurbish"]    ={[8] = 100267, [9] = 100268, [10] = 100269, [11] = 100270, [12] = 100271, [13] = 100272, [14] = 100273, [15] = 100274 },
-		["Specialty: Reflect"]      ={[8] = 100275, [9] = 100276, [10] = 100277, [11] = 100278, [12] = 100279, [13] = 100280, [14] = 100281, [15] = 100282 },
-		
-		["Steady Hand"] = 	{[8] = 244, [9] = 245, [10] = 246, [11] = 247, [12] = 249, [13] = 248, [14] = 250, [15] = 251 },
-		["Inner Quiet"] = 	{[8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259 },
-		["Great Strides"] = {[8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 265, [13] = 264, [14] = 266, [15] = 267 },
+		["Basic Synthesis"] = { [8] = 100001, [9] = 100015, [10] = 100030, [11] = 100075, [12] = 100045, [13] = 100060, [14] = 100090, [15] = 100105, },
+		["Basic Touch"] = { [8] = 100002, [9] = 100016, [10] = 100031, [11] = 100076, [12] = 100046, [13] = 100061, [14] = 100091, [15] = 100106, },
+		["Brand of the Elements"] = { [8] = 100331, [9] = 100332, [10] = 100333, [11] = 100334, [12] = 100335, [13] = 100336, [14] = 100337, [15] = 100338, },
+		["Byregot's Blessing"] = { [8] = 100339, [9] = 100340, [10] = 100341, [11] = 100342, [12] = 100343, [13] = 100344, [14] = 100345, [15] = 100346, },
+		["Careful Observation"] = { [8] = 100395, [9] = 100396, [10] = 100397, [11] = 100398, [12] = 100399, [13] = 100400, [14] = 100401, [15] = 100402, },
+		["Careful Synthesis"] = { [8] = 100203, [9] = 100204, [10] = 100205, [11] = 100206, [12] = 100207, [13] = 100208, [14] = 100209, [15] = 100210, },
+		["Delicate Synthesis"] = { [8] = 100323, [9] = 100324, [10] = 100325, [11] = 100326, [12] = 100327, [13] = 100328, [14] = 100329, [15] = 100330, },
+		["Final Appraisal"] = { [8] = 19012, [9] = 19013, [10] = 19014, [11] = 19015, [12] = 19016, [13] = 19017, [14] = 19018, [15] = 19019, },
+		["Focused Synthesis"] = { [8] = 100235, [9] = 100236, [10] = 100237, [11] = 100238, [12] = 100239, [13] = 100240, [14] = 100241, [15] = 100242, },
+		["Focused Touch"] = { [8] = 100243, [9] = 100244, [10] = 100245, [11] = 100246, [12] = 100247, [13] = 100248, [14] = 100249, [15] = 100250, },
+		["Great Strides"] = { [8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 265, [13] = 264, [14] = 266, [15] = 267, },
+		["Hasty Touch"] = { [8] = 100355, [9] = 100356, [10] = 100357, [11] = 100358, [12] = 100359, [13] = 100360, [14] = 100361, [15] = 100362, },
+		["Inner Quiet"] = { [8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259, },
+		["Innovation"] = { [8] = 19004, [9] = 19005, [10] = 19006, [11] = 19007, [12] = 19008, [13] = 19009, [14] = 19010, [15] = 19011, },
+		["Intensive Synthesis"] = { [8] = 100315, [9] = 100316, [10] = 100317, [11] = 100318, [12] = 100319, [13] = 100320, [14] = 100321, [15] = 100322, },
+		["Manipulation"] = { [8] = 4574, [9] = 4575, [10] = 4576, [11] = 4577, [12] = 4578, [13] = 4579, [14] = 4580, [15] = 4581, },
+		["Master's Mend"] = { [8] = 100003, [9] = 100017, [10] = 100032, [11] = 100077, [12] = 100047, [13] = 100062, [14] = 100092, [15] = 100107, },
+		["Muscle Memory"] = { [8] = 100379, [9] = 100380, [10] = 100381, [11] = 100382, [12] = 100383, [13] = 100384, [14] = 100385, [15] = 100386, },
+		["Name of the Elements"] = { [8] = 4615, [9] = 4616, [10] = 4617, [11] = 4618, [12] = 4620, [13] = 4619, [14] = 4621, [15] = 4622, },
+		["Observe"] = { [8] = 100010, [9] = 100023, [10] = 100040, [11] = 100082, [12] = 100053, [13] = 100070, [14] = 100099, [15] = 100113, },
+		["Patient Touch"] = { [8] = 100219, [9] = 100220, [10] = 100221, [11] = 100222, [12] = 100223, [13] = 100224, [14] = 100225, [15] = 100226, },
+		["Precise Touch"] = { [8] = 100128, [9] = 100129, [10] = 100130, [11] = 100131, [12] = 100132, [13] = 100133, [14] = 100134, [15] = 100135, },
+		["Preparatory Touch"] = { [8] = 100299, [9] =100300, [10] = 100301, [11] = 100302, [12] = 100303, [13] = 100304, [14] = 100305, [15] = 100306, },
+		["Prudent Touch"] = { [8] = 100227, [9] = 100228, [10] = 100229, [11] = 100230, [12] = 100231, [13] = 100232, [14] = 100233, [15] = 100234, },
+		["Rapid Synthesis"] = { [8] = 100363, [9] = 100364, [10] = 100365, [11] = 100366, [12] = 100367, [13] = 100368, [14] = 100369, [15] = 100370, },
+		["Reflect"] = { [8] = 100387, [9] = 100388, [10] = 100389, [11] = 100390, [12] = 100391, [13] = 100392, [14] = 100393, [15] = 100394, },
+		["Standard Touch"] = { [8] = 100004, [9] = 100018, [10] = 100034, [11] = 100078, [12] = 100048, [13] = 100064, [14] = 100093, [15] = 100109, },
+		["Trained Eye"] = { [8] = 100283, [9] = 100284, [10] = 100285, [11] = 100286, [12] = 100287, [13] =100288, [14] = 100289, [15] = 100290, },
+		["Tricks of the Trade"] = { [8] = 100371, [9] = 100372, [10] = 100373, [11] = 100374, [12] = 100375, [13] = 100376, [14] = 100377, [15] = 100378, },
+		["Waste Not"] = { [8] = 4631, [9] = 4632, [10] = 4633, [11] = 4634, [12] = 4635, [13] = 4636, [14] = 4637, [15] = 4638, },
+		["Waste Not II"] = { [8] = 4639, [9] = 4640, [10] = 4641, [11] = 4642, [12] = 4643, [13] = 4644, [14] = 19002, [15] = 19003, },
+		["Veneration"] = { [8] = 19297, [9] = 19298, [10] = 19299, [11] = 19300, [12] = 19301, [13] = 19302, [14] = 19303, [15] = 19304, },
+		["Groundwork"] = { [8] = 100403, [9] = 100404, [10] = 100405, [11] = 100406, [12] = 100407, [13] = 100408, [14] = 100409, [15] = 100410, },
 		["Collectable Synthesis"] = {[8] = 4560, [9] = 4561, [10] = 4562, [11] = 4563, [12] = 4565, [13] = 4564, [14] = 4566, [15] = 4567},
-		
-		["Steady Hand II"] = {[8] = 4607, [9] = 4608, [10] = 4609, [11] = 4610, [12] = 4612, [13] = 4611, [14] = 4613, [15] = 4614 },
-		["Byregot's Blessing"] = {[8] = 100339, [9] = 100340, [10] = 100341, [11] = 100342, [12] = 100343, [13] = 100344, [14] = 100345, [15] = 100346 },
-		["Reuse"] =     {[8] = 4597, [9] = 4598, [10] = 4599, [11] = 4600, [12] = 4602, [13] = 4601, [14] = 4603, [15] = 4604 },
-		["Name of the Elements"] =     {[8] = 4615, [9] = 4616, [10] = 4617, [11] = 4618, [12] = 4620, [13] = 4619, [14] = 4621, [15] = 4622 },
-		["Trained Eye"] =     {[8] = 100283, [9] = 100284, [10] = 100285, [11] = 100286, [12] = 100287, [13] = 100288, [14] = 100289, [15] = 100290 },
-		["Trained Instinct"] =     {[8] = 100291, [9] = 100292, [10] = 100293, [11] = 100294, [12] = 100295, [13] = 100296, [14] = 100297, [15] = 100298 },
-		["Preparatory Touch"] = {[8] = 100299, [9] = 100300, [10] = 100301, [11] = 100302, [12] = 100303, [13] = 100304, [14] = 100305, [15] = 100306 },
-		["Rapid Synthesis III"] =     {[8] = 100307, [9] = 100308, [10] = 100309, [11] = 100310, [12] = 100311, [13] = 100312, [14] = 100313, [15] = 100314 },
-		["Intensive Synthesis"] =     {[8] = 100315, [9] = 100316, [10] = 100317, [11] = 100318, [12] = 100319, [13] = 100320, [14] = 100321, [15] = 100322 },
-		["Delicate Synthesis"] =     {[8] = 100323, [9] = 100324, [10] = 100325, [11] = 100326, [12] = 100327, [13] = 100328, [14] = 100329, [15] = 100330 },
-		["Brand of the Elements"] =     {[8] = 100331, [9] = 100332, [10] = 100333, [11] = 100334, [12] = 100335, [13] = 100336, [14] = 100337, [15] = 100338 },
 	}
 end
 
 SkillMgr.lastquality = 0
-SkillMgr.currentSHStack = 0
-SkillMgr.currentSH2Stack = 0
 SkillMgr.currentIQStack = 0
 SkillMgr.currentWasteNotStack = 0
 SkillMgr.currentWasteNot2Stack = 0
-SkillMgr.currentIngenStack = 0
-SkillMgr.currentIngen2Stack = 0
 SkillMgr.currentGSStack = 0
 SkillMgr.currentManipStack = 0
 SkillMgr.currentInnoStack = 0
-SkillMgr.currentCZoneStack = 0
-SkillMgr.currentMakersStack = 0
-SkillMgr.currentWhistleStack = 0
 
 SkillMgr.currentToTUses = 0
 SkillMgr.currentHTSuccesses = 0
@@ -3202,19 +3174,12 @@ function SkillMgr.Craft()
     if ( synth and IsNull(synth.progress,-1) ~= -1 and table.valid(SkillMgr.SkillProfile)) then -- added a little more sanity checking here
 		
 		if (SkillMgr.newCraft) then
-			SkillMgr.currentSHStack = 0
-			SkillMgr.currentSH2Stack = 0
 			SkillMgr.currentIQStack = 0
 			SkillMgr.currentWasteNotStack = 0
 			SkillMgr.currentWasteNot2Stack = 0
-			SkillMgr.currentIngenStack = 0
-			SkillMgr.currentIngen2Stack = 0
 			SkillMgr.currentGSStack = 0
 			SkillMgr.currentManipStack = 0
 			SkillMgr.currentInnoStack = 0
-			SkillMgr.currentCZoneStack = 0
-			SkillMgr.currentMakersStack = 0
-			SkillMgr.currentWhistleStack = 0
 			SkillMgr.currentHTSuccesses = 0
 			SkillMgr.currentToTUses = 0
 			SkillMgr.manipulationUses = 0
@@ -3236,17 +3201,10 @@ function SkillMgr.Craft()
 		
 		SkillMgr.currentIQStack = SkillMgr.GetBuffStacks(pbuffs,251)
 		SkillMgr.currentWasteNotStack = SkillMgr.GetBuffStacks(pbuffs,252)
-		SkillMgr.currentSHStack = SkillMgr.GetBuffStacks(pbuffs,253)
 		SkillMgr.currentGSStack = SkillMgr.GetBuffStacks(pbuffs,254)
-		SkillMgr.currentIngenStack = SkillMgr.GetBuffStacks(pbuffs,255)
-		SkillMgr.currentIngen2Stack = SkillMgr.GetBuffStacks(pbuffs,256)
 		SkillMgr.currentWasteNot2Stack = SkillMgr.GetBuffStacks(pbuffs,257)
 		SkillMgr.currentManipStack = SkillMgr.GetBuffStacks(pbuffs,1164)
 		SkillMgr.currentInnoStack = SkillMgr.GetBuffStacks(pbuffs,2189)
-		SkillMgr.currentCZoneStack = SkillMgr.GetBuffStacks(pbuffs,261)
-		SkillMgr.currentSH2Stack = SkillMgr.GetBuffStacks(pbuffs,262)
-		SkillMgr.currentMakersStack = SkillMgr.GetBuffStacks(pbuffs,878)
-		SkillMgr.currentWhistleStack = SkillMgr.GetBuffStacks(pbuffs,880)
 
         for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
@@ -3364,16 +3322,39 @@ function SkillMgr.Craft()
 						
 						castable = false 
                     end
-					
-					local translatedCondition = GetStringKey(synth.condition)
-					local translatedRequirement = GetStringKey(skill.condition)
+
+					local translatedCondition
+					local translatedRequirement
+					if (table.valid(gSMCraftConditionsCache)) then
+						for _,condition in pairs(gSMCraftConditionsCache) do
+							if (condition.string == synth.condition) then
+								translatedCondition = condition.translated
+							elseif (condition.string == skill.condition) then
+								translatedRequirement = condition.translated
+							end
+							if (translatedCondition and translatedRequirement) then break end
+						end
+					end
+					if (not translatedCondition) then
+						translatedCondition = GetStringKey(synth.condition)
+						if (type(translatedCondition) == "string" and translatedCondition ~= "") then
+							table.insert(gSMCraftConditionsCache, { string = synth.condition, translated = translatedCondition })
+						end
+					end
+					if (not translatedRequirement) then
+						translatedRequirement = GetStringKey(skill.condition)
+						if (type(translatedRequirement) == "string" and translatedRequirement ~= "") then
+							table.insert(gSMCraftConditionsCache, { string = skill.condition, translated = translatedRequirement })
+						end
+					end
+
 					if (translatedRequirement ~= "" and translatedRequirement ~= "notused") then
 						if (translatedCondition ~= translatedRequirement) then
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] condition requirement was not met.")
 							castable = false
 						end
 					end
-					
+
 					if ((tonumber(skill.totmin) > 0 and SkillMgr.currentToTUses < tonumber(skill.totmin)) or
 						(tonumber(skill.totmax) > 0 and SkillMgr.currentToTUses >= tonumber(skill.totmax)))
 					then
@@ -3399,32 +3380,16 @@ function SkillMgr.Craft()
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet great strides stack requirements.")
 						castable = false
 					end
-					if (tonumber(skill.shstackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.shstackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 1 stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.sh2stackmin) > 0 and SkillMgr.currentSH2Stack < tonumber(skill.sh2stackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 2 stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.sh12stackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.sh12stackmin) and SkillMgr.currentSH2Stack < tonumber(skill.sh12stackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 1/2 (combined check) stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.ingenstackmin) > 0 and SkillMgr.currentIngenStack < tonumber(skill.ingenstackmin)) then
-					SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet ingenuity stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.ingen2stackmin) > 0 and SkillMgr.currentIngen2Stack < tonumber(skill.ingen2stackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet ingenuity 2 stack requirements.")
-						castable = false
-					end
 					if (tonumber(skill.wnstackmin) > 0 and SkillMgr.currentWasteNotStack < tonumber(skill.wnstackmin)) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet waste not requirements.")
 						castable = false
 					end
 					if (tonumber(skill.wn2stackmin) > 0 and SkillMgr.currentWasteNot2Stack < tonumber(skill.wn2stackmin)) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet waste not 2 requirements.")
+						castable = false
+					end
+					if (tonumber(skill.manipstackmax) > 0 and SkillMgr.currentManipStack >= tonumber(skill.manipstackmax)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet max manipulation stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.manipstackmin) > 0 and SkillMgr.currentManipStack < tonumber(skill.manipstackmin)) then
@@ -3435,39 +3400,11 @@ function SkillMgr.Craft()
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet innovation stack requirements.")
 						castable = false
 					end
-					if (tonumber(skill.czonestackmin) > 0 and SkillMgr.currentCZoneStack < tonumber(skill.czonestackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet comfort zone stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.makersstackmin) > 0 and SkillMgr.currentMakersStack < tonumber(skill.makersstackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet makers mark stack requirements.")
-						castable = false
-					end
-					if (tonumber(skill.whstackmin) > 0 and SkillMgr.currentWhistleStack < tonumber(skill.whstackmin)) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet whistle stack requirements.")
-						castable = false
-					end
-					if (IsNull(skill.whstack ~= "")) then
-						local valid = false
-						for stacknum in StringSplit(skill.whstack,",") do
-							if (tonumber(stacknum) == SkillMgr.currentWhistleStack) then
-								valid = true
-							end
-							if (valid) then
-								break
-							end
-						end
-						if (not valid) then
-							SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet specific whistle stack requirements.")
-							castable = false
-						end
-					end
-					
 					if (tonumber(skill.manipmax) > 0 and SkillMgr.manipulationUses >= tonumber(skill.manipmax)) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet manipulation uses requirements.")
 						castable = false
 					end
-                        
+					
 					-- buff checks
                     if ( skill.cpbuff ~= "" ) then
 						if not HasBuffs(Player, skill.cpbuff) then
@@ -3494,9 +3431,9 @@ function SkillMgr.Craft()
 						
 						local ret = realskilldata:Cast(Player.id)
 						local successFunction = function ()
-							if (skillid == 100098) then
+							if (In(skillid, 100371, 100372, 100373, 100374, 100375, 100376, 100377, 100378)) then
 								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
-							elseif (skillid == 100108) then
+							elseif (In(skillid, 100355, 100356, 100357, 100358, 100359, 100360, 100361, 100362)) then
 								SkillMgr.checkHT = true
 							elseif (In(skillid, 4574, 4575, 4576, 4577, 4578, 4579, 4580, 4581)) then
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
@@ -6726,19 +6663,11 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("IQ Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_IQSTACK",SKM_IQSTACK,0,0),"SKM_IQSTACK"); GUI:NextColumn();	
 		GUI:Text(GetString("IQ Stack <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_IQSTACKMAX",SKM_IQSTACKMAX,0,0),"SKM_IQSTACKMAX"); GUI:NextColumn();	
 		GUI:Text(GetString("Great Strides Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GSSTACKMIN",SKM_GSSTACKMIN,0,0),"SKM_GSSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SHSTACKMIN",SKM_SHSTACKMIN,0,0),"SKM_SHSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SH2STACKMIN",SKM_SH2STACKMIN,0,0),"SKM_SH2STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand 1/2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SH12STACKMIN",SKM_SH12STACKMIN,0,0),"SKM_SH12STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Ingenuity Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INGENSTACKMIN",SKM_INGENSTACKMIN,0,0),"SKM_INGENSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Ingenuity 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INGEN2STACKMIN",SKM_INGEN2STACKMIN,0,0),"SKM_INGEN2STACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Waste Not Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WNSTACKMIN",SKM_WNSTACKMIN,0,0),"SKM_WNSTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Waste Not 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WN2STACKMIN",SKM_WN2STACKMIN,0,0),"SKM_WN2STACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Manipulation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPSTACKMIN",SKM_MANIPSTACKMIN,0,0),"SKM_MANIPSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Manipulation Stack <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPSTACKMAX",SKM_MANIPSTACKMAX,0,0),"SKM_MANIPSTACKMAX"); GUI:NextColumn();
 		GUI:Text(GetString("Innovation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INNOSTACKMIN",SKM_INNOSTACKMIN,0,0),"SKM_INNOSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Comfort Zone Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CZONESTACKMIN",SKM_CZONESTACKMIN,0,0),"SKM_CZONESTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Maker's Mark Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAKERSSTACKMIN",SKM_MAKERSSTACKMIN,0,0),"SKM_MAKERSSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Whistle Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WHSTACKMIN",SKM_WHSTACKMIN,0,0),"SKM_WHSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Whistle Stack =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_WHSTACK",SKM_WHSTACK),"SKM_WHSTACK"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
