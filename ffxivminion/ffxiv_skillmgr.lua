@@ -3326,25 +3326,19 @@ function SkillMgr.Craft()
 					local translatedCondition
 					local translatedRequirement
 					if (table.valid(gSMCraftConditionsCache)) then
-						for _,condition in pairs(gSMCraftConditionsCache) do
-							if (condition.string == synth.condition) then
-								translatedCondition = condition.translated
-							elseif (condition.string == skill.condition) then
-								translatedRequirement = condition.translated
-							end
-							if (translatedCondition and translatedRequirement) then break end
-						end
+						translatedCondition = gSMCraftConditionsCache[synth.condition]
+						translatedRequirement = gSMCraftConditionsCache[skill.condition]
 					end
 					if (not translatedCondition) then
 						translatedCondition = GetStringKey(synth.condition)
 						if (type(translatedCondition) == "string" and translatedCondition ~= "") then
-							table.insert(gSMCraftConditionsCache, { string = synth.condition, translated = translatedCondition })
+							gSMCraftConditionsCache[synth.condition] = translatedCondition
 						end
 					end
 					if (not translatedRequirement) then
 						translatedRequirement = GetStringKey(skill.condition)
 						if (type(translatedRequirement) == "string" and translatedRequirement ~= "") then
-							table.insert(gSMCraftConditionsCache, { string = skill.condition, translated = translatedRequirement })
+							gSMCraftConditionsCache[skill.condition] = translatedRequirement
 						end
 					end
 
