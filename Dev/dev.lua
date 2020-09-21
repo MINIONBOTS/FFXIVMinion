@@ -1296,6 +1296,14 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("EquipSlot") GUI:SameLine(200) GUI:InputText("##devbag15"..tostring(slot),tostring(item.equipslot))
 													GUI:BulletText("Price") GUI:SameLine(200) GUI:InputText("##devbag26"..tostring(slot),tostring(item.price))
 													GUI:BulletText("MateriaSlotCount") GUI:SameLine(200) GUI:InputText("##devbag28"..tostring(slot),tostring(item.materiaslotcount))
+													GUI:BulletText("Materia Free Slots") GUI:SameLine(200) GUI:InputText("##devbag29"..tostring(slot),tostring(item.materiaslotcount - table.size(item.materias)))
+													if table.valid(item.materias) then
+														for x, y in pairs(item.materias) do
+															GUI:BulletText(tostring(x))
+															GUI:SameLine(200)
+															GUI:InputText("##devbag29"..tostring(y.name),tostring(y.name))
+														end
+													end
 													GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devbag25"..tostring(slot),tostring(item:IsReady()))
 
 													
