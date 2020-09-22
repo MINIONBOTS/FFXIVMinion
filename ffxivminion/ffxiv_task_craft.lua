@@ -162,6 +162,38 @@ function ffxiv_craft.CanUseTea()
 	return false, nil
 end
 
+function ffxiv_craft.Canextractmateria()
+	local bag = Inventory:Get(1000)
+	if (table.valid(bag)) then
+		local ilist = bag:GetList()
+		if (table.valid(ilist)) then
+			for slot, items in pairs(ilist) do 			
+				if (items.spiritbond == 100) then
+					--items:Convert()
+					return true
+				end
+			end
+		end
+	end
+return false
+end
+
+function ffxiv_craft.extractmateria()
+	local bag = Inventory:Get(1000)
+	if (table.valid(bag)) then
+		local ilist = bag:GetList()
+		if (table.valid(ilist)) then
+			for slot, items in pairs(ilist) do 			
+				if (items.spiritbond == 100) then
+					items:Convert()
+					return true
+				end
+			end
+		end
+	end
+return false
+end
+
 c_waitlog = inheritsFrom( ml_cause )
 e_waitlog = inheritsFrom( ml_effect )
 function c_waitlog:evaluate()
@@ -665,6 +697,13 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
+		if (ffxiv_craft.Canextractmateria() and gextractmateria) then
+			d("[NodePreBuff]: Need to extract materia.")
+			e_precraftbuff.activity = "extractmateria"
+			e_precraftbuff.requiresLogClose = true
+			return true
+		end		
+		
 		if (gCraftFood ~= GetString("none")) then
 			local foodDetails = ml_global_information.foods[gCraftFood]
 			if (foodDetails) then
@@ -772,6 +811,9 @@ function e_precraftbuff:execute()
 			ml_global_information.AwaitSuccess(2000, 4000, function () return HasBuff(Player.id, 49) end)
 			return
 		end
+	elseif (activity == "extractmateria") then
+		ffxiv_craft.extractmateria()
+		ml_global_information.Await(4000)
 	elseif (activity == "usecollect") then
 		local collect = ActionList:Get(1,ffxiv_craft.collectors[Player.job])
 		local hasCollect = HasBuffs(Player,"903")
@@ -1237,6 +1279,8 @@ function ffxiv_task_craft:UIInit()
 	
 	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
 	gCraftFoodIndex = IsNull(GetKeyByValue(gCraftFood,gFoods),1)
+	
+	gextractmateria = ffxivminion.GetSetting("gextractmateria",true)
 	
 	local currentFood = gFoods[gCraftFoodIndex]
 	if (gCraftFood ~= currentfood) then
@@ -1797,6 +1841,7 @@ function ffxiv_task_craft:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Current Active Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Retrieve Materia"))
 		GUI:NextColumn()
 		
 		-- Data column
@@ -1813,7 +1858,7 @@ function ffxiv_task_craft:Draw()
 			GUI:SetTooltip(GetString("If this option is on, only available items will be shown."))
 		end
 		GUI:SameLine(0,5)
-		
+
 		
 		local buttonBG = GUI:GetStyle().colors[GUI.Col_Button]
 		GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
@@ -1821,9 +1866,17 @@ function ffxiv_task_craft:Draw()
 		if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 14, 14)) then
 			ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 		end
-		GUI:PopStyleColor(2)		
+		GUI:PopStyleColor(2)
+
+		GUI_Capture(GUI:Checkbox("##extractmateria", gextractmateria), "gextractmateria")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Extract materia from spiritbonded equipment")
+		end
+		
 		
 		GUI:Columns()
+		
+
 		
 		if gCraftMarkerOrProfileIndex ~= 1 then
 			GUI:Columns(2)
