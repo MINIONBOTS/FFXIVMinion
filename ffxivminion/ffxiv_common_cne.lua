@@ -3541,14 +3541,24 @@ function c_switchclass:evaluate()
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
 			SendTextCommand(commandString)
-			ml_global_information.Await(3000, function () return (Player.job == class) end)
 			e_switchclass.blockOnly = true
+			ml_global_information.AwaitDo(1000, 3000, 
+				function () return (IsControlOpen("SelectYesno") or (Player.job == class)) end, 
+				function () 
+					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
+				end
+			)
 			return true
 		elseif (tonumber(newSet) ~= 0) then
 			local commandString = "/gs change "..tostring(newSet)
 			SendTextCommand(commandString)
-			ml_global_information.Await(3000, function () return (Player.job == class) end)
 			e_switchclass.blockOnly = true
+			ml_global_information.AwaitDo(1000, 3000, 
+				function () return (IsControlOpen("SelectYesno") or (Player.job == class)) end, 
+				function () 
+					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
+				end
+			)							
 			return true
 		else
 			local canSwitch,bestWeapon = CanSwitchToClass(class)
