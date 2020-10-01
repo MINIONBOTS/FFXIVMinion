@@ -1424,6 +1424,12 @@ function dev.DrawCall(event, ticks )
 															d("Convert Result: "..tostring(item:Convert()))
 														end
 													end
+													
+													if (GUI:Button("Meld()##"..tostring(slot),100,15) ) then
+														if ( item:CanCast(5, 13) ) then -- Can Cast check of Actiontype "General" , Action "meld" on the item
+															d("Meld Result: "..tostring(item:Meld()))
+														end
+													end
 
 													if (GUI:Button("Transmute()##"..tostring(slot),100,15) ) then d("Transmute Result: "..tostring(item:Transmute())) end
 													GUI:SameLine(0,20)
