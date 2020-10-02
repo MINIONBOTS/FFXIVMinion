@@ -1426,7 +1426,7 @@ function dev.DrawCall(event, ticks )
 													end
 													
 													if (GUI:Button("Meld()##"..tostring(slot),100,15) ) then
-														if ( item:CanCast(5, 13) ) then -- Can Cast check of Actiontype "General" , Action "meld" on the item
+														if ( item:CanCast(5, 12) or item:CanCast(5, 13)) then -- Can Cast check of Actiontype "General" , Action "meld" on the item, 12 is basic meld, 13 is advanced
 															d("Meld Result: "..tostring(item:Meld()))
 														end
 													end
