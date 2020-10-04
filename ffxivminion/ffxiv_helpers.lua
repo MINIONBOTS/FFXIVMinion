@@ -4106,7 +4106,7 @@ function GetAetheryteByMapID(mapid, p)
 		[137] = {name = "Eastern La Noscea",
 			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0,
 				best = function ()  
-					if (not (ppos.x > 218 and ppos.z > 51) and (pos.x > 218 and pos.z > 51)) then
+					if In(GetELNSection(pos),1,3) then
 						return true
 					end
 					return false
@@ -4114,7 +4114,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0, 
 				best = function ()  
-					if ((ppos.x > 218 and ppos.z > 51) and not (pos.x > 218 and pos.z > 51)) then
+					if In(GetELNSection(pos),2) then
 						return true
 					end
 					return false
@@ -4136,7 +4136,7 @@ function GetAetheryteByMapID(mapid, p)
 		[401] = {name = "Sea of Clouds",
 			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545, 
 				best = function ()  
-					if (GetSeaOfCloudsSection(Player.pos) == 1 and GetSeaOfCloudsSection(pos) == 2) then
+					if In(GetSeaOfCloudsSection(pos),2) then
 						return true
 					end
 					return false
@@ -4144,7 +4144,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419,
 				best = function ()  
-					if (GetSeaOfCloudsSection(Player.pos) == 2 and GetSeaOfCloudsSection(pos) == 1) then
+					if In(GetSeaOfCloudsSection(pos),1) then
 						return true
 					end
 					return false
@@ -4154,7 +4154,7 @@ function GetAetheryteByMapID(mapid, p)
 		[398] = {name = "The Dravanian Forelands",
             [1] = { name = "Tailfeather", aethid = 76, x = 531.49, z = 20.57, 
                 best = function ()  
-                    if (GetForelandsSection(Player.pos) == 2 and GetForelandsSection(pos) == 1) then
+					if In(GetForelandsSection(pos),1) then
                         return true
                     end
                     return false
@@ -4162,7 +4162,7 @@ function GetAetheryteByMapID(mapid, p)
             },
             [2] = { name = "Anyx Trine", aethid = 77, x = -301.09, z = 38.07,
                 best = function ()  
-                    if (GetForelandsSection(Player.pos) == 1 and GetForelandsSection(pos) == 2) then
+					if In(GetForelandsSection(pos),2) then
                         return true
                     end
                     return false
@@ -4184,7 +4184,7 @@ function GetAetheryteByMapID(mapid, p)
 		[614] = {name = "Yanxia",
 			[1] = { name = "Namai", aethid = 107, x = 432, z = -85,
 				best = function ()  
-					if (GetYanxiaSection(Player.pos) == 2 and GetYanxiaSection(pos) == 1) then
+					if In(GetYanxiaSection(pos),1) then
 						return true
 					end
 					return false
@@ -4192,7 +4192,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402,
 				best = function ()  
-					if (GetYanxiaSection(Player.pos) == 1 and GetYanxiaSection(pos) == 2) then
+					if In(GetYanxiaSection(pos),2) then
 						return true
 					end
 					return false
