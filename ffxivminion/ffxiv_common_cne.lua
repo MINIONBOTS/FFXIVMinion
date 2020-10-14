@@ -3586,7 +3586,16 @@ function e_switchclass:execute()
 		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
 		gForceAutoEquip = true
-		ml_global_information.Await(1000, 3000, function () return Player.job ~= job end)
+		ml_global_information.AwaitSuccess(1000, 3000, 
+			function ()
+				return Player.job ~= job
+			end,
+			function ()
+				local commandString = "/gs save"
+				SendTextCommand(commandString)
+				SetGearsetInfo()
+			end
+		)
 		ml_global_information.lastEquip = 0
 		e_recommendequip.lastEquip = {}
 	end
