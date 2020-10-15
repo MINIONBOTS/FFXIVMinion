@@ -684,6 +684,12 @@ function SetGearsetInfo()
 				end
 			end
 		end
+	else
+		for i = 1,38,1 do
+			_G["gGearset"..tostring(i)] = 0
+			Settings.FFXIVMINION["gGearset"..tostring(i)] = 0
+			--d("clearing old gearsets")
+		end
 	end
 end
 function ffxivminion.SetMainVars()
