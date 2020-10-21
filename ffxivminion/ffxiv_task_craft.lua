@@ -1841,7 +1841,7 @@ function ffxiv_task_craft:Draw()
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Current Active Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Food"))
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show Usable Only"))
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Retrieve Materia"))
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Extract Materia"))
 		GUI:NextColumn()
 		
 		-- Data column
