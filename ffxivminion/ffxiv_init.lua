@@ -511,7 +511,7 @@ function ml_global_information.Init()
 		-- Dungeons SB
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Sirensong Sea", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Shisui of the Violet Tides", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Bardam's Mettle", enforce)
+		ml_mesh_mgr.SetDefaultMesh(623, "[Dungeon] Bardam's Mettle", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Doma Castle", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Castrum Abania", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Ala Mhigo", enforce)
