@@ -962,7 +962,7 @@ ffxiv_map_nav.data = {
                    ["J"] = "蒼天街転送",
                    ["G"] = "Himmelsstadt",
                    ["F"] = "Azurée",
-                   --["CN"] = "",
+                   ["CN"] = "传送到天穹街",
                    --["KR"] = "",
                 },
 			},
