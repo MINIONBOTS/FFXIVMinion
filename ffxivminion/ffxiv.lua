@@ -15,7 +15,7 @@ ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
 	[1] = 5.35,
 	[2] = 5.25,
-	[3] = 5.21
+	[3] = 5.25
 }
 
 ffxivminion.loginvars = {
