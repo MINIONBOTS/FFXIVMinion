@@ -2202,6 +2202,8 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("Spear Fish State") GUI:SameLine(200) GUI:InputText("##dev33", tostring(c.spearfishstate))
 		GUI:BulletText("Marker") GUI:SameLine(200) GUI:InputText("##dev36", tostring(c.marker))
 		GUI:BulletText("Online Status") GUI:SameLine(200) GUI:InputText("##dev37", tostring(c.onlinestatus))
+		GUI:BulletText("Current World") GUI:SameLine(200) GUI:InputText("##dev38", tostring(c.currentworld))
+		GUI:BulletText("Home World") GUI:SameLine(200) GUI:InputText("##dev39", tostring(c.homeworld))
 			-- SpearFishing
 			--SPEARFISHSTATE_NOTFISHNODE = -1,
 			--SPEARFISHSTATE_NONE = 0,
