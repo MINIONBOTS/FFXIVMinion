@@ -1927,6 +1927,30 @@ function dev.DrawCall(event, ticks )
 			end
 --  END SHOPLIST
 
+			if ( GUI:TreeNode("Game Settings")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local slist = GetGameSettings()
+					if (table.valid(slist)) then
+						for id, e in pairs(slist) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devGSlist"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##devGSlist2"..tostring(id),tostring(e.name))
+								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devGSlist3"..tostring(id),tostring(e.type))
+								GUI:BulletText(".value") GUI:SameLine(200) GUI:InputText("##devGSlist4"..tostring(id),tostring(e.value))
+								if (value == nil ) then value = tostring(0) end
+								if (GUI:Button("SetValue##"..tostring(id),80,15) ) then e:SetValue(tonumber(value)) end GUI:SameLine(200) value = GUI:InputText("##devGSlist5"..tostring(id),tostring(value)) 
+								GUI:TreePop()
+							end
+						end					
+					else
+						GUI:Text("No Settings List")
+					end				
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end
+
 			-- cbk: ServerList
 			if ( GUI:TreeNode("ServerList")) then
 				GUI:PushItemWidth(200)
