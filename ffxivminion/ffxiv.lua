@@ -14,7 +14,7 @@ ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
 	[1] = 5.35,
-	[2] = 5.25,
+	[2] = 5.3,
 	[3] = 5.25
 }
 
