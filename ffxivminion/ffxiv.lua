@@ -13,7 +13,7 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
-	[1] = 5.35,
+	[1] = 5.4,
 	[2] = 5.3,
 	[3] = 5.25
 }
