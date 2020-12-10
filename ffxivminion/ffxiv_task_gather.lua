@@ -2323,7 +2323,7 @@ function e_newcollectiblegame:execute()
 	if (table.valid(info)) then
 		--local collectableId = info.itemid
 		--local collectableRarity = info.rarity
-		local collectableId = info[10].value
+		local collectableId = info[11].value
 		local collectableRarity = info[5].value
 		local collectableAttemptsRemaining = info[41].value		
 		
