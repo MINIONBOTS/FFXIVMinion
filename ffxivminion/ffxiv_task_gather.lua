@@ -734,6 +734,16 @@ function e_nextgathermarker:execute()
 end
 
 function DoGathering(item)
+
+	if GetPatchLevel() >= 5.4 then
+		if AceLib.API.Items.IsCollectable(item.id) then
+			if not IsControlOpen("GatheringMasterpiece") then
+				noskills = true
+				d("Known collectable, lets open the window before wasting GP")
+			end
+		end
+	end
+	
 	if (ffxiv_gather.CheckBuffs(item)) then
 		gd("[Gather]: Running a buff check.",1)
 		ml_global_information.Await(1500)
@@ -1364,6 +1374,9 @@ function ffxiv_gather.CheckBuffs(item)
 	
 	local hasCollect = HasBuffs(Player,"805")
 	local isCollectable = ((maxAttempts and Player.gp.current >= collectCost)) and (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
+	if GetPatchLevel() >= 5.4 then
+		isCollectable = false
+	end
 	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 		local collect = ActionList:Get(1,ffxiv_gather.collectors[Player.job])
 		if (collect and collect:IsReady(Player.id)) then
@@ -2088,6 +2101,9 @@ c_collectiblegame = inheritsFrom( ml_cause )
 e_collectiblegame = inheritsFrom( ml_effect )
 e_collectiblegame.timer = 0
 function c_collectiblegame:evaluate()
+	if GetPatchLevel() >= 5.4 then
+		return false
+	end
 	if (IsControlOpen("GatheringMasterpiece")) then
 		--d("[CollectableGame]: Found the gathering masterpiece addon.")
 		return true
@@ -2278,6 +2294,155 @@ function e_collectiblegame:execute()
 						e_collectiblegame.timer = Now() + 2500
 						return
 					end
+				end
+			end
+		end
+	end
+end
+
+c_newcollectiblegame = inheritsFrom( ml_cause )
+e_newcollectiblegame = inheritsFrom( ml_effect )
+e_newcollectiblegame.timer = 0
+function c_newcollectiblegame:evaluate()
+	if GetPatchLevel() >= 5.4 then
+		if (IsControlOpen("GatheringMasterpiece")) then
+			--gdd("[CollectableGame]: Found the gathering masterpiece addon.")
+			return true
+		end
+	end
+	return false
+end
+function e_newcollectiblegame:execute()
+	if (Now() < ef_newcollectiblegame.timer or MIsCasting()) then
+		return 
+	end
+	
+	d("[CollectableGame]: Checking collectable info.",1)
+	--local info = GetControlData("GatheringMasterpiece")
+	local info = GetControlRawData("GatheringMasterpiece")
+	if (table.valid(info)) then
+		--local collectableId = info.itemid
+		--local collectableRarity = info.rarity
+		local collectableId = info[10].value
+		local collectableRarity = info[5].value
+		local collectableAttemptsRemaining = info[41].value		
+		
+		local idpairs = {}
+		local task = forage_gather.currentTask
+		if (table.valid(task)) then
+			local collectables = task.collectables
+			if (table.valid(collectables)) then
+				for identifier,minvalue in pairs(collectables) do
+					local itemid;
+					if (type(identifier) == "string") then
+						
+						if (GUI_Get(identifier) ~= nil) then
+							local var = identifier
+							identifier = GUI_Get(var)
+							d("Converted identifier var ["..var.."] to ["..identifier.."]")
+						end
+					
+						itemid = AceLib.API.Items.GetIDByName(identifier)
+					else
+						itemid = identifier
+					end
+					
+					if (type(minvalue) == "string") then
+						if (GUI_Get(minvalue) ~= nil) then
+							local var = minvalue
+							minvalue = GUI_Get(minvalue)
+							d("Converted value var ["..var.."] to ["..minvalue.."]")
+						end
+					end
+			
+					if (itemid) then
+						idpairs[itemid] = minvalue
+					end
+				end
+			end
+		end
+		
+		local requiredRarity = 0
+		if (table.valid(idpairs)) then
+			for itemid,cval in pairs(idpairs) do
+				if (collectableId == itemid) then
+					d("[CollectableGame]: Setting required rarity to ["..tostring(cval).."].")
+					requiredRarity = cval
+				end
+				if (requiredRarity ~= 0) then
+					break
+				end
+			end
+		end
+					
+		d("Item current rarity ["..tostring(collectableRarity).."].",1)
+		d("Item required rarity ["..tostring(requiredRarity).."].",1)
+		d("Item current atetmpts remaining ["..tostring(collectableAttemptsRemaining).."].",1)
+				
+		if (collectableRarity > 0 and (((collectableRarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (collectableRarity > 800)) or 
+			(collectableAttemptsRemaining == 1)) then
+			
+			UseControlAction("GatheringMasterpiece","Collect")
+			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+			return
+		else
+			if (SkillMgr.Gather()) then
+				d("[CollectableGame]: Used skill from profile.",3)
+				e_newcollectiblegame.timer = Now() + 2500
+				return
+			else
+			
+				local scour = {
+					[16] = 22182,
+					[17] = 22186,
+				}
+				local scrutiny = {
+					[16] = 22185,
+					[17] = 22189,
+				}
+				local meticulous = {
+					[16] = 22184,
+					[17] = 22188,
+				}
+			
+			--[[[33] = { name = "Scour", [16] = 22182, [17] = 22186, col = true },
+            [34] = { name = "Brazen Prospector", [16] = 22183, [17] = 22187, col = true },
+            [35] = { name = "Meticulous Prospector", [16] = 22184, [17] = 22188, col = true },
+            [36] = { name = "Scrutiny", [16] = 22185, [17] = 22189, col = true },]]
+			
+			
+				d("[CollectableGame]: Attempting to use auto-skills.",1)
+				local methodical = ActionList:Get(1,scour[Player.job])
+				local discerning = ActionList:Get(1,scrutiny[Player.job])
+				local meticulousSkill = ActionList:Get(1,meticulous[Player.job])
+		
+				if (collectableAttemptsRemaining == 1) then
+					UseControlAction("GatheringMasterpiece","Collect")
+					ml_global_information.Await(2000)
+					return
+				end
+				if HasBuffs(Player,"2418") then
+					if (meticulousSkill and meticulousSkill:IsReady(Player.id)) then
+						meticulousSkill:Cast()
+						d("Using auto-skill Meticulous Prospector")
+						e_newcollectiblegame.timer = Now() + 2500
+						return
+					end
+				end
+				if not HasBuffs(Player,"757") then
+					if (discerning and discerning:IsReady(Player.id) and collectableRarity < 1) then
+						discerning:Cast()
+						d("Using auto-skill Scrutiny")
+						e_newcollectiblegame.timer = Now() + 2500
+						return
+					end
+				end
+				if (methodical and methodical:IsReady(Player.id)) then
+					methodical:Cast()
+					d("Using auto-skill Scour")
+					ml_task_hub:ThisTask().gatherattempts = ml_task_hub:ThisTask().gatherattempts + 1
+					e_newcollectiblegame.timer = Now() + 2500
+					return
 				end
 			end
 		end
@@ -3555,6 +3720,9 @@ function ffxiv_task_gather:Init()
     self:add( ke_collectible, self.process_elements)
 	
 	local ke_collectibleGame = ml_element:create( "CollectibleGame", c_collectiblegame, e_collectiblegame, 200 )
+    self:add( ke_collectibleGame, self.process_elements)
+	
+	local ke_collectibleGame = ml_element:create( "CollectibleGame", c_newcollectiblegame, e_newcollectiblegame, 199 )
     self:add( ke_collectibleGame, self.process_elements)
 	
 	local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 190 )
