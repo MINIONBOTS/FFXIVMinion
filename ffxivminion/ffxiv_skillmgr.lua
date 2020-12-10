@@ -3517,6 +3517,11 @@ SkillMgr.MatchingGatherSkills = {
 	["Pick Clean"] 				={ [16] = 4587, [17] = 4588 },
 	["Mountaineer / Pioneer"] 	={ [16] = 4605, [17] = 4606 },
 	["Twelve Bounty"] 			={ [16] = 280, [17] = 282 },
+	
+	["Scour"] 					={ [16] = 22182, [17] = 22186 },
+	["Brazen Prospector"] 		={ [16] = 22183, [17] = 22187 },
+	["Meticulous Prospector"] 	={ [16] = 22184, [17] = 22188 },
+	["Scrutiny"] 				={ [16] = 22185, [17] = 22189 },
 }
 
 function SkillMgr.Gather(item)
@@ -3666,24 +3671,39 @@ function SkillMgr.Gather(item)
 					
 					if (IsControlOpen("GatheringMasterpiece")) then
 						local info = GetControlData("GatheringMasterpiece")
+						
+						
 						if (table.valid(info)) then
-							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
+							local collectableRarity = info.rarity
+							local collectableWear = info.wear
+							
+							if GetPatchLevel() >= 5.4 then
+								info = GetControlRawData("GatheringMasterpiece")
+								collectableRarity = info[5].value
+								collectableAttemptsRemaining = info[41].value	
+								collectableAttemptsMax = info[42].value	
+								collectableWear = collectableAttemptsMax - collectableAttemptsRemaining
+							end
+							d("collectableRarity = "..tostring(collectableRarity))
+							d("collectableWear = "..tostring(collectableWear))
+						
+							if (tonumber(skill.collraritylt) > 0 and collectableRarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
 								castable = false
 							end
-							if (tonumber(skill.collraritygt) > 0 and info.rarity < tonumber(skill.collraritygt)) then
+							if (tonumber(skill.collraritygt) > 0 and collectableRarity < tonumber(skill.collraritygt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity min check.")
 								castable = false
 							end
-							if (tonumber(skill.collwearlt) > 0 and info.wear > tonumber(skill.collwearlt)) then
+							if (tonumber(skill.collwearlt) > 0 and collectableWear >= tonumber(skill.collwearlt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear max check.")
 								castable = false
 							end
-							if (tonumber(skill.collweargt) > 0 and info.wear < tonumber(skill.collweargt)) then
+							if (tonumber(skill.collweargt) > 0 and collectableWear < tonumber(skill.collweargt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear min check.")
 								castable = false
 							end
-							if (tonumber(skill.collweareq) > 0 and info.wear ~= tonumber(skill.collweareq)) then
+							if (tonumber(skill.collweareq) > 0 and collectableWear ~= tonumber(skill.collweareq)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear equality check.")
 								castable = false
 							end
@@ -6698,7 +6718,7 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Rarity <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollRarityLT",SKM_CollRarityLT,0,0),"SKM_CollRarityLT"); GUI:NextColumn();	
 		GUI:Text(GetString("Rarity >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollRarityGT",SKM_CollRarityGT,0,0),"SKM_CollRarityGT"); GUI:NextColumn();	
 		GUI:Text(GetString("Wear >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearGT",SKM_CollWearGT,0,0),"SKM_CollWearGT"); GUI:NextColumn();
-		GUI:Text(GetString("Wear <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
+		GUI:Text(GetString("Wear <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
 		GUI:Text(GetString("Wear =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearEQ",SKM_CollWearEQ,0,0),"SKM_CollWearEQ"); GUI:NextColumn();
 		GUI:Text(GetString("Chance <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemChanceMax",SKM_ItemChanceMax,0,0),"SKM_ItemChanceMax"); GUI:NextColumn();	
 		GUI:Text(GetString("HQ Chance >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemHQChanceMin",SKM_ItemHQChanceMin,0,0),"SKM_ItemHQChanceMin"); GUI:NextColumn();
