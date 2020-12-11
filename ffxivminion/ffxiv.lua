@@ -2451,17 +2451,8 @@ function ml_global_information.DrawHelper() -- Helper Window
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Separator()
-					GUI:Text(GetString("Navmesh:"))
-					local currentMesh = IsNull(ml_mesh_mgr.data.meshfiles[ml_mesh_mgr.data.meshfileidx],"")
-					if (NavigationManager.ShowCells == nil ) then
-						currentMesh = IsNull(ml_mesh_mgr.currentfilename,"")
-					end
-					GUI:Text(currentMesh..GetString(" - MapID: ")..tostring(Player.localmapid))
-					if (NavigationManager.ShowCells == nil ) then
-						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
-					else
-						GUI:Text("Using New Navigation")
-					end
+					GUI:Text("MapID: "..tostring(Player.localmapid))
+					GUI:Text("Navmesh: ".. tostring(ml_mesh_mgr.currentfilename))
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
@@ -2604,13 +2595,11 @@ invalid name or haven't chosen one."))
 					GUI:Text("include an image of the console.")
 					GUI:Text("The image must show the FULL error.")
 					GUI:Separator()
-					if (NavigationManager.ShowCells == nil ) then
-						GUI:TextColored(1,.1,.2,1,GetString("Using Old Navigation"))
-					else
-						GUI:Text("Using New Navigation")
-					end
 					GUI:Text("MapID: "..tostring(Player.localmapid))
 					GUI:Text("Navmesh: ".. tostring(ml_mesh_mgr.currentfilename))
+					GUI:Separator()
+					GUI:Text("Patch Version:")
+					GUI:Text(GetPatchLevel())
 					GUI:Separator()
 					GUI:Text("Player position:")
 					local PlayerPos = Player.pos
