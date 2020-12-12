@@ -608,6 +608,7 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Dancing PlagueEX", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the ImmaculateEX", enforce)
 		ml_mesh_mgr.SetDefaultMesh(922, "[Trial] The Seat of Sacrifice", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] ???", enforce)
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
