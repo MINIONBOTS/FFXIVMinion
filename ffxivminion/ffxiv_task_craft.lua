@@ -2907,14 +2907,14 @@ function ffxiv_craft.Draw( event, ticks )
 					end
 					
 					if (not gCraftOrderEditQuick) and not acrValid then
-						GUI:PushItemWidth(250)
-						GUI_Capture(GUI:Combo("##skillProfile", IsNull(gCraftOrderEditSkillProfileIndex,1), SkillMgr.profiles ),"gCraftOrderEditSkillProfileIndex")
 					
+						GUI:PushItemWidth(250)
+						local checkvalue = GUI_Combo("##tea", "gCraftOrderEditSkillProfileIndex", "gCraftOrderEditSkillProfile", SkillMgr.profiles)
+						if (checkvalue) then
+							orders.skillprofile = gCraftOrderEditSkillProfile
+							ffxiv_craft.SaveProfile()
+						end
 						GUI:PopItemWidth()
-					end
-					if (orders.skillprofile ~= gCraftOrderEditSkillProfile) then
-						orders.skillprofile = gCraftOrderEditSkillProfile
-						ffxiv_craft.UpdateOrderElement()
 					end
 					
 					GUI_Capture(GUI:InputInt("##RequiredCP1",gCraftOrderEditRequiredCP,0,0),"gCraftOrderEditRequiredCP")
