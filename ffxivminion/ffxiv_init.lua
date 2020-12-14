@@ -657,13 +657,36 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Alphascape Savage", enforce)
 		
 		-- Raids SHB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Eden's Gate", enforce)
+		-- Eden's Gate
+		--ml_mesh_mgr.SetDefaultMesh(849, "[Raid] The Core", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Core", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Halo_e2", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(852, "[Raid] The Halo_e2", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(853, "[Raid] The Nereus Trench", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(854, "[Raid] The Nereus Trench", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(855, "[Raid] Atlas Peak", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(856, "[Raid] Atlas Peak", enforce)
+		
+		-- Eden's Verse
+		ml_mesh_mgr.SetDefaultMesh(902, "[Raid] The Gandof Thunder Plains", enforce)
+		ml_mesh_mgr.SetDefaultMesh(906, "[Raid] The Gandof Thunder Plains", enforce)
+		ml_mesh_mgr.SetDefaultMesh(903, "[Raid] Ashfall", enforce)
+		ml_mesh_mgr.SetDefaultMesh(907, "[Raid] Ashfall", enforce)
+		ml_mesh_mgr.SetDefaultMesh(904, "[Raid] The Halo_e7", enforce)
+		ml_mesh_mgr.SetDefaultMesh(908, "[Raid] The Halo_e7", enforce)
+		ml_mesh_mgr.SetDefaultMesh(905, "[Raid] Great Glacier", enforce)
+		ml_mesh_mgr.SetDefaultMesh(909, "[Raid] Great Glacier", enforce)
+		
+		-- Eden's Promise
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce)
+	
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
