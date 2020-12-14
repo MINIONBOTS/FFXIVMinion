@@ -3684,9 +3684,7 @@ function SkillMgr.Gather(item)
 								collectableAttemptsMax = info[42].value	
 								collectableWear = collectableAttemptsMax - collectableAttemptsRemaining
 							end
-							d("collectableRarity = "..tostring(collectableRarity))
-							d("collectableWear = "..tostring(collectableWear))
-						
+							
 							if (tonumber(skill.collraritylt) > 0 and collectableRarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
 								castable = false
