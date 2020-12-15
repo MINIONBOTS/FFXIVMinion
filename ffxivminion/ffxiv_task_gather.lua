@@ -2229,7 +2229,8 @@ function e_collectiblegame:execute()
 			(info.wear == 30 and not sticklerAvaliable)) then
 			
 			UseControlAction("GatheringMasterpiece","Collect",0,500)
-			ml_global_information.Await(1500, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+			e_collectiblegame.timer = Now() + 2500
+			ml_global_information.Await(2500)
 			return
 		else
 			if (SkillMgr.Gather()) then
@@ -2239,7 +2240,8 @@ function e_collectiblegame:execute()
 			else
 				if (info.wear >= 30) then
 					UseControlAction("GatheringMasterpiece","Collect",0,500)
-					ml_global_information.Await(1500, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+					e_collectiblegame.timer = Now() + 2500
+					ml_global_information.Await(2500)
 					return
 				else
 					local methodicals = {
@@ -2313,7 +2315,7 @@ function c_newcollectiblegame:evaluate()
 	return false
 end
 function e_newcollectiblegame:execute()
-	if (Now() < ef_newcollectiblegame.timer or MIsCasting()) then
+	if (Now() < e_collectiblegame.timer or MIsCasting()) then
 		return 
 	end
 	
@@ -2440,7 +2442,6 @@ function e_newcollectiblegame:execute()
 				if (methodical and methodical:IsReady(Player.id)) then
 					methodical:Cast()
 					d("Using auto-skill Scour")
-					ml_task_hub:ThisTask().gatherattempts = ml_task_hub:ThisTask().gatherattempts + 1
 					e_newcollectiblegame.timer = Now() + 2500
 					return
 				end
