@@ -4395,7 +4395,8 @@ function IsCityMap(mapid)
 		[628] = true,
 		[635] = true,			
 		[819] = true,			
-		[820] = true,
+		[820] = true,		
+		[886] = true,
 	}
 	return cityMaps[mapid]
 end
