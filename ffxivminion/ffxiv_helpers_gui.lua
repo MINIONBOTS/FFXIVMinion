@@ -188,6 +188,11 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 			end
 		end
 		
+		if (popup.gui.center) then
+			--local maxWidth, maxHeight = GUI:GetScreenSize()
+			--GUI:SetNextWindowPos((maxWidth/2)-(width/2), (maxHeight/2)-(height/2), GUI.SetCond_Always)
+			GUI:SetNextWindowPosCenter(GUI.SetCond_Always)
+		end
 		GUI:SetNextWindowSize(width,height,IIF(force,GUI.SetCond_Always,GUI.SetCond_Once))
 		
 		if (GUI:BeginPopupModal(popup.title,true)) then
