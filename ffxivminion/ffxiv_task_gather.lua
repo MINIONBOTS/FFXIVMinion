@@ -2330,7 +2330,7 @@ function e_newcollectiblegame:execute()
 		local collectableAttemptsRemaining = info[41].value		
 		
 		local idpairs = {}
-		local task = forage_gather.currentTask
+		local task = ffxiv_gather.currentTask
 		if (table.valid(task)) then
 			local collectables = task.collectables
 			if (table.valid(collectables)) then
