@@ -1142,6 +1142,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	--d("building path to ["..tostring(newGoal.x)..","..tostring(newGoal.y)..","..tostring(newGoal.z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	ml_navigation.lastPathUpdate = Now()
+	ml_navigation.lastconnectionid = 0
 	
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then

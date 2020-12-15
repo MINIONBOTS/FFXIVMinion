@@ -147,7 +147,7 @@ function c_stuck:evaluate()
 				
 					if table.valid(attemptReturnPos) then
 						local ppos = Player.pos
-						if (attemptReturnPos <= Player.pos) --[[and (Distance3D(ppos.x,ppos.y,ppos.z,attemptReturnPos.x,attemptReturnPos.y,attemptReturnPos.z) < 20)]] then
+						if (Distance3D(ppos.x,ppos.y,ppos.z,attemptReturnPos.x,attemptReturnPos.y,attemptReturnPos.z) < 10) then
 							Player:SetFacing(attemptReturnPos.pos.x,attemptReturnPos.pos.y,attemptReturnPos.pos.z)
 							local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+2,ppos.z,ppos.x,ppos.y-10,ppos.z) 
 							if (not hit or (hit and (Distance2D(ppos.x,ppos.z,hitx,hitz) > 10))) then
@@ -185,6 +185,7 @@ function e_stuck:execute()
 		return
 	end
 	
+	ml_navigation.lastconnectionid = 0
 	ffxiv_unstuck.State.STUCK.ticks = 0
 	ffxiv_unstuck.State.STALLED.ticks = 0
 	ffxiv_unstuck.State.OFFMESH.ticks = 0
