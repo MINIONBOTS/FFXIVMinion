@@ -185,6 +185,7 @@ function e_stuck:execute()
 		return
 	end
 	
+	ml_navigation:ResetOMCHandler()
 	ml_navigation.lastconnectionid = 0
 	ffxiv_unstuck.State.STUCK.ticks = 0
 	ffxiv_unstuck.State.STALLED.ticks = 0
