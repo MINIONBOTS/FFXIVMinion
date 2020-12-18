@@ -1724,6 +1724,7 @@ function SkillMgr.ReadFile(strFile)
 			SkillMgr.SkillProfile = profile.skills
 		end
 		gSkillManagerMingp = IsNull(profile.mingp,0)
+		gSkillManagerPrioSystem = IsNull(profile.priosystem,false)
 	else
 		SkillMgr.ProfileRaw = {}
 		return false
@@ -1832,6 +1833,7 @@ function SkillMgr.WriteToFile(strFile)
 		end
 	end
 	info.mingp = gSkillManagerMingp
+	info.priosystem = gSkillManagerPrioSystem
 	info.filters = {
 		[1] = gSkillManagerFilter1,
 		[2] = gSkillManagerFilter2,
@@ -3684,7 +3686,7 @@ function SkillMgr.Gather(item)
 								collectableAttemptsMax = info[42].value	
 								collectableWear = collectableAttemptsMax - collectableAttemptsRemaining
 							end
-							
+						
 							if (tonumber(skill.collraritylt) > 0 and collectableRarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
 								castable = false
@@ -3736,9 +3738,16 @@ function SkillMgr.Gather(item)
                     end	
 					
 					--Single use check
-					if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
-						castable = false
+					if not gSkillManagerPrioSystem then
+						if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
+							castable = false
+						end
+					else
+						if (skill.singleuseonly and SkillMgr.prevSkillList[prio]) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
+							castable = false
+						end
 					end
 					
 					if (IsNull(skill.gatherrequiresmark,"") ~= "") then
@@ -3756,8 +3765,11 @@ function SkillMgr.Gather(item)
 								SkillMgr.SkillProfile[prio].lastcast = Now()
 								SkillMgr.prevGatherSkillID = tostring(skillid)
 								--After a skill is used here, mark it unusable for the rest of the duration of the node.
-								SkillMgr.prevSkillList[skillid] = true
-								
+								if not gSkillManagerPrioSystem then
+									SkillMgr.prevSkillList[skillid] = true
+								else
+									SkillMgr.prevSkillList[prio] = true
+								end
 								if (IsNull(skill.gatheraddsmark,"") ~= "") then
 									SkillMgr.pathMark = skill.gatheraddsmark
 								end
@@ -6754,6 +6766,12 @@ function SkillMgr.DrawManager()
 					SkillMgr.SaveProfile()
 				end
 				GUI:PopItemWidth()
+								
+				local val, changed = GUI:Checkbox(GetString("Gathering Single Use Exclude by prio. (New System)"),gSkillManagerPrioSystem)
+				if (changed) then
+					gSkillManagerPrioSystem = val
+					SkillMgr.SaveProfile()
+				end
 				
 				if (GUI:Button(GetString("Retranslate Profile"),200,25)) then
 					local skills = SkillMgr.SkillProfile
