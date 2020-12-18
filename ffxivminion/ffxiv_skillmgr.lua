@@ -6625,7 +6625,7 @@ function SkillMgr.DrawCraftEditor()
 	
 	if (GUI:CollapsingHeader("Crafting","crafting-header")) then
 		GUI:Columns(2,"#craft-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,500);
+		GUI:SetColumnOffset(1,155); GUI:SetColumnOffset(2,500);
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Text(GetString("Consecutive Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ConsecutiveUseCraft",SKM_ConsecutiveUseCraft),"SKM_ConsecutiveUseCraft"); GUI:NextColumn();
