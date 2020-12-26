@@ -1457,7 +1457,7 @@ ffxiv_map_nav.data = {
 	[818] =
     {
         [814] = {
-            {id = 814, cost = 1, x = 261, y = 420, z = -885, h = -0.01, g = 2010635
+            {id = 814, cost = 1, x = 264, y = 420, z = -885, h = 2.64, g = 2010635
 				, requires = {
 					["QuestCompleted(3647)"] = true,
 				},
