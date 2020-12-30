@@ -283,6 +283,7 @@ function c_precastbuff:evaluate()
 	local useFood = 0
 	local needsStealth = false
 	local taskType = "fishing"
+	local usePatience, usePatience2;
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -292,8 +293,12 @@ function c_precastbuff:evaluate()
 		useCordials = IsNull(task.usecordials,useCordials)
 		useFood = IsNull(task.food,0)
 		taskType = IsNull(task.type,"fishing")
+		usePatience = IsNull(task.usepatience,false)
+		usePatience2 = IsNull(task.usepatience2,false)
 	elseif (table.valid(marker)) then
 		needsStealth = IsNull(marker.usestealth,false)
+		usePatience = IsNull(marker.usepatience,false)
+		usePatience2 = IsNull(marker.usepatience2,false)
 	end
 		
 	if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
@@ -308,13 +313,12 @@ function c_precastbuff:evaluate()
 	if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
 		useFood = GUI_Get(useFood)
 	end
-	
 	if (taskType == "idle") then
 		return false
 	end
 		
 		
-	if (fs == 0 or ((MissingBuff(Player,762) and MissingBuff(Player,763) and MissingBuff(Player,764)) and fs == 4)) then
+	if (fs == 0 or (((HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51) or (not usePatience and not usePatience2)) and fs == 4)) then
 		if (Player.job ~= FFXIV.JOBS.FISHER) then
 			if (CanSwitchToClass(FFXIV.JOBS.FISHER)) then
 				c_precastbuff.activity = "switchclass"
@@ -328,7 +332,6 @@ function c_precastbuff:evaluate()
 				return true
 			end
 		end
-
 		
 		local hasStealth = HasBuff(Player.id,47)
 		if (not hasStealth and needsStealth) then
