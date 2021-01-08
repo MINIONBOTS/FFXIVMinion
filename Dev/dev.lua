@@ -35,6 +35,8 @@ function dev.Init()
 	gDevScannerString = "alive,aggressive"
 	gDevRecordNPCs = false
 	gDevRecordedNPCs = {}
+	gDevX = 0
+	gDevY = 0
 end
 
 
@@ -88,6 +90,21 @@ function dev.DrawCall(event, ticks )
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 										
 										GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
+										local x,y = e:GetXY()
+										GUI:BulletText("Position") GUI:SameLine(200) GUI:InputText("##devc1pos"..tostring(id),tostring(x).. ", "..tostring(y)) 
+										GUI:PushItemWidth(50)
+										gDevX = GUI:InputText("##devc1pos2"..tostring(id),tostring(gDevX)) 
+										GUI:SameLine(140) 
+										GUI:PushItemWidth(50)
+										gDevY = GUI:InputText("##devc1pos3"..tostring(id),tostring(gDevY))
+									
+										GUI:SameLine(200)
+									
+									if (GUI:Button("Set Pos",75,15) ) then e:SetXY(tonumber(gDevX),tonumber(gDevY)) end
+										
+										
+										GUI:PushItemWidth(150)
+										
 										if (isopen == false) then
 											if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
 											GUI:SameLine()
