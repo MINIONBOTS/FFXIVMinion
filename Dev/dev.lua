@@ -1288,6 +1288,7 @@ function dev.DrawCall(event, ticks )
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devbag1"..tostring(id),tostring(string.format( "%X",bag.ptr)))
 										GUI:BulletText("Slots/Free/Used") GUI:SameLine(200) GUI:InputInt3("##devbag2"..tostring(id),tostring(bag.size),tostring(bag.free),tostring(bag.used))
 										if (GUI:Button("Sort()##",100,15) ) then d(Inventory:SortInventory()) end
+										if (GUI:Button("RepairAll()##",100,15) ) then d(bag:RepairAll()) end -- with RepairAll(true) uses darkmater otherwise use gil
 										local ilist = bag:GetList() -- can also use bag:GetSortedItemList()
 										if (table.valid(ilist)) then
 											for slot, item in pairs(ilist) do
