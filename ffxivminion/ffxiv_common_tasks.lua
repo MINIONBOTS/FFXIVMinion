@@ -1647,9 +1647,9 @@ function ffxiv_task_grindCombat:Process()
 					Dismount()
 				end
 			end
-			if (InCombatRange(target.id) and not IsFlying()) then
+			if ((InCombatRange(target.id) or target.distance2d <= 15) and not IsFlying()) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (Player:IsMoving()) then
+				if (Player:IsMoving() and InCombatRange(target.id)) then
 					Player:Stop()
 				end
 				-- Check for combat range before executing.

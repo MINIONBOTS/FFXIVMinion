@@ -1,5 +1,5 @@
 ffxiv_combat_dancer = {}
-ffxiv_combat_dancer.range = 24
+ffxiv_combat_dancer.range = 14 -- standard/tech step are 15y
 ffxiv_combat_dancer.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_dancer.info"
 if (not FileExists(ffxiv_combat_dancer.optionsPath)) then
 	local defaults = {}

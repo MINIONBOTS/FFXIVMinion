@@ -2528,6 +2528,8 @@ function GetApprovedFates()
 					table.insert(approvedFates,fate)
 				elseif (not (isChain or isPrio) and (fate.type == 4 and gGrindDoEscortFates  and fate.completion >= tonumber(gFateEscortWaitPercent))) then
 					table.insert(approvedFates,fate)
+				elseif (not (isChain or isPrio) and (fate.type == -1 and fate.completion >= tonumber(gFateEscortWaitPercent))) then
+					table.insert(approvedFates,fate)
 				elseif ((isChain or isPrio) and gDoChainFates ) then
 					if (fate.completion >= tonumber(gFateChainWaitPercent) or not firstChain) then
 						table.insert(approvedFates,fate)
@@ -3269,7 +3271,7 @@ function Repair()
 	end
 end
 function NeedsRepair()
-	if (gRepair and GetPatchLevel() < 5.41) then
+	if (gRepair ) then
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
@@ -4106,7 +4108,7 @@ function GetAetheryteByMapID(mapid, p)
 		[137] = {name = "Eastern La Noscea",
 			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0,
 				best = function ()  
-					if In(GetELNSection(pos),1,3) then
+					if (not (ppos.x > 218 and ppos.z > 51) and (pos.x > 218 and pos.z > 51)) then
 						return true
 					end
 					return false
@@ -4114,7 +4116,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0, 
 				best = function ()  
-					if In(GetELNSection(pos),2) then
+					if ((ppos.x > 218 and ppos.z > 51) and not (pos.x > 218 and pos.z > 51)) then
 						return true
 					end
 					return false
@@ -4136,7 +4138,7 @@ function GetAetheryteByMapID(mapid, p)
 		[401] = {name = "Sea of Clouds",
 			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545, 
 				best = function ()  
-					if In(GetSeaOfCloudsSection(pos),2) then
+					if (GetSeaOfCloudsSection(Player.pos) == 1 and GetSeaOfCloudsSection(pos) == 2) then
 						return true
 					end
 					return false
@@ -4144,7 +4146,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419,
 				best = function ()  
-					if In(GetSeaOfCloudsSection(pos),1) then
+					if (GetSeaOfCloudsSection(Player.pos) == 2 and GetSeaOfCloudsSection(pos) == 1) then
 						return true
 					end
 					return false
@@ -4154,7 +4156,7 @@ function GetAetheryteByMapID(mapid, p)
 		[398] = {name = "The Dravanian Forelands",
             [1] = { name = "Tailfeather", aethid = 76, x = 531.49, z = 20.57, 
                 best = function ()  
-					if In(GetForelandsSection(pos),1) then
+                    if (GetForelandsSection(Player.pos) == 2 and GetForelandsSection(pos) == 1) then
                         return true
                     end
                     return false
@@ -4162,7 +4164,7 @@ function GetAetheryteByMapID(mapid, p)
             },
             [2] = { name = "Anyx Trine", aethid = 77, x = -301.09, z = 38.07,
                 best = function ()  
-					if In(GetForelandsSection(pos),2) then
+                    if (GetForelandsSection(Player.pos) == 1 and GetForelandsSection(pos) == 2) then
                         return true
                     end
                     return false
@@ -4184,7 +4186,7 @@ function GetAetheryteByMapID(mapid, p)
 		[614] = {name = "Yanxia",
 			[1] = { name = "Namai", aethid = 107, x = 432, z = -85,
 				best = function ()  
-					if In(GetYanxiaSection(pos),1) then
+					if (GetYanxiaSection(Player.pos) == 2 and GetYanxiaSection(pos) == 1) then
 						return true
 					end
 					return false
@@ -4192,7 +4194,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402,
 				best = function ()  
-					if In(GetYanxiaSection(pos),2) then
+					if (GetYanxiaSection(Player.pos) == 1 and GetYanxiaSection(pos) == 2) then
 						return true
 					end
 					return false
@@ -4395,8 +4397,7 @@ function IsCityMap(mapid)
 		[628] = true,
 		[635] = true,			
 		[819] = true,			
-		[820] = true,		
-		[886] = true,
+		[820] = true,
 	}
 	return cityMaps[mapid]
 end
@@ -7939,7 +7940,7 @@ function FindNearestCollectableAppraiser()
 	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
 	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
 	local gridania = { id = 1003076, aethid = 2, mapid = 133, pos = {x = 143, y = 13, z = -103} }
-	local limsa = { id = 1003632, aethid = 8, mapid = 129, pos = {x = -257, y = 16, z = 40} }
+	local limsa = { id = 1003632, aethid = 8, mapid = 139, pos = {x = -257, y = 16, z = 40} }
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
 	
@@ -8018,7 +8019,7 @@ function FindClosestCity()
 	local idyllshire = { aethid = 75, mapid = 478 }
 	local rhalgr = { aethid = 104, mapid = 635 }
 	local gridania = { aethid = 2, mapid = 132 }
-	local limsa = { aethid = 8, mapid = 129 }
+	local limsa = { aethid = 8, mapid = 139 }
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
 	
