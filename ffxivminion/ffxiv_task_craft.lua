@@ -1286,7 +1286,7 @@ function ffxiv_task_craft:UIInit()
 	if (gCraftFood ~= currentfood) then
 		if (table.valid(gFoods)) then
 			for i,food in pairs(gFoods) do
-				if (food == Mode) then
+				if (food == gCraftFood) then
 					gCraftFoodIndex = i
 					gCraftFood =  gFoods[gCraftFoodIndex]
 				end
