@@ -2441,7 +2441,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	
 	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
 		if (MIsLoading()) then
-			local initiatedPos = IsNull(self.initiatedPos,Player.pos)
+			-- Use Player.pos if self.initiatedPos is an empty table
+			local initiatedPos = table.valid(self.initiatedPos) and self.initiatedPos or Player.pos
 			d("Triggering wait for full load-in.")
 			ml_global_information.Await(10000, function () return (Player and not Busy() and math.distance3d(initiatedPos,Player.pos) > 10) end)
 		end
