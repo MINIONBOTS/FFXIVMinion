@@ -671,37 +671,40 @@ function ffxivminion.GetSetting(strSetting,default)
 	return Settings.FFXIVMINION[strSetting]	
 end
 
-function SetGearsetInfo()
+function SetGearsetInfo(disable)
+	local disable = IsNull(disable,false)
 	local searchList = Player:GetGearSetList()
 	local newSets = {}
-	if table.valid(searchList) then
-		for i = 1,38,1 do
-			_G["gGearset"..tostring(i)] = 0
-			Settings.FFXIVMINION["gGearset"..tostring(i)] = 0
-			--d("clearing old gearsets")
-		end
-	
-		for i,e in spairs(searchList) do
-			local cleanedName = string.gsub(e.name,"[^0-9]","")
-			if not newSets[e.job] then
-				newSets[e.job] = tonumber(cleanedName)
-				_G["gGearset"..tostring(e.job)] = i
-				Settings.FFXIVMINION["gGearset"..tostring(e.job)] = i
-				d("Setting gearset info for class ["..tostring(e.job).."] to ["..tostring(i).."]")
-			else
-				if IsNull(tonumber(cleanedName),0) > newSets[e.job] then
+	if not disable then
+		if table.valid(searchList) then
+			for i = 1,38,1 do
+				_G["gGearset"..tostring(i)] = 0
+				Settings.FFXIVMINION["gGearset"..tostring(i)] = 0
+				--d("clearing old gearsets")
+			end
+		
+			for i,e in spairs(searchList) do
+				local cleanedName = string.gsub(e.name,"[^0-9]","")
+				if not newSets[e.job] then
 					newSets[e.job] = tonumber(cleanedName)
 					_G["gGearset"..tostring(e.job)] = i
 					Settings.FFXIVMINION["gGearset"..tostring(e.job)] = i
 					d("Setting gearset info for class ["..tostring(e.job).."] to ["..tostring(i).."]")
+				else
+					if IsNull(tonumber(cleanedName),0) > newSets[e.job] then
+						newSets[e.job] = tonumber(cleanedName)
+						_G["gGearset"..tostring(e.job)] = i
+						Settings.FFXIVMINION["gGearset"..tostring(e.job)] = i
+						d("Setting gearset info for class ["..tostring(e.job).."] to ["..tostring(i).."]")
+					end
 				end
 			end
-		end
-	else
-		for i = 1,38,1 do
-			_G["gGearset"..tostring(i)] = 0
-			Settings.FFXIVMINION["gGearset"..tostring(i)] = 0
-			--d("clearing old gearsets")
+		else
+			for i = 1,38,1 do
+				_G["gGearset"..tostring(i)] = 0
+				Settings.FFXIVMINION["gGearset"..tostring(i)] = 0
+				--d("clearing old gearsets")
+			end
 		end
 	end
 end
