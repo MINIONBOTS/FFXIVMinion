@@ -7900,6 +7900,7 @@ function HasInteractWindows()
 	return IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() 
 		or IsControlOpen("Gathering") or IsControlOpen("GatheringMasterpiece") or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") 
 		or IsControlOpen("Talk") or IsControlOpen("Snipe") or IsControlOpen("Request") or IsControlOpen("JournalResult") or IsControlOpen("JournalAccept")
+		or IsControlOpen("HWDSupply") or IsControlOpen("HWDGathereInspect") or IsControlOpen("ContentsFinderConfirm")
 end
 
 function GetDutyCompleted(mapid)
