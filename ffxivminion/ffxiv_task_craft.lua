@@ -1121,6 +1121,9 @@ function ffxiv_task_craftitems:Init()
 	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 140 )
     self:add(ke_reachedCraftLimit, self.process_elements)
 	
+	local ke_repair = ml_element:create( "Repair", cf_needsrepair, ef_needsrepair, 121 )
+    self:add( ke_repair, self.process_elements)
+	
 	local ke_precraftbuff = ml_element:create( "PreCraftBuff", c_precraftbuff, e_precraftbuff, 120 )
     self:add(ke_precraftbuff, self.process_elements)
 	

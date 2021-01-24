@@ -2867,6 +2867,9 @@ function ffxiv_task_fish:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
     self:add( ke_recommendEquip, self.process_elements)
 	
+	local ke_repair = ml_element:create( "Repair", cf_needsrepair, ef_needsrepair, 240 )
+    self:add( ke_repair, self.process_elements)
+	
 	local ke_buybait = ml_element:create( "BuyBait", c_buybait, e_buybait, 230 )
 	self:add(ke_buybait, self.process_elements)
 	

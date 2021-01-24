@@ -449,6 +449,9 @@ function ffxiv_task_huntlog:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
     self:add( ke_recommendEquip, self.process_elements)
 	
+	local ke_repair = ml_element:create( "Repair", cf_needsrepair, ef_needsrepair, 125 )
+    self:add( ke_repair, self.process_elements)
+	
 	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 120 )
     self:add( ke_eat, self.process_elements)
 	

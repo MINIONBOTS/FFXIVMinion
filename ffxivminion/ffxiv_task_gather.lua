@@ -3717,6 +3717,9 @@ function ffxiv_task_gather:Init()
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 220 )
     self:add( ke_recommendEquip, self.process_elements)
 	
+	local ke_repair = ml_element:create( "Repair", cf_needsrepair, ef_needsrepair, 215 )
+    self:add( ke_repair, self.process_elements)
+	
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddongather, e_collectibleaddongather, 210 )
     self:add( ke_collectible, self.process_elements)
 	
