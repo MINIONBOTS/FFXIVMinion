@@ -1341,11 +1341,10 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("IsDesynthable") GUI:SameLine(225) GUI:InputText("##devbag35",tostring(dev.isDesynthable))
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
-													dev.repairItemName = ""
 													if item.repairitem > 0 then
-														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem)
+														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
-													GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
 
 													local tar = Player:GetTarget()
