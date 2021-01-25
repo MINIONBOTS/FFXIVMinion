@@ -1331,6 +1331,9 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("IsUntradeable") GUI:SameLine(200) GUI:InputText("##devbag32"..tostring(slot),tostring(item.isuntradeable))
 													GUI:BulletText("iscollectable") GUI:SameLine(200) GUI:InputText("##devbag34",tostring(item.iscollectable))
 													GUI:BulletText("IsBinding") GUI:SameLine(200) GUI:InputText("##devbag33"..tostring(slot),tostring(item.isbinding))
+													GUI:BulletText("DesynthValue") GUI:SameLine(200) GUI:InputText("##devbag35"..tostring(slot),tostring(item.desynthvalue))
+													GUI:BulletText("RepairItem") GUI:SameLine(200) GUI:InputText("##devbag36",tostring(item.repairitem))
+													GUI:BulletText("RepairJob") GUI:SameLine(200) GUI:InputText("##devbag37"..tostring(slot),tostring(item.repairclassjob))
 													
 													local tar = Player:GetTarget()
 													if ( tar ) then
@@ -1380,9 +1383,11 @@ function dev.DrawCall(event, ticks )
 													end
 
 													local action = item:GetAction()
+													local actionid = action.id
 													if (table.valid(action)) then
 														if ( GUI:TreeNode("Action: "..tostring(action.id).." - "..action.name)) then --rather slow making 6000+ names :D
 															--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+															
 															GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
 															GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
 															GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
