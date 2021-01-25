@@ -1383,7 +1383,7 @@ function dev.DrawCall(event, ticks )
 													end
 
 													local action = item:GetAction()
-													local actionid = action.id
+													
 													if (table.valid(action)) then
 														if ( GUI:TreeNode("Action: "..tostring(action.id).." - "..action.name)) then --rather slow making 6000+ names :D
 															--if ( GUI:TreeNode(tostring(actionid).." - ")) then
