@@ -658,18 +658,22 @@ function dev.DrawCall(event, ticks )
 
 			if ( GUI:TreeNode("Duty Info")) then
 			
-			
 				GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
 				GUI:BulletText("GetQueueStatus") GUI:SameLine(200) GUI:InputText("##devDLx2",tostring(Duty:GetQueueStatus()))
 				
 				if GUI:TreeNode("GetActiveDutyInfo") then
 					local info = Duty:GetActiveDutyInfo()
+					local director = Director:GetActiveDirector()
 					if (table.valid(info)) then
 						GUI:PushItemWidth(200)
 						GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dutyinfo_name",tostring(info.name))
 						GUI:BulletText(".timer") GUI:SameLine(200) GUI:InputText("##dutyinfo_timer",tostring(info.timer))
 						GUI:BulletText(".dutytype") GUI:SameLine(200) GUI:InputText("##dutyinfo_type",tostring(info.dutytype))
 						GUI:BulletText(".dutystep") GUI:SameLine(200) GUI:InputText("##dutyinfo_step",tostring(info.dutystep))
+						if (table.valid(director)) then
+							GUI:BulletText(".textindex") GUI:SameLine(200) GUI:InputText("##devneww345",tostring(director.textindex))
+							GUI:BulletText(".textstartindex") GUI:SameLine(200) GUI:InputText("##devneww346",tostring(director.textstartindex))
+						end
 						GUI:PopItemWidth()	
 					else
 						GUI:Text("Not in duty ...")
