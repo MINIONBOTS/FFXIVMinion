@@ -1293,61 +1293,73 @@ function dev.DrawCall(event, ticks )
 										if (table.valid(ilist)) then
 											for slot, item in pairs(ilist) do
 												if ( GUI:TreeNode(tostring(slot).." - "..item.name)) then
-													GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devbag3"..tostring(slot),tostring(string.format( "%X",item.ptr)))
-													GUI:BulletText("Ptr2") GUI:SameLine(200) GUI:InputText("##devbag4"..tostring(slot),tostring(string.format( "%X",item.ptr2)))
-													GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devbag5"..tostring(slot),tostring(item.id))
-													GUI:BulletText("Is HQ") GUI:SameLine(200) GUI:InputText("##devbag19"..tostring(slot),tostring(item.ishq))
-													GUI:BulletText("HQID") GUI:SameLine(200) GUI:InputText("##devbag6"..tostring(slot),tostring(item.hqid))
-													GUI:BulletText("Slot") GUI:SameLine(200) GUI:InputText("##devbag7"..tostring(slot),tostring(item.slot))
-													GUI:BulletText("Parent BagID") GUI:SameLine(200) GUI:InputText("##devbag8"..tostring(slot),tostring(item.type))
-													GUI:BulletText("Stack Size") GUI:SameLine(200) GUI:InputText("##devbag9"..tostring(slot),tostring(item.count))
-													GUI:BulletText("Max Stack") GUI:SameLine(200) GUI:InputText("##devbag10"..tostring(slot),tostring(item.max))
-													GUI:BulletText("Condition") GUI:SameLine(200) GUI:InputText("##devbag11"..tostring(slot),tostring(item.condition))
-													GUI:BulletText("Collectability") GUI:SameLine(200) GUI:InputText("##devbag27"..tostring(slot),tostring(item.collectability))
-													GUI:BulletText("Spiritbond") GUI:SameLine(200) GUI:InputText("##devbag18"..tostring(slot),tostring(item.spiritbond))
-													GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devbag13"..tostring(slot),tostring(item.level))
-													GUI:BulletText("Required Level") GUI:SameLine(200) GUI:InputText("##devbag14"..tostring(slot),tostring(item.requiredlevel))
-													GUI:BulletText("class") GUI:SameLine(200) GUI:InputText("##devbag17"..tostring(slot),tostring(item.class))
-													GUI:BulletText("Category") GUI:SameLine(200) GUI:InputText("##devbag20"..tostring(slot),tostring(item.category))
-													GUI:BulletText("UICategory") GUI:SameLine(200) GUI:InputText("##devbag21"..tostring(slot),tostring(item.uicategory))
-													GUI:BulletText("SearchCategory") GUI:SameLine(200) GUI:InputText("##devbag22"..tostring(slot),tostring(item.searchcategory))
-													GUI:BulletText("CanEquip") GUI:SameLine(200) GUI:InputText("##devbag16"..tostring(slot),tostring(item.canequip))
-													GUI:BulletText("EquipSlot") GUI:SameLine(200) GUI:InputText("##devbag15"..tostring(slot),tostring(item.equipslot))
-													GUI:BulletText("Price") GUI:SameLine(200) GUI:InputText("##devbag26"..tostring(slot),tostring(item.price))
-													GUI:BulletText("MateriaSlotCount") GUI:SameLine(200) GUI:InputText("##devbag28"..tostring(slot),tostring(item.materiaslotcount))
-													GUI:BulletText("Materia Free Slots") GUI:SameLine(200) GUI:InputText("##devbag29"..tostring(slot),tostring(item.materiaslotcount - table.size(item.materias)))
+													GUI:BulletText("Ptr") GUI:SameLine(225) GUI:InputText("##devbag3"..tostring(slot),tostring(string.format( "%X",item.ptr)))
+													GUI:BulletText("Ptr2") GUI:SameLine(225) GUI:InputText("##devbag4"..tostring(slot),tostring(string.format( "%X",item.ptr2)))
+													GUI:BulletText("ID") GUI:SameLine(225) GUI:InputText("##devbag5"..tostring(slot),tostring(item.id))
+													GUI:BulletText("Is HQ") GUI:SameLine(225) GUI:InputText("##devbag19"..tostring(slot),tostring(item.ishq))
+													GUI:BulletText("HQID") GUI:SameLine(225) GUI:InputText("##devbag6"..tostring(slot),tostring(item.hqid))
+													GUI:BulletText("Slot") GUI:SameLine(225) GUI:InputText("##devbag7"..tostring(slot),tostring(item.slot))
+													GUI:BulletText("Parent BagID") GUI:SameLine(225) GUI:InputText("##devbag8"..tostring(slot),tostring(item.type))
+													GUI:BulletText("Stack Size") GUI:SameLine(225) GUI:InputText("##devbag9"..tostring(slot),tostring(item.count))
+													GUI:BulletText("Max Stack") GUI:SameLine(225) GUI:InputText("##devbag10"..tostring(slot),tostring(item.max))
+													GUI:BulletText("Condition") GUI:SameLine(225) GUI:InputText("##devbag11"..tostring(slot),tostring(item.condition))
+													GUI:BulletText("Collectability") GUI:SameLine(225) GUI:InputText("##devbag27"..tostring(slot),tostring(item.collectability))
+													GUI:BulletText("Spiritbond") GUI:SameLine(225) GUI:InputText("##devbag18"..tostring(slot),tostring(item.spiritbond))
+													GUI:BulletText("Level") GUI:SameLine(225) GUI:InputText("##devbag13"..tostring(slot),tostring(item.level))
+													GUI:BulletText("Required Level") GUI:SameLine(225) GUI:InputText("##devbag14"..tostring(slot),tostring(item.requiredlevel))
+													GUI:BulletText("class") GUI:SameLine(225) GUI:InputText("##devbag17"..tostring(slot),tostring(item.class))
+													GUI:BulletText("Category") GUI:SameLine(225) GUI:InputText("##devbag20"..tostring(slot),tostring(item.category))
+													GUI:BulletText("UICategory") GUI:SameLine(225) GUI:InputText("##devbag21"..tostring(slot),tostring(item.uicategory))
+													GUI:BulletText("SearchCategory") GUI:SameLine(225) GUI:InputText("##devbag22"..tostring(slot),tostring(item.searchcategory))
+													GUI:BulletText("CanEquip") GUI:SameLine(225) GUI:InputText("##devbag16"..tostring(slot),tostring(item.canequip))
+													GUI:BulletText("EquipSlot") GUI:SameLine(225) GUI:InputText("##devbag15"..tostring(slot),tostring(item.equipslot))
+													GUI:BulletText("Price") GUI:SameLine(225) GUI:InputText("##devbag26"..tostring(slot),tostring(item.price))
+													GUI:BulletText("MateriaSlotCount") GUI:SameLine(225) GUI:InputText("##devbag28"..tostring(slot),tostring(item.materiaslotcount))
+													GUI:BulletText("Materia Free Slots") GUI:SameLine(225) GUI:InputText("##devbag29"..tostring(slot),tostring(item.materiaslotcount - table.size(item.materias)))
 													if table.valid(item.materias) then
 														for x, y in pairs(item.materias) do
 															GUI:BulletText(tostring(x))
-															GUI:SameLine(200)
+															GUI:SameLine(225)
 															GUI:InputText("##devbag29"..tostring(y.name),tostring(y.name))
 														end
 													end
-													GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devbag25"..tostring(slot),tostring(item:IsReady()))
+													GUI:BulletText("IsReady") GUI:SameLine(225) GUI:InputText("##devbag25"..tostring(slot),tostring(item:IsReady()))
 
-													
-													GUI:BulletText("Rarity") GUI:SameLine(200) GUI:InputText("##devbag30"..tostring(slot),tostring(item.rarity))
-													GUI:BulletText("IsUnique") GUI:SameLine(200) GUI:InputText("##devbag31"..tostring(slot),tostring(item.isunique))
-													GUI:BulletText("IsUntradeable") GUI:SameLine(200) GUI:InputText("##devbag32"..tostring(slot),tostring(item.isuntradeable))
-													GUI:BulletText("iscollectable") GUI:SameLine(200) GUI:InputText("##devbag34",tostring(item.iscollectable))
-													GUI:BulletText("IsBinding") GUI:SameLine(200) GUI:InputText("##devbag33"..tostring(slot),tostring(item.isbinding))
-													GUI:BulletText("DesynthValue") GUI:SameLine(200) GUI:InputText("##devbag35"..tostring(slot),tostring(item.desynthvalue))
-													GUI:BulletText("RepairItem") GUI:SameLine(200) GUI:InputText("##devbag36",tostring(item.repairitem))
-													GUI:BulletText("RepairJob") GUI:SameLine(200) GUI:InputText("##devbag37"..tostring(slot),tostring(item.repairclassjob))
-													
+
+													GUI:BulletText("Rarity") GUI:SameLine(225) GUI:InputText("##devbag30"..tostring(slot),tostring(item.rarity))
+													GUI:BulletText("IsUnique") GUI:SameLine(225) GUI:InputText("##devbag31"..tostring(slot),tostring(item.isunique))
+													GUI:BulletText("IsUntradeable") GUI:SameLine(225) GUI:InputText("##devbag32"..tostring(slot),tostring(item.isuntradeable))
+													GUI:BulletText("IsCollectable") GUI:SameLine(225) GUI:InputText("##devbag33",tostring(item.iscollectable))
+													-- if desynthvalue > 0 then IsDesynthable = true
+													GUI:BulletText("DesynthValue") GUI:SameLine(225) GUI:InputText("##devbag34",tostring(item.desynthvalue))
+													dev.isDesynthable = ""
+													if item.desynthvalue > 0 then
+														dev.isDesynthable = "true"
+													else
+														dev.isDesynthable = "false"
+													end
+													GUI:BulletText("IsDesynthable") GUI:SameLine(225) GUI:InputText("##devbag35",tostring(dev.isDesynthable))
+													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
+													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
+													if item.repairitem > 0 then
+														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
+													end
+													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
+
 													local tar = Player:GetTarget()
 													if ( tar ) then
-														GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devbag24"..tostring(slot),tostring(item:IsReady(tar.id)))
+														GUI:BulletText("IsReady(Target)") GUI:SameLine(225) GUI:InputText("##devbag24"..tostring(slot),tostring(item:IsReady(tar.id)))
 													end
 
 													local materias = item.materias
 													if table.valid(materias) and GUI:TreeNode("Materias##devbag_mats"..tostring(slot)) then
 														for i,v in ipairs(materias) do
 															GUI:Text("Materia #"..tostring(i))
-															GUI:BulletText(" ItemId") GUI:SameLine(200) GUI:InputText("##devbag_mat_itemid"..tostring(slot)..tostring(i),tostring(v.itemid))
-															GUI:BulletText(" Name") GUI:SameLine(200) GUI:InputText("##devbag_mat_name"..tostring(slot)..tostring(i),tostring(v.name))
-															GUI:BulletText(" Attribute") GUI:SameLine(200) GUI:InputText("##devbag_mat_attr"..tostring(slot)..tostring(i),tostring(v.attribute))
-															GUI:BulletText(" Value") GUI:SameLine(200) GUI:InputText("##devbag_mat_value"..tostring(slot)..tostring(i),tostring(v.value))
+															GUI:BulletText(" ItemId") GUI:SameLine(225) GUI:InputText("##devbag_mat_itemid"..tostring(slot)..tostring(i),tostring(v.itemid))
+															GUI:BulletText(" Name") GUI:SameLine(225) GUI:InputText("##devbag_mat_name"..tostring(slot)..tostring(i),tostring(v.name))
+															GUI:BulletText(" Attribute") GUI:SameLine(225) GUI:InputText("##devbag_mat_attr"..tostring(slot)..tostring(i),tostring(v.attribute))
+															GUI:BulletText(" Value") GUI:SameLine(225) GUI:InputText("##devbag_mat_value"..tostring(slot)..tostring(i),tostring(v.value))
 														end
 														GUI:TreePop()
 													end
@@ -1367,7 +1379,7 @@ function dev.DrawCall(event, ticks )
 													if table.valid(nqstats) then
 														if GUI:TreeNode("NQ Stats##devbags_nqstats_" .. tostring(slot)) then
 															for k, v in pairs(nqstats) do
-																GUI:BulletText("Type " .. k) GUI:SameLine(200) GUI:InputText("##devbag_nqstat_" .. tostring(slot), tostring(v))
+																GUI:BulletText("Type " .. k) GUI:SameLine(225) GUI:InputText("##devbag_nqstat_" .. tostring(slot), tostring(v))
 															end
 															GUI:TreePop()
 														end
@@ -1376,35 +1388,33 @@ function dev.DrawCall(event, ticks )
 													if table.valid(hqstats) then
 														if GUI:TreeNode("HQ Stats##devbags_nqstats_" .. tostring(slot)) then
 															for k, v in pairs(hqstats) do
-																GUI:BulletText("Type " .. k) GUI:SameLine(200) GUI:InputText("##devbag_hqstat_" .. tostring(slot), tostring(v))
+																GUI:BulletText("Type " .. k) GUI:SameLine(225) GUI:InputText("##devbag_hqstat_" .. tostring(slot), tostring(v))
 															end
 															GUI:TreePop()
 														end
 													end
 
 													local action = item:GetAction()
-													
 													if (table.valid(action)) then
 														if ( GUI:TreeNode("Action: "..tostring(action.id).." - "..action.name)) then --rather slow making 6000+ names :D
 															--if ( GUI:TreeNode(tostring(actionid).." - ")) then
-															
-															GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
-															GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
-															GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
-															GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
-															GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
-															GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
-															GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
-															GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
-															GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
-															GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
+															GUI:BulletText("Ptr") GUI:SameLine(225) GUI:InputText("##devac1"..tostring(action.id),tostring(string.format( "%X",action.ptr)))
+															GUI:BulletText("ID") GUI:SameLine(225) GUI:InputText("##devac2"..tostring(action.id),tostring(action.id))
+															GUI:BulletText("Type") GUI:SameLine(225) GUI:InputText("##devac3"..tostring(action.id),tostring(action.type))
+															GUI:BulletText("SkillType") GUI:SameLine(225) GUI:InputText("##devac4"..tostring(action.id),tostring(action.skilltype))
+															GUI:BulletText("Cost") GUI:SameLine(225) GUI:InputText("##devac5"..tostring(action.id),tostring(action.cost))
+															GUI:BulletText("CastTime") GUI:SameLine(225) GUI:InputText("##devac6"..tostring(action.id),tostring(action.casttime))
+															GUI:BulletText("RecastTime") GUI:SameLine(225) GUI:InputText("##devac7"..tostring(action.id),tostring(action.recasttime))
+															GUI:BulletText("IsOnCooldown") GUI:SameLine(225) GUI:InputText("##devac8"..tostring(action.id),tostring(action.isoncd))
+															GUI:BulletText("Cooldown") GUI:SameLine(225) GUI:InputText("##devac9"..tostring(action.id),tostring(action.cd))
+															GUI:BulletText("CooldownMax") GUI:SameLine(225) GUI:InputText("##devac10"..tostring(action.id),tostring(action.cdmax))
 
-															GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-															GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+															GUI:BulletText("IsReady(Player)") GUI:SameLine(225) GUI:InputText("##devac20"..tostring(action.id),tostring(action:IsReady()))
+															GUI:BulletText("IsFacing(Player)") GUI:SameLine(225) GUI:InputText("##devac21"..tostring(action.id),tostring(action:IsFacing()))
 															local tar = Player:GetTarget()
 															if ( tar ) then
-																GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
-																GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+																GUI:BulletText("IsReady(Target)") GUI:SameLine(225) GUI:InputText("##devac18"..tostring(action.id),tostring(action:IsReady(tar.id)))
+																GUI:BulletText("IsFacing(Target)") GUI:SameLine(225) GUI:InputText("##devac19"..tostring(action.id),tostring(action:IsFacing(tar.id)))
 															end
 															GUI:TreePop()
 														end
@@ -1417,7 +1427,7 @@ function dev.DrawCall(event, ticks )
 													if (GUI:Button("Cast(Player)##"..tostring(slot),100,15) ) then d("Cast Result: "..tostring(item:Cast(Player.id))) end
 													GUI:SameLine(0,20)
 													local tar = Player:GetTarget() or Player
-													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end
+													if (GUI:Button("Cast(Target)##"..tostring(item.id),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end
 
 													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
 													GUI:SameLine(0,20)
@@ -2341,4 +2351,3 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 	
 	GUI:PopItemWidth()	
 end
-
