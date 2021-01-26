@@ -3618,6 +3618,7 @@ function c_skiptalk:evaluate()
 end
 function e_skiptalk:execute()
 	SetThisTaskProperty("preserveSubtasks",true)
+	SetThisTaskProperty("overwatchContinues",true)
 end
 
 c_skipcutscene = inheritsFrom( ml_cause )
@@ -3659,6 +3660,7 @@ end
 function e_skipcutscene:execute()
 	c_skipcutscene.lastSkip = Now()
 	SetThisTaskProperty("preserveSubtasks",true)
+	SetThisTaskProperty("overwatchContinues",true)
 end
 
 c_dointeract = inheritsFrom( ml_cause )
