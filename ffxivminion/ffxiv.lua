@@ -2664,6 +2664,8 @@ invalid name or haven't chosen one."))
 						GUI:Text("Can Access The Ruby Sea");
 					elseif CanAccessMap(612) then
 						GUI:Text("Can Access The Fringes");
+					elseif CanAccessMap(402) then
+						GUI:Text("Can Access Azys Lla");
 					elseif CanAccessMap(399) then
 						GUI:Text("Can Access Dravanian Hinterlands");
 					elseif CanAccessMap(398) then
