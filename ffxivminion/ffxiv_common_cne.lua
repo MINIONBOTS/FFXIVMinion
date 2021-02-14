@@ -4405,7 +4405,11 @@ function c_exchange:evaluate()
 	if catagoryData then
 		currentCategory = catagoryData.value
 	end
-	local currencyCount = IsNull(Inventory:GetSpecialCurrencies()[28063].count,0)
+	local currencyCount = 0
+	local currency = Inventory:GetSpecialCurrencies()[28063]
+	if currency then
+		currencyCount = IsNull(currency.count,0)
+	end
 	if ((currencyCount) >= 10000) then
 		UseControlAction("HWDSupply","Close",0,1000)
 		ml_task_hub:CurrentTask().completed = true
