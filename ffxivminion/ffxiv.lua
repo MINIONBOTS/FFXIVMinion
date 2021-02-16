@@ -672,7 +672,7 @@ function ffxivminion.GetSetting(strSetting,default)
 end
 
 function SetGearsetInfo(disable)
-	local disable = IsNull(disable,false)
+	local disable = IsNull(disable,gAutoAssign)
 	local searchList = Player:GetGearSetList()
 	local newSets = {}
 	if not disable then
@@ -819,6 +819,7 @@ function ffxivminion.SetMainVars()
 	end
 	
 	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
+	gAutoAssign = ffxivminion.GetSetting("gAutoAssign",false)
 	gTeleportHack = ffxivminion.GetSetting("gTeleportHack",false)
 	gDutyTeleportHack = ffxivminion.GetSetting("gDutyTeleportHack",true)
 	gTeleportHackParanoid = ffxivminion.GetSetting("gTeleportHackParanoid",false)
@@ -1866,7 +1867,7 @@ function ml_global_information.DrawSettings()
 				if (tabindex == 2) then
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
-					
+					GUI_Capture(GUI:Checkbox(GetString("Disable Auto Assign Gearsets"),gAutoAssign),"gAutoAssign");
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI:SameLine(150)
 					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200); GUI:PopItemWidth()
