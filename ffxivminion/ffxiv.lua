@@ -788,7 +788,7 @@ function ffxivminion.SetMainVars()
 	
 	gUseMount = ffxivminion.GetSetting("gUseMount",true)
 	gMountDist = ffxivminion.GetSetting("gMountDist",75)
-	gUseSprint = ffxivminion.GetSetting("gUseSprint",false)
+	gUseSprint = ffxivminion.GetSetting("gUseSprint",true)
 	gSprintDist = ffxivminion.GetSetting("gSprintDist",50)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
@@ -1868,6 +1868,9 @@ function ml_global_information.DrawSettings()
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"),gAutoStart),"gAutoStart");
 					GUI_Capture(GUI:Checkbox(GetString("Disable Auto Assign Gearsets"),gAutoAssign),"gAutoAssign");
+					if gUseSprint == nil then
+						gUseSprint = true
+					end
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI:SameLine(150)
 					GUI:PushItemWidth(100); GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200); GUI:PopItemWidth()
