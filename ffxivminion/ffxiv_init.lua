@@ -616,7 +616,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(151, "[Raid] The World of Darkness", enforce)
 		
 		-- Raid Alliance HW
-		--ml_mesh_mgr.SetDefaultMesh(508, "[Raid] The Void Ark", enforce)
+		ml_mesh_mgr.SetDefaultMesh(508, "[Raid] The Void Ark", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Weeping City of Mhach", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(627, "[Raid] Dun Scaith", enforce)
 		
