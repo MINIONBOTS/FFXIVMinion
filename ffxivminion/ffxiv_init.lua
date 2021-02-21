@@ -632,6 +632,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(928, "[Raid] The Puppets' Bunker", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
 		
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Castrum Lacus Litore", enforce)
+		ml_mesh_mgr.SetDefaultMesh(936, "[Raid] Delubrum Reginae", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ???", enforce)
+		
 		-- Raids ARR
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Binding Coil of Bahamut", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Second Coil of Bahamut", enforce)
