@@ -3627,7 +3627,7 @@ function c_skipcutscene:evaluate()
 			end
 		end
 		
-		if (In(totalUI,3982,4647,4114,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071,4200,4254,4581,4188,4208,4460,4507) and not IsControlOpen("NowLoading")) then
+		if (In(totalUI,3982,4647,4114,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071,4200,4254,4581,4188,4208,4460,4507,4386) and not IsControlOpen("NowLoading")) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
