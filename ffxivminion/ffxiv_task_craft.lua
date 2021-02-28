@@ -333,7 +333,16 @@ end
 
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
+c_opencraftwnd.fallbackCounter = 0
 function c_opencraftwnd:evaluate()
+	if not ml_task_hub:CurrentTask().allowWindowOpen then
+		c_opencraftwnd.fallbackCounter = IsNull(c_opencraftwnd.fallbackCounter,0) + 1
+		d("fall back counter = "..tostring(c_opencraftwnd.fallbackCounter))
+	end
+	if c_opencraftwnd.fallbackCounter > 20 then
+		ml_task_hub:CurrentTask().allowWindowOpen = true
+		c_opencraftwnd.fallbackCounter = 0
+	end
 	if (MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen or MIsLocked()) then
 		return false
 	end
