@@ -4091,6 +4091,12 @@ function GetAetheryteByMapID(mapid, p)
 	if (mapid == 639 and myMap ~= 628) then
 		mapid = 628
 	end
+	if myMap == 813 and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
+		return nil
+	end
+	if (mapid == 815 and GetAhmAraengSection(pos) == 1) and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
+		mapid = 813
+	end
 	if ((myMap == 614 and GetYanxiaSection(Player.pos) == 2) or (myMap == 622)) and HasQuest(2518) then
 		return nil
 	end
