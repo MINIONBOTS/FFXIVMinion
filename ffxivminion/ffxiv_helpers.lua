@@ -6239,6 +6239,10 @@ function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
+	if (CanFlyInZone()) then
+		return false
+	end
+	
 	local gilCount = GilCount()
 	if (pos1.x < 0 and pos2.x > 0) then
 		if (gilCount >= 40) then
