@@ -3630,7 +3630,7 @@ function c_skipcutscene:evaluate()
 			[900] = true,
 		}
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and FFXIV_Common_BotRunning and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
 			local totalUI = 0
 			for i=0,165 do
 				if (GetUIPermission(i) == 1) then
