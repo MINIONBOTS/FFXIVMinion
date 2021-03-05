@@ -1,5 +1,5 @@
 ffxiv_combat_gunbreaker = {}
-ffxiv_combat_gunbreaker.range = 24
+ffxiv_combat_gunbreaker.range = 2
 ffxiv_combat_gunbreaker.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_gunbreaker.info"
 if (not FileExists(ffxiv_combat_gunbreaker.optionsPath)) then
 	local defaults = {}
