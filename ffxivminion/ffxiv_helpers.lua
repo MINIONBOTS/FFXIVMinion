@@ -6397,6 +6397,10 @@ function Transport138(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
+	if (CanFlyInZone()) then
+		return false
+	end
+	
 	if (GilCount() > 100) then
 		if (not (pos1.x < -170 and pos1.z > 390) and (pos2.x <-170 and pos2.z > 390)) then
 			return true, function()
