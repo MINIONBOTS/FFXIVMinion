@@ -6351,7 +6351,6 @@ function Transport137(pos1,pos2)
 								end
 							end
 						else
-							d("Aetheryte 12 check?:"..tostring(CanUseAetheryte(12)))
 							local newTask = ffxiv_nav_interact.Create()
 							newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
 							newTask.contentid = 1003588
@@ -6379,7 +6378,6 @@ function Transport137(pos1,pos2)
 						end
 					end
 				else
-					d("Aetheryte 11 check?:"..tostring(CanUseAetheryte(11)))
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
 					newTask.contentid = 1003589
