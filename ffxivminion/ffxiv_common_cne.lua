@@ -2028,6 +2028,7 @@ function e_mount:execute()
 	end
 	
 	if (Mount(e_mount.id)) then
+		Player:PauseMovement()
 		ml_global_information.AwaitSuccess(500, 
 			function () 
 				return (IsMounting() or UsingBattleItem())
