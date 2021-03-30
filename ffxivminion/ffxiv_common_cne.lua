@@ -3631,7 +3631,7 @@ function c_skipcutscene:evaluate()
 			[900] = true,
 		}
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult")) then
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
 			return true
 		end
 		if gSkipCutscene and not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
