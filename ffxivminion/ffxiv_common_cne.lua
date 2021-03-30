@@ -3620,7 +3620,7 @@ end
 c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
-c_skipcutscene.togglehack = false
+c_skipcutscene.togglehack = true
 function c_skipcutscene:evaluate()
 	if Player.onlinestatus == 15 then
 		-- unsafe
@@ -3631,29 +3631,10 @@ function c_skipcutscene:evaluate()
 			[900] = true,
 		}
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
-			local totalUI = 0
-			for i=0,165 do
-				if (GetUIPermission(i) == 1) then
-					totalUI = totalUI + i
-				end
-			end
-
-			if (In(totalUI,3982,4647,4114,4115,4515,4725,5701,3451,2628,2626,2893,3506,3909,4526,4809,4677,4071,4200,4254,4581,4188,4208,4460,4507,4386,4134,4056) and not IsControlOpen("NowLoading")) then
-				if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
-					local convoList = GetConversationList()
-					if (table.valid(convoList)) then
-						SelectConversationIndex(1)
-					end
-				else
-					PressKey(27)
-					--KeyDown(27)
-					--ml_global_information.Await(250,function () KeyUp(27) end)
-				end
-				return true
-			end
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult")) then
+			return true
 		end
-		if gSkipCutscene and not c_skipcutscene.togglehack then
+		if gSkipCutscene and not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
 			c_skipcutscene.togglehack = true
 			Hacks:SkipCutscene(false)
 		end
