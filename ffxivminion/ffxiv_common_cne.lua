@@ -3631,7 +3631,15 @@ function c_skipcutscene:evaluate()
 			[900] = true,
 		}
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 3000) then
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
+			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
+				local convoList = GetConversationList()
+				if (table.valid(convoList)) then
+					SelectConversationIndex(1)
+				end
+			else
+				PressKey(27) -- Press ESC, used for quest cutscene skipping
+			end
 			return true
 		end
 		if gSkipCutscene and not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
