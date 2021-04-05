@@ -1393,7 +1393,7 @@ ffxiv_map_nav.data = {
 	[814] =
     {
         [819] = {
-            {id = 819, cost = 1, x = 802, y = 1, z = 253, h = -1.55, b = 1027449 -- id changed somewhere? 1029807 -- 
+            {id = 819, cost = 1, x = 802, y = 1, z = 253, h = -1.55, b = "1029807;1027449" -- id changed somewhere?
 				, requires = {
 					["GetQuestInfo(3282,'step') == 255 or QuestCompleted(3282)"] = true,
 				},
