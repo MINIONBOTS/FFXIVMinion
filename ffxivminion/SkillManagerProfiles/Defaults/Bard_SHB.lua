@@ -383,20 +383,16 @@ local obj1 = {
 			["tnbuffdura"] = 5;
 		};
 		[26] = {
-			["dobuff"] = true;
-			["gcdtime"] = 0.5;
 			["id"] = 100;
-			["ignoremoving"] = true;
 			["levelmin"] = 6;
 			["maxRange"] = 25;
 			["name"] = "Venomous Bite";
-			["pbuff"] = "130";
-			["playerlevelmin"] = 6;
-			["pnbuff"] = "865";
 			["prio"] = 26;
-			["secspassedu"] = 3;
 			["tnbuff"] = "124";
 			["tnbuffdura"] = 5;
+			["ignoremoving"] = true;
+			["pnbuff"] = "865";
+			["secspassedu"] = 3;
 		};
 		[27] = {
 			["gcd"] = "False";
@@ -461,6 +457,7 @@ local obj1 = {
 			["prio"] = 32;
 		};
 	};
+	["update"] = 20210406;
 	["version"] = 3;
 }
 return obj1
