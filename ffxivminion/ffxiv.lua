@@ -563,7 +563,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 			end
 		
-			if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair and GetPatchLevel() < 5.41) then
+			if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair and GetPatchLevel() < 5.4) then
 				if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
 					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not Player.incombat) then
 						if (NeedsRepair()) then
