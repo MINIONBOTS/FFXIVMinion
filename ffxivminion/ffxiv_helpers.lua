@@ -4226,7 +4226,14 @@ function GetAetheryteByMapID(mapid, p)
 		[814] = {name = "Kholusia",
 			[1] = { name = "Stilltide", aethid = 137, x = 668, z = 289},
 			[2] = { name = "Wright", aethid = 138, x = -244, z = 385},
-			[3] = { name = "Tomra", aethid = 139, x = -431, z = -618},
+			[3] = { name = "Tomra", aethid = 139, x = -431, z = -618,
+				best = function ()  
+					if In(GetKholusiaSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
 		},		
 		[815] = {name = "Amh Araeng",
 			[1] = { name = "Mord", aethid = 140, x = 246, z = -200 },
