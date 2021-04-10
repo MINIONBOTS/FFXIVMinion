@@ -1180,6 +1180,9 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 			[1269] = { id = 6554, pos = {x = 166, y = 34, z = -332 } },
 			[1308] = { id = 6559, pos = {x = 239, y = 11, z = -191 } },
 		},
+		[816] = {
+			[1495] = { id = 8677, pos = {x = -560, y = 33, z = 105 } },
+		},
 	}
 	
 	local mapActivate = activate[mapid]
