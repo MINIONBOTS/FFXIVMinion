@@ -1181,6 +1181,7 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 			[1308] = { id = 6559, pos = {x = 239, y = 11, z = -191 } },
 		},
 		[816] = {
+			[1492] = { id = 8677, pos = {x = -686, y = 27, z = -96 } },
 			[1495] = { id = 8677, pos = {x = -560, y = 33, z = 105 } },
 		},
 	}
@@ -1272,7 +1273,10 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		},
 		[622] = {
 			[1308] = { id = 6559, pos = {x = 239, y = 11, z = -191 }, itemid = 2008947, turninid = 2002385 },
-		}
+		},
+		[816] = {
+			[1492] = { id = 6559, pos = {-686, y = 27, z = -9 }, itemid = 2010536, turninid = 2002819 },
+		},
 	}
 	
 	local mapGatherable = gatherable[mapid]
