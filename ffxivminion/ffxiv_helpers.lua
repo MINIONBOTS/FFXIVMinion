@@ -3271,7 +3271,7 @@ function Repair()
 	end
 end
 function NeedsRepair()
-	if (gRepair and GetPatchLevel() < 5.41) then
+	if (gRepair and GetPatchLevel() < 5.4) then
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
