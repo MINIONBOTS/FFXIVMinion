@@ -537,6 +537,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(884, "[Dungeon] The Grand Cosmos", enforce)
 		ml_mesh_mgr.SetDefaultMesh(898, "[Dungeon] Anamnesis Anyder", enforce)
 		ml_mesh_mgr.SetDefaultMesh(916, "[Dungeon] The Heroes' Gauntlet", enforce)
+		ml_mesh_mgr.SetDefaultMesh(938, "[Dungeon] Paglth'an", enforce)
 		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
