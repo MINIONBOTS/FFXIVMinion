@@ -3546,13 +3546,15 @@ function c_switchclass:evaluate()
 				function () 
 					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
 				end
-			)							
+			)
+					d("gearset "..tostring(newSet))
 			return true
 		else
 			local canSwitch,bestWeapon = CanSwitchToClass(class)
 			if (canSwitch) then
 				if (bestWeapon) then
 					e_switchclass.weapon = bestWeapon
+					d("best weapon")
 					return true
 				end
 			end	
@@ -3565,12 +3567,14 @@ function e_switchclass:execute()
 		UseControlAction("SelectYesno","Yes",0)
 	end
 	if (e_switchclass.blockOnly) then
+		d("task was blocked")
 		return false
 	end
 	
 	local job = Player.job
 	local weapon = e_switchclass.weapon
 	if (weapon) then
+	d("has weapon")
 		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
 		gForceAutoEquip = true
@@ -3586,6 +3590,8 @@ function e_switchclass:execute()
 		)
 		ml_global_information.lastEquip = 0
 		e_recommendequip.lastEquip = {}
+	else
+		d("no weapon info")
 	end
 end
 
