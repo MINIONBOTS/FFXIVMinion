@@ -2402,7 +2402,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(self.conversationstring)
 					d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline).."].")
-					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo) then
 						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 						SelectConversationLine(selectindex)
 						self.initiatedPos = Player.pos
@@ -2417,7 +2417,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = CleanConvoLine(v)
 						d("Looking for aethernet - ["..tostring(cleanedv).."], found ["..tostring(cleanedline).."].")
-						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 							SelectConversationLine(selectindex)
 							self.initiatedPos = Player.pos
