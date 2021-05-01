@@ -5327,6 +5327,10 @@ function IsGridania(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 130 or mapid == 131)
 end
+function IsFoundation(mapid)
+	local mapid = tonumber(mapid)
+	return (mapid == 418 or mapid == 419)
+end
 function GameRegion()
 	if (GetGameRegion and GetGameRegion()) then
 		return GetGameRegion()
