@@ -594,13 +594,14 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(810, "[Trial] Hells' Kier", enforce)
 		ml_mesh_mgr.SetDefaultMesh(811, "[Trial] Hells' Kier", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Wreath of Snakes", enforce)
+		ml_mesh_mgr.SetDefaultMesh(825, "[Trial] The Wreath of Snakes", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] Kugane Ohashi", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Pool of TributeEX", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Minstrel's Ballad Shinryu's Domain", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Jade StoaEX", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Minstrel's Ballad Tsukuyomi's Pain", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Great HuntEX", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Wreath of SnakesEX", enforce)
+
 		
 		-- Trials SHB
 		ml_mesh_mgr.SetDefaultMesh(845, "[Trial] The Dancing Plague", enforce)
