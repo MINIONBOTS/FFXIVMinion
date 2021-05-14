@@ -951,7 +951,7 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
-	gSMCraftConditions = { GetString("notused"), GetString("excellent"), GetString("good"), GetString("normal"), GetString("poor"), GetString("centered"), GetString("sturdy"), GetString("pliant") }
+	gSMCraftConditions = { GetString("notused"), GetString("excellent"), GetString("good"), GetString("normal"), GetString("poor"), GetString("centered"), GetString("sturdy"), GetString("pliant"), GetString("primed"), GetString("malleable") }
 	gSMCraftConditionIndex = 1
 	gSMCraftConditionsCache = {}
 
