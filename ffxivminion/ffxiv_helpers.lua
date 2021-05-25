@@ -876,7 +876,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	end
 	
 	if (npc) then
-		el = MEntityList("alive,friendly,targetable,maxdistance="..tostring(range))
+		el = MEntityList("alive,targetable,maxdistance="..tostring(range))
 		if ( table.valid(el) ) then
 			for i,entity in pairs(el) do
 				if (IsValidHealTarget(entity) and entity.hp.percent <= hp) then
