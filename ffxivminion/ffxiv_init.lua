@@ -649,12 +649,30 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Final Coil of Bahamut", enforce)
 		
 		-- Raids HW
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander Gordias", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander Gordias Savage", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander Midas", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander Midas Savage", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander The Creator", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alexander The Creator Savage", enforce)
+		ml_mesh_mgr.SetDefaultMesh(442, "[Raid] The Fist of the Father", enforce) -- a1
+		ml_mesh_mgr.SetDefaultMesh(449, "[Raid] The Fist of the Father", enforce) -- a1s
+		ml_mesh_mgr.SetDefaultMesh(443, "[Raid] The Cuff of the Father", enforce) -- a2
+		ml_mesh_mgr.SetDefaultMesh(450, "[Raid] The Cuff of the Father", enforce) -- a2s
+		ml_mesh_mgr.SetDefaultMesh(444, "[Raid] The Arm of the Father", enforce) -- a3
+		ml_mesh_mgr.SetDefaultMesh(451, "[Raid] The Arm of the Father", enforce) -- a3s
+		ml_mesh_mgr.SetDefaultMesh(445, "[Raid] The Burden of the Father", enforce) -- a4
+		ml_mesh_mgr.SetDefaultMesh(452, "[Raid] The Burden of the Father", enforce) -- a4s
+		ml_mesh_mgr.SetDefaultMesh(520, "[Raid] The Fist of the Son", enforce) -- a5
+		ml_mesh_mgr.SetDefaultMesh(529, "[Raid] The Fist of the Son", enforce) -- a5s
+		ml_mesh_mgr.SetDefaultMesh(521, "[Raid] The Cuff of the Son", enforce) -- a6
+		ml_mesh_mgr.SetDefaultMesh(530, "[Raid] The Cuff of the Son", enforce) -- a6s
+		ml_mesh_mgr.SetDefaultMesh(522, "[Raid] The Arm of the Son", enforce) -- a7
+		ml_mesh_mgr.SetDefaultMesh(531, "[Raid] The Arm of the Son", enforce) -- a7s
+		ml_mesh_mgr.SetDefaultMesh(523, "[Raid] The Burden of the Son", enforce) -- a8
+		ml_mesh_mgr.SetDefaultMesh(532, "[Raid] The Burden of the Son", enforce) -- a8s
+		ml_mesh_mgr.SetDefaultMesh(580, "[Raid] The Eyes of the Creator", enforce) -- a9
+		ml_mesh_mgr.SetDefaultMesh(584, "[Raid] The Eyes of the Creator", enforce) -- a9s
+		ml_mesh_mgr.SetDefaultMesh(581, "[Raid] The Breath of the Creator", enforce) -- a10
+		ml_mesh_mgr.SetDefaultMesh(585, "[Raid] The Breath of the Creator", enforce) -- a10s
+		ml_mesh_mgr.SetDefaultMesh(582, "[Raid] The Heart of the Creator", enforce) -- a11
+		ml_mesh_mgr.SetDefaultMesh(586, "[Raid] The Heart of the Creator", enforce) -- a11s
+		ml_mesh_mgr.SetDefaultMesh(583, "[Raid] The Soul of the Creator", enforce) -- a12
+		ml_mesh_mgr.SetDefaultMesh(587, "[Raid] The Soul of the Creator", enforce) -- a12s
 		
 		-- Raids SB
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape", enforce)
