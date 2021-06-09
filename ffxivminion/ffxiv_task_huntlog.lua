@@ -294,7 +294,7 @@ end
 c_huntlogmovetopos = inheritsFrom( ml_cause )
 e_huntlogmovetopos = inheritsFrom( ml_effect )
 function c_huntlogmovetopos:evaluate()
-	if (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
+	if (not ml_task_hub:CurrentTask().huntParams or CannotMove() or MIsLoading()) then
 		return false
 	end
 	

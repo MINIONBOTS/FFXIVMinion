@@ -858,15 +858,20 @@ function GetBestTankHealTarget( range )
 	
 	return lowest
 end
-function GetBestPartyHealTarget( npc, range, hp )	
+function GetBestPartyHealTarget( npc, range, hp, whitelist )	
 	local npc = npc
 	if (npc == nil) then npc = false end
 	local range = range or ml_global_information.AttackRange
 	local hp = hp or 95
+	local whitelist = IsNull(whitelist,"")
 	
+	local search = ""
 	local healables = {}
 	
-	local el = MEntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	search = "alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range)
+	if (whitelist ~= "") then search = search .. ",contentid=" .. tostring(whitelist) end
+	
+	local el = MEntityList(search)	
 	if ( table.valid(el) ) then
 		for i,entity in pairs(el) do
 			if (IsValidHealTarget(entity) and entity.hp.percent <= hp) then
@@ -876,7 +881,10 @@ function GetBestPartyHealTarget( npc, range, hp )
 	end
 	
 	if (npc) then
-		el = MEntityList("alive,targetable,maxdistance="..tostring(range))
+		search = "alive,targetable,maxdistance="..tostring(range)
+		if (whitelist ~= "") then search = search .. ",contentid=" .. tostring(whitelist)  end
+	
+		el = MEntityList(search)
 		if ( table.valid(el) ) then
 			for i,entity in pairs(el) do
 				if (IsValidHealTarget(entity) and entity.hp.percent <= hp) then
