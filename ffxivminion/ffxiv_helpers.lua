@@ -5436,6 +5436,8 @@ function IsEurekaMap(mapid)
 		[763] = true,
 		[795] = true,
 		[827] = true,
+		[920] = true, --Bozjan Southern Front
+		[975] = true, --Zadnor
 	}
 	return (eMaps[mapid] ~= nil)
 end
