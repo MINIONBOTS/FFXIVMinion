@@ -1109,11 +1109,10 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local hasCurrentPath = table.valid(ml_navigation.path)
 	local currentPathSize = table.size(ml_navigation.path)
-	
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	--if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending or TimeSince(ml_navigation.lastPathUpdate) < 2000)) then
-	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending)) then
+	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending) and (TimeSince(ml_navigation.lastconnectiontimer) < 5000)) then
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
@@ -1143,6 +1142,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	ml_navigation.lastPathUpdate = Now()
 	ml_navigation.lastconnectionid = 0
+	ml_navigation.lastconnectiontimer = 0
 	
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
@@ -1181,6 +1181,7 @@ function Player:Stop(resetpath)
 	ffnav.isdescending = false	
 	ffnav.descentAttempts = 0
 	ml_navigation.lastconnectionid = 0
+	ml_navigation.lastconnectiontimer = 0
 	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
@@ -1269,6 +1270,7 @@ end
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
 ml_navigation.lastconnectionid = 0
+ml_navigation.lastconnectiontimer = 0
 ml_navigation.lasttargetid = nil
 ml_navigation.path = {}
 ml_navigation.pathindex = 0
@@ -1756,6 +1758,7 @@ function ml_navigation.Navigate(event, ticks )
 								]]
 								
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
+								ml_navigation.lastconnectiontimer = Now()
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								NavigationManager.NavPathNode = ml_navigation.pathindex
 								
@@ -1860,6 +1863,7 @@ function ml_navigation.Navigate(event, ticks )
 							-- We landed now and can continue our path..
 							ffnav.descentAttempts = 0
 							ml_navigation.lastconnectionid = nextnode.navconnectionid		
+							ml_navigation.lastconnectiontimer = Now()
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
 						end
@@ -1880,6 +1884,7 @@ function ml_navigation.Navigate(event, ticks )
 							-- We reached the nextnode that hodls a navconnection, here we want to always iterate our path so path[1] holds the navconnection
 							if ( navcon ) then
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
+								ml_navigation.lastconnectiontimer = Now()
 							end
 							
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
@@ -2017,6 +2022,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 		
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
+		ml_navigation.lastconnectiontimer = Now()
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
 		NavigationManager.NavPathNode = ml_navigation.pathindex
 		
