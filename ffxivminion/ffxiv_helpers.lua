@@ -6308,6 +6308,9 @@ function Transport156(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = .70, y = -157, z = 16.2}
 			newTask.contentid = 2002502
+			newTask.abort = function ()
+				return not (Player.pos.y < -150 and Player.pos.x < 12 and Player.pos.x > -10 and Player.pos.z < 16.5 and Player.pos.z > -14.1)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.y < -150 and pos1.x < 12 and pos1.x > -10 and pos1.z < 16.5 and pos1.z > -14.1) and 
@@ -6317,6 +6320,9 @@ function Transport156(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 21.9, y = 20.7, z = -682}
 			newTask.contentid = 1006530
+			newTask.abort = function ()
+				return (Player.pos.y < -150 and Player.pos.x < 12 and Player.pos.x > -10 and Player.pos.z < 16.5 and Player.pos.z > -14.1)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -6343,6 +6349,9 @@ function Transport137(pos1,pos2)
 						cn = "前往海上的大型船",
 						kr = "'대형 원양어선'으로 이동",
 					}
+					newTask.abort = function ()
+						return (GetELNSection(Player.pos) == 3)
+					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
@@ -6353,6 +6362,9 @@ function Transport137(pos1,pos2)
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
 					newTask.contentid = 1005414
+					newTask.abort = function ()
+						return (GetELNSection(Player.pos) == 1)
+					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
@@ -6380,7 +6392,9 @@ function Transport137(pos1,pos2)
 							local newTask = ffxiv_nav_interact.Create()
 							newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
 							newTask.contentid = 1003588
-							newTask.abort = function () return (CanUseAetheryte(12) and not Player.incombat) end
+							newTask.abort = function () 
+								return (GetELNSection(Player.pos) == 2) or (CanUseAetheryte(12) and not Player.incombat) 
+							end
 							ml_task_hub:CurrentTask():AddSubTask(newTask)
 						end
 					end
@@ -6407,7 +6421,9 @@ function Transport137(pos1,pos2)
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
 					newTask.contentid = 1003589
-					newTask.abort = function () return (CanUseAetheryte(11) and not Player.incombat) end
+					newTask.abort = function () 
+						return (GetELNSection(Player.pos) ~= 2) or (CanUseAetheryte(11) and not Player.incombat) 
+					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
@@ -6432,6 +6448,9 @@ function Transport138(pos1,pos2)
 				newTask.pos = {x = 318.314, y = -36, z = 351.376}
 				newTask.contentid = 1003584
 				newTask.conversationIndex = 3
+				newTask.abort = function () 
+					return (Player.pos.x < -170 and Player.pos.z > 390)
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		elseif ((pos1.x < -170 and pos1.z > 390) and not (pos2.x <-170 and pos2.z > 390)) then
@@ -6439,6 +6458,9 @@ function Transport138(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -290, y = -41.263, z = 407.726}
 				newTask.contentid = 1005239
+				newTask.abort = function () 
+					return not (Player.pos.x < -170 and Player.pos.z > 390)
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
@@ -6457,6 +6479,9 @@ function Transport130(pos1,pos2)
 			newTask.pos = {x = -20.760, y = 10, z = -45.3617}
 			newTask.contentid = 1001834
 			newTask.conversationIndex = 1
+			newTask.abort = function () 
+				return not (Player.pos.y < 40)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (pos1.y > 50 and pos2.y < 40) then
@@ -6465,6 +6490,9 @@ function Transport130(pos1,pos2)
 			newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
 			newTask.contentid = 1004339
 			newTask.conversationIndex = 2
+			newTask.abort = function () 
+				return not (Player.pos.y > 50)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -6482,6 +6510,9 @@ function Transport128(pos1,pos2)
 			newTask.pos = {x = 7.802, y = 40, z = 16.158}
 			newTask.contentid = 1003597
 			newTask.conversationIndex = 1
+			newTask.abort = function () 
+				return not (Player.pos.y < 60)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (pos1.y > 70 and pos2.y < 60) then
@@ -6490,6 +6521,9 @@ function Transport128(pos1,pos2)
 			newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
 			newTask.contentid = 1003583
 			newTask.conversationIndex = 1
+			newTask.abort = function () 
+				return not (Player.pos.y > 70)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -6506,6 +6540,9 @@ function Transport212(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 22.386226654053, y = 0.99999862909317, z = -0.097462706267834}
 			newTask.contentid = 2001715
+			newTask.abort = function () 
+				return not (Player.pos.x < 23.85 and Player.pos.x > -15.46)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.x < 23.85 and pos1.x > -15.46) and (pos2.x < 23.85 and pos2.x > -15.46 )) then
@@ -6513,6 +6550,9 @@ function Transport212(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 26.495914459229, y = 1.0000013113022, z = -0.018158292397857}
 			newTask.contentid = 2001717
+			newTask.abort = function () 
+				return (Player.pos.x < 23.85 and Player.pos.x > -15.46)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end

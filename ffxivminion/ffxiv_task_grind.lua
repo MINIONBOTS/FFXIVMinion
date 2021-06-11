@@ -222,7 +222,7 @@ function c_grindisloading:evaluate()
 end
 function e_grindisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	--ml_task_hub:ThisTask().preserveSubtasks = true --tempfix until all transports are patched
 end
 
 c_grindislocked = inheritsFrom( ml_cause )
