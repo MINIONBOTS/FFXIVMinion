@@ -6569,6 +6569,9 @@ function Transport351(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
 			newTask.contentid = 2002878
+			newTask.abort = function () 
+				return not (Player.pos.z < 27.394 and Player.pos.z > -27.20)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.z < 27.394 and pos1.z > -27.20) and (pos2.z < 27.39 and pos2.z > -27.20)) then
@@ -6576,6 +6579,9 @@ function Transport351(pos1,pos2)
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 0.010291699320078, y = -2, z = -29.227424621582}
 			newTask.contentid = 2002880
+			newTask.abort = function () 
+				return (Player.pos.z < 27.394 and Player.pos.z > -27.20)
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -6595,6 +6601,10 @@ function Transport146(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
 				newTask.contentid = 1004609
+				newTask.abort = function ()
+					local distance = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,-60.55,-25.107,-556.96)
+					return not (Player.pos.y < -15 and distance < 40) 
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
@@ -6759,6 +6769,9 @@ function Transport612(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -68, y = 56, z = 211}
 								newTask.contentid = 1019531
+								newTask.abort = function ()
+									return (GetFringeSection(Player.pos) ~= 2)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
@@ -6787,6 +6800,9 @@ function Transport612(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -91, y = 50, z = 210}
 								newTask.contentid = 1019530
+								newTask.abort = function ()
+									return (GetFringeSection(Player.pos) == 2)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
@@ -6918,6 +6934,9 @@ function Transport620(pos1,pos2)
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = -129, y = 305, z = 189}
 						newTask.contentid = 2008944
+						newTask.abort = function ()
+							return (GetPeaksSection(Player.pos) == 3)
+						end
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
@@ -6930,6 +6949,9 @@ function Transport620(pos1,pos2)
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = -132, y = 305, z = 191}
 						newTask.contentid = 1021557
+						newTask.abort = function ()
+							return (GetPeaksSection(Player.pos) == 3)
+						end
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
@@ -6953,6 +6975,9 @@ function Transport621(pos1,pos2)
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = 500, y = 69, z = 583}
 						newTask.contentid = 1023048
+						newTask.abort = function ()
+							return (GetLochsSection(Player.pos) == 1)
+						end
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
@@ -6963,6 +6988,9 @@ function Transport621(pos1,pos2)
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = 466, y = 61, z = 583}
 						newTask.contentid = 1023047
+						newTask.abort = function ()
+							return (GetLochsSection(Player.pos) == 2)
+						end
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
@@ -6991,6 +7019,9 @@ function Transport622(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
 				newTask.contentid = 1023089
+				newTask.abort = function ()
+					return not (Player.pos.x < 140 and Player.pos.x > -130 and Player.pos.z < 178 and Player.pos.z > -78 and Player.pos.y > 50)
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		else
@@ -6998,6 +7029,9 @@ function Transport622(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 66.06, y = 114.90, z = -8.38}
 				newTask.contentid = 1019424
+				newTask.abort = function ()
+					return not (Player.pos.x < 140 and Player.pos.x > -130 and Player.pos.z < 178 and Player.pos.z > -78 and Player.pos.y > 50)
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
@@ -7006,6 +7040,9 @@ function Transport622(pos1,pos2)
             local newTask = ffxiv_nav_interact.Create()
             newTask.pos = {x = 61.60, y = 8.80, z = 41.12}
             newTask.contentid = 1019423
+			newTask.abort = function ()
+				return (Player.pos.x < 140 and Player.pos.x > -130 and Player.pos.z < 178 and Player.pos.z > -78 and Player.pos.y > 50)
+			end
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
     end
@@ -7043,6 +7080,9 @@ function Transport814(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -454.70, y = 65.78, z = 58.27}
 								newTask.contentid = 1028319
+								newTask.abort = function ()
+									return (GetKholusiaSection(Player.pos) ~= 1)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
@@ -7071,6 +7111,9 @@ function Transport814(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -454.64, y = 334.05, z = -16.98}
 								newTask.contentid = 1028320
+								newTask.abort = function ()
+									return (GetKholusiaSection(Player.pos) ~= 2)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
@@ -7139,6 +7182,9 @@ function Transport815(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -474.59, y = 45.55, z = -237.59}
 								newTask.contentid = 1031660
+								newTask.abort = function ()
+									return (GetAhmAraengSection(Player.pos) ~= 2)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 						end
 					end
@@ -7166,8 +7212,10 @@ function Transport815(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -176.01, y = -3.42, z = 215.46}
 								newTask.contentid = 2010763
+								newTask.abort = function ()
+									return (GetAhmAraengSection(Player.pos) ~= 3)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
-							
 							end
 						end
 					end
@@ -7247,6 +7295,9 @@ function Transport818(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -610.40, y = 45.48, z = 94.93}
 								newTask.contentid = 2010145
+								newTask.abort = function ()
+									return (GetTempestSection(Player.pos) ~= 1)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
@@ -7275,6 +7326,9 @@ function Transport818(pos1,pos2)
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -602.82, y = -282.73, z = 113.49}
 								newTask.contentid = 2010146
+								newTask.abort = function ()
+									return (GetTempestSection(Player.pos) ~= 2)
+								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
