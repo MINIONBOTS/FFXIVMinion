@@ -6268,6 +6268,9 @@ function Transport139(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -341.24, y = -1, z = 112.098}
 				newTask.contentid = 1003586
+				newTask.abort = function ()
+					return Player.pos.x > 0
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		else
@@ -6279,6 +6282,9 @@ function Transport139(pos1,pos2)
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
 				newTask.contentid = 1003587
+				newTask.abort = function ()
+					return Player.pos.x < 0
+				end
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		else
