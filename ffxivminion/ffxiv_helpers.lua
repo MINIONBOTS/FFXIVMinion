@@ -4559,7 +4559,7 @@ function HasDutyUnlocked(dutyID)
 	return false
 end
 function HuntingLogsUnlocked()
-	-- Minion questids are (datamined_questid-65536), so 256 is http://garlandtools.org/db/#quest/65789
+	-- Minion questids are (datamined_questid-65536), so 253 is http://garlandtools.org/db/#quest/65789
 	-- Grand Company unlock quests are included here to allow boosted chars without a class hunt log
 	-- to do GC hunt logs (e.g.: jobs released after ARR: AST, RDM, GNB, etc.)
 	local requiredQuests = {
