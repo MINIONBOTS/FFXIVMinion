@@ -3598,14 +3598,25 @@ end
 c_skiptalk = inheritsFrom( ml_cause )
 e_skiptalk = inheritsFrom( ml_effect )
 function c_skiptalk:evaluate()
-	if (gSkipTalk and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly)) then
+
+	-- unsafe
+	local noskip = {
+		[0] = true,
+		[217] = true,
+		[224] = true,
+		[900] = true,
+	}
+	if noskip[Player.localmapid] then
+		--d("no skip map")
+		return false
+	end
+	if not gSkipTalk then
+		--d("no skip talk")
+		return false
+	end
+	
+	if (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) then
 		if IsControlOpen("Talk") then
-			local noskip = {
-				[0] = true,
-				[217] = true,
-				[224] = true,
-				[900] = true,
-			}
 			if Player.onlinestatus ~= 15 or noskip[Player.localmapid] ~= true then
 				UseControlAction("Talk","Click")
 				if (not IsControlOpen("SelectIconString") and not IsControlOpen("SelectString") and not IsControlOpen("Request")) then
@@ -3628,16 +3639,25 @@ e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
 c_skipcutscene.togglehack = true
 function c_skipcutscene:evaluate()
-	if Player.onlinestatus == 15 then
-		-- unsafe
-		local noskip = {
-			[0] = true,
-			[217] = true,
-			[224] = true,
-			[900] = true,
-		}
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
+	-- unsafe
+	local noskip = {
+		[0] = true,
+		[217] = true,
+		[224] = true,
+		[900] = true,
+	}
+	if noskip[Player.localmapid] then
+		--d("no skip map")
+		return false
+	end
+	if not gSkipCutscene then
+		--d("no skip cs")
+		return false
+	end
+	
+	if Player.onlinestatus == 15 then
+		if ((FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
@@ -3648,11 +3668,11 @@ function c_skipcutscene:evaluate()
 			end
 			return true
 		end
-		if gSkipCutscene and not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
+		if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
 			c_skipcutscene.togglehack = true
 			Hacks:SkipCutscene(false)
 		end
-	elseif gSkipCutscene and c_skipcutscene.togglehack then
+	elseif c_skipcutscene.togglehack then
 		c_skipcutscene.togglehack = false
 		Hacks:SkipCutscene(gSkipCutscene)
 	end
