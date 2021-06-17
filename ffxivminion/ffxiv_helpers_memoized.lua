@@ -137,6 +137,23 @@ function MIsMoving()
 	end
 end
 
+function MGetDirectorIndex()
+	local memString = "DirectorIndex"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local activeDirector = Director:GetActiveDirector()
+		if (activeDirector == nil) then
+			SetMemoized(memString,-1)
+			return ret
+		else
+			local ret = IsNull(activeDirector.textindex,-1)
+			SetMemoized(memString,ret)
+			return ret
+		end
+	end
+end
 
 function MIsLoading()
 	local memString = "MIsLoading"

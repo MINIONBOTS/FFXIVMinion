@@ -8514,3 +8514,18 @@ function GetParty()
 	end
 	return party
 end
+function CheckDirectorTextIndex(...)
+	local index = MGetDirectorIndex()
+	if (index == -1) then
+		return false
+	else
+		local args = {...}
+		for i=1, #args do
+			if (args[i] == index) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
