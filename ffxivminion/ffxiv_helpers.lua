@@ -8516,7 +8516,7 @@ function GetParty()
 end
 function CheckDirectorTextIndex(...)
 	local index = MGetDirectorIndex()
-	if (index == -1) then
+	if (index == 0) then
 		return false
 	else
 		local args = {...}

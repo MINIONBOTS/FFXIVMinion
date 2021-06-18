@@ -143,14 +143,20 @@ function MGetDirectorIndex()
 	if (memoized) then
 		return memoized
 	else
-		local activeDirector = Director:GetActiveDirector()
-		if (activeDirector == nil) then
-			SetMemoized(memString,-1)
+		local activeDuty = Duty:GetActiveDutyInfo()
+		if (not table.isa(activeDuty)) then
+			SetMemoized(memString,0)
 			return ret
 		else
-			local ret = IsNull(activeDirector.textindex,-1)
-			SetMemoized(memString,ret)
-			return ret
+			local activeDirector = Director:GetActiveDirector()
+			if (not table.isa(activeDirector)) then
+				SetMemoized(memString,0)
+				return ret
+			else
+				local ret = IsNull(activeDirector.textindex,0)
+				SetMemoized(memString,ret)
+				return ret
+			end
 		end
 	end
 end

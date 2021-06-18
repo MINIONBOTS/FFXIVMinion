@@ -642,11 +642,8 @@ function dev.DrawCall(event, ticks )
 						GUI:BulletText(".recommendedcraftsmanship") GUI:SameLine(200) GUI:InputText("##deCIL9"..tostring(id),tostring(ciList.recommendedcraftsmanship))					
 						GUI:BulletText(".canquicksynth") GUI:SameLine(200) GUI:InputText("##deCIL10"..tostring(id),tostring(ciList.canquicksynth))	
 						
-						
-						
 						GUI:TreePop()
 					end
-
 
 					GUI:TreePop()
 				end	
@@ -663,13 +660,14 @@ function dev.DrawCall(event, ticks )
 				
 				if GUI:TreeNode("GetActiveDutyInfo") then
 					local info = Duty:GetActiveDutyInfo()
-					local director = Director:GetActiveDirector()
 					if (table.valid(info)) then
 						GUI:PushItemWidth(200)
 						GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dutyinfo_name",tostring(info.name))
 						GUI:BulletText(".timer") GUI:SameLine(200) GUI:InputText("##dutyinfo_timer",tostring(info.timer))
 						GUI:BulletText(".dutytype") GUI:SameLine(200) GUI:InputText("##dutyinfo_type",tostring(info.dutytype))
 						GUI:BulletText(".dutystep") GUI:SameLine(200) GUI:InputText("##dutyinfo_step",tostring(info.dutystep))
+						
+						local director = Director:GetActiveDirector()
 						if (table.valid(director)) then
 							GUI:BulletText(".textindex") GUI:SameLine(200) GUI:InputText("##devneww345",tostring(director.textindex))
 							GUI:BulletText(".textstartindex") GUI:SameLine(200) GUI:InputText("##devneww346",tostring(director.textstartindex))
