@@ -2152,7 +2152,9 @@ function c_companion:evaluate()
 		--]]
         return false
     end
-
+	if not QuestCompleted(1162) then
+		return false
+	end
     if ((gChocoGrind and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode") or ml_task_hub:CurrentTask().name == "GRIND_COMBAT")) or
 		(gChocoAssist and gBotMode == GetString("assistMode")) or
 		(gChocoQuest and gBotMode == GetString("questMode"))) 
