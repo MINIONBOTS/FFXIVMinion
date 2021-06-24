@@ -995,7 +995,7 @@ ffxiv_map_nav.data = {
                    ["G"] = "Himmelsstadt",
                    ["F"] = "Azurée",
                    ["CN"] = "传送到天穹街",
-                   --["KR"] = "",
+                   ["KR"] = "창천 거리 이동",
                 },
 			},
 		},
