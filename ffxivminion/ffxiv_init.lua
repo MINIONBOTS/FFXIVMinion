@@ -347,6 +347,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(183, "New Gridania", enforce)
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania", enforce)
 		
+		-- Barracks
+		ml_mesh_mgr.SetDefaultMesh(534, "Twin Adder Barrack", enforce)
+		ml_mesh_mgr.SetDefaultMesh(535, "Flame Barracks", enforce)
+		ml_mesh_mgr.SetDefaultMesh(536, "Maelstrom Barracks", enforce)
+		
 		-- Cities HW
 		ml_mesh_mgr.SetDefaultMesh(418, "Foundation", enforce)
 		ml_mesh_mgr.SetDefaultMesh(419, "The Pillars", enforce)
