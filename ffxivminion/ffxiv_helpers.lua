@@ -4558,24 +4558,30 @@ function HasDutyUnlocked(dutyID)
 	
 	return false
 end
-function HuntingLogsUnlocked()	
+function HuntingLogsUnlocked()
+	-- Minion questids are (datamined_questid-65536), so 253 is http://garlandtools.org/db/#quest/65789
+	-- Grand Company unlock quests are included here to allow boosted chars without a class hunt log
+	-- to do GC hunt logs (e.g.: jobs released after ARR: AST, RDM, GNB, etc.)
 	local requiredQuests = {
-		[1] = 253,
-		[2] = 286, 
-		[3] = 311,
-		[4] = 312,
-		[5] = 345,
-		[6] = 346,
-		[7] = 23,
-		[8] = 218, 
-		[9] = 533,
-		[10] = 553,
-		[11] = 21,
-		[12] = 219,
-		[13] = 453,
-		[14] = 454,
-		[15] = 22,
-		[16] = 211,
+		[1] = 253,  -- Way of the Gladiator
+		[2] = 286,  -- My First Gladius
+		[3] = 311,  -- Way of the Marauder
+		[4] = 312,  -- My First Axe
+		[5] = 345,  -- Way of the Thaumaturge
+		[6] = 346,  -- My First Scepter
+		[7] = 23,   -- Way of the Lancer
+		[8] = 218,  -- My First Spear
+		[9] = 533,  -- Way of the Pugilist
+		[10] = 553, -- My First Hora
+		[11] = 21,  -- Way of the Archer
+		[12] = 219, -- My First Bow
+		[13] = 453, -- Way of the Arcanist
+		[14] = 454, -- My First Grimoire
+		[15] = 22,  -- Way of the Conjurer
+		[16] = 211, -- My First Cane
+		[17] = 680, -- The Company You Keep (Twin Adder)
+		[18] = 681, -- The Company You Keep (Maelstrom)
+		[19] = 682, -- The Company You Keep (Immortal Flames)
 	}
 	
 	for i,quest in pairs(requiredQuests) do
