@@ -749,7 +749,7 @@ function c_precraftbuff:evaluate()
 		if gCraftMarkerOrProfileIndex == 1 then
 			isCollectable = ml_task_hub:CurrentTask().useCollect
 		end
-		if In(ffxivminion.gameRegion,2,3) then
+		if GetPatchLevel() < 5.3 then 
 			if Player.level >= 50 and ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 				local collect = ActionList:Get(1,ffxiv_craft.collectors[Player.job])
 				if (collect) then
