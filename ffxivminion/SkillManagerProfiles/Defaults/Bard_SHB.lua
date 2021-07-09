@@ -87,7 +87,7 @@ local obj1 = {
 			["levelmin"] = 52;
 			["maxRange"] = 0;
 			["name"] = "Raging Strikes";
-			["pbuff"] = "130";
+			["pbuff"] = "";
 			["playerlevelmin"] = 4;
 			["prio"] = 3;
 			["ptrg"] = "Enemy";
@@ -171,7 +171,7 @@ local obj1 = {
 			["levelmin"] = 54;
 			["maxRange"] = 25;
 			["name"] = "Empyreal Arrow";
-			["pbuff"] = "130";
+			["pbuff"] = "";
 			["playerlevelmin"] = 54;
 			["prio"] = 9;
 			["skncdtimemin"] = 5;
@@ -317,7 +317,7 @@ local obj1 = {
 			["levelmin"] = 18;
 			["maxRange"] = 12;
 			["name"] = "Quick Nock";
-			["pbuff"] = "130";
+			["pbuff"] = "";
 			["playerlevelmin"] = 18;
 			["pnbuff"] = "865";
 			["prio"] = 20;
@@ -364,7 +364,7 @@ local obj1 = {
 			["levelmin"] = 30;
 			["maxRange"] = 25;
 			["name"] = "Windbite";
-			["pbuff"] = "130";
+			["pbuff"] = "";
 			["playerlevelmin"] = 30;
 			["pnbuff"] = "865";
 			["prio"] = 24;
@@ -457,7 +457,7 @@ local obj1 = {
 			["prio"] = 32;
 		};
 	};
-	["update"] = 20210406;
+	["update"] = 20210710;
 	["version"] = 3;
 }
 return obj1
