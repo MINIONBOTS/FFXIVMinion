@@ -1928,7 +1928,7 @@ function ml_global_information.DrawSettings()
 				end	
 				
 				if (tabindex == 3) then
-					GUI:BeginChild("##main-header-autoequip",0,GUI_GetFrameHeight(11),true)
+					GUI:BeginChild("##main-header-autoequip",0,GUI_GetFrameHeight(29.5),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"),gAutoEquip),"gAutoEquip",
 						function ()
@@ -1941,31 +1941,114 @@ function ml_global_information.DrawSettings()
 					GUI:Spacing(); GUI:Spacing(); GUI:Spacing()
 					GUI:Text(GetString("Gearsets"));
 					
-					GUI:BeginChild("##main-header-autoequip-gearsets",0,GUI_GetFrameHeight(8),true)
+					GUI:BeginChild("##main-header-autoequip-gearsets",0,GUI_GetFrameHeight(26),true)
 					local classlookup = {}
 					for jobid,abrev in pairs(ffxivminion.classes) do
 						classlookup[abrev] = jobid
 					end
 					
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
+					local tanks = {"GLD","PLD","MRD","WAR","DRK","GNB"}
+					local healers = {"CNJ","WHM","SCH","AST"}
+					local melee = {"PUG","MNK","LNC","DRG","ROG","NIN","SAM"}
+					local ranged = {"ARC","BRD","MCH","DNC"}
+					local casters = {"THM","BLM","ACN","SMN","RDM","BLU"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
-					GUI:PushItemWidth(50)
+					GUI:PushItemWidth(40)
+
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Tank.png", 20, 20); GUI:SameLine(24, 24); GUI:Text("Tanks");
+					GUI:Separator();
+					
 					local count = 1
-					for i,abrev in pairsByKeys(fighters) do
+					for i,abrev in pairsByKeys(tanks) do
 						local jobid = classlookup[abrev]
 						local str = "gGearset"..tostring(jobid)
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
 						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
 						GUI:SameLine(0,10)
-						if (count % 6) == 0 and count ~= table.size(fighters) then GUI:NewLine() end
+						if (count % 6) == 0 and count ~= table.size(tanks) then GUI:NewLine() end
 						count = count + 1
 					end
-					GUI:NewLine(2);
 					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+					
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Healer.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Healers");
 					GUI:Separator();
+					
+					local count = 1
+					for i,abrev in pairsByKeys(healers) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(healers) then GUI:NewLine() end
+						count = count + 1
+					end
 					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+					
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Melee.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Melee");
+					GUI:Separator();
+					
+					local count = 1
+					for i,abrev in pairsByKeys(melee) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
+						GUI:SameLine(0,10)
+						if (count % 7) == 0 and count ~= table.size(melee) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Ranged.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Ranged");
+					GUI:Separator();
+					
+					local count = 1
+					for i,abrev in pairsByKeys(ranged) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(ranged) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Casters.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Casters");
+					GUI:Separator();
+					
+					local count = 1
+					for i,abrev in pairsByKeys(casters) do
+						local jobid = classlookup[abrev]
+						local str = "gGearset"..tostring(jobid)
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
+						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
+						GUI:SameLine(0,10)
+						if (count % 6) == 0 and count ~= table.size(casters) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Crafters.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Crafters");
+					GUI:Separator();
 					
 					local count = 1
 					for i,abrev in pairsByKeys(crafters) do
@@ -1974,13 +2057,16 @@ function ml_global_information.DrawSettings()
 						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(abrev); GUI:SameLine(); 
 						GUI_Capture(GUI:InputInt("##"..abrev,_G[str],0,0),str)
 						GUI:SameLine(0,10)
-						if (count % 6) == 0 and count ~= table.size(crafters) then GUI:NewLine() end
+						if (count % 8) == 0 and count ~= table.size(crafters) then GUI:NewLine() end
 						count = count + 1
 					end
-					GUI:NewLine(2);
 					GUI:Spacing()
+					GUI:Spacing()
+					GUI:NewLine();
+					
+					GUI:PushItemWidth(40)
+					GUI:Image(ml_global_information.path.."\\GUI\\UI_Textures\\Role_Gatherers.png", 20, 20) GUI:SameLine(24, 24); GUI:Text("Gatherers");
 					GUI:Separator();
-					GUI:Spacing()
 					
 					local count = 1
 					for i,abrev in pairsByKeys(gatherers) do
@@ -1992,10 +2078,7 @@ function ml_global_information.DrawSettings()
 						if (count % 6) == 0 and count ~= table.size(gatherers) then GUI:NewLine() end
 						count = count + 1
 					end
-					GUI:NewLine();
 					GUI:PopItemWidth()
-					GUI:EndChild()
-					
 					GUI:EndChild()
 				end
 			
