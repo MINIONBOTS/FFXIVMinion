@@ -633,7 +633,6 @@ local obj1 = {
 			["npgskill"] = "152";
 			["npskill"] = "152";
 			["prio"] = 46;
-			["trg"] = "Ground Target";
 		};
 		[47] = {
 			["combat"] = "Any";
