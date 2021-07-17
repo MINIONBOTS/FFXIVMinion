@@ -622,6 +622,7 @@ local obj1 = {
 			["prio"] = 45;
 		};
 		[46] = {
+			["combat"] = "Any";
 			["gauge2lt"] = -1;
 			["gauge3or"] = "0";
 			["id"] = 152;
@@ -632,8 +633,10 @@ local obj1 = {
 			["npgskill"] = "152";
 			["npskill"] = "152";
 			["prio"] = 46;
+			["trg"] = "Ground Target";
 		};
 		[47] = {
+			["combat"] = "Any";
 			["gauge2or"] = "0";
 			["id"] = 141;
 			["levelmax"] = 40;
@@ -643,6 +646,7 @@ local obj1 = {
 			["prio"] = 47;
 		};
 		[48] = {
+			["combat"] = "Any";
 			["id"] = 142;
 			["levelmax"] = 3;
 			["levelmin"] = 1;
@@ -742,8 +746,16 @@ local obj1 = {
 			["prio"] = 55;
 			["trg"] = "Player";
 		};
+		[56] = {
+			["combat"] = "Out of Combat";
+			["id"] = 152;
+			["levelmin"] = 34;
+			["maxRange"] = 25;
+			["name"] = "Fire III";
+			["prio"] = 56;
+		};
 	};
-	["update"] = 20191017;
+	["update"] = 20210717;
 	["version"] = 3;
 }
 return obj1
