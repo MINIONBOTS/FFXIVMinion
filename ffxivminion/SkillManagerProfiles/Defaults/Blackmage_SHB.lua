@@ -623,7 +623,7 @@ local obj1 = {
 		};
 		[46] = {
 			["combat"] = "Any";
-			["gauge2lt"] = -1;
+			--["gauge2lt"] = -1;
 			["gauge3or"] = "0";
 			["id"] = 152;
 			["levelmin"] = 34;
