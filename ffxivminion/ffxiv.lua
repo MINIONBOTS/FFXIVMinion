@@ -13,9 +13,9 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
-	[1] = 5.58,
+	[1] = 5.55,
 	[2] = 5.45,
-	[3] = 5.45
+	[3] = 5.41
 }
 
 ffxivminion.loginvars = {
@@ -1561,7 +1561,8 @@ Quest: Completes quests based on a questing profile.\
 							end
 						end
 					end
-					local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local inPvP = IsPVPMap(Player.localmapid)
+					local acrValid = (not inPvP and acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job]) or (inPvP and gACREnabledPVP and table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job])
 					
 					if (not acrValid) then
 						GUI:AlignFirstTextHeightToWidgets()	
@@ -2630,9 +2631,14 @@ invalid name or haven't chosen one."))
 					GUI:Text("Class: "); GUI:SameLine();	GUI:Text(tostring(Player.job))
 					GUI:SameLine(200);
 					GUI:Text("Level: "); GUI:SameLine();	GUI:Text(tostring(Player.level))
-					local acrValid =  gACREnabled and (gACRSelectedProfiles[Player.job])
-					if acrValid then
+					local inPvP = IsPVPMap(Player.localmapid)
+					local pveACRValid = (not inPvP and acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local pvpACRValid = (inPvP and gACREnabledPVP and table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job])
+					--local acrValid = gACREnabled and (gACRSelectedProfiles[Player.job])
+					if pveACRValid then
 						GUI:Text("ACR Profile: "); GUI:SameLine();	GUI:Text((tostring(gACRSelectedProfiles[Player.job])))
+					elseif pvpACRValid then
+						GUI:Text("ACR Profile: "); GUI:SameLine();	GUI:Text((tostring(gACRSelectedPVPProfiles[Player.job])))
 					else
 						GUI:Text("Skill Profile: "); GUI:SameLine();	GUI:Text(tostring(gSkillProfile))
 					end
