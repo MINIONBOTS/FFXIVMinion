@@ -1728,7 +1728,7 @@ function ml_global_information.Init()
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	
 			--{ id = "FFXIVMINION##MENU_MAINMENU", name = "Windows", sort = true },
-			{ id = "FFXIVMINION##MENU_MAINMENU", name = "Main Task", onClick = function() ffxivminion.GUI.main.open = true end, tooltip = "Open the Main Task window." },
+			{ id = "FFXIVMINION##MENU_MAINMENU", name = "Main Task", onClick = function() ffxivminion.GUI.main.open = true ml_global_information.drawMode = 1 end, tooltip = "Open the Main Task window." },
 			{ id = "FFXIVMINION##MENU_DEV", name = "Dev Tools", onClick = function() dev.GUI.open = not dev.GUI.open end, tooltip = "Open the Developer tools." },
 		}
 	}
