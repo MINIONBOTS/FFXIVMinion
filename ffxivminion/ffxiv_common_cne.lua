@@ -3649,17 +3649,10 @@ function c_skipcutscene:evaluate()
 		[224] = true,
 		[900] = true,
 	}
-	if noskip[Player.localmapid] then
-		--d("no skip map")
-		return false
-	end
-	if not gSkipCutscene then
-		--d("no skip cs")
-		return false
-	end
-	
+		
 	if Player.onlinestatus == 15 then
-		if ((FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
+
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
