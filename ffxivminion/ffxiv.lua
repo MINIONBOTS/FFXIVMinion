@@ -104,7 +104,7 @@ ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
 	if ( mapid and level ) then
-		local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
+		local inthanalan = 	In(mapid,140,141,145,146,147,130,131)
 		local inshroud = 	In(mapid,148,152,153,154,132,133)
 		local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
 
@@ -604,7 +604,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 										local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
 										if (MissingBuffs(companion, buffString)) then
 											Player:PauseMovement()
-											ml_global_information.Await(1500, function () return not MIsMoving() end)
+											ml_global_information.Await(1500, function () return not IsMoving() end)
 											local newTask = ffxiv_task_useitem.Create()
 											newTask.itemid = itemid
 											--newTask.targetid = companion.id
@@ -1260,7 +1260,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= GetString("assistMode") then
+	if (IsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= GetString("assistMode") then
 		Player:Stop()
 	end
 	SkillMgr.receivedMacro = {}
