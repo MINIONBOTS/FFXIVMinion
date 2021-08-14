@@ -14,7 +14,7 @@ ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
 	[1] = 5.58,
-	[2] = 5.45,
+	[2] = 5.55,
 	[3] = 5.45
 }
 
@@ -104,7 +104,7 @@ ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
 	local level = Player.level
 	if ( mapid and level ) then
-		local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
+		local inthanalan = 	In(mapid,140,141,145,146,147,130,131)
 		local inshroud = 	In(mapid,148,152,153,154,132,133)
 		local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
 
