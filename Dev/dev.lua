@@ -20,7 +20,9 @@ dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 
 function dev.Init()
 	gDevFilterActions = true	
+	gDevSortAddons = false
 	gDevAddonTextFilter = ""
+	gDevAddonNameFilter = ""
 	gDevAddonOpenFilter = false
 	gDevAddonClosedFilter = false
 	gDevHackMaxZoom = 20.0
@@ -2121,10 +2123,14 @@ function dev.DrawCall(event, ticks )
 
 			if ( GUI:TreeNode("Installed Addons") ) then
 				dev.showInitAddons = GUI:Checkbox("Include Initialize Events", dev.showInitAddons or false)
+				gDevSortAddons = GUI:Checkbox("Sort by tick rate", gDevSortAddons or false)
+				GUI:PushItemWidth(200); gDevAddonNameFilter = GUI:InputText("Filter by Name",gDevAddonNameFilter); GUI:PopItemWidth();
 				if(not dev.lastaddontick or ticks - dev.lastaddontick > 200) then
 					dev.lastaddontick = ticks
 					dev.addonlist = GetAddonList()
-					table.sort(dev.addonlist, function(a,b) return a.average > b.average end)					
+					if gDevSortAddons then
+						table.sort(dev.addonlist, function(a,b) return a.average > b.average end)	
+					end						
 				end
 				GUI:PushItemWidth(250)
 				GUI:Columns( 6, "#beer", true )
@@ -2150,18 +2156,20 @@ function dev.DrawCall(event, ticks )
 				for i, e in pairs(dev.addonlist) do
 					if(e.highest ~= 0) then
 						if(dev.showInitAddons or ( e.lasttick < 10000 and e.event ~= "Module.Initialize"))then
-							GUI:Text(e.name)
-							GUI:NextColumn()
-							GUI:Text(e.event)
-							GUI:NextColumn()
-							GUI:Text(e.lasttick)
-							GUI:NextColumn()
-							GUI:Text(e.highest)
-							GUI:NextColumn()
-							GUI:Text(e.slowest)
-							GUI:NextColumn()
-							GUI:Text(e.average)
-							GUI:NextColumn()
+							if (gDevAddonNameFilter == "" or string.contains(e.name,gDevAddonNameFilter)) then
+								GUI:Text(e.name)
+								GUI:NextColumn()
+								GUI:Text(e.event)
+								GUI:NextColumn()
+								GUI:Text(e.lasttick)
+								GUI:NextColumn()
+								GUI:Text(e.highest)
+								GUI:NextColumn()
+								GUI:Text(e.slowest)
+								GUI:NextColumn()
+								GUI:Text(e.average)
+								GUI:NextColumn()
+							end
 						end
 					end
 				end
