@@ -55,7 +55,7 @@ elseif (ffxivminion.gameRegion == 2) then
     } 
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
-		[1] = { "-","톤베리","모그리","초코보","카벙클" },
+		[1] = { "-","톤베리","모그리","초코보","카벙클","펜리르" },
 	}
 end
 
