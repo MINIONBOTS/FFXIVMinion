@@ -693,7 +693,7 @@ function ml_global_information.Init()
 		-- Eden's Gate
 		--ml_mesh_mgr.SetDefaultMesh(849, "[Raid] The Core", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Halo_e2", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
+		ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(852, "[Raid] Atlas Peak", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(853, "[Raid] The Core", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(854, "[Raid] The Halo_e2", enforce)
