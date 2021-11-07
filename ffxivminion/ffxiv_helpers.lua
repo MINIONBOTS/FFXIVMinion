@@ -5098,7 +5098,7 @@ function GetCompanionEntity()
 end
 function IsShopWindowOpen()
 	return (IsControlOpen("Shop") or IsControlOpen("ShopExchangeItem") or IsControlOpen("ShopExchangeCurrency")
-		or IsControlOpen("ShopCard") or IsControlOpen("ShopExchangeCoin"))
+		or IsControlOpen("ShopCard") or IsControlOpen("ShopExchangeCoin") or IsControlOpen("InclusionShop"))
 end
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
