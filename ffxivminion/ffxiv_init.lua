@@ -679,18 +679,36 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(583, "[Raid] The Soul of the Creator", enforce) -- a12
 		ml_mesh_mgr.SetDefaultMesh(587, "[Raid] The Soul of the Creator", enforce) -- a12s
 		
-		-- Raids SB
+		-- Raids SB Omega: released on July 4, 2017. Minimum item level of 295.
 		ml_mesh_mgr.SetDefaultMesh(658, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(756, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(807, "The Interdimensional Rift2", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape Savag)", enforce)
+		ml_mesh_mgr.SetDefaultMesh(691, "[Raid] Deltascape V1.0", enforce) -- o1
+		--ml_mesh_mgr.SetDefaultMesh(695, "[Raid] Deltascape V1.0", enforce) -- o1s
+		ml_mesh_mgr.SetDefaultMesh(692, "[Raid] Deltascape V2.0", enforce) -- o2
+		--ml_mesh_mgr.SetDefaultMesh(696, "[Raid] Deltascape V2.0", enforce) -- o2s
+		ml_mesh_mgr.SetDefaultMesh(693, "[Raid] Deltascape V3.0", enforce) -- o3
+		--ml_mesh_mgr.SetDefaultMesh(697, "[Raid] Deltascape V3.0", enforce) -- o3s
+		--ml_mesh_mgr.SetDefaultMesh(694, "[Raid] Deltascape V4.0", enforce) -- o4
+		--ml_mesh_mgr.SetDefaultMesh(698, "[Raid] Deltascape V4.0", enforce) -- o4s
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Unending Coil of Bahamut Ultimate", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Sigmascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Sigmascape Savage", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(748, "[Raid] Sigmascape V1.0", enforce) -- o5
+		--ml_mesh_mgr.SetDefaultMesh(752, "[Raid] Sigmascape V1.0", enforce) -- o5s
+		--ml_mesh_mgr.SetDefaultMesh(749, "[Raid] Sigmascape V2.0", enforce) -- o6
+		--ml_mesh_mgr.SetDefaultMesh(753, "[Raid] Sigmascape V2.0", enforce) -- o6s
+		--ml_mesh_mgr.SetDefaultMesh(750, "[Raid] Sigmascape V3.0", enforce) -- o7
+		--ml_mesh_mgr.SetDefaultMesh(754, "[Raid] Sigmascape V3.0", enforce) -- o7s
+		--ml_mesh_mgr.SetDefaultMesh(751, "[Raid] Sigmascape V4.0", enforce) -- o8
+		--ml_mesh_mgr.SetDefaultMesh(755, "[Raid] Sigmascape V4.0", enforce) -- o8s
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Minstrel's Ballad The Weapon's Refrain Ultimate", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Alphascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Alphascape Savage", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V1.0", enforce) -- o9
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V1.0", enforce) -- o9s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V2.0", enforce) -- o10
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V2.0", enforce) -- o10s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V3.0", enforce) -- o11
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V3.0", enforce) -- o11s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V4.0", enforce) -- o12
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V4.0", enforce) -- o12s
 		
 		-- Raids SHB
 		-- Eden's Gate
