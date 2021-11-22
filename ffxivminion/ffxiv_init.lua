@@ -1723,6 +1723,7 @@ function ml_global_information.Init()
 				[834] = "The Howling Eye",
 				[839] = "East Shroud",
 				[843] = "The Pendants Personal Suite",
+				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
