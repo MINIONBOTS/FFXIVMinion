@@ -1,4 +1,4 @@
--- Add things to ml_global_information, we no longer create it.	
+-- Add things to ml_global_information, we no longer create it.	test
 --[[
 FFXIV.JOBS = {
 	ADVENTURER = 0,
