@@ -1464,6 +1464,9 @@ ffxiv_map_nav.data = {
 				},
 			},
 		},
+		 [928] = {
+            {id = 928, cost = 1, x = 702.45, y = 293.46, z = -158.98, b = 2011154},
+        },
     },
 	[815] =
     {
@@ -1632,6 +1635,12 @@ ffxiv_map_nav.data = {
             {id = 895, cost = 1, x = -499.14, y = 484.00, z = 279.87, b = 2010831},
         },
     },
+	[928] =
+	{
+		[814] = {
+            {id = 814, cost = 1, x = -382.52, y = 102.02, z = 387.95, b = 2011155},
+        },
+	},
 }-- set reference for mesh mgr
 
 ffxiv_aethercurrent_data = {
