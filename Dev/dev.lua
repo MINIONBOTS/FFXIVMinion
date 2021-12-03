@@ -262,6 +262,15 @@ function dev.DrawCall(event, ticks )
 						end
 						GUI:TreePop()
 					end
+					if ( GUI:TreeNode("Gauge Test Data") ) then
+						local g = Player.gaugetest
+						if ( table.valid(g)) then
+							for i,k in pairs (g) do
+								GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg2"..tostring(i),tostring(k))	
+							end							
+						end
+						GUI:TreePop()
+					end
 					
 					if ( GUI:TreeNode("Job Levels")) then
 						local lev = Player.levels
