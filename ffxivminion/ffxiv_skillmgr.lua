@@ -130,6 +130,9 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
 	[FFXIV.JOBS.DANCER] = "Dancer",
 	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
+	
+	[39] = "Reaper",
+	[40] = "Sage",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -232,6 +235,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.REDMAGE] = 8882,
 			[FFXIV.JOBS.DANCER] = 17756,
 			[FFXIV.JOBS.GUNBREAKER] = 17703,
+			[39] = 24373,
+			[40] = 24283,
 		}
 	end
 	
@@ -313,6 +318,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.BLUEMAGE] = 11385,
 		[FFXIV.JOBS.DANCER] = 15989,
 		[FFXIV.JOBS.GUNBREAKER] = 16137,
+		[39] = 24373,
+		[40] = 24283,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -925,6 +932,12 @@ function SkillMgr.ModuleInit()
 		end
 		if In(gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER],"None",nil) then
 			gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
+		end
+		if In(gSMDefaultProfiles[39],"None",nil) then
+			gSMDefaultProfiles[39] = "Reaper"
+		end
+		if In(gSMDefaultProfiles[40],"None",nil) then
+			gSMDefaultProfiles[40] = "Sage"
 		end
 		if In(GetGameRegion(),1,2) then
 			if In(gSMDefaultProfiles[FFXIV.JOBS.ROGUE],"Ninja","Rogue",nil) then
@@ -1767,6 +1780,9 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidGNB = IsNull(classes[FFXIV.JOBS.GUNBREAKER],false) 
 	gSkillProfileValidDNC = IsNull(classes[FFXIV.JOBS.DANCER],false) 
 	
+	gSkillProfileValidRPR = IsNull(classes[39],false) 
+	gSkillProfileValidSGE = IsNull(classes[40],false) 
+	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
 	gSkillProfileValidFSH = IsNull(classes[FFXIV.JOBS.FISHER],false) 
@@ -1869,6 +1885,9 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.BLUEMAGE] = IsNull(gSkillProfileValidBLU,false),
 		[FFXIV.JOBS.GUNBREAKER] = IsNull(gSkillProfileValidGNB,false),
 		[FFXIV.JOBS.DANCER] = IsNull(gSkillProfileValidDNC,false), 
+		
+		[39] = IsNull(gSkillProfileValidRPR,false),
+		[40] = IsNull(gSkillProfileValidSGE,false), 
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
