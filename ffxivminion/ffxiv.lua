@@ -21,7 +21,7 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
-	[1] = 5.58,
+	[1] = 6.0,
 	[2] = 5.55,
 	[3] = 5.45
 }
@@ -106,6 +106,8 @@ ffxivminion.classes = {
 	[FFXIV.JOBS.BLUEMAGE] = "BLU",
 	[FFXIV.JOBS.DANCER] = "DNC",
 	[FFXIV.JOBS.GUNBREAKER] = "GNB",
+	[39] = "RPR", --FFXIV.JOBS.REAPER
+	[40] = "SGE", --FFXIV.JOBS.SAGE
 }
 
 ffxivminion.AutoGrindDefault = [[
@@ -1205,6 +1207,9 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.BLUEMAGE] = ffxiv_combat_bluemage,
 			[FFXIV.JOBS.GUNBREAKER] = ffxiv_combat_gunbreaker,
 			[FFXIV.JOBS.DANCER] = ffxiv_combat_dancer,
+
+			[39] = ffxiv_combat_reaper,
+			[40] = ffxiv_combat_sage,
 
 			[FFXIV.JOBS.BOTANIST] = ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] = ffxiv_gather_fisher,
