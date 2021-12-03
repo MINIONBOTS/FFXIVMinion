@@ -740,7 +740,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(947, "[Raid] Laxan Loft", enforce)
 		ml_mesh_mgr.SetDefaultMesh(948, "[Raid] Bygone Gaol", enforce)
 		ml_mesh_mgr.SetDefaultMesh(949, "[Raid] The Garden of Nowhere", enforce)
-	
+		
+		--Dungeons Endwalker
+		ml_mesh_mgr.SetDefaultMesh(952, "[Dungeon] The Tower of Zot", enforce)
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
