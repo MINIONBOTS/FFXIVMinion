@@ -1648,7 +1648,7 @@ e_useaethernet.destination = nil
 e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
-	if (IsTransporting()) then
+	if (IsTransporting() or true) then-- disable temporarily, 6.0 interface rebuild
 		return false
 	end
 	if (ml_task_hub:CurrentTask().useAethernet == false) then
