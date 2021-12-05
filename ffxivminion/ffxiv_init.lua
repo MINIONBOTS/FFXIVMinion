@@ -743,6 +743,7 @@ function ml_global_information.Init()
 		
 		--Dungeons Endwalker
 		ml_mesh_mgr.SetDefaultMesh(952, "[Dungeon] The Tower of Zot", enforce)
+		ml_mesh_mgr.SetDefaultMesh(969, "[Dungeon] The Tower of Babil", enforce)
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
