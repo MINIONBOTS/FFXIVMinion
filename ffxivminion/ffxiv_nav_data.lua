@@ -1659,16 +1659,28 @@ ffxiv_map_nav.data = {
             {id = 814, cost = 1, x = -382.52, y = 102.02, z = 387.95, b = 2011155},
         },
     },
-	[962] =
+	[962] = -- Old Sharlayan to
     {
-        [987] = {
+        [987] = { -- Main Hall
             {id = 987, cost = 1, x = 107, y = 3, z = 5, b = 2011936},
         },
 	},
-	[987] =
+	[987] = -- Main Hall to
     {
-        [962] = {
+        [962] = { -- Old Sharlayan
             {id = 962, cost = 1, x = 0, y = 1, z = 13, b = 2011937},
+        },
+    },
+	[962] = -- Old Sharlayan to
+    {
+        [956] = { -- Labyrinthos
+            {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
+        },
+	},
+	[956] = -- Labyrinthos to
+    {
+        [962] = { -- Old Sharlayan
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
     },
 }-- set reference for mesh mgr
