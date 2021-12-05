@@ -3984,7 +3984,12 @@ function GetUnattunedCurrents()
 	if not QuestCompleted(1597) then
 		return nil
 	end
-	for map,currentdata in pairs(ffxiv_aethercurrent_data) do
+	local list = ffxiv_aethercurrent_data
+	if GetPatchLevel() >= 6 then
+		return nil -- pull list needs fixing.
+		--list = ffxiv_aethercurrent_dataEW
+	end
+	for map,currentdata in pairs(list) do
 		for j,current in pairs(currentdata) do
 			local valid = true
 			local validmap = true
