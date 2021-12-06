@@ -1683,6 +1683,30 @@ ffxiv_map_nav.data = {
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
     },
+	[958] = -- Garlemald to
+    {
+        [1024] = { -- The Nethergate
+            {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
+        },
+    },
+    [1024] = -- The Nethergate to
+    {
+        [958] = { -- Garlemald
+            {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
+        },
+    },
+    [959] = -- Mare Lamentorum to
+    {
+        [1028] = { -- The Dark Inside
+            {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
+        },
+    },
+    [1028] = -- The Dark Inside to
+    {
+        [959] = { -- Mare Lamentorum
+            {id = 959, cost = 1, x = 99.83, y = 0, z = 117.51, b = 2012528},
+        },
+    },
 }-- set reference for mesh mgr
 
 ffxiv_aethercurrent_data = {
