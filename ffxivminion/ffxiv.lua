@@ -323,6 +323,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 				if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap")) then
 					if (UseControlAction("_TitleMenu", "OpenDataCenter", 0)) then
 						ml_global_information.Await(100, 10000, function()
+							if (UseControlAction("Dialogue", "PressOK", 0)) then
+								ml_global_information.Await(1000, 10000, function()
+									return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+								end)
+							end
 							return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
 						end)
 					end
@@ -333,6 +338,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
 								ml_global_information.Await(100, 10000, function()
+									if (UseControlAction("Dialogue", "PressOK", 0)) then
+										ml_global_information.Await(1000, 10000, function()
+											return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+										end)
+									end
 									return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
 								end)
 							end
@@ -344,6 +354,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					else
 						if (UseControlAction("TitleDataCenter", "Proceed", 0) or UseControlAction("TitleDCWorldMap", "Proceed", 0)) then
 							ml_global_information.Await(1000, 60000, function()
+								if (UseControlAction("Dialogue", "PressOK", 0)) then
+									ml_global_information.Await(1000, 10000, function()
+										return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+									end)
+								end
 								return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN)
 							end)
 							ffxivminion.loginvars.datacenterSelected = false
@@ -355,6 +370,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 			if IsControlOpen("_TitleMenu") then
 				if (UseControlAction("_TitleMenu", "Start")) then
 					ml_global_information.Await(1000, 10000, function()
+						if (UseControlAction("Dialogue", "PressOK", 0)) then
+							ml_global_information.Await(1000, 10000, function()
+								return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+							end)
+						end
 						return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN)
 					end)
 				end
