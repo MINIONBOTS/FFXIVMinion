@@ -442,6 +442,13 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			-- detection for CN language not working, temporarily disable skip
 			if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
 				d("Waiting In Login Queue...")
+				if (IsControlOpen("Dialogue")) then
+					if (UseControlAction("Dialogue", "PressOK", 0)) then
+						ml_global_information.Await(1000, 10000, function()
+							return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+						end)
+					end
+				end
 				ml_global_information.Await(1000, 2000, function()
 					return (IsControlOpen("SelectOk"))
 				end)
