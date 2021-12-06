@@ -544,6 +544,11 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(916, "[Dungeon] The Heroes' Gauntlet", enforce)
 		ml_mesh_mgr.SetDefaultMesh(938, "[Dungeon] Paglth'an", enforce)
 		
+		-- Dungeons EW
+		ml_mesh_mgr.SetDefaultMesh(952, "[Dungeon] The Tower of Zot", enforce)
+		ml_mesh_mgr.SetDefaultMesh(969, "[Dungeon] The Tower of Babil", enforce)
+		ml_mesh_mgr.SetDefaultMesh(970, "[Dungeon] Vanaspati", enforce)
+		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
 		ml_mesh_mgr.SetDefaultMesh(206, "[Trial] The Navel", enforce)
@@ -607,7 +612,6 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Minstrel's Ballad Tsukuyomi's Pain", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Great HuntEX", enforce)
 
-		
 		-- Trials SHB
 		ml_mesh_mgr.SetDefaultMesh(845, "[Trial] The Dancing Plague", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the Immaculate", enforce)
@@ -620,6 +624,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(950, "[Trial] G-Savior Deck", enforce)
 		ml_mesh_mgr.SetDefaultMesh(951, "[Trial] G-Savior Deck", enforce)
 		ml_mesh_mgr.SetDefaultMesh(991, "[Trial] G-Savior Deck", enforce)
+		
+		-- Trials EW
+		ml_mesh_mgr.SetDefaultMesh(992, "[Trial] The Dark Inside", enforce)
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
@@ -741,10 +748,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(948, "[Raid] Bygone Gaol", enforce)
 		ml_mesh_mgr.SetDefaultMesh(949, "[Raid] The Garden of Nowhere", enforce)
 		
-		--Dungeons Endwalker
-		ml_mesh_mgr.SetDefaultMesh(952, "[Dungeon] The Tower of Zot", enforce)
-		ml_mesh_mgr.SetDefaultMesh(969, "[Dungeon] The Tower of Babil", enforce)
-		ml_mesh_mgr.SetDefaultMesh(970, "[Dungeon] Vanaspati", enforce)
+		-- Raid EW
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
