@@ -2711,6 +2711,34 @@ function IsOnMap(mapid)
 	
 	return false
 end
+function FilterEntityListByIcon(elist,whitelist,blacklist)
+	local returnables = {}
+	if (not table.valid(elist)) then
+		return returnables
+	end
+	if (whitelist and IsNull(whitelist,"") ~= "") then
+		for iconid in StringSplit(whitelist,",") do
+			for i,e in pairs(elist) do
+				if (tostring(e.iconid) == tostring(iconid)) then
+					returnables[i] = e
+				end
+			end
+		end
+	elseif (blacklist and IsNull(blacklist,"") ~= "") then
+		returnables = elist
+		for iconid in StringSplit(blacklist,",") do
+			for i,e in pairs(returnables) do
+				if (tostring(e.iconid) == tostring(iconid)) then
+					returnables[i] = nil
+				end
+			end
+		end
+	else
+		return elist
+	end
+	
+	return returnables
+end
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 150
@@ -3533,14 +3561,16 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.MACHINIST or
 		jobID == FFXIV.JOBS.SAMURAI or
 		jobID == FFXIV.JOBS.REDMAGE or
-		jobID == FFXIV.JOBS.BLUEMAGE
+		jobID == FFXIV.JOBS.BLUEMAGE or
+		jobID == FFXIV.JOBS.REAPER
     then
         return GetString("dps")
     elseif
         jobID == FFXIV.JOBS.CONJURER or
         jobID == FFXIV.JOBS.SCHOLAR or
         jobID == FFXIV.JOBS.WHITEMAGE or
-		jobID == FFXIV.JOBS.ASTROLOGIAN
+		jobID == FFXIV.JOBS.ASTROLOGIAN or
+		jobID == FFXIV.JOBS.SAGE
     then
         return GetString("healer")
     elseif 
@@ -3571,6 +3601,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SAMURAI] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
+			[FFXIV.JOBS.REAPER] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
@@ -3578,6 +3609,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SCHOLAR] = true,
 			[FFXIV.JOBS.WHITEMAGE] = true,
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
+			[FFXIV.JOBS.SAGE] = true,
 		}
 	elseif (rolestring == "Tank") then
 		return {
@@ -3600,6 +3632,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
+			[FFXIV.JOBS.SAGE] = true,
 		}
 	elseif (rolestring == "MeleeDPS") then
       		return {
@@ -3609,7 +3642,8 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.PUGILIST] = true,
   			[FFXIV.JOBS.ROGUE] = true,
 			[FFXIV.JOBS.NINJA] = true,
-         		[FFXIV.JOBS.SAMURAI] = true,
+         	[FFXIV.JOBS.SAMURAI] = true,
+			[FFXIV.JOBS.REAPER] = true,
 		}
 	elseif (rolestring == "RangeDPS") then
 		return {
@@ -4265,7 +4299,35 @@ function GetAetheryteByMapID(mapid, p)
 		[818] = {name = "The Tempest",
 			[1] = { name = "The Ondo Cups", aethid = 147, x = 561, z = -199},
 			[2] = { name = "Macarenses", aethid = 148, x = -141, z = 218},
-		},		
+		},	
+		[956] = {name = "Labyrinthos",
+			[1] = { name = "The Archeion", aethid = 166, x = 440, z = -480},
+			[2] = { name = "Hamlet", aethid = 167, x = 11, z = -42},
+			[3] = { name = "Aporia", aethid = 168, x = -725, z = 306},
+		},	
+		[957] = {name = "Thavnair",
+			[1] = { name = "Yedlihmad", aethid = 169, x = 194, z = 623},
+			[2] = { name = "The Great Work", aethid = 170, x = -528, z = 31},
+			[3] = { name = "Palaka's Stand", aethid = 171, x = 406, z = -251},
+		},	
+		[958] = {name = "Garlemald",
+			[1] = { name = "Camp Broken Glass", aethid = 172, x = -461, z = 480},
+			[2] = { name = "Tertium", aethid = 173, x = 524, z = -183},
+		},	
+		[959] = {name = "Mare Lamentorum",
+			[1] = { name = "Sinus Lacrimarum", aethid = 174, x = -576, z = 632},
+			[2] = { name = "Bestways Burrow", aethid = 175, x = 0, z = -497},
+		},	
+		[961] = {name = "Ultima Thule",
+			[1] = { name = "Reah Tahra", aethid = 179, x = -550, z = 271},
+			[2] = { name = "Abode of the Ea", aethid = 180, x = 70, z = -657},
+			[3] = { name = "Base Omicron", aethid = 181, x = 492, z = 337},
+		},
+		[961] = {name = "Elpis",
+			[1] = { name = "Anagnorisis", aethid = 176, x = 162, z = 126},
+			[2] = { name = "Twelve Wonders", aethid = 177, x = -630, z = 550},
+			[3] = { name = "Poieten Oikos", aethid = 178, x = -533, z = -228},
+		},	
 	}
 	
 	local list = GetAttunedAetheryteList()
