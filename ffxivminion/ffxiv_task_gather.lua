@@ -1099,13 +1099,13 @@ function e_gather:execute()
 		
 			-- Gather unknown items to unlock them.
 		--if (Player.level < 70) then
-		if (thisNode.contentid <= 4) then
+		--[[if (thisNode.contentid <= 4) then
 			for i,item in pairs(list) do
 				if (item.chance > 0 and (toboolean(item.isunknown))) then
 					return DoGathering(item)
 				end
 			end
-		end
+		end]]
 		
 		gd("Checking regular item section.",2)
 		
