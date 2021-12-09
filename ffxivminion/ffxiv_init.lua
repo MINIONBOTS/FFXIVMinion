@@ -1777,66 +1777,62 @@ function IsControlOpen(strControl)
 end
 
 function GetControlData(strControl,strData)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local data = control:GetData()
-			if (data) then
-				if (strData == nil) then
-					return data
-				else
-					if (table.valid(data)) then
-						for dataid, dataval in pairs(data) do
-							if (dataid == strData) then
-								return dataval
-							end
+	local control = GetControlByName(strControl)
+	if (control) then
+		local data = control:GetData()
+		if (data) then
+			if (strData == nil) then
+				return data
+			else
+				if (table.valid(data)) then
+					for dataid, dataval in pairs(data) do
+						if (dataid == strData) then
+							return dataval
 						end
 					end
 				end
 			end
 		end
 	end
+
 	return nil
 end
 
 function GetControlStrings(strControl,numString)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local strings = control:GetStrings()
-			if (table.valid(strings)) then
-				if (numString == nil) then
-					return strings
-				else
-					for stringid, stringval in pairs(strings) do
-						if (stringid == numString) then
-							return stringval
-						end
+
+	local control = GetControlByName(strControl)
+	if (control) then
+		local strings = control:GetStrings()
+		if (table.valid(strings)) then
+			if (numString == nil) then
+				return strings
+			else
+				for stringid, stringval in pairs(strings) do
+					if (stringid == numString) then
+						return stringval
 					end
 				end
 			end
 		end
 	end
+
 	return nil
 end
 
 function GetControlRawData(strControl,index)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local datas = control:GetRawData()
-			if (table.valid(datas)) then
-				if (index == nil) then
-					return datas
-				else
-					return datas[index]
-				end
+
+	local control = GetControlByName(strControl)
+	if (control) then
+		local datas = control:GetRawData()
+		if (table.valid(datas)) then
+			if (index == nil) then
+				return datas
+			else
+				return datas[index]
 			end
 		end
 	end
+
 	return nil
 end
 
@@ -1849,46 +1845,46 @@ function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,igno
 		local ignoreOpen = IsNull(ignoreOpen,false)
 		local actionArg = IsNull(actionArg,0)
 		local controls = MGetControls() -- testing?
-		if (controls) then
-			local control = controls[strControl]
-			if (control and (control:IsOpen() or ignoreOpen)) then
-				if (strAction == "Close") then
-					control:Close()
-				elseif (strAction == "Destroy") then
-					control:Destroy()
-				else
-					local actions = control:GetActions()
-					if (table.valid(actions)) then
-						for aid, action in pairs(actions) do
-							if (action == strAction) then
-								if (postDelay ~= 0) then
-									ml_global_information.Await(postDelay)
-								end
-								if (type(actionArg) == "table") then
-									-- handle multiple args, min 2, max 3 args, using index 1-3
-									if (table.size(actionArg) == 2) then
-										control:Action(action,actionArg[1],actionArg[2])
-									elseif (table.size(actionArg) == 3) then
-										control:Action(action,actionArg[1],actionArg[2],actionArg[3])
-									end
-								else
-									if (control:Action(action,actionArg)) then
-										return true
-									end
-								end
-								return false
+
+		local control = GetControlByName(strControl)
+		if (control and (control:IsOpen() or ignoreOpen)) then
+			if (strAction == "Close") then
+				control:Close()
+			elseif (strAction == "Destroy") then
+				control:Destroy()
+			else
+				local actions = control:GetActions()
+				if (table.valid(actions)) then
+					for aid, action in pairs(actions) do
+						if (action == strAction) then
+							if (postDelay ~= 0) then
+								ml_global_information.Await(postDelay)
 							end
+							if (type(actionArg) == "table") then
+								-- handle multiple args, min 2, max 3 args, using index 1-3
+								if (table.size(actionArg) == 2) then
+									control:Action(action,actionArg[1],actionArg[2])
+								elseif (table.size(actionArg) == 3) then
+									control:Action(action,actionArg[1],actionArg[2],actionArg[3])
+								end
+							else
+								if (control:Action(action,actionArg)) then
+									return true
+								end
+							end
+							return false
 						end
 					end
 				end
 			end
 		end
+
 	end
 	return false
 end
 
 function OpenControl(strControl)
-	local control = GetControl(strControl)
+	local control = GetControlByName(strControl)
 	if (control and type(control) == "number") then
 		CreateControl(control)
 	elseif (control and type(control) == "table") then
@@ -1899,12 +1895,9 @@ end
 function GetControl(strControl,allControls)
 	local allControls = IsNull(allControls,false)
 	
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			return control
-		end
+	local control = GetControlByName(strControl)
+	if (control) then
+		return control
 	end
 	
 	if (allControls) then
