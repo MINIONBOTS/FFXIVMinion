@@ -1862,7 +1862,7 @@ function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,igno
 	else
 		local ignoreOpen = IsNull(ignoreOpen,false)
 		local actionArg = IsNull(actionArg,0)
-		local controls = MGetControls()
+		local controls = GetControls2() -- testing?
 		if (controls) then
 			local control = controls[strControl]
 			if (control and (control:IsOpen() or ignoreOpen)) then

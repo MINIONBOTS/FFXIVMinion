@@ -46,6 +46,8 @@ function MGetEorzeaTime()
 end
 
 function MGetControls()
+	return GetControls2() -- new function indexed by name
+	--[=[
 	local memoized = memoize.controls
 	local lastcontroltick = IsNull(memoize.lastcontroltick,0)
 	if (table.valid(memoized) and lastcontroltick == Now()) then
@@ -60,6 +62,7 @@ function MGetControls()
 		end
 		return memoize.controls
 	end
+	]=]
 end
 
 function LoadString(str)
