@@ -46,23 +46,24 @@ function MGetEorzeaTime()
 end
 
 function MGetControls()
-	return GetControls2() -- new function indexed by name
-	--[=[
-	local memoized = memoize.controls
-	local lastcontroltick = IsNull(memoize.lastcontroltick,0)
-	if (table.valid(memoized) and lastcontroltick == Now()) then
-		return memoized
+	if (GetControls2) then
+		return GetControls2() -- new function indexed by name
 	else
-		memoize.controls = GetControls()
-		memoize.lastcontroltick = Now()
-		if (table.valid(memoize.controls)) then
-			for id,e in pairs(memoize.controls) do
-				memoize.controls[e.name] = e
+		local memoized = memoize.controls
+		local lastcontroltick = IsNull(memoize.lastcontroltick,0)
+		if (table.valid(memoized) and lastcontroltick == Now()) then
+			return memoized
+		else
+			memoize.controls = GetControls()
+			memoize.lastcontroltick = Now()
+			if (table.valid(memoize.controls)) then
+				for id,e in pairs(memoize.controls) do
+					memoize.controls[e.name] = e
+				end
 			end
+			return memoize.controls
 		end
-		return memoize.controls
 	end
-	]=]
 end
 
 function LoadString(str)
