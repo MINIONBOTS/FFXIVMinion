@@ -4318,7 +4318,7 @@ function GetAetheryteByMapID(mapid, p)
 			[1] = { name = "Sinus Lacrimarum", aethid = 174, x = -576, z = 632},
 			[2] = { name = "Bestways Burrow", aethid = 175, x = 0, z = -497},
 		},	
-		[962] = {name = "Ultima Thule",
+		[960] = {name = "Ultima Thule",
 			[1] = { name = "Reah Tahra", aethid = 179, x = -550, z = 271},
 			[2] = { name = "Abode of the Ea", aethid = 180, x = 70, z = -657},
 			[3] = { name = "Base Omicron", aethid = 181, x = 492, z = 337},
