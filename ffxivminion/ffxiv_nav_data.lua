@@ -668,6 +668,13 @@ ffxiv_map_nav.data = {
 		[680] = {
 			{id = 680, cost = 1, x = -357.66, y = 8.00, z = 45.82, h = 1.61, g = 1020442 },
 		},
+		[962] = {
+			{id = 962, cost = 1, x = -386.02, y = 6.01, z = 41.85, h = 1.61, b = 1037069
+				, requires = {
+					["GetPatchLevel() >= 6"] = true,
+                },
+			},
+		},
 	},
 	[134] =
 	{
@@ -1659,8 +1666,41 @@ ffxiv_map_nav.data = {
             {id = 814, cost = 1, x = -382.52, y = 102.02, z = 387.95, b = 2011155},
         },
     },
+	[956] = -- Labyrinthos to
+    {
+        [962] = { -- Old Sharlayan
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
+        },
+    },
+	--[[[957] = -- Thavnair
+    {
+        [962] = { -- Old Sharlayan
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
+        },
+    },]]
+	[958] = -- Garlemald to
+    {
+        [1024] = { -- The Nethergate
+            {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
+        },
+    },
+    [959] = -- Mare Lamentorum to
+    {
+        [1028] = { -- The Dark Inside
+            {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
+        },
+    },
 	[962] = -- Old Sharlayan to
     {
+		[129] = {
+			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220},
+		},
+        [956] = { -- Labyrinthos
+            {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
+        },
+        [957] = { -- Thavnair
+            {id = 956, cost = 1, x = -83, y = 6, z = -39, b = 1037288},
+        },
         [987] = { -- Main Hall
             {id = 987, cost = 1, x = 107, y = 3, z = 5, b = 2011936},
         },
@@ -1671,34 +1711,10 @@ ffxiv_map_nav.data = {
             {id = 962, cost = 1, x = 0, y = 1, z = 13, b = 2011937},
         },
     },
-	[962] = -- Old Sharlayan to
-    {
-        [956] = { -- Labyrinthos
-            {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
-        },
-	},
-	[956] = -- Labyrinthos to
-    {
-        [962] = { -- Old Sharlayan
-            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
-        },
-    },
-	[958] = -- Garlemald to
-    {
-        [1024] = { -- The Nethergate
-            {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
-        },
-    },
     [1024] = -- The Nethergate to
     {
         [958] = { -- Garlemald
             {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
-        },
-    },
-    [959] = -- Mare Lamentorum to
-    {
-        [1028] = { -- The Dark Inside
-            {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
         },
     },
     [1028] = -- The Dark Inside to
@@ -2451,6 +2467,9 @@ ffxiv_aetheryte_data = {
 		{id = 820, aethid = 134, x = 0, y = 82, z = 0, 
 			requires = function () return QuestCompleted(3631) end,
 		},
+	},
+	[957] = {
+		{id = 957, aethid = 169, x = 193, y = 6, z = 629},
 	},
 }	
 
