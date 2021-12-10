@@ -1672,12 +1672,16 @@ ffxiv_map_nav.data = {
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
     },
-	--[[[957] = -- Thavnair
+	[957] = -- Thavnair
     {
         [962] = { -- Old Sharlayan
-            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544
+				, requires = {
+					["QuestCompleted(9999)"] = true,
+				},
+			},
         },
-    },]]
+    },
 	[958] = -- Garlemald to
     {
         [1024] = { -- The Nethergate
@@ -2470,6 +2474,9 @@ ffxiv_aetheryte_data = {
 	},
 	[957] = {
 		{id = 957, aethid = 169, x = 193, y = 6, z = 629},
+	},
+	[962] = {
+		{id = 962, aethid = 182, x = 0, y = 4, z = 0},
 	},
 }	
 
