@@ -549,6 +549,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(969, "[Dungeon] The Tower of Babil", enforce)
 		ml_mesh_mgr.SetDefaultMesh(970, "[Dungeon] Vanaspati", enforce)
 		ml_mesh_mgr.SetDefaultMesh(974, "[Dungeon] Ktisis Hyperboreia", enforce)
+		ml_mesh_mgr.SetDefaultMesh(978, "[Dungeon] The Aitiascope", enforce)
 		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
