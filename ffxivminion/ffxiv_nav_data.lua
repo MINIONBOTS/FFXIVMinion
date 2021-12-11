@@ -2474,6 +2474,7 @@ ffxiv_aetheryte_data = {
 	},
 	[957] = {
 		{id = 957, aethid = 169, x = 193, y = 6, z = 629},
+		{id = 957, aethid = 170, x = -527, y = 5, z = 36},
 	},
 	[962] = {
 		{id = 962, aethid = 182, x = 0, y = 4, z = 0},

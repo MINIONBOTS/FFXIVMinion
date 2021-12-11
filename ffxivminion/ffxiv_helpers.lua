@@ -8465,7 +8465,12 @@ function IsNormalMap(mapid)
 		[818] = true,			
 		[819] = true,			
 		[820] = true,	
-		[844] = true,	
+		[844] = true,
+		[956] = true,
+		[957] = true,
+		[958] = true,
+		[959] = true,
+		[962] = true,	
 	}
 	return maps[mapid] ~= nil
 end
