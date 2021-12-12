@@ -1706,7 +1706,7 @@ ffxiv_map_nav.data = {
             {id = 956, cost = 1, x = -83, y = 6, z = -39, b = 1037288},
         },
         [987] = { -- Main Hall
-            {id = 987, cost = 1, x = 107, y = 3, z = 5, b = 2011936},
+            {id = 987, cost = 1, x = -107, y = 5, z = 5, b = 2011936},
         },
 	},
 	[987] = -- Main Hall to
