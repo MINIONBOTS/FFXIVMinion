@@ -2472,6 +2472,9 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(3631) end,
 		},
 	},
+	[956] = {
+		{id = 956, aethid = 166, x = 440, y = 169, z = -472},
+	},
 	[957] = {
 		{id = 957, aethid = 169, x = 193, y = 6, z = 629},
 		{id = 957, aethid = 170, x = -527, y = 5, z = 36},
