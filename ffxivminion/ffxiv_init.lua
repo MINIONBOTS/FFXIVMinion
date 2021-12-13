@@ -1005,14 +1005,12 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(929, "The Diadem", true)
 		ml_mesh_mgr.SetDefaultMesh(939, "The Diadem", true)
 		
-<<<<<<< HEAD
 		-- Endwalker
 		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
 		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_1020", true)
-=======
+		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
->>>>>>> f6d0e47f36bc927a8fa5a84dee47bffd11792031
 		
 	end
 	
