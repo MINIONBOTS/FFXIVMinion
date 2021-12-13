@@ -1005,6 +1005,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(929, "The Diadem", true)
 		ml_mesh_mgr.SetDefaultMesh(939, "The Diadem", true)
 		
+		-- Latty EW
+		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
+		
 	end
 	
 	-- General overrides.
