@@ -1005,6 +1005,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(929, "The Diadem", true)
 		ml_mesh_mgr.SetDefaultMesh(939, "The Diadem", true)
 		
+		-- Endwalker
+		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
+		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_1020", true)
+		
 	end
 	
 	-- General overrides.

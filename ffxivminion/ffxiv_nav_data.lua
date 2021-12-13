@@ -168,6 +168,13 @@ ffxiv_map_nav.data = {
 		[141] = {
 			{id = 141, cost = 3, x = 163.689270,	z = 43.879639,	    y = 3.999968, 	h = 1.268068},
 		},
+		[971] = {
+			{id = 971, cost = 3, x = 115, y = 8, z = 8, b = 1036632
+				, requires =  {
+					["HasQuest(4073) or QuestCompleted(4073)"] = true,
+				},
+			},
+		},
 	},
 	[140] = 
 	{
@@ -1731,6 +1738,12 @@ ffxiv_map_nav.data = {
 					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
 				},
 			},
+        },
+	},
+	[971] = -- reaper Start
+    {
+        [131] = {
+            {id = 131, cost = 1, x = 0, y = 0, z = 8, b = 2011673},
         },
 	},
 	[987] = -- Main Hall to
