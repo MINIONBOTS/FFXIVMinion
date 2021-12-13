@@ -1672,7 +1672,7 @@ ffxiv_map_nav.data = {
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
     },
-	[957] = -- Thavnair
+	[957] = -- Thavnair to
     {
         [962] = { -- Old Sharlayan
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544
@@ -1681,15 +1681,29 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
-    },
+        [963] = { -- Radz-at-Han
+            {id = 963, cost = 1, x = 576.49, y = 55.26, z = -682.13, h = 2.36
+				, requires = {
+					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+				},
+			},
+        },
+	},
 	[958] = -- Garlemald to
     {
         [1024] = { -- The Nethergate
             {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
         },
     },
-    [959] = -- Mare Lamentorum to
+	[959] = -- Mare Lamentorum to
     {
+		[1024] = { -- The Nethergate
+            {id = 1024, cost = 1, x = -663.29, y = 132.65, z = 728.97, b = 2012531
+				, requires = {
+					["HasQuest(4408) or QuestCompleted(4408)"] = true,
+				},
+			},
+        },
         [1028] = { -- The Dark Inside
             {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
         },
@@ -1702,11 +1716,21 @@ ffxiv_map_nav.data = {
         [956] = { -- Labyrinthos
             {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
         },
-        [957] = { -- Thavnair
-            {id = 956, cost = 1, x = -83, y = 6, z = -39, b = 1037288},
+		[957] = { -- Thavnair
+            {id = 957, cost = 1, x = -83.05, y = 6.62, z = -39.38, b = 1037288},
         },
-        [987] = { -- Main Hall
-            {id = 987, cost = 1, x = -107, y = 5, z = 5, b = 2011936},
+		[987] = { -- Main Hall
+            {id = 987, cost = 1, x = -108.57, y = 5.02, z = 4.53, b = 2011936},
+        },
+	},
+	[963] = -- Radz-at-Han to
+    {
+        [957] = { -- Thavnair
+            {id = 957, cost = 1, x = 99.53, y = -32.00, z = 225.32, h = 0.79
+				, requires = {
+					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+				},
+			},
         },
 	},
 	[987] = -- Main Hall to
@@ -1719,6 +1743,13 @@ ffxiv_map_nav.data = {
     {
         [958] = { -- Garlemald
             {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
+        },
+		[959] = { -- Mare Lamentorum
+            {id = 959, cost = 1, x = -0.02, y = 6.61, z = -0.02, b = 2012530
+				, requires = {
+					["HasQuest(4408) or QuestCompleted(4408)"] = true,
+				},
+			},
         },
     },
     [1028] = -- The Dark Inside to
@@ -2472,15 +2503,44 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(3631) end,
 		},
 	},
-	[956] = {
-		{id = 956, aethid = 166, x = 440, y = 169, z = -472},
+	
+	-- Endwalker
+	[956] = { -- Labyrinthos
+		{id = 956, aethid = 166, x = 442.01, y = 169.23, z = -474.60, 
+			requires = function () return QuestCompleted(4362) end,
+		},
 	},
-	[957] = {
-		{id = 957, aethid = 169, x = 193, y = 6, z = 629},
-		{id = 957, aethid = 170, x = -527, y = 5, z = 36},
+	[957] = { -- Thavnair
+		{id = 957, aethid = 169, x = 192.39, y = 5.80, z = 625.79, 
+			requires = function () return HasQuest(4368) or QuestCompleted(4368) end,
+		},
+		{id = 957, aethid = 170, x = -523.39, y = 2.59, z = 35.31, 
+			requires = function () return HasQuest(4372) or QuestCompleted(4372) end,
+		},
+		{id = 957, aethid = 171, x = -401.86, y = 3.81, z = -244.29, 
+			requires = function () return HasQuest(4412) or QuestCompleted(4412) end,
+		},
 	},
-	[962] = {
-		{id = 962, aethid = 182, x = 0, y = 4, z = 0},
+	[958] = { -- Garlemald
+		{id = 956, aethid = 172, x = -408.10, y = 24.16, z = 479.97, 
+			requires = function () return GetQuestInfo(4383,'step') >= 3 or QuestCompleted(4383) end,
+		},
+		{id = 956, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
+			requires = function () return HasQuest(4393) or QuestCompleted(4393) end,
+		},
+	},
+	[959] = { -- Mare Lamentorum
+		{id = 959, aethid = 174, x = -571.70, y = 132.99, z = 657.40, 
+			requires = function () return GetQuestInfo(4396,'step') >= 3 or QuestCompleted(4396) end,
+		},
+		{id = 959, aethid = 175, x = -0.17, y = -130.88, z = -505.32, 
+			requires = function () return QuestCompleted(4400) end,
+		},
+	},
+	[962] = { -- Old Sharlayan
+		{id = 962, aethid = 182, x = 2.42, y = 3.27, z = -1.61, 
+			requires = function () return QuestCompleted(4357) end,
+		},
 	},
 }	
 
