@@ -1011,6 +1011,7 @@ function ml_global_information.Init()
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
+		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
 		
 	end
 	
