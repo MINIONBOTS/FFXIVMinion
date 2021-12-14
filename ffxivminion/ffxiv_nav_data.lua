@@ -2550,6 +2550,14 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(4400) end,
 		},
 	},
+	[961] = { -- Elpis
+        {id = 961, aethid = 176, x = 161.07, y = 11.38, z = 130.06, 
+            requires = function () return HasQuest(4421) or QuestCompleted(4421) end,
+        },
+        {id = 961, aethid = 177, x = -635.12, y = -20.55, z = 540.59, 
+            requires = function () return QuestCompleted(4426) end,
+        },
+    },
 	[962] = { -- Old Sharlayan
 		{id = 962, aethid = 182, x = 2.42, y = 3.27, z = -1.61, 
 			requires = function () return QuestCompleted(4357) end,
