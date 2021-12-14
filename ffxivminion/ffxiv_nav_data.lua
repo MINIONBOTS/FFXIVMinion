@@ -2535,10 +2535,10 @@ ffxiv_aetheryte_data = {
 		},
 	},
 	[958] = { -- Garlemald
-		{id = 956, aethid = 172, x = -408.10, y = 24.16, z = 479.97, 
+		{id = 958, aethid = 172, x = -408.10, y = 24.16, z = 479.97, 
 			requires = function () return GetQuestInfo(4383,'step') >= 3 or QuestCompleted(4383) end,
 		},
-		{id = 956, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
+		{id = 958, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
 			requires = function () return HasQuest(4393) or QuestCompleted(4393) end,
 		},
 	},

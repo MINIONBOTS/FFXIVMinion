@@ -1007,7 +1007,7 @@ function ml_global_information.Init()
 		
 		-- Endwalker
 		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
-		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_1020", true)
+		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_4074", true)
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
