@@ -2557,6 +2557,9 @@ ffxiv_aetheryte_data = {
         {id = 961, aethid = 177, x = -635.12, y = -20.55, z = 540.59, 
             requires = function () return QuestCompleted(4426) end,
         },
+		{id = 961, aethid = 178, x = -529.70, y = 160.61, z = -219.93, 
+            requires = function () return HasQuest(4430) or QuestCompleted(4430) end,
+        },
     },
 	[962] = { -- Old Sharlayan
 		{id = 962, aethid = 182, x = 2.42, y = 3.27, z = -1.61, 
