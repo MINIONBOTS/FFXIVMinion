@@ -1277,7 +1277,7 @@ ffxiv_map_nav.data = {
 			},
 		},
 	},
-	[621] =
+	[621] = -- The Lochs:
 	{
 		[620] = {
 			{id = 620, cost = 1, x = -658.47, y = 50.87, z = -792.97, h = -2.08
@@ -1288,6 +1288,9 @@ ffxiv_map_nav.data = {
 		},
 		[738] = {
             {id = 738, cost = 1, x = 754.27, y = 70.00, z = 424.70, h = 0.07, b = 1024113 },
+        },
+		[958] = { -- to Garlemald
+            {id = 958, cost = 1, x = 742.58, y = 70.00, z = 539.57, b = 1039554},
         },
 	},
 	[622] =
@@ -1673,22 +1676,22 @@ ffxiv_map_nav.data = {
             {id = 814, cost = 1, x = -382.52, y = 102.02, z = 387.95, b = 2011155},
         },
     },
-	[956] = -- Labyrinthos to
+	[956] = -- Labyrinthos:
     {
-        [962] = { -- Old Sharlayan
+        [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
     },
-	[957] = -- Thavnair to
+	[957] = -- Thavnair:
     {
-        [962] = { -- Old Sharlayan
+        [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544
 				, requires = {
 					["QuestCompleted(9999)"] = true,
 				},
 			},
         },
-        [963] = { -- Radz-at-Han
+        [963] = { -- to Radz-at-Han
             {id = 963, cost = 1, x = 576.49, y = 55.26, z = -682.13, h = 2.36
 				, requires = {
 					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
@@ -1696,43 +1699,46 @@ ffxiv_map_nav.data = {
 			},
         },
 	},
-	[958] = -- Garlemald to
+	[958] = -- Garlemald:
     {
-        [1024] = { -- The Nethergate
+        [1024] = { -- to The Nethergate
             {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
         },
+        [621] = { -- to The Lochs
+			{id = 621, cost = 1, x = -495.63, y = 27.66, z = 634.85, b = 1039553},
+        },
     },
-	[959] = -- Mare Lamentorum to
+	[959] = -- Mare Lamentorum:
     {
-		[1024] = { -- The Nethergate
+		[1024] = { -- to The Nethergate
             {id = 1024, cost = 1, x = -663.29, y = 132.65, z = 728.97, b = 2012531
 				, requires = {
 					["HasQuest(4408) or QuestCompleted(4408)"] = true,
 				},
 			},
         },
-        [1028] = { -- The Dark Inside
+        [1028] = { -- to The Dark Inside
             {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
         },
     },
-	[962] = -- Old Sharlayan to
+	[962] = -- Old Sharlayan:
     {
 		[129] = {
 			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220},
 		},
-        [956] = { -- Labyrinthos
+        [956] = { -- to Labyrinthos
             {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
         },
-		[957] = { -- Thavnair
+		[957] = { -- to Thavnair
             {id = 957, cost = 1, x = -83.05, y = 6.62, z = -39.38, b = 1037288},
         },
-		[987] = { -- Main Hall
+		[987] = { -- to Main Hall
             {id = 987, cost = 1, x = -108.57, y = 5.02, z = 4.53, b = 2011936},
         },
 	},
-	[963] = -- Radz-at-Han to
+	[963] = -- Radz-at-Han:
     {
-        [957] = { -- Thavnair
+        [957] = { -- to Thavnair
             {id = 957, cost = 1, x = 99.53, y = -32.00, z = 225.32, h = 0.79
 				, requires = {
 					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
@@ -1746,18 +1752,18 @@ ffxiv_map_nav.data = {
             {id = 131, cost = 1, x = 0, y = 0, z = 8, b = 2011673},
         },
 	},
-	[987] = -- Main Hall to
+	[987] = -- Main Hall:
     {
-        [962] = { -- Old Sharlayan
+        [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = 0, y = 1, z = 13, b = 2011937},
         },
     },
-    [1024] = -- The Nethergate to
+    [1024] = -- The Nethergate:
     {
-        [958] = { -- Garlemald
+        [958] = { -- to Garlemald
             {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
         },
-		[959] = { -- Mare Lamentorum
+		[959] = { -- to Mare Lamentorum
             {id = 959, cost = 1, x = -0.02, y = 6.61, z = -0.02, b = 2012530
 				, requires = {
 					["HasQuest(4408) or QuestCompleted(4408)"] = true,
@@ -1765,9 +1771,9 @@ ffxiv_map_nav.data = {
 			},
         },
     },
-    [1028] = -- The Dark Inside to
+    [1028] = -- The Dark Inside:
     {
-        [959] = { -- Mare Lamentorum
+        [959] = { -- to Mare Lamentorum
             {id = 959, cost = 1, x = 99.83, y = 0, z = 117.51, b = 2012528},
         },
     },
