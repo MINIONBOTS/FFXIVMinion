@@ -629,6 +629,7 @@ function ml_global_information.Init()
 		
 		-- Trials EW
 		ml_mesh_mgr.SetDefaultMesh(992, "[Trial] The Dark Inside", enforce)
+		ml_mesh_mgr.SetDefaultMesh(995, "[Trial] The Mothercrystal", enforce) --Hydaelyn
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
@@ -1011,7 +1012,6 @@ function ml_global_information.Init()
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
-		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
 		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
 		
 	end
