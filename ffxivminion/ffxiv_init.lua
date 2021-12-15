@@ -1010,7 +1010,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_4074", true)
 		
 		-- Latty EW
-		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4432", true)
+		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
 		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
 		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
 		
