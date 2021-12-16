@@ -1035,7 +1035,7 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
 	
-	if (not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) then
+	if (not IsFlying() and not IsDiving() and ((Player.incombat and not Player.ismounted) or IsTransporting())) then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
 	end
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
@@ -1119,8 +1119,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
 	-- Filter things for special tasks/circumstances
-	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted or not Player.mountcanfly)) or IsTransporting())) or 
-		not CanFlyInZone() or (Player.ismounted and ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted and not Player.mountcanfly)) 
+	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted)) or IsTransporting())) or 
+		not CanFlyInZone() or (Player.ismounted and ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted)) 
 	then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
 	end
@@ -1911,12 +1911,7 @@ function ml_navigation.Navigate(event, ticks )
 								return
 								
 							elseif (not IsFlying() and CanFlyInZone()) then
-								if (Player.ismounted and not Player.mountcanfly and (nextnode.air or nextnode.air_avoid)) then
-									d("[Navigation] - Our mount cannot fly, dismount it.")
-									Dismount()
-									return
-									
-								elseif (not Player.ismounted) then
+								if (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode,lastnode)).."].")
 									d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
@@ -2058,7 +2053,7 @@ end
 
 function ml_navigation.IsPathInvalid()
 	if (table.valid(ml_navigation.path)) then
-		if (not IsDiving() and not IsSwimming() and Player.incombat and (not Player.ismounted or not Player.mountcanfly)) then
+		if (not IsDiving() and not IsSwimming() and Player.incombat and (not Player.ismounted)) then
 			for i, node in pairs(ml_navigation.path) do
 				if (node.type == GLOBAL.NODETYPE.CUBE) then
 					return true
