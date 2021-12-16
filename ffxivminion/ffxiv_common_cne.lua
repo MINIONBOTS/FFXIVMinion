@@ -24,9 +24,12 @@ function c_getCurrentInfo:evaluate()
 end
 function e_getCurrentInfo:execute()
 	if (not IsControlOpen("AetherCurrent")) then
+		ffxivminion.AetherCurrentCompleted = false
 		ActionList:Get(10,67):Cast()
+		ml_global_information.Await(1500, function () return IsControlOpen("AetherCurrent") end)
 		return
 	end
+	
 	e_getCurrentInfo.timer = Now()
 	if (IsControlOpen("AetherCurrent")) then
 		local status = {}
@@ -3652,7 +3655,7 @@ function c_skipcutscene:evaluate()
 		
 	if Player.onlinestatus == 15 then
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500 and not Player.ismounted) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
