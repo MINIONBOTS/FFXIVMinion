@@ -738,7 +738,7 @@ function SetGearsetInfo(disable)
 	local newSets = {}
 	if not disable then
 		if table.valid(searchList) then
-			for i = 1, 38, 1 do
+			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
 				--d("clearing old gearsets")
@@ -761,7 +761,7 @@ function SetGearsetInfo(disable)
 				end
 			end
 		else
-			for i = 1, 38, 1 do
+			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
 				--d("clearing old gearsets")
@@ -2062,7 +2062,7 @@ function ml_global_information.DrawSettings()
 						classlookup[abrev] = jobid
 					end
 
-					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD", "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM", "BLU", "GNB", "DNC" }
+					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD", "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM", "BLU", "GNB", "DNC", "RPR", "SGE" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
 					local gatherers = { "MIN", "BTN", "FSH" }
 
