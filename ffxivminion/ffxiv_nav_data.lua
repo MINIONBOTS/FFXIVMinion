@@ -1681,6 +1681,15 @@ ffxiv_map_nav.data = {
         [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
         },
+        [960] = { -- Ultima Thule
+            {id = 960, cost = 1, x = -334.83, y = -224.20, z = 312.12, b = 1039552},
+        },
+    },
+	[960] = -- Ultima Thule:
+    {
+        [956] = { -- Labyrinthos
+            {id = 956, cost = 1, x = -374.81, y = 81.80, z = 615.96, b = 2012292},
+        },
     },
 	[957] = -- Thavnair:
     {
