@@ -562,7 +562,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (Busy() or self.startMap ~= Player.localmapid) then
+	if (self.startMap ~= Player.localmapid) then
+		return true
+	end
+	if (Busy()) then
+		if (CannotMove()) then
+			self.killParent = false
+		end
 		return true
 	end
 	
@@ -602,6 +608,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
     Player:Stop()
 	
 	if (self.killParent) then
+		d("Task is set to kill parent task ["..tostring(ml_task_hub:ThisTask():ParentTask().name).."].")
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
