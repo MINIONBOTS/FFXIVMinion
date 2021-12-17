@@ -4149,6 +4149,11 @@ function GetAetheryteByMapID(mapid, p)
 	if (((mapid == 614 and GetYanxiaSection(pos) == 2) or (myMap == 614 and GetYanxiaSection(Player.pos) == 1)) and HasQuest(2518)) then
 		mapid = 622
 	end
+	-- Main hall
+	if (mapid == 987 and myMap ~= 962) then
+		mapid = 962
+	end
+	
 	
 	local ppos = Player.pos
 	
