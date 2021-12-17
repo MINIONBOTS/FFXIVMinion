@@ -152,7 +152,9 @@ ffxivminion.AutoGrindDefault = [[
 			return 146 -- southern thanalan
 		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397))) and CanAccessMap(147)) then
 			return 147 -- northern thanalan
-		elseif (level >= 74 and CanAccessMap(816)) then
+		elseif (level >= 80 and CanAccessMap(957)) then
+			return 957 -- Thavnairia
+		elseif (level >= 71 and CanAccessMap(816)) then
 			return 816 -- Il Mheg
 		elseif (level >= 70 and CanAccessMap(813)) then
 			return 813 -- Lakeland
@@ -956,7 +958,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 
 	-- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20190704
+	ffxivminion.AutoGrindDefaultVersion = 20211216
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion", 0)
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
