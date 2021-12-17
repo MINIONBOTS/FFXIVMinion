@@ -1120,7 +1120,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
 	-- Filter things for special tasks/circumstances
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted)) or IsTransporting())) or 
-		not CanFlyInZone() or (Player.ismounted and ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().remainMounted)) 
+		not CanFlyInZone()) 
 	then
 		cubefilters = bit.bor(cubefilters, GLOBAL.CUBE.AIR)
 	end
