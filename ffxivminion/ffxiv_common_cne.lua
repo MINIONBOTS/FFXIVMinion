@@ -646,7 +646,7 @@ function e_avoid:execute()
 	
 	c_bettertargetsearch.postpone = Now() + 5000
 	if ((newTask.maxTime * 1000) > 5000) then
-		c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
+		c_bettertargetsearch.postpone = Now() + ((newTask.maxTime + 1) * 1000)
 	end
 end
 
