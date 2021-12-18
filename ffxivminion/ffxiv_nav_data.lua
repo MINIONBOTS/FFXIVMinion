@@ -2244,30 +2244,48 @@ ffxiv_aethercurrent_dataEW = {
 		},
 	},
 	[956] = {
+		{ id = 6, aethid = 2011980, x = 346.529, y = 209.352, z = -767.739}, -- confirmed
+		{ id = 7, aethid = 2011981, x = 748.562, y = 106.712, z = 66.7589}, -- confirmed
+		{ id = 10, aethid = 2011982, x = -316.276, y = 79.7614, z = -395.312}, -- confirmed
+		{ id = 11, aethid = 2011983, x = 32.3334, y = 72.8314, z = -286.272}, -- confirmed
 		{ id = 12, aethid = 2011984, x = 497.115, y = 73.4197, z = -267.231}, -- confirmed
-		
-		
-		{ id = 6, aethid = 2011980, x = 346.529, y = 209.352, z = -767.739},
-		{ id = 7, aethid = 2011981, x = 748.562, y = 106.712, z = 66.7589},
-		{ id = 8, aethid = 2011982, x = -316.276, y = 79.7614, z = -395.312},
-		{ id = 9, aethid = 2011983, x = 32.3334, y = 72.8314, z = -286.272},
-		{ id = 10, aethid = 2011986, x = -128.069, y = -20.5234, z = 676.722},
-		{ id = 11, aethid = 2011985, x = -547.726, y = -18.0226, z = 661.873},
-		{ id = 13, aethid = 2011987, x = -176.381, y = -10.101, z = -242.245},
-		{ id = 14, aethid = 2011988, x = -505.14, y = -21.8212, z = -122.596},
-		{ id = 15, aethid = 2011989, x = 46.2823, y = -29.7999, z = 178.875},
+				
+		-- to check
+		{ id = 9, aethid = 2011985, x = -547.726, y = -18.0226, z = 661.873},
+		{ id = 8, aethid = 2011986, x = -128.069, y = -20.5234, z = 676.722},
+		{ id = 13, aethid = 2011987, x = -176.381, y = -10.101, z = -242.245, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 14, aethid = 2011988, x = -505.14, y = -21.8212, z = -122.596, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 15, aethid = 2011989, x = 46.2823, y = -29.7999, z = 178.875, 
+			requires = function () return QuestCompleted(4441) end,
+		},
 	},
 	[957] = {
+		{ id = 7, aethid = 2011991, x = -49.2675, y = 94.0719, z = -710.757}, -- confirmed
+		{ id = 10, aethid = 2011992, x = 303.921, y = 0.280689, z = 473.656}, -- confirmed
+		{ id = 11, aethid = 2011993, x = -479.439, y = 72.9045, z = -561.809}, -- confirmed
+		{ id = 12, aethid = 2011994, x = -114.46, y = 87.0873, z = -288.29}, -- confirmed
+		
+		-- to check
 		{ id = 6, aethid = 2011990, x = -176.104, y = 21.5304, z = 537.835},
-		{ id = 7, aethid = 2011991, x = -49.2675, y = 94.0719, z = -710.757},
-		{ id = 8, aethid = 2011995, x = 118.474, y = 4.9335, z = -343.866},
-		{ id = 9, aethid = 2011996, x = 550.018, y = 25.4763, z = -159.076},
-		{ id = 10, aethid = 2011992, x = 303.921, y = 0.280689, z = 473.656},
-		{ id = 11, aethid = 2011993, x = -479.439, y = 72.9045, z = -561.809},
-		{ id = 12, aethid = 2011994, x = -114.46, y = 87.0873, z = -288.29},
-		{ id = 13, aethid = 2011997, x = 93.1188, y = 36.6839, z = -447.865},
-		{ id = 14, aethid = 2011998, x = 294.402, y = 4.0999, z = 425.122},
-		{ id = 15, aethid = 2011999, x = 53.1891, y = 11.3868, z = 187.406},
+		{ id = 8, aethid = 2011995, x = 118.474, y = 4.9335, z = -343.866, 
+			requires = function () return QuestCompleted(4412) end,
+		},
+		{ id = 9, aethid = 2011996, x = 550.018, y = 25.4763, z = -159.076, 
+			requires = function () return QuestCompleted(4412) end,
+		},
+		{ id = 13, aethid = 2011997, x = 93.1188, y = 36.6839, z = -447.865, 
+			requires = function () return QuestCompleted(4412) end,
+		},
+		{ id = 14, aethid = 2011998, x = 294.402, y = 4.0999, z = 425.122, 
+			requires = function () return QuestCompleted(4412) end,
+		},
+		{ id = 15, aethid = 2011999, x = 53.1891, y = 11.3868, z = 187.406, 
+			requires = function () return QuestCompleted(4412) end,
+		},
 	},
 	[958] = {						
 		{ id = 6, aethid = 2012000, x = -184.222, y = 31.9371, z = 423.606},
@@ -2281,17 +2299,20 @@ ffxiv_aethercurrent_dataEW = {
 		{ id = 14, aethid = 2012008, x = 134.928, y = 14.3984, z = -172.249},
 		{ id = 15, aethid = 2012009, x = -144.924, y = 17.5785, z = -420.515},
 	},
-	[959] = {						
+	[959] = {											
+		-- checked
+		{ id = 15, aethid = 2012019, x = 21.7081, y = -133.5, z = -385.731},
+				
+		
 		{ id = 6, aethid = 2012010, x = 42.5905, y = 124.015, z = -167.03},
 		{ id = 7, aethid = 2012011, x = -482.744, y = -154.954, z = -595.709},
 		{ id = 8, aethid = 2012012, x = 316.401, y = -154.978, z = -595.519},
-		{ id = 9, aethid = 2012013, x = 29.1046, y = -47.739, z = -550.408},
+		--{ id = 9, aethid = 2012013, x = 29.1046, y = -47.739, z = -550.408}, -- check pos
 		{ id = 10, aethid = 2012014, x = -128.002, y = 66.3504, z = -68.2408},
 		{ id = 11, aethid = 2012015, x = 591.378, y = 149.356, z = 114.936},
 		{ id = 12, aethid = 2012016, x = 388.358, y = 99.9167, z = 306.071},
 		{ id = 13, aethid = 2012017, x = 652.979, y = -160.693, z = -405.081},
 		{ id = 14, aethid = 2012018, x = -733.617, y = -139.662, z = -733.28},
-		{ id = 15, aethid = 2012019, x = 21.7081, y = -133.5, z = -385.731},
 	},
 	[961] = {
 		{ id = 6, aethid = 2012020, x = 628.239, y = 8.31683, z = 107.902},
@@ -2551,8 +2572,8 @@ ffxiv_aetheryte_data = {
 			requires = function () return GetQuestInfo(4383,'step') >= 3 or QuestCompleted(4383) end,
 		},
 		{id = 958, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
-			requires = function () return HasQuest(4393) or QuestCompleted(4393) end,
-		},
+            requires = function () return GetQuestInfo(4393,'step') >= 2 or QuestCompleted(4393) end,
+        },
 	},
 	[959] = { -- Mare Lamentorum
 		{id = 959, aethid = 174, x = -571.70, y = 132.99, z = 657.40, 
