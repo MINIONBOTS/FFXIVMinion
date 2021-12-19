@@ -7417,7 +7417,82 @@ function Transport818(pos1,pos2)
 		
 	return false			
 end
-
+function Transport956(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetQuestInfo(4441,'step') >= 5) or QuestCompleted(4441) then 
+			local gilCount = GilCount()
+			if (pos1.y > 15 and (pos2.y < 15 and pos2.y > -120)) then
+				if (CanUseAetheryte(167) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(167)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 167
+								newTask.mapID = 956
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				else
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 362.26, y = 79.69, z = 302.08}
+						newTask.contentid = 1039548
+						newTask.abort = function ()
+							return (Player.pos.y < 15)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end
+			if ((pos1.y < 15 and pos1.y > -120) and pos2.y > 15) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 229.88, y = -18.74, z = 298.73}
+					newTask.contentid = 1039549
+					newTask.abort = function ()
+						return (Player.pos.y > 15)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if (GetQuestInfo(4448,'step') >= 5) or QuestCompleted(4448) then 
+			if ((pos1.y < 15 and pos1.y > -120) and pos2.y < -120) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -620.72, y = -27.67, z = 302.17}
+					newTask.contentid = 1039550
+					newTask.abort = function ()
+						return (Player.pos.y < -120)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if (pos1.y < -120 and (pos2.y > -120) and pos2.y < 15) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -614.86, y = -191.12, z = 305.74}
+					newTask.contentid = 1039551
+					newTask.abort = function ()
+						return (Player.pos.y > -120)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+	end
+		
+	return false			
+end
 function CanFlyInZone()
 	if (GetPatchLevel() >= 5.35) then
 	--if (QuestCompleted(524)) then
