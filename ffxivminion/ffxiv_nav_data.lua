@@ -2600,7 +2600,7 @@ ffxiv_aetheryte_data = {
 		{id = 957, aethid = 170, x = -523.39, y = 2.59, z = 35.31, 
 			requires = function () return HasQuest(4372) or QuestCompleted(4372) end,
 		},
-		{id = 957, aethid = 171, x = -401.86, y = 3.81, z = -244.29, 
+		{id = 957, aethid = 171, x = 401.86, y = 3.81, z = -244.29, 
 			requires = function () return HasQuest(4412) or QuestCompleted(4412) end,
 		},
 	},
