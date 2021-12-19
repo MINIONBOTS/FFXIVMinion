@@ -1016,7 +1016,6 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_4074", true)
 		ml_mesh_mgr.SetDefaultMesh(1021, "Duty_4078", true)
 		ml_mesh_mgr.SetDefaultMesh(1022, "Duty_4068", true)
-		ml_mesh_mgr.SetDefaultMesh(1022, "Duty_4068", true)
 		ml_mesh_mgr.SetDefaultMesh(1023, "Duty_4072", true)
 		ml_mesh_mgr.SetDefaultMesh(1028, "The Dark Inside", true)
 		

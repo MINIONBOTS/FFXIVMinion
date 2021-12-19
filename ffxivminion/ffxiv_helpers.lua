@@ -7493,6 +7493,41 @@ function Transport956(pos1,pos2)
 		
 	return false			
 end
+function Transport959(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	if (not CanFlyInZone()) then
+		if QuestCompleted(4400) then 
+			-- up top
+			if (pos1.y >= -60 and (pos2.y < -60)) then
+			d("up top")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -0, y = -46, z = -683}
+					newTask.contentid = 2012665
+					newTask.abort = function ()
+						return (Player.pos.y < -60)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+				-- down bottom
+			elseif  (pos1.y < -60 and (pos2.y >= -60)) then
+				d("Down below")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -26, y = -130, z = -580}
+					newTask.contentid = 2012664
+					newTask.abort = function ()
+						return (Player.pos.y >= -60)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+	end
+		
+	return false			
+end
 function CanFlyInZone()
 	if (GetPatchLevel() >= 5.35) then
 	--if (QuestCompleted(524)) then
