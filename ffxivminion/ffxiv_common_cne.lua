@@ -963,8 +963,12 @@ function c_movetogate:evaluate()
 													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (table.valid(pos)) then
-			e_movetogate.pos = pos
-			return true
+			if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+				e_movetogate.pos = pos
+				return true
+			else
+				d("[MoveToGate]: One or more coordinate components was missing, X"..tostring(pos.x)..",Y:"..tostring(pos.y)..",Z:"..tostring(pos.z))
+			end
 		end
 	end
 	
@@ -999,7 +1003,7 @@ function e_movetogate:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	local newPos = { x = pos.x, y = pos.y, z = pos.z }
-	local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
+	local newPos = GetPosFromDistanceHeading(newPos, 5, IsNull(pos.h,0))
 	
 	if (not e_movetogate.pos.g and not e_movetogate.pos.b and not e_movetogate.pos.a) then
 		newTask.gatePos = newPos

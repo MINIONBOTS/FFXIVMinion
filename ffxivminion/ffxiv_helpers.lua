@@ -2486,7 +2486,7 @@ function FindPointLeftRight(pos, angle, radius, relative)
 	return ReturnAngle
 end
 function GetPosFromDistanceHeading(startPos, distance, heading)
-	local head = ConvertHeading(heading)
+	local head = IsNull(ConvertHeading(heading),0)
 	local newX = distance * math.sin(head) + startPos.x
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
