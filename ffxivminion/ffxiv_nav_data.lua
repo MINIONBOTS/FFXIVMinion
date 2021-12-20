@@ -2654,7 +2654,7 @@ ffxiv_aetheryte_data = {
 	},
 	[963] = { -- Radz-at-Han
 		{id = 963, aethid = 183, x = 24.85, y = 1.10, z = -24.49, 
-			requires = function () return QuestCompleted(9999999) end,  -- What quest unlocks this?
+			requires = function () return QuestCompleted(4417) end,  -- or 4418
 		},
 	},
 }	
