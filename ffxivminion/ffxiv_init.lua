@@ -1011,8 +1011,13 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(957, "Thavnair", true)
 		ml_mesh_mgr.SetDefaultMesh(958, "Garlemald", true)
 		ml_mesh_mgr.SetDefaultMesh(959, "Mare Lamentorum", true)
+		ml_mesh_mgr.SetDefaultMesh(960, "Ultima Thule", true)
+		ml_mesh_mgr.SetDefaultMesh(961, "Elpis", true)
 		ml_mesh_mgr.SetDefaultMesh(962, "Old Sharlayan", true)
+		ml_mesh_mgr.SetDefaultMesh(963, "Radz-at-Han", true)
 		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
+		ml_mesh_mgr.SetDefaultMesh(987, "Main Hall", true)
+		ml_mesh_mgr.SetDefaultMesh(990, "Andron", true)
 		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_4074", true)
 		ml_mesh_mgr.SetDefaultMesh(1021, "Duty_4078", true)
 		ml_mesh_mgr.SetDefaultMesh(1022, "Duty_4068", true)
@@ -1021,7 +1026,6 @@ function ml_global_information.Init()
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
-		ml_mesh_mgr.SetDefaultMesh(995, "Duty_4449", true)
 		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
 		
 	end
