@@ -7497,22 +7497,8 @@ function Transport959(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	if (not CanFlyInZone()) then
-		if QuestCompleted(4400) then 
-			-- up top
-			if (pos1.y >= -60 and (pos2.y < -60)) then
-			d("up top")
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -0, y = -46, z = -683}
-					newTask.contentid = 2012665
-					newTask.abort = function ()
-						return (Player.pos.y < -60)
-					end
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-				-- down bottom
-			elseif  (pos1.y < -60 and (pos2.y >= -60)) then
-				d("Down below")
+		if QuestCompleted(4403) then 
+			if  (pos1.y < -60 and (pos2.y >= -60)) then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = -26, y = -130, z = -580}
@@ -8585,6 +8571,7 @@ function IsNormalMap(mapid)
 		[958] = true,
 		[959] = true,
 		[962] = true,
+		[961] = true,	
 		[971] = true,	
 	}
 	return maps[mapid] ~= nil
