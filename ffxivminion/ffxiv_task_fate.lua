@@ -1277,6 +1277,9 @@ function ffxiv_task_fate.Gatherable(mapid, fateid)
 		[816] = {
 			[1492] = { id = 8677, pos = {x = -686, y = 27, z = -9 }, itemid = 2002819, turninid = 2002819 },
 		},
+		[957] = {
+			[1764] = { id = 10790, pos = {x = -31.58, y = 89, z = -538 }, itemid = 2003307, turninid = 2003307 },
+		},
 	}
 	
 	local mapGatherable = gatherable[mapid]
