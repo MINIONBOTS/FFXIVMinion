@@ -2614,7 +2614,7 @@ ffxiv_aetheryte_data = {
 			requires = function () return GetQuestInfo(4383,'step') >= 3 or QuestCompleted(4383) end,
 		},
 		{id = 958, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
-			requires = function () return HasQuest(4393) or QuestCompleted(4393) end,
+			requires = function () return GetQuestInfo(4393,'step') >= 2 or QuestCompleted(4393) end,
         },
 	},
 	[959] = { -- Mare Lamentorum
