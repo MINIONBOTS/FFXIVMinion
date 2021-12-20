@@ -869,6 +869,9 @@ function e_sethomepoint:execute()
     local newTask = ffxiv_task_movetointeract.Create()
 	newTask.contentid = e_sethomepoint.aethid
 	newTask.pos = e_sethomepoint.aethpos
+	if In(Player.localmapid,956,957,958,959,960,961) then
+		newTask.interactRange3d = 6.5
+	end
 	
 	if (gTeleportHack) then
 		newTask.useTeleport = true
