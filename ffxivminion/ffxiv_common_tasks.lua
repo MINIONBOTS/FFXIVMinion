@@ -562,13 +562,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (self.startMap ~= Player.localmapid) then
-		return true
-	end
-	if (Busy()) then
-		if (CannotMove()) then
-			self.killParent = false
-		end
+	if (self.startMap ~= Player.localmapid or Busy()) then
 		return true
 	end
 	
