@@ -1717,6 +1717,9 @@ Quest: Completes quests based on a questing profile.\
 						if (GUI:Button(GetString("ACR Options"), 150, 20)) then
 							ACR.OpenProfileOptions()
 						end
+						if (ACR.DrawAddonHeader and type(ACR.DrawAddonHeader) == "function") then
+							pcall(ACR.DrawAddonHeader)
+						end
 					end
 
 					GUI:Separator()
@@ -1815,6 +1818,11 @@ Quest: Completes quests based on a questing profile.\
 						end
 
 					end
+
+					if (ACR.DrawAddonFooter and type(ACR.DrawAddonFooter) == "function") then
+						pcall(ACR.DrawAddonFooter)
+					end
+
 					if (GUI:Button(GetString("Advanced Settings"), contentwidth, 20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
