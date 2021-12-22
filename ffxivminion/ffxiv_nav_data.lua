@@ -1742,9 +1742,18 @@ ffxiv_map_nav.data = {
             {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
         },
     },
+	[961] = -- Elpis:
+    {
+			[844] = { -- to Ocular
+			{id = 129, cost = 1, x = 281.85, y = 48.39, z = 834.56, g = 2012533},
+		},
+        [1025] = { -- to The Gates of Pandæmonium
+            {id = 1025, cost = 1, x = 809.93, y = 151.81, z = -243.43, b = 2012293},
+        },
+    },
 	[962] = -- Old Sharlayan:
     {
-		[129] = {
+		[129] = { -- to Limsa Lominsa Lower Decks
 			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220},
 		},
         [956] = { -- to Labyrinthos
@@ -1790,6 +1799,12 @@ ffxiv_map_nav.data = {
 					["HasQuest(4408) or QuestCompleted(4408)"] = true,
 				},
 			},
+        },
+    },
+	[1025] = -- The Gates of Pandæmonium:
+    {
+        [961] = { -- to Elpis
+            {id = 961, cost = 1, x = 99.99, y = -0.32, z = 169.97, b = 2012294},
         },
     },
     [1028] = -- The Dark Inside:
