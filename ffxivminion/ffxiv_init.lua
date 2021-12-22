@@ -1860,18 +1860,17 @@ function GetControlRawData(strControl,index)
 	return nil
 end
 
-function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,ignoreOpen)
+function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay)
 	local preDelay = IsNull(preDelay,0)
 	local postDelay = IsNull(postDelay,0)
 	if (preDelay ~= 0) then
-		ml_global_information.Queue(preDelay,function () UseControlAction(strControl,strAction,actionArg,0,postDelay,ignoreOpen) end)
+		ml_global_information.Queue(preDelay,function () UseControlAction(strControl,strAction,actionArg,0,postDelay) end)
 	else
-		local ignoreOpen = IsNull(ignoreOpen,false)
 		local actionArg = IsNull(actionArg,0)
 		local controls = MGetControls() -- testing?
 
 		local control = GetControlByName(strControl)
-		if (control and (control:IsOpen() or ignoreOpen)) then
+		if (control and control:IsOpen()) then
 			if (strAction == "Close") then
 				control:Close()
 			elseif (strAction == "Destroy") then
