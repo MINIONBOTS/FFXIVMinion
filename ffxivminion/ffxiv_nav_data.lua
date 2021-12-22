@@ -1707,10 +1707,10 @@ ffxiv_map_nav.data = {
 				},
 			},
             {id = 963, cost = 1, x = 208, y = 60, z = -601,b = 1037650
-				, requires = {
-					["GetQuestInfo(4411,'step') >= 1 and not QuestCompleted(4412)"] = true,
-				},
-			},
+                , requires = {
+                    ["QuestCompleted(4412)"] = false,
+                },
+            },
         },
 	},
 	[958] = -- Garlemald:
