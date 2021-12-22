@@ -1765,6 +1765,9 @@ ffxiv_map_nav.data = {
 		[987] = { -- to Main Hall
             {id = 987, cost = 1, x = -108.57, y = 5.02, z = 4.53, b = 2011936},
         },
+		[990] = {
+			{id = 990, cost = 1, x = -101, y = 4, z = 0, h = 0.7, b = 1037293, i = 1 },
+		},
 	},
 	[963] = -- Radz-at-Han:
     {
@@ -1786,6 +1789,12 @@ ffxiv_map_nav.data = {
     {
         [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = 0, y = 1, z = 13, b = 2011937},
+        },
+    },
+	[990] = -- Inn:
+    {
+        [962] = { -- to Old Sharlayan
+            {id = 962, cost = 1, x = 0, y = 1, z = 10, b = 2011853},
         },
     },
     [1024] = -- The Nethergate:
