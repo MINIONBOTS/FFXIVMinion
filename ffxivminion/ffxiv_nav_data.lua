@@ -1565,6 +1565,13 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
+        [844] = {
+            {id = 844, cost = 1, x = 118, y = 14, z = 7, h = -1.61, b = 1033863
+				, requires = {
+					["QuestCompleted(4464)"] = true, -- npc ID changed with 6.01?
+				},
+			},
+        },
     },
 	[820] =
     {
