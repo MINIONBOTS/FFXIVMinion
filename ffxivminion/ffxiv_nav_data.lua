@@ -1797,17 +1797,17 @@ ffxiv_map_nav.data = {
             {id = 962, cost = 1, x = 0, y = 1, z = 10, b = 2011853},
         },
     },
-    [1024] = -- The Nethergate:
+	[1024] = -- The Nethergate:
     {
         [958] = { -- to Garlemald
             {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
         },
-		[959] = { -- to Mare Lamentorum
+        [959] = { -- to Mare Lamentorum
             {id = 959, cost = 1, x = -0.02, y = 6.61, z = -0.02, b = 2012530
-				, requires = {
-					["HasQuest(4408) or QuestCompleted(4408)"] = true,
-				},
-			},
+                , requires = {
+                    ["GetQuestInfo(4396,'step') > 2 or QuestCompleted(4396)"] = true,
+                },
+            },
         },
     },
 	[1025] = -- The Gates of Pandæmonium:
