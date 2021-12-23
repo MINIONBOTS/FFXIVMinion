@@ -1722,18 +1722,15 @@ ffxiv_map_nav.data = {
 	},
 	[958] = -- Garlemald:
     {
-        [1024] = { -- to The Nethergate
-                {id = 1024, cost = 1, x = -483.28, y = 10.88, z = -677.39, b = 1042016},
-        },
         [621] = { -- to The Lochs
                 {id = 621, cost = 1, x = -495.63, y = 27.66, z = 634.85, b = 1039553},
         },
-	[1024] = { -- to The Nethergate
+		[1024] = { -- to The Nethergate
                 {id = 1024, cost = 1, x = -483.30, y = 10.89, z = -677.39, b = 1042017, i = 1
 				, requires = {
 					["HasQuest(4408) or QuestCompleted(4408)"] = true,
 				},
-		},
+			},
         },
     },
 	[959] = -- Mare Lamentorum:
