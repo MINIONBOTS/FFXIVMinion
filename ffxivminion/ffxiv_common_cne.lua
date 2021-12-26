@@ -3463,7 +3463,20 @@ function c_buy:evaluate()
 	elseif (tonumber(itemtable)) then
 		itemid = tonumber(itemtable)
 	end
-	
+	if IsControlOpen("InclusionShop") then
+		if ml_task_hub:CurrentTask().category and not ml_task_hub:CurrentTask().categoryset then
+			UseControlAction("InclusionShop","SelectCategory",ml_task_hub:CurrentTask().category)
+			ml_task_hub:CurrentTask().categoryset = true
+			ml_global_information.Await(500)
+			return true
+		end
+		if ml_task_hub:CurrentTask().subcategory and not ml_task_hub:CurrentTask().subcategoryset then
+			UseControlAction("InclusionShop","SelectSubCategory",ml_task_hub:CurrentTask().subcategory)
+			ml_task_hub:CurrentTask().subcategoryset = true
+			ml_global_information.Await(500)
+			return true
+		end
+	end
 	if (itemid) then
 		local buyamount = ml_task_hub:CurrentTask().buyamount or 1
 		if (buyamount > 99) then
@@ -3472,15 +3485,28 @@ function c_buy:evaluate()
 		
 		d("Buying item ID ["..tostring(itemid).."].")
 		local itemCount = ItemCount(itemid)
-		Inventory:BuyShopItem(itemid,buyamount)
-		ml_global_information.AwaitSuccess(2000, 
-			function () 
-				if (IsControlOpen("SelectYesno")) then
-					PressYesNo(true)
-					return true		
+		
+		if IsControlOpen("InclusionShop") and ml_task_hub:CurrentTask().itemindex then
+			UseControlAction("InclusionShop","BuyShopItem",ml_task_hub:CurrentTask().itemindex,buyamount)
+			ml_global_information.AwaitSuccess(2000, 
+				function () 
+					if (IsControlOpen("ShopExchangeItemDialog")) then
+						UseControlAction("ShopExchangeItemDialog","Exchange")
+						return true		
+					end
 				end
-			end
-		)
+			)
+		else
+			Inventory:BuyShopItem(itemid,buyamount)
+			ml_global_information.AwaitSuccess(2000, 
+				function () 
+					if (IsControlOpen("SelectYesno")) then
+						PressYesNo(true)
+						return true		
+					end
+				end
+			)
+		end
 	end
 	
 	return false

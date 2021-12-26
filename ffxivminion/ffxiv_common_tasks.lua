@@ -2093,6 +2093,12 @@ function ffxiv_misc_shopping:task_complete_execute()
 		ml_global_information.Await(2000) 
 		return false
 	end
+	local inclusionShop = GetControl("InclusionShop")
+	if (inclusionShop and inclusionShop:IsOpen()) then
+		inclusionShop:Close()	
+		ml_global_information.Await(2000) 
+		return false
+	end
 	
 	self.completed = true
 end
