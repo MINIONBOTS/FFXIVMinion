@@ -3487,7 +3487,7 @@ function c_buy:evaluate()
 		local itemCount = ItemCount(itemid)
 		
 		if IsControlOpen("InclusionShop") and ml_task_hub:CurrentTask().itemindex then
-			UseControlAction("InclusionShop","BuyShopItem",ml_task_hub:CurrentTask().itemindex,buyamount)
+			UseControlAction("InclusionShop", "BuyShopItem", {[1] = ml_task_hub:CurrentTask().itemindex, [2] = buyamount})
 			ml_global_information.AwaitSuccess(2000, 
 				function () 
 					if (IsControlOpen("ShopExchangeItemDialog")) then
