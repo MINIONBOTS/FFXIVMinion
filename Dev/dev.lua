@@ -264,6 +264,15 @@ function dev.DrawCall(event, ticks )
 						end
 						GUI:TreePop()
 					end
+					if ( GUI:TreeNode("Gauge Test Data") ) then
+						local g = Player.gaugetest
+						if ( table.valid(g)) then
+							for i,k in pairs (g) do
+								GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg2"..tostring(i),tostring(k))	
+							end							
+						end
+						GUI:TreePop()
+					end
 					
 					if ( GUI:TreeNode("Job Levels")) then
 						local lev = Player.levels
@@ -856,12 +865,14 @@ function dev.DrawCall(event, ticks )
 							dev.lastCatchReset = true
 						elseif (lastCatchID ~= 0 and dev.lastCatchReset) then
 							dev.lastCatchID = lastCatchID
-							if (lastCatchID > 1000000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
-							elseif (lastCatchID > 500000 and lastCatchID < 600000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
-							else
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+							if AceLib ~= nil then
+								if (lastCatchID > 1000000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
+								elseif (lastCatchID > 500000 and lastCatchID < 600000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
+								else
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+								end
 							end
 						end
 					end
@@ -1345,7 +1356,7 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("IsDesynthable") GUI:SameLine(225) GUI:InputText("##devbag35",tostring(dev.isDesynthable))
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
-													if item.repairitem > 0 then
+													if AceLib ~= nil and item.repairitem > 0 then
 														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
 														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
