@@ -302,6 +302,18 @@ function ml_navigation.ParseInstructions(data)
 						end
 					end
 				)
+			elseif (itype == "MoveForward2") then
+                table.insert(ml_navigation.receivedInstructions, 
+                    function () 
+                        if (not Player:IsMoving()) then
+                            KeyDown(69) 
+                            ml_global_information.Await(3000, function () return Player:IsMoving() end)
+                            return false
+                        else
+                            return true
+                        end
+                    end
+                )
 			elseif (itype == "CheckIfLocked") then
 				table.insert(ml_navigation.receivedInstructions, 
 					function () 
