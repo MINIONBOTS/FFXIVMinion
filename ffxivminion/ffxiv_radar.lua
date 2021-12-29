@@ -479,6 +479,15 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][10].Enabled) and ffxiv_radar.HuntFilters.ShB.B[econtentid] == true) then -- ShB B Rank.
 							Colour = ffxiv_radar.Options[2][10].ColourU32
 							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][13].Enabled) and ffxiv_radar.HuntFilters.EW.S[econtentid] == true) then -- EW S/SS Rank.
+							Colour = ffxiv_radar.Options[2][13].ColourU32
+							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][14].Enabled) and ffxiv_radar.HuntFilters.EW.A[econtentid] == true) then -- EW A Rank.
+							Colour = ffxiv_radar.Options[2][14].ColourU32
+							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][15].Enabled) and ffxiv_radar.HuntFilters.EW.B[econtentid] == true) then -- EW B Rank.
+							Colour = ffxiv_radar.Options[2][15].ColourU32
+							Draw = true
 						-- End of hunts.
 						-- Start Of Deep Dungeon
 						elseif (ffxiv_radar.Options[3][1].Enabled and ffxiv_radar.DeepDungeonFilters.Passage[econtentid] == true) then -- Passage
@@ -902,6 +911,25 @@ function ffxiv_radar.SetData()
 				[8913] = true,
 				[8914] = true,
 			},
+		},
+		["EW"] = {
+			["SS"] = {},
+			["S"] = {},
+			["A"] = {
+				[10624] = true,
+				[10625] = true,
+				[10626] = true,
+				[10623] = true,
+				[10632] = true,
+				[10631] = true,
+				[10629] = true,
+				[10630] = true,
+				[10634] = true,
+				[10633] = true,
+				[10628] = true,
+				[10627] = true,
+			},
+			["B"] = {},
 		}
 	}
 	ffxiv_radar.DeepDungeonFilters = {
@@ -1023,7 +1051,10 @@ function ffxiv_radar.SetData()
 			[9] = { ["Name"] = "StB - S", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
 			[10] = { ["Name"] = "ShB - B", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
 			[11] = { ["Name"] = "ShB - A", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-			[12] = { ["Name"] = "ShB - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 }
+			[12] = { ["Name"] = "ShB - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[13] = { ["Name"] = "EW - B", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[14] = { ["Name"] = "EW - A", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[15] = { ["Name"] = "EW - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 }
 		},
 		[3] = {
 			["CategoryName"] = "Deep Dungeon",

@@ -184,6 +184,8 @@ function ffxiv_task_assist:UIInit()
 	gStartCombat = ffxivminion.GetSetting("gStartCombat",true)
 	gAssistConfirmDuty = ffxivminion.GetSetting("gAssistConfirmDuty",false)
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
+	gQTEHelper = ffxivminion.GetSetting("gQTEHelper",false)
+	
 	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
 	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
@@ -371,6 +373,11 @@ Warning:  Dangerous if using Standard movement mode.")
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
 	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text(GetString("QTE Helper"))
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Press the Quick Time Event button.")
+	end
 	
 	
 	GUI:NextColumn()
@@ -387,12 +394,27 @@ Warning:  Dangerous if using Standard movement mode.")
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("Performs some tasks automatically, like quest accept, turn-ins, quest completions.")
 	end
+	GUI_Capture(GUI:Checkbox("##"..GetString("QTE Helper"),gQTEHelper),"gQTEHelper")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("Press the Quick Time Event button.")
+	end
 	
 	GUI:PopItemWidth()
 	GUI:Columns()
 	GUI:Separator()
 end
 
+c_assistqtepress = inheritsFrom( ml_cause )
+e_assistqtepress = inheritsFrom( ml_effect )
+function c_assistqtepress:evaluate()
+	if not gQTEHelper then
+		return IsControlOpen("QTE")
+	end
+	return false
+end
+function e_assistqtepress:execute()
+	PressKey(32)
+end
 c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )
 function c_assistyesno:evaluate()

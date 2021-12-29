@@ -544,6 +544,13 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(916, "[Dungeon] The Heroes' Gauntlet", enforce)
 		ml_mesh_mgr.SetDefaultMesh(938, "[Dungeon] Paglth'an", enforce)
 		
+		-- Dungeons EW
+		ml_mesh_mgr.SetDefaultMesh(952, "[Dungeon] The Tower of Zot", enforce)
+		ml_mesh_mgr.SetDefaultMesh(969, "[Dungeon] The Tower of Babil", enforce)
+		ml_mesh_mgr.SetDefaultMesh(970, "[Dungeon] Vanaspati", enforce)
+		ml_mesh_mgr.SetDefaultMesh(974, "[Dungeon] Ktisis Hyperboreia", enforce)
+		ml_mesh_mgr.SetDefaultMesh(978, "[Dungeon] The Aitiascope", enforce)
+		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
 		ml_mesh_mgr.SetDefaultMesh(206, "[Trial] The Navel", enforce)
@@ -607,7 +614,6 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Minstrel's Ballad Tsukuyomi's Pain", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Great HuntEX", enforce)
 
-		
 		-- Trials SHB
 		ml_mesh_mgr.SetDefaultMesh(845, "[Trial] The Dancing Plague", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Trial] The Crown of the Immaculate", enforce)
@@ -620,6 +626,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(950, "[Trial] G-Savior Deck", enforce)
 		ml_mesh_mgr.SetDefaultMesh(951, "[Trial] G-Savior Deck", enforce)
 		ml_mesh_mgr.SetDefaultMesh(991, "[Trial] G-Savior Deck", enforce)
+		
+		-- Trials EW
+		ml_mesh_mgr.SetDefaultMesh(992, "[Trial] The Dark Inside", enforce)
+		ml_mesh_mgr.SetDefaultMesh(995, "[Trial] The Mothercrystal", enforce) --Hydaelyn
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
@@ -679,21 +689,42 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(583, "[Raid] The Soul of the Creator", enforce) -- a12
 		ml_mesh_mgr.SetDefaultMesh(587, "[Raid] The Soul of the Creator", enforce) -- a12s
 		
-		-- Raids SB
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape Savag)", enforce)
+		-- Raids SB Omega: released on July 4, 2017. Minimum item level of 295.
+		ml_mesh_mgr.SetDefaultMesh(658, "The Interdimensional Rift2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(756, "The Interdimensional Rift2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(807, "The Interdimensional Rift2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(691, "[Raid] Deltascape V1.0", enforce) -- o1
+		--ml_mesh_mgr.SetDefaultMesh(695, "[Raid] Deltascape V1.0", enforce) -- o1s
+		ml_mesh_mgr.SetDefaultMesh(692, "[Raid] Deltascape V2.0", enforce) -- o2
+		--ml_mesh_mgr.SetDefaultMesh(696, "[Raid] Deltascape V2.0", enforce) -- o2s
+		ml_mesh_mgr.SetDefaultMesh(693, "[Raid] Deltascape V3.0", enforce) -- o3
+		--ml_mesh_mgr.SetDefaultMesh(697, "[Raid] Deltascape V3.0", enforce) -- o3s
+		--ml_mesh_mgr.SetDefaultMesh(694, "[Raid] Deltascape V4.0", enforce) -- o4
+		--ml_mesh_mgr.SetDefaultMesh(698, "[Raid] Deltascape V4.0", enforce) -- o4s
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Unending Coil of Bahamut Ultimate", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Sigmascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Sigmascape Savage", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(748, "[Raid] Sigmascape V1.0", enforce) -- o5
+		--ml_mesh_mgr.SetDefaultMesh(752, "[Raid] Sigmascape V1.0", enforce) -- o5s
+		--ml_mesh_mgr.SetDefaultMesh(749, "[Raid] Sigmascape V2.0", enforce) -- o6
+		--ml_mesh_mgr.SetDefaultMesh(753, "[Raid] Sigmascape V2.0", enforce) -- o6s
+		--ml_mesh_mgr.SetDefaultMesh(750, "[Raid] Sigmascape V3.0", enforce) -- o7
+		--ml_mesh_mgr.SetDefaultMesh(754, "[Raid] Sigmascape V3.0", enforce) -- o7s
+		--ml_mesh_mgr.SetDefaultMesh(751, "[Raid] Sigmascape V4.0", enforce) -- o8
+		--ml_mesh_mgr.SetDefaultMesh(755, "[Raid] Sigmascape V4.0", enforce) -- o8s
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] The Minstrel's Ballad The Weapon's Refrain Ultimate", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Alphascape", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Alphascape Savage", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V1.0", enforce) -- o9
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V1.0", enforce) -- o9s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V2.0", enforce) -- o10
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V2.0", enforce) -- o10s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V3.0", enforce) -- o11
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V3.0", enforce) -- o11s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V4.0", enforce) -- o12
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Alphascape V4.0", enforce) -- o12s
 		
 		-- Raids SHB
 		-- Eden's Gate
 		--ml_mesh_mgr.SetDefaultMesh(849, "[Raid] The Core", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Halo_e2", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
+		ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Halo_e2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(852, "[Raid] Atlas Peak", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(853, "[Raid] The Core", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(854, "[Raid] The Halo_e2", enforce)
@@ -719,7 +750,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(947, "[Raid] Laxan Loft", enforce)
 		ml_mesh_mgr.SetDefaultMesh(948, "[Raid] Bygone Gaol", enforce)
 		ml_mesh_mgr.SetDefaultMesh(949, "[Raid] The Garden of Nowhere", enforce)
-	
+		
+		-- Raid EW
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
@@ -973,6 +1005,29 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(901, "The Diadem", true)
 		ml_mesh_mgr.SetDefaultMesh(929, "The Diadem", true)
 		ml_mesh_mgr.SetDefaultMesh(939, "The Diadem", true)
+		
+		-- Endwalker
+		ml_mesh_mgr.SetDefaultMesh(956, "Labyrinthos", true)
+		ml_mesh_mgr.SetDefaultMesh(957, "Thavnair", true)
+		ml_mesh_mgr.SetDefaultMesh(958, "Garlemald", true)
+		ml_mesh_mgr.SetDefaultMesh(959, "Mare Lamentorum", true)
+		ml_mesh_mgr.SetDefaultMesh(960, "Ultima Thule", true)
+		ml_mesh_mgr.SetDefaultMesh(961, "Elpis", true)
+		ml_mesh_mgr.SetDefaultMesh(962, "Old Sharlayan", true)
+		ml_mesh_mgr.SetDefaultMesh(963, "Radz-at-Han", true)
+		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
+		ml_mesh_mgr.SetDefaultMesh(987, "Main Hall", true)
+		ml_mesh_mgr.SetDefaultMesh(990, "Andron", true)
+		ml_mesh_mgr.SetDefaultMesh(1020, "Duty_4074", true)
+		ml_mesh_mgr.SetDefaultMesh(1021, "Duty_4078", true)
+		ml_mesh_mgr.SetDefaultMesh(1022, "Duty_4068", true)
+		ml_mesh_mgr.SetDefaultMesh(1023, "Duty_4072", true)
+		ml_mesh_mgr.SetDefaultMesh(1028, "The Dark Inside", true)
+		
+		-- Latty EW
+		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
+		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
+		ml_mesh_mgr.SetDefaultMesh(1011, "Duty_4394", true)
 		
 	end
 	
@@ -1702,6 +1757,7 @@ function ml_global_information.Init()
 				[834] = "The Howling Eye",
 				[839] = "East Shroud",
 				[843] = "The Pendants Personal Suite",
+				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
@@ -1736,142 +1792,123 @@ function ml_global_information.Init()
 end
 
 function IsControlOpen(strControl)
-	if (memoize and memoize.opencontrols) then
-		if (memoize.opencontrols[strControl]) then
-			return (memoize.opencontrols[strControl] == true)
+	local control = GetControlByName(strControl)
+	  if (control) then
+		if (control:IsOpen()) then
+		  return true
 		end
-	end
-
-	if (memoize.opencontrols == nil) then
-		memoize.opencontrols = {}
-	end
-	
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local isopen = control:IsOpen()
-			memoize.opencontrols[strControl] = isopen
-			return isopen
-		end
-	end
-		
+	  end
 	return false
 end
 
 function GetControlData(strControl,strData)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local data = control:GetData()
-			if (data) then
-				if (strData == nil) then
-					return data
-				else
-					if (table.valid(data)) then
-						for dataid, dataval in pairs(data) do
-							if (dataid == strData) then
-								return dataval
-							end
+	local control = GetControlByName(strControl)
+	if (control) then
+		local data = control:GetData()
+		if (data) then
+			if (strData == nil) then
+				return data
+			else
+				if (table.valid(data)) then
+					for dataid, dataval in pairs(data) do
+						if (dataid == strData) then
+							return dataval
 						end
 					end
 				end
 			end
 		end
 	end
+
 	return nil
 end
 
 function GetControlStrings(strControl,numString)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local strings = control:GetStrings()
-			if (table.valid(strings)) then
-				if (numString == nil) then
-					return strings
-				else
-					for stringid, stringval in pairs(strings) do
-						if (stringid == numString) then
-							return stringval
-						end
+
+	local control = GetControlByName(strControl)
+	if (control) then
+		local strings = control:GetStrings()
+		if (table.valid(strings)) then
+			if (numString == nil) then
+				return strings
+			else
+				for stringid, stringval in pairs(strings) do
+					if (stringid == numString) then
+						return stringval
 					end
 				end
 			end
 		end
 	end
+
 	return nil
 end
 
 function GetControlRawData(strControl,index)
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			local datas = control:GetRawData()
-			if (table.valid(datas)) then
-				if (index == nil) then
-					return datas
-				else
-					return datas[index]
-				end
+
+	local control = GetControlByName(strControl)
+	if (control) then
+		local datas = control:GetRawData()
+		if (table.valid(datas)) then
+			if (index == nil) then
+				return datas
+			else
+				return datas[index]
 			end
 		end
 	end
+
 	return nil
 end
 
-function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay,ignoreOpen)
+function UseControlAction(strControl,strAction,actionArg,preDelay,postDelay)
 	local preDelay = IsNull(preDelay,0)
 	local postDelay = IsNull(postDelay,0)
 	if (preDelay ~= 0) then
-		ml_global_information.Queue(preDelay,function () UseControlAction(strControl,strAction,actionArg,0,postDelay,ignoreOpen) end)
+		ml_global_information.Queue(preDelay,function () UseControlAction(strControl,strAction,actionArg,0,postDelay) end)
 	else
-		local ignoreOpen = IsNull(ignoreOpen,false)
 		local actionArg = IsNull(actionArg,0)
-		local controls = MGetControls()
-		if (controls) then
-			local control = controls[strControl]
-			if (control and (control:IsOpen() or ignoreOpen)) then
-				if (strAction == "Close") then
-					control:Close()
-				elseif (strAction == "Destroy") then
-					control:Destroy()
-				else
-					local actions = control:GetActions()
-					if (table.valid(actions)) then
-						for aid, action in pairs(actions) do
-							if (action == strAction) then
-								if (postDelay ~= 0) then
-									ml_global_information.Await(postDelay)
-								end
-								if (type(actionArg) == "table") then
-									-- handle multiple args, min 2, max 3 args, using index 1-3
-									if (table.size(actionArg) == 2) then
-										control:Action(action,actionArg[1],actionArg[2])
-									elseif (table.size(actionArg) == 3) then
-										control:Action(action,actionArg[1],actionArg[2],actionArg[3])
-									end
-								else
-									if (control:Action(action,actionArg)) then
-										return true
-									end
-								end
-								return false
+		local controls = MGetControls() -- testing?
+
+		local control = GetControlByName(strControl)
+		if (control and control:IsOpen()) then
+			if (strAction == "Close") then
+				control:Close()
+			elseif (strAction == "Destroy") then
+				control:Destroy()
+			else
+				local actions = control:GetActions()
+				if (table.valid(actions)) then
+					for aid, action in pairs(actions) do
+						if (action == strAction) then
+							if (postDelay ~= 0) then
+								ml_global_information.Await(postDelay)
 							end
+							if (type(actionArg) == "table") then
+								-- handle multiple args, min 2, max 3 args, using index 1-3
+								if (table.size(actionArg) == 2) then
+									control:Action(action,actionArg[1],actionArg[2])
+								elseif (table.size(actionArg) == 3) then
+									control:Action(action,actionArg[1],actionArg[2],actionArg[3])
+								end
+							else
+								if (control:Action(action,actionArg)) then
+									return true
+								end
+							end
+							return false
 						end
 					end
 				end
 			end
 		end
+
 	end
 	return false
 end
 
 function OpenControl(strControl)
-	local control = GetControl(strControl)
+	local control = GetControlByName(strControl)
 	if (control and type(control) == "number") then
 		CreateControl(control)
 	elseif (control and type(control) == "table") then
@@ -1882,12 +1919,9 @@ end
 function GetControl(strControl,allControls)
 	local allControls = IsNull(allControls,false)
 	
-	local controls = MGetControls()
-	if (controls) then
-		local control = controls[strControl]
-		if (control) then
-			return control
-		end
+	local control = GetControlByName(strControl)
+	if (control) then
+		return control
 	end
 	
 	if (allControls) then
