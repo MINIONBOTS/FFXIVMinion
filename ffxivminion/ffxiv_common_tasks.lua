@@ -1133,7 +1133,7 @@ function ffxiv_task_useitem:task_complete_eval()
 			local castid = action.id
 			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return false
-		elseif (item:IsReady(targetid) and self.targetid ~= 0) then
+		elseif (self.targetid ~= 0 and item:IsReady(self.targetid)) then
 			item:Cast(self.targetid)
 			self.useAttempts = self.useAttempts + 1
 			local castid = action.id
@@ -1541,6 +1541,9 @@ function ffxiv_task_grindCombat:Process()
 		local pullpos1 = self.pullPos1
 		local pullpos2 = self.pullPos2
 		local range = ml_global_information.AttackRange
+		if (IsImpersonating()) then
+			range = 3
+		end
 		local eh = ConvertHeading(pos.h)
 		local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 		local nearbyMobCount = 0
@@ -1556,7 +1559,7 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (ml_global_information.AttackRange > 5) then			
+		if (range > 5) then			
 			if (IsFlying() or (not InCombatRange(target.id) and not MIsCasting())) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)

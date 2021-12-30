@@ -3060,6 +3060,10 @@ function IsInParty(id)
 	end
 	return false
 end
+-- for quests that force the user into a specific action set
+function IsImpersonating() 
+	return HasBuffs(Player,"1534,2760")
+end
 function InCombatRange(targetid)
 	if (not FFXIV_Common_BotRunning or IsFlying()) then
 		return false
@@ -3097,14 +3101,20 @@ function InCombatRange(targetid)
 		return true
 	end
 	
-	local attackRange = ml_global_information.AttackRange	
+	local impersonating = IsImpersonating() 
+	local attackRange = ml_global_information.AttackRange
+	if (impersonating) then
+		attackRange = 3
+	end	
 	if (target.distance2d ~= 0 and target.distance2d <= (attackRange * .97)) then
-		local check = SkillMgr.CheckTestSkill(Player.job, target)
-		if (check ~= nil) then
-			return check
+		if (not impersonating) then
+			local check = SkillMgr.CheckTestSkill(Player.job, target)
+			if (check ~= nil) then
+				return check
+			end
 		end
 		
-		return target.los
+		return (target.los or target.los2)
 	end
 	
 	return false
