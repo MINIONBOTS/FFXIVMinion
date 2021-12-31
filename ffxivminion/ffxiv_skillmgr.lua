@@ -67,6 +67,7 @@ SkillMgr.queuedPrio = 0
 SkillMgr.currentChain = ""
 SkillMgr.prevSkillID = ""
 SkillMgr.prevGatherSkillID = ""
+SkillMgr.prevCraftSkillID = ""
 SkillMgr.prevSkillTimestamp = 0
 SkillMgr.prevGCDSkillID = ""
 SkillMgr.prevSkillList = {}
@@ -810,6 +811,7 @@ SkillMgr.Variables = {
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", readable = "", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", readable = "", section = "crafting"},
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", readable = "", section = "crafting"},	
+	SKM_PSkillIDC = { default = "", cast = "string", profile = "pskillc", readable = "", section = "crafting"},
 	
 	SKM_SingleUse = { default = true, cast = "boolean", profile = "singleuseonly", readable = "", section = "gathering"},
 	SKM_AddsBuff = { default = "", cast = "string", profile = "gatheraddsbuff", readable = "", section = "gathering"},
@@ -3420,6 +3422,22 @@ function SkillMgr.Craft()
 						castable = false
 					end
 					
+					--Previous crafting skill check
+					if (not IsNullString(skill.pskillc)) then
+						local found = false
+						for pskill in StringSplit(skill.pskillc,",") do
+							if (tonumber(SkillMgr.prevCraftSkillID) == tonumber(pskill)) then
+								found = true
+							else
+								--d("prev skillid:"..tostring(SkillMgr.prevCraftSkillID)..",pskill:"..tostring(pskill))
+							end
+						end
+						if (not found) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed previous crafting skill check.")
+							castable = false
+						end
+					end
+
 					-- buff checks
                     if ( skill.cpbuff ~= "" ) then
 						if not HasBuffs(Player, skill.cpbuff) then
@@ -3440,6 +3458,7 @@ function SkillMgr.Craft()
 					
 						d("CASTING(Crafting): ["..tostring(prio).."] : "..tostring(skill.name).." : "..tostring(skillid))	
 						SkillMgr.lastquality = currentQuality
+						SkillMgr.prevCraftSkillID = tostring(skillid)
 						local thisPrio = prio
 						local singleuseonly = skill.singleuseonly
 						local consecutiveuseonly = skill.consecutiveuseonly
@@ -6711,6 +6730,7 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Manipulation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPSTACKMIN",SKM_MANIPSTACKMIN,0,0),"SKM_MANIPSTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Manipulation Stack <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPSTACKMAX",SKM_MANIPSTACKMAX,0,0),"SKM_MANIPSTACKMAX"); GUI:NextColumn();
 		GUI:Text(GetString("Innovation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INNOSTACKMIN",SKM_INNOSTACKMIN,0,0),"SKM_INNOSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillIDC",SKM_PSkillIDG),"SKM_PSkillIDC"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
