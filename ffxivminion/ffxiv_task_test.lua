@@ -251,13 +251,13 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 	local section = 0
 	if In(Player.localmapid,956) then
-		section = GetLabyrithosSection({x = gTestMapX, y = gTestMapY, z = gTestMapZ})
+		section = GetLabyrithosSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,957) then
-		section = GetTempestSection({x = gTestMapX, y = gTestMapY, z = gTestMapZ})
+		section = GetTempestSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,959) then
-		section = GetMareLamentorumSection({x = gTestMapX, y = gTestMapY, z = gTestMapZ})
+		section = GetMareLamentorumSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,960) then
-		section = GetUltimaThuleSection({x = gTestMapX, y = gTestMapY, z = gTestMapZ})
+		section = GetUltimaThuleSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 					
