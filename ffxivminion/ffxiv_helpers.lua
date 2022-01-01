@@ -6484,7 +6484,7 @@ function GetThavnairSection(pos)
     return sec
 end
 function GetLabyrithosSection(pos)
-    local sec = 1
+    local sec = 3
 	local sections = {
         [1] = {
             a = {x = -1000, z = 1000},
@@ -6516,26 +6516,79 @@ function GetLabyrithosSection(pos)
     return sec
 end
 function GetMareLamentorumSection(pos)
-    local sec = 1
-	local sections = {
+    local sec = 3
+	local sections1 = {
         [1] = {
-            a = {x = 68, z = 250},
-            b = {x = 693, z = -276},
-            c = {x = 1192, z = 161},
-            d = {x = 563, z = 741},
-            x = {x = 450, z = 250},
+            a = {x = -854, z = 292},
+            b = {x = -357, z = 254},
+            c = {x = -221, z = 357},
+            d = {x = -499, z = 611},
+            x = {x = -233.25, z = 378.5},
         },
-        [2] = {
-            a = {x = 68, z = 250},
-            b = {x = -189, z = 789},
-            c = {x = 344, z = 1164},
-            d = {x = 1024, z = 489},
-            x = {x = 278, z = 464},
+		[2] = {
+            a = {x = -296, z = 346},
+            b = {x = 148, z = 190},
+            c = {x = 143, z = 561},
+            d = {x = -377, z = 594},
+            x = {x = -95.5, z = 422.75},
         },
+		[3] = {
+            a = {x = 135, z = 192},
+            b = {x = 181, z = 136},
+            c = {x = 316, z = 141},
+            d = {x = 287, z = 250},
+            x = {x = 229.75, z = 179.75},
+        },
+		[4] = {
+            a = {x = 316, z = 142},
+            b = {x = 387, z = 115},
+            c = {x = 506, z = 180},
+            d = {x = 375, z = 306},
+            x = {x = 396, z = 185.75},
+        },
+		[5] = {
+            a = {x = -850, z = 405},
+            b = {x = 530, z = 405},
+            c = {x = 530, z = 916},
+            d = {x = -850, z = 916},
+            x = {x = -160, z = 660.5},
+		},
+		[6] = {
+            a = {x = 363, z = 308},
+            b = {x = 542, z = 395},
+            c = {x = 570, z = 511},
+            d = {x = 307, z = 512},
+            x = {x = 445.5, z = 431.5},
+		},
+		[7] = {
+            a = {x = 168, z = 180},
+            b = {x = 382, z = 183},
+            c = {x = 363, z = 404},
+            d = {x = 121, z = 414},
+            x = {x = 258.5, z = 295.25},
+		},
 	}
+    if (table.valid(pos)) then
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+			  if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end	
+	local sections2 = {
+        [1] = {
+            a = {x = -850, z = -850},
+            b = {x = 850, z = -850},
+            c = {x = 850, z = -180},
+            d = {x = -850, z = -180},
+            x = {x = 0, z = -515},
+        },
+    }
 	
     if (table.valid(pos)) then
-        for i,section in pairs(sections) do
+        for i,section in pairs(sections2) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
@@ -6550,11 +6603,18 @@ function GetUltimaThuleSection(pos)
 	-- 4th island
 	local sections4 = {
         [1] = {
-            a = {x = 678, z = 275},
-            b = {x = 678, z = 156},
-            c = {x = 880, z = 156},
-            d = {x = 880, z = 275},
-            x = {x = 758, z = 156},
+            a = {x = 648, z = 161},
+            b = {x = 871, z = 161},
+            c = {x = 859, z = 232},
+            d = {x = 648, z = 232},
+            x = {x = 759.5, z = 196.5},
+        },
+		[2] = {
+            a = {x = 684, z = 232},
+            b = {x = 825, z = 232},
+            c = {x = 825, z = 284},
+            d = {x = 684, z = 284},
+            x = {x = 754.5, z = 258},
         },
 	}
 	
@@ -6562,18 +6622,25 @@ function GetUltimaThuleSection(pos)
         for i,section in pairs(sections4) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
-               return 4
+               sec = 4
             end
         end
     end	
 	-- 5th island
 	local sections5 = {
         [1] = {
-            a = {x = 387, z = 467},
-            b = {x = 387, z = 386},
-            c = {x = 500, z = 386},
-            d = {x = 500, z = 467},
-            x = {x = 437, z = 426},
+            a = {x = -172, z = -72},
+            b = {x = 328, z = -70},
+            c = {x = 377, z = 377},
+            d = {x = -70, z = 380},
+            x = {x = 115.75, z = 153.75},
+        },
+		[2] = {
+            a = {x = 78, z = 379},
+            b = {x = 500, z = 383},
+            c = {x = 510, z = 631},
+            d = {x = 149, z = 627},
+            x = {x = 309.25, z = 505},
         },
 	}
 	
@@ -6581,18 +6648,18 @@ function GetUltimaThuleSection(pos)
         for i,section in pairs(sections5) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
-               return 5
+               sec = 5
             end
         end
     end	
 	-- 2nd island
 	local sections1 = {
         [1] = {
-            a = {x = -500, z = -130},
-            b = {x = -500, z = -800},
-            c = {x = 750, z = -800},
-            d = {x = 750, z = -130},
-            x = {x = 65, z = -550},
+            a = {x = -518, z = -872},
+            b = {x = -521, z = -123},
+            c = {x = 636, z = -123},
+            d = {x = 633, z = -872},
+            x = {x = 57.5, z = -497.5},
         },
 	}
 	
@@ -6600,18 +6667,32 @@ function GetUltimaThuleSection(pos)
         for i,section in pairs(sections1) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
-               return 2
+               sec = 2
             end
         end
     end	
 	-- 3rd island
 	local sections2 = {
         [1] = {
-            a = {x = 379, z = 500},
-            b = {x = 379, z = 100},
-            c = {x = 950, z = 100},
-            d = {x = 950, z = 500},
-            x = {x = 580, z = 300},
+            a = {x = 350, z = 129},
+            b = {x = 640, z = 129},
+            c = {x = 640, z = 382},
+            d = {x = 350, z = 382},
+            x = {x = 495, z = 255.5},
+        },
+		[2] = {
+            a = {x = 521, z = 297},
+            b = {x = 786, z = 297},
+            c = {x = 786, z = 477},
+            d = {x = 521, z = 477},
+            x = {x = 635.5, z = 387},
+        },
+		[3] = {
+            a = {x = 613, z = 238},
+            b = {x = 676, z = 238},
+            c = {x = 676, z = 320},
+            d = {x = 613, z = 320},
+            x = {x = 644.5, z = 279},
         },
 	}
 	
@@ -6619,7 +6700,7 @@ function GetUltimaThuleSection(pos)
         for i,section in pairs(sections2) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
-               return 3
+               sec = 3
             end
         end
     end	
@@ -7823,7 +7904,7 @@ function Transport959(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	if (not CanFlyInZone()) then
-		if QuestCompleted(4403) then 
+		if QuestCompleted(4403) and GetMareLamentorumSection(Player.pos) == 2 then 
 			if  (pos1.y < -60 and (pos2.y >= -60)) then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
@@ -7837,18 +7918,40 @@ function Transport959(pos1,pos2)
 			end
 		end	
 		if QuestCompleted(4400) then
-			if GetMareLamentorumSection(pos1) == 2 and GetMareLamentorumSection(pos2) == 1 then
+			if GetMareLamentorumSection(pos1) == 1 and GetMareLamentorumSection(pos2) == 2  then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 203, y = 59, z = 407}
 					newTask.contentid = 1038869
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if GetMareLamentorumSection(pos1) == 1 and GetMareLamentorumSection(pos2) == 3  then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 203, y = 59, z = 407}
+					newTask.contentid = 1038869
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if GetMareLamentorumSection(pos1) == 2 and GetMareLamentorumSection(pos2) == 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -4, y = -26, z = -213}
+					newTask.contentid = 1038870
 					newTask.abort = function ()
 						return GetMareLamentorumSection(Player.pos) == 1
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
-			if GetMareLamentorumSection(pos1) == 1 and GetMareLamentorumSection(pos2) == 2 then
+			if GetMareLamentorumSection(pos1) == 3 and GetMareLamentorumSection(pos2) == 1 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = -4, y = -26, z = -213}
@@ -7947,23 +8050,23 @@ function Transport960(pos1,pos2)
 			end
 		end	
 		if QuestCompleted(4462) then
-			if GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
+			if GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 469, y = 418, z = 403}
 					newTask.contentid = 2012485
 					newTask.abort = function ()
-						return GetUltimaThuleSection(Player.pos) == 5
+						return GetUltimaThuleSection(Player.pos) == 3
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
-			elseif GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
+			elseif GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 492, y = 438, z = 365}
 					newTask.contentid = 2012484
 					newTask.abort = function ()
-						return GetUltimaThuleSection(Player.pos) == 3
+						return GetUltimaThuleSection(Player.pos) == 5
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end

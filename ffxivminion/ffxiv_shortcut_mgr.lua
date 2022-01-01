@@ -97,6 +97,13 @@ sck.hotkeys = {
 		end
 	},
 	{
+		label = "Click-for-pos", mod1 = "SCK_Clickpos_Mod1", mod2 = "SCK_Clickpos_Mod2", key = "SCK_Clickpos_Mod3", mouse = "SCK_Clickpos_Mouse",
+		event = function ()
+			local gameCoords = Hacks:GetGameCoordsFromMapPosition(GUI:GetMousePos())
+			d(gameCoords)
+		end
+	},
+	{
 		label = "SKM Filter 1", mod1 = "SCK_Filter1_Mod1", mod2 = "SCK_Filter1_Mod2", key = "SCK_Filter1_Key", mouse = "SCK_Filter1_Mouse",
 		event = function ()
 			gAssistFilter1 = not gAssistFilter1
