@@ -1356,8 +1356,12 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("IsDesynthable") GUI:SameLine(225) GUI:InputText("##devbag35",tostring(dev.isDesynthable))
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
-													if AceLib ~= nil and item.repairitem > 0 then
-														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+													if item.repairitem > 0 then
+														if AceLib ~= nil then
+															dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														else
+															dev.repairItemName = ""
+														end
 														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
 													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
