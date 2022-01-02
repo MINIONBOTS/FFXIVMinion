@@ -865,12 +865,14 @@ function dev.DrawCall(event, ticks )
 							dev.lastCatchReset = true
 						elseif (lastCatchID ~= 0 and dev.lastCatchReset) then
 							dev.lastCatchID = lastCatchID
-							if (lastCatchID > 1000000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
-							elseif (lastCatchID > 500000 and lastCatchID < 600000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
-							else
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+							if AceLib ~= nil then
+								if (lastCatchID > 1000000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
+								elseif (lastCatchID > 500000 and lastCatchID < 600000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
+								else
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+								end
 							end
 						end
 					end
@@ -1355,7 +1357,11 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
 													if item.repairitem > 0 then
-														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														if AceLib ~= nil then
+															dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														else
+															dev.repairItemName = ""
+														end
 														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
 													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
