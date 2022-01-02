@@ -3563,6 +3563,7 @@ function c_switchclass:evaluate()
 		
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
+			d("gearset to override ["..tostring(override).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -3571,9 +3572,12 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
 				end
 			)
+					d("class "..tostring(class))
+					d("override gearset "..tostring(override))
 			return true
 		elseif (tonumber(newSet) ~= 0) then
 			local commandString = "/gs change "..tostring(newSet)
+			d("gearset to new set ["..tostring(newSet).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -3582,6 +3586,7 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
 				end
 			)
+					d("class "..tostring(class))
 					d("gearset "..tostring(newSet))
 			return true
 		else
