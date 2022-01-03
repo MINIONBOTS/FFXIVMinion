@@ -6631,13 +6631,13 @@ function GetUltimaThuleSection(pos)
         [1] = {
             a = {x = -172, z = -72},
             b = {x = 328, z = -70},
-            c = {x = 377, z = 377},
-            d = {x = -70, z = 380},
+            c = {x = 377, z = 385},
+            d = {x = -70, z = 385},
             x = {x = 115.75, z = 153.75},
         },
 		[2] = {
-            a = {x = 78, z = 379},
-            b = {x = 500, z = 383},
+            a = {x = 78, z = 385},
+            b = {x = 500, z = 385},
             c = {x = 510, z = 631},
             d = {x = 149, z = 627},
             x = {x = 309.25, z = 505},
@@ -7972,7 +7972,7 @@ function Transport960(pos1,pos2)
 	local pos2 = pos2
 	if (not CanFlyInZone()) then
 		-- island 1
-		if QuestCompleted(4455) then 
+		if GetQuestInfo(4455,'step') == 255 or QuestCompleted(4455) then 
 			-- move to 2
 			if GetUltimaThuleSection(pos1) == 1 and GetUltimaThuleSection(pos2) ~= 1 then
 				return true, function ()
@@ -7998,6 +7998,31 @@ function Transport960(pos1,pos2)
 			end
 		end	
 		-- island 2
+		if GetQuestInfo(4459,'step') >= 2 and not QuestCompleted(4459) then
+			-- move to 3
+			if In(GetUltimaThuleSection(pos1),1,2) and GetUltimaThuleSection(pos2) == 3 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 440, y = 285, z = -319}
+					newTask.contentid = 2012794
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			-- move from 3 to 2
+			elseif GetUltimaThuleSection(pos1) == 3 and In(GetUltimaThuleSection(pos2),1,2) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 514, y = 440, z = 140}
+					newTask.contentid = 2012481
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
 		if QuestCompleted(4459) then
 			-- move to 3
 			if In(GetUltimaThuleSection(pos1),1,2) and GetUltimaThuleSection(pos2) == 3 then
@@ -8024,6 +8049,31 @@ function Transport960(pos1,pos2)
 			end
 		end	
 		-- island 3
+		if GetQuestInfo(4460,'step') == 255 and not QuestCompleted(4460)then
+			-- move to island 4
+			if GetUltimaThuleSection(pos1) ~= 4 and GetUltimaThuleSection(pos2) == 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 639, y = 439, z = 241}
+					newTask.contentid = 2012796
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 4
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+				-- move from island 4
+			elseif GetUltimaThuleSection(pos1) == 4 and GetUltimaThuleSection(pos2) ~= 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 694, y = 479, z = 226}
+					newTask.contentid = 2012483
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
 		if QuestCompleted(4460) then
 			-- move to island 4
 			if GetUltimaThuleSection(pos1) ~= 4 and GetUltimaThuleSection(pos2) == 4 then
@@ -8049,8 +8099,18 @@ function Transport960(pos1,pos2)
 				end
 			end
 		end	
-		if QuestCompleted(4462) then
-			if GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
+		if GetQuestInfo(4462,'step') >= 2 and not QuestCompleted(4462) then
+			if GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 492, y = 438, z = 365}
+					newTask.contentid = 2012795
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 5
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 469, y = 418, z = 403}
@@ -8060,13 +8120,26 @@ function Transport960(pos1,pos2)
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
-			elseif GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
+			end
+		end	
+		if QuestCompleted(4462) then
+			if GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 492, y = 438, z = 365}
 					newTask.contentid = 2012484
 					newTask.abort = function ()
 						return GetUltimaThuleSection(Player.pos) == 5
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 469, y = 418, z = 403}
+					newTask.contentid = 2012485
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
