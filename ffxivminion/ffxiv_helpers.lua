@@ -8926,7 +8926,7 @@ function FindNearestCollectableAppraiser()
 					hasRadz = true
 					radzCost = aetheryte.price
 				end
-				if (hasIdyllshire and hasMorDhona and hasRhalgr) or (hasEulmore) then
+				if (hasRadz) then
 					break
 				end
 			end
