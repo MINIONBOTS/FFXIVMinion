@@ -106,8 +106,8 @@ ffxivminion.classes = {
 	[FFXIV.JOBS.BLUEMAGE] = "BLU",
 	[FFXIV.JOBS.DANCER] = "DNC",
 	[FFXIV.JOBS.GUNBREAKER] = "GNB",
-	[39] = "RPR", --FFXIV.JOBS.REAPER
-	[40] = "SGE", --FFXIV.JOBS.SAGE
+	[FFXIV.JOBS.REAPER] = "RPR",
+	[FFXIV.JOBS.SAGE] = "SGE",
 }
 
 ffxivminion.AutoGrindDefault = [[
@@ -1236,9 +1236,8 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.BLUEMAGE] = ffxiv_combat_bluemage,
 			[FFXIV.JOBS.GUNBREAKER] = ffxiv_combat_gunbreaker,
 			[FFXIV.JOBS.DANCER] = ffxiv_combat_dancer,
-
-			[39] = ffxiv_combat_reaper,
-			[40] = ffxiv_combat_sage,
+			[FFXIV.JOBS.REAPER] = ffxiv_combat_reaper,
+			[FFXIV.JOBS.SAGE] = ffxiv_combat_sage,
 
 			[FFXIV.JOBS.BOTANIST] = ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] = ffxiv_gather_fisher,
