@@ -751,7 +751,33 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(948, "[Raid] Bygone Gaol", enforce)
 		ml_mesh_mgr.SetDefaultMesh(949, "[Raid] The Garden of Nowhere", enforce)
 		
-		-- Raid EW
+		-- Raids EW
+		ml_mesh_mgr.SetDefaultMesh(1002, "[Raid] The Gates of Pandæmonium", enforce) -- p1
+		ml_mesh_mgr.SetDefaultMesh(1003, "[Raid] The Gates of Pandæmonium", enforce) -- p1s
+		ml_mesh_mgr.SetDefaultMesh(1004, "[Raid] The Stagnant Limbo", enforce) -- p2
+		ml_mesh_mgr.SetDefaultMesh(1005, "[Raid] The Stagnant Limbo", enforce) -- p2s
+		ml_mesh_mgr.SetDefaultMesh(1006, "[Raid] The Fervid Limbo", enforce) -- p3
+		ml_mesh_mgr.SetDefaultMesh(1007, "[Raid] The Fervid Limbo", enforce) -- p3s
+		ml_mesh_mgr.SetDefaultMesh(1008, "[Raid] The Sanguine Limbo", enforce) -- p4
+		ml_mesh_mgr.SetDefaultMesh(1009, "[Raid] The Sanguine Limbo", enforce) -- p4s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- Ultimate 1
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p5
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p5s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p6
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p6s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p7
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p7s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p8
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p8s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] , enforce) -- Ultimate 2
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p9
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p9s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p10
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p10s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p11
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p11s
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p12
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] ", enforce) -- p12s
 		
 		-- Class Duties
 		ml_mesh_mgr.SetDefaultMesh(228, "North Shroud", true)
