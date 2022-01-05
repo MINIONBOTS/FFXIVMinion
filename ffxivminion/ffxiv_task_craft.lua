@@ -98,6 +98,15 @@ end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
 		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
+			-- "Cunning Craftsman's Draught",
+			local teahq, action = GetItem(1036116)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(36116)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 			-- "Cunning Craftsman's Syrup",
 			local teahq, action = GetItem(1027959)
 			if (teahq and action and not action.isoncd) then
@@ -118,6 +127,15 @@ function ffxiv_craft.CanUseTea()
 			end
 		end
 		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
+			-- "Commanding Craftsman's Draught",
+			local teahq, action = GetItem(1036115)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(36115)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 			-- "Commanding Craftsman's Syrup",
 			local teahq, action = GetItem(1027958)
 			if (teahq and action and not action.isoncd) then
@@ -138,6 +156,15 @@ function ffxiv_craft.CanUseTea()
 			end
 		end
 		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
+			-- "Competent Craftsman's Draught",
+			local teahq, action = GetItem(1036114)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(36114)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 			-- "Competent Craftsman's Syrup",
 			local teahq, action = GetItem(1027957)
 			if (teahq and action and  not action.isoncd) then
