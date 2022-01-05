@@ -6484,7 +6484,7 @@ function GetThavnairSection(pos)
     return sec
 end
 function GetLabyrithosSection(pos)
-    local sec = 3
+    local sec = 1
 	local sections = {
         [1] = {
             a = {x = -1000, z = 1000},
@@ -7800,7 +7800,7 @@ function Transport956(pos1,pos2)
 		if (GetQuestInfo(4441,'step') >= 5) or QuestCompleted(4441) then 
 			local gilCount = GilCount()
 			-- lift south
-			if GetLabyrithosSection(pos1) == 1 and GetLabyrithosSection(pos2) == 2 then
+			if GetLabyrithosSection(pos1) == 1 and GetLabyrithosSection(pos2) ~= 1 then
 				if (CanUseAetheryte(167) and not Player.incombat) and (gilCount > 100) then
 					return true, function () 
 						if (Player:IsMoving()) then
@@ -7828,7 +7828,7 @@ function Transport956(pos1,pos2)
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				end
-			elseif GetLabyrithosSection(pos1) == 2 and GetLabyrithosSection(pos2) == 1 then
+			elseif GetLabyrithosSection(pos1) ~= 1 and GetLabyrithosSection(pos2) == 1 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 229.88, y = -18.74, z = 298.73}
@@ -7842,7 +7842,7 @@ function Transport956(pos1,pos2)
 		end	
 		-- inner lift
 		if (GetQuestInfo(4448,'step') >= 5) or QuestCompleted(4448) then 
-			if GetLabyrithosSection(pos1) == 2 and GetLabyrithosSection(pos2) == 3 then
+			if GetLabyrithosSection(pos1) ~= 3 and GetLabyrithosSection(pos2) == 3 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = -620.72, y = -27.67, z = 302.17}
@@ -7852,7 +7852,7 @@ function Transport956(pos1,pos2)
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
-			elseif GetLabyrithosSection(pos1) == 3 and GetLabyrithosSection(pos2) == 2 then
+			elseif GetLabyrithosSection(pos1) == 3 and GetLabyrithosSection(pos2) ~= 3 then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = -614.86, y = -191.12, z = 305.74}
