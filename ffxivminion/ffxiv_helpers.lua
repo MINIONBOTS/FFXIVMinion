@@ -6485,7 +6485,7 @@ function GetThavnairSection(pos)
 end
 function GetLabyrithosSection(pos)
     local sec = 1
-	local sections = {
+    local sections = {
         [1] = {
             a = {x = -1000, z = 1000},
             b = {x = -1000, z = -365},
@@ -6493,8 +6493,8 @@ function GetLabyrithosSection(pos)
             d = {x = 500, z = 1000},
             x = {x = -300, z = 200},
         },
-	}
-	
+    }
+
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
@@ -6506,12 +6506,12 @@ function GetLabyrithosSection(pos)
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
-            if (isInsideRect) and pos.y < 50 then
+            if (isInsideRect) and (pos.y > -150 and pos.y < 50) then
                 return 2
             end
         end
     end
-	
+
 
     return sec
 end
