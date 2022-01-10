@@ -756,7 +756,7 @@ function ffxiv_task_grind.SetModeOptions()
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	Hacks:SkipCutscene(gSkipCutscene)
 	Hacks:Disable3DRendering(gDisableDrawing)
-	gAvoidAOE = true
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 	gGrindEvacAuto = Settings.FFXIVMINION.gGrindEvacAuto
 end

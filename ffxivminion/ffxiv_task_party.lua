@@ -158,7 +158,7 @@ function ffxiv_task_party.SetModeOptions()
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	Hacks:SkipCutscene(gSkipCutscene)
 	Hacks:Disable3DRendering(gDisableDrawing)
-	gAvoidAOE = true
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	FFXIV_Common_Profile = "NA"
 	FFXIV_Common_ProfileIndex = 1
 	FFXIV_Common_ProfileList = { "NA" }
