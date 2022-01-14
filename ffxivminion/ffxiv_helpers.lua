@@ -3686,7 +3686,8 @@ function IsMeleeDPS(var)
 			jobid == FFXIV.JOBS.LANCER or
 			jobid == FFXIV.JOBS.ROGUE or
 			jobid == FFXIV.JOBS.NINJA or 
-			jobid == FFXIV.JOBS.SAMURAI)
+			jobid == FFXIV.JOBS.SAMURAI or
+			jobid == FFXIV.JOBS.REAPER)
 end
 function IsRangedDPS(var)
 	local var = IsNull(var,Player)
@@ -3728,6 +3729,7 @@ function IsRanged(var)
 			jobid == FFXIV.JOBS.SCHOLAR or
 			jobid == FFXIV.JOBS.WHITEMAGE or
 			jobid == FFXIV.JOBS.ASTROLOGIAN or
+			jobid == FFXIV.JOBS.SAGE or
 			jobid == FFXIV.JOBS.MACHINIST or
 			jobid == FFXIV.JOBS.REDMAGE or
 			jobid == FFXIV.JOBS.BLUEMAGE)
@@ -3751,7 +3753,8 @@ function IsPhysicalDPS(var)
 			jobid == FFXIV.JOBS.SAMURAI or
 			jobid == FFXIV.JOBS.BARD or
 			jobid == FFXIV.JOBS.DANCER or
-			jobid == FFXIV.JOBS.MACHINIST)
+			jobid == FFXIV.JOBS.MACHINIST or
+			jobid == FFXIV.JOBS.REAPER)
 end
 function IsCasterDPS(var)
 	local var = IsNull(var,Player)
@@ -3801,7 +3804,8 @@ function IsHealer(var)
 	return 	(jobid == FFXIV.JOBS.WHITEMAGE or
 			jobid == FFXIV.JOBS.CONJURER or
 			jobid == FFXIV.JOBS.SCHOLAR or 
-			jobid == FFXIV.JOBS.ASTROLOGIAN)
+			jobid == FFXIV.JOBS.ASTROLOGIAN or
+			jobid == FFXIV.JOBS.SAGE)
 end
 function IsTank(var)
 	local var = IsNull(var,Player)

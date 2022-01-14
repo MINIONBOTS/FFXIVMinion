@@ -131,9 +131,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
 	[FFXIV.JOBS.DANCER] = "Dancer",
 	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
-	
-	[39] = "Reaper",
-	[40] = "Sage",
+	[FFXIV.JOBS.REAPER] = "Reaper",
+	[FFXIV.JOBS.SAGE] = "Sage",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -236,8 +235,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.REDMAGE] = 8882,
 			[FFXIV.JOBS.DANCER] = 17756,
 			[FFXIV.JOBS.GUNBREAKER] = 17703,
-			[39] = 24373,
-			[40] = 24283,
+			[FFXIV.JOBS.REAPER] = 24373,
+			[FFXIV.JOBS.SAGE] = 24283,
 		}
 	end
 	
@@ -319,8 +318,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.BLUEMAGE] = 11385,
 		[FFXIV.JOBS.DANCER] = 15989,
 		[FFXIV.JOBS.GUNBREAKER] = 16137,
-		[39] = 24373,
-		[40] = 24283,
+		[FFXIV.JOBS.REAPER] = 24373,
+		[FFXIV.JOBS.SAGE] = 24283,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -935,11 +934,11 @@ function SkillMgr.ModuleInit()
 		if In(gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER],"None",nil) then
 			gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
 		end
-		if In(gSMDefaultProfiles[39],"None",nil) then
-			gSMDefaultProfiles[39] = "Reaper"
+		if In(gSMDefaultProfiles[FFXIV.JOBS.REAPER],"None",nil) then
+			gSMDefaultProfiles[FFXIV.JOBS.REAPER] = "Reaper"
 		end
-		if In(gSMDefaultProfiles[40],"None",nil) then
-			gSMDefaultProfiles[40] = "Sage"
+		if In(gSMDefaultProfiles[FFXIV.JOBS.SAGE],"None",nil) then
+			gSMDefaultProfiles[FFXIV.JOBS.SAGE] = "Sage"
 		end
 		if In(GetGameRegion(),1,2) then
 			if In(gSMDefaultProfiles[FFXIV.JOBS.ROGUE],"Ninja","Rogue",nil) then
@@ -1048,6 +1047,8 @@ function SkillMgr.ModuleInit()
 	gSkillProfileValidBLU = false
 	gSkillProfileValidGNB = false
 	gSkillProfileValidDNC = false
+	gSkillProfileValidRPR = false
+	gSkillProfileValidSGE = false
 	
 	gSkillProfileValidMIN = false
 	gSkillProfileValidBTN = false
@@ -1781,9 +1782,8 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidBLU = IsNull(classes[FFXIV.JOBS.BLUEMAGE],false) 
 	gSkillProfileValidGNB = IsNull(classes[FFXIV.JOBS.GUNBREAKER],false) 
 	gSkillProfileValidDNC = IsNull(classes[FFXIV.JOBS.DANCER],false) 
-	
-	gSkillProfileValidRPR = IsNull(classes[39],false) 
-	gSkillProfileValidSGE = IsNull(classes[40],false) 
+	gSkillProfileValidRPR = IsNull(classes[FFXIV.JOBS.REAPER],false) 
+	gSkillProfileValidSGE = IsNull(classes[FFXIV.JOBS.SAGE],false) 
 	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
@@ -1887,9 +1887,8 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.BLUEMAGE] = IsNull(gSkillProfileValidBLU,false),
 		[FFXIV.JOBS.GUNBREAKER] = IsNull(gSkillProfileValidGNB,false),
 		[FFXIV.JOBS.DANCER] = IsNull(gSkillProfileValidDNC,false), 
-		
-		[39] = IsNull(gSkillProfileValidRPR,false),
-		[40] = IsNull(gSkillProfileValidSGE,false), 
+		[FFXIV.JOBS.REAPER] = IsNull(gSkillProfileValidRPR,false),
+		[FFXIV.JOBS.SAGE] = IsNull(gSkillProfileValidSGE,false), 
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
@@ -6136,18 +6135,18 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
+				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE",
 					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 				
 				for i,abrev in pairsByKeys(classes) do
 					if (_G["gSkillProfileValid"..abrev] == true) then
-						if (i <= 27) then
+						if (i <= 29) then
 							fighting = true
 							break
-						elseif (i >= 28 and i <= 30) then
+						elseif (i >= 30 and i <= 32) then
 							gathering = true
 							break
-						elseif (i >= 31 and i <= 38) then
+						elseif (i >= 33 and i <= 40) then
 							crafting = true
 							break
 						end
@@ -6794,7 +6793,7 @@ function SkillMgr.DrawManager()
 				end
 					
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					
@@ -6850,7 +6849,7 @@ function SkillMgr.DrawManager()
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								--if (SkillMgr.EditingSkill ~= prio) then
 									local classCheck = false
-									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC",
+									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE",
 										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 									
 									for i,abrev in pairsByKeys(classes) do
