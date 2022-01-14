@@ -212,6 +212,8 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Distance 2d")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Distance 3d")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Is Reachable")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Player Sec")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("End Sec")
 	GUI:NextColumn()
 	local ColumnWidth = GUI:GetContentRegionAvail()
 	GUI:PushItemWidth(ColumnWidth)
@@ -235,6 +237,30 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance2D(Player.pos.x,Player.pos.z,tonumber(gTestMapX),tonumber(gTestMapZ))))
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,tonumber(gTestMapX),tonumber(gTestMapY),tonumber(gTestMapZ))))
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(NavigationManager:IsReachable({x = gTestMapX, y = gTestMapY, z = gTestMapZ})))
+	
+	local section = 0
+	if In(Player.localmapid,956) then
+		section = GetLabyrithosSection(Player.pos)
+	elseif In(Player.localmapid,957) then
+		section = GetTempestSection(Player.pos)
+	elseif In(Player.localmapid,959) then
+		section = GetMareLamentorumSection(Player.pos)
+	elseif In(Player.localmapid,960) then
+		section = GetUltimaThuleSection(Player.pos)
+	end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
+	local section = 0
+	if In(Player.localmapid,956) then
+		section = GetLabyrithosSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,957) then
+		section = GetTempestSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,959) then
+		section = GetMareLamentorumSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,960) then
+		section = GetUltimaThuleSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	end
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
+					
 	GUI:PopItemWidth()
 	GUI:Columns()
 	local FullWidth = GUI:GetContentRegionAvail()

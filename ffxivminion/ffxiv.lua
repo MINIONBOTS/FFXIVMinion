@@ -21,7 +21,7 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
-	[1] = 5.58,
+	[1] = 6.0,
 	[2] = 5.55,
 	[3] = 5.45
 }
@@ -63,7 +63,7 @@ elseif (ffxivminion.gameRegion == 2) then
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
-		[1] = { "-", "톤베리", "모그리", "초코보", "카벙클" },
+		[1] = { "-", "톤베리", "모그리", "초코보", "카벙클","펜리르" },
 	}
 end
 
@@ -106,6 +106,8 @@ ffxivminion.classes = {
 	[FFXIV.JOBS.BLUEMAGE] = "BLU",
 	[FFXIV.JOBS.DANCER] = "DNC",
 	[FFXIV.JOBS.GUNBREAKER] = "GNB",
+	[39] = "RPR", --FFXIV.JOBS.REAPER
+	[40] = "SGE", --FFXIV.JOBS.SAGE
 }
 
 ffxivminion.AutoGrindDefault = [[
@@ -150,7 +152,9 @@ ffxivminion.AutoGrindDefault = [[
 			return 146 -- southern thanalan
 		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397))) and CanAccessMap(147)) then
 			return 147 -- northern thanalan
-		elseif (level >= 74 and CanAccessMap(816)) then
+		elseif (level >= 80 and CanAccessMap(957)) then
+			return 957 -- Thavnairia
+		elseif (level >= 71 and CanAccessMap(816)) then
 			return 816 -- Il Mheg
 		elseif (level >= 70 and CanAccessMap(813)) then
 			return 813 -- Lakeland
@@ -321,6 +325,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 				if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap")) then
 					if (UseControlAction("_TitleMenu", "OpenDataCenter", 0)) then
 						ml_global_information.Await(100, 10000, function()
+							if (UseControlAction("Dialogue", "PressOK", 0)) then
+								ml_global_information.Await(1000, 10000, function()
+									return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+								end)
+							end
 							return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
 						end)
 					end
@@ -331,6 +340,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
 								ml_global_information.Await(100, 10000, function()
+									if (UseControlAction("Dialogue", "PressOK", 0)) then
+										ml_global_information.Await(1000, 10000, function()
+											return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+										end)
+									end
 									return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
 								end)
 							end
@@ -342,6 +356,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					else
 						if (UseControlAction("TitleDataCenter", "Proceed", 0) or UseControlAction("TitleDCWorldMap", "Proceed", 0)) then
 							ml_global_information.Await(1000, 60000, function()
+								if (UseControlAction("Dialogue", "PressOK", 0)) then
+									ml_global_information.Await(1000, 10000, function()
+										return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+									end)
+								end
 								return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN)
 							end)
 							ffxivminion.loginvars.datacenterSelected = false
@@ -353,6 +372,11 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 			if IsControlOpen("_TitleMenu") then
 				if (UseControlAction("_TitleMenu", "Start")) then
 					ml_global_information.Await(1000, 10000, function()
+						if (UseControlAction("Dialogue", "PressOK", 0)) then
+							ml_global_information.Await(1000, 10000, function()
+								return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+							end)
+						end
 						return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN)
 					end)
 				end
@@ -439,7 +463,14 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 		if SelectOKMessage ~= "" then
 			-- detection for CN language not working, temporarily disable skip
 			if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
-				d("Waiting In Login Queue...")
+				ml_debug("Waiting In Login Queue...")
+				if (IsControlOpen("Dialogue")) then
+					if (UseControlAction("Dialogue", "PressOK", 0)) then
+						ml_global_information.Await(1000, 10000, function()
+							return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+						end)
+					end
+				end
 				ml_global_information.Await(1000, 2000, function()
 					return (IsControlOpen("SelectOk"))
 				end)
@@ -709,7 +740,7 @@ function SetGearsetInfo(disable)
 	local newSets = {}
 	if not disable then
 		if table.valid(searchList) then
-			for i = 1, 38, 1 do
+			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
 				--d("clearing old gearsets")
@@ -732,7 +763,7 @@ function SetGearsetInfo(disable)
 				end
 			end
 		else
-			for i = 1, 38, 1 do
+			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
 				--d("clearing old gearsets")
@@ -927,7 +958,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 
 	-- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20190704
+	ffxivminion.AutoGrindDefaultVersion = 20211216
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion", 0)
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
@@ -1205,6 +1236,9 @@ function ffxivminion.CheckClass()
 			[FFXIV.JOBS.BLUEMAGE] = ffxiv_combat_bluemage,
 			[FFXIV.JOBS.GUNBREAKER] = ffxiv_combat_gunbreaker,
 			[FFXIV.JOBS.DANCER] = ffxiv_combat_dancer,
+
+			[39] = ffxiv_combat_reaper,
+			[40] = ffxiv_combat_sage,
 
 			[FFXIV.JOBS.BOTANIST] = ffxiv_gather_botanist,
 			[FFXIV.JOBS.FISHER] = ffxiv_gather_fisher,
@@ -1683,6 +1717,9 @@ Quest: Completes quests based on a questing profile.\
 						if (GUI:Button(GetString("ACR Options"), 150, 20)) then
 							ACR.OpenProfileOptions()
 						end
+						if (ACR.DrawAddonHeader and type(ACR.DrawAddonHeader) == "function") then
+							pcall(ACR.DrawAddonHeader)
+						end
 					end
 
 					GUI:Separator()
@@ -1781,6 +1818,11 @@ Quest: Completes quests based on a questing profile.\
 						end
 
 					end
+
+					if (ACR.DrawAddonFooter and type(ACR.DrawAddonFooter) == "function") then
+						pcall(ACR.DrawAddonFooter)
+					end
+
 					if (GUI:Button(GetString("Advanced Settings"), contentwidth, 20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
@@ -2030,7 +2072,7 @@ function ml_global_information.DrawSettings()
 						classlookup[abrev] = jobid
 					end
 
-					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD", "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM", "BLU", "GNB", "DNC" }
+					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD", "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM", "BLU", "GNB", "DNC", "RPR", "SGE" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
 					local gatherers = { "MIN", "BTN", "FSH" }
 

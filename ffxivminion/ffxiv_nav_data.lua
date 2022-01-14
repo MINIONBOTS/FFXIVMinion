@@ -168,6 +168,13 @@ ffxiv_map_nav.data = {
 		[141] = {
 			{id = 141, cost = 3, x = 163.689270,	z = 43.879639,	    y = 3.999968, 	h = 1.268068},
 		},
+		[971] = {
+			{id = 971, cost = 3, x = 115, y = 8, z = 8, b = 1036632
+				, requires =  {
+					["HasQuest(4073) or QuestCompleted(4073)"] = true,
+				},
+			},
+		},
 	},
 	[140] = 
 	{
@@ -668,6 +675,13 @@ ffxiv_map_nav.data = {
 		[680] = {
 			{id = 680, cost = 1, x = -357.66, y = 8.00, z = 45.82, h = 1.61, g = 1020442 },
 		},
+		[962] = {
+			{id = 962, cost = 1, x = -386.02, y = 6.01, z = 41.85, h = 1.61, b = 1037069
+				, requires = {
+					["GetPatchLevel() >= 6"] = true,
+                },
+			},
+		},
 	},
 	[134] =
 	{
@@ -983,7 +997,7 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[886] = {
-			{id = 886, cost = 1, x = 152, y = -20, z = 63, b = 1031682 
+			{id = 886, cost = 1, x = 152, y = -20, z = 63, b = 1031682, i = 1
 				, requires = {
 					["QuestCompleted(3672)"] = true,
 				},
@@ -1263,7 +1277,7 @@ ffxiv_map_nav.data = {
 			},
 		},
 	},
-	[621] =
+	[621] = -- The Lochs:
 	{
 		[620] = {
 			{id = 620, cost = 1, x = -658.47, y = 50.87, z = -792.97, h = -2.08
@@ -1274,6 +1288,9 @@ ffxiv_map_nav.data = {
 		},
 		[738] = {
             {id = 738, cost = 1, x = 754.27, y = 70.00, z = 424.70, h = 0.07, b = 1024113 },
+        },
+		[958] = { -- to Garlemald
+            {id = 958, cost = 1, x = 742.58, y = 70.00, z = 539.57, b = 1039554},
         },
 	},
 	[622] =
@@ -1464,6 +1481,9 @@ ffxiv_map_nav.data = {
 				},
 			},
 		},
+		[928] = {
+            {id = 928, cost = 1, x = 702.45, y = 293.46, z = -158.98, b = 2011154},
+        },
     },
 	[815] =
     {
@@ -1480,6 +1500,9 @@ ffxiv_map_nav.data = {
 					["QuestCompleted(3609)"] = true,
 				},
 			},
+        },
+		[878] = {
+            {id = 878, cost = 1, x = 384.77, y = -64.49, z = 511.50, b = 2009985},
         },
     },
 	[816] =
@@ -1542,6 +1565,13 @@ ffxiv_map_nav.data = {
 				},
 			},
         },
+        [844] = {
+            {id = 844, cost = 1, x = 118, y = 14, z = 7, h = -1.61, b = 1033863
+				, requires = {
+					["QuestCompleted(4464)"] = true, -- npc ID changed with 6.01?
+				},
+			},
+        },
     },
 	[820] =
     {
@@ -1591,6 +1621,12 @@ ffxiv_map_nav.data = {
             {id = 819, cost = 1, x = 0, y = 1, z = 14, h = -0.00, g = 2009758},
         },
     },
+	[857] =
+    {
+        [878] = {
+            {id = 878, cost = 1, x = 99.95, y = 0.00, z = 108.12, b = 2009987},
+        },
+	},
 	[877] =
     {
         [842] = {
@@ -1599,6 +1635,15 @@ ffxiv_map_nav.data = {
 					["GetQuestInfo(3279,'step') >= 3 or QuestCompleted(3279)"] = true,
 				},
 			},
+        },
+    },
+	[878] =
+    {
+        [815] = {
+            {id = 815, cost = 1, x = 36.00, y = 4.93, z = -6.85, b = 2009986},
+        },
+		[857] = {
+            {id = 857, cost = 1, x = -14.77, y = -2.54, z = 22.60, b = 2009981},
         },
     },
 	[880] =
@@ -1630,6 +1675,155 @@ ffxiv_map_nav.data = {
     {
         [895] = {
             {id = 895, cost = 1, x = -499.14, y = 484.00, z = 279.87, b = 2010831},
+        },
+    },
+	[928] =
+	{
+		[814] = {
+            {id = 814, cost = 1, x = -382.52, y = 102.02, z = 387.95, b = 2011155},
+        },
+    },
+	[956] = -- Labyrinthos:
+    {
+        [962] = { -- to Old Sharlayan
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544},
+        },
+        [960] = { -- Ultima Thule
+            {id = 960, cost = 1, x = -334.83, y = -224.20, z = 312.12, b = 1039552},
+        },
+    },
+	[960] = -- Ultima Thule:
+    {
+        [956] = { -- Labyrinthos
+            {id = 956, cost = 1, x = -374.81, y = 81.80, z = 615.96, b = 2012292},
+        },
+    },
+	[957] = -- Thavnair:
+    {
+        [962] = { -- to Old Sharlayan
+            {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544
+				, requires = {
+					["QuestCompleted(9999)"] = true,
+				},
+			},
+        },
+        [963] = { -- to Radz-at-Han
+            {id = 963, cost = 1, x = 576.49, y = 55.26, z = -682.13, h = 2.36
+				, requires = {
+					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+				},
+			},
+            {id = 963, cost = 1, x = 208, y = 60, z = -601,b = 1037650
+                , requires = {
+                    ["QuestCompleted(4412)"] = false,
+                },
+            },
+        },
+	},
+	[958] = -- Garlemald:
+    {
+        [621] = { -- to The Lochs
+            {id = 621, cost = 1, x = -495.63, y = 27.66, z = 634.85, b = 1039553},
+        },
+		[1024] = { -- to The Nethergate
+            {id = 1024, cost = 1, x = -483.30, y = 10.89, z = -677.39, b = 1042017, i = 1
+				, requires = {
+					["HasQuest(4408) or QuestCompleted(4408)"] = true,
+				},
+			},
+        },
+    },
+	[959] = -- Mare Lamentorum:
+    {
+		[1024] = { -- to The Nethergate
+            {id = 1024, cost = 1, x = -663.29, y = 132.65, z = 728.97, b = 2012531
+				, requires = {
+					["HasQuest(4408) or QuestCompleted(4408)"] = true,
+				},
+			},
+        },
+        [1028] = { -- to The Dark Inside
+            {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
+        },
+    },
+	[961] = -- Elpis:
+    {
+			[844] = { -- to Ocular
+			{id = 129, cost = 1, x = 281.85, y = 48.39, z = 834.56, g = 2012533},
+		},
+        [1025] = { -- to The Gates of Pandæmonium
+            {id = 1025, cost = 1, x = 809.93, y = 151.81, z = -243.43, b = 2012293},
+        },
+    },
+	[962] = -- Old Sharlayan:
+    {
+		[129] = { -- to Limsa Lominsa Lower Decks
+			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220},
+		},
+        [956] = { -- to Labyrinthos
+            {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
+        },
+		[957] = { -- to Thavnair
+            {id = 957, cost = 1, x = -83.05, y = 6.62, z = -39.38, b = 1037288},
+        },
+		[987] = { -- to Main Hall
+            {id = 987, cost = 1, x = -108.57, y = 5.02, z = 4.53, b = 2011936},
+        },
+		[990] = {
+			{id = 990, cost = 1, x = -101, y = 4, z = 0, h = 0.7, b = 1037293, i = 1 },
+		},
+	},
+	[963] = -- Radz-at-Han:
+    {
+        [957] = { -- to Thavnair
+            {id = 957, cost = 1, x = 99.53, y = -32.00, z = 225.32, h = 0.79
+				, requires = {
+					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+				},
+			},
+        },
+	},
+	[971] = -- reaper Start
+    {
+        [131] = {
+            {id = 131, cost = 1, x = 0, y = 0, z = 8, b = 2011673},
+        },
+	},
+	[987] = -- Main Hall:
+    {
+        [962] = { -- to Old Sharlayan
+            {id = 962, cost = 1, x = 0, y = 1, z = 13, b = 2011937},
+        },
+    },
+	[990] = -- Inn:
+    {
+        [962] = { -- to Old Sharlayan
+            {id = 962, cost = 1, x = 0, y = 1, z = 10, b = 2011853},
+        },
+    },
+	[1024] = -- The Nethergate:
+    {
+        [958] = { -- to Garlemald
+            {id = 958, cost = 1, x = 0.18, y = 0, z = 52.25, b = 2012529},
+        },
+        [959] = { -- to Mare Lamentorum
+            {id = 959, cost = 1, x = -0.02, y = 6.61, z = -0.02, b = 2012530
+                , requires = {
+                    ["GetQuestInfo(4396,'step') > 2 or QuestCompleted(4396)"] = true,
+                },
+            },
+        },
+    },
+	[1025] = -- The Gates of Pandæmonium:
+    {
+        [961] = { -- to Elpis
+            {id = 961, cost = 1, x = 99.99, y = -0.32, z = 169.97, b = 2012294},
+        },
+    },
+    [1028] = -- The Dark Inside:
+    {
+        [959] = { -- to Mare Lamentorum
+            {id = 959, cost = 1, x = 99.83, y = 0, z = 117.51, b = 2012528},
         },
     },
 }-- set reference for mesh mgr
@@ -1939,7 +2133,309 @@ ffxiv_aethercurrent_data = {
 		},
 	},
 }
-
+ffxiv_aethercurrent_dataEW = {
+	[397] = {
+		{ id = 6, aethid = 2005536, x = 402, y = 191, z = 561},
+		{ id = 8, aethid = 2006187, x = 424, y = 164, z = -536},
+		{ id = 10, aethid = 2006189, x = -332, y = 126, z = -29},
+		{ id = 11, aethid = 2006190, x = -659, y = 135, z = -376},
+	},
+	[398] = {
+		{ id = 6, aethid = 2006195, x = 765, y = -15, z = 289},
+		{ id = 8, aethid = 2006197, x = 433, y = -47, z = -286},
+		{ id = 12, aethid = 2006201, x = -480, y = -5, z = -425},
+		{ id = 15, aethid = 2006204, x = 406, y = -90, z = 686},
+	},
+	[399] = {
+		{ id = 6, aethid = 2006205, x = 729, y = 135, z = 150},
+		{ id = 9, aethid = 2006208, x = 98, y = 73, z = -174},
+		{ id = 11, aethid = 2006210, x = -487, y = 144, z = -285,
+			requires = function () return (QuestCompleted(1658) and (GetHinterlandsSection(Player.pos) == 1)) end,
+		},  
+		{ id = 15, aethid = 2006214, x = -452, y = 138, z = 678,
+			requires = function () return (QuestCompleted(1658) and (GetHinterlandsSection(Player.pos) == 1)) end,
+		},  
+	},
+	[400] = {
+		{ id = 7, aethid = 2006216, x = 421, y = -43, z = 661},
+		{ id = 8, aethid = 2006217, x = -93, y = -6.7, z = 223},
+		{ id = 9, aethid = 2006218, x = -775, y = 123, z = 243},
+		{ id = 15, aethid = 2006224, x = 340, y = -25, z = -130},
+	},
+	[401] = {
+		{ id = 9, aethid = 2006228, x = -747, y = -57, z = 163, 
+			requires = function () return QuestCompleted(1643) end,
+		},
+		{ id = 10, aethid = 2006229, x = -759, y = -9, z = -110, 
+			requires = function () return QuestCompleted(1643) end,
+		},
+		{ id = 12, aethid = 2006231, x = -180, y = -14, z = -543, 
+			requires = function () return QuestCompleted(1643) end,
+		},
+		{ id = 15, aethid = 2006234, x = -564, y = -36, z = -349, 
+			requires = function () return QuestCompleted(1643) end,
+		},
+	},
+	[612] = {
+		{ id = 6, aethid = 2007965, x = -487.266, y = 76.726, z = -249.561}, 
+		{ id = 8, aethid = 2007967, x = 155.842, y = 53.3515, z = -499.431}, 
+		{ id = 12, aethid = 2007971, x = 322.591, y = 88.9832, z = 10.5134,
+			requires = function () return QuestCompleted(2530) end,
+		},  
+		{ id = 13, aethid = 2007972, x = 743.033, y = 181.007, z = -214.052,
+			requires = function () return QuestCompleted(2530) end,
+		},  
+	},
+	[613] = {
+		{ id = 6, aethid = 2007995, x = 423.562, y = 15.8327, z = 801.565},
+		{ id = 10, aethid = 2007999, x = 21.2863, y = 24.0112, z = -623.621},
+		{ id = 13, aethid = 2008002, x = 694.769, y = 1.91278, z = -53.4642},
+		{ id = 15, aethid = 2008004, x = -805.781, y = 36.5798, z = 235.215,
+			requires = function () return QuestCompleted(2484) end,
+		},  -- swim required
+	},
+	[614] = {
+		{ id = 8, aethid = 2008007, x = 497.337, y = 16.3552, z = 402.518},
+		{ id = 9, aethid = 2008008, x = 163.583, y = 144.57, z = -11.5206},
+		{ id = 12, aethid = 2008011, x = 457.528, y = 32.3773, z = 822.43},
+		{ id = 14, aethid = 2008013, x = -97.4191, y = 13.2794, z = 563.723},
+	},
+	[620] = { 
+		{ id = 7, aethid = 2007976, x = 202.874, y = 133.925, z = -753.11},
+		{ id = 9, aethid = 2007978, x = -271.229, y = 157.942, z = -280.232},
+		{ id = 12, aethid = 2007981, x = -485.211, y = 304.567, z = 247.414,
+			requires = function () return HasQuest(2534) or QuestCompleted(2534) end,
+		}, 
+		{ id = 15, aethid = 2007984, x = 146.627, y = 303.757, z = 460.821,
+			requires = function () return QuestCompleted(2537) end,
+		},   -- gated
+	},
+	[621] = { 
+		{ id = 8, aethid = 2007987, x = -380.191, y = 10.0606, z = 16.9195},
+		{ id = 13, aethid = 2007992, x = 109.608, y = 42.0051, z = 788.66},
+		{ id = 14, aethid = 2007993, x = 261.534, y = 78.4, z = 69.962},
+		{ id = 15, aethid = 2007994, x = 683.406, y = 70, z = 521.172,
+			requires = function () return QuestCompleted(2550) end,
+		},  
+	},
+	[622] = {
+		{ id = 6, aethid = 2008015, x = 570.277, y = -19.508, z = 438.175},
+		{ id = 8, aethid = 2008017, x = 232.005, y = 93.3919, z = -515.794},
+		{ id = 10, aethid = 2008019, x = 105.608, y = 116.043, z = -49.6987, 
+			requires = function () return QuestCompleted(2507) end,
+		}, 
+		{ id = 13, aethid = 2008022, x = -693.83, y = 7.2632, z = 658.899},
+	},
+	-- SHB
+	[813] = {
+		{ id = 6, aethid = 2010024, x = 554.28, y = 17.9501, z = 352.102},
+		{ id = 10, aethid = 2010028, x = 613.245, y = 24.0201, z = -231.128},
+		{ id = 13, aethid = 2010031, x = -149.798, y = 15.2812, z = -102.495},
+		{ id = 14, aethid = 2010032, x = -619.637, y = 51.5011, z = -199.096},
+	},
+	[814] = {
+		{ id = 6, aethid = 2010034, x = 650, y = 0, z = 556},
+		{ id = 10, aethid = 2010038, x = -651.165, y = 1.5, z = 588.412},
+		{ id = 13, aethid = 2010041, x = 623.752, y = 285.942, z = -555.25, 
+			requires = function () return QuestCompleted(3634) end,
+		},
+		{ id = 14, aethid = 2010042, x = -62, y = 345, z = -16, 
+			requires = function () return QuestCompleted(3634) end,
+		},
+	},
+	[815] = {
+		{ id = 6, aethid = 2010044, x = 446.079, y = -60, z = -523},
+		{ id = 9, aethid = 2010047, x = 344, y = -66, z = 538},
+		{ id = 12, aethid = 2010050, x = -343, y = 47, z = -235, 
+			requires = function () return QuestCompleted(3609) and GetAhmAraengSection(Player.pos) == 2 end,
+		}, 
+		{ id = 14, aethid = 2010052, x = 158, y = -61, z = 674, 
+			requires = function () return QuestCompleted(3619) end,
+		}, 
+	},
+	[816] = {
+		{ id = 8, aethid = 2010056, x = -231, y = 4, z = 160},
+		{ id = 11, aethid = 2010059, x = 12, y = 111, z = -851, 
+			requires = function () return QuestCompleted(3313) end,
+		},
+		{ id = 14, aethid = 2010062, x = 432, y = 90, z = -770, 
+			requires = function () return QuestCompleted(3313) end,
+		},
+		{ id = 15, aethid = 2010063, x = -9, y = 89, z = -247, 
+			requires = function () return QuestCompleted(3313) end,
+		},
+	},
+	[817] = {
+		{ id = 6, aethid = 2010064, x = -405, y = 7, z = 506},
+		{ id = 8, aethid = 2010066, x = -141.571, y = -0.88243, z = 49.7631},
+		{ id = 11, aethid = 2010069, x = 338, y = 24, z = 203, 
+			requires = function () return QuestCompleted(3334) end,
+		},
+		{ id = 15, aethid = 2010073, x = 681.139, y = -39.1963, z = -262.754, 
+			requires = function () return QuestCompleted(3334) end,
+		},
+	},
+	[818] = {
+		{ id = 6, aethid = 2010074, x = 358, y = 396, z = -715},
+		{ id = 8, aethid = 2010076, x = 50, y = 380, z = -512},
+		{ id = 11, aethid = 2010079, x = 339, y = 298, z = -280},
+		{ id = 15, aethid = 2010083, x = -774, y = 63, z = -97, 
+			requires = function () return QuestCompleted(3651) end,
+		},
+	},
+	[956] = {
+		{ id = 6, aethid = 2011980, x = 346.529, y = 209.352, z = -767.739},
+		{ id = 7, aethid = 2011981, x = 748.562, y = 106.712, z = 66.7589},
+		{ id = 8, aethid = 2011985, x = -547.726, y = -18.0226, z = 661.873, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 9, aethid = 2011986, x = -128.069, y = -20.5234, z = 676.722, 
+		requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 10, aethid = 2011982, x = -316.276, y = 79.7614, z = -395.312},
+		{ id = 11, aethid = 2011983, x = 32.3334, y = 72.8314, z = -286.272},
+		{ id = 12, aethid = 2011984, x = 497.115, y = 73.4197, z = -267.231}, -- confirmed
+		{ id = 13, aethid = 2011987, x = -176.381, y = -10.101, z = -242.245, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 14, aethid = 2011988, x = -505.14, y = -21.8212, z = -122.596, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{ id = 15, aethid = 2011989, x = 46.2823, y = -29.7999, z = 178.875, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+	},
+	[957] = {
+		{ id = 6, aethid = 2011990, x = -176.104, y = 21.5304, z = 537.835},
+		{ id = 7, aethid = 2011991, x = -49.2675, y = 94.0719, z = -710.757},
+		{ id = 8, aethid = 2011995, x = 118.474, y = 4.9335, z = -343.866, 
+            requires = function () return QuestCompleted(4412) end,
+        },
+		{ id = 9, aethid = 2011996, x = 550.018, y = 25.4763, z = -159.076, 
+            requires = function () return QuestCompleted(4412) end,
+        },
+		{ id = 10, aethid = 2011992, x = 303.921, y = 0.280689, z = 473.656},
+		{ id = 11, aethid = 2011993, x = -479.439, y = 72.9045, z = -561.809},
+		{ id = 12, aethid = 2011994, x = -114.46, y = 87.0873, z = -288.29},
+		{ id = 13, aethid = 2011997, x = 93.1188, y = 36.6839, z = -447.865, 
+            requires = function () return QuestCompleted(4412) end,
+        },
+		{ id = 14, aethid = 2011998, x = 294.402, y = 4.0999, z = 425.122, 
+            requires = function () return QuestCompleted(4412) end,
+        },
+		{ id = 15, aethid = 2011999, x = 53.1891, y = 11.3868, z = 187.406, 
+            requires = function () return QuestCompleted(4412) end,
+        },
+	},
+	[958] = {						
+		{ id = 6, aethid = 2012000, x = -184.222, y = 31.9371, z = 423.606},
+		{ id = 7, aethid = 2012001, x = 194.816, y = -12.8414, z = 644.311},
+		{ id = 8, aethid = 2012002, x = 83.094, y = 1.52583, z = 102.017},
+		{ id = 9, aethid = 2012003, x = 405.295, y = -2.24316, z = 520.317},
+		{ id = 10, aethid = 2012004, x = -516.088, y = 42.4699, z = 67.8378},
+		{ id = 11, aethid = 2012005, x = 382.184, y = 25.9005, z = -482.196},
+		{ id = 12, aethid = 2012006, x = -602.03, y = 34.3171, z = -325.853},
+		{ id = 13, aethid = 2012007, x = 79.9136, y = 37.8851, z = -518.181},
+		{ id = 14, aethid = 2012008, x = 134.928, y = 14.3984, z = -172.249},
+		{ id = 15, aethid = 2012009, x = -144.924, y = 17.5785, z = -420.515},
+	},
+	[959] = {
+		{ id = 6, aethid = 2012010, x = 42.5905, y = 124.015, z = -167.03, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 7, aethid = 2012011, x = -482.744, y = -154.954, z = -595.709, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 8, aethid = 2012012, x = 316.401, y = -154.978, z = -595.519, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 9, aethid = 2012013, x = 29.1046, y = -47.739, z = -550.408, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 10, aethid = 2012014, x = -128.002, y = 66.3504, z = -68.2408, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 11, aethid = 2012015, x = 591.378, y = 149.356, z = 114.936, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 12, aethid = 2012016, x = 388.358, y = 99.9167, z = 306.071, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 13, aethid = 2012017, x = 652.979, y = -160.693, z = -405.081, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 14, aethid = 2012018, x = -733.617, y = -139.662, z = -733.28, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+		{ id = 15, aethid = 2012019, x = 21.7081, y = -133.5, z = -385.731, 
+            requires = function () return QuestCompleted(4400) end,
+        },
+	},
+[961] = {
+        { id = 6, aethid = 2012020, x = 628.239, y = 8.31683, z = 107.902, 
+            requires = function () return QuestCompleted(4421) end,
+        },
+        { id = 7, aethid = 2012021, x = -754.753, y = -36.0114, z = 411.134, 
+            requires = function () return QuestCompleted(4421) end,
+        },
+        { id = 8, aethid = 2012022, x = 151.667, y = 7.66582, z = 2.548, 
+            requires = function () return QuestCompleted(4421) end,
+        },
+        { id = 9, aethid = 2012023, x = -144.539, y = -26.2298, z = 551.52, 
+            requires = function () return QuestCompleted(4421) end,
+        },
+        { id = 10, aethid = 2012024, x = -481.407, y = -28.5802, z = 490.562, 
+            requires = function () return QuestCompleted(4421) end,
+        },
+        { id = 11, aethid = 2012025, x = -402.921, y = 327.757, z = -691.323, 
+            requires = function () return QuestCompleted(4433) end,
+        },
+        { id = 12, aethid = 2012026, x = -555.623, y = 158.118, z = 172.429, 
+            requires = function () return QuestCompleted(4429) end,
+        },
+        { id = 13, aethid = 2012027, x = -392.05, y = 173.724, z = -293.599, 
+            requires = function () return QuestCompleted(4429) end,
+        },
+        { id = 14, aethid = 2012028, x = -761.711, y = 160.011, z = -108.987, 
+            requires = function () return QuestCompleted(4429) end,
+        },
+        { id = 15, aethid = 2012029, x = -255.512, y = 143.079, z = -36.9727, 
+            requires = function () return QuestCompleted(4429) end,
+        },
+   	},
+	[960] = {
+		{ id = 6, aethid = 2012030, x = -333.54, y = 270.851, z = -361.487, 
+            requires = function () return QuestCompleted(4455) end,
+        },
+		{ id = 7, aethid = 2012031, x = 13.118, y = 275.566, z = -756.396, 
+            requires = function () return QuestCompleted(4455) end,
+        },
+		{ id = 8, aethid = 2012032, x = 661.785, y = 439.977, z = 411.757, 
+            requires = function () return QuestCompleted(4459) end,
+        },
+		{ id = 9, aethid = 2012033, x = 539.271, y = 438.001, z = 239.404, 
+            requires = function () return QuestCompleted(4459) end,
+        },
+		{ id = 10, aethid = 2012034, x = 424.573, y = 283.384, z = -679.755, 
+            requires = function () return QuestCompleted(4455) end,
+        },
+		{ id = 11, aethid = 2012035, x = -238.789, y = 320.386, z = -295.141, 
+            requires = function () return QuestCompleted(4455) end,
+        },
+		{ id = 12, aethid = 2012036, x = -385.221, y = 262.517, z = -629.85, 
+            requires = function () return QuestCompleted(4455) end,
+        },
+		{ id = 13, aethid = 2012037, x = 751.878, y = 439.977, z = 357.899, 
+            requires = function () return QuestCompleted(4459) end,
+        },
+		{ id = 14, aethid = 2012038, x = 637.195, y = 439.241, z = 289.665, 
+            requires = function () return QuestCompleted(4459) end,
+        },
+		{ id = 15, aethid = 2012039, x = 567.498, y = 440.93, z = 402.135, 
+            requires = function () return QuestCompleted(4459) end,
+        },
+	},
+}
 ffxiv_aetheryte_data = {
 	[132] = {
 		{id = 132, aethid = 2, x = 30.390216827393, y = 1.8258748054504, z = 26.265508651733},
@@ -2142,6 +2638,78 @@ ffxiv_aetheryte_data = {
 	[820] = {
 		{id = 820, aethid = 134, x = 0, y = 82, z = 0, 
 			requires = function () return QuestCompleted(3631) end,
+		},
+	},
+	
+	-- Endwalker
+	[956] = { -- Labyrinthos
+		{id = 956, aethid = 166, x = 442.01, y = 169.23, z = -474.60, 
+			requires = function () return QuestCompleted(4362) end,
+		},
+		{id = 956, aethid = 167, x = 7.75, y = -28.72, z = -45.34, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+		{id = 956, aethid = 168, x = -726.13, y = -28.72, z = 302.04, 
+			requires = function () return QuestCompleted(4441) end,
+		},
+	},
+	[957] = { -- Thavnair
+		{id = 957, aethid = 169, x = 192.39, y = 5.80, z = 625.79, 
+			requires = function () return HasQuest(4368) or QuestCompleted(4368) end,
+		},
+		{id = 957, aethid = 170, x = -523.39, y = 2.59, z = 35.31, 
+			requires = function () return HasQuest(4372) or QuestCompleted(4372) end,
+		},
+		{id = 957, aethid = 171, x = 401.86, y = 3.81, z = -244.29, 
+			requires = function () return HasQuest(4412) or QuestCompleted(4412) end,
+		},
+	},
+	[958] = { -- Garlemald
+		{id = 958, aethid = 172, x = -408.10, y = 24.16, z = 479.97, 
+			requires = function () return GetQuestInfo(4383,'step') >= 3 or QuestCompleted(4383) end,
+		},
+		{id = 958, aethid = 173, x = 516.57, y = -36.12, z = -179.60, 
+			requires = function () return GetQuestInfo(4393,'step') >= 2 or QuestCompleted(4393) end,
+        },
+	},
+	[959] = { -- Mare Lamentorum
+		{id = 959, aethid = 174, x = -571.70, y = 132.99, z = 657.40, 
+			requires = function () return GetQuestInfo(4396,'step') >= 3 or QuestCompleted(4396) end,
+		},
+		{id = 959, aethid = 175, x = -0.17, y = -130.88, z = -505.32, 
+			requires = function () return QuestCompleted(4400) end,
+		},
+	},
+	[960] = { -- Ultima Thule
+		{id = 960, aethid = 179, x = -544.49, y = 71.70, z = 274.77, 
+			requires = function () return QuestCompleted(4452) end,
+		},
+		{id = 960, aethid = 180, x = 64.06, y = 270.26, z = -653.18, 
+			requires = function () return QuestCompleted(4457) end,
+		},
+		{id = 960, aethid = 181, x = 489.22, y = 437.27, z = 336.42, 
+			requires = function () return QuestCompleted(4460) end,
+		},
+	},
+	[961] = { -- Elpis
+		{id = 961, aethid = 176, x = 161.07, y = 11.38, z = 130.06, 
+			requires = function () return HasQuest(4421) or QuestCompleted(4421) end,
+		},
+		{id = 961, aethid = 177, x = -635.12, y = -20.55, z = 540.59, 
+			requires = function () return QuestCompleted(4426) end,
+		},
+		{id = 961, aethid = 178, x = -529.70, y = 160.61, z = -219.93, 
+			requires = function () return HasQuest(4430) or QuestCompleted(4430) end,
+		},
+	},
+	[962] = { -- Old Sharlayan
+		{id = 962, aethid = 182, x = 2.42, y = 3.27, z = -1.61, 
+			requires = function () return QuestCompleted(4357) end,
+		},
+	},
+	[963] = { -- Radz-at-Han
+		{id = 963, aethid = 183, x = 24.85, y = 1.10, z = -24.49, 
+			requires = function () return QuestCompleted(4417) end,  -- or 4418
 		},
 	},
 }	

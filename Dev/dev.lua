@@ -20,7 +20,9 @@ dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 
 function dev.Init()
 	gDevFilterActions = true	
+	gDevSortAddons = false
 	gDevAddonTextFilter = ""
+	gDevAddonNameFilter = ""
 	gDevAddonOpenFilter = false
 	gDevAddonClosedFilter = false
 	gDevHackMaxZoom = 20.0
@@ -258,6 +260,15 @@ function dev.DrawCall(event, ticks )
 						if ( table.valid(g)) then
 							for i,k in pairs (g) do
 								GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg"..tostring(i),tostring(k))	
+							end							
+						end
+						GUI:TreePop()
+					end
+					if ( GUI:TreeNode("Gauge Test Data") ) then
+						local g = Player.gaugetest
+						if ( table.valid(g)) then
+							for i,k in pairs (g) do
+								GUI:BulletText(tostring(i)..": ") GUI:SameLine(200) GUI:InputText("##devegg2"..tostring(i),tostring(k))	
 							end							
 						end
 						GUI:TreePop()
@@ -854,12 +865,14 @@ function dev.DrawCall(event, ticks )
 							dev.lastCatchReset = true
 						elseif (lastCatchID ~= 0 and dev.lastCatchReset) then
 							dev.lastCatchID = lastCatchID
-							if (lastCatchID > 1000000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
-							elseif (lastCatchID > 500000 and lastCatchID < 600000) then
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
-							else
-								dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+							if AceLib ~= nil then
+								if (lastCatchID > 1000000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
+								elseif (lastCatchID > 500000 and lastCatchID < 600000) then
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
+								else
+									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
+								end
 							end
 						end
 					end
@@ -1344,7 +1357,11 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
 													if item.repairitem > 0 then
-														dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														if AceLib ~= nil then
+															dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
+														else
+															dev.repairItemName = ""
+														end
 														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
 													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
@@ -2112,10 +2129,14 @@ function dev.DrawCall(event, ticks )
 
 			if ( GUI:TreeNode("Installed Addons") ) then
 				dev.showInitAddons = GUI:Checkbox("Include Initialize Events", dev.showInitAddons or false)
+				gDevSortAddons = GUI:Checkbox("Sort by tick rate", gDevSortAddons or false)
+				GUI:PushItemWidth(200); gDevAddonNameFilter = GUI:InputText("Filter by Name",gDevAddonNameFilter); GUI:PopItemWidth();
 				if(not dev.lastaddontick or ticks - dev.lastaddontick > 200) then
 					dev.lastaddontick = ticks
 					dev.addonlist = GetAddonList()
-					table.sort(dev.addonlist, function(a,b) return a.average > b.average end)					
+					if gDevSortAddons then
+						table.sort(dev.addonlist, function(a,b) return a.average > b.average end)	
+					end						
 				end
 				GUI:PushItemWidth(250)
 				GUI:Columns( 6, "#beer", true )
@@ -2141,18 +2162,20 @@ function dev.DrawCall(event, ticks )
 				for i, e in pairs(dev.addonlist) do
 					if(e.highest ~= 0) then
 						if(dev.showInitAddons or ( e.lasttick < 10000 and e.event ~= "Module.Initialize"))then
-							GUI:Text(e.name)
-							GUI:NextColumn()
-							GUI:Text(e.event)
-							GUI:NextColumn()
-							GUI:Text(e.lasttick)
-							GUI:NextColumn()
-							GUI:Text(e.highest)
-							GUI:NextColumn()
-							GUI:Text(e.slowest)
-							GUI:NextColumn()
-							GUI:Text(e.average)
-							GUI:NextColumn()
+							if (gDevAddonNameFilter == "" or string.contains(e.name,gDevAddonNameFilter)) then
+								GUI:Text(e.name)
+								GUI:NextColumn()
+								GUI:Text(e.event)
+								GUI:NextColumn()
+								GUI:Text(e.lasttick)
+								GUI:NextColumn()
+								GUI:Text(e.highest)
+								GUI:NextColumn()
+								GUI:Text(e.slowest)
+								GUI:NextColumn()
+								GUI:Text(e.average)
+								GUI:NextColumn()
+							end
 						end
 					end
 				end

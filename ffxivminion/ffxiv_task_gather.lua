@@ -228,7 +228,7 @@ function c_findnode:evaluate()
 		local whitelist = ""
 		local radius = 150
 		local nodeminlevel = 1
-		local nodemaxlevel = 80
+		local nodemaxlevel = 90
 		local basePos = {}
 		local blacklist = ""
 		local includesHighPrio = true;
@@ -238,7 +238,7 @@ function c_findnode:evaluate()
 		if (table.valid(task)) then
 			whitelist = IsNull(task.whitelist,"")
 			radius = IsNull(task.radius,150)
-			nodemaxlevel = IsNull(task.nodemaxlevel,80)
+			nodemaxlevel = IsNull(task.nodemaxlevel,90)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			basePos = ffxiv_gather.GetCurrentTaskPos()
 			
@@ -254,12 +254,12 @@ function c_findnode:evaluate()
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker.mincontentlevel,1)
 			if (nodeminlevel == 0) then nodeminlevel = 1 end
-			nodemaxlevel = IsNull(marker.maxcontentlevel,80)
-			if (nodemaxlevel == 0) then nodemaxlevel = 80 end
+			nodemaxlevel = IsNull(marker.maxcontentlevel,90)
+			if (nodemaxlevel == 0) then nodemaxlevel = 90 end
 			basePos = marker:GetPosition()
 		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
-			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,80)
+			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,90)
 			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
 		else
 			return false
@@ -1099,13 +1099,13 @@ function e_gather:execute()
 		
 			-- Gather unknown items to unlock them.
 		--if (Player.level < 70) then
-		if (thisNode.contentid <= 4) then
+		--[[if (thisNode.contentid <= 4) then
 			for i,item in pairs(list) do
 				if (item.chance > 0 and (toboolean(item.isunknown))) then
 					return DoGathering(item)
 				end
 			end
-		end
+		end]]
 		
 		gd("Checking regular item section.",2)
 		
@@ -2376,16 +2376,24 @@ function e_newcollectiblegame:execute()
 				end
 			end
 		end
-					
+		
+		local collectSkills = {
+			[16] = 240,
+			[17] = 815
+		}
+		local collect = ActionList:Get(1,collectSkills[Player.job])
+		
 		d("Item current rarity ["..tostring(collectableRarity).."].",1)
 		d("Item required rarity ["..tostring(requiredRarity).."].",1)
 		d("Item current atetmpts remaining ["..tostring(collectableAttemptsRemaining).."].",1)
 				
-		if (collectableRarity > 0 and (((collectableRarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (collectableRarity > 800)) or 
-			(collectableAttemptsRemaining == 1)) then
+		if (collectableRarity > 0 and (((collectableRarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (collectableRarity > 800)) or (collectableAttemptsRemaining == 1)) then
 			
-			UseControlAction("GatheringMasterpiece","Collect")
-			ml_global_information.Await(1000, 2500, function () return IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") end)
+			if (collect and collect:IsReady(Player.id)) then
+				collect:Cast()
+				e_collectiblegame.timer = Now() + 3000
+				ml_global_information.Await(3000)
+			end
 			return
 		else
 			if (SkillMgr.Gather()) then

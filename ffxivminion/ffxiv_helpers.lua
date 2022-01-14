@@ -2486,7 +2486,7 @@ function FindPointLeftRight(pos, angle, radius, relative)
 	return ReturnAngle
 end
 function GetPosFromDistanceHeading(startPos, distance, heading)
-	local head = ConvertHeading(heading)
+	local head = IsNull(ConvertHeading(heading),0)
 	local newX = distance * math.sin(head) + startPos.x
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
@@ -2710,6 +2710,34 @@ function IsOnMap(mapid)
 	end
 	
 	return false
+end
+function FilterEntityListByIcon(elist,whitelist,blacklist)
+	local returnables = {}
+	if (not table.valid(elist)) then
+		return returnables
+	end
+	if (whitelist and IsNull(whitelist,"") ~= "") then
+		for iconid in StringSplit(whitelist,",") do
+			for i,e in pairs(elist) do
+				if (tostring(e.iconid) == tostring(iconid)) then
+					returnables[i] = e
+				end
+			end
+		end
+	elseif (blacklist and IsNull(blacklist,"") ~= "") then
+		returnables = elist
+		for iconid in StringSplit(blacklist,",") do
+			for i,e in pairs(returnables) do
+				if (tostring(e.iconid) == tostring(iconid)) then
+					returnables[i] = nil
+				end
+			end
+		end
+	else
+		return elist
+	end
+	
+	return returnables
 end
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
@@ -3032,6 +3060,10 @@ function IsInParty(id)
 	end
 	return false
 end
+-- for quests that force the user into a specific action set
+function IsImpersonating() 
+	return HasBuffs(Player,"1534,2760")
+end
 function InCombatRange(targetid)
 	if (not FFXIV_Common_BotRunning or IsFlying()) then
 		return false
@@ -3069,14 +3101,20 @@ function InCombatRange(targetid)
 		return true
 	end
 	
-	local attackRange = ml_global_information.AttackRange	
+	local impersonating = IsImpersonating() 
+	local attackRange = ml_global_information.AttackRange
+	if (impersonating) then
+		attackRange = 3
+	end	
 	if (target.distance2d ~= 0 and target.distance2d <= (attackRange * .97)) then
-		local check = SkillMgr.CheckTestSkill(Player.job, target)
-		if (check ~= nil) then
-			return check
+		if (not impersonating) then
+			local check = SkillMgr.CheckTestSkill(Player.job, target)
+			if (check ~= nil) then
+				return check
+			end
 		end
 		
-		return target.los
+		return (target.los or target.los2)
 	end
 	
 	return false
@@ -3387,7 +3425,7 @@ function IsMap(itemid)
 		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
 		(itemid >= 12241 and itemid <= 12243) or
 		(itemid >= 17835 and itemid <= 17836) or 
-		In(itemid,19770,24794,26744,26745))
+		In(itemid,19770,24794,26744,26745,33611,36612))
 end
 function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -3533,14 +3571,16 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.MACHINIST or
 		jobID == FFXIV.JOBS.SAMURAI or
 		jobID == FFXIV.JOBS.REDMAGE or
-		jobID == FFXIV.JOBS.BLUEMAGE
+		jobID == FFXIV.JOBS.BLUEMAGE or
+		jobID == FFXIV.JOBS.REAPER
     then
         return GetString("dps")
     elseif
         jobID == FFXIV.JOBS.CONJURER or
         jobID == FFXIV.JOBS.SCHOLAR or
         jobID == FFXIV.JOBS.WHITEMAGE or
-		jobID == FFXIV.JOBS.ASTROLOGIAN
+		jobID == FFXIV.JOBS.ASTROLOGIAN or
+		jobID == FFXIV.JOBS.SAGE
     then
         return GetString("healer")
     elseif 
@@ -3571,6 +3611,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SAMURAI] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
+			[FFXIV.JOBS.REAPER] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
@@ -3578,6 +3619,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SCHOLAR] = true,
 			[FFXIV.JOBS.WHITEMAGE] = true,
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
+			[FFXIV.JOBS.SAGE] = true,
 		}
 	elseif (rolestring == "Tank") then
 		return {
@@ -3600,6 +3642,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.ASTROLOGIAN] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
+			[FFXIV.JOBS.SAGE] = true,
 		}
 	elseif (rolestring == "MeleeDPS") then
       		return {
@@ -3609,7 +3652,8 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.PUGILIST] = true,
   			[FFXIV.JOBS.ROGUE] = true,
 			[FFXIV.JOBS.NINJA] = true,
-         		[FFXIV.JOBS.SAMURAI] = true,
+         	[FFXIV.JOBS.SAMURAI] = true,
+			[FFXIV.JOBS.REAPER] = true,
 		}
 	elseif (rolestring == "RangeDPS") then
 		return {
@@ -3984,7 +4028,11 @@ function GetUnattunedCurrents()
 	if not QuestCompleted(1597) then
 		return nil
 	end
-	for map,currentdata in pairs(ffxiv_aethercurrent_data) do
+	local list = ffxiv_aethercurrent_data
+	if GetPatchLevel() >= 6 then
+		list = ffxiv_aethercurrent_dataEW
+	end
+	for map,currentdata in pairs(list) do
 		for j,current in pairs(currentdata) do
 			local valid = true
 			local validmap = true
@@ -4111,6 +4159,11 @@ function GetAetheryteByMapID(mapid, p)
 	if (((mapid == 614 and GetYanxiaSection(pos) == 2) or (myMap == 614 and GetYanxiaSection(Player.pos) == 1)) and HasQuest(2518)) then
 		mapid = 622
 	end
+	-- Main hall
+	if (mapid == 987 and myMap ~= 962) then
+		mapid = 962
+	end
+	
 	
 	local ppos = Player.pos
 	
@@ -4260,7 +4313,77 @@ function GetAetheryteByMapID(mapid, p)
 		[818] = {name = "The Tempest",
 			[1] = { name = "The Ondo Cups", aethid = 147, x = 561, z = -199},
 			[2] = { name = "Macarenses", aethid = 148, x = -141, z = 218},
-		},		
+		},	
+		[956] = {name = "Labyrinthos",
+			[1] = { name = "The Archeion", aethid = 166, x = 440, z = -480},
+			[2] = { name = "Hamlet", aethid = 167, x = 11, z = -42,
+				best = function ()  
+					if In(GetLabyrithosSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
+			[3] = { name = "Aporia", aethid = 168, x = -725, z = 306,
+				best = function ()  
+					if In(GetLabyrithosSection(pos),3) then
+						return true
+					end
+					return false
+				end				
+			},
+		},	
+		[957] = {name = "Thavnair",
+			[1] = { name = "Yedlihmad", aethid = 169, x = 194, z = 623},
+			[2] = { name = "The Great Work", aethid = 170, x = -528, z = 31},
+			[3] = { name = "Palaka's Stand", aethid = 171, x = 406, z = -251,
+				best = function ()  
+					if In(GetThavnairSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
+		},	
+		[958] = {name = "Garlemald",
+			[1] = { name = "Camp Broken Glass", aethid = 172, x = -461, z = 480,
+				best = function ()  
+					if true then -- pathing issue exiting other aetheryte
+						return true
+					end
+					return false
+				end				
+			},
+			[2] = { name = "Tertium", aethid = 173, x = 524, z = -183},
+		},	
+		[959] = {name = "Mare Lamentorum",
+			[1] = { name = "Sinus Lacrimarum", aethid = 174, x = -576, z = 632},
+			[2] = { name = "Bestways Burrow", aethid = 175, x = 0, z = -497},
+		},	
+		[960] = {name = "Ultima Thule",
+			[1] = { name = "Reah Tahra", aethid = 179, x = -550, z = 271},
+			[2] = { name = "Abode of the Ea", aethid = 180, x = 70, z = -657,
+				best = function ()  
+					if In(GetUltimaThuleSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
+			[3] = { name = "Base Omicron", aethid = 181, x = 492, z = 337,
+				best = function ()  
+					if In(GetUltimaThuleSection(pos),3,4,5) then
+						return true
+					end
+					return false
+				end				
+			},
+		},
+		[961] = {name = "Elpis",
+			[1] = { name = "Anagnorisis", aethid = 176, x = 162, z = 126},
+			[2] = { name = "Twelve Wonders", aethid = 177, x = -630, z = 550},
+			[3] = { name = "Poieten Oikos", aethid = 178, x = -533, z = -228},
+		},	
 	}
 	
 	local list = GetAttunedAetheryteList()
@@ -5098,7 +5221,7 @@ function GetCompanionEntity()
 end
 function IsShopWindowOpen()
 	return (IsControlOpen("Shop") or IsControlOpen("ShopExchangeItem") or IsControlOpen("ShopExchangeCurrency")
-		or IsControlOpen("ShopCard") or IsControlOpen("ShopExchangeCoin"))
+		or IsControlOpen("ShopCard") or IsControlOpen("ShopExchangeCoin") or IsControlOpen("InclusionShop"))
 end
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
@@ -6261,6 +6384,329 @@ function GetTempestSection(pos)
     return sec
 end
 
+function GetThavnairSection(pos)
+    local sec = 1
+	local sections1 = {
+        [1] = {
+            a = {x = -72, z = 14},
+            b = {x = -72, z = -200},
+            c = {x = 200, z = -200},
+            d = {x = 200, z = 14},
+            x = {x = 38, z = -131},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) and pos.y > 57 then
+                return 1
+            end
+        end
+    end
+	
+    local sections = {
+        [1] = {
+            a = {x = 291, z = 446},
+            b = {x = 291, z = -1000},
+            c = {x = 1000, z = -1000},
+            d = {x = 1000, z = 446},
+            x = {x = 400, z = -130},
+        },
+        [2] = {
+            a = {x = 291, z = 446},
+            b = {x = 122, z = 367},
+            c = {x = 330, z = 121},
+            d = {x = 477, z = 238},
+            x = {x = 315, z = 292},
+        },
+        [3] = {
+            a = {x = 122, z = 367},
+            b = {x = -131, z = -380},
+            c = {x = 487, z = -518},
+            d = {x = 679, z = 192},
+            x = {x = 178, z = -139},
+        },
+        [4] = {
+            a = {x = 102, z = 333},
+            b = {x = -12, z = 261},
+            c = {x = -35, z = 137},
+            d = {x = 95, z = 38},
+            x = {x = 39, z = 182},
+        },
+        [5] = {
+            a = {x = -17, z = 124},
+            b = {x = -17, z = -389},
+            c = {x = 508, z = -389},
+            d = {x = 508, z = 124},
+            x = {x = 228, z = -190},
+        },
+        [6] = {
+            a = {x = -42, z = -86},
+            b = {x = -132, z = -382},
+            c = {x = 325, z = -422},
+            d = {x = 346, z = -200},
+            x = {x = 143, z = -301},
+        },
+        [7] = {
+            a = {x = -100, z = -122},
+            b = {x = -101, z = -389},
+            c = {x = 325, z = -422},
+            d = {x = 346, z = -200},
+            x = {x = 143, z = -301},
+        },
+        [8] = {
+            a = {x = -144, z = -310},
+            b = {x = -113, z = -405},
+            c = {x = 101, z = -405},
+            d = {x = 101, z = -310},
+            x = {x = -101, z = -389},
+        },
+        [9] = {
+            a = {x = 12, z = -420},
+            b = {x = 306, z = -655},
+            c = {x = 701, z = -530},
+            d = {x = 482, z = -246},
+            x = {x = 329, z = -412},
+        },
+    }
+
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end
+
+    return sec
+end
+function GetLabyrithosSection(pos)
+    local sec = 1
+    local sections = {
+        [1] = {
+            a = {x = -1000, z = 1000},
+            b = {x = -1000, z = -365},
+            c = {x = 500, z = -365},
+            d = {x = 500, z = 1000},
+            x = {x = -300, z = 200},
+        },
+    }
+
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) and pos.y < -150 then
+                return 3
+            end
+        end
+    end
+    if (table.valid(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) and (pos.y > -150 and pos.y < 50) then
+                return 2
+            end
+        end
+    end
+
+
+    return sec
+end
+function GetMareLamentorumSection(pos)
+    local sec = 3
+	local sections1 = {
+        [1] = {
+            a = {x = -854, z = 292},
+            b = {x = -357, z = 254},
+            c = {x = -221, z = 357},
+            d = {x = -499, z = 611},
+            x = {x = -233.25, z = 378.5},
+        },
+		[2] = {
+            a = {x = -296, z = 346},
+            b = {x = 148, z = 190},
+            c = {x = 143, z = 561},
+            d = {x = -377, z = 594},
+            x = {x = -95.5, z = 422.75},
+        },
+		[3] = {
+            a = {x = 135, z = 192},
+            b = {x = 181, z = 136},
+            c = {x = 316, z = 141},
+            d = {x = 287, z = 250},
+            x = {x = 229.75, z = 179.75},
+        },
+		[4] = {
+            a = {x = 316, z = 142},
+            b = {x = 387, z = 115},
+            c = {x = 506, z = 180},
+            d = {x = 375, z = 306},
+            x = {x = 396, z = 185.75},
+        },
+		[5] = {
+            a = {x = -850, z = 405},
+            b = {x = 530, z = 405},
+            c = {x = 530, z = 916},
+            d = {x = -850, z = 916},
+            x = {x = -160, z = 660.5},
+		},
+		[6] = {
+            a = {x = 363, z = 308},
+            b = {x = 542, z = 395},
+            c = {x = 570, z = 511},
+            d = {x = 307, z = 512},
+            x = {x = 445.5, z = 431.5},
+		},
+		[7] = {
+            a = {x = 168, z = 180},
+            b = {x = 382, z = 183},
+            c = {x = 363, z = 404},
+            d = {x = 121, z = 414},
+            x = {x = 258.5, z = 295.25},
+		},
+	}
+    if (table.valid(pos)) then
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+			  if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end	
+	local sections2 = {
+        [1] = {
+            a = {x = -850, z = -850},
+            b = {x = 850, z = -850},
+            c = {x = 850, z = -180},
+            d = {x = -850, z = -180},
+            x = {x = 0, z = -515},
+        },
+    }
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections2) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 2
+                break
+            end
+        end
+    end	
+    return sec
+end
+function GetUltimaThuleSection(pos)
+    local sec = 1
+	-- 4th island
+	local sections4 = {
+        [1] = {
+            a = {x = 648, z = 161},
+            b = {x = 871, z = 161},
+            c = {x = 859, z = 232},
+            d = {x = 648, z = 232},
+            x = {x = 759.5, z = 196.5},
+        },
+		[2] = {
+            a = {x = 684, z = 232},
+            b = {x = 825, z = 232},
+            c = {x = 825, z = 284},
+            d = {x = 684, z = 284},
+            x = {x = 754.5, z = 258},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections4) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 4
+            end
+        end
+    end	
+	-- 5th island
+	local sections5 = {
+        [1] = {
+            a = {x = -172, z = -72},
+            b = {x = 328, z = -70},
+            c = {x = 377, z = 385},
+            d = {x = -70, z = 385},
+            x = {x = 115.75, z = 153.75},
+        },
+		[2] = {
+            a = {x = 78, z = 385},
+            b = {x = 500, z = 385},
+            c = {x = 510, z = 631},
+            d = {x = 149, z = 627},
+            x = {x = 309.25, z = 505},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections5) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 5
+            end
+        end
+    end	
+	-- 2nd island
+	local sections1 = {
+        [1] = {
+            a = {x = -518, z = -872},
+            b = {x = -521, z = -123},
+            c = {x = 636, z = -123},
+            d = {x = 633, z = -872},
+            x = {x = 57.5, z = -497.5},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 2
+            end
+        end
+    end	
+	-- 3rd island
+	local sections2 = {
+        [1] = {
+            a = {x = 350, z = 129},
+            b = {x = 640, z = 129},
+            c = {x = 640, z = 382},
+            d = {x = 350, z = 382},
+            x = {x = 495, z = 255.5},
+        },
+		[2] = {
+            a = {x = 521, z = 297},
+            b = {x = 786, z = 297},
+            c = {x = 786, z = 477},
+            d = {x = 521, z = 477},
+            x = {x = 635.5, z = 387},
+        },
+		[3] = {
+            a = {x = 613, z = 238},
+            b = {x = 676, z = 238},
+            c = {x = 676, z = 320},
+            d = {x = 613, z = 320},
+            x = {x = 644.5, z = 279},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections2) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 3
+            end
+        end
+    end	
+    return sec
+end
+
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -7346,7 +7792,363 @@ function Transport818(pos1,pos2)
 		
 	return false			
 end
-
+function Transport956(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetQuestInfo(4441,'step') >= 5) or QuestCompleted(4441) then 
+			local gilCount = GilCount()
+			-- lift south
+			if GetLabyrithosSection(pos1) == 1 and GetLabyrithosSection(pos2) ~= 1 then
+				if (CanUseAetheryte(167) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(167)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 167
+								newTask.mapID = 956
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				else
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 362.26, y = 79.69, z = 302.08}
+						newTask.contentid = 1039548
+						newTask.abort = function ()
+							return GetLabyrithosSection(Player.pos) == 2
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			elseif GetLabyrithosSection(pos1) ~= 1 and GetLabyrithosSection(pos2) == 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 229.88, y = -18.74, z = 298.73}
+					newTask.contentid = 1039549
+					newTask.abort = function ()
+						return GetLabyrithosSection(Player.pos) == 1
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		-- inner lift
+		if (GetQuestInfo(4448,'step') >= 5) or QuestCompleted(4448) then 
+			if GetLabyrithosSection(pos1) ~= 3 and GetLabyrithosSection(pos2) == 3 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -620.72, y = -27.67, z = 302.17}
+					newTask.contentid = 1039550
+					newTask.abort = function ()
+						return GetLabyrithosSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif GetLabyrithosSection(pos1) == 3 and GetLabyrithosSection(pos2) ~= 3 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -614.86, y = -191.12, z = 305.74}
+					newTask.contentid = 1039551
+					newTask.abort = function ()
+						return GetLabyrithosSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+	end
+		
+	return false			
+end
+function Transport957(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		local gilCount = GilCount()
+		if GetThavnairSection(pos1) == 1 and GetThavnairSection(pos2) == 2 then
+			if (CanUseAetheryte(171) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(171)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 171
+							newTask.mapID = 957
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			else
+				-- saved for forced pathing if needed.
+				-- removed bridge connection to avoid attemptijng to path over bridge for fates etc.
+			end
+		end
+	end
+		
+	return false			
+end
+function Transport959(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	if (not CanFlyInZone()) then
+		if QuestCompleted(4403) and GetMareLamentorumSection(Player.pos) == 2 then 
+			if  (pos1.y < -60 and (pos2.y >= -60)) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -26, y = -130, z = -580}
+					newTask.contentid = 2012664
+					newTask.abort = function ()
+						return (Player.pos.y >= -60)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if QuestCompleted(4400) then
+			if GetMareLamentorumSection(pos1) == 1 and GetMareLamentorumSection(pos2) == 2  then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 203, y = 59, z = 407}
+					newTask.contentid = 1038869
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if GetMareLamentorumSection(pos1) == 1 and GetMareLamentorumSection(pos2) == 3  then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 203, y = 59, z = 407}
+					newTask.contentid = 1038869
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if GetMareLamentorumSection(pos1) == 2 and GetMareLamentorumSection(pos2) == 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -4, y = -26, z = -213}
+					newTask.contentid = 1038870
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 1
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+			if GetMareLamentorumSection(pos1) == 3 and GetMareLamentorumSection(pos2) == 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -4, y = -26, z = -213}
+					newTask.contentid = 1038870
+					newTask.abort = function ()
+						return GetMareLamentorumSection(Player.pos) == 1
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+	end
+		
+	return false			
+end
+function Transport960(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	if (not CanFlyInZone()) then
+		-- island 1
+		if GetQuestInfo(4455,'step') == 255 or QuestCompleted(4455) then 
+			-- move to 2
+			if GetUltimaThuleSection(pos1) == 1 and GetUltimaThuleSection(pos2) ~= 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -608, y = 92, z = -208}
+					newTask.contentid = 2012544
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			-- move from 2
+			elseif GetUltimaThuleSection(pos1) ~= 1 and GetUltimaThuleSection(pos2) == 1 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -471, y = 232, z = -260}
+					newTask.contentid = 2012545
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 1
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		-- island 2
+		if GetQuestInfo(4459,'step') >= 2 and not QuestCompleted(4459) then
+			-- move to 3
+			if In(GetUltimaThuleSection(pos1),1,2) and GetUltimaThuleSection(pos2) == 3 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 440, y = 285, z = -319}
+					newTask.contentid = 2012794
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			-- move from 3 to 2
+			elseif GetUltimaThuleSection(pos1) == 3 and In(GetUltimaThuleSection(pos2),1,2) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 514, y = 440, z = 140}
+					newTask.contentid = 2012481
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if QuestCompleted(4459) then
+			-- move to 3
+			if In(GetUltimaThuleSection(pos1),1,2) and GetUltimaThuleSection(pos2) == 3 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 440, y = 285, z = -319}
+					newTask.contentid = 2012480
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			-- move from 3 to 2
+			elseif GetUltimaThuleSection(pos1) == 3 and In(GetUltimaThuleSection(pos2),1,2) then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 514, y = 440, z = 140}
+					newTask.contentid = 2012481
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 2
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		-- island 3
+		if GetQuestInfo(4460,'step') == 255 and not QuestCompleted(4460)then
+			-- move to island 4
+			if GetUltimaThuleSection(pos1) ~= 4 and GetUltimaThuleSection(pos2) == 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 639, y = 439, z = 241}
+					newTask.contentid = 2012796
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 4
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+				-- move from island 4
+			elseif GetUltimaThuleSection(pos1) == 4 and GetUltimaThuleSection(pos2) ~= 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 694, y = 479, z = 226}
+					newTask.contentid = 2012483
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if QuestCompleted(4460) then
+			-- move to island 4
+			if GetUltimaThuleSection(pos1) ~= 4 and GetUltimaThuleSection(pos2) == 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 639, y = 439, z = 241}
+					newTask.contentid = 2012482
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 4
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+				-- move from island 4
+			elseif GetUltimaThuleSection(pos1) == 4 and GetUltimaThuleSection(pos2) ~= 4 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 694, y = 479, z = 226}
+					newTask.contentid = 2012483
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if GetQuestInfo(4462,'step') >= 2 and not QuestCompleted(4462) then
+			if GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 492, y = 438, z = 365}
+					newTask.contentid = 2012795
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 5
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 469, y = 418, z = 403}
+					newTask.contentid = 2012485
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+		if QuestCompleted(4462) then
+			if GetUltimaThuleSection(pos1) ~= 5 and GetUltimaThuleSection(pos2) == 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 492, y = 438, z = 365}
+					newTask.contentid = 2012484
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 5
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif GetUltimaThuleSection(pos1) == 5 and GetUltimaThuleSection(pos2) ~= 5 then
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 469, y = 418, z = 403}
+					newTask.contentid = 2012485
+					newTask.abort = function ()
+						return GetUltimaThuleSection(Player.pos) == 3
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end	
+	end
+		
+	return false			
+end
 function CanFlyInZone()
 	if (GetPatchLevel() >= 5.35) then
 	--if (QuestCompleted(524)) then
@@ -8083,6 +8885,7 @@ function FindNearestCollectableAppraiser()
 	local limsa = { id = 1003632, aethid = 8, mapid = 129, pos = {x = -257, y = 16, z = 40} }
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
+	local radz = { id = 1037306, aethid = 183, mapid = 963, pos = {x =21, y = 0, z = -68} }
 	
 	if (Player.localmapid == morDhona.mapid) then
 		return morDhona
@@ -8098,9 +8901,11 @@ function FindNearestCollectableAppraiser()
 		return uldah
 	elseif (Player.localmapid == eulmore.mapid) and QuestCompleted(3603) then
 		return eulmore
+	elseif (Player.localmapid == radz.mapid) and QuestCompleted(4175) then
+		return radz
 	else
-		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore = false, false, false, false
-		local idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost = 0, 0, 0, 0
+		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore, hasRadz = false, false, false, false, false
+		local idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, radzCost = 0, 0, 0, 0, 0
 		local gil = GilCount()
 		local attuned = GetAttunedAetheryteList(true)
 		if (table.valid(attuned)) then
@@ -8117,11 +8922,17 @@ function FindNearestCollectableAppraiser()
 				elseif QuestCompleted(3603) and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
 					hasEulmore = true
 					eulmoreCost = aetheryte.price
+				elseif QuestCompleted(4175) and (aetheryte.id == radz.aethid and gil >= aetheryte.price) then
+					hasRadz = true
+					radzCost = aetheryte.price
 				end
-				if (hasIdyllshire and hasMorDhona and hasRhalgr) or (hasEulmore) then
+				if (hasRadz) then
 					break
 				end
 			end
+		end
+		if hasRadz then
+			return radz
 		end
 		if hasEulmore then
 			return eulmore
@@ -8398,7 +9209,16 @@ function IsNormalMap(mapid)
 		[818] = true,			
 		[819] = true,			
 		[820] = true,	
-		[844] = true,	
+		[844] = true,
+		[956] = true,
+		[957] = true,
+		[958] = true,
+		[959] = true,
+		[960] = true,
+		[961] = true,
+		[962] = true,
+		[963] = true,
+		[971] = true,	
 	}
 	return maps[mapid] ~= nil
 end
@@ -8505,6 +9325,7 @@ function IsInCombat(includepet,includecompanion)
 	end
 	return false
 end
+
 function GetParty()
 	local party = IsNull(MEntityList("myparty,alive,maxdistance2d=100"),{})
 	party[Player.id] = Player

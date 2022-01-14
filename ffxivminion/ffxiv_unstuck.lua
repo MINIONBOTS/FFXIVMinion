@@ -298,7 +298,7 @@ end
 
 function ffxiv_unstuck.IsStalled()
 	local requiredDist = 10
-	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939")
+	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730")
 	if (hasSlow) then requiredDist = (requiredDist * .3) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
@@ -313,7 +313,7 @@ end
 
 function ffxiv_unstuck.IsStuck()
 	local requiredDist = .7
-	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939")
+	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730")
 	
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end

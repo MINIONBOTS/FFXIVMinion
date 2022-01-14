@@ -24,9 +24,12 @@ function c_getCurrentInfo:evaluate()
 end
 function e_getCurrentInfo:execute()
 	if (not IsControlOpen("AetherCurrent")) then
+		ffxivminion.AetherCurrentCompleted = false
 		ActionList:Get(10,67):Cast()
+		ml_global_information.Await(1500, function () return IsControlOpen("AetherCurrent") end)
 		return
 	end
+	
 	e_getCurrentInfo.timer = Now()
 	if (IsControlOpen("AetherCurrent")) then
 		local status = {}
@@ -643,7 +646,7 @@ function e_avoid:execute()
 	
 	c_bettertargetsearch.postpone = Now() + 5000
 	if ((newTask.maxTime * 1000) > 5000) then
-		c_bettertargetsearch.postpone = Now() + ((maxTime + 1) * 1000)
+		c_bettertargetsearch.postpone = Now() + ((newTask.maxTime + 1) * 1000)
 	end
 end
 
@@ -960,8 +963,12 @@ function c_movetogate:evaluate()
 													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (table.valid(pos)) then
-			e_movetogate.pos = pos
-			return true
+			if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+				e_movetogate.pos = pos
+				return true
+			else
+				d("[MoveToGate]: One or more coordinate components was missing, X"..tostring(pos.x)..",Y:"..tostring(pos.y)..",Z:"..tostring(pos.z))
+			end
 		end
 	end
 	
@@ -996,7 +1003,7 @@ function e_movetogate:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	local newPos = { x = pos.x, y = pos.y, z = pos.z }
-	local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
+	local newPos = GetPosFromDistanceHeading(newPos, 5, IsNull(pos.h,0))
 	
 	if (not e_movetogate.pos.g and not e_movetogate.pos.b and not e_movetogate.pos.a) then
 		newTask.gatePos = newPos
@@ -1648,7 +1655,7 @@ e_useaethernet.destination = nil
 e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
-	if (IsTransporting()) then
+	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
 		return false
 	end
 	if (ml_task_hub:CurrentTask().useAethernet == false) then
@@ -3456,7 +3463,20 @@ function c_buy:evaluate()
 	elseif (tonumber(itemtable)) then
 		itemid = tonumber(itemtable)
 	end
-	
+	if IsControlOpen("InclusionShop") then
+		if ml_task_hub:CurrentTask().category and not ml_task_hub:CurrentTask().categoryset then
+			UseControlAction("InclusionShop","SelectCategory",ml_task_hub:CurrentTask().category)
+			ml_task_hub:CurrentTask().categoryset = true
+			ml_global_information.Await(500)
+			return true
+		end
+		if ml_task_hub:CurrentTask().subcategory and not ml_task_hub:CurrentTask().subcategoryset then
+			UseControlAction("InclusionShop","SelectSubCategory",ml_task_hub:CurrentTask().subcategory)
+			ml_task_hub:CurrentTask().subcategoryset = true
+			ml_global_information.Await(500)
+			return true
+		end
+	end
 	if (itemid) then
 		local buyamount = ml_task_hub:CurrentTask().buyamount or 1
 		if (buyamount > 99) then
@@ -3465,15 +3485,28 @@ function c_buy:evaluate()
 		
 		d("Buying item ID ["..tostring(itemid).."].")
 		local itemCount = ItemCount(itemid)
-		Inventory:BuyShopItem(itemid,buyamount)
-		ml_global_information.AwaitSuccess(2000, 
-			function () 
-				if (IsControlOpen("SelectYesno")) then
-					PressYesNo(true)
-					return true		
+		
+		if IsControlOpen("InclusionShop") and ml_task_hub:CurrentTask().itemindex then
+			UseControlAction("InclusionShop", "BuyShopItem", {[1] = ml_task_hub:CurrentTask().itemindex, [2] = buyamount})
+			ml_global_information.AwaitSuccess(2000, 
+				function () 
+					if (IsControlOpen("ShopExchangeItemDialog")) then
+						UseControlAction("ShopExchangeItemDialog","Exchange")
+						return true		
+					end
 				end
-			end
-		)
+			)
+		else
+			Inventory:BuyShopItem(itemid,buyamount)
+			ml_global_information.AwaitSuccess(2000, 
+				function () 
+					if (IsControlOpen("SelectYesno")) then
+						PressYesNo(true)
+						return true		
+					end
+				end
+			)
+		end
 	end
 	
 	return false
@@ -3530,6 +3563,7 @@ function c_switchclass:evaluate()
 		
 		if (override ~= 0) then
 			local commandString = "/gs change "..tostring(override)
+			d("gearset to override ["..tostring(override).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -3538,9 +3572,12 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
 				end
 			)
+					d("class "..tostring(class))
+					d("override gearset "..tostring(override))
 			return true
 		elseif (tonumber(newSet) ~= 0) then
 			local commandString = "/gs change "..tostring(newSet)
+			d("gearset to new set ["..tostring(newSet).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -3549,6 +3586,7 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
 				end
 			)
+					d("class "..tostring(class))
 					d("gearset "..tostring(newSet))
 			return true
 		else
@@ -3652,7 +3690,7 @@ function c_skipcutscene:evaluate()
 		
 	if Player.onlinestatus == 15 then
 
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500) then
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500 and not Player.ismounted) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then

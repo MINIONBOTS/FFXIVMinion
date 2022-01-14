@@ -562,7 +562,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (Busy() or self.startMap ~= Player.localmapid) then
+	if (self.startMap ~= Player.localmapid or Busy()) then
 		return true
 	end
 	
@@ -602,6 +602,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
     Player:Stop()
 	
 	if (self.killParent) then
+		d("Task is set to kill parent task ["..tostring(ml_task_hub:ThisTask():ParentTask().name).."].")
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
@@ -860,13 +861,18 @@ function c_sethomepoint:evaluate()
 end
 function e_sethomepoint:execute()
     local newTask = ffxiv_task_movetointeract.Create()
-	newTask.contentid = e_sethomepoint.aethid
-	newTask.pos = e_sethomepoint.aethpos
-	
-	if (gTeleportHack) then
-		newTask.useTeleport = true
-	end
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+    newTask.contentid = e_sethomepoint.aethid
+    newTask.pos = e_sethomepoint.aethpos
+    if In(Player.localmapid,956,957,958,960,961) then
+        newTask.interactRange3d = 6.5
+    elseif In(Player.localmapid,959) then
+        newTask.interactRange3d = 10
+    end
+
+    if (gTeleportHack) then
+        newTask.useTeleport = true
+    end
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 function ffxiv_task_teleport:task_complete_eval()
@@ -1129,7 +1135,7 @@ function ffxiv_task_useitem:task_complete_eval()
 			local castid = action.id
 			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return false
-		elseif (item:IsReady(targetid) and self.targetid ~= 0) then
+		elseif (self.targetid ~= 0 and item:IsReady(self.targetid)) then
 			item:Cast(self.targetid)
 			self.useAttempts = self.useAttempts + 1
 			local castid = action.id
@@ -1537,6 +1543,9 @@ function ffxiv_task_grindCombat:Process()
 		local pullpos1 = self.pullPos1
 		local pullpos2 = self.pullPos2
 		local range = ml_global_information.AttackRange
+		if (IsImpersonating()) then
+			range = 3
+		end
 		local eh = ConvertHeading(pos.h)
 		local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 		local nearbyMobCount = 0
@@ -1552,7 +1561,7 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (ml_global_information.AttackRange > 5) then			
+		if (range > 5) then			
 			if (IsFlying() or (not InCombatRange(target.id) and not MIsCasting())) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
@@ -2089,6 +2098,12 @@ function ffxiv_misc_shopping:task_complete_execute()
 		ml_global_information.Await(2000) 
 		return false
 	end
+	local inclusionShop = GetControl("InclusionShop")
+	if (inclusionShop and inclusionShop:IsOpen()) then
+		inclusionShop:Close()	
+		ml_global_information.Await(2000) 
+		return false
+	end
 	
 	self.completed = true
 end
@@ -2293,147 +2308,197 @@ function ffxiv_task_moveaethernet:Init()
 end
 
 function ffxiv_task_moveaethernet:task_complete_eval()	
-	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
-		local convoList = GetConversationList()
-		if (table.valid(convoList)) then
-			if (self.useAethernet and not self.isResidential) then
-				local aethernet = {
-					us = "Aethernet",
-					de = "Ätherytennetz",
-					fr = "Réseau de transport urbain éthéré",
-					jp = "都市転送網",
-					cn = "都市传送网",
-					kr = "도시 내 이동",
-				}
+	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("TelepotTown")) then
+		if (IsControlOpen("TelepotTown")) then
+			local aethernets = GetControlData("TelepotTown","aethernet")
+			if (table.valid(aethernets)) then
 				
-				local residential = {
-					us = "Residential District Aethernet",
-					de = "Wohnviertel",
-					fr = "Quartier résidentiel",
-					jp = "冒険者居住区転送",
-					cn = "冒险者住宅区传送",
-					kr = "모험가 거주구로 이동",
-				}
-				
-				for selectindex,convo in pairs(convoList) do
-					local cleanedline = CleanConvoLine(convo)
-					for language,astring in pairs(aethernet) do
-						local cleanedastring = CleanConvoLine(astring)
-						if (string.contains(cleanedline,cleanedastring) and not string.contains(cleanedline,residential[language])) then
-							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
-							SelectConversationLine(selectindex)
-							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-						end
-					end
-				end
-				d("Checked if we need to open aetheryte menu.")
-			elseif (self.useAethernet and self.isResidential) then
-				local aethernet = {
-					us = "Aethernet",
-					de = "Ätherytennetz",
-					fr = "Réseau de transport urbain éthéré",
-					jp = "都市転送網",
-					cn = "都市传送网",
-					kr = "도시 내 이동",
-				}
-				
-				local residential = {
-					us = "Residential District Aethernet",
-					de = "Wohnviertel",
-					fr = "Quartier résidentiel",
-					jp = "冒険者居住区転送",
-					cn = "冒险者住宅区传送",
-					kr = "모험가 거주구로 이동",
-				}
-				
-				for selectindex,convo in pairs(convoList) do
-					local cleanedline = CleanConvoLine(convo)
-					for language,astring in pairs(residential) do
-						local cleanedastring = CleanConvoLine(astring)
-						if (string.contains(cleanedline,cleanedastring)) then
-							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
-							SelectConversationLine(selectindex)
-							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-						end
-					end
-				end
-				d("Checked if we need to open residential aetheryte menu.")
-			end
-			
-			if (self.isResidential) then
-				local conversationstrings;
-				if (In(Player.localmapid,339,340,341)) then
-					conversationstrings = {
-						["E"] = "Leave residential district"; --6403
-						["J"] = "冒険者居住区外に移動する";
-						["G"] = "Wohngebiet verlassen";
-						["F"] = "Sortir de la zone de logement";
-						["CN"] = "添加到收藏夹";
-						--["KR"] = "귀환 지점 설정";
-					}
-				else
-					conversationstrings = {
-						["E"] = "Go to specified ward"; --6349
-						["J"] = "区を指定して移動（ハウスアピール確認）";
-						["G"] = "Zum angegebenen Bezirk";
-						["F"] = "Spécifier le secteur où aller";
-						["CN"] = "设置返回点";
-						--["KR"] = "귀환 지점 설정";
-					}
-				end
-
-				for selectindex,convo in pairs(convoList) do
-					local cleanedline = CleanConvoLine(convo)
-					for k,v in pairs(conversationstrings) do
-						local cleanedv = CleanConvoLine(v)
-						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-							d("Use conversation line ["..tostring(convo).."]")
-							SelectConversationLine(selectindex)
-							ml_global_information.Await(3000, function () return IsControlOpen("HousingSelectBlock") end)
+				if (string.valid(self.conversationstring)) then
+					d("Checking task conversation string.")
+					for _,aethernet in pairs(aethernets) do
+						local cleanedline = CleanConvoLine(aethernet.string)
+						local cleanedv = CleanConvoLine(self.conversationstring)
+						d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+						d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. aethernet.string .. "]")
+						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == aethernet.string) then
+							d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(self.conversationstring).."].")
+							UseControlAction("TelepotTown","Teleport",aethernet.index)
+							self.initiatedPos = Player.pos
+							ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
 							return false
 						end
 					end
+				elseif (table.valid(self.conversationstrings)) then
+					d("Checking task conversation strings.")
+					
+					for _,aethernet in pairs(aethernets) do
+						local cleanedline = CleanConvoLine(aethernet.string)
+						for k,v in pairs(self.conversationstrings) do
+							local cleanedv = CleanConvoLine(v)
+							d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+							d("Aethernet[2] - checking [" .. v  .. "] against [" .. aethernet.string .. "]")
+							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == aethernet.string) then
+								d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(cleanedv).."].")
+								UseControlAction("TelepotTown","Teleport",aethernet.index)
+								self.initiatedPos = Player.pos
+								ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
+								return false
+							end
+						end
+					end
+				elseif (self.conversationindex > 0) then
+					d("Checking task conversation index.")
+					--SelectConversationIndex(self.conversationindex)
+					UseControlAction("TelepotTown","Teleport",self.conversationindex)
+					self.initiatedPos = Player.pos
+					ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
+					return false
 				end
+			else
+				return false
 			end
-			
-			if (string.valid(self.conversationstring)) then
-				d("Checking task conversation string.")
-				for selectindex,convo in pairs(convoList) do
-					local cleanedline = CleanConvoLine(convo)
-					local cleanedv = CleanConvoLine(self.conversationstring)
-					d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-					d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. convo .. "]")
-					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo) then
-						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
-						SelectConversationLine(selectindex)
-						self.initiatedPos = Player.pos
-						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-						return false
+		else
+			local convoList = GetConversationList()
+			if (table.valid(convoList)) then
+				if (self.useAethernet and not self.isResidential) then
+					local aethernet = {
+						us = "Aethernet",
+						de = "Ätherytennetz",
+						fr = "Réseau de transport urbain éthéré",
+						jp = "都市転送網",
+						cn = "都市传送网",
+						kr = "도시 내 이동",
+					}
+					
+					local residential = {
+						us = "Residential District Aethernet",
+						de = "Wohnviertel",
+						fr = "Quartier résidentiel",
+						jp = "冒険者居住区転送",
+						cn = "冒险者住宅区传送",
+						kr = "모험가 거주구로 이동",
+					}
+					
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo)
+						for language,astring in pairs(aethernet) do
+							local cleanedastring = CleanConvoLine(astring)
+							if (string.contains(cleanedline,cleanedastring) and not string.contains(cleanedline,residential[language])) then
+								d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+								SelectConversationLine(selectindex)
+								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							end
+						end
+					end
+					d("Checked if we need to open aetheryte menu.")
+				elseif (self.useAethernet and self.isResidential) then
+					local aethernet = {
+						us = "Aethernet",
+						de = "Ätherytennetz",
+						fr = "Réseau de transport urbain éthéré",
+						jp = "都市転送網",
+						cn = "都市传送网",
+						kr = "도시 내 이동",
+					}
+					
+					local residential = {
+						us = "Residential District Aethernet",
+						de = "Wohnviertel",
+						fr = "Quartier résidentiel",
+						jp = "冒険者居住区転送",
+						cn = "冒险者住宅区传送",
+						kr = "모험가 거주구로 이동",
+					}
+					
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo)
+						for language,astring in pairs(residential) do
+							local cleanedastring = CleanConvoLine(astring)
+							if (string.contains(cleanedline,cleanedastring)) then
+								d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+								SelectConversationLine(selectindex)
+								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							end
+						end
+					end
+					d("Checked if we need to open residential aetheryte menu.")
+				end
+				
+				if (self.isResidential) then
+					local conversationstrings;
+					if (In(Player.localmapid,339,340,341)) then
+						conversationstrings = {
+							["E"] = "Leave residential district"; --6403
+							["J"] = "冒険者居住区外に移動する";
+							["G"] = "Wohngebiet verlassen";
+							["F"] = "Sortir de la zone de logement";
+							["CN"] = "添加到收藏夹";
+							--["KR"] = "귀환 지점 설정";
+						}
+					else
+						conversationstrings = {
+							["E"] = "Go to specified ward"; --6349
+							["J"] = "区を指定して移動（ハウスアピール確認）";
+							["G"] = "Zum angegebenen Bezirk";
+							["F"] = "Spécifier le secteur où aller";
+							["CN"] = "设置返回点";
+							--["KR"] = "귀환 지점 설정";
+						}
+					end
+
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo)
+						for k,v in pairs(conversationstrings) do
+							local cleanedv = CleanConvoLine(v)
+							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+								d("Use conversation line ["..tostring(convo).."]")
+								SelectConversationLine(selectindex)
+								ml_global_information.Await(3000, function () return IsControlOpen("HousingSelectBlock") end)
+								return false
+							end
+						end
 					end
 				end
-			elseif (table.valid(self.conversationstrings)) then
-				d("Checking task conversation strings.")
-				for selectindex,convo in pairs(convoList) do
-					local cleanedline = CleanConvoLine(convo)
-					for k,v in pairs(self.conversationstrings) do
-						local cleanedv = CleanConvoLine(v)
-						d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-						d("Aethernet[2] - checking [" .. v  .. "] against [" .. convo .. "]")
-						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
-							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
+				
+				if (string.valid(self.conversationstring)) then
+					d("Checking task conversation string.")
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo)
+						local cleanedv = CleanConvoLine(self.conversationstring)
+						d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+						d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. convo .. "]")
+						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo) then
+							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 							SelectConversationLine(selectindex)
 							self.initiatedPos = Player.pos
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
+				elseif (table.valid(self.conversationstrings)) then
+					d("Checking task conversation strings.")
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo)
+						for k,v in pairs(self.conversationstrings) do
+							local cleanedv = CleanConvoLine(v)
+							d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+							d("Aethernet[2] - checking [" .. v  .. "] against [" .. convo .. "]")
+							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
+								d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
+								SelectConversationLine(selectindex)
+								self.initiatedPos = Player.pos
+								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+								return false
+							end
+						end
+					end
+				elseif (self.conversationindex > 0) then
+					d("Checking task conversation index.")
+					SelectConversationIndex(self.conversationindex)
+					self.initiatedPos = Player.pos
+					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+					return false
 				end
-			elseif (self.conversationindex > 0) then
-				d("Checking task conversation index.")
-				SelectConversationIndex(self.conversationindex)
-				self.initiatedPos = Player.pos
-				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-				return false
 			end
 		end
 	end
