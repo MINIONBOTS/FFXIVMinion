@@ -688,7 +688,13 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(586, "[Raid] The Heart of the Creator", enforce) -- a11s
 		ml_mesh_mgr.SetDefaultMesh(583, "[Raid] The Soul of the Creator", enforce) -- a12
 		ml_mesh_mgr.SetDefaultMesh(587, "[Raid] The Soul of the Creator", enforce) -- a12s
-		
+
+    -- Raids SB
+		ml_mesh_mgr.SetDefaultMesh(690, "The Interdimensional Rift", enforce)
+		ml_mesh_mgr.SetDefaultMesh(724, "The Interdimensional Rift", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape", enforce)
+		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape Savag)", enforce)
+
 		-- Raids SB Omega: released on July 4, 2017. Minimum item level of 295.
 		ml_mesh_mgr.SetDefaultMesh(658, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(756, "The Interdimensional Rift2", enforce)
