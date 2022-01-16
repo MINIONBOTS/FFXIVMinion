@@ -550,6 +550,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(970, "[Dungeon] Vanaspati", enforce)
 		ml_mesh_mgr.SetDefaultMesh(974, "[Dungeon] Ktisis Hyperboreia", enforce)
 		ml_mesh_mgr.SetDefaultMesh(978, "[Dungeon] The Aitiascope", enforce)
+		ml_mesh_mgr.SetDefaultMesh(986, "[Dungeon] The Stigma Dreamscape", enforce)
+		ml_mesh_mgr.SetDefaultMesh(976, "[Dungeon] Smileton", enforce)
 		
 		-- Trials ARR
 		ml_mesh_mgr.SetDefaultMesh(202, "[Trial] The Bowl of Embers", enforce)
