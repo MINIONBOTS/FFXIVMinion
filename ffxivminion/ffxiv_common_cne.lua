@@ -2263,6 +2263,11 @@ function c_rest:evaluate()
 	if (Now() < ml_global_information.suppressRestTimer and Player.hp.percent > 20) then
 		return false
 	end
+
+	-- non-healing while resting buff, for questing
+	if HasBuff(Player.id,1097) then
+        return false
+    end
 	
 	if (InInstance() and not IsEurekaMap(Player.localmapid)) then
 		return false
