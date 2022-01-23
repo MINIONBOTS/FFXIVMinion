@@ -3819,13 +3819,12 @@ function c_dointeract:evaluate()
 
 		--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
 		if (myTarget and myTarget.id == interactable.id) then
-			
-			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then		
+			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then	
 				if (interactable.type == 5) then
 					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 6 and ydiff <= 4.7 and ydiff >= -1.3) or  
 						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2))
 					then
-						if (not IsFlying()) then
+						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
 								return false
@@ -3875,8 +3874,8 @@ function c_dointeract:evaluate()
 					
 					--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
 					
-					if (interactable and IsEntityReachable(interactable,range + 2) and interactable.distance2d < range) then
-						if (not IsFlying()) then
+					if (interactable and (IsEntityReachable(interactable,range + 2) or ml_task_hub:CurrentTask().inflight) and interactable.distance2d < range) then
+						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
 								return false
