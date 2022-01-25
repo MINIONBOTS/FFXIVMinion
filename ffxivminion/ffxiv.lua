@@ -35,7 +35,7 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal" }
+	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia" }
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖" }
 else
@@ -45,14 +45,15 @@ end
 if (ffxivminion.gameRegion == 1) then
 	ffxivminion.loginservers = {
 		[1] = { "-" },
-		[2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Ramuh", "Tonberry", "Typhon", "Unicorn" },
-		[3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima", "Valefor", "Yojimbo", "Zeromus" },
-		[4] = { "-", "Anima", "Asura", "Belias", "Chocobo", "Hades", "Ixion", "Mandragora", "Pandaemonium", "Shinryu", "Titan", "Masamune" },
-		[5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" },
-		[6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" },
-		[7] = { "-", "Spriggan", "Cerberus", "Louisoix", "Moogle", "Omega", "Ragnarok" },
-		[8] = { "-", "Twintania", "Lich", "Odin", "Phoenix", "Shiva", "Zodiark" },
-		[9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" },
+		[2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Ramuh", "Tonberry", "Typhon", "Unicorn" }, -- JP-Elemental
+		[3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Gaia
+		[4] = { "-", "Anima", "Asura", "Belias", "Chocobo", "Hades", "Ixion", "Mandragora", "Pandaemonium", "Shinryu", "Titan", "Masamune" }, -- JP-Mana
+		[5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
+		[6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
+		[7] = { "-", "Spriggan", "Cerberus", "Louisoix", "Moogle", "Omega", "Ragnarok" }, -- EU-Chaos
+		[8] = { "-", "Twintania", "Lich", "Odin", "Phoenix", "Shiva", "Zodiark" }, -- EU-Light
+		[9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
+		[10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
 	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
@@ -336,7 +337,7 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					end
 				else
 					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 9) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 10) then
 							d("trying to login on datacenter:" .. tostring(FFXIV_Login_DataCenter))
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
