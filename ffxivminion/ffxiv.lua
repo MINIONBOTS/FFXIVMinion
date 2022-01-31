@@ -37,7 +37,7 @@ ffxivminion.loginvars = {
 if (ffxivminion.gameRegion == 1) then
 	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia" }
 elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖" }
+	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖","豆豆柴", }
 else
 	ffxivminion.logincenters = { "Main" }
 end
@@ -61,7 +61,7 @@ elseif (ffxivminion.gameRegion == 2) then
 		[2] = { "-", "宇宙和音", "幻影群岛", "拉诺西亚", "晨曦王座", "沃仙曦染", "神意之地", "红玉海", "萌芽池" },
 		[3] = { "-", "拂晓之间", "旅人栈桥", "梦羽宝境", "潮风亭", "白金幻象", "白银乡", "神拳痕", "龙巢神殿" },
 		[4] = { "-", "延夏", "摩杜纳", "柔风海湾", "琥珀原", "紫水栈桥", "静语庄园", "海猫茶屋", },
-		[5] = { "-", "水晶塔", "银泪湖" },
+		[5] = { "-", "水晶塔", "银泪湖","太阳海岸","伊修加德",},
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
