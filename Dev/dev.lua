@@ -56,6 +56,35 @@ function dev.ChatTest()
 	SendTextCommand("/say "..tostring(os.time(os.date('*t'))))
 end
 
+
+dev.REPAIR_ITEM_IDS =
+{
+    5594,
+    5595,
+    5596,
+    5597,
+    5598,
+    10386,
+    17837,
+    33916
+}
+
+function dev.GetRepairItemId(item)
+    if ffxivminion.patchLevel[ffxivminion.gameRegion] < 6.0 then
+        return item.repairitem
+    else
+        return dev.REPAIR_ITEM_IDS[item.repairitem]
+    end
+end
+
+function dev.GetRepairItemName(item)
+    if AceLib ~= nil then
+        return AceLib.API.Items.GetNameByID(dev.GetRepairItemId(item))
+    else
+        return "ItemID:"..tostring(dev.GetRepairItemId(item))
+    end
+end
+
 function dev.DrawCall(event, ticks )
 	
 	if ( dev.GUI.open  ) then 
@@ -317,7 +346,7 @@ function dev.DrawCall(event, ticks )
 					end
 
 					if (GUI:TreeNode("Gearsets")) then
-						for i, gs in ipairs(Player:GetGearSetList()) do
+                        for i, gs in pairs(Player:GetGearSetList()) do
 							if (GUI:TreeNode(tostring(i) .. " - " .. gs.name)) then
 								GUI:BulletText("Name") GUI:SameLine(200) GUI:InputText("##devgearsetname" .. tostring(i), gs.name)
 								GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devgearsetjob" .. tostring(i), gs.job)
@@ -1357,11 +1386,7 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 													GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
 													if item.repairitem > 0 then
-														if AceLib ~= nil then
-															dev.repairItemName = AceLib.API.Items.GetNameByID(item.repairitem) or ""
-														else
-															dev.repairItemName = ""
-														end
+                                                    dev.repairItemName = AceLib.API.Items.GetNameByID(dev.GetRepairItemId(item))
 														GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 													end
 													GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
