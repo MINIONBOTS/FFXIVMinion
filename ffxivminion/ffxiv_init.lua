@@ -700,6 +700,7 @@ function ml_global_information.Init()
 		-- Raids SB Omega: released on July 4, 2017. Minimum item level of 295.
 		ml_mesh_mgr.SetDefaultMesh(658, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(756, "The Interdimensional Rift2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(812, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(807, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(691, "[Raid] Deltascape V1.0", enforce) -- o1
 		--ml_mesh_mgr.SetDefaultMesh(695, "[Raid] Deltascape V1.0", enforce) -- o1s
@@ -1783,7 +1784,7 @@ function ml_global_information.Init()
 				[809] = "Haunted Manor",
 				[810] = "Hells' Kier",
 				[811] = "Hells' Kier",
-				[812] = "The Interdimensional Rift",
+				[812] = "The Interdimensional Rift2",
 				[824] = "The Wreath of Snakes",
 				[825] = "The Wreath of Snakes",
 				[826] = "The Orbonne Monastery",
