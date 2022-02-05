@@ -731,6 +731,8 @@ function ml_global_information.Init()
 		
 		-- Raids SHB
 		-- Eden's Gate
+		ml_mesh_mgr.SetDefaultMesh(857, "The Core", enforce)
+		ml_mesh_mgr.SetDefaultMesh(878, "The Empty", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(849, "[Raid] The Core", enforce)
 		ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Halo_e2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
@@ -1798,6 +1800,9 @@ function ml_global_information.Init()
 				[834] = "The Howling Eye",
 				[839] = "East Shroud",
 				[843] = "The Pendants Personal Suite",
+				[857] = "The Core",
+				[878] = "The Empty",
+				
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 			}
