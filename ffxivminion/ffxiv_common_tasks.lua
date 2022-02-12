@@ -2328,7 +2328,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							return false
 						end
 					end
-				elseif (table.valid(self.conversationstrings)) then
+				end
+				if (table.valid(self.conversationstrings)) then
 					d("Checking task conversation strings.")
 					
 					for _,aethernet in pairs(aethernets) do
@@ -2346,14 +2347,20 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							end
 						end
 					end
-				elseif (self.conversationindex > 0) then
-					d("Checking task conversation index.")
-					--SelectConversationIndex(self.conversationindex)
-					UseControlAction("TelepotTown","Teleport",self.conversationindex)
-					self.initiatedPos = Player.pos
-					ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
-					return false
 				end
+				if (self.conversationindex ~= nil) then
+					if (self.conversationindex > 0) then
+						d("Checking task conversation index.")
+						--SelectConversationIndex(self.conversationindex)
+						UseControlAction("TelepotTown","Teleport",self.conversationindex)
+						self.initiatedPos = Player.pos
+						ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
+						return false
+					end
+				end
+				
+				-- no match found
+				return false
 			else
 				return false
 			end
