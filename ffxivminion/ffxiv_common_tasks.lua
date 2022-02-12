@@ -2312,68 +2312,48 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		if (IsControlOpen("TelepotTown")) then
 			local aethernets = GetControlData("TelepotTown","aethernet")
 			if (table.valid(aethernets)) then
+				
 				if (string.valid(self.conversationstring)) then
-				    d("Checking task conversation string.")
-				    for _, aethernet in pairs(aethernets) do
-					local cleanedline = CleanConvoLine(aethernet.string)
-					local cleanedv = CleanConvoLine(self.conversationstring)
-					d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-					d("Aethernet[1] - checking [" .. self.conversationstring .. "] against [" .. aethernet.string .. "]")
-					if (string.contains(IsNull(cleanedline, ""), IsNull(cleanedv, "")) or self.conversationstring == aethernet.string) then
-					    d("Use conversation line [" .. tostring(aethernet.index) .. "] to select [" .. tostring(aethernet.string) .. " for [" .. tostring(self.conversationstring) .. "].")
-					    UseControlAction("TelepotTown", "Teleport", aethernet.index)
-					    self.initiatedPos = Player.pos
-					    ml_global_information.Await(500, 2000, function()
-						return not IsControlOpen("TelepotTown")
-					    end)
-					    return false
+					d("Checking task conversation string.")
+					for _,aethernet in pairs(aethernets) do
+						local cleanedline = CleanConvoLine(aethernet.string)
+						local cleanedv = CleanConvoLine(self.conversationstring)
+						d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+						d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. aethernet.string .. "]")
+						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == aethernet.string) then
+							d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(self.conversationstring).."].")
+							UseControlAction("TelepotTown","Teleport",aethernet.index)
+							self.initiatedPos = Player.pos
+							ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
+							return false
+						end
 					end
-				    end
-				end
-				if (table.valid(self.conversationstrings)) then
-				    d("Checking task conversation strings.")
-
-				    for _, aethernet in pairs(aethernets) do
-					local cleanedline = CleanConvoLine(aethernet.string)
-					for k, v in pairs(self.conversationstrings) do
-					    local cleanedv = CleanConvoLine(v)
-					    d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-					    d("Aethernet[2] - checking [" .. v .. "] against [" .. aethernet.string .. "]")
-					    if (string.contains(IsNull(cleanedline, ""), IsNull(cleanedv, "")) or v == aethernet.string) then
-						d("Use conversation line [" .. tostring(aethernet.index) .. "] to select [" .. tostring(aethernet.string) .. " for [" .. tostring(cleanedv) .. "].")
-						UseControlAction("TelepotTown", "Teleport", aethernet.index)
-						self.initiatedPos = Player.pos
-						ml_global_information.Await(500, 2000, function()
-						    return not IsControlOpen("TelepotTown")
-						end)
-						return false
-					    end
+				elseif (table.valid(self.conversationstrings)) then
+					d("Checking task conversation strings.")
+					
+					for _,aethernet in pairs(aethernets) do
+						local cleanedline = CleanConvoLine(aethernet.string)
+						for k,v in pairs(self.conversationstrings) do
+							local cleanedv = CleanConvoLine(v)
+							d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
+							d("Aethernet[2] - checking [" .. v  .. "] against [" .. aethernet.string .. "]")
+							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == aethernet.string) then
+								d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(cleanedv).."].")
+								UseControlAction("TelepotTown","Teleport",aethernet.index)
+								self.initiatedPos = Player.pos
+								ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
+								return false
+							end
+						end
 					end
-				    end
-				end
-				if (self.conversationindex ~= nil) then
-				    if (self.conversationindex > 0) then
+				elseif (self.conversationindex > 0) then
 					d("Checking task conversation index.")
 					--SelectConversationIndex(self.conversationindex)
-					UseControlAction("TelepotTown", "Teleport", self.conversationindex)
+					UseControlAction("TelepotTown","Teleport",self.conversationindex)
 					self.initiatedPos = Player.pos
-					ml_global_information.Await(500, 2000, function()
-					    return not IsControlOpen("TelepotTown")
-					end)
+					ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
 					return false
-				    end
 				end
-
-				-- abort task. task has no valid Aethernet selection parameter
-				if FFXIV_Common_BotRunning then
-				    ml_global_information.ToggleRun();
-				end
-				ml_task_hub.shouldRun = false
-				ml_global_information.Reset()
-				ml_global_information.yield = {}
-				ml_global_information.Stop()
-				ml_error("task has no valid Aethernet selection parameter")
-				return false
 			else
 				return false
 			end
