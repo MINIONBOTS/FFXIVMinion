@@ -1752,6 +1752,7 @@ function e_useaethernet:execute()
 			newTask.contentid = e_useaethernet.nearest.id
 			newTask.pos = e_useaethernet.nearest.pos
 			newTask.conversationstrings = e_useaethernet.destination.conversationstrings
+			newTask.conversationindex = e_useaethernet.destination.conversationindex
 			newTask.useAethernet = true
 			c_useaethernet.used = true
 			
