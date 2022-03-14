@@ -18,6 +18,7 @@ translations.texturepath = GetLuaModsPath() .. "\\translations"
 translations.open = false
 translations.currenttranslation = ""
 translations.searchresult = {}
+translations.exactmatch = true
 function translations.Init()
 	if(gCurrentLanguage == "us" ) then gCurrentLanguage = "en" end
 	translations.dbversion = translations.GetVersion()
@@ -59,25 +60,45 @@ function translations.OnDraw( event, tick )
 			GUI:PopItemWidth()
 			GUI:SameLine();
 			GUI:PushItemWidth(100)
-			translations.search,changed = GUI:InputText( "##tsearch", translations.search or "")
+			translations.search,changed = GUI:InputText("##tsearch", translations.search or "")
+			if(changed) then updatelist = true end
 			translations.search = string.lower(translations.search)
 			GUI:PopItemWidth()
+			GUI:SameLine();
+			GUI:PushItemWidth(50)
+			translations.exactmatch,changed = GUI:Checkbox("##tmatch", translations.exactmatch)
 			if(changed) then updatelist = true end
+			if(GUI:IsItemHovered())then
+				GUI:SetTooltip("Exact match")
+			end
+			GUI:PopItemWidth()			
 			if(updatelist)then
 				translations.searchresult = {}
 				if(string.len(translations.search) > 1 ) then
 					if(translations.searchtype == 1) then
 						for key,k in pairs(ml_miniondbstrings) do
-							if(string.contains(string.lower(key), translations.search))then
-								translations.searchresult[key] = k
+							if(translations.exactmatch ~= true)then
+								if(string.contains(string.lower(key), translations.search))then
+									translations.searchresult[key] = k
+								end
+							else
+								if(string.lower(key) == translations.search)then
+									translations.searchresult[key] = k
+								end
 							end
 						end
 					else
 						local lang = searchtbl[translations.searchtype]
 						for key,k in pairs(ml_miniondbstrings) do
 							if(k[lang]) then
-								if(string.contains(string.lower(k[lang]), translations.search))then
-									translations.searchresult[key] = k
+								if(translations.exactmatch ~= true)then
+									if(string.contains(string.lower(k[lang]), translations.search))then
+										translations.searchresult[key] = k
+									end
+								else
+									if(string.lower(k[lang]) == translations.search)then
+										translations.searchresult[key] = k
+									end
 								end
 							end
 						end
