@@ -1,4 +1,10 @@
-﻿local table = _G["table"]
+-- Delete the old MinionDB folder, so we dont load the old translations stuf
+local mdbfolder = GetLuaModsPath() .. "\\MinionDB"
+if( FolderExists(mdbfolder) ) then
+	FolderDelete(mdbfolder)
+end
+
+local table = _G["table"]
 local math = _G["math"]
 local string = _G["string"]
 local sqlite3 = _G["sqlite3"]
