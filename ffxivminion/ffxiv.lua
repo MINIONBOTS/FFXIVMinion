@@ -37,7 +37,7 @@ ffxivminion.loginvars = {
 if (ffxivminion.gameRegion == 1) then
 	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia" }
 elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖" }
+	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
 else
 	ffxivminion.logincenters = { "Main" }
 end
