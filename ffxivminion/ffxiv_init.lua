@@ -1053,6 +1053,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(962, "Old Sharlayan", true)
 		ml_mesh_mgr.SetDefaultMesh(963, "Radz-at-Han", true)
 		ml_mesh_mgr.SetDefaultMesh(971, "Lemures Headquarters", true)
+		ml_mesh_mgr.SetDefaultMesh(979, "Empyreum", true)
 		ml_mesh_mgr.SetDefaultMesh(987, "Main Hall", true)
 		ml_mesh_mgr.SetDefaultMesh(990, "Andron", true)
 		ml_mesh_mgr.SetDefaultMesh(1001, "Strategy Room", true)
@@ -1805,6 +1806,7 @@ function ml_global_information.Init()
 				
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
+				[979] = "Empyreum"
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
 				return IAmTooLazy[mapid]
