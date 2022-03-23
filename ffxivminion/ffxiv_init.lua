@@ -700,6 +700,7 @@ function ml_global_information.Init()
 		-- Raids SB Omega: released on July 4, 2017. Minimum item level of 295.
 		ml_mesh_mgr.SetDefaultMesh(658, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(756, "The Interdimensional Rift2", enforce)
+		ml_mesh_mgr.SetDefaultMesh(812, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(807, "The Interdimensional Rift2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(691, "[Raid] Deltascape V1.0", enforce) -- o1
 		--ml_mesh_mgr.SetDefaultMesh(695, "[Raid] Deltascape V1.0", enforce) -- o1s
@@ -730,6 +731,8 @@ function ml_global_information.Init()
 		
 		-- Raids SHB
 		-- Eden's Gate
+		ml_mesh_mgr.SetDefaultMesh(857, "The Core", enforce)
+		ml_mesh_mgr.SetDefaultMesh(878, "The Empty", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(849, "[Raid] The Core", enforce)
 		ml_mesh_mgr.SetDefaultMesh(850, "[Raid] The Halo_e2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(851, "[Raid] The Nereus Trench", enforce)
@@ -1783,7 +1786,7 @@ function ml_global_information.Init()
 				[809] = "Haunted Manor",
 				[810] = "Hells' Kier",
 				[811] = "Hells' Kier",
-				[812] = "The Interdimensional Rift",
+				[812] = "The Interdimensional Rift2",
 				[824] = "The Wreath of Snakes",
 				[825] = "The Wreath of Snakes",
 				[826] = "The Orbonne Monastery",
@@ -1797,6 +1800,9 @@ function ml_global_information.Init()
 				[834] = "The Howling Eye",
 				[839] = "East Shroud",
 				[843] = "The Pendants Personal Suite",
+				[857] = "The Core",
+				[878] = "The Empty",
+				
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 			}

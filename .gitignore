@@ -1,0 +1,20 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Questing/0FAB6296342211E5B61C8EA79330F945.paf
+/Questing
+/minionlib/markers.lua
+/minionlib/lists.lua
+/minionlib/8759D982A0C811E48D8F92FD89BEA664.paf
+/minionlib
+/Duties/ACCF471056F311E582A7F15A631DAC50.paf
+/Duties
+/ACR/6FA30866F80D11E5AAFDE6F85BFD2EA0.paf
+/ACR
+/AceLib/data/dta.PAF
+/AceLib/data
+/AceLib/B94C16BE2E2E11E5A1850D12C081C9B5.paf
+/AceLib
+/.vs/slnx.sqlite
+/.vs
