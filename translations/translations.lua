@@ -299,19 +299,21 @@ function translations.LoadTranslations()
 			db:exec("BEGIN TRANSACTION")
 
 			for id, lastupdate, key, en,de,kr,cn,jp,fr,ru,es in db:urows(sql) do
-				if(ml_miniondbstrings[key] == nil) then
-					ml_miniondbstrings[key] = {}
+				if(key ~= nil)then
+					if(ml_miniondbstrings[key] == nil) then
+						ml_miniondbstrings[key] = {}
+					end
+					ml_miniondbstrings[key]["id"] = id
+					ml_miniondbstrings[key]["lastupdate"] = lastupdate
+					if(en and en ~= "" and en ~= " ")then ml_miniondbstrings[key]["en"] = en count = count + 1 end
+					if(de and de ~= "" and de ~= " ")then ml_miniondbstrings[key]["de"] = de count = count + 1 end
+					if(kr and kr ~= "" and kr ~= " ")then ml_miniondbstrings[key]["kr"] = kr count = count + 1 end
+					if(cn and cn ~= "" and cn ~= " ")then ml_miniondbstrings[key]["cn"] = cn count = count + 1 end
+					if(jp and jp ~= "" and jp ~= " ")then ml_miniondbstrings[key]["jp"] = jp count = count + 1 end
+					if(fr and fr ~= "" and fr ~= " ")then ml_miniondbstrings[key]["fr"] = fr count = count + 1 end
+					if(ru and ru ~= "" and ru ~= " ")then ml_miniondbstrings[key]["ru"] = ru count = count + 1 end
+					if(es and es ~= "" and es ~= " ")then ml_miniondbstrings[key]["es"] = es count = count + 1 end
 				end
-				ml_miniondbstrings[key]["id"] = id
-				ml_miniondbstrings[key]["lastupdate"] = lastupdate
-				if(en and en ~= "" and en ~= " ")then ml_miniondbstrings[key]["en"] = en count = count + 1 end
-				if(de and de ~= "" and de ~= " ")then ml_miniondbstrings[key]["de"] = de count = count + 1 end
-				if(kr and kr ~= "" and kr ~= " ")then ml_miniondbstrings[key]["kr"] = kr count = count + 1 end
-				if(cn and cn ~= "" and cn ~= " ")then ml_miniondbstrings[key]["cn"] = cn count = count + 1 end
-				if(jp and jp ~= "" and jp ~= " ")then ml_miniondbstrings[key]["jp"] = jp count = count + 1 end
-				if(fr and fr ~= "" and fr ~= " ")then ml_miniondbstrings[key]["fr"] = fr count = count + 1 end
-				if(ru and ru ~= "" and ru ~= " ")then ml_miniondbstrings[key]["ru"] = ru count = count + 1 end
-				if(es and es ~= "" and es ~= " ")then ml_miniondbstrings[key]["es"] = es count = count + 1 end
 			end
 
 			db:exec("END TRANSACTION")
