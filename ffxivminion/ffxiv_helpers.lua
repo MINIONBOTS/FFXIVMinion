@@ -5509,57 +5509,66 @@ function IsTable(t)
 	end
 	return false
 end
+
+local pvpMaps = {
+        
+    [250] = true, -- Wolves Den
+    [336] = true, -- Wolves Den
+    [337] = true, -- Wolves Den
+    [175] = true, -- Wolves Den
+    [352] = true, -- Wolves Den
+    [186] = true, -- Wolves Den
+    
+    [422] = true, -- Frontlines - Slaughter
+    
+    [149] = true, --   The Feasting Grounds
+    [376] = true, --   the Borderland Ruins (Secure)
+    [431] = true, --   Seal Rock (Seize)
+    [525] = true, --   the Feast (4 on 4 - Training)
+    [527] = true, --   the Feast (4 on 4 - Ranked)
+    [554] = true, --   the Fields of Glory (Shatter)
+    [619] = true, --   the Feast (Custom Match - Feasting Grounds)
+    [632] = true, --   the Feast (4 on 4 - Training)
+    [644] = true, --   the Feast (4 on 4 - Ranked)
+    [646] = true, --   the Feast (Custom Match - Lichenweed)
+    [729] = true, --   Astragalos
+    [745] = true, --   the Feast (Team Ranked)
+    [765] = true, --   the Feast (Ranked)
+    [766] = true, --   the Feast (Training)
+    [767] = true, --   the Feast (Custom Match - Crystal Tower)
+    [767] = true, --   the Feast (Team Custom Match - Crystal Tower)
+    [791] = true, --   Hidden Gorge
+    [888] = true, --   Onsal Hakair (Danshig Naadam)
+    
+    [537] = true, -- The Fold ??
+    [538] = true, -- The Fold ??
+    [539] = true, -- The Fold ??
+    [540] = true, -- The Fold ??
+    [541] = true, -- The Fold ??
+    [542] = true, -- The Fold ??
+    [543] = true, -- The Fold ??
+    [544] = true, -- The Fold ??
+    [545] = true, -- The Fold ??
+    [546] = true, -- The Fold ??
+    [547] = true, -- The Fold ??
+    [548] = true, -- The Fold ??
+    [549] = true, -- The Fold ??
+    [550] = true, -- The Fold ??
+    [551] = true, -- The Fold ??
+
+    [1032] = true, -- ???, The Palaistra
+    [1033] = true, -- ???, The Volcanic Heart
+    [1034] = true, -- ???, Cloud Nine
+    
+    [1058] = true, -- ???, The Palaistra
+    [1059] = true, -- ???, The Volcanic Heart
+    [1060] = true, -- ???, Cloud Nine
+    
+    
+}
 function IsPVPMap(mapid)
-	local mapid = tonumber(mapid) or 0
-	local pvpMaps = {
-		
-		[250] = true, -- Wolves Den
-		[336] = true, -- Wolves Den
-		[337] = true, -- Wolves Den
-		[175] = true, -- Wolves Den
-		[352] = true, -- Wolves Den
-		[186] = true, -- Wolves Den
-		
-		[422] = true, -- Frontlines - Slaughter
-		
-		[149] = true, --   The Feasting Grounds
-		[376] = true, --   the Borderland Ruins (Secure)
-		[431] = true, --   Seal Rock (Seize)
-		[525] = true, --   the Feast (4 on 4 - Training)
-		[527] = true, --   the Feast (4 on 4 - Ranked)
-		[554] = true, --   the Fields of Glory (Shatter)
-		[619] = true, --   the Feast (Custom Match - Feasting Grounds)
-		[632] = true, --   the Feast (4 on 4 - Training)
-		[644] = true, --   the Feast (4 on 4 - Ranked)
-		[646] = true, --   the Feast (Custom Match - Lichenweed)
-		[729] = true, --   Astragalos
-		[745] = true, --   the Feast (Team Ranked)
-		[765] = true, --   the Feast (Ranked)
-		[766] = true, --   the Feast (Training)
-		[767] = true, --   the Feast (Custom Match - Crystal Tower)
-		[767] = true, --   the Feast (Team Custom Match - Crystal Tower)
-		[791] = true, --   Hidden Gorge
-		[888] = true, --   Onsal Hakair (Danshig Naadam)
-		
-		[537] = true, -- The Fold ??
-		[538] = true, -- The Fold ??
-		[539] = true, -- The Fold ??
-		[540] = true, -- The Fold ??
-		[541] = true, -- The Fold ??
-		[542] = true, -- The Fold ??
-		[543] = true, -- The Fold ??
-		[544] = true, -- The Fold ??
-		[545] = true, -- The Fold ??
-		[546] = true, -- The Fold ??
-		[547] = true, -- The Fold ??
-		[548] = true, -- The Fold ??
-		[549] = true, -- The Fold ??
-		[550] = true, -- The Fold ??
-		[551] = true, -- The Fold ??
-		
-		
-	}
-	return (pvpMaps[mapid] ~= nil)
+    local mapid = tonumber(mapid) or Player.localmapid
+    return (pvpMaps[mapid] ~= nil)
 end
 
 function IsEurekaMap(mapid)
