@@ -7045,6 +7045,7 @@ function Transport351(pos1,pos2)
 	return false			
 end
 
+--[=[
 function Transport146(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -7068,6 +7069,7 @@ function Transport146(pos1,pos2)
 
 	return false			
 end
+]]
 
 function Transport398(pos1,pos2)
 	local pos1 = pos1 or Player.pos
