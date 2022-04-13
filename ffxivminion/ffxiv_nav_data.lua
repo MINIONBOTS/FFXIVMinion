@@ -1709,24 +1709,31 @@ ffxiv_map_nav.data = {
     {
         [962] = { -- to Old Sharlayan
             {id = 962, cost = 1, x = -29.74, y = 179.71, z = -826.21, b = 1039544
-				, requires = {
-					["QuestCompleted(9999)"] = true,
-				},
-			},
+                , requires = {
+                    ["QuestCompleted(9999)"] = true,
+                },
+            },
         },
         [963] = { -- to Radz-at-Han
             {id = 963, cost = 1, x = 576.49, y = 55.26, z = -682.13, h = 2.36
-				, requires = {
-					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
-				},
-			},
+                , requires = {
+                    ["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+                },
+            },
             {id = 963, cost = 1, x = 208, y = 60, z = -601,b = 1037650
                 , requires = {
                     ["QuestCompleted(4412)"] = false,
                 },
             },
         },
-	},
+        [1056] = { -- to Alzadaal's Legacy
+            {id = 1056, cost = 1, x = -270.25, y = 0.08, z = 605.92, b = 1039589
+                , requires = {
+                    ["GetQuestInfo(4529,'step') >= 255 or QuestCompleted(4529)"] = true,
+                },
+            },
+        },
+    },
 	[958] = -- Garlemald:
     {
         [621] = { -- to The Lochs
@@ -1837,6 +1844,16 @@ ffxiv_map_nav.data = {
     {
         [959] = { -- to Mare Lamentorum
             {id = 959, cost = 1, x = 99.83, y = 0, z = 117.51, b = 2012528},
+        },
+    },    
+    [1056] = -- Alzadaal's Legacy:
+    {
+        [957] = { -- to Thavnair
+            {id = 957, cost = 1, x = 110.00, y = -348.59, z = -45.24, b = 2012841
+                , requires = {
+                    ["GetQuestInfo(4529,'step') >= 255 or QuestCompleted(4529)"] = true,
+                },
+            },
         },
     },
 }-- set reference for mesh mgr
