@@ -7078,7 +7078,7 @@ function Transport146(pos1,pos2)
 
 	return false			
 end
-]]
+]=]
 
 function Transport398(pos1,pos2)
 	local pos1 = pos1 or Player.pos
