@@ -1722,6 +1722,46 @@ function c_useaethernet:evaluate(mapid, pos)
 			},
 		}
 		return true
+	elseif (In(Player.localmapid,130,131) and destMapID == 178) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["conversationstrings"] = {
+				["E"] = "Adventurers' Guild";
+				["J"] = "冒険者ギルド前";
+				["G"] = "Abenteurergilde";
+				["F"] = "Guilde des aventuriers";
+				["CN"] = "冒险者行会前";
+				["KR"] = "모험가 길드";
+			};
+			["id"] = 33;
+			["mapid"] = 130;
+			["pos"] = {
+				["x"] = 65.10;
+				["y"] = 4.1;
+				["z"] = -116.62;
+			};
+		}
+		return true
+	elseif (In(Player.localmapid,128,129) and destMapID == 177) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["conversationstrings"] = {
+				["E"] = "The Aftcastle";
+				["J"] = "冒険者ギルド前";
+				["G"] = "Achterburg";
+				["F"] = "Guilde des aventuriers (Guildes des armuriers & forgerons/Maelstrom)";
+				["CN"] = "冒险者行会前";
+				["KR"] = "모험가 길드";
+			};
+			["id"] = 41;
+			["mapid"] = 128;
+			["pos"] = {
+				["x"] = 16.09;
+				["y"] = 40;
+				["z"] = 70.61;
+			};
+		}
+		return true
 	else
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 		local gatedist = 10000
