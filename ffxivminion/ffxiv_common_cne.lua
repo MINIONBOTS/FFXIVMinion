@@ -1688,6 +1688,7 @@ function c_useaethernet:evaluate(mapid, pos)
 	end	
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
 		e_useaethernet.nearest = {
@@ -1707,8 +1708,21 @@ function c_useaethernet:evaluate(mapid, pos)
 		}
 		e_useaethernet.isresidential = true
 		return true
+	elseif (Player.localmapid == 628 and destMapID == 629) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["id"] = 116, ["mapid"] = 628, ["pos"] = { ["x"] = -76.01, ["y"] = 19.06, ["z"] = -161.1 },
+			["conversationstrings"] = {
+				["E"] = "Bokairo Inn",
+				["J"] = "望海楼",
+				["G"] = "Badehaus Bokairo",
+				["F"] = "Auberge du Bokairo",
+				["CN"] = "望海楼",
+				["KR"] = "망해루",
+			},
+		}
+		return true
 	else
-		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 		local gatedist = 10000
 		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
