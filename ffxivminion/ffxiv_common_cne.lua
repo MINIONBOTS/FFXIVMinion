@@ -1721,7 +1721,9 @@ function c_useaethernet:evaluate(mapid, pos)
 				["KR"] = "망해루",
 			},
 		}
-		return true
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
 	elseif (In(Player.localmapid,130,131) and destMapID == 178) then
 		e_useaethernet.nearest = nearestAethernet
 		e_useaethernet.destination = {
@@ -1741,7 +1743,9 @@ function c_useaethernet:evaluate(mapid, pos)
 				["z"] = -116.62;
 			};
 		}
-		return true
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
 	elseif (In(Player.localmapid,128,129) and destMapID == 177) then
 		e_useaethernet.nearest = nearestAethernet
 		e_useaethernet.destination = {
@@ -1761,7 +1765,9 @@ function c_useaethernet:evaluate(mapid, pos)
 				["z"] = 70.61;
 			};
 		}
-		return true
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
 	else
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 		local gatedist = 10000
