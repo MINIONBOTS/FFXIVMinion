@@ -67,13 +67,13 @@ end
 
 function ffxiv_task_assist:Process()
 	--if (not gACRBypass) then
-		if (Player.alive and not MIsLoading() and not gDisableAssistOptions) then
+		if (Player.alive and not MIsLoading()) then
 			
 			local autoface, movemode = ml_global_information.GetMovementInfo(false)
 			
 			local target = Player:GetTarget()
 			
-			if ( FFXIV_Assist_Mode ~= GetString("none") ) then
+			if not gDisableAssistOptions and ( FFXIV_Assist_Mode ~= GetString("none") ) then
 				local newTarget = nil
 				
 				if ( FFXIV_Assist_Priority == GetString("healer") ) then
@@ -96,7 +96,7 @@ function ffxiv_task_assist:Process()
 			end
 
 			local casted = false
-			if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
+			if not gDisableAssistOptions and ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
 				if (gStartCombat or (not gStartCombat and Player.incombat)) then
 					
 					if (gAssistFollowTarget) then
