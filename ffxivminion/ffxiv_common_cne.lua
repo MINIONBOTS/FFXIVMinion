@@ -1689,6 +1689,8 @@ function c_useaethernet:evaluate(mapid, pos)
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
+	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
+	local gatedist = 10000	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
 		e_useaethernet.nearest = {
@@ -1769,8 +1771,6 @@ function c_useaethernet:evaluate(mapid, pos)
 			return true
 		end
 	else
-		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-		local gatedist = 10000
 		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
 			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
