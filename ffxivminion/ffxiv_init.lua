@@ -505,7 +505,7 @@ function ml_global_information.Init()
 		-- Dungeons HW
 		ml_mesh_mgr.SetDefaultMesh(434, "[Dungeon] Dusk Vigil", enforce)
 		ml_mesh_mgr.SetDefaultMesh(441, "[Dungeon] Sohm Al", enforce)
-		--ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon]Aery", enforce)
+		ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon] The Aery", enforce)
 		ml_mesh_mgr.SetDefaultMesh(421, "[Dungeon] The Vault", enforce)
 		ml_mesh_mgr.SetDefaultMesh(416, "[Dungeon] The Great Gubal Library", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Aetherochemical Research Facility", enforce)
