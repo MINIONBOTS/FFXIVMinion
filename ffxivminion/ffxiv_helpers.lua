@@ -2056,10 +2056,7 @@ function IsHealingSkill(skillID)
     end
     return false
 end
-function IsFriendlyBuff(skillID)
-	local id = tonumber(skillID)
-	
-	local buffs = {
+local buffs = {
 		[27] = true,
 		[123] = true,
 		[129] = true,
@@ -2077,6 +2074,8 @@ function IsFriendlyBuff(skillID)
 		[9621] = true,
 		[9651] = true,
 	}
+function IsFriendlyBuff(skillID)
+	local id = tonumber(skillID)
 	
     if (buffs[id]) then
         return true
@@ -2088,33 +2087,37 @@ function IsFriendlyBuff(skillID)
 	
     return false
 end
+local mudras = {
+	[2261] = true,
+	[2259] = true,
+	[2263] = true,
+	[18805] = true,
+	[18806] = true,
+	[18807] = true,
+}
 function IsMudraSkill(skillID)
 	local id = tonumber(skillID)
 	
-	local mudras = {
-		[2261] = true,
-		[2259] = true,
-		[2263] = true,
-	}
     if (mudras[id]) then
         return true
     end
     return false
 end
+local ninjutsus = {
+	[2260] = true,
+	[2265] = true,
+	[2266] = true,
+	[2267] = true,
+	[2268] = true,
+	[2269] = true,
+	[2270] = true,
+	[2271] = true,
+	[2272] = true,
+}
 function IsNinjutsuSkill(skillID)
 	local id = tonumber(skillID)
 	
-	local ninjutsus = {
-		[2260] = true,
-		[2265] = true,
-		[2266] = true,
-		[2267] = true,
-		[2268] = true,
-		[2269] = true,
-		[2270] = true,
-		[2271] = true,
-		[2272] = true,
-	}
+
     if (ninjutsus[id]) then
         return true
     end
@@ -3825,7 +3828,7 @@ function IsTank(var)
 end
 function IsGatherer(jobID)
 	local jobID = tonumber(jobID)
-	if (jobID >= 16 and jobID <= 17) then
+	if jobID ~= nil and (jobID >= 16 and jobID <= 17) then
 		return true
 	end
 	
@@ -3833,9 +3836,7 @@ function IsGatherer(jobID)
 end
 function IsFighter(jobID)
 	local jobID = tonumber(jobID)
-	if ((jobID >= 0 and jobID <= 7) or
-		(jobID >= 19))
-	then
+	if jobID ~= nil and ((jobID >= 0 and jobID <= 7) or (jobID >= 19)) then
 		return true
 	end
 	
@@ -3843,7 +3844,7 @@ function IsFighter(jobID)
 end
 function IsCrafter(jobID)
 	local jobID = tonumber(jobID)
-	if (jobID >= 8 and jobID <= 15) then
+	if jobID ~= nil and (jobID >= 8 and jobID <= 15) then
 		return true
 	end
 	
@@ -9243,6 +9244,7 @@ function IsHousingMap(mapid)
 		[340] = true,
 		[341] = true,
 		[641] = true,
+		[979] = true,
 	}
 	return maps[mapid] ~= nil
 end

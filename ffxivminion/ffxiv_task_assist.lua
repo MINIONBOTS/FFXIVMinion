@@ -73,7 +73,7 @@ function ffxiv_task_assist:Process()
 			
 			local target = Player:GetTarget()
 			
-			if ( FFXIV_Assist_Mode ~= GetString("none") ) then
+			if not gDisableAssistOptions and ( FFXIV_Assist_Mode ~= GetString("none") ) then
 				local newTarget = nil
 				
 				if ( FFXIV_Assist_Priority == GetString("healer") ) then
@@ -96,7 +96,7 @@ function ffxiv_task_assist:Process()
 			end
 
 			local casted = false
-			if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
+			if not gDisableAssistOptions and ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
 				if (gStartCombat or (not gStartCombat and Player.incombat)) then
 					
 					if (gAssistFollowTarget) then
@@ -150,8 +150,8 @@ function ffxiv_task_assist:Process()
 							end
 						end
 						
-					elseif (gAssistTrackTarget ) then
-						Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
+					--elseif (gAssistTrackTarget ) then
+						--Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
 					end
 					
 					if (SkillMgr.Cast( target )) then
@@ -189,7 +189,7 @@ function ffxiv_task_assist:UIInit()
 	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
 	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
-	gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
+	--gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	gAssistSyncFate = ffxivminion.GetSetting("gAssistSyncFate",true)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
@@ -252,72 +252,68 @@ function ffxiv_task_assist.EndElement(strTooltip)
 end
 
 function ffxiv_task_assist:Draw()
-	local mainWidth = (GUI:GetContentRegionAvail() - 10)
-	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = GUI:GetStyle().windowpadding.y
-	local framePaddingY = GUI:GetStyle().framepadding.y
-	local itemSpacingY = GUI:GetStyle().itemspacing.y
+	--local mainWidth = (GUI:GetContentRegionAvail() - 10)
+	--local fontSize = GUI:GetWindowFontSize()
+	--local windowPaddingY = GUI:GetStyle().windowpadding.y
+	--local framePaddingY = GUI:GetStyle().framepadding.y
+	--local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
 	--GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(10),true)
 	--GUI:PushItemWidth(120)
 	
-	GUI:Separator()
 	GUI:Columns(2)
-	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text(GetString("Targeting Assist"))
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("None: Use manual targetting.\
-Lowest Health: Targets the lowest health target within range.\
-Nearest: Targets the closest target within range.\
-Tank Assist: Targets whatever your tank is targetting.")
+	if not gDisableAssistOptions then
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Targeting Assist"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("None: Use manual targetting.\
+	Lowest Health: Targets the lowest health target within range.\
+	Nearest: Targets the closest target within range.\
+	Tank Assist: Targets whatever your tank is targetting.")
+		end
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Priority"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Prioritize Damage or Healing.")
+		end
 	end
-	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text(GetString("Priority"))
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Prioritize Damage or Healing.")
+
+	GUI:NextColumn()
+	local columnWidth = GUI:GetContentRegionAvail() - 10
+	GUI:PushItemWidth(columnWidth)
+	
+	if not gDisableAssistOptions then
+		GUI_Combo("##"..GetString("##assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("None: Use manual targetting.\
+	Lowest Health: Targets the lowest health target within range.\
+	Nearest: Targets the closest target within range.\
+	Tank Assist: Targets whatever your tank is targetting.")
+		end
+
+		GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Prioritize Damage or Healing.")
+		end
 	end
+	
+	GUI:PopItemWidth()
+	GUI:Columns()
+	if not gDisableAssistOptions then GUI:Separator() end
+	GUI:Columns(2)
+
 	GUI:AlignFirstTextHeightToWidgets() 
 	GUI:Text(GetString("Start Combat"))
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
 	end
-	GUI:NextColumn()
-	local columnWidth = GUI:GetContentRegionAvail() - 10
-	GUI:PushItemWidth(columnWidth)
 	
-	GUI_Combo("##"..GetString("##assist"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("None: Use manual targetting.\
-Lowest Health: Targets the lowest health target within range.\
-Nearest: Targets the closest target within range.\
-Tank Assist: Targets whatever your tank is targetting.")
-	end
-
-	GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Prioritize Damage or Healing.")
-	end
-	
-	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
-	end
-	
-	GUI:PopItemWidth()
-	GUI:Columns()
-	GUI:Separator()
-	GUI:Columns(2)
-	
-	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text(GetString("Follow Target"))
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
-	end
-	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text(GetString("Face Target"))
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Attempts to continually face the target.\
-Warning:  Dangerous if using Standard movement mode.")
+	if not gDisableAssistOptions then
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Follow Target"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
+		end
 	end
 	GUI:AlignFirstTextHeightToWidgets() 
 	GUI:Text(GetString("Use Client Autoface"))
@@ -332,16 +328,17 @@ Warning:  Dangerous if using Standard movement mode.")
 	
 	
 	GUI:NextColumn()
-	GUI:PushItemWidth(columnWidth)
 	
-	GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
+	GUI:PushItemWidth(columnWidth)
+	GUI_Capture(GUI:Checkbox("##"..GetString("Start Combat"),gStartCombat),"gStartCombat")
 	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
-	end	
-	GUI_Capture(GUI:Checkbox("##"..GetString("Face Target"),gAssistTrackTarget),"gAssistTrackTarget")
-	if (GUI:IsItemHovered()) then
-		GUI:SetTooltip("Attempts to continually face the target.\
-Warning:  Dangerous if using Standard movement mode.")
+		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
+	end
+	if not gDisableAssistOptions then
+		GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("Attempts to continually follow the target (useful in PvP).")
+		end	
 	end
 	GUI_Capture(GUI:Checkbox("##"..GetString("Use Client Autoface"),gAssistUseAutoFace),"gAssistUseAutoFace", function () ml_global_information.GetMovementInfo(false) end)
 	if (GUI:IsItemHovered()) then

@@ -1688,6 +1688,7 @@ function c_useaethernet:evaluate(mapid, pos)
 	end	
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
 		e_useaethernet.nearest = {
@@ -1707,8 +1708,67 @@ function c_useaethernet:evaluate(mapid, pos)
 		}
 		e_useaethernet.isresidential = true
 		return true
+	elseif (Player.localmapid == 628 and destMapID == 629) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["id"] = 116, ["mapid"] = 628, ["pos"] = { ["x"] = -76.01, ["y"] = 19.06, ["z"] = -161.1 },
+			["conversationstrings"] = {
+				["E"] = "Bokairo Inn",
+				["J"] = "望海楼",
+				["G"] = "Badehaus Bokairo",
+				["F"] = "Auberge du Bokairo",
+				["CN"] = "望海楼",
+				["KR"] = "망해루",
+			},
+		}
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
+	elseif (In(Player.localmapid,130,131) and destMapID == 178) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["conversationstrings"] = {
+				["E"] = "Adventurers' Guild";
+				["J"] = "冒険者ギルド前";
+				["G"] = "Abenteurergilde";
+				["F"] = "Guilde des aventuriers";
+				["CN"] = "冒险者行会前";
+				["KR"] = "모험가 길드";
+			};
+			["id"] = 33;
+			["mapid"] = 130;
+			["pos"] = {
+				["x"] = 65.10;
+				["y"] = 4.1;
+				["z"] = -116.62;
+			};
+		}
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
+	elseif (In(Player.localmapid,128,129) and destMapID == 177) then
+		e_useaethernet.nearest = nearestAethernet
+		e_useaethernet.destination = {
+			["conversationstrings"] = {
+				["E"] = "The Aftcastle";
+				["J"] = "冒険者ギルド前";
+				["G"] = "Achterburg";
+				["F"] = "Guilde des aventuriers (Guildes des armuriers & forgerons/Maelstrom)";
+				["CN"] = "冒险者行会前";
+				["KR"] = "모험가 길드";
+			};
+			["id"] = 41;
+			["mapid"] = 128;
+			["pos"] = {
+				["x"] = 16.09;
+				["y"] = 40;
+				["z"] = 70.61;
+			};
+		}
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+			return true
+		end
 	else
-		local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 		local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 		local gatedist = 10000
 		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
