@@ -3670,6 +3670,11 @@ function c_skiptalk:evaluate()
 				return true
 			end
 		end
+
+		if (gBotMode == GetString("questMode") and IsControlOpen("AkatsukiNote")) then
+			UseControlAction("AkatsukiNote","Close")
+			return true			
+		end
 	end
 
 	return false
