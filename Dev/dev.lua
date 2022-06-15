@@ -2099,11 +2099,17 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Utility Functions")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
+					GUI:BulletText("GetUUID - launcherID") GUI:SameLine(200) GUI:InputText("##devUT00",tostring(GetUUID()))
 					GUI:BulletText("GetGameState") GUI:SameLine(200) GUI:InputText("##devUT0",tostring(GetGameState()))
 					GUI:BulletText("GameVersion") GUI:SameLine(200) GUI:InputText("##devUT1",tostring(GetGameVersion()))
 					GUI:BulletText("GameLanguage") GUI:SameLine(200) GUI:InputText("##devUT2",tostring(GetGameLanguage()))
 					GUI:BulletText("GetGameRegion") GUI:SameLine(200) GUI:InputText("##devUT3",tostring(GetGameRegion()))
 					GUI:BulletText("GetCurrentWeather") GUI:SameLine(200) GUI:InputText("##devUT4",tostring(GetCurrentWeather()))
+					local wpos = GetMouseInWorldPos()
+					if table.valid(wpos) then
+						GUI:BulletText("GetMouseInWorldPos") GUI:SameLine(200)
+						GUI:InputFloat3( "##devUT5", wpos.x, wpos.y, wpos.z, 2, GUI.InputTextFlags_ReadOnly)
+					end
 
 					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
@@ -2285,7 +2291,7 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 			GUI:BulletText("CubePosition") GUI:SameLine(200)  GUI:InputFloat3( "##deva14m", cubepos.x, cubepos.y, cubepos.z, 2, GUI.InputTextFlags_ReadOnly)
 			GUI:BulletText("Dist CubePos-Player") GUI:SameLine(200)  GUI:InputFloat("##deva15m", cubepos.distance,0,0,2)
 			GUI:BulletText("Dist to CubePos") GUI:SameLine(200)  GUI:InputFloat("##deva16m", cubepos.meshdistance,0,0,2)
-		end		
+		end
 		GUI:TreePop()
 	end	
 	if ( GUI:TreeNode("Misc Data") ) then
