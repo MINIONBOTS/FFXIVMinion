@@ -35,26 +35,27 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia" }
+    ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia", "Meteor" }
 elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
+    ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
 else
-	ffxivminion.logincenters = { "Main" }
+    ffxivminion.logincenters = { "Main" }
 end
 
 if (ffxivminion.gameRegion == 1) then
-	ffxivminion.loginservers = {
-		[1] = { "-" },
-		[2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Ramuh", "Tonberry", "Typhon", "Unicorn" }, -- JP-Elemental
-		[3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Gaia
-		[4] = { "-", "Anima", "Asura", "Belias", "Chocobo", "Hades", "Ixion", "Mandragora", "Pandaemonium", "Shinryu", "Titan", "Masamune" }, -- JP-Mana
-		[5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
-		[6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
-		[7] = { "-", "Spriggan", "Cerberus", "Louisoix", "Moogle", "Omega", "Ragnarok" }, -- EU-Chaos
-		[8] = { "-", "Twintania", "Lich", "Odin", "Phoenix", "Shiva", "Zodiark" }, -- EU-Light
-		[9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
-		[10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
-	}
+    ffxivminion.loginservers = {
+        [1] = { "-" },
+        [2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Tonberry", "Typhon" }, -- JP-Elemental
+        [3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima" }, -- JP-Gaia
+        [4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Pandaemonium", "Titan", "Masamune" }, -- JP-Mana
+        [5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
+        [6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
+        [7] = { "-", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", }, -- EU-Chaos
+        [8] = { "-", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark" }, -- EU-Light
+        [9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
+        [10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
+        [11] = { "-", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Meteor
+    }
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
 		[1] = { "-" },
