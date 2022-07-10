@@ -668,7 +668,7 @@ ffxiv_map_nav.data = {
 		[628] = {
 			{id = 628, cost = 1, x = -356.02, y = 8.01, z = 46.85, h = -1.63, g = 1021536
 				, requires = {
-					["QuestCompleted(2469)"] = true, -- check quest id. only added to stop low lvl chars attempting pathing
+					["QuestCompleted(9999)"] = true, -- check quest id. only added to stop low lvl chars attempting pathing
                 },
 			},
 		},
