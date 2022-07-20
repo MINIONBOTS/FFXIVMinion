@@ -7395,7 +7395,22 @@ function Transport620(pos1,pos2)
 			end
 		end
 		
-		if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) or (QuestCompleted(2537) and not QuestCompleted(2541)) then
+		if (HasQuest(2537) and GetQuestInfo(2537,'step') >= 2) then
+			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
+				if (GilCount() > 0) then
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -129, y = 305, z = 189}
+						newTask.contentid = 2008944
+						newTask.abort = function ()
+							return (GetPeaksSection(Player.pos) == 3)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end
+		end
+		if (QuestCompleted(2537) and not QuestCompleted(2541)) then
 			if (GetPeaksSection(Player.pos) ~= 3) and (GetPeaksSection(pos2) == 3) then
 				if (GilCount() > 0) then
 					return true, function ()
