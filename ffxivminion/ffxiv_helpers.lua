@@ -7401,7 +7401,7 @@ function Transport620(pos1,pos2)
 					return true, function ()
 						local newTask = ffxiv_nav_interact.Create()
 						newTask.pos = {x = -129, y = 305, z = 189}
-						newTask.contentid = 2008944
+						newTask.contentid = 2008449
 						newTask.abort = function ()
 							return (GetPeaksSection(Player.pos) == 3)
 						end
