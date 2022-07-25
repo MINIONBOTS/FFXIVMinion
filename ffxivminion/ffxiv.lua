@@ -47,7 +47,7 @@ if (ffxivminion.gameRegion == 1) then
         [1] = { "-" },
         [2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Tonberry", "Typhon" }, -- JP-Elemental
         [3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima" }, -- JP-Gaia
-        [4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Pandaemonium", "Titan", "Masamune" }, -- JP-Mana
+        [4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune" , "Pandaemonium", "Titan"}, -- JP-Mana
         [5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
         [6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
         [7] = { "-", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", }, -- EU-Chaos
@@ -61,12 +61,12 @@ elseif (ffxivminion.gameRegion == 2) then
 		[1] = { "-" },
 		[2] = { "-", "宇宙和音", "幻影群岛", "拉诺西亚", "晨曦王座", "沃仙曦染", "神意之地", "红玉海", "萌芽池" },
 		[3] = { "-", "拂晓之间", "旅人栈桥", "梦羽宝境", "潮风亭", "白金幻象", "白银乡", "神拳痕", "龙巢神殿" },
-		[4] = { "-", "延夏", "摩杜纳", "柔风海湾", "琥珀原", "紫水栈桥", "静语庄园", "海猫茶屋", },
-		[5] = { "-", "水晶塔", "银泪湖", "伊修加德", "太阳海岸", "红茶川"  },
+		[4] = { "-", "延夏", "摩杜纳", "柔风海湾", "海猫茶屋", "琥珀原", "紫水栈桥", "静语庄园", },
+		[5] = { "-", "伊修加德", "太阳海岸", "水晶塔", "红茶川" , "银泪湖",  },
 	}
 elseif (ffxivminion.gameRegion == 3) then
 	ffxivminion.loginservers = {
-		[1] = { "-", "톤베리", "모그리", "초코보", "카벙클","펜리르" },
+		[1] = { "-", "모그리", "초코보", "카벙클", "톤베리","펜리르" },
 	}
 end
 
@@ -338,7 +338,7 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					end
 				else
 					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 11) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 10) then
 							d("trying to login on datacenter:" .. tostring(FFXIV_Login_DataCenter))
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
