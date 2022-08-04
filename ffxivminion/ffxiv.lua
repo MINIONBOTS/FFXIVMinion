@@ -338,7 +338,7 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					end
 				else
 					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 10) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 11) then
 							d("trying to login on datacenter:" .. tostring(FFXIV_Login_DataCenter))
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
