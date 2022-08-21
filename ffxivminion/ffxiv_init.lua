@@ -1822,7 +1822,9 @@ function ml_global_information.Init()
 				[843] = "The Pendants Personal Suite",
 				[857] = "The Core",
 				[878] = "The Empty",
-				
+				[890] = "Lyhe Mheg",
+				[891] = "Lyhe Mheg (Rank Quest)",
+
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 				[979] = "Empyreum"
