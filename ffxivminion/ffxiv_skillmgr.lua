@@ -3678,15 +3678,27 @@ function SkillMgr.Gather(item)
 						
 						
 						if (table.valid(info)) then
-							local collectableRarity = info.rarity
-							local collectableWear = info.wear
+							info = GetControlRawData("GatheringMasterpiece")
 							
-							if GetPatchLevel() >= 5.4 then
-								info = GetControlRawData("GatheringMasterpiece")
+							local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
+							if (GetPatchLevel() >= 6.2) then
+								collectableId = info[3].value
+								collectableRarity = info[14].value
+								collectableMax = info[15].value
+								collectableAttemptsRemaining = info[57].value		
+								collectableAttemptsMax = info[58].value	
+							elseif (GetPatchLevel() >= 6) then
+								collectableId = info[11].value
 								collectableRarity = info[5].value
-								collectableAttemptsRemaining = info[41].value	
+								collectableMax = info[6].value
+								collectableAttemptsRemaining = info[50].value		
+								collectableAttemptsMax = info[51].value	
+							else
+								collectableId = info[11].value
+								collectableRarity = info[5].value
+								collectableMax = info[6].value
+								collectableAttemptsRemaining = info[41].value		
 								collectableAttemptsMax = info[42].value	
-								collectableWear = collectableAttemptsMax - collectableAttemptsRemaining
 							end
 						
 							if (tonumber(skill.collraritylt) > 0 and collectableRarity >= tonumber(skill.collraritylt)) then
