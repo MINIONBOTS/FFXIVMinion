@@ -1084,6 +1084,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1056, "Alzadaal's Legacy", true)
 		ml_mesh_mgr.SetDefaultMesh(1057, "Restricted Archives", true)
 		
+		ml_mesh_mgr.SetDefaultMesh(1070, "[Dungeon] The Fell Court of Troia", true)
+		
+		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
 		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
@@ -1091,6 +1094,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1052, "Duty_4522", true)
 		ml_mesh_mgr.SetDefaultMesh(1053, "[Trial] The Porta Decumana", true)
 		
+		--island sanctuary
+		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
 		
 	end
 	
