@@ -3678,6 +3678,8 @@ function SkillMgr.Gather(item)
 						
 						
 						if (table.valid(info)) then
+							local collectableRarity = info.rarity
+							local collectableWear = info.wear
 							info = GetControlRawData("GatheringMasterpiece")
 							
 							local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
