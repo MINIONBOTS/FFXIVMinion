@@ -1791,12 +1791,15 @@ ffxiv_map_nav.data = {
     {
         [957] = { -- to Thavnair
             {id = 957, cost = 1, x = 99.53, y = -32.00, z = 225.32, h = 0.79
-				, requires = {
-					["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
-				},
-			},
+                , requires = {
+                    ["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
+                },
+            },
         },
-	},
+        [1078] = { -- Meghaduta Guest Chambers
+            {id = 1078, cost = 1, x = -350.89, y = 55.00, z = -80.77, b = 1043847},
+        },
+    },
 	[971] = -- reaper Start
     {
         [131] = {
@@ -1854,6 +1857,39 @@ ffxiv_map_nav.data = {
                     ["GetQuestInfo(4529,'step') >= 255 or QuestCompleted(4529)"] = true,
                 },
             },
+        },
+        [1077] = { -- Zero's Domain
+            {id = 1077, cost = 1, x = 109.99, y = -350.00, z = -91.35, b = 2013039},
+        },
+    },
+    [1077] = -- Zero's Domain
+    {
+        [1089] = { -- The Fell Court of Troia
+            {id = 1089, cost = 1, x = 0.24, y = -0.42, z = -86.34, b = 2013045},
+        },
+        [1092] = { -- Storm's Crown
+            {id = 1092, cost = 1, x = -0.02, y = -0.40, z = -73.75, b = 2013053},
+        },
+    },
+    [1078] = -- Meghaduta Guest Chambers
+    {
+        [963] = { -- Radz-at-Han
+            {id = 963, cost = 1, x = -0.02, y = 0.01, z = 4.73, b = 2013077},
+        },
+    },
+    [1089] = -- The Fell Court of Troia
+    {
+        [1077] = { -- Zero's Domain
+            {id = 1077, cost = 1, x = 14.70, y = 359.20, z = -114.74, b = 2013044},
+        },
+        [1056] = { -- Alzadaal's Legacy
+            {id = 1056, cost = 1, x = -49.08, y = -718.00, z = 130.62, b = 2013040},
+        },
+    },
+    [1092] = -- Storm's Crown
+    {
+        [1077] = { -- Zero's Domain
+            {id = 1077, cost = 1, x = 99.89, y = -18.85, z = 196.88, b = 2013167},
         },
     },
 }-- set reference for mesh mgr
