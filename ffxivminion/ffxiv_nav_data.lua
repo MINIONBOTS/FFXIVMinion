@@ -1729,7 +1729,12 @@ ffxiv_map_nav.data = {
         [1056] = { -- to Alzadaal's Legacy
             {id = 1056, cost = 1, x = -270.25, y = 0.08, z = 605.92, b = 1039589
                 , requires = {
-                    ["GetQuestInfo(4529,'step') >= 255 or QuestCompleted(4529)"] = true,
+                    ["(GetQuestInfo(4529,'step') >= 255 or QuestCompleted(4529)) and not (HasQuest(4592) or QuestCompleted(4592))"] = true,
+                },
+            },
+			{id = 1056, cost = 1, x = -270.25, y = 0.08, z = 605.92, b = 1044157
+                , requires = {
+                    ["QuestCompleted(4592)"] = true,
                 },
             },
         },
