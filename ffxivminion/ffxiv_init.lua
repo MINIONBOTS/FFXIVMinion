@@ -1096,6 +1096,15 @@ function ml_global_information.Init()
 		
 		--island sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
+		if (GetGameRegion() == 1) then
+			--ARR
+			ml_mesh_mgr.SetDefaultMesh(1062, "[Dungeon] Snowcloak", enforce)
+			ml_mesh_mgr.SetDefaultMesh(1063, "[Dungeon] The Keeper of the Lake", enforce)
+			--HW
+			ml_mesh_mgr.SetDefaultMesh(1064, "[Dungeon] Sohm Al", enforce)
+			ml_mesh_mgr.SetDefaultMesh(1065, "[Dungeon] The Aery", enforce)
+			ml_mesh_mgr.SetDefaultMesh(1066, "[Dungeon] The Vault", enforce)
+		end
 		
 	end
 	
