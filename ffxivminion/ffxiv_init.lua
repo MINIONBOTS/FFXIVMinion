@@ -502,6 +502,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1043, "[Dungeon] Castrum Meridianum v2", enforce)
 		ml_mesh_mgr.SetDefaultMesh(1044, "[Dungeon] The Praetorium v2", enforce)
 		
+		ml_mesh_mgr.SetDefaultMesh(1062, "[Dungeon] Snowcloak", enforce)
+		ml_mesh_mgr.SetDefaultMesh(1063, "[Dungeon] The Keeper of the Lake", enforce)
+		
 		-- Dungeons HW
 		ml_mesh_mgr.SetDefaultMesh(434, "[Dungeon] Dusk Vigil", enforce)
 		ml_mesh_mgr.SetDefaultMesh(441, "[Dungeon] Sohm Al", enforce)
@@ -521,6 +524,12 @@ function ml_global_information.Init()
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Great Gubal LibraryHM", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Baelsar's Wall", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Sohm AlHM", enforce)
+		
+		ml_mesh_mgr.SetDefaultMesh(1064, "[Dungeon] Sohm Al", enforce)
+		ml_mesh_mgr.SetDefaultMesh(1065, "[Dungeon] The Aery", enforce)
+		ml_mesh_mgr.SetDefaultMesh(1066, "[Dungeon] The Vault", enforce)
+		
+		
 		
 		-- Dungeons SB
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Sirensong Sea", enforce)
