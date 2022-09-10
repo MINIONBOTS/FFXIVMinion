@@ -242,7 +242,7 @@ function dev.DrawCall(event, ticks )
 												if (GUI:Button("DoAction",100,15) ) then d("DoAction Result: "..tostring(e:DoAction(dev.doAction))) end
 												GUI:SameLine()
 												if not dev.doAction then dev.doAction = 0 end
-												dev.doAction = GUI:InputInt("##devc3"..tostring(id),dev.doAction ,1,1)
+												dev.doAction = GUI:InputInt("##devc4"..tostring(id),dev.doAction ,1,1)
 												GUI:TreePop()
 											end
 										end								
