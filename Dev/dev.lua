@@ -238,7 +238,11 @@ function dev.DrawCall(event, ticks )
 												dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1) 
 												GUI:SameLine()
 												if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
-												dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
+												dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)
+												if (GUI:Button("DoAction",100,15) ) then d("DoAction Result: "..tostring(e:DoAction(dev.doAction))) end
+												GUI:SameLine()
+												if not dev.doAction then dev.doAction = 0 end
+												dev.doAction = GUI:InputInt("##devc3"..tostring(id),dev.doAction ,1,1)
 												GUI:TreePop()
 											end
 										end								
