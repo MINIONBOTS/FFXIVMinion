@@ -392,7 +392,58 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
-						
+
+			-- cbk: Entity
+			if ( GUI:TreeNode("Entity") ) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					if not dev.entityId then
+						dev.entityId = 0
+					end
+					GUI:PushID("entityId")
+					GUI:PushItemWidth(225)
+					local entityId,changed = GUI:InputText("Entity Id##dev.entityId",tostring(dev.entityId),GUI.InputTextFlags_CharsDecimal|GUI.InputTextFlags_EnterReturnsTrue)
+					if changed then
+						dev.entityId = tonumber(entityId) or 0
+					end
+					local c = Player:GetTarget()
+
+					if (not c) then
+						--GUI:PushItemFlag(GUI.ItemFlags_Disabled, true)
+						--GUI:PushStyleVar(GUI.StyleVar_Alpha, GUI:GetStyle().Alpha * 0.5)
+						GUI:PushStyleVar(GUI.StyleVar_Alpha, 0.5)
+					end
+
+					if GUI:Button("Get Entity Id From Target##dev.entityId",225,15) then
+						if (c) then
+							dev.entityId = c.id
+						end
+					end
+
+					if not c then
+						--GUI:PopItemFlag()
+						GUI:PopStyleVar()
+					end
+					if dev.entityId ~= 0 then
+						if GUI:Button("Clear Entity Id##dev.entityId",225,15) then
+							dev.entityId = 0
+						end
+					end
+					GUI:PopItemWidth()
+					GUI:PopID()
+					if dev.entityId ~= 0 then
+						local entity = EntityList:Get(dev.entityId)
+						if not entity then
+							GUI:Text("Entity Id "..tostring(dev.entityId).." not found.")
+						else
+							dev.DrawGameObjectDetails(entity)
+						end
+					end
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+
 			-- cbk: Scanner
 			if ( GUI:TreeNode("Scanner") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
