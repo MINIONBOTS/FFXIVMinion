@@ -204,7 +204,7 @@ function dev.DrawCall(event, ticks )
 											if ( GUI:TreeNode("Strings##"..tostring(id)) ) then
 												local str = e:GetStrings()
 												if (table.valid(str)) then
-													for key, value in pairs(str) do
+													for key, value in table.pairsbykeys(str) do
 														GUI:BulletText(tostring(key)) GUI:SameLine(200) GUI:InputText("##devcdatastr"..tostring(key),value)
 													end
 												end
@@ -221,7 +221,7 @@ function dev.DrawCall(event, ticks )
 													GUI:Text("Value"); GUI:NextColumn()
 													GUI:Separator()
 													local cellInfo={prefix="##RawDataDetails",row=0,col=0,info="",clicked=false}
-													for index, data in pairs(datas) do
+													for index, data in table.pairsbykeys(datas) do
 														if (data.type ~= "0") then
 															cellInfo.row = cellInfo.row + 1
 															cellInfo.col = 0
@@ -1786,7 +1786,7 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("GetSpeed-Backward") GUI:SameLine(200) GUI:InputText("##devmov9a",tostring(Player:GetSpeed()["Backward"]))
 					GUI:BulletText("GetSpeed-Strafe") GUI:SameLine(200) GUI:InputText("##devmov9b",tostring(Player:GetSpeed()["Strafe"]))
 
-					-- THere is also a Player:SetSpeed(type, forwardspeed, backwardspeeed, strafespeed) 
+					-- THere is also a Player:SetSpeed(type, forwardspeed, backwardspeeed, strafespeed)
 					-- Where type is 0 for flying, 1 for walking and 2 for mounted speed which you can set seperately
 
 					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.flying.isflying))
