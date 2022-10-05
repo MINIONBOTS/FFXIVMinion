@@ -2323,11 +2323,30 @@ function e_newcollectiblegame:execute()
 	--local info = GetControlData("GatheringMasterpiece")
 	local info = GetControlRawData("GatheringMasterpiece")
 	if (table.valid(info)) then
-		--local collectableId = info.itemid
-		--local collectableRarity = info.rarity
-		local collectableId = info[11].value
-		local collectableRarity = info[5].value
-		local collectableAttemptsRemaining = info[41].value		
+		
+		local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
+		if (GetPatchLevel() >= 6.2) then
+			collectableId = info[3].value
+			collectableRarity = info[14].value
+			collectableMax = info[15].value
+			collectableAttemptsRemaining = info[57].value		
+			collectableAttemptsMax = info[58].value	
+		elseif (GetPatchLevel() >= 6) then
+			collectableId = info[11].value
+			collectableRarity = info[5].value
+			collectableMax = info[6].value
+			collectableAttemptsRemaining = info[50].value		
+			collectableAttemptsMax = info[51].value	
+		else
+			collectableId = info[11].value
+			collectableRarity = info[5].value
+			collectableMax = info[6].value
+			collectableAttemptsRemaining = info[41].value		
+			collectableAttemptsMax = info[42].value	
+		end
+		d("GetPatchLevel() = "..tostring(GetPatchLevel()))
+		d("collectableAttemptsRemaining = "..tostring(collectableAttemptsRemaining))
+		d("collectableAttemptsMax = "..tostring(collectableAttemptsMax))	
 		
 		local idpairs = {}
 		local task = ffxiv_gather.currentTask
