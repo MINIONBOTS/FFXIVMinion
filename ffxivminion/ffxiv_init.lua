@@ -1094,6 +1094,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1057, "Restricted Archives", true)
 		
 		ml_mesh_mgr.SetDefaultMesh(1070, "[Dungeon] The Fell Court of Troia", true)
+		ml_mesh_mgr.SetDefaultMesh(1073, "Elysion", true)
 		ml_mesh_mgr.SetDefaultMesh(1091, "Duty_4594", true)
 		ml_mesh_mgr.SetDefaultMesh(1077, "[Quest] Zero's Domain", true)
 		ml_mesh_mgr.SetDefaultMesh(1089, "[Quest] The Fell Court of Troia", true)
@@ -1844,6 +1845,7 @@ function ml_global_information.Init()
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
 				[979] = "Empyreum"
+				[1073] = "Elysion"
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
 				return IAmTooLazy[mapid]
