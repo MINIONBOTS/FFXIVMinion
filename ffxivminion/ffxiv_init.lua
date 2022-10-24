@@ -1844,7 +1844,7 @@ function ml_global_information.Init()
 
 				[895] = "Excavation Tunnels",
 				[915] = "Gangos",
-				[979] = "Empyreum"
+				[979] = "Empyreum",
 				[1073] = "Elysion"
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
