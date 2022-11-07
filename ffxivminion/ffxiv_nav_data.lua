@@ -1649,8 +1649,17 @@ ffxiv_map_nav.data = {
         [815] = {
             {id = 815, cost = 1, x = 36.00, y = 4.93, z = -6.85, b = 2009986},
         },
-		[857] = {
-            {id = 857, cost = 1, x = -14.77, y = -2.54, z = 22.60, b = 2009981},
+        [857] = {
+            {id = 857, cost = 1, x = -14.77, y = -2.54, z = 22.60, b = 2009981
+                , requires = {
+                    ["(HasQuest(3255) or QuestCompleted(3255)) and not (HasQuest(3256) or QuestCompleted(3256))"] = true,
+                },
+            },
+            {id = 857, cost = 1, x = -14.77, y = -2.54, z = 22.60, b = 2010135
+                , requires = {
+                    ["HasQuest(3256) or QuestCompleted(3256)"] = true,
+                },
+            },
         },
     },
 	[880] =
