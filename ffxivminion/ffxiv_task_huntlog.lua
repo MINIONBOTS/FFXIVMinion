@@ -364,7 +364,11 @@ function c_huntlogkill:evaluate()
 			el = EntityList("onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
-		if(table.valid(el)) then
+		if (not table.valid(el)) then
+			el = EntityList("onmesh,alive,attackable,aggro")
+		end
+		
+		if (table.valid(el)) then
 			if (TableSize(el) == 1) then
 				local id, entity = next(el)
 				if(entity) then
@@ -396,7 +400,7 @@ function c_huntlogkill:evaluate()
 				end
 			end
         end
-    end
+	end
 	
 	return false
 end
