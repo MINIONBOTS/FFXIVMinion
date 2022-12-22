@@ -1182,7 +1182,11 @@ function e_teleporttomap:execute()
 	end
 	
 	if (ActionIsReady(7,5)) then
-		if (Player:Teleport(e_teleporttomap.aeth.id)) then	
+		local useTicket = ml_task_hub:ThisTask().useAethernetTickets
+		if ItemCount(7569) < 1 then
+			useTicket = false
+		end
+		if (Player:Teleport(e_teleporttomap.aeth.id, nil, useTicket)) then	
 		
 			ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
 			

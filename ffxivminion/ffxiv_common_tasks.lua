@@ -649,6 +649,7 @@ function ffxiv_task_movetomap.Create()
     
     --ffxiv_task_movetomap members
     newinst.name = "MOVETOMAP"
+	newinst.useAethernetTickets = false
     newinst.destMapID = 0
     newinst.tryTP = true
 	newinst.setHomepoint = false
