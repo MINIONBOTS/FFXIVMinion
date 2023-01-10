@@ -5564,6 +5564,9 @@ local pvpMaps = {
     [1058] = true, -- ???, The Palaistra
     [1059] = true, -- ???, The Volcanic Heart
     [1060] = true, -- ???, Cloud Nine
+	
+    [1116] = true, -- ???, Clockwork Castletown
+    [1117] = true, -- ???, Clockwork Castletown
     
     
 }
