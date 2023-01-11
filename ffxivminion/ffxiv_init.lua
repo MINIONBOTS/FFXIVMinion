@@ -1099,12 +1099,14 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1077, "[Quest] Zero's Domain", true)
 		ml_mesh_mgr.SetDefaultMesh(1089, "[Quest] The Fell Court of Troia", true)
 		ml_mesh_mgr.SetDefaultMesh(1097, "[Dungeon] Lapis Manalis", true)
+		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
 		ml_mesh_mgr.SetDefaultMesh(1013, "Duty_4464", true)
 		ml_mesh_mgr.SetDefaultMesh(1011, "Duty_4394", true)
 		ml_mesh_mgr.SetDefaultMesh(1052, "Duty_4522", true)
 		ml_mesh_mgr.SetDefaultMesh(1053, "[Quest] The Porta Decumana", true)
+		ml_mesh_mgr.SetDefaultMesh(1119, "[Quest] Lapis Manalis", true) 
 		
 		--island sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
