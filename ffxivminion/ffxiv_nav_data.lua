@@ -1729,7 +1729,7 @@ ffxiv_map_nav.data = {
                     ["GetQuestInfo(4412,'step') >= 2 or QuestCompleted(4412)"] = true,
                 },
             },
-            {id = 963, cost = 1, x = 208, y = 60, z = -601,b = 1037650
+            {id = 963, cost = 1, x = 208, y = 60, z = -601, b = 1037650
                 , requires = {
                     ["QuestCompleted(4412)"] = false,
                 },
@@ -1747,6 +1747,9 @@ ffxiv_map_nav.data = {
                 },
             },
         },
+		[1125] = { -- Khadga
+		    {id = 1125, cost = 1, x = -74.86, y = 99.95, z = -714.56, b = 1037697},
+        },
     },
 	[958] = -- Garlemald:
     {
@@ -1759,6 +1762,9 @@ ffxiv_map_nav.data = {
                     ["QuestCompleted(4395)"] = true,
                 },
             },
+        },
+		[1119] = { -- Lapis Manalis
+		     {id = 1119, cost = 1, x = 465.66, y = -18.01, z = 717.94, b = 1044263},
         },
     },
 	[959] = -- Mare Lamentorum:
@@ -1904,6 +1910,18 @@ ffxiv_map_nav.data = {
     {
         [1077] = { -- Zero's Domain
             {id = 1077, cost = 1, x = 99.89, y = -18.85, z = 196.88, b = 2013167},
+        },
+    },
+	[1119] = -- Lapis Manalis
+    {
+        [958] = { -- Garlemald
+            {id = 958, cost = 1, x = 47.60, y = 365.84, z = -587.42, b = 2013227},
+        },
+    },
+	[1125] = -- Khadga
+    {
+        [957] = { -- Thavnair
+            {id = 957, cost = 1, x = 699.63, y = -181.08, z = 45.66, b = 2013241},
         },
     },
 }-- set reference for mesh mgr
