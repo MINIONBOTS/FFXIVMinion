@@ -655,6 +655,8 @@ function ml_global_information.Init()
 		-- Trials EW
 		ml_mesh_mgr.SetDefaultMesh(992, "[Trial] The Dark Inside", enforce)
 		ml_mesh_mgr.SetDefaultMesh(995, "[Trial] The Mothercrystal", enforce) --Hydaelyn
+		ml_mesh_mgr.SetDefaultMesh(1095, "[Trial] Mount Ordeals", enforce) -- Rubicante Story
+		ml_mesh_mgr.SetDefaultMesh(1096, "[Trial] Mount Ordeals", enforce) -- Rubicante EX
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
@@ -714,7 +716,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(583, "[Raid] The Soul of the Creator", enforce) -- a12
 		ml_mesh_mgr.SetDefaultMesh(587, "[Raid] The Soul of the Creator", enforce) -- a12s
 
-    -- Raids SB
+   		 -- Raids SB
 		ml_mesh_mgr.SetDefaultMesh(690, "The Interdimensional Rift", enforce)
 		ml_mesh_mgr.SetDefaultMesh(724, "The Interdimensional Rift", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Raid] Omega Deltascape", enforce)
@@ -1106,9 +1108,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1011, "Duty_4394", true)
 		ml_mesh_mgr.SetDefaultMesh(1052, "Duty_4522", true)
 		ml_mesh_mgr.SetDefaultMesh(1053, "[Quest] The Porta Decumana", true)
-		ml_mesh_mgr.SetDefaultMesh(1119, "[Quest] Lapis Manalis", true) 
+		ml_mesh_mgr.SetDefaultMesh(1120, "Duty_4673", true) -- Solo Duty 6.3
+		ml_mesh_mgr.SetDefaultMesh(1119, "[Quest] Lapis Manalis", true) -- Story Area 6.3
 		
-		--island sanctuary
+		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
 		
 	end
