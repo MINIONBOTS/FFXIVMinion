@@ -528,6 +528,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1113, "[Dungeon] Xelphatol v2", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] The Great Gubal LibraryHM", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Baelsar's Wall", enforce)
+		ml_mesh_mgr.SetDefaultMesh(1114, "[Dungeon] Baelsar's Wall v2", enforce)
 		--ml_mesh_mgr.SetDefaultMesh(???, "[Dungeon] Sohm AlHM", enforce)
 		
 		ml_mesh_mgr.SetDefaultMesh(1064, "[Dungeon] Sohm Al", enforce)
