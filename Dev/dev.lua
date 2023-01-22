@@ -1038,13 +1038,13 @@ function dev.DrawCall(event, ticks )
 			-- cbk: Fish Guide
 			if ( GUI:TreeNode("Fish Guide")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					local data = GetControlData("FishGuide")
+					local data = GetControlData("FishGuide2")
 					if (table.valid(data)) then
 						GUI:PushItemWidth(150)
 						GUI:BulletText("Mode") GUI:SameLine(200) GUI:InputText("##devfigu0", data.mode)
-						if (GUI:Button("Set Fishing Mode")) then GetControl("FishGuide"):Action("SetFishingMode") end
+						if (GUI:Button("Set Fishing Mode")) then GetControl("FishGuide2"):Action("SetFishingMode") end
 						GUI:SameLine()
-						if (GUI:Button("Set Spear Fishing Mode")) then GetControl("FishGuide"):Action("SetSpearFishingMode") end
+						if (GUI:Button("Set Spear Fishing Mode")) then GetControl("FishGuide2"):Action("SetSpearFishingMode") end
 						local caughtList = { }
 						local uncaughtList = { }
 						for _,entry in pairs(data.entries) do
@@ -1069,6 +1069,7 @@ function dev.DrawCall(event, ticks )
 						GUI:PopItemWidth()
 					else
 						GUI:Text("Fish Guide not open...")
+						if (GUI:Button("Open Fish Guide")) then ActionList:Get(10,41):Cast() end
 					end
 				else
 					GUI:Text("Not Ingame...")
