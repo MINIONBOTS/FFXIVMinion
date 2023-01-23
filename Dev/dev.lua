@@ -41,6 +41,10 @@ function dev.Init()
 	gDevRecordedNPCs = {}
 	gDevX = 0
 	gDevY = 0
+	gDevActionsNameFilter = ""
+	gDevActionsUpdatePulse = 500	
+	gDevActionsUpdate = 500	
+	gDevStoredActions = {}	
 end
 
 
@@ -188,7 +192,7 @@ function dev.DrawCall(event, ticks )
 															if (type(vv) == "table") then
 																GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
 																for vvk,vvv in pairs(vv) do
-																	GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(vvv) GUI:SameLine(0,5)
+																	GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(tostring(vvv)) GUI:SameLine(0,5)
 																end
 															else
 																GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
@@ -574,28 +578,43 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
-
+						
 			-- cbk: ActionList
 			if ( GUI:TreeNode("ActionList")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					GUI:PushItemWidth(100)
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(100)	
 					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
 					if (GUI:Button("StopCasting",100,15) ) then d("StopCasting Result: "..tostring(ActionList:StopCasting())) end
-					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady()))
+					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady())) 
 					gDevFilterActions = GUI:Checkbox("Filter Actions",gDevFilterActions)
+					GUI:BulletText("Update Pulse") GUI:SameLine(200) gDevActionsUpdatePulse = GUI:InputInt("##gDevActionsUpdatePulse",gDevActionsUpdatePulse) 
+					GUI:PopItemWidth()
+					GUI:PushItemWidth(200)
+					GUI:BulletText("Name Filter") GUI:SameLine(200)
+					local val,changed = GUI:InputText("##gDevActionsNameFilter",gDevActionsNameFilter)
+					if (changed) then
+						gDevActionsNameFilter = val
+					end
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(200)
 					local actiontypes = ActionList:GetTypes()
 					if (table.valid(actiontypes)) then
 						for actiontype, e in pairs(actiontypes) do
 							if ( GUI:TreeNode(tostring(actiontype).." - "..e)) then
-								local actionlist = ActionList:Get(actiontype) 	-- ALTERNATIVE:  ActionList:Get(actiontype, skillID) , to get the single action back
+								local actionlist = nil
+								if table.valid(gDevStoredActions) and (TimeSince(gDevActionsUpdate) < tonumber(gDevActionsUpdatePulse)) then
+									actionlist = gDevStoredActions[actiontype]
+								else
+									actionlist = ActionList:Get(actiontype)
+									gDevStoredActions[actiontype] = actionlist
+									gDevActionsUpdate = Now()
+								end
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.usable)) then
+										if (not gDevFilterActions or (action.usable)) and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter)) then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
-												--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+											--if ( GUI:TreeNode(tostring(actionid).." - ")) then
 												GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
 												GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
 												GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
