@@ -660,6 +660,7 @@ function ml_global_information.Init()
 		
 		-- Trials EW
 		ml_mesh_mgr.SetDefaultMesh(992, "[Trial] The Dark Inside", enforce)
+		ml_mesh_mgr.SetDefaultMesh(997, "[Trial] The Final Day", enforce)
 		ml_mesh_mgr.SetDefaultMesh(995, "[Trial] The Mothercrystal", enforce) --Hydaelyn
 		ml_mesh_mgr.SetDefaultMesh(1095, "[Trial] Mount Ordeals", enforce) -- Rubicante Story
 		ml_mesh_mgr.SetDefaultMesh(1096, "[Trial] Mount Ordeals", enforce) -- Rubicante EX
