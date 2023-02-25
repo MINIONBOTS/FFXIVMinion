@@ -1115,6 +1115,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1011, "Duty_4394", true)
 		ml_mesh_mgr.SetDefaultMesh(1052, "Duty_4522", true)
 		ml_mesh_mgr.SetDefaultMesh(1053, "[Quest] The Porta Decumana", true)
+		ml_mesh_mgr.SetDefaultMesh(1093, "[Quest] Stygian Insenescence Cells", true)
 		ml_mesh_mgr.SetDefaultMesh(1120, "Duty_4673", true) -- Solo Duty 6.3
 		ml_mesh_mgr.SetDefaultMesh(1119, "[Quest] Lapis Manalis", true) -- Story Area 6.3
 		

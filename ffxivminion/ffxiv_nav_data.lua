@@ -1862,6 +1862,9 @@ ffxiv_map_nav.data = {
         [961] = { -- to Elpis
             {id = 961, cost = 1, x = 99.99, y = -0.32, z = 169.97, b = 2012294},
         },
+		[1093] = { -- to Stygian Insenescence Cells
+            {id = 1093, cost = 1, x = 100.11, y = 7.69, z = -70.68, b = 2013031},
+        },
     },
     [1028] = -- The Dark Inside:
     {
@@ -1910,6 +1913,12 @@ ffxiv_map_nav.data = {
     {
         [1077] = { -- Zero's Domain
             {id = 1077, cost = 1, x = 99.89, y = -18.85, z = 196.88, b = 2013167},
+        },
+    },
+	[1093] = -- Stygian Insenescence Cells
+    {
+        [1025] = { -- The Gates of Pandæmonium
+            {id = 1025, cost = 1, x = 100.20, y = 0.00, z = 119.75, b = 2013032},
         },
     },
 	[1119] = -- Lapis Manalis
