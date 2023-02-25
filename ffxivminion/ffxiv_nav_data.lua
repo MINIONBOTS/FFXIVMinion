@@ -678,7 +678,7 @@ ffxiv_map_nav.data = {
 		[962] = {
 			{id = 962, cost = 1, x = -386.02, y = 6.01, z = 41.85, h = 1.61, b = 1037069
 				, requires = {
-					["GetPatchLevel() >= 6"] = true,
+					["QuestCompleted(4357)"] = true,
                 },
 			},
 		},
@@ -1792,7 +1792,11 @@ ffxiv_map_nav.data = {
 	[962] = -- Old Sharlayan:
     {
 		[129] = { -- to Limsa Lominsa Lower Decks
-			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220},
+			{id = 129, cost = 1, x = 159, y = -16, z = 179, g = 1037220
+				, requires = {
+					["QuestCompleted(4357)"] = true,
+                },
+			},
 		},
         [956] = { -- to Labyrinthos
             {id = 956, cost = 1, x = -53.97, y = 18.17, z = -324.52, b = 1037118},
