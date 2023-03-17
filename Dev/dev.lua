@@ -37,14 +37,15 @@ function dev.Init()
 	gDevScannerString = "alive,aggressive"
 	gDevScannerShowContentId = true
 	gDevScannerShowId = false
+	gDevScannerShowPos = false
 	gDevRecordNPCs = false
 	gDevRecordedNPCs = {}
 	gDevX = 0
 	gDevY = 0
 	gDevActionsNameFilter = ""
-	gDevActionsUpdatePulse = 500	
-	gDevActionsUpdate = 500	
-	gDevStoredActions = {}	
+	gDevActionsUpdatePulse = 500
+	gDevActionsUpdate = 500
+	gDevStoredActions = {}
 end
 
 
@@ -91,12 +92,74 @@ function dev.GetRepairItemName(item)
 	end
 end
 
-function dev.DisplaySelectableCell(cellInfo, cellData)
+function dev.FormatPos(pos)
+	if pos then
+		return string.format("{x=%.2f,y=%.2f,z=%.2f,h=%.2f}",pos.x,pos.y,pos.z,pos.h)
+	end
+	return "nil"
+end
+
+dev.MOUSE_ACTION_HOVERED = 0x001
+dev.MOUSE_ACTION_LEFT_CLICKED = 0x002
+dev.MOUSE_ACTION_RIGHT_CLICKED = 0x004
+dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED = 0x008
+dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED = 0x010
+dev.MOUSE_ACTION_LEFT_DOWN = 0x020
+dev.MOUSE_ACTION_RIGHT_DOWN = 0x040
+dev.MOUSE_ACTION_LEFT_RELEASED = 0x080
+dev.MOUSE_ACTION_RIGHT_RELEASED = 0x100
+dev.MOUSE_ACTION_ALL = 0x1FF
+dev.MOUSE_ACTION_NONE = 0x000
+
+function dev.GetMouseActions(checkMouseActions)
+	local mouseActions = 0
+	if type(checkMouseActions) == "number" then
+		if checkMouseActions ~= dev.MOUSE_ACTION_NONE then
+			local isItemHovered = GUI:IsItemHovered()
+			if (checkMouseActions & dev.MOUSE_ACTION_HOVERED) ~= 0 then
+				mouseActions = mouseActions | ((isItemHovered and dev.MOUSE_ACTION_HOVERED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_CLICKED) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseClicked(0)) and dev.MOUSE_ACTION_LEFT_CLICKED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_CLICKED) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseClicked(1)) and dev.MOUSE_ACTION_RIGHT_CLICKED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDoubleClicked(0)) and dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDoubleClicked(1)) and dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_DOWN) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDown(0)) and dev.MOUSE_ACTION_LEFT_DOWN) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_DOWN) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDown(1)) and dev.MOUSE_ACTION_RIGHT_DOWN) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_RELEASED) ~= 0 then
+				mouseActions = mouseActions |(((isItemHovered and GUI:IsMouseReleased(0)) and dev.MOUSE_ACTION_LEFT_RELEASED) or 0)
+			end
+			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_RELEASED) ~= 0 then
+				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseReleased(1)) and dev.MOUSE_ACTION_RIGHT_RELEASED) or 0)
+			end
+		end
+	end
+	return mouseActions
+end
+
+function dev.CheckMouseActions(mouseActions,checkMouseActions)
+	return (mouseActions & checkMouseActions) ~= 0
+end
+
+function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
+	local checkMouseActions = checkMouseActions or dev.MOUSE_ACTION_NONE
 	if cellData == nil then
 		cellData = ""
 	end
 	cellInfo.col = cellInfo.col + 1
-	local selected = GUI:Selectable(cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col,false,GUI.SelectableFlags_SpanAllColumns)
+	GUI:Selectable(cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col,false,GUI.SelectableFlags_SpanAllColumns)
+	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(checkMouseActions)
 	GUI:SameLine()
 	GUI:Text(cellData)
 	if cellInfo.info:len() == 0 then
@@ -104,7 +167,6 @@ function dev.DisplaySelectableCell(cellInfo, cellData)
 	else
 		cellInfo.info = cellInfo.info..","..tostring(cellData)
 	end
-	cellInfo.clicked = cellInfo.clicked or selected
 	GUI:NextColumn()
 end
 
@@ -230,27 +292,27 @@ function dev.DrawCall(event, ticks )
 															cellInfo.row = cellInfo.row + 1
 															cellInfo.col = 0
 															cellInfo.info = ""
-															cellInfo.clicked = false
-															dev.DisplaySelectableCell(cellInfo,tostring(index))
-															dev.DisplaySelectableCell(cellInfo,tostring(data.type))
+															cellInfo.mouseActions = 0
+															dev.DisplaySelectableCell(cellInfo,tostring(index),dev.MOUSE_ACTION_LEFT_CLICKED)
+															dev.DisplaySelectableCell(cellInfo,tostring(data.type),dev.MOUSE_ACTION_LEFT_CLICKED)
 															GUI:PushItemWidth(500)
 															if (data.type == "int32") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value))
+																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif (data.type == "uint32") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value))
+																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif (data.type == "bool") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value))
+																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif (data.type == "string") then
-																dev.DisplaySelectableCell(cellInfo,data.value)
+																dev.DisplaySelectableCell(cellInfo,data.value,dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif (data.type == "float") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value))
+																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif (data.type == "4bytes") then
-																dev.DisplaySelectableCell(cellInfo,"A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D))
+																dev.DisplaySelectableCell(cellInfo,"A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D),dev.MOUSE_ACTION_LEFT_CLICKED)
 															else
-																dev.DisplaySelectableCell(cellInfo,"")
+																dev.DisplaySelectableCell(cellInfo,"",dev.MOUSE_ACTION_LEFT_CLICKED)
 															end
 															GUI:PopItemWidth()
-															if cellInfo.clicked then
+															if dev.CheckMouseActions(cellInfo.mouseActions,dev.MOUSE_ACTION_LEFT_CLICKED) then
 																d(cellInfo.info)
 															end
 														end
@@ -484,8 +546,9 @@ function dev.DrawCall(event, ticks )
 					GUI:PopItemWidth()
 					gDevScannerShowId = GUI:Checkbox("Show Id##dev-scanner.showId", gDevScannerShowId)
 					gDevScannerShowContentId = GUI:Checkbox("Show Content Id##dev-scanner.showContentId", gDevScannerShowContentId)
+					gDevScannerShowPos = GUI:Checkbox("Show Pos##dev-scanner.showPos", gDevScannerShowPos)
 					GUI:Separator()
-					local columns = 9 + ((gDevScannerShowId and 1) or 0) + ((gDevScannerShowContentId and 1) or 0)
+					local columns = 9 + ((gDevScannerShowId and 1) or 0) + ((gDevScannerShowContentId and 1) or 0) + ((gDevScannerShowPos and 1) or 0)
 					local el = EntityList(gDevScannerString)
 					if (table.valid(el)) then
 						GUI:Columns(columns, "##dev-scanner.details",true)
@@ -496,6 +559,9 @@ function dev.DrawCall(event, ticks )
 						end
 						if gDevScannerShowContentId then
 							GUI:Text("Content Id"); GUI:NextColumn()
+						end
+						if gDevScannerShowPos then
+							GUI:Text("Pos"); GUI:NextColumn()
 						end
 						GUI:Text("Current Target"); GUI:NextColumn()
 						GUI:Text("Casting"); GUI:NextColumn()
@@ -511,16 +577,24 @@ function dev.DrawCall(event, ticks )
 							cellInfo.row = cellInfo.row + 1
 							cellInfo.col = 0
 							cellInfo.info = ""
-							cellInfo.clicked = false
+							cellInfo.mouseActions = 0
 
-							dev.DisplaySelectableCell(cellInfo,entity.name)
+							dev.DisplaySelectableCell(cellInfo,entity.name,dev.MOUSE_ACTION_LEFT_CLICKED)
 
 							if gDevScannerShowId then
-								dev.DisplaySelectableCell(cellInfo,tostring(entity.id))
+								dev.DisplaySelectableCell(cellInfo,tostring(entity.id),dev.MOUSE_ACTION_LEFT_CLICKED|dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED)
+								if  dev.CheckMouseActions(cellInfo.mouseActions,dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) then
+									dev.entityId = entity.id
+									cellInfo.mouseActions = cellInfo.mouseActions & bit.bnot(dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED)
+								end
 							end
 
 							if gDevScannerShowContentId then
-								dev.DisplaySelectableCell(cellInfo,tostring(entity.contentId))
+								dev.DisplaySelectableCell(cellInfo,tostring(entity.contentId),dev.MOUSE_ACTION_LEFT_CLICKED)
+							end
+
+							if gDevScannerShowPos then
+								dev.DisplaySelectableCell(cellInfo,dev.FormatPos(entity.pos),dev.MOUSE_ACTION_LEFT_CLICKED)
 							end
 
 							local targetname = ""
@@ -531,7 +605,7 @@ function dev.DrawCall(event, ticks )
 								end
 							end
 
-							dev.DisplaySelectableCell(cellInfo,targetname)
+							dev.DisplaySelectableCell(cellInfo,targetname,dev.MOUSE_ACTION_LEFT_CLICKED)
 
 							local castname, channelname = "", ""
 							local castlookup, channellookup
@@ -547,10 +621,10 @@ function dev.DrawCall(event, ticks )
 								channelname = IsNull(channellookup[1].name,"")
 							end
 
-							dev.DisplaySelectableCell(cellInfo,castname.."["..tostring(ci.castingid).."]")
-							dev.DisplaySelectableCell(cellInfo,ci.casttime)
-							dev.DisplaySelectableCell(cellInfo,channelname.."["..tostring(ci.channelingid).."]")
-							dev.DisplaySelectableCell(cellInfo,ci.channeltime)
+							dev.DisplaySelectableCell(cellInfo,castname.."["..tostring(ci.castingid).."]",dev.MOUSE_ACTION_LEFT_CLICKED)
+							dev.DisplaySelectableCell(cellInfo,ci.casttime,dev.MOUSE_ACTION_LEFT_CLICKED)
+							dev.DisplaySelectableCell(cellInfo,channelname.."["..tostring(ci.channelingid).."]",dev.MOUSE_ACTION_LEFT_CLICKED)
+							dev.DisplaySelectableCell(cellInfo,ci.channeltime,dev.MOUSE_ACTION_LEFT_CLICKED)
 
 
 							targetname = ""
@@ -561,14 +635,13 @@ function dev.DrawCall(event, ticks )
 								end
 							end
 
-							dev.DisplaySelectableCell(cellInfo,targetname)
-							dev.DisplaySelectableCell(cellInfo,entity.action)
-							dev.DisplaySelectableCell(cellInfo,entity.lastaction)
+							dev.DisplaySelectableCell(cellInfo,targetname,dev.MOUSE_ACTION_LEFT_CLICKED)
+							dev.DisplaySelectableCell(cellInfo,entity.action,dev.MOUSE_ACTION_LEFT_CLICKED)
+							dev.DisplaySelectableCell(cellInfo,entity.lastaction,dev.MOUSE_ACTION_LEFT_CLICKED)
 
-							if  cellInfo.clicked then
+							if  dev.CheckMouseActions(cellInfo.mouseActions,dev.MOUSE_ACTION_LEFT_CLICKED) then
 								d(tostring(cellInfo.info))
 							end
-
 						end
 						GUI:Separator()
 						GUI:Columns(1)
@@ -578,16 +651,16 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
-						
+
 			-- cbk: ActionList
 			if ( GUI:TreeNode("ActionList")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
-					GUI:PushItemWidth(100)	
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(100)
 					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
 					if (GUI:Button("StopCasting",100,15) ) then d("StopCasting Result: "..tostring(ActionList:StopCasting())) end
-					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady())) 
+					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady()))
 					gDevFilterActions = GUI:Checkbox("Filter Actions",gDevFilterActions)
-					GUI:BulletText("Update Pulse") GUI:SameLine(200) gDevActionsUpdatePulse = GUI:InputInt("##gDevActionsUpdatePulse",gDevActionsUpdatePulse) 
+					GUI:BulletText("Update Pulse") GUI:SameLine(200) gDevActionsUpdatePulse = GUI:InputInt("##gDevActionsUpdatePulse",gDevActionsUpdatePulse)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(200)
 					GUI:BulletText("Name Filter") GUI:SameLine(200)
@@ -614,7 +687,7 @@ function dev.DrawCall(event, ticks )
 										if (not gDevFilterActions or (action.usable)) and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter)) then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
-											--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+												--if ( GUI:TreeNode(tostring(actionid).." - ")) then
 												GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
 												GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
 												GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
