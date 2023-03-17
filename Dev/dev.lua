@@ -38,6 +38,7 @@ function dev.Init()
 	gDevScannerShowContentId = true
 	gDevScannerShowId = false
 	gDevScannerShowPos = false
+	gDevScannerSortByPos = false
 	gDevRecordNPCs = false
 	gDevRecordedNPCs = {}
 	gDevX = 0
@@ -544,13 +545,32 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(500)
 					gDevScannerString = GUI:InputText("##dev-scanner.filter",gDevScannerString);
 					GUI:PopItemWidth()
+					GUI:NewLine()
 					gDevScannerShowId = GUI:Checkbox("Show Id##dev-scanner.showId", gDevScannerShowId)
+					GUI:SameLine()
 					gDevScannerShowContentId = GUI:Checkbox("Show Content Id##dev-scanner.showContentId", gDevScannerShowContentId)
+					GUI:SameLine()
 					gDevScannerShowPos = GUI:Checkbox("Show Pos##dev-scanner.showPos", gDevScannerShowPos)
+					GUI:SameLine()
+					gDevScannerSortByPos = GUI:Checkbox("Sort by Pos##dev-scanner.sortByPos", gDevScannerSortByPos)
+					GUI:NewLine()
 					GUI:Separator()
 					local columns = 9 + ((gDevScannerShowId and 1) or 0) + ((gDevScannerShowContentId and 1) or 0) + ((gDevScannerShowPos and 1) or 0)
 					local el = EntityList(gDevScannerString)
 					if (table.valid(el)) then
+						local entities = {}
+						for _, entity in pairs(el) do
+							table.insert(entities,entity)
+						end
+
+						if gDevScannerSortByPos then
+							table.sort(
+								entities,
+								function(l,r)
+									return math.distance3d(Player.pos,l.pos) < math.distance3d(Player.pos,r.pos)
+								end)
+						end
+
 						GUI:Columns(columns, "##dev-scanner.details",true)
 
 						GUI:Text("Name"); GUI:NextColumn()
@@ -573,7 +593,7 @@ function dev.DrawCall(event, ticks )
 						GUI:Text("Last Anim"); GUI:NextColumn()
 						GUI:Separator()
 						local cellInfo={prefix="##dev-scanner",row=0,col=0,info="",clicked=false}
-						for i, entity in pairs(el) do
+						for _, entity in ipairs(entities) do
 							cellInfo.row = cellInfo.row + 1
 							cellInfo.col = 0
 							cellInfo.info = ""
