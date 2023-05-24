@@ -664,6 +664,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(995, "[Trial] The Mothercrystal", enforce) --Hydaelyn
 		ml_mesh_mgr.SetDefaultMesh(1095, "[Trial] Mount Ordeals", enforce) -- Rubicante Story
 		ml_mesh_mgr.SetDefaultMesh(1096, "[Trial] Mount Ordeals", enforce) -- Rubicante EX
+		ml_mesh_mgr.SetDefaultMesh(1140, "[Trial] The Voidcast Dais", enforce) -- Golbez Story
+		ml_mesh_mgr.SetDefaultMesh(1141, "[Trial] The Voidcast Dais", enforce) -- Golbez EX
+		
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
