@@ -1108,6 +1108,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1077, "[Quest] Zero's Domain", true)
 		ml_mesh_mgr.SetDefaultMesh(1089, "[Quest] The Fell Court of Troia", true)
 		ml_mesh_mgr.SetDefaultMesh(1097, "[Dungeon] Lapis Manalis", true)
+		ml_mesh_mgr.SetDefaultMesh(1126, "[Dungeon] The Aetherfont", true)
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
