@@ -1747,7 +1747,7 @@ ffxiv_map_nav.data = {
                 },
             },
         },
-		[1125] = { -- Khadga
+		[1125] = { -- to Khadga
 		    {id = 1125, cost = 1, x = -74.86, y = 99.95, z = -714.56, b = 1037697},
         },
     },
@@ -1763,8 +1763,11 @@ ffxiv_map_nav.data = {
                 },
             },
         },
-		[1119] = { -- Lapis Manalis
-		     {id = 1119, cost = 1, x = 465.66, y = -18.01, z = 717.94, b = 1044263},
+		[1119] = { -- to Lapis Manalis
+		{id = 1119, cost = 1, x = 465.66, y = -18.01, z = 717.94, b = 1044263},
+        },
+		[1160] = { -- to Senatus
+		{id = 1160, cost = 1, x = -368.51, y = 11.16, z = -623.00, b = 2013360},
         },
     },
 	[959] = -- Mare Lamentorum:
@@ -1778,6 +1781,9 @@ ffxiv_map_nav.data = {
         },
         [1028] = { -- to The Dark Inside
             {id = 1028, cost = 1, x = 188.83, y = 63.44, z = 468.25, b = 1039988},
+        },
+		[1162] = { -- to The Red Moon
+            {id = 1162, cost = 1, x = -103.34, y = 51.43, z = 391.69, a = 2013362},
         },
     },
 	[961] = -- Elpis:
@@ -1816,8 +1822,11 @@ ffxiv_map_nav.data = {
                 },
             },
         },
-        [1078] = { -- Meghaduta Guest Chambers
+        [1078] = { -- to Meghaduta Guest Chambers
             {id = 1078, cost = 1, x = -350.89, y = 55.00, z = -80.77, b = 1043847},
+        },
+	[1161] = { -- to Estinien's Chambers
+            {id = 1161, cost = 1, x = -351.12, y = 55.00, z = -80.85, b = 1043847},
         },
     },
 	[971] = -- reaper Start
@@ -1931,6 +1940,33 @@ ffxiv_map_nav.data = {
     {
         [957] = { -- Thavnair
             {id = 957, cost = 1, x = 699.63, y = -181.08, z = 45.66, b = 2013241},
+        },
+    },
+	[1159] = -- The Voidcast Dais
+    {
+        [1162] = { -- The Red Moon
+            {id = 1162, cost = 1, x = 99.94, y = 0.03, z = 113.34, b = 2013366},
+        },
+    },
+	[1160] = -- Senatus
+    {
+        [958] = { -- Garlemald
+            {id = 958, cost = 1, x = 12.04, y = 3.00, z = 79.43, b = 2013361},
+        },
+    },
+	[1161] = -- Estinien's Chambers
+    {
+        [963] = { -- Radz-at-Han
+            {id = 963, cost = 1, x = -0.01, y = 0.00, z = 5.28, b = 2013358},
+        },
+    },
+	[1162] = -- The Red Moon
+    {
+        [959] = { -- to Mare Lamentorum
+            {id = 959, cost = 1, x = -44.57, y = 112.67, z = 769.73, b = 2013363},
+        },
+		[1159] = { -- The Voidcast Dais
+            {id = 1159, cost = 1, x = 61.98, y = 56.69, z = 477.25, b = 2013365},
         },
     },
 }-- set reference for mesh mgr
