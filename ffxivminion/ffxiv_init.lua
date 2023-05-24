@@ -1119,6 +1119,10 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1093, "[Quest] Stygian Insenescence Cells", true)
 		ml_mesh_mgr.SetDefaultMesh(1120, "Duty_4673", true) -- Solo Duty 6.3
 		ml_mesh_mgr.SetDefaultMesh(1119, "[Quest] Lapis Manalis", true) -- Story Area 6.3
+		ml_mesh_mgr.SetDefaultMesh(1159, "The Voidcast Dais", true) -- Story Area 6.4
+		ml_mesh_mgr.SetDefaultMesh(1160, "Senatus", true) -- Story Area 6.4
+		ml_mesh_mgr.SetDefaultMesh(1161, "Estinien's Chambers", true) -- Story Area 6.4
+		ml_mesh_mgr.SetDefaultMesh(1162, "The Red Moon", true) -- Story Area 6.4
 		
 		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
