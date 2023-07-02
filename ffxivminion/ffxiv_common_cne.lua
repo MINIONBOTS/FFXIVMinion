@@ -3753,38 +3753,37 @@ e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
 c_skipcutscene.togglehack = true
 function c_skipcutscene:evaluate()
-    -- unsafe
-    local noskip = {
-        [0] = true,
-        [217] = true,
-        [224] = true,
-        [900] = true,
-    }
-        
-    if Player.onlinestatus == 15 then
 
-        if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500 and not Player.ismounted) then
-			if not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
-               PressKey(27)
-			end
+	-- unsafe
+	local noskip = {
+		[0] = true,
+		[217] = true,
+		[224] = true,
+		[900] = true,
+	}
+		
+	if Player.onlinestatus == 15 then
+
+		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500 and not Player.ismounted) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
-                local convoList = GetConversationList()
-                if (table.valid(convoList)) then
-                    SelectConversationIndex(1)
-                end
+				local convoList = GetConversationList()
+				if (table.valid(convoList)) then
+					SelectConversationIndex(1)
+				end
+			else
+				PressKey(27) -- Press ESC, used for quest cutscene skipping
 			end
-            return true
-        end
-        if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
-            c_skipcutscene.togglehack = true
-            Hacks:SkipCutscene(false)
-
-        elseif c_skipcutscene.togglehack then
-            c_skipcutscene.togglehack = false
-            Hacks:SkipCutscene(gSkipCutscene)
-        end
-    end
-    return false
+			return true
+		end
+		if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
+			c_skipcutscene.togglehack = true
+			Hacks:SkipCutscene(false)
+		end
+	elseif c_skipcutscene.togglehack then
+		c_skipcutscene.togglehack = false
+		Hacks:SkipCutscene(gSkipCutscene)
+	end
+	return false
 end
 function e_skipcutscene:execute()
 	c_skipcutscene.lastSkip = Now()
@@ -3951,11 +3950,11 @@ function c_dointeract:evaluate()
 								return false
 							end
 				
-							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+					--[[		if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								return true
-							end
+							end ]]--
 							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
@@ -3977,10 +3976,12 @@ function c_dointeract:evaluate()
 								local gPos = ml_task_hub:CurrentTask().pos
 								local dist3d = math.distance3d(gPos,tpos)  
 								if (table.valid(tpos) and table.valid(gPos)) then
-									if ((ml_task_hub:CurrentTask().interactRange3d ~= nil and dist3d < ml_task_hub:CurrentTask().interactRange3d) or (dist3d < range + 1) and interactable.interactable) then
-										Player:Stop()
-										Player:Interact(interactable.id)
-										return IsControlOpen('_CastBar') or (not MIsMoving() and not IsControlOpen('_CastBar'))
+									if ((ml_task_hub:CurrentTask().interactRange3d ~= nil and dist3d < ml_task_hub:CurrentTask().interactRange3d) or (dist3d < range + 1)) then
+										if interactable.interactable then
+											Player:Stop()
+											Player:Interact(interactable.id)
+											return IsControlOpen('_CastBar') or (not MIsMoving() and not IsControlOpen('_CastBar'))
+										end
 									end
 								end
 								if (ml_task_hub:CurrentTask().interactAttempts == nil) then
