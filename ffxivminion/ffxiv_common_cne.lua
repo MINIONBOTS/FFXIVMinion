@@ -3950,11 +3950,11 @@ function c_dointeract:evaluate()
 								return false
 							end
 				
-					--[[		if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								return true
-							end ]]--
+							end 
 							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
