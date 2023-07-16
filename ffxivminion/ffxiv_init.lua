@@ -1864,7 +1864,9 @@ function ml_global_information.Init()
 				[891] = "Lyhe Mheg (Rank Quest)",
 
 				[895] = "Excavation Tunnels",
+				[896] = "The Copied Factory2",
 				[915] = "Gangos",
+				[928] = "The Puppets' Bunker2",
 				[979] = "Empyreum",
 				[1073] = "Elysion"
 			}
