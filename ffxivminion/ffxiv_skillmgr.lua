@@ -3526,6 +3526,7 @@ SkillMgr.MatchingGatherSkills = {
 	["Brazen Prospector"] 		={ [16] = 22183, [17] = 22187 },
 	["Meticulous Prospector"] 	={ [16] = 22184, [17] = 22188 },
 	["Scrutiny"] 				={ [16] = 22185, [17] = 22189 },
+	["Collector's Focus"] 		={ [16] = 21205, [17] = 21206 },
 }
 
 function SkillMgr.Gather(item)
