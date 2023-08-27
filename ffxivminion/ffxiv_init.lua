@@ -1864,6 +1864,7 @@ function ml_global_information.Init()
 				[878] = "The Empty",
 				[890] = "Lyhe Mheg",
 				[891] = "Lyhe Mheg (Rank Quest)",
+				[896] = "The Copied Factory2",
 
 				[895] = "Excavation Tunnels",
 				[896] = "The Copied Factory2",
