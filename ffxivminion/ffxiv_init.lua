@@ -1114,6 +1114,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1097, "[Dungeon] Lapis Manalis", true)
 		ml_mesh_mgr.SetDefaultMesh(1115, "The Tower of Babil[Hildibrand]", true)
 		ml_mesh_mgr.SetDefaultMesh(1126, "[Dungeon] The Aetherfont", true)
+		ml_mesh_mgr.SetDefaultMesh(1164, "[Dungeon] The Lunar Subterrane", true)
+		
 		
 		-- Latty EW
 		ml_mesh_mgr.SetDefaultMesh(1014, "Duty_4432", true)
@@ -1128,6 +1130,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1160, "Senatus", true) -- Story Area 6.4
 		ml_mesh_mgr.SetDefaultMesh(1161, "Estinien's Chambers", true) -- Story Area 6.4
 		ml_mesh_mgr.SetDefaultMesh(1162, "The Red Moon", true) -- Story Area 6.4
+		ml_mesh_mgr.SetDefaultMesh(1184, "[Dungeon] The Lunar Subterrane", true) -- CS area after dungeon
 		
 		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
