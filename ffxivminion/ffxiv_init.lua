@@ -666,7 +666,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1096, "[Trial] Mount Ordeals", enforce) -- Rubicante EX
 		ml_mesh_mgr.SetDefaultMesh(1140, "[Trial] The Voidcast Dais", enforce) -- Golbez Story
 		ml_mesh_mgr.SetDefaultMesh(1141, "[Trial] The Voidcast Dais", enforce) -- Golbez EX
-		
+		ml_mesh_mgr.SetDefaultMesh(1168, "[Trial] The Abyssal Fracture", enforce) -- Zeromus Story
+		ml_mesh_mgr.SetDefaultMesh(1169, "[Trial] The Abyssal Fracture", enforce) -- Zeromus EX		
 		
 		-- Raid Alliance ARR
 		ml_mesh_mgr.SetDefaultMesh(174, "[Raid] Labyrinth of the Ancients", enforce)
