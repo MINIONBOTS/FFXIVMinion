@@ -2325,7 +2325,13 @@ function e_newcollectiblegame:execute()
 	if (table.valid(info)) then
 		
 		local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
-		if (GetPatchLevel() >= 6.2) then
+		if (GetPatchLevel() >= 6.5) then
+			collectableId = info[3].value
+			collectableRarity = info[14].value
+			collectableMax = info[15].value
+			collectableAttemptsRemaining = info[59].value		
+			collectableAttemptsMax = info[60].value	
+		elseif (GetPatchLevel() >= 6.2) then
 			collectableId = info[3].value
 			collectableRarity = info[14].value
 			collectableMax = info[15].value
