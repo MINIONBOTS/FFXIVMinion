@@ -41,6 +41,8 @@ function dev.Init()
 	gDevScannerSortByPos = false
 	gDevRecordNPCs = false
 	gDevRecordedNPCs = {}
+	gDevShowTestWindow = false
+	gDevShowMetricsWindow = false
 	gDevX = 0
 	gDevY = 0
 	gDevActionsNameFilter = ""
@@ -565,10 +567,10 @@ function dev.DrawCall(event, ticks )
 
 						if gDevScannerSortByPos then
 							table.sort(
-								entities,
-								function(l,r)
-									return math.distance3d(Player.pos,l.pos) < math.distance3d(Player.pos,r.pos)
-								end)
+									entities,
+									function(l,r)
+										return math.distance3d(Player.pos,l.pos) < math.distance3d(Player.pos,r.pos)
+									end)
 						end
 
 						GUI:Columns(columns, "##dev-scanner.details",true)
@@ -2378,6 +2380,14 @@ function dev.DrawCall(event, ticks )
 							local towrite = entry.contentid .. "," .. entry.mapid .. "," .. entry.x .. "," .. entry.y .. "," .. entry.z .. "\n"
 							FileWrite(filePath,towrite,true)
 						end
+					end
+					gDevShowTestWindow = GUI:Checkbox("Show Test Window",gDevShowTestWindow)
+					if gDevShowTestWindow then
+						gDevShowTestWindow = GUI:ShowTestWindow(gDevShowTestWindow)
+					end
+					gDevShowMetricsWindow = GUI:Checkbox("Show Metrics Window",gDevShowMetricsWindow)
+					if gDevShowMetricsWindow then
+						gDevShowMetricsWindow = GUI:ShowMetricsWindow(gDevShowMetricsWindow)
 					end
 					GUI:PopItemWidth()
 				end
