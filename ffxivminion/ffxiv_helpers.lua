@@ -5567,7 +5567,9 @@ local pvpMaps = {
 	
     [1116] = true, -- ???, Clockwork Castletown
     [1117] = true, -- ???, Clockwork Castletown
-    
+
+    [1138] = true, -- The Red Sands
+    [1139] = true, -- The Red Sands
     
 }
 function IsPVPMap(mapid)
