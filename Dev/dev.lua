@@ -25,15 +25,29 @@ function dev.Init()
 	gDevAddonNameFilter = ""
 	gDevAddonOpenFilter = false
 	gDevAddonClosedFilter = false
-	gDevHackMaxZoom = 20.0
-	gDevHackMinZoom = 1.5
+	gDevHackMaxZoom = 200.0
+	gDevHackMinZoom = 0.5
 	gDevHackDisableCutscene = false
 	gDevHackDisableRendering = false
-	gDevHackFlySpeed = 20.0
-	gDevHackWalkSpeed = 6.0
-	gDevHackWalkSpeedBwd = 2.4000000953674
-	gDevHackMountSpeed = 9.0
-	gDevHackMountSpeedBwd = 3.2000000476837
+
+	gDevHackRunningSpeed = 6.0
+	gDevHackWalkingSpeed = 2.4000000953674
+	gDevHackBackwardsSpeed = 2.4000000953674
+	gDevHackStrafeSpeed = 2.4000000953674
+	gDevHackWalkRatio = gDevHackRunningSpeed / gDevHackWalkingSpeed
+
+	gDevHackMountRunningSpeed = 9.0
+	gDevHackMountWalkingSpeed = 3.2000000476837
+	gDevHackMountBackwardsSpeed = 3.2000000476837
+	gDevHackMountStrafeSpeed = 3.2000000476837
+	gDevHackMountRatio = gDevHackMountRunningSpeed / gDevHackMountWalkingSpeed
+
+	gDevHackFlyRunningSpeed = 20.0
+	gDevHackFlyWalkingSpeed = 9.0
+	gDevHackFlyBackwardsSpeed = 9.0
+	gDevHackFlyStrafeSpeed = 9.0
+	gDevHackFlyRatio = gDevHackFlyRunningSpeed / gDevHackFlyWalkingSpeed
+
 	gDevScannerString = "alive,aggressive"
 	gDevScannerShowContentId = true
 	gDevScannerShowId = false
@@ -51,7 +65,6 @@ function dev.Init()
 	gDevStoredActions = {}
 end
 
-
 RegisterEventHandler("Module.Initalize",dev.Init,"dev.Init")
 
 dev.logUiEvent = false
@@ -63,7 +76,7 @@ RegisterEventHandler("Game.UIEvent", function(eventName, eventJson)
 end, "Game.UIEvent")
 
 function dev.ChatTest()
-	SendTextCommand("/say "..tostring(os.time(os.date('*t'))))
+	SendTextCommand("/echo "..tostring(os.time(os.date('*t'))))
 end
 
 
@@ -87,12 +100,16 @@ function dev.GetRepairItemId(item)
 	end
 end
 
-function dev.GetRepairItemName(item)
-	if AceLib ~= nil then
-		return AceLib.API.Items.GetNameByID(dev.GetRepairItemId(item))
-	else
-		return "ItemID:"..tostring(dev.GetRepairItemId(item))
+dev.ItemNames = {}
+function dev.GetItemName(ItemID)
+	if not dev.ItemNames[ItemID] then
+		dev.ItemNames[ItemID] = Inventory:GetItemDetails(ItemID).name
 	end
+	return dev.ItemNames[ItemID] or tostring(ItemID)
+end
+
+function dev.GetRepairItemName(item)
+	return dev.GetItemName(item)
 end
 
 function dev.FormatPos(pos)
@@ -250,23 +267,27 @@ function dev.DrawCall(event, ticks )
 
 											local ad = e:GetData()
 											if (table.valid(ad)) then
-												for key, value in pairs(ad) do
-													if (type(value) == "table") then
-														GUI:BulletText(key)
-														for vk,vv in pairs(value) do
-															if (type(vv) == "table") then
-																GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
-																for vvk,vvv in pairs(vv) do
-																	GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(tostring(vvv)) GUI:SameLine(0,5)
+												GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Appearing)
+												if GUI:TreeNode("Data:##"..tostring(id)) then
+													for key, value in pairs(ad) do
+														if (type(value) == "table") then
+															GUI:BulletText(key)
+															for vk,vv in pairs(value) do
+																if (type(vv) == "table") then
+																	GUI:Text("") GUI:SameLine(0,30) GUI:Text("["..tostring(vk).."] -") GUI:SameLine(0,10)
+																	for vvk,vvv in pairs(vv) do
+																		GUI:Text("["..tostring(vvk).."]:") GUI:SameLine(0,5) GUI:Text(tostring(vvv)) GUI:SameLine(0,5)
+																	end
+																else
+																	GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
 																end
-															else
-																GUI:BulletText(vk) GUI:SameLine(200) GUI:InputText("##devcvdata"..tostring(vk),tostring(vv))
+																GUI:NewLine()
 															end
-															GUI:NewLine()
+														else
+															GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))
 														end
-													else
-														GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))
 													end
+													GUI:TreePop()
 												end
 											end
 
@@ -328,6 +349,40 @@ function dev.DrawCall(event, ticks )
 
 											if ( GUI:TreeNode("Dev##"..tostring(id)) ) then
 												if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
+												if GUI:IsItemHovered() then
+													if not GUI:IsKeyDown(16) and not GUI:IsKeyDown(17) and not GUI:IsKeyDown(18) then
+														GUI:BeginTooltip()
+														GUI:Text("CTRL: Increases PushButtonA by 1 when held and mouse right-click.")
+														GUI:Text("ALT: Increases PushButtonB by 1 when held and mouse right-click.")
+														GUI:Text("SHIFT: Reduces either PushButton by 1 when held with CTRL or ALT.")
+														GUI:Text("Middle-Click: Resets either PushButton when held with CTRL or ALT.")
+														GUI:EndTooltip()
+													end
+													if GUI:IsMouseClicked(1) then -- Right Click
+														if GUI:IsKeyDown(17) then -- CTRL
+															if GUI:IsKeyDown(16) then -- SHIFT
+																dev.pushbuttonA = dev.pushbuttonA - 1
+															else
+																dev.pushbuttonA = dev.pushbuttonA + 1
+															end
+														end
+														if GUI:IsKeyDown(18) then -- ALT
+															if GUI:IsKeyDown(16) then -- SHIFT
+																dev.pushbuttonB = dev.pushbuttonB - 1
+															else
+																dev.pushbuttonB = dev.pushbuttonB + 1
+															end
+														end
+													end
+													if GUI:IsMouseClicked(2) then -- Middle Click
+														if GUI:IsKeyDown(17) then -- CTRL
+															dev.pushbuttonA = 0
+														end
+														if GUI:IsKeyDown(18) then -- ALT
+															dev.pushbuttonB = 0
+														end
+													end
+												end
 												GUI:SameLine()
 												if ( not dev.pushbuttonA or dev.pushbuttonA < 0) then dev.pushbuttonA = 0 end
 												dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1)
@@ -335,8 +390,31 @@ function dev.DrawCall(event, ticks )
 												if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
 												dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)
 												if (GUI:Button("DoAction",100,15) ) then d("DoAction Result: "..tostring(e:DoAction(dev.doAction))) end
+												if GUI:IsItemHovered() then
+													if not GUI:IsKeyDown(16) and not GUI:IsKeyDown(17) then
+														GUI:BeginTooltip()
+														GUI:Text("CTRL: Increases doAction by 1 when held and mouse right-click.")
+														GUI:Text("SHIFT: Reduces doAction by 1 when held with CTRL.")
+														GUI:Text("Middle-Click: Resets doAction when held with CTRL.")
+														GUI:EndTooltip()
+													end
+													if GUI:IsMouseClicked(1) then -- Right Click
+														if GUI:IsKeyDown(17) then -- CTRL
+															if GUI:IsKeyDown(16) then -- SHIFT
+																dev.doAction = dev.doAction - 1
+															else
+																dev.doAction = dev.doAction + 1
+															end
+														elseif GUI:IsKeyDown(16) then -- SHIFT
+															dev.doAction = dev.doAction - 1
+														end
+													end
+													if GUI:IsMouseClicked(2) then -- Middle Click
+														dev.doAction = 0
+													end
+												end
 												GUI:SameLine()
-												if not dev.doAction then dev.doAction = 0 end
+												if not dev.doAction or dev.doAction < 0 then dev.doAction = 0 end
 												dev.doAction = GUI:InputInt("##devc4"..tostring(id),dev.doAction ,1,1)
 												GUI:TreePop()
 											end
@@ -839,10 +917,22 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Chat Log")) then
 				local clog = GetChatLines()
 				if ( table.valid(clog)) then
-					GUI:PushItemWidth(200)
-					for i,k in pairs(clog) do
-						if ( GUI:TreeNode("Line -"..tostring(i))) then
-							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),k.line)
+					GUI:PushItemWidth(500)
+					for i,k in table.pairsbykeys(clog) do
+						if ( GUI:TreeNode("Line - "..tostring(i))) then
+							local line,rawline = k.line,k.rawline
+							local newrawline = ""
+							for c in rawline:gmatch(".") do
+								local byte = c:byte()
+								if byte < 32 or byte > 126 then
+									newrawline = newrawline..[[\x]]..string.format("%02x", byte):upper()
+								else
+									newrawline = newrawline..c
+								end
+							end
+
+							GUI:BulletText(".line") GUI:SameLine(200) GUI:InputText("##CH1"..tostring(i),tostring(line))
+							GUI:BulletText(".rawline") GUI:SameLine(200) GUI:InputText("##CH1.555"..tostring(i),tostring(newrawline))
 							GUI:BulletText(".timestamp") GUI:SameLine(200) GUI:InputText("##CH2"..tostring(i),tostring(k.timestamp))
 							GUI:BulletText(".code") GUI:SameLine(200) GUI:InputText("##CH3"..tostring(i),tostring(k.code))
 							GUI:BulletText(".subcode") GUI:SameLine(200) GUI:InputText("##CH4"..tostring(i),tostring(k.subcode))
@@ -1108,7 +1198,7 @@ function dev.DrawCall(event, ticks )
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(150)
 					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:GetFishingState()))
-					GUI:BulletText("GetGigHead") GUI:SameLine(200) GUI:InputText("##devfi5",tostring(Player:GetGigHead()))
+					--GUI:BulletText("GetGigHead") GUI:SameLine(200) GUI:InputText("##devfi5",tostring(Player:GetGigHead())) (GigHead Removed with SpearFishing Rework)
 					local lastCatchID = Player:GetLastCatchId()
 					if (dev.lastCatchID == nil) then
 						dev.lastCatchID = 0
@@ -1120,21 +1210,19 @@ function dev.DrawCall(event, ticks )
 							dev.lastCatchReset = true
 						elseif (lastCatchID ~= 0 and dev.lastCatchReset) then
 							dev.lastCatchID = lastCatchID
-							if AceLib ~= nil then
-								if (lastCatchID > 1000000) then
-									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 1000000).." (HQ)"
-								elseif (lastCatchID > 500000 and lastCatchID < 600000) then
-									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID - 500000).." (C)"
-								else
-									dev.lastCatchName =  AceLib.API.Items.GetNameByID(lastCatchID)
-								end
+							if (lastCatchID > 1000000) then
+								dev.lastCatchName =  dev.GetItemName(lastCatchID - 1000000).." (HQ)"
+							elseif (lastCatchID > 500000 and lastCatchID < 600000) then
+								dev.lastCatchName =  dev.GetItemName(lastCatchID - 500000).." (C)"
+							else
+								dev.lastCatchName =  dev.GetItemName(lastCatchID)
 							end
 						end
 					end
 
 					GUI:BulletText("LastCatchId") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(lastCatchID))
 					GUI:BulletText("LastCatch (ID)") GUI:SameLine(200) GUI:InputText("##devfi6",tostring(dev.lastCatchID))
-					GUI:BulletText("LastCatch (Name)") GUI:SameLine(200) GUI:InputText("##devfi6.1",tostring(dev.lastCatchName ))
+					GUI:BulletText("LastCatch (Name)") GUI:SameLine(200) GUI:InputText("##devfi6.1",tostring(dev.lastCatchName))
 
 					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))
 					if (not dev.fishbait) then dev.fishbait = 0 end
@@ -1170,13 +1258,37 @@ function dev.DrawCall(event, ticks )
 						end
 						if (GUI:TreeNode("Caught fish ids - "..tostring(#caughtList))) then
 							for _,entry in pairs(caughtList) do
-								GUI:Text(tostring(entry.id))
+								GUI:Text(tostring(entry.id).." = "..tostring(dev.GetItemName(entry.id)))
+								GUI:SameLine(0,5)
+								if GUI:Button("Link##"..entry.id) then
+									local lang = {
+										[0] = "ja",
+										[1] = "en",
+										[2] = "de",
+										[3] = "fr",
+										[4] = "zh",
+										[5] = "ko"
+									}
+									io.popen("explorer "..[[https://ffxivteamcraft.com/db/]]..lang[GetGameLanguage()]..[[/item/]]..entry.id)
+								end
 							end
 							GUI:TreePop();
 						end
 						if (GUI:TreeNode("Uncaught fish ids - "..tostring(#uncaughtList))) then
 							for _,entry in pairs(uncaughtList) do
-								GUI:Text(tostring(entry.id))
+								GUI:Text(tostring(entry.id).." = "..tostring(dev.GetItemName(entry.id)))
+								GUI:SameLine(0,5)
+								if GUI:Button("Link##"..entry.id) then
+									local lang = {
+										[0] = "ja",
+										[1] = "en",
+										[2] = "de",
+										[3] = "fr",
+										[4] = "zh",
+										[5] = "ko"
+									}
+									io.popen("explorer "..[[https://ffxivteamcraft.com/db/]]..lang[GetGameLanguage()]..[[/item/]]..entry.id)
+								end
 							end
 							GUI:TreePop();
 						end
@@ -1464,7 +1576,7 @@ function dev.DrawCall(event, ticks )
 						gDevHackMinZoom = 1.5
 					end
 
-					local zoommax, changedmaxzoom = GUI:SliderFloat("CamZoomMax", gDevHackMaxZoom, 1.5, 240)
+					local zoommax, changedmaxzoom = GUI:SliderFloat("CamZoomMax", gDevHackMaxZoom, 1.5, 200)
 					if (changedmaxzoom) then
 						gDevHackMaxZoom = zoommax
 						if (gDevHackMaxZoom < gDevHackMinZoom) then
@@ -1472,7 +1584,7 @@ function dev.DrawCall(event, ticks )
 						end
 					end
 
-					local zoommin, changedminzoom = GUI:SliderFloat("CamZoomMin", gDevHackMinZoom, 1.5, 240)
+					local zoommin, changedminzoom = GUI:SliderFloat("CamZoomMin", gDevHackMinZoom, 0.5, 200)
 					if (changedminzoom) then
 						gDevHackMinZoom = zoommin
 					end
@@ -1493,33 +1605,55 @@ function dev.DrawCall(event, ticks )
 						Hacks:Disable3DRendering(gDevHackDisableRendering)
 					end
 
-					local hackFlySpeed, changedflyspeed = GUI:SliderFloat("Fly Speed", gDevHackFlySpeed, 10, 100)
+					local hackFlySpeed, changedflyspeed = GUI:SliderFloat("Fly Speed", gDevHackFlyRunningSpeed, 0, 100)
 					if (changedflyspeed) then
-						gDevHackFlySpeed = hackFlySpeed
-						Player:SetSpeed(0,gDevHackFlySpeed,gDevHackFlySpeed,gDevHackFlySpeed)
+						gDevHackFlyRunningSpeed = hackFlySpeed
+						gDevHackFlyWalkingSpeed = hackFlySpeed / gDevHackFlyRatio
+						gDevHackFlyBackwardsSpeed = hackFlySpeed / gDevHackFlyRatio
+						gDevHackFlyStrafeSpeed = hackFlySpeed / gDevHackFlyRatio
+						Player:SetSpeed(0,gDevHackFlyRunningSpeed,gDevHackFlyBackwardsSpeed,gDevHackFlyStrafeSpeed,gDevHackFlyWalkingSpeed)   -- arg 1 = 0 flying 1 walking 2 mounted
 					end
 
-					local hackWalkSpeed, changedwalkspeed = GUI:SliderFloat("Walk Speed", gDevHackWalkSpeed, 6, 50)
+					local hackWalkSpeed, changedwalkspeed = GUI:SliderFloat("Walk Speed", gDevHackRunningSpeed, 0, 50)
 					if (changedwalkspeed) then
-						gDevHackWalkSpeed = hackWalkSpeed
-						Player:SetSpeed(1,gDevHackWalkSpeed,gDevHackWalkSpeed,gDevHackWalkSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						gDevHackRunningSpeed = hackWalkSpeed
+						gDevHackWalkingSpeed = hackWalkSpeed / gDevHackWalkRatio
+						gDevHackBackwardsSpeed = hackWalkSpeed / gDevHackWalkRatio
+						gDevHackStrafeSpeed = hackWalkSpeed / gDevHackWalkRatio
+						Player:SetSpeed(1,gDevHackRunningSpeed,gDevHackBackwardsSpeed,gDevHackStrafeSpeed,gDevHackWalkingSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
 					end
 
-					local hackMountSpeed, changedmountspeed = GUI:SliderFloat("Mount Speed", gDevHackMountSpeed, 6, 50)
+					local hackMountSpeed, changedmountspeed = GUI:SliderFloat("Mount Speed", gDevHackMountRunningSpeed, 0, 50)
 					if (changedmountspeed) then
-						gDevHackMountSpeed = hackMountSpeed
-						Player:SetSpeed(2,gDevHackMountSpeed,gDevHackMountSpeed,gDevHackMountSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
+						gDevHackMountRunningSpeed = hackMountSpeed
+						gDevHackMountWalkingSpeed = hackMountSpeed / gDevHackMountRatio
+						gDevHackMountBackwardsSpeed = hackMountSpeed / gDevHackMountRatio
+						gDevHackMountStrafeSpeed = hackMountSpeed / gDevHackMountRatio
+						Player:SetSpeed(2,gDevHackMountRunningSpeed,gDevHackMountBackwardsSpeed,gDevHackMountStrafeSpeed,gDevHackMountWalkingSpeed)	-- arg 1 = 0 flying 1 walking 2 mounted
 					end
 
 					if (GUI:Button("ResetSpeed##",100,15) ) then
 						Player:ResetSpeed(0) -- flying
 						Player:ResetSpeed(1) -- walking
 						Player:ResetSpeed(2) -- mounted
-						gDevHackFlySpeed = 20.0
-						gDevHackWalkSpeed = 6.0
-						gDevHackWalkSpeedBwd = 2.4000000953674
-						gDevHackMountSpeed = 9.0
-						gDevHackMountSpeedBwd = 3.2000000476837
+
+						gDevHackRunningSpeed = 6.0
+						gDevHackWalkingSpeed = 2.4000000953674
+						gDevHackBackwardsSpeed = 2.4000000953674
+						gDevHackStrafeSpeed = 2.4000000953674
+						gDevHackWalkRatio = gDevHackRunningSpeed / gDevHackWalkingSpeed
+
+						gDevHackMountRunningSpeed = 9.0
+						gDevHackMountWalkingSpeed = 3.2000000476837
+						gDevHackMountBackwardsSpeed = 3.2000000476837
+						gDevHackMountStrafeSpeed = 3.2000000476837
+						gDevHackMountRatio = gDevHackMountRunningSpeed / gDevHackMountWalkingSpeed
+
+						gDevHackFlyRunningSpeed = 20.0
+						gDevHackFlyWalkingSpeed = 9.0
+						gDevHackFlyBackwardsSpeed = 9.0
+						gDevHackFlyStrafeSpeed = 9.0
+						gDevHackFlyRatio = gDevHackFlyRunningSpeed / gDevHackFlyWalkingSpeed
 					end
 
 
@@ -1615,7 +1749,7 @@ function dev.DrawCall(event, ticks )
 												GUI:BulletText("RepairClassJob") GUI:SameLine(225) GUI:InputText("##devbag36",tostring(item.repairclassjob))
 												GUI:BulletText("RepairItem") GUI:SameLine(225) GUI:InputText("##devbag37",tostring(item.repairitem))
 												if item.repairitem > 0 then
-													dev.repairItemName = AceLib.API.Items.GetNameByID(dev.GetRepairItemId(item))
+													dev.repairItemName = dev.GetItemName(dev.GetRepairItemId(item))
 													GUI:BulletText("RepairItem (Name)") GUI:SameLine(225) GUI:InputText("##devbag38",tostring(dev.repairItemName))
 												end
 												GUI:BulletText("IsBinding") GUI:SameLine(225) GUI:InputText("##devbag39"..tostring(slot),tostring(item.isbinding))
@@ -1900,9 +2034,10 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("GetSpeed-Forward") GUI:SameLine(200) GUI:InputText("##devmov9",tostring(Player:GetSpeed()["Forward"]))
 					GUI:BulletText("GetSpeed-Backward") GUI:SameLine(200) GUI:InputText("##devmov9a",tostring(Player:GetSpeed()["Backward"]))
 					GUI:BulletText("GetSpeed-Strafe") GUI:SameLine(200) GUI:InputText("##devmov9b",tostring(Player:GetSpeed()["Strafe"]))
+					GUI:BulletText("GetSpeed-Walk") GUI:SameLine(200) GUI:InputText("##devmov9c",tostring(Player:GetSpeed()["Walk"]))
 
-					-- THere is also a Player:SetSpeed(type, forwardspeed, backwardspeeed, strafespeed)
-					-- Where type is 0 for flying, 1 for walking and 2 for mounted speed which you can set seperately
+					-- There is also a Player:SetSpeed(type, forwardspeed, backwardspeeed, strafespeed, walkspeed)
+					-- Where type is 0 for flying, 1 for walking and 2 for mounted speed which you can set separately
 
 					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.flying.isflying))
 					GUI:BulletText("CanFlyInZone") GUI:SameLine(200) GUI:InputText("##devmov12",tostring(Player.flying.canflyinzone))
