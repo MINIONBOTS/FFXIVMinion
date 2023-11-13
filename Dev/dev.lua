@@ -103,9 +103,14 @@ end
 dev.ItemNames = {}
 function dev.GetItemName(ItemID)
 	if not dev.ItemNames[ItemID] then
+		Inventory:GetItemDetails(ItemID)
+		dev.ItemNames[ItemID] = {}
+	elseif string.valid(dev.ItemNames[ItemID]) then
+		return dev.ItemNames[ItemID]
+	elseif table.valid(Inventory:GetItemDetails(ItemID)) then
 		dev.ItemNames[ItemID] = Inventory:GetItemDetails(ItemID).name
 	end
-	return dev.ItemNames[ItemID] or tostring(ItemID)
+	return tostring(ItemID)
 end
 
 function dev.GetRepairItemName(item)
