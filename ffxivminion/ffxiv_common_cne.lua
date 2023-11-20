@@ -3769,11 +3769,11 @@ function c_skipcutscene:evaluate()
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
 					SelectConversationIndex(1)
+					d("Skipping cutscene")
 				end
 			else
 				PressKey(27) -- Press ESC, used for quest cutscene skipping
 			end
-			return true
 		end
 		if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
 			c_skipcutscene.togglehack = true
@@ -3976,12 +3976,13 @@ function c_dointeract:evaluate()
 								local gPos = ml_task_hub:CurrentTask().pos
 								local dist3d = math.distance3d(gPos,tpos)  
 								if (table.valid(tpos) and table.valid(gPos)) then
-									if ((ml_task_hub:CurrentTask().interactRange3d ~= nil and dist3d < ml_task_hub:CurrentTask().interactRange3d) or (dist3d < range + 1)) then
-										if interactable.interactable then
-											Player:Stop()
-											Player:Interact(interactable.id)
-											return IsControlOpen('_CastBar') or (not MIsMoving() and not IsControlOpen('_CastBar'))
-										end
+									if IsControlOpen('_TextError') then
+										return false
+									elseif interactable.interactable and (not IsMounted() and not IsDismounting() and not IsPositionLocked()) then
+										Player:Stop()
+										d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z, tpos.x, tpos.y, tpos.z)))
+										Player:Interact(interactable.id)
+										return true
 									end
 								end
 								if (ml_task_hub:CurrentTask().interactAttempts == nil) then
