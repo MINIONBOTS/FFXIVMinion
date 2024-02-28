@@ -945,6 +945,7 @@ function ffxivminion.SetMainVars()
 	gTeleportHackParanoidDistance = ffxivminion.GetSetting("gTeleportHackParanoidDistance", 50)
 
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene", false)
+	gSkipUnsafeCutscene = ffxivminion.GetSetting("gSkipUnsafeCutscene", false)
 	gSkipTalk = ffxivminion.GetSetting("gSkipTalk", false)
 	gSkipTalkRunningOnly = ffxivminion.GetSetting("gSkipTalkRunningOnly", false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing", false)
@@ -2287,6 +2288,10 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Skip Cutscene"), gSkipCutscene), "gSkipCutscene", function()
 						Hacks:SkipCutscene(gSkipCutscene)
 					end)
+					GUI_Capture(GUI:Checkbox(GetString("Include Unskippable Cutscenes"), gSkipUnsafeCutscene), "gSkipUnsafeCutscene")
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(GetString("Some cutscenes are meant to be unskippable, this will make them skippable again. May be unsafe, use with caution."))
+					end
 					GUI_Capture(GUI:Checkbox(GetString("Skip Dialogue"), gSkipTalk), "gSkipTalk");
 					GUI:SameLine(0, 15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running") .. "##skiptalk", gSkipTalkRunningOnly), "gSkipTalkRunningOnly")

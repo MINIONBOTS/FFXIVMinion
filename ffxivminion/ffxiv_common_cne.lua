@@ -3706,15 +3706,16 @@ end
 
 c_skiptalk = inheritsFrom( ml_cause )
 e_skiptalk = inheritsFrom( ml_effect )
+-- unsafe maps
+local noskip = {
+	[0] = true,
+	[217] = true,
+	[224] = true,
+	[900] = true,
+}
 function c_skiptalk:evaluate()
 
-	-- unsafe
-	local noskip = {
-		[0] = true,
-		[217] = true,
-		[224] = true,
-		[900] = true,
-	}
+	
 	if noskip[Player.localmapid] then
 		--d("no skip map")
 		return false
@@ -3752,22 +3753,23 @@ c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
 c_skipcutscene.togglehack = true
+
+--unsafe maps
+local noskip = {
+	[0] = true,
+	[217] = true,
+	[224] = true,
+	[900] = true,
+	[1043] = true,
+	[1044] = true,
+}
+
 function c_skipcutscene:evaluate()
-	
-	-- unsafe
-	local noskip = {
-		[0] = true,
-		[217] = true,
-		[224] = true,
-		[900] = true,
-		[1043] = true,
-		[1044] = true,
-	}
 		
-	if Player.onlinestatus == 15 then
+	if Player.onlinestatus == 15 and Player.localmapid ~= 0 then
 	
 	--	local delaycsskip = 0
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and not Player.ismounted) then
+		if ((noskip[Player.localmapid] ~= true or gSkipUnsafeCutscene) and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and not Player.ismounted) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
@@ -3785,7 +3787,7 @@ function c_skipcutscene:evaluate()
 				end
 			end
 		end
-		if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
+		if not c_skipcutscene.togglehack and not gSkipUnsafeCutscene then -- for disabling during unskipable cutscenes
 			c_skipcutscene.togglehack = true
 			Hacks:SkipCutscene(false)
 		end
