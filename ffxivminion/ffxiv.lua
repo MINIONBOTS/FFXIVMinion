@@ -408,6 +408,18 @@ end
 function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 	--if (not login.loginPaused and not IsControlOpen("SelectOk")) then
+
+	if pauseOnLoad == nil then 
+		ffxivminion.loginvars.loginPaused = true
+		pauseOnLoad = Now()
+		d("Pausing login on first load")
+	elseif pauseOnLoad and TimeSince(pauseOnLoad) > 10000 then
+		ffxivminion.loginvars.loginPaused = false
+		pauseOnLoad = false
+		d("Delay is over, unpausing login.")
+	end
+
+	if not ffxivminion.loginvars.useAutoLogin then return false end
 	if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 		--d("checking charselect")
 
@@ -2429,7 +2441,7 @@ function ml_global_information.DrawLoginHandler()
 	local gamestate = MGetGameState()
 	if (gamestate ~= FFXIV.GAMESTATE.INGAME or ffxivminion.GUI.login.open) then
 
-		GUI:SetNextWindowSize(330, 200, GUI.SetCond_Appearing) --set the next window size, only on first ever
+		GUI:SetNextWindowSize(330, 210, GUI.SetCond_Appearing) --set the next window size, only on first ever
 		GUI:SetNextWindowCollapsed(false, GUI.SetCond_Appearing)
 
 		local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
@@ -2488,6 +2500,11 @@ function ml_global_information.DrawLoginHandler()
 					end
 			)
 			GUI:PopItemWidth()
+
+			if pauseOnLoad then
+				local timer = 10-(TimeSince(pauseOnLoad)/1000)
+				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
+			end
 
 			if (GUI:Button(IIF(ffxivminion.loginvars.loginPaused, "Start", "Pause"), width, 20)) then
 				ffxivminion.loginvars.loginPaused = not ffxivminion.loginvars.loginPaused
