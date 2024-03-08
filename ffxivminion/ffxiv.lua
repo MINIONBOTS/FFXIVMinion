@@ -315,20 +315,18 @@ function ml_global_information.ErrorScreenOnUpdate(event, tickcount)
 end
 
 function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
+	local login = ffxivminion.loginvars
 
 	if pauseOnLoad == nil then 
-		ffxivminion.loginvars.loginPaused = true
 		pauseOnLoad = Now()
 		d("Pausing login on first load")
-	elseif pauseOnLoad and TimeSince(pauseOnLoad) > 10000 then
-		ffxivminion.loginvars.loginPaused = false
+	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
 		pauseOnLoad = false
 		d("Delay is over, unpausing login.")
 	end
 
-	local login = ffxivminion.loginvars
 
-	if (not ffxivminion.loginvars.loginPaused) and login.useAutoLogin then
+	if (not ffxivminion.loginvars.loginPaused and not pauseOnLoad) and login.useAutoLogin then
 		--d("checking mainmenu")
 
 		if (ffxivminion.gameRegion == 1) then
@@ -409,18 +407,16 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 	--if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 
-	if pauseOnLoad == nil then 
-		ffxivminion.loginvars.loginPaused = true
+	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
 		d("Pausing login on first load")
-	elseif pauseOnLoad and TimeSince(pauseOnLoad) > 10000 then
-		ffxivminion.loginvars.loginPaused = false
+	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
 		pauseOnLoad = false
 		d("Delay is over, unpausing login.")
 	end
 
 	if not ffxivminion.loginvars.useAutoLogin then return false end
-	if (not login.loginPaused and not IsControlOpen("SelectOk")) then
+	if (not (login.loginPaused or pauseOnLoad) and not IsControlOpen("SelectOk")) then
 		--d("checking charselect")
 
 		if not (login.serverSelected or ffxivminion.loginvars.useLastLogin) then
@@ -2506,13 +2502,17 @@ function ml_global_information.DrawLoginHandler()
 			)
 			GUI:PopItemWidth()
 
-			if pauseOnLoad then
+			if pauseOnLoad and ffxivminion.loginvars.useAutoLogin then
 				local timer = 10-(TimeSince(pauseOnLoad)/1000)
 				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
 			end
 
-			if (GUI:Button(IIF(ffxivminion.loginvars.loginPaused, "Start", "Pause"), width, 20)) then
-				ffxivminion.loginvars.loginPaused = not ffxivminion.loginvars.loginPaused
+			local str = "Pause"
+			if ffxivminion.loginvars.loginPaused or pauseOnLoad then
+				str = "Start"
+			end
+			if (GUI:Button(str, width, 20)) then
+				ffxivminion.loginvars.loginPaused = IIF(pauseOnLoad == false, not ffxivminion.loginvars.loginPaused, false)
 				pauseOnLoad = false
 			end
 		end
