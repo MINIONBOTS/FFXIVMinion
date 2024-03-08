@@ -33,7 +33,7 @@ ffxivminion.loginvars = {
 	serverSelected = false,
 	charSelected = false,
 	useLastLogin = false,
-	useAutoLogin = true,
+	useAutoLogin = false,
 }
 
 if (ffxivminion.gameRegion == 1) then
@@ -256,7 +256,7 @@ function ml_global_information.ResetLoginVars()
 			serverSelected = false,
 			charSelected = false,
 			useLastLogin = false,
-			useAutoLogin = true,
+			useAutoLogin = false,
 		}
 	end
 end
