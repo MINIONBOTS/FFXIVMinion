@@ -21,7 +21,7 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.patchLevel = {
-	[1] = 6.51,
+	[1] = 6.57,
 	[2] = 6.4,
 	[3] = 6.4
 }
@@ -32,6 +32,8 @@ ffxivminion.loginvars = {
 	datacenterSelected = false,
 	serverSelected = false,
 	charSelected = false,
+	useLastLogin = false,
+	useAutoLogin = false,
 }
 
 if (ffxivminion.gameRegion == 1) then
@@ -253,6 +255,8 @@ function ml_global_information.ResetLoginVars()
 			datacenterSelected = false,
 			serverSelected = false,
 			charSelected = false,
+			useLastLogin = false,
+			useAutoLogin = false,
 		}
 	end
 end
@@ -312,7 +316,17 @@ end
 
 function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
-	if (not login.loginPaused) then
+
+	if pauseOnLoad == nil then 
+		pauseOnLoad = Now()
+		d("Pausing login on first load")
+	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
+		pauseOnLoad = false
+		d("Delay is over, unpausing login.")
+	end
+
+
+	if (not ffxivminion.loginvars.loginPaused and not pauseOnLoad) and login.useAutoLogin then
 		--d("checking mainmenu")
 
 		if (ffxivminion.gameRegion == 1) then
@@ -327,7 +341,7 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 			else
 				-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
 				if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap")) then
-					if (UseControlAction("_TitleMenu", "OpenDataCenter", 0)) then
+					if (login.useLastLogin and UseControlAction("_TitleMenu", "Start", 0)) or (UseControlAction("_TitleMenu", "OpenDataCenter", 0)) then
 						ml_global_information.Await(100, 10000, function()
 							if (UseControlAction("Dialogue", "PressOK", 0)) then
 								ml_global_information.Await(1000, 10000, function()
@@ -392,10 +406,20 @@ end
 function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 	--if (not login.loginPaused and not IsControlOpen("SelectOk")) then
-	if (not login.loginPaused and not IsControlOpen("SelectOk")) then
+
+	if pauseOnLoad == nil then
+		pauseOnLoad = Now()
+		d("Pausing login on first load")
+	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
+		pauseOnLoad = false
+		d("Delay is over, unpausing login.")
+	end
+
+	if not ffxivminion.loginvars.useAutoLogin then return false end
+	if (not (login.loginPaused or pauseOnLoad) and not IsControlOpen("SelectOk")) then
 		--d("checking charselect")
 
-		if (not login.serverSelected) then
+		if not (login.serverSelected or ffxivminion.loginvars.useLastLogin) then
 			if (IsControlOpen("CharaSelect")) then
 				if (not IsControlOpen("_CharaSelectWorldServer")) then
 					local serverControl = GetControl("_CharaSelectWorldServer")
@@ -830,7 +854,12 @@ function ffxivminion.SetMainVars()
 	end
 	FFXIV_Login_Character = SettingsUUID.Login.Character
 
-
+	if SettingsUUID.Login.useLastLogin then
+		ffxivminion.loginvars.useLastLogin = true
+	end
+	if SettingsUUID.Login.useAutoLogin then
+		ffxivminion.loginvars.useAutoLogin = true
+	end
 
 	-- In-Game
 	FFXIV_Common_NavMesh = GetString("none")
@@ -912,6 +941,7 @@ function ffxivminion.SetMainVars()
 	gTeleportHackParanoidDistance = ffxivminion.GetSetting("gTeleportHackParanoidDistance", 50)
 
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene", false)
+	gSkipUnsafeCutscene = ffxivminion.GetSetting("gSkipUnsafeCutscene", false)
 	gSkipTalk = ffxivminion.GetSetting("gSkipTalk", false)
 	gSkipTalkRunningOnly = ffxivminion.GetSetting("gSkipTalkRunningOnly", false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing", false)
@@ -2254,6 +2284,10 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Skip Cutscene"), gSkipCutscene), "gSkipCutscene", function()
 						Hacks:SkipCutscene(gSkipCutscene)
 					end)
+					GUI_Capture(GUI:Checkbox(GetString("Include Unskippable Cutscenes"), gSkipUnsafeCutscene), "gSkipUnsafeCutscene")
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(GetString("Some cutscenes are meant to be unskippable, this will make them skippable again. May be unsafe, use with caution."))
+					end
 					GUI_Capture(GUI:Checkbox(GetString("Skip Dialogue"), gSkipTalk), "gSkipTalk");
 					GUI:SameLine(0, 15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running") .. "##skiptalk", gSkipTalkRunningOnly), "gSkipTalkRunningOnly")
@@ -2262,6 +2296,21 @@ function ml_global_information.DrawSettings()
 
 				if (tabindex == 8) then
 					local width, height = GUI:GetWindowSize()
+
+					local changed = GUI:Checkbox(GetString("Use Auto Login"), ffxivminion.loginvars.useAutoLogin)
+					if changed then
+						ffxivminion.loginvars.useAutoLogin = not ffxivminion.loginvars.useAutoLogin
+						SettingsUUID.Login.useAutoLogin = ffxivminion.loginvars.useAutoLogin
+					end
+
+					local changed = GUI:Checkbox(GetString("Use Last Login Server"), ffxivminion.loginvars.useLastLogin)
+					if changed then
+						ffxivminion.loginvars.useLastLogin = not ffxivminion.loginvars.useLastLogin
+						SettingsUUID.Login.useLastLogin = ffxivminion.loginvars.useLastLogin
+					end
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(GetString("Just presses the start button, using whatever the client has saved as last login location."))
+					end
 
 					GUI:PushItemWidth(120)
 					local dcChanged = GUI_Combo("DataCenter", "FFXIV_Login_DataCenter", "FFXIV_Login_DataCenterName", ffxivminion.logincenters)
@@ -2393,8 +2442,8 @@ function ml_global_information.DrawLoginHandler()
 	local gamestate = MGetGameState()
 	if (gamestate ~= FFXIV.GAMESTATE.INGAME or ffxivminion.GUI.login.open) then
 
-		GUI:SetNextWindowSize(330, 145, GUI.SetCond_Always) --set the next window size, only on first ever
-		GUI:SetNextWindowCollapsed(false, GUI.SetCond_Always)
+		GUI:SetNextWindowSize(330, 210, GUI.SetCond_Appearing) --set the next window size, only on first ever
+		GUI:SetNextWindowCollapsed(false, GUI.SetCond_Appearing)
 
 		local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
@@ -2403,6 +2452,21 @@ function ml_global_information.DrawLoginHandler()
 		if (ffxivminion.GUI.login.visible) then
 
 			local width, height = GUI:GetWindowSize()
+
+			local _,changed = GUI:Checkbox(GetString("Use Auto Login"), ffxivminion.loginvars.useAutoLogin)
+			if changed then
+				ffxivminion.loginvars.useAutoLogin = not ffxivminion.loginvars.useAutoLogin
+				SettingsUUID.Login.useAutoLogin = ffxivminion.loginvars.useAutoLogin
+			end
+
+			local _,changed = GUI:Checkbox(GetString("Use Last Login Server"), ffxivminion.loginvars.useLastLogin)
+			if changed then
+				ffxivminion.loginvars.useLastLogin = not ffxivminion.loginvars.useLastLogin
+				SettingsUUID.Login.useLastLogin = ffxivminion.loginvars.useLastLogin
+			end
+			if GUI:IsItemHovered() then
+				GUI:SetTooltip(GetString("Just presses the start button, using whatever the client has saved as last login location."))
+			end
 
 			GUI:PushItemWidth(120)
 			local dcChanged = GUI_Combo("DataCenter", "FFXIV_Login_DataCenter", "FFXIV_Login_DataCenterName", ffxivminion.logincenters)
@@ -2438,8 +2502,18 @@ function ml_global_information.DrawLoginHandler()
 			)
 			GUI:PopItemWidth()
 
-			if (GUI:Button(IIF(ffxivminion.loginvars.loginPaused, "Start", "Pause"), width, 20)) then
-				ffxivminion.loginvars.loginPaused = not ffxivminion.loginvars.loginPaused
+			if pauseOnLoad and ffxivminion.loginvars.useAutoLogin then
+				local timer = 10-(TimeSince(pauseOnLoad)/1000)
+				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
+			end
+
+			local str = "Pause"
+			if ffxivminion.loginvars.loginPaused or pauseOnLoad then
+				str = "Start"
+			end
+			if (GUI:Button(str, width, 20)) then
+				ffxivminion.loginvars.loginPaused = IIF(pauseOnLoad == false, not ffxivminion.loginvars.loginPaused, false)
+				pauseOnLoad = false
 			end
 		end
 

@@ -1,1 +1,1 @@
-All files here should be plain text, ending in .mml
+-- All files here should be plain text, ending in .mml

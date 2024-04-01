@@ -3706,15 +3706,16 @@ end
 
 c_skiptalk = inheritsFrom( ml_cause )
 e_skiptalk = inheritsFrom( ml_effect )
+-- unsafe maps
+local noskip = {
+	[0] = true,
+	[217] = true,
+	[224] = true,
+	[900] = true,
+}
 function c_skiptalk:evaluate()
 
-	-- unsafe
-	local noskip = {
-		[0] = true,
-		[217] = true,
-		[224] = true,
-		[900] = true,
-	}
+	
 	if noskip[Player.localmapid] then
 		--d("no skip map")
 		return false
@@ -3752,19 +3753,23 @@ c_skipcutscene = inheritsFrom( ml_cause )
 e_skipcutscene = inheritsFrom( ml_effect )
 c_skipcutscene.lastSkip = 0
 c_skipcutscene.togglehack = true
+
+--unsafe maps
+local noskip = {
+	[0] = true,
+	[217] = true,
+	[224] = true,
+	[900] = true,
+	[1043] = true,
+	[1044] = true,
+}
+
 function c_skipcutscene:evaluate()
-
-	-- unsafe
-	local noskip = {
-		[0] = true,
-		[217] = true,
-		[224] = true,
-		[900] = true,
-	}
 		
-	if Player.onlinestatus == 15 then
-
-		if (noskip[Player.localmapid] ~= true and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and TimeSince(c_skipcutscene.lastSkip) > 1500 and not Player.ismounted) then
+	if Player.onlinestatus == 15 and Player.localmapid ~= 0 then
+	
+	--	local delaycsskip = 0
+		if ((noskip[Player.localmapid] ~= true or gSkipUnsafeCutscene) and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and not Player.ismounted) then
 			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
 				local convoList = GetConversationList()
 				if (table.valid(convoList)) then
@@ -3772,10 +3777,17 @@ function c_skipcutscene:evaluate()
 					d("Skipping cutscene")
 				end
 			else
-				PressKey(27) -- Press ESC, used for quest cutscene skipping
+				if (IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "This scene cannot be skipped." or GetControl("_TextError"):GetStrings()[2] == "Diese Szene kann nicht übersprungen werden." or GetControl("_TextError"):GetStrings()[2] == "Vous ne pouvez pas passer cette scène." or GetControl("_TextError"):GetStrings()[2] == "このイベントはスキップできません。" or GetControl("_TextError"):GetStrings()[2] == "该过场剧情无法跳过。" or GetControl("_TextError"):GetStrings()[2] == "건너뛸 수 없는 이벤트입니다.")) then	
+					c_skipcutscene.lastSkip = Now() + 10000
+					return false
+				end
+				if TimeSince(c_skipcutscene.lastSkip) > 50 then 
+					PressKey(27) -- Press ESC, used for quest cutscene skipping
+					return true
+				end
 			end
 		end
-		if not c_skipcutscene.togglehack then -- for disabling during unskipable cutscenes
+		if not c_skipcutscene.togglehack and not gSkipUnsafeCutscene then -- for disabling during unskipable cutscenes
 			c_skipcutscene.togglehack = true
 			Hacks:SkipCutscene(false)
 		end
@@ -3978,7 +3990,8 @@ function c_dointeract:evaluate()
 								if (table.valid(tpos) and table.valid(gPos)) then
 									if IsControlOpen('_TextError') then
 										return false
-									elseif interactable.interactable and (not IsMounted() and not IsDismounting() and not IsPositionLocked()) then
+									elseif interactable.interactable then
+								--	elseif interactable.interactable and (not IsMounted() and not IsDismounting() and not IsPositionLocked()) then	
 										Player:Stop()
 										d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z, tpos.x, tpos.y, tpos.z)))
 										Player:Interact(interactable.id)

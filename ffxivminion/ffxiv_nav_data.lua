@@ -1544,7 +1544,7 @@ ffxiv_map_nav.data = {
             {id = 813, cost = 1, x = -241, y = -3, z = -0, h = -1.61},
         },
         [814] = {
-            {id = 814, cost = 1, x = 61, y = 36, z = -169, h = -1.19, b = 1027225
+            {id = 814, cost = 1, x = 61, y = 36, z = -169, h = -1.19, b = 1027225, i = 1
 				, requires = {
 					["GetQuestInfo(3282,'step') == 255 or QuestCompleted(3282)"] = true,
 				},
