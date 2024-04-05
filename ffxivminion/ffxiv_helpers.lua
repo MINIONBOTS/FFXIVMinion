@@ -3556,276 +3556,125 @@ end
 --===========================
 --Class/Role Helpers
 --===========================
+local JOB_ROLES = {
+    -- TANKS
+    [FFXIV.JOBS.GLADIATOR] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.MARAUDER] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.PALADIN] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.WARRIOR] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.DARKKNIGHT] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.GUNBREAKER] = {role = "tank", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    -- HEALERS
+    [FFXIV.JOBS.CONJURER] = {role = "healer", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.SCHOLAR] = {role = "healer", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.WHITEMAGE] = {role = "healer", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.ASTROLOGIAN] = {role = "healer", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.SAGE] = {role = "healer", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    -- DPS
+    [FFXIV.JOBS.ARCHER] = {role = "dps", iscaster = false, isranged = true, ismelee = false, isphysical = true},
+    [FFXIV.JOBS.BARD] = {role = "dps", iscaster = false, isranged = true, ismelee = false, isphysical = true},
+    [FFXIV.JOBS.BLACKMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.DANCER] = {role = "dps", iscaster = false, isranged = true, ismelee = false, isphysical = true},
+    [FFXIV.JOBS.DRAGOON] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.LANCER] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.MONK] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.PUGILIST] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.ROGUE] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.NINJA] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.MACHINIST] = {role = "dps", iscaster = false, isranged = true, ismelee = false, isphysical = true},
+    [FFXIV.JOBS.SAMURAI] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    [FFXIV.JOBS.REDMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.BLUEMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+    [FFXIV.JOBS.REAPER] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    --[FFXIV.JOBS.VIPER] = {role = "dps", iscaster = false, isranged = false, ismelee = true, isphysical = true},
+    --[FFXIV.JOBS.PICTOMANCER] = {role = "dps", iscaster = true, ranged = true, ismelee = false, isphysical = false},
+}
+
 function GetRoleString(jobID)
-    if 
-        jobID == FFXIV.JOBS.ARCANIST or
-        jobID == FFXIV.JOBS.ARCHER or
-        jobID == FFXIV.JOBS.BARD or
-        jobID == FFXIV.JOBS.BLACKMAGE or
-		jobID == FFXIV.JOBS.DANCER or
-        jobID == FFXIV.JOBS.DRAGOON or
-        jobID == FFXIV.JOBS.LANCER or
-        jobID == FFXIV.JOBS.MONK or
-        jobID == FFXIV.JOBS.PUGILIST or
-        jobID == FFXIV.JOBS.SUMMONER or
-        jobID == FFXIV.JOBS.THAUMATURGE or
-		jobID == FFXIV.JOBS.ROGUE or
-		jobID == FFXIV.JOBS.NINJA or
-		jobID == FFXIV.JOBS.MACHINIST or
-		jobID == FFXIV.JOBS.SAMURAI or
-		jobID == FFXIV.JOBS.REDMAGE or
-		jobID == FFXIV.JOBS.BLUEMAGE or
-		jobID == FFXIV.JOBS.REAPER
-    then
-        return GetString("dps")
-    elseif
-        jobID == FFXIV.JOBS.CONJURER or
-        jobID == FFXIV.JOBS.SCHOLAR or
-        jobID == FFXIV.JOBS.WHITEMAGE or
-		jobID == FFXIV.JOBS.ASTROLOGIAN or
-		jobID == FFXIV.JOBS.SAGE
-    then
-        return GetString("healer")
-    elseif 
-        jobID == FFXIV.JOBS.GLADIATOR or
-        jobID == FFXIV.JOBS.MARAUDER or
-        jobID == FFXIV.JOBS.PALADIN or
-        jobID == FFXIV.JOBS.WARRIOR or 
-		jobID == FFXIV.JOBS.DARKKNIGHT or 
-		jobID == FFXIV.JOBS.GUNBREAKER
-    then
-        return GetString("tank")
+    if JOB_ROLES[jobID] == nil then return nil end
+    return JOB_ROLES[jobID].role
+end
+
+function GetRoleTable(rolestring)
+    if rolestring == nil then return {} end
+    local roleTable = {}
+    for _, JOB in pairs(JOB_ROLES) do
+        if JOB.role == rolestring then
+            table.insert(roleTable, JOB)
+        end
+    end
+    return roleTable
+end
+
+function GetJobID(var)
+    local var = IsNull(var,Player)
+    if (type(var) == "table") then
+        return var.job or 0
+    elseif (type(var) == "number") then
+        return var
     end
 end
-function GetRoleTable(rolestring)
-	if (rolestring == "DPS") then
-		return {
-			[FFXIV.JOBS.ARCHER] = true,
-			[FFXIV.JOBS.BARD] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DANCER] = true,
-			[FFXIV.JOBS.DRAGOON] = true,
-			[FFXIV.JOBS.LANCER] = true,
-			[FFXIV.JOBS.MONK] = true,
-			[FFXIV.JOBS.PUGILIST] = true,
-			[FFXIV.JOBS.ROGUE] = true,
-			[FFXIV.JOBS.NINJA] = true,
-			[FFXIV.JOBS.MACHINIST] = true,
-			[FFXIV.JOBS.SAMURAI] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-			[FFXIV.JOBS.BLUEMAGE] = true,
-			[FFXIV.JOBS.REAPER] = true,
-		}
-	elseif (rolestring == "Healer") then
-		return {
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
-			[FFXIV.JOBS.SAGE] = true,
-		}
-	elseif (rolestring == "Tank") then
-		return {
-			[FFXIV.JOBS.GLADIATOR] = true,
-			[FFXIV.JOBS.MARAUDER] = true,
-			[FFXIV.JOBS.PALADIN] = true,
-			[FFXIV.JOBS.WARRIOR] = true,
-			[FFXIV.JOBS.DARKKNIGHT] = true,
-			[FFXIV.JOBS.GUNBREAKER] = true,
-		}
-	elseif (rolestring == "Caster") then
-		return {
-			[FFXIV.JOBS.ARCANIST] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.SUMMONER] = true,
-			[FFXIV.JOBS.THAUMATURGE] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-			[FFXIV.JOBS.BLUEMAGE] = true,
-			[FFXIV.JOBS.SAGE] = true,
-		}
-	elseif (rolestring == "MeleeDPS") then
-      		return {
-  			[FFXIV.JOBS.DRAGOON] = true,
-			[FFXIV.JOBS.LANCER] = true,
-			[FFXIV.JOBS.MONK] = true,
-			[FFXIV.JOBS.PUGILIST] = true,
-  			[FFXIV.JOBS.ROGUE] = true,
-			[FFXIV.JOBS.NINJA] = true,
-         	[FFXIV.JOBS.SAMURAI] = true,
-			[FFXIV.JOBS.REAPER] = true,
-		}
-	elseif (rolestring == "RangeDPS") then
-		return {
-			[FFXIV.JOBS.ARCHER] = true,
-			[FFXIV.JOBS.BARD] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DANCER] = true,
-			[FFXIV.JOBS.MACHINIST] = true,
-			[FFXIV.JOBS.ARCANIST] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.SUMMONER] = true,
-			[FFXIV.JOBS.THAUMATURGE] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-		}
-	end
-	return nil
-end
-function IsMeleeDPS(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
-	
-	return 	(jobid == FFXIV.JOBS.MONK or
-			jobid == FFXIV.JOBS.PUGILIST or
-			jobid == FFXIV.JOBS.DRAGOON or
-			jobid == FFXIV.JOBS.LANCER or
-			jobid == FFXIV.JOBS.ROGUE or
-			jobid == FFXIV.JOBS.NINJA or 
-			jobid == FFXIV.JOBS.SAMURAI or
-			jobid == FFXIV.JOBS.REAPER)
-end
-function IsRangedDPS(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
-	
-	return 	(jobid == FFXIV.JOBS.ARCANIST or
-			jobid == FFXIV.JOBS.ARCHER or
-			jobid == FFXIV.JOBS.BARD or
-			jobid == FFXIV.JOBS.BLACKMAGE or
-			jobid == FFXIV.JOBS.DANCER or
-			jobid == FFXIV.JOBS.SUMMONER or
-			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.MACHINIST or 
-			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
-end
-function IsRanged(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
-	
-	return 	(jobid == FFXIV.JOBS.ARCANIST or
-			jobid == FFXIV.JOBS.ARCHER or
-			jobid == FFXIV.JOBS.BARD or
-			jobid == FFXIV.JOBS.DANCER or
-			jobid == FFXIV.JOBS.BLACKMAGE or
-			jobid == FFXIV.JOBS.SUMMONER or
-			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.CONJURER or
-			jobid == FFXIV.JOBS.SCHOLAR or
-			jobid == FFXIV.JOBS.WHITEMAGE or
-			jobid == FFXIV.JOBS.ASTROLOGIAN or
-			jobid == FFXIV.JOBS.SAGE or
-			jobid == FFXIV.JOBS.MACHINIST or
-			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
-end
-function IsPhysicalDPS(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
 
-	return 	(jobid == FFXIV.JOBS.MONK or
-			jobid == FFXIV.JOBS.PUGILIST or
-			jobid == FFXIV.JOBS.DRAGOON or
-			jobid == FFXIV.JOBS.LANCER or
-			jobid == FFXIV.JOBS.ROGUE or
-			jobid == FFXIV.JOBS.NINJA or 
-			jobid == FFXIV.JOBS.ARCHER or
-			jobid == FFXIV.JOBS.SAMURAI or
-			jobid == FFXIV.JOBS.BARD or
-			jobid == FFXIV.JOBS.DANCER or
-			jobid == FFXIV.JOBS.MACHINIST or
-			jobid == FFXIV.JOBS.REAPER)
+function IsRole(target, role)
+    local jobID = GetJobID(target)
+    local job = JOB_ROLES[jobID]
+    return job.role == role
 end
-function IsCasterDPS(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
 
-	return 	(jobid == FFXIV.JOBS.ARCANIST or
-			jobid == FFXIV.JOBS.BLACKMAGE or
-			jobid == FFXIV.JOBS.SUMMONER or
-			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.REDMAGE or 
-			jobid == FFXIV.JOBS.BLUEMAGE)
+function IsTank(target)
+	local jobID = GetJobID(target)
+	local job = JOB_ROLES[jobID]
+    return job.role == "tank"
 end
-function IsCaster(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
 
-	return 	(jobid == FFXIV.JOBS.ARCANIST or
-			jobid == FFXIV.JOBS.BLACKMAGE or
-			jobid == FFXIV.JOBS.SUMMONER or
-			jobid == FFXIV.JOBS.THAUMATURGE or
-			jobid == FFXIV.JOBS.WHITEMAGE or
-			jobid == FFXIV.JOBS.CONJURER or
-			jobid == FFXIV.JOBS.SCHOLAR or 
-			jobid == FFXIV.JOBS.ASTROLOGIAN or
-			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
+function IsHealer(target)
+	local jobID = GetJobID(target)
+	local job = JOB_ROLES[jobID]
+    return job.role == "healer"
 end
-function IsHealer(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
 
-	return 	(jobid == FFXIV.JOBS.WHITEMAGE or
-			jobid == FFXIV.JOBS.CONJURER or
-			jobid == FFXIV.JOBS.SCHOLAR or 
-			jobid == FFXIV.JOBS.ASTROLOGIAN or
-			jobid == FFXIV.JOBS.SAGE)
+function IsDPS(target)
+	local jobID = GetJobID(target)
+	local job = JOB_ROLES[jobID]
+    return job.role == "dps"
 end
-function IsTank(var)
-	local var = IsNull(var,Player)
-	local jobid;
-	if (type(var) == "table") then
-		jobid = var.job or 0
-	elseif (type(var) == "number") then
-		jobid = var
-	end
-	
-	return (jobid == FFXIV.JOBS.GLADIATOR or
-		jobid == FFXIV.JOBS.MARAUDER or
-		jobid == FFXIV.JOBS.PALADIN or
-		jobid == FFXIV.JOBS.WARRIOR or
-		jobid == FFXIV.JOBS.GUNBREAKER or
-		jobid == FFXIV.JOBS.DARKKNIGHT)
+
+function IsMeleeDPS(target)
+	local jobID = GetJobID(target)
+    local job = JOB_ROLES[jobID]
+    return job.role == "dps" and job.ismelee
 end
+
+function IsRangedDPS(target)
+	local jobID = GetJobID(target)
+    local job = JOB_ROLES[jobID]
+    return job.role == "dps" and job.isranged
+end
+
+function IsPhysicalDPS(target)
+	local jobID = GetJobID(target)
+    local job = JOB_ROLES[jobID]
+    return job.role == "dps" and job.isphysical
+end
+
+function IsCasterDPS(target)
+	local jobID = GetJobID(target)
+    local job = JOB_ROLES[jobID]
+    return job.role == "dps" and job.iscaster
+end
+
+function IsCaster(target)
+	local jobID = GetJobID(target)
+	local job = JOB_ROLES[jobID]
+    return job.iscaster
+end
+
+function IsRanged(target)
+	local jobID = GetJobID(target)
+	local job = JOB_ROLES[jobID]
+    return job.isranged
+end
+
 function IsGatherer(jobID)
 	local jobID = tonumber(jobID)
 	if jobID ~= nil and (jobID >= 16 and jobID <= 17) then
@@ -3834,6 +3683,7 @@ function IsGatherer(jobID)
 	
 	return false
 end
+
 function IsFighter(jobID)
 	local jobID = tonumber(jobID)
 	if jobID ~= nil and ((jobID >= 0 and jobID <= 7) or (jobID >= 19)) then
@@ -3842,6 +3692,7 @@ function IsFighter(jobID)
 	
 	return false
 end
+
 function IsCrafter(jobID)
 	local jobID = tonumber(jobID)
 	if jobID ~= nil and (jobID >= 8 and jobID <= 15) then
@@ -3850,10 +3701,15 @@ function IsCrafter(jobID)
 	
 	return false
 end
+
 function IsFisher(jobID)
 	local jobID = tonumber(jobID)
-	return jobID == 18
+	if jobID == 18 then
+		return true
+	end
+	return false
 end
+
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	if (maxdistance==nil or maxdistance == "") then
 		maxdistance = 30
@@ -3871,6 +3727,7 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
+
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
