@@ -3589,6 +3589,7 @@ local JOB_ROLES = {
 	[FFXIV.JOBS.THAUMATURGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
     [FFXIV.JOBS.BLACKMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
     [FFXIV.JOBS.ARCANIST] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
+	[FFXIV.JOBS.SUMMONER] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
 	[FFXIV.JOBS.REDMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
     [FFXIV.JOBS.BLUEMAGE] = {role = "dps", iscaster = true, isranged = true, ismelee = false, isphysical = false},
     --[FFXIV.JOBS.PICTOMANCER] = {role = "dps", iscaster = true, ranged = true, ismelee = false, isphysical = false},
