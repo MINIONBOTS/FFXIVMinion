@@ -5630,16 +5630,16 @@ function SkillMgr.AddDefaultConditions()
 			if not skill.trgtype ~= roleString then 
 				found = false
 			end
-			if skill.trgtype == GetString("Tank") and IsTank(target.job) then
+			if skill.trgtype == GetString("Tank") and IsRole(target.job,"tank") then
 				found = true
 			end
-			if skill.trgtype == GetString("DPS") and (IsMeleeDPS(target.job) or IsRangedDPS(target.job)) then
+			if skill.trgtype == GetString("Healer") and IsRole(target.job,"healer") then
+				found = true
+			end
+			if skill.trgtype == GetString("DPS") and IsRole(target.job,"dps") then
 				found = true
 			end
 			if skill.trgtype == GetString("Caster") and IsCaster(target.job) then
-				found = true
-			end
-			if skill.trgtype == GetString("Healer") and IsHealer(target.job) then
 				found = true
 			end
 			if skill.trgtype == GetString("RangeDPS") and IsRangedDPS(target.job) then
