@@ -2297,13 +2297,13 @@ function ml_global_information.DrawSettings()
 				if (tabindex == 8) then
 					local width, height = GUI:GetWindowSize()
 
-					local changed = GUI:Checkbox(GetString("Use Auto Login"), ffxivminion.loginvars.useAutoLogin)
+					local _,changed = GUI:Checkbox(GetString("Use Auto Login"), ffxivminion.loginvars.useAutoLogin)
 					if changed then
 						ffxivminion.loginvars.useAutoLogin = not ffxivminion.loginvars.useAutoLogin
 						SettingsUUID.Login.useAutoLogin = ffxivminion.loginvars.useAutoLogin
 					end
 
-					local changed = GUI:Checkbox(GetString("Use Last Login Server"), ffxivminion.loginvars.useLastLogin)
+					local _,changed = GUI:Checkbox(GetString("Use Last Login Server"), ffxivminion.loginvars.useLastLogin)
 					if changed then
 						ffxivminion.loginvars.useLastLogin = not ffxivminion.loginvars.useLastLogin
 						SettingsUUID.Login.useLastLogin = ffxivminion.loginvars.useLastLogin
