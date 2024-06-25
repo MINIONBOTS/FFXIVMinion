@@ -404,13 +404,14 @@ end
 c_assistqtepress = inheritsFrom( ml_cause )
 e_assistqtepress = inheritsFrom( ml_effect )
 function c_assistqtepress:evaluate()
-	if not gQTEHelper then
+	if gQTEHelper then
 		return IsControlOpen("QTE")
 	end
 	return false
 end
 function e_assistqtepress:execute()
-	PressKey(32)
+	KeyDown(32)
+	KeyUp(32)
 end
 c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )

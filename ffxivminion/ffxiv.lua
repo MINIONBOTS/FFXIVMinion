@@ -1896,7 +1896,7 @@ function ml_global_information.DrawSmall()
 				GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding, 10)
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 
-				GUI:BeginChild("##label-" .. gBotMode, 120, 35, true)
+				GUI:BeginChild("##label-" .. gBotMode, 120, 40, true)
 				GUI:AlignFirstTextHeightToWidgets()
 				GUI:Text(gBotMode)
 				GUI:EndChild()
@@ -1940,6 +1940,10 @@ function ml_global_information.DrawSmall()
 				GUI:End()
 				GUI:PopStyleColor()
 			end
+		end
+		
+		if gBotMode == GetString("assistMode") then
+			c_assistqtepress:evaluate()
 		end
 	end
 end
@@ -2440,7 +2444,7 @@ end
 -- Login to the correct DataCenter.
 function ml_global_information.DrawLoginHandler()
 	local gamestate = MGetGameState()
-	if (gamestate ~= FFXIV.GAMESTATE.INGAME or ffxivminion.GUI.login.open) then
+	if (In(gamestate,1,2) or ffxivminion.GUI.login.open) then
 
 		GUI:SetNextWindowSize(330, 210, GUI.SetCond_Appearing) --set the next window size, only on first ever
 		GUI:SetNextWindowCollapsed(false, GUI.SetCond_Appearing)
@@ -2502,11 +2506,6 @@ function ml_global_information.DrawLoginHandler()
 			)
 			GUI:PopItemWidth()
 
-			if pauseOnLoad and ffxivminion.loginvars.useAutoLogin then
-				local timer = 10-(TimeSince(pauseOnLoad)/1000)
-				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
-			end
-
 			local str = "Pause"
 			if ffxivminion.loginvars.loginPaused or pauseOnLoad then
 				str = "Start"
@@ -2514,6 +2513,10 @@ function ml_global_information.DrawLoginHandler()
 			if (GUI:Button(str, width, 20)) then
 				ffxivminion.loginvars.loginPaused = IIF(pauseOnLoad == false, not ffxivminion.loginvars.loginPaused, false)
 				pauseOnLoad = false
+			end
+			if pauseOnLoad and ffxivminion.loginvars.useAutoLogin then
+				local timer = 10-(TimeSince(pauseOnLoad)/1000)
+				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
 			end
 		end
 
