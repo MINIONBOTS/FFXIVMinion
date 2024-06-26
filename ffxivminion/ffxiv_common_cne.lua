@@ -1398,6 +1398,9 @@ function c_getmovementpath:evaluate()
 	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing()) then
 		return false
 	end
+	if TimeSince(c_getmovementpath.lastOptimalPath) < 2000 then
+		return false
+	end
 	
 	if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
 		local gotoPos = nil
