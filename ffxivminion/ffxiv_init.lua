@@ -37,6 +37,12 @@ FFXIV.JOBS = {
 	ASTROLOGIAN = 33,
 }
 --]]
+if (FFXIV.JOBS.VIPER == nil) then
+	FFXIV.JOBS.VIPER = 41
+end
+if (FFXIV.JOBS.PICTOMANCER == nil) then
+	FFXIV.JOBS.PICTOMANCER = 42
+end
 
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
