@@ -133,6 +133,8 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
 	[FFXIV.JOBS.REAPER] = "Reaper",
 	[FFXIV.JOBS.SAGE] = "Sage",
+	[FFXIV.JOBS.VIPER] = "Viper",
+	[FFXIV.JOBS.PICTOMANCER] = "Pictomancer",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -237,6 +239,8 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 			[FFXIV.JOBS.GUNBREAKER] = 17703,
 			[FFXIV.JOBS.REAPER] = 24373,
 			[FFXIV.JOBS.SAGE] = 24283,
+			[FFXIV.JOBS.VIPER] = 34606,
+			[FFXIV.JOBS.PICTOMANCER]= 34650,
 		}
 	end
 	
@@ -320,6 +324,8 @@ function SkillMgr.UpdateBasicSkills()
 		[FFXIV.JOBS.GUNBREAKER] = 16137,
 		[FFXIV.JOBS.REAPER] = 24373,
 		[FFXIV.JOBS.SAGE] = 24283,
+		[FFXIV.JOBS.VIPER] = 34606,
+		[FFXIV.JOBS.PICTOMANCER]= 34650,
 	}
 	
 	SkillMgr.GCDSkillsPVP = {
@@ -940,6 +946,12 @@ function SkillMgr.ModuleInit()
 		if In(gSMDefaultProfiles[FFXIV.JOBS.SAGE],"None",nil) then
 			gSMDefaultProfiles[FFXIV.JOBS.SAGE] = "Sage"
 		end
+		if In(gSMDefaultProfiles[FFXIV.JOBS.VIPER],"None",nil) then
+			gSMDefaultProfiles[FFXIV.JOBS.VIPER] = "Viper"
+		VIPER
+		if In(gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER],"None",nil) then
+			gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER] = "Pictomancer"
+		end
 		if In(GetGameRegion(),1,2) then
 			if In(gSMDefaultProfiles[FFXIV.JOBS.ROGUE],"Ninja","Rogue",nil) then
 				gSMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Ninja52"
@@ -1049,6 +1061,8 @@ function SkillMgr.ModuleInit()
 	gSkillProfileValidDNC = false
 	gSkillProfileValidRPR = false
 	gSkillProfileValidSGE = false
+	gSkillProfileValidVPR = false
+	gSkillProfileValidPCT = false
 	
 	gSkillProfileValidMIN = false
 	gSkillProfileValidBTN = false
@@ -1783,7 +1797,9 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidGNB = IsNull(classes[FFXIV.JOBS.GUNBREAKER],false) 
 	gSkillProfileValidDNC = IsNull(classes[FFXIV.JOBS.DANCER],false) 
 	gSkillProfileValidRPR = IsNull(classes[FFXIV.JOBS.REAPER],false) 
-	gSkillProfileValidSGE = IsNull(classes[FFXIV.JOBS.SAGE],false) 
+	gSkillProfileValidSGE = IsNull(classes[FFXIV.JOBS.SAGE],false)
+	gSkillProfileValidVPR = IsNull(classes[FFXIV.JOBS.VIPER],false) 
+	gSkillProfileValidPCT = IsNull(classes[FFXIV.JOBS.PICTOMANCER],false) 
 	
 	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
 	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
@@ -1889,6 +1905,8 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.DANCER] = IsNull(gSkillProfileValidDNC,false), 
 		[FFXIV.JOBS.REAPER] = IsNull(gSkillProfileValidRPR,false),
 		[FFXIV.JOBS.SAGE] = IsNull(gSkillProfileValidSGE,false), 
+		[FFXIV.JOBS.VIPER] = IsNull(gSkillProfileValidVPR,false),
+		[FFXIV.JOBS.PICTOMANCER] = IsNull(gSkillProfileValidPCT,false),
 		
 		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
 		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
@@ -6157,7 +6175,7 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE",
+				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE","VPR","PCT",
 					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 				
 				for i,abrev in pairsByKeys(classes) do
@@ -6815,7 +6833,7 @@ function SkillMgr.DrawManager()
 				end
 					
 				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE"}
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE","VPR","PCT"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
 					

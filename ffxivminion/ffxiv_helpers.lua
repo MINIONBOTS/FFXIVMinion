@@ -1044,8 +1044,9 @@ function GetLowestMPParty( range, role, includeself )
 		[FFXIV.JOBS.SCHOLAR] = true,
 		[FFXIV.JOBS.DARKKNIGHT] = true,
 		[FFXIV.JOBS.ASTROLOGIAN] = true,
-		--[FFXIV.JOBS.GUNBREAKER] = true, not sure yet
-		--[FFXIV.JOBS.DANCER] = true, not sure yet
+		[FFXIV.JOBS.REDMAGE] = true,
+		[FFXIV.JOBS.BLUEMAGE] = true,
+		[FFXIV.JOBS.PICTOMANCER] = true
 	}
 	
 	-- DPS, Healer, Tank, Caster
@@ -3575,7 +3576,9 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.SAMURAI or
 		jobID == FFXIV.JOBS.REDMAGE or
 		jobID == FFXIV.JOBS.BLUEMAGE or
-		jobID == FFXIV.JOBS.REAPER
+		jobID == FFXIV.JOBS.REAPER or
+		jobID == FFXIV.JOBS.VIPER or
+		jobID == FFXIV.JOBS.PICTOMANCER
     then
         return GetString("dps")
     elseif
@@ -3615,6 +3618,8 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.REDMAGE] = true,
 			[FFXIV.JOBS.BLUEMAGE] = true,
 			[FFXIV.JOBS.REAPER] = true,
+			[FFXIV.JOBS.VIPER] = true,
+			[FFXIV.JOBS.PICTOMANCER] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
@@ -3657,6 +3662,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.NINJA] = true,
          	[FFXIV.JOBS.SAMURAI] = true,
 			[FFXIV.JOBS.REAPER] = true,
+			[FFXIV.JOBS.VIPER] = true,
 		}
 	elseif (rolestring == "RangeDPS") then
 		return {
@@ -3670,6 +3676,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.SUMMONER] = true,
 			[FFXIV.JOBS.THAUMATURGE] = true,
 			[FFXIV.JOBS.REDMAGE] = true,
+			[FFXIV.JOBS.PICTOMANCER] = true,
 		}
 	end
 	return nil
@@ -3690,7 +3697,8 @@ function IsMeleeDPS(var)
 			jobid == FFXIV.JOBS.ROGUE or
 			jobid == FFXIV.JOBS.NINJA or 
 			jobid == FFXIV.JOBS.SAMURAI or
-			jobid == FFXIV.JOBS.REAPER)
+			jobid == FFXIV.JOBS.REAPER or
+			jobid == FFXIV.JOBS.VIPER)
 end
 function IsRangedDPS(var)
 	local var = IsNull(var,Player)
@@ -3710,7 +3718,8 @@ function IsRangedDPS(var)
 			jobid == FFXIV.JOBS.THAUMATURGE or
 			jobid == FFXIV.JOBS.MACHINIST or 
 			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
+			jobid == FFXIV.JOBS.BLUEMAGE or
+			jobid == FFXIV.JOBS.PICTOMANCER)
 end
 function IsRanged(var)
 	local var = IsNull(var,Player)
@@ -3735,7 +3744,8 @@ function IsRanged(var)
 			jobid == FFXIV.JOBS.SAGE or
 			jobid == FFXIV.JOBS.MACHINIST or
 			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
+			jobid == FFXIV.JOBS.BLUEMAGE or
+			jobid == FFXIV.JOBS.PICTOMANCER)
 end
 function IsPhysicalDPS(var)
 	local var = IsNull(var,Player)
@@ -3757,7 +3767,8 @@ function IsPhysicalDPS(var)
 			jobid == FFXIV.JOBS.BARD or
 			jobid == FFXIV.JOBS.DANCER or
 			jobid == FFXIV.JOBS.MACHINIST or
-			jobid == FFXIV.JOBS.REAPER)
+			jobid == FFXIV.JOBS.REAPER or
+			jobid == FFXIV.JOBS.VIPER)
 end
 function IsCasterDPS(var)
 	local var = IsNull(var,Player)
@@ -3773,7 +3784,8 @@ function IsCasterDPS(var)
 			jobid == FFXIV.JOBS.SUMMONER or
 			jobid == FFXIV.JOBS.THAUMATURGE or
 			jobid == FFXIV.JOBS.REDMAGE or 
-			jobid == FFXIV.JOBS.BLUEMAGE)
+			jobid == FFXIV.JOBS.BLUEMAGE or
+			jobid == FFXIV.JOBS.PICTOMANCER)
 end
 function IsCaster(var)
 	local var = IsNull(var,Player)
@@ -3793,7 +3805,9 @@ function IsCaster(var)
 			jobid == FFXIV.JOBS.SCHOLAR or 
 			jobid == FFXIV.JOBS.ASTROLOGIAN or
 			jobid == FFXIV.JOBS.REDMAGE or
-			jobid == FFXIV.JOBS.BLUEMAGE)
+			jobid == FFXIV.JOBS.BLUEMAGE or
+			jobid == FFXIV.JOBS.SAGE or
+			jobid == FFXIV.JOBS.PICTOMANCER)
 end
 function IsHealer(var)
 	local var = IsNull(var,Player)
