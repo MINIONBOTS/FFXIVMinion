@@ -948,7 +948,7 @@ function SkillMgr.ModuleInit()
 		end
 		if In(gSMDefaultProfiles[FFXIV.JOBS.VIPER],"None",nil) then
 			gSMDefaultProfiles[FFXIV.JOBS.VIPER] = "Viper"
-		VIPER
+		end
 		if In(gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER],"None",nil) then
 			gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER] = "Pictomancer"
 		end
