@@ -4048,8 +4048,8 @@ function GetUnattunedCurrents()
 		return nil
 	end
 	local list = ffxiv_aethercurrent_data
-	if GetPatchLevel() >= 6 then
-		list = ffxiv_aethercurrent_dataEW
+	if GetPatchLevel() >= 7 then
+		list = ffxiv_aethercurrent_dataDT
 	end
 	for map,currentdata in pairs(list) do
 		for j,current in pairs(currentdata) do
