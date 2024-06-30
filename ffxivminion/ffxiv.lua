@@ -1947,7 +1947,9 @@ function ml_global_information.DrawSmall()
 		end
 		
 		if gBotMode == GetString("assistMode") then
-			c_assistqtepress:evaluate()
+			if c_assistqtepress:evaluate() then
+				e_assistqtepress:execute()
+			end
 		end
 	end
 end
