@@ -984,11 +984,13 @@ end
 -- Are there more flying nodes so we can continue flying instead of landing uselessly?
 function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
+		local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
 		local pathsize = table.size(self.path)
-		for index,node in pairsByKeys(self.path) do
-			if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0)) then
-				local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
-				if (dist > 15) then
+		if (dist > 15) then
+			for index,node in pairsByKeys(self.path) do
+				if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and 
+					(dist > 30 or IsNull(node.flags,0) == 0 or (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0))) 
+				then
 					return true
 				end
 			end
@@ -1131,8 +1133,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
-	if not force and ((newGoal.x == ml_navigation.lastpos.x and newGoal.z == ml_navigation.lastpos.z) and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000))) then
-		d("[NAVIGATION]: We have a recent path, dont call again. (causes double backs)")
+	if not force and (((newGoal.x == ml_navigation.lastpos.x and newGoal.z == ml_navigation.lastpos.z) or ((IsFlying() or IsDiving()) and targetid ~= nil and targetid == ml_navigation.lasttargetid))
+		 and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000))) then
+		--d("[NAVIGATION]: We have a recent path, dont call again. (causes double backs)")
 		return currentPathSize
 	end
 	
@@ -1280,7 +1283,7 @@ function ml_navigation.TagNode(node)
 			node.ground_avoid = (bit.band(flags, GLOBAL.FLOOR.AVOID) ~= 0)
 		elseif (node.is_cube) then
 			--node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0)   -- doesn't work, due to flags sometimes returning 0, needs c++ fix
-			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0 or flags == 0)
+			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0 or IsNull(flags,0) == 0)
 			node.water = (bit.band(flags, GLOBAL.CUBE.WATER) ~= 0)
 			node.air_avoid = (bit.band(flags, GLOBAL.CUBE.AVOID) ~= 0)
 		end
@@ -1832,6 +1835,7 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist2D = math.distance2d(nextnode,ppos)
 						local dist3D = math.distance3d(nextnode,ppos)
+						local height = (ppos.y - nextnode.y)
 						
 						--ml_debug("[Navigation]: Moving to next node")
 						-- We have not yet reached our node
@@ -1862,20 +1866,18 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
-							local canLand = (dist2D < 1.5 and dist3D < 3)
-							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
-							if (not hit) then
-								canLand = false
-							end	
-							if (not canLand) then
-								if (nextnode.is_end and nextnode.ground and dist2D < 1.5 and dist3D < 3) then
-									canLand = true
-								end
+							local canLand = ((dist2D < 2 or dist3D < 3) and height < 7 and height > 0)
+							if (canLand and not (nextnode.is_end and nextnode.ground)) then
+								local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
+								if (not hit) then
+									canLand = false
+								end	
 							end
-							
-							if (ffnav.descentAttempts < 2) then
-								if (canLand and not nextnode.is_cube and nextnode.ground and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+
+							if (ffnav.descentAttempts < 3) then
+								if (canLand and (not nextnode.is_cube or nextnode.ground) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
+									d("Attempt descent.")
 									Descend(true)
 									return false
 								end
@@ -1985,6 +1987,24 @@ function ml_navigation.Navigate(event, ticks )
 								end
 							end
 						else
+							if (not IsFlying() and not IsSwimming() and CanFlyInZone() and Player:IsMoving() and Player.ismounted) then
+								--d("[Navigation]:Check hover conditions: iscube:"..tostring(nextnode.is_cube)..",cancontinue:"..tostring(ml_navigation:CanContinueFlying()))
+								local targetnode = shallowcopy(nextnode)
+								if ((not nextnode.is_cube and ml_navigation:CanContinueFlying()) or nextnode.is_cube) then
+									if (ml_navigation.lastJump == nil) then ml_navigation.lastJump = 0 end
+
+									if (TimeSince(ml_navigation.lastJump) > math.random(2000,4000)) then
+										d("[Navigation]:Attempt hover flight")
+										Player:Jump()
+										ffnav.AwaitSuccess(300, 1000, function () 
+											local ascended = Player:IsJumping() or IsFlying()
+											return ascended
+										end, function () Player:TakeOff() end)
+										ml_navigation.lastJump = Now()
+									end
+								end
+							end
+
 							--d("[Navigation]: Navigate to node, backup.")
 							ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	
 						end
