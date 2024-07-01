@@ -1098,6 +1098,7 @@ end
 ml_navigation.lastPathUpdate = 0
 ml_navigation.pathchanged = false
 ml_navigation.lastBuildCall = 0
+ml_navigation.lastpos = {x=0, y=0, z=0}
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	ml_navigation.debug = nil -- this is just for being able to click "Get Path to target" in the navmanager, so you see the current path and can check  the nodes / manually optimize that path without actually start flying
 	local floorfilters = IsNull(floorfilters,0,true)
@@ -1130,7 +1131,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
-	if not force and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000)) then
+	if not force and ((newGoal.x == ml_navigation.lastpos.x and newGoal.z == ml_navigation.lastpos.z) and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000))) then
 		d("[NAVIGATION]: We have a recent path, dont call again. (causes double backs)")
 		return currentPathSize
 	end
@@ -1187,6 +1188,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	
 	--table.print(ml_navigation.path)
 	ml_navigation.lastBuildCall = Now()
+	ml_navigation.lastpos = newGoal
 	return ret
 end
 
