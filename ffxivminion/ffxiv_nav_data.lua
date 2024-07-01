@@ -1972,6 +1972,23 @@ ffxiv_map_nav.data = {
             {id = 1159, cost = 1, x = 61.98, y = 56.69, z = 477.25, b = 2013365},
         },
     },
+	-- Dawntrail
+	[1185] = -- Tuliyollal
+    {
+        [1187] = { 
+            {id = 1185, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
+                , requires = {
+                    ["QuestCompleted(4871)"] = true,
+                },
+			},
+        },
+    },
+	[1187] = -- Urqopacha
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = 659.5, y = -120, z = -451.4, h = 2.47},
+        },
+    },
 }-- set reference for mesh mgr
 
 ffxiv_aethercurrent_data = {
