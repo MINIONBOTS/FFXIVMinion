@@ -390,14 +390,29 @@ function dev.DrawCall(event, ticks )
 															dev.DisplaySelectableCell(cellInfo,tostring(index),dev.MOUSE_ACTION_LEFT_CLICKED)
 															dev.DisplaySelectableCell(cellInfo,tostring(data.type),dev.MOUSE_ACTION_LEFT_CLICKED)
 															GUI:PushItemWidth(500)
-															if data.type == "int32" or data.type == "uint32" or data.type == "int" or data.type == "uint" or data.type == "bool" or data.type == "float" then
+															if
+																data.type == "int32" or
+																data.type == "uint32" or
+																data.type == "int" or
+																data.type == "uint" or
+																data.type == "bool" or
+																data.type == "float" or
+																data.type == "int64" or
+																data.type == "uint64" or
+																data.type == "vector" or
+																data.type == "atkvalues"
+															then
 																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "string") then
+															elseif
+																data.type == "string" or
+																data.type == "wstring" or
+																data.type == "texture"
+															then
 																dev.DisplaySelectableCell(cellInfo,data.value,dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "4bytes") then
+															elseif data.type == "4bytes" then
 																dev.DisplaySelectableCell(cellInfo,"A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D),dev.MOUSE_ACTION_LEFT_CLICKED)
 															else
-																dev.DisplaySelectableCell(cellInfo,"",dev.MOUSE_ACTION_LEFT_CLICKED)
+																dev.DisplaySelectableCell(cellInfo,"<<UNKNOWN TYPE>>",dev.MOUSE_ACTION_LEFT_CLICKED)
 															end
 															GUI:PopItemWidth()
 															if dev.CheckMouseActions(cellInfo.mouseActions,dev.MOUSE_ACTION_LEFT_CLICKED) then
