@@ -1978,7 +1978,14 @@ ffxiv_map_nav.data = {
         [1187] = { 
             {id = 1185, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
                 , requires = {
-                    ["QuestCompleted(4871)"] = true,
+                    ["GetQuestInfo(4871,'step') >= 255 or QuestCompleted(4871)"] = true,
+                },
+			},
+        },
+        [1188] = { 
+            {id = 1185, cost = 1, x = -293.9, y = 0, z = 129.9, h = -1.61
+                , requires = {
+                    ["GetQuestInfo(4865,'step') >= 255 or QuestCompleted(4865)"] = true,
                 },
 			},
         },
@@ -1987,6 +1994,12 @@ ffxiv_map_nav.data = {
     {
         [1185] = { 
             {id = 1185, cost = 1, x = 659.5, y = -120, z = -451.4, h = 2.47},
+        },
+    },
+	[1188] = -- Kozama'uka
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = -284.5, y = 13, z = -845.3, h = -3.08},
         },
     },
 }-- set reference for mesh mgr
@@ -2512,11 +2525,13 @@ ffxiv_aethercurrent_dataDT = {
             requires = function () return QuestCompleted(4459) end,
         },
 	},
-	--DT Untested
-	--[[
 	[1187] = {						
 		{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8},
 		{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
+	},
+	--DT Untested
+	--[[
+	[1187] = {						
 		{ id = 8, aethid = 2013929, x = -198.46, y = 23.1426, z = -56.54},
 		{ id = 9, aethid = 2013930, x = -812.893, y = 57.4816, z = 105.509},
 		{ id = 10, aethid = 2013926, x = -202.8, y = -72.1271, z = -199},
@@ -2862,6 +2877,9 @@ ffxiv_aetheryte_data = {
 		{id = 963, aethid = 183, x = 24.85, y = 1.10, z = -24.49, 
 			requires = function () return QuestCompleted(4417) end,  -- or 4418
 		},
+	},
+	[1188] = { 
+		{id = 1188, aethid = 202, x = -162, y = 6, z = -483},
 	},
 }	
 
