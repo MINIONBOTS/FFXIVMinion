@@ -1141,7 +1141,16 @@ function ml_global_information.Init()
 		
 		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
-		
+		-- DT maps
+		ml_mesh_mgr.SetDefaultMesh(1185, "Tuliyollal", true)
+		ml_mesh_mgr.SetDefaultMesh(1186, "Solution Nine", true)
+		ml_mesh_mgr.SetDefaultMesh(1187, "Urqopacha", true)
+		ml_mesh_mgr.SetDefaultMesh(1188, "Kozama'uka", true)
+		ml_mesh_mgr.SetDefaultMesh(1189, "Yak T'el", true)
+		ml_mesh_mgr.SetDefaultMesh(1190, "Shaaloani", true)
+		ml_mesh_mgr.SetDefaultMesh(1191, "Heritage Found", true)
+		ml_mesh_mgr.SetDefaultMesh(1192, "Living Memory", true)
+				
 	end
 	
 	-- General overrides.
