@@ -2884,11 +2884,47 @@ ffxiv_aetheryte_data = {
 	[1185] = { 
 		{id = 1185, aethid = 216, x = -24, y = 0, z = 7.5},
 	},
+	[1186] = { 
+		{id = 1186, aethid = 217, x = 0, y = 9, z = 0},
+	},
 	[1187] = { 
 		{id = 1187, aethid = 200, x = 332, y = -160, z = -416},
+		{id = 1187, aethid = 201, x = 465, y = 114, z = 634, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
 	},
 	[1188] = { 
 		{id = 1188, aethid = 202, x = -162, y = 6, z = -483},
+		{id = 1188, aethid = 203, x = 541, y = 117, z = 203, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+		{id = 1188, aethid = 204, x = -477, y = 124, z = 311, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+	},
+	[1189] = { 
+		{id = 1189, aethid = 205, x = -397, y = 23, z = -431},
+		{id = 1189, aethid = 206, x = 721, y = -132, z = 526, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+	},
+	[1190] = { 
+		{id = 1190, aethid = 207, x = 386, y = 0, z = 467},
+		{id = 1190, aethid = 208, x = -291, y = 19, z = -114, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+		{id = 1190, aethid = 209, x = 311, y = -14, z = -567, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+	},
+	[1191] = { 
+		{id = 1191, aethid = 210, x = 514, y = 145, z = 207},
+		{id = 1191, aethid = 211, x = -223, y = 31, z = -584, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
+		{id = 1191, aethid = 212, x = -219, y = 32, z = 120, 
+			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+		},
 	},
 }	
 

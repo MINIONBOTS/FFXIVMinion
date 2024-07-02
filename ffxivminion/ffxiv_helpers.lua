@@ -4405,9 +4405,26 @@ function GetAetheryteByMapID(mapid, p)
 		},	
 		[1187] = {name = "Urqopacha",
 			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
+			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634},
 		},	
 		[1188] = {name = "Kozama'uka",
 			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483},
+			[2] = { name = "Many Fires", aethid = 203, x = 541, y = 117, z = 203},
+			[3] = { name = "Earthernshire", aethid = 204, x = -477, y = 124, z = 311},
+		},	
+		[1189] = {name = "Yak T'el",
+			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
+			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526},
+		},	
+		[1190] = {name = "Shaaloani",
+			[1] = { name = "Hhusatahwi", aethid = 207, x = 386, y = 0, z = 467},
+			[2] = { name = "Sheshenewezi Springs", aethid = 208, x = -291, y = 19, z = -114},
+			[3] = { name = "Mehwahhetsoan", aethid = 209, x = 311, y = -14, z = -567},
+		},	
+		[1191] = {name = "Heritage Found",
+			[1] = { name = "Yyasulani Station", aethid = 210, x = 514, y = 145, z = 207},
+			[2] = { name = "The Outskirts", aethid = 211, x = -223, y = 31, z = -584},
+			[3] = { name = "Electrope Strike", aethid = 212, x = -219, y = 32, z = 120},
 		},	
 	}
 	
@@ -4568,7 +4585,8 @@ function IsCityMap(mapid)
 		[819] = true,			
 		[820] = true,		
 		[886] = true,		
-		[1185] = true,
+		[1185] = true,	
+		[1186] = true,
 	}
 	return cityMaps[mapid]
 end
@@ -9277,8 +9295,12 @@ function IsNormalMap(mapid)
 		[963] = true,
 		[971] = true,
 		[1185] = true,	
+		[1186] = true,	
 		[1187] = true,
 		[1188] = true,
+		[1189] = true,
+		[1190] = true,
+		[1191] = true,
 	}
 	return maps[mapid] ~= nil
 end
