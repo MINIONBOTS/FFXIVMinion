@@ -1999,7 +1999,7 @@ ffxiv_map_nav.data = {
 	[1188] = -- Kozama'uka
     {
         [1185] = { 
-            {id = 1185, cost = 1, x = -284.5, y = 13, z = -845.3, h = -3.08},
+            {id = 1185, cost = 1, x = -285.1, y = 13, z = -849.7, h = -3.08},
         },
     },
 }-- set reference for mesh mgr
@@ -2526,8 +2526,11 @@ ffxiv_aethercurrent_dataDT = {
         },
 	},
 	[1187] = {						
-		{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8},
-		{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
+		--{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8},
+		--{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
+	},
+	[1188] = {		
+		--{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},	
 	},
 	--DT Untested
 	--[[
@@ -2877,6 +2880,12 @@ ffxiv_aetheryte_data = {
 		{id = 963, aethid = 183, x = 24.85, y = 1.10, z = -24.49, 
 			requires = function () return QuestCompleted(4417) end,  -- or 4418
 		},
+	},
+	[1185] = { 
+		{id = 1185, aethid = 216, x = -24, y = 0, z = 7.5},
+	},
+	[1187] = { 
+		{id = 1187, aethid = 200, x = 332, y = -160, z = -416},
 	},
 	[1188] = { 
 		{id = 1188, aethid = 202, x = -162, y = 6, z = -483},

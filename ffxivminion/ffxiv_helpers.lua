@@ -4403,6 +4403,12 @@ function GetAetheryteByMapID(mapid, p)
 			[2] = { name = "Twelve Wonders", aethid = 177, x = -630, z = 550},
 			[3] = { name = "Poieten Oikos", aethid = 178, x = -533, z = -228},
 		},	
+		[1187] = {name = "Urqopacha",
+			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
+		},	
+		[1188] = {name = "Kozama'uka",
+			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483},
+		},	
 	}
 	
 	local list = GetAttunedAetheryteList()
@@ -4561,7 +4567,8 @@ function IsCityMap(mapid)
 		[635] = true,			
 		[819] = true,			
 		[820] = true,		
-		[886] = true,
+		[886] = true,		
+		[1185] = true,
 	}
 	return cityMaps[mapid]
 end
