@@ -1098,28 +1098,30 @@ function c_teleporttomap:evaluate()
 			local attunedAetherytes = GetAttunedAetheryteList()
 			
 			-- Fall back check to see if we can get to EL, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 0, y = 82, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,destMapID)
-					if (table.valid(backupPos)) then
-						d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			if (destMapID == 820 and not CanUseAetheryte(134)) then
-			-- Fall back alternate check to see if we can get to EL, and from there to the destination.
+			if destMapID == 820 then
 				for k,aetheryte in pairs(attunedAetherytes) do
-					if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
-						local aethPos = {x = -244, y = 20, z = 385}
-						local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
+					if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
+						local aethPos = {x = 0, y = 82, z = 0}
+						local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,destMapID)
 						if (table.valid(backupPos)) then
-							--d("Found an attuned backup position aetheryte for 820 in Kholusia.")
+							d("Found an attuned backup position aetheryte for mapid ["..tostring(destMapID).."].")
 							e_teleporttomap.aeth = aetheryte
 							return true
+						end
+					end
+				end
+				
+				if (not CanUseAetheryte(134)) then
+				-- Fall back alternate check to see if we can get to EL, and from there to the destination.
+					for k,aetheryte in pairs(attunedAetherytes) do
+						if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
+							local aethPos = {x = -244, y = 20, z = 385}
+							local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
+							if (table.valid(backupPos)) then
+								--d("Found an attuned backup position aetheryte for 820 in Kholusia.")
+								e_teleporttomap.aeth = aetheryte
+								return true
+							end
 						end
 					end
 				end
@@ -1159,6 +1161,17 @@ function c_teleporttomap:evaluate()
 					if (table.valid(backupPos)) then
 						d("using block 3")
 						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			-- Fall back check to see if we can get to Tuliyollal, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 216 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -24, y = 0, z = 7.5}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,destMapID)
+					if (table.valid(backupPos)) then
+						d("Found an attuned backup position aetheryte for mapid 3["..tostring(destMapID).."].")
 						return true
 					end
 				end

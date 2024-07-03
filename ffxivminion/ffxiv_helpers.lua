@@ -4169,6 +4169,10 @@ function GetAetheryteByMapID(mapid, p)
 	if myMap == 813 and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
 		return nil
 	end
+	if myMap == 1185 and (HasQuest(4879) or (QuestCompleted(4879) and not CanUseAetheryte(203))) then
+		--d("special path needed for Kozamauka Section 2")
+		return nil
+	end
 	if (mapid == 815 and GetAhmAraengSection(pos) == 1) and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
 		mapid = 813
 	end
@@ -4402,16 +4406,37 @@ function GetAetheryteByMapID(mapid, p)
 			[1] = { name = "Anagnorisis", aethid = 176, x = 162, z = 126},
 			[2] = { name = "Twelve Wonders", aethid = 177, x = -630, z = 550},
 			[3] = { name = "Poieten Oikos", aethid = 178, x = -533, z = -228},
-		},	
+		},
 		[1187] = {name = "Urqopacha",
 			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
 			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634},
 		},	
-		[1188] = {name = "Kozama'uka",
-			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483},
-			[2] = { name = "Many Fires", aethid = 203, x = 541, y = 117, z = 203},
-			[3] = { name = "Earthernshire", aethid = 204, x = -477, y = 124, z = 311},
-		},	
+		--[[[1188] = {name = "Kozama'uka",
+			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483,
+				best = function ()  
+					if In(GetKozamaukaSection(pos),1) then
+						return true
+					end
+					return false
+				end				
+			},
+			[2] = { name = "Many Fires", aethid = 203, x = 541, y = 117, z = 203,
+				best = function ()  
+					if In(GetKozamaukaSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
+			[3] = { name = "Earthernshire", aethid = 204, x = -477, y = 124, z = 311,
+				best = function ()  
+					if In(GetKozamaukaSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
+		},]]
 		[1189] = {name = "Yak T'el",
 			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
 			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526},
@@ -5677,9 +5702,9 @@ function CanAccessMap(mapid)
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 0, y = 82, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,destMapID)
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,mapid)
 					if (table.valid(backupPos)) then
-						d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						d("Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -5705,7 +5730,7 @@ function CanAccessMap(mapid)
 			for k,aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -65, y = 4, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,destMapID)
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,mapid)
 					if (table.valid(backupPos)) then
 						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						e_teleporttomap.aeth = aetheryte
@@ -5744,7 +5769,18 @@ function CanAccessMap(mapid)
 					local aethPos = {x = 45.89, y = 4.2, z = -40.59}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,628,mapid)
 					if (table.valid(backupPos)) then
-						d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						d("Found an attuned backup position aetheryte for mapid 2["..tostring(mapid).."].")
+						return true
+					end
+				end
+			end
+			-- Fall back check to see if we can get to Tuliyollal, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 216 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -24, y = 0, z = 7.5}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,mapid)
+					if (table.valid(backupPos)) then
+						d("Found an attuned backup position aetheryte for mapid 3["..tostring(mapid).."].")
 						return true
 					end
 				end
@@ -6765,6 +6801,35 @@ function GetUltimaThuleSection(pos)
     return sec
 end
 
+function GetKozamaukaSection(pos)
+    local sec = 1
+	--[[local sections1 = {
+        [1] = {
+            a = {x = -72, z = 14},
+            b = {x = -72, z = -200},
+            c = {x = 200, z = -200},
+            d = {x = 200, z = 14},
+            x = {x = 38, z = -131},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) and pos.y > 57 then
+                return 1
+            end
+        end
+    end]]
+	
+    if (table.valid(pos)) then
+		if pos.z > 90 then
+			return 2
+		end
+	end
+	
+    return sec
+end
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -8222,6 +8287,27 @@ function Transport960(pos1,pos2)
 		end	
 	end
 		
+	return false			
+end
+
+function Transport1188(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	--if GetUyuypoga(pos2) == 1 then
+	--end
+	
+	
+		if (GetKozamaukaSection(Player.pos) ~= 2) and (GetKozamaukaSection(pos2) == 2) then
+			if not (CanUseAetheryte(203)) then
+				return true, function()
+					local newTask = ffxiv_task_movetomap.Create()
+					newTask.destMapID = 1185
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+	
 	return false			
 end
 function CanFlyInZone()

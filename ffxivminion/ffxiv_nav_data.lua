@@ -1815,6 +1815,13 @@ ffxiv_map_nav.data = {
 		[990] = {
 			{id = 990, cost = 1, x = -101, y = 4, z = 0, h = 0.7, b = 1037293, i = 1 },
 		},
+        [1185] = { 
+            {id = 1185, cost = 1, x = 138, y = -16, z = 221, b = 1046492
+                , requires = {
+                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
+                },
+			},
+        },
 	},
 	[963] = -- Radz-at-Han:
     {
@@ -1976,16 +1983,28 @@ ffxiv_map_nav.data = {
 	[1185] = -- Tuliyollal
     {
         [1187] = { 
-            {id = 1185, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
+            {id = 1187, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
                 , requires = {
                     ["GetQuestInfo(4871,'step') >= 255 or QuestCompleted(4871)"] = true,
                 },
 			},
         },
         [1188] = { 
-            {id = 1185, cost = 1, x = -293.9, y = 0, z = 129.9, h = -1.61
+            {id = 1188, cost = 1, x = -293.9, y = 0, z = 129.9, h = -1.61
                 , requires = {
-                    ["GetQuestInfo(4865,'step') >= 255 or QuestCompleted(4865)"] = true,
+                    ["GetQuestInfo(4865,'step') >= 255 or QuestCompleted(4865) and (not In(GetKozamaukaSection(ml_task_hub:CurrentTask().pos),2) or (HasQuest(4879) and GetQuestInfo(4879,'step') < 5) or not QuestCompleted(4879))"] = true,
+                },
+			},
+            {id = 1188, cost = 1, x = 167, y = -17, z = 163, b = 1047478
+                , requires = {
+                    ["GetQuestInfo(4879,'step') >= 5 or QuestCompleted(4879) and In(GetKozamaukaSection(ml_task_hub:CurrentTask().pos),2)"] = true,
+                },
+			},
+        },
+        [962] = { 
+            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047477
+                , requires = {
+                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
                 },
 			},
         },
@@ -1999,7 +2018,16 @@ ffxiv_map_nav.data = {
 	[1188] = -- Kozama'uka
     {
         [1185] = { 
-            {id = 1185, cost = 1, x = -285.1, y = 13, z = -849.7, h = -3.08},
+            {id = 1185, cost = 1, x = -285.1, y = 13, z = -849.7, h = -3.08
+                , requires = {
+                    ["In(GetKozamaukaSection(Player.pos),1)"] = true,
+                },
+			},
+            {id = 1185, cost = 1, x = 759, y = 114, z = 565, b = 1047479
+                , requires = {
+                    ["In(GetKozamaukaSection(Player.pos),2)"] = true,
+                },
+			},
         },
     },
 }-- set reference for mesh mgr
@@ -2896,7 +2924,7 @@ ffxiv_aetheryte_data = {
 	[1188] = { 
 		{id = 1188, aethid = 202, x = -162, y = 6, z = -483},
 		{id = 1188, aethid = 203, x = 541, y = 117, z = 203, 
-			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+			requires = function () return (HasQuest(4879) and GetQuestInfo(4879,'step') >= 5) or QuestCompleted(4879) end,
 		},
 		{id = 1188, aethid = 204, x = -477, y = 124, z = 311, 
 			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
