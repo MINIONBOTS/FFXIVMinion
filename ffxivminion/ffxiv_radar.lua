@@ -530,7 +530,7 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][5].Enabled) and efriendly and etype == 3) then -- NPCs.
 							Colour = ffxiv_radar.Options[1][5].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][7].Enabled) and ((econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2006186 and econtentid <= 2006234))) then -- Event objects.
+						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][7].Enabled) and ((econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2013924 and econtentid <= 2013983))) then -- Event objects.(AetherCurrents)
 							Colour = ffxiv_radar.Options[1][7].ColourU32
 							Draw = true
 						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][6].Enabled) and (etype == 0 or etype == 5 or etype == 7)) then -- Event objects.
@@ -913,8 +913,19 @@ function ffxiv_radar.SetData()
 			},
 		},
 		["EW"] = {
-			["SS"] = {},
-			["S"] = {},
+			["SS"] = {
+				[10616] = true,
+				[10615] = true,
+			},
+			["S"] = {
+				[10617] = true,
+				[10618] = true,
+				[10619] = true,
+				[10620] = true,
+				[10621] = true,
+				[10622] = true,
+				[10615] = true,--SS
+			},
 			["A"] = {
 				[10624] = true,
 				[10625] = true,
@@ -929,8 +940,64 @@ function ffxiv_radar.SetData()
 				[10628] = true,
 				[10627] = true,
 			},
-			["B"] = {},
-		}
+			["B"] = {
+				[10635] = true,
+				[10636] = true,
+				[10637] = true,
+				[10638] = true,
+				[10639] = true,
+				[10640] = true,
+				[10641] = true,
+				[10642] = true,
+				[10643] = true,
+				[10644] = true,
+				[10645] = true,
+				[10646] = true,
+			},
+		},
+		["DT"] = {
+			["SS"] = {
+				[13407] = true,
+				[13406] = true,
+			},
+			["S"] = {
+				[13407] = true,--SS
+				[13360] = true,
+				[13444] = true,
+				[12754] = true,
+				[13399] = true,
+				[13156] = true,
+				[13437] = true,
+			},
+			["A"] = {
+				[13361] = true,
+				[13362] = true,
+				[13442] = true,
+				[13443] = true,
+				[12753] = true,
+				[13400] = true,
+				[13401] = true,
+				[13157] = true,
+				[13158] = true,
+				[13435] = true,
+				[13436] = true,
+				[12692] = true,
+			},
+			["B"] = {
+				[13144] = true,
+				[13145] = true,
+				[13146] = true,
+				[13147] = true,
+				[13148] = true,
+				[13149] = true,
+				[13150] = true,
+				[13151] = true,
+				[13152] = true,
+				[13153] = true,
+				[13154] = true,
+				[13155] = true,
+			},
+		},
 	}
 	ffxiv_radar.DeepDungeonFilters = {
 		["Traps"] = { 
@@ -1054,7 +1121,10 @@ function ffxiv_radar.SetData()
 			[12] = { ["Name"] = "ShB - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
 			[13] = { ["Name"] = "EW - B", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
 			[14] = { ["Name"] = "EW - A", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-			[15] = { ["Name"] = "EW - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 }
+			[15] = { ["Name"] = "EW - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[16] = { ["Name"] = "DT - B", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[17] = { ["Name"] = "DT - A", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
+			[18] = { ["Name"] = "DT - S/SS", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
 		},
 		[3] = {
 			["CategoryName"] = "Deep Dungeon",
