@@ -2014,6 +2014,13 @@ ffxiv_map_nav.data = {
         [1185] = { 
             {id = 1185, cost = 1, x = 659.5, y = -120, z = -451.4, h = 2.47},
         },
+        [1188] = { 
+            {id = 1188, cost = 1, x = 726, y = 73, z = 636, h = 1.35
+                , requires = {
+                    ["HasQuest(4889) or QuestCompleted(4889)"] = true,
+                },
+			},
+        },
     },
 	[1188] = -- Kozama'uka
     {
@@ -2026,6 +2033,13 @@ ffxiv_map_nav.data = {
             {id = 1185, cost = 1, x = 759, y = 114, z = 565, b = 1047479
                 , requires = {
                     ["In(GetKozamaukaSection(Player.pos),2)"] = true,
+                },
+			},
+        },
+        [1187] = { 
+            {id = 1187, cost = 1, x = -893, y = 142, z = 472, h = -1.58
+                , requires = {
+                    ["QuestCompleted(4888)"] = true,
                 },
 			},
         },
@@ -2927,7 +2941,7 @@ ffxiv_aetheryte_data = {
 			requires = function () return (HasQuest(4879) and GetQuestInfo(4879,'step') >= 5) or QuestCompleted(4879) end,
 		},
 		{id = 1188, aethid = 204, x = -477, y = 124, z = 311, 
-			requires = function () return (HasQuest(4884) and GetQuestInfo(4884,'step') >= 4) or QuestCompleted(4884) end,-- unknown requirement 
+			requires = function () return (HasQuest(4884) and GetQuestInfo(4884,'step') >= 4) or QuestCompleted(4884) end,
 		},
 	},
 	[1189] = { 
