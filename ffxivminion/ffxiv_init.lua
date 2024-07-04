@@ -1143,6 +1143,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
 		-- DT maps
 		ml_mesh_mgr.SetDefaultMesh(1170, "Sunperch", true)
+		ml_mesh_mgr.SetDefaultMesh(1171, "Earthen Sky Hideout", true)
 		ml_mesh_mgr.SetDefaultMesh(1185, "Tuliyollal", true)
 		ml_mesh_mgr.SetDefaultMesh(1186, "Solution Nine", true)
 		ml_mesh_mgr.SetDefaultMesh(1187, "Urqopacha", true)
