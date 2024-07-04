@@ -1982,6 +1982,13 @@ ffxiv_map_nav.data = {
 	-- Dawntrail
 	[1185] = -- Tuliyollal
     {
+        [962] = { 
+            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047477
+                , requires = {
+                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
+                },
+			},
+        },
         [1187] = { 
             {id = 1187, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
                 , requires = {
@@ -2001,17 +2008,17 @@ ffxiv_map_nav.data = {
                 },
 			},
         },
-        [962] = { 
-            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047477
-                , requires = {
-                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
-                },
-			},
-        },
         [1189] = { 
             {id = 1189, cost = 1, x = -426, y = 11, z = -13, b = 1048231
                 , requires = {
                     ["GetQuestInfo(4897,'step') >= 3 or QuestCompleted(4897)"] = true,
+                },
+			},
+        },
+        [1190] = { 
+            {id = 1190, cost = 1, x = 50, y = 48, z = -430, b = 1046791
+                , requires = {
+                    ["GetQuestInfo(4912,'step') >= 3 or QuestCompleted(4912)"] = true,
                 },
 			},
         },
@@ -2055,6 +2062,12 @@ ffxiv_map_nav.data = {
 	{
         [1185] = { 
             {id = 1185, cost = 1, x = 28, y = 8, z = -666, b = 1048925},
+        },
+    },
+	[1190] = -- Iq Br'aax
+	{
+        [1185] = { 
+            {id = 1185, cost = 1, x = 284, y = 16, z = 801, h = -0.03},
         },
     },
 }-- set reference for mesh mgr
