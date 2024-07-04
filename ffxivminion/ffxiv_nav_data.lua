@@ -2008,6 +2008,13 @@ ffxiv_map_nav.data = {
                 },
 			},
         },
+        [1189] = { 
+            {id = 1189, cost = 1, x = -426, y = 11, z = -13, b = 1048231
+                , requires = {
+                    ["GetQuestInfo(4897,'step') >= 3 or QuestCompleted(4897)"] = true,
+                },
+			},
+        },
     },
 	[1187] = -- Urqopacha
     {
@@ -2042,6 +2049,12 @@ ffxiv_map_nav.data = {
                     ["QuestCompleted(4888)"] = true,
                 },
 			},
+        },
+    },
+	[1189] = -- Iq Br'aax
+	{
+        [1185] = { 
+            {id = 1185, cost = 1, x = 28, y = 8, z = -666, b = 1048925},
         },
     },
 }-- set reference for mesh mgr
@@ -2590,24 +2603,27 @@ ffxiv_aethercurrent_dataDT = {
 		},
 	},
 	[1188] = {		
-		--{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},	
+		{ id = 6, aethid = 2013934, x = 299.51, y = 1.41398, z = -688.42},
+		{ id = 7, aethid = 2013935, x = -599.553, y = 5.1607, z = -179.443}, -- ok
+		{ id = 8, aethid = 2013939, x = -294.179, y = 110.762, z = 640.009},
+		{ id = 9, aethid = 2013940, x = 48.9754, y = 111.338, z = 287.171, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 10, aethid = 2013936, x = -638.039, y = 6.57127, z = -486.501}, -- ok
+		{ id = 11, aethid = 2013937, x = 918.152, y = 10.1397, z = -404.091},
+		{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},
+		{ id = 13, aethid = 2013941, x = -754.104, y = 138.692, z = 122.687, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 14, aethid = 2013942, x = 130.47, y = 115.174, z = 522.93, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 15, aethid = 2013943, x = 485.92, y = 121.404, z = 831.311, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
 	},
 	--DT Untested
 	--[[
-	[1187] = {						
-	},
-	[1188] = {						
-		{ id = 6, aethid = 2013934, x = 299.51, y = 1.41398, z = -688.42},
-		{ id = 7, aethid = 2013935, x = -599.553, y = 5.1607, z = -179.443},
-		{ id = 8, aethid = 2013939, x = -294.179, y = 110.762, z = 640.009},
-		{ id = 9, aethid = 2013940, x = 48.9754, y = 111.338, z = 287.171},
-		{ id = 10, aethid = 2013936, x = -638.039, y = 6.57127, z = -486.501},
-		{ id = 11, aethid = 2013937, x = 918.152, y = 10.1397, z = -404.091},
-		{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},
-		{ id = 13, aethid = 2013941, x = -754.104, y = 138.692, z = 122.687},
-		{ id = 14, aethid = 2013942, x = 130.47, y = 115.174, z = 522.93},
-		{ id = 15, aethid = 2013943, x = 485.92, y = 121.404, z = 831.311},
-	},
 	[1189] = {						
 		{ id = 6, aethid = 2013944, x = -114.388, y = 5.86803, z = -527.111},
 		{ id = 7, aethid = 2013945, x = 416.08, y = 15.5309, z = -544.98},
@@ -2966,8 +2982,8 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
 		},
 		{id = 1190, aethid = 209, x = 311, y = -14, z = -567, 
-			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
-		},
+            requires = function () return (HasQuest(4918) and GetQuestInfo(4918,'step') >= 3) or QuestCompleted(4918) end, 
+        },
 	},
 	[1191] = { 
 		{id = 1191, aethid = 210, x = 514, y = 145, z = 207},
