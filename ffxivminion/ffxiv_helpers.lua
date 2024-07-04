@@ -6834,6 +6834,9 @@ function GetYakTelSection(pos)
     local sec = 1
 	
     if (table.valid(pos)) then
+		if pos.y < -210 then
+			return 3
+		end
 		if pos.z > -400 and pos.y < 100 then
 			return 2
 		end
@@ -8426,7 +8429,117 @@ end
 function Transport1189(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
-		
+	local gilCount = GilCount()
+	
+	-- leave section 3
+	if In(GetYakTelSection(pos1),3) and In(GetYakTelSection(pos2),2) then
+		d("pass 1")
+		return true, function ()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = -782, y = -297, z = 772}
+			newTask.contentid = 1048030
+			newTask.abort = function ()
+				return In(GetYakTelSection(Player.pos),2)
+			end
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+	
+	if In(GetYakTelSection(pos1),3) and In(GetYakTelSection(pos2),1) then
+		if (CanUseAetheryte(205) and not Player.incombat) and (gilCount > 100) then
+			return true, function () 
+				if (Player:IsMoving()) then
+					Player:Stop()
+					ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+					return
+				end
+				if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+					if (Player:Teleport(205)) then	
+						local newTask = ffxiv_task_teleport.Create()
+						newTask.aetheryte = 205
+						newTask.mapID = 1189
+						ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+					end
+				end
+			end
+		end
+	end
+	
+	-- get to section 3
+	if In(GetYakTelSection(pos1),1) and In(GetYakTelSection(pos2),3) then
+		if (CanUseAetheryte(206) and not Player.incombat) and (gilCount > 100) then
+			return true, function () 
+				if (Player:IsMoving()) then
+					Player:Stop()
+					ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+					return
+				end
+				if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+					if (Player:Teleport(206)) then	
+						local newTask = ffxiv_task_teleport.Create()
+						newTask.aetheryte = 206
+						newTask.mapID = 1189
+						ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+					end
+				end
+			end
+		end
+	end
+	
+	if In(GetYakTelSection(pos1),2) and In(GetYakTelSection(pos2),3) then
+		return true, function ()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = -711, y = -199, z = 624}
+			newTask.contentid = 1047707
+			newTask.abort = function ()
+				return In(GetYakTelSection(Player.pos),3)
+			end
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+	
+	-- teleport prior to flight
+	if (not CanFlyInZone()) then
+		if In(GetYakTelSection(pos1),2) and In(GetYakTelSection(pos2),1) then
+			if (CanUseAetheryte(205) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(205)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 205
+							newTask.mapID = 1189
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		if In(GetYakTelSection(pos1),1) and In(GetYakTelSection(pos2),2) then
+			if (CanUseAetheryte(206) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(206)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 206
+							newTask.mapID = 1189
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+	end
+	
 	return false			
 end
 function CanFlyInZone()
