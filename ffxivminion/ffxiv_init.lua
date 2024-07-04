@@ -1142,6 +1142,7 @@ function ml_global_information.Init()
 		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
 		-- DT maps
+		ml_mesh_mgr.SetDefaultMesh(1170, "Sunperch", true)
 		ml_mesh_mgr.SetDefaultMesh(1185, "Tuliyollal", true)
 		ml_mesh_mgr.SetDefaultMesh(1186, "Solution Nine", true)
 		ml_mesh_mgr.SetDefaultMesh(1187, "Urqopacha", true)
@@ -1150,6 +1151,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1190, "Shaaloani", true)
 		ml_mesh_mgr.SetDefaultMesh(1191, "Heritage Found", true)
 		ml_mesh_mgr.SetDefaultMesh(1192, "Living Memory", true)
+		ml_mesh_mgr.SetDefaultMesh(1206, "Main Deck", true)
 				
 	end
 	
