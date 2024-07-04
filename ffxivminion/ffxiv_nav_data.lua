@@ -2622,6 +2622,28 @@ ffxiv_aethercurrent_dataDT = {
 			requires = function () return QuestCompleted(4879) end,
 		},
 	},
+	[1189] = {						
+		{ id = 6, aethid = 2013944, x = -114.388, y = 5.86803, z = -527.111},
+		{ id = 7, aethid = 2013945, x = 416.08, y = 15.5309, z = -544.98},
+		{ id = 8, aethid = 2013949, x = -114.32, y = -212.192, z = 623.79,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 9, aethid = 2013950, x = 39.3742, y = -158.612, z = -2.31141,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 10, aethid = 2013946, x = -550.591, y = -4.35479, z = -137.652},
+		{ id = 11, aethid = 2013947, x = -184.71, y = 22.9362, z = -751.675},
+		{ id = 12, aethid = 2013948, x = 610.773, y = 9.62139, z = 233.051},
+		{ id = 13, aethid = 2013951, x = -676.539, y = -163.973, z = 236.164,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 14, aethid = 2013952, x = 205.188, y = -193.591, z = 160.998,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 15, aethid = 2013953, x = 747.188, y = -176.4, z = 712.672,
+			requires = function () return QuestCompleted(4903) end,
+		},
+	},
 	--DT Untested
 	--[[
 	[1189] = {						
@@ -2973,7 +2995,7 @@ ffxiv_aetheryte_data = {
 	[1189] = { 
 		{id = 1189, aethid = 205, x = -397, y = 23, z = -431},
 		{id = 1189, aethid = 206, x = 721, y = -132, z = 526, 
-			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
+			requires = function () return QuestCompleted(4903) end,
 		},
 	},
 	[1190] = { 

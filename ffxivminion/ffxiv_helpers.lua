@@ -4411,7 +4411,7 @@ function GetAetheryteByMapID(mapid, p)
 			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
 			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634},
 		},	
-		--[[[1188] = {name = "Kozama'uka",
+		[1188] = {name = "Kozama'uka",
 			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483,
 				best = function ()  
 					if In(GetKozamaukaSection(pos),1) then
@@ -4436,7 +4436,7 @@ function GetAetheryteByMapID(mapid, p)
 					return false
 				end				
 			},
-		},]]
+		},
 		[1189] = {name = "Yak T'el",
 			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
 			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526},
@@ -6821,33 +6821,27 @@ function GetUyuypogaSection(pos)
 end
 function GetKozamaukaSection(pos)
     local sec = 1
-	--[[local sections1 = {
-        [1] = {
-            a = {x = -72, z = 14},
-            b = {x = -72, z = -200},
-            c = {x = 200, z = -200},
-            d = {x = 200, z = 14},
-            x = {x = 38, z = -131},
-        },
-	}
 	
     if (table.valid(pos)) then
-        for i,section in pairs(sections1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
-            if (isInsideRect) and pos.y > 57 then
-                return 1
-            end
-        end
-    end]]
-	
-    if (table.valid(pos)) then
-		if pos.z > 90 then
+		if pos.z > -180 and pos.y > 25 then
 			return 2
 		end
 	end
 	
     return sec
 end
+function GetYakTelSection(pos)
+    local sec = 1
+	
+    if (table.valid(pos)) then
+		if pos.z > -400 and pos.y < 100 then
+			return 2
+		end
+	end
+	
+    return sec
+end
+
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -8359,20 +8353,80 @@ function Transport1188(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
-	--if GetUyuypoga(pos2) == 1 then
-	--end
-	
-	
-		if (GetKozamaukaSection(Player.pos) ~= 2) and (GetKozamaukaSection(pos2) == 2) then
-			if not (CanUseAetheryte(203)) then
-				return true, function()
-					local newTask = ffxiv_task_movetomap.Create()
-					newTask.destMapID = 1185
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
+	if (not CanFlyInZone()) then
+		local gilCount = GilCount()
+		if In(GetKozamaukaSection(pos1),1) and In(GetKozamaukaSection(pos2),2) then
+			if (CanUseAetheryte(204) and not Player.incombat) and (gilCount > 100) and pos2.x < 200 then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(204)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 204
+							newTask.mapID = 1188
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+			if (CanUseAetheryte(203) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(203)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 203
+							newTask.mapID = 1188
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetKozamaukaSection(pos1),2) and In(GetKozamaukaSection(pos2),1) then
+			if (CanUseAetheryte(202) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(202)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 202
+							newTask.mapID = 1188
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
 				end
 			end
 		end
+	end
 	
+	if (GetKozamaukaSection(Player.pos) ~= 2) and (GetKozamaukaSection(pos2) == 2) then
+		if not (CanUseAetheryte(203)) then
+			return true, function()
+				local newTask = ffxiv_task_movetomap.Create()
+				newTask.destMapID = 1185
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+	
+	return false			
+end
+function Transport1189(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+		
 	return false			
 end
 function CanFlyInZone()
