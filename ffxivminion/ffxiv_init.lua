@@ -1153,6 +1153,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1191, "Heritage Found", true)
 		ml_mesh_mgr.SetDefaultMesh(1192, "Living Memory", true)
 		ml_mesh_mgr.SetDefaultMesh(1206, "Main Deck", true)
+		ml_mesh_mgr.SetDefaultMesh(1207, "The Backroom", true)
 				
 	end
 	
