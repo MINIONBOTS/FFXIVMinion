@@ -2568,8 +2568,26 @@ ffxiv_aethercurrent_dataDT = {
         },
 	},
 	[1187] = {						
-		--{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8},
-		--{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
+		{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8}, -- ok
+		{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
+		{ id = 8, aethid = 2013929, x = -198.46, y = 23.1426, z = -56.54, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 9, aethid = 2013930, x = -812.893, y = 57.4816, z = 105.509, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 10, aethid = 2013926, x = -202.8, y = -72.1271, z = -199},
+		{ id = 11, aethid = 2013927, x = 414.78, y = -141.037, z = -681},
+		{ id = 12, aethid = 2013928, x = -134.576, y = -93.0551, z = -582.912},
+		{ id = 13, aethid = 2013931, x = 70.1898, y = 0.658536, z = 746.44, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 14, aethid = 2013932, x = 368.36, y = 61.0765, z = -9.23, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 15, aethid = 2013933, x = 398.81, y = 86.0047, z = 261.39, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
 	},
 	[1188] = {		
 		--{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},	
@@ -2577,14 +2595,6 @@ ffxiv_aethercurrent_dataDT = {
 	--DT Untested
 	--[[
 	[1187] = {						
-		{ id = 8, aethid = 2013929, x = -198.46, y = 23.1426, z = -56.54},
-		{ id = 9, aethid = 2013930, x = -812.893, y = 57.4816, z = 105.509},
-		{ id = 10, aethid = 2013926, x = -202.8, y = -72.1271, z = -199},
-		{ id = 11, aethid = 2013927, x = 414.78, y = -141.037, z = -681},
-		{ id = 12, aethid = 2013928, x = -134.576, y = -93.0551, z = -582.912},
-		{ id = 13, aethid = 2013931, x = 70.1898, y = 0.658536, z = 746.44},
-		{ id = 14, aethid = 2013932, x = 368.36, y = 61.0765, z = -9.23},
-		{ id = 15, aethid = 2013933, x = 398.81, y = 86.0047, z = 261.39},
 	},
 	[1188] = {						
 		{ id = 6, aethid = 2013934, x = 299.51, y = 1.41398, z = -688.42},

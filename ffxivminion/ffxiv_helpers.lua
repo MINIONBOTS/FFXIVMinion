@@ -6801,6 +6801,24 @@ function GetUltimaThuleSection(pos)
     return sec
 end
 
+function GetUyuypogaSection(pos)
+    local sec = 1
+	
+    if (table.valid(pos)) then
+		if pos.z > -105 and pos.x < 280 then
+			return 2
+		end
+		if pos.z > -60 and pos.x < 400 then
+			return 2
+		end
+		if pos.z > -46 then
+			return 2
+		end
+	end
+	
+	
+    return sec
+end
 function GetKozamaukaSection(pos)
     local sec = 1
 	--[[local sections1 = {
@@ -8290,6 +8308,53 @@ function Transport960(pos1,pos2)
 	return false			
 end
 
+function Transport1187(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		local gilCount = GilCount()
+		if In(GetUyuypogaSection(pos1),1) and In(GetUyuypogaSection(pos2),2) then
+			if (CanUseAetheryte(201) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(201)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 201
+							newTask.mapID = 1187
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetUyuypogaSection(pos1),2) and In(GetUyuypogaSection(pos2),1) then
+			if (CanUseAetheryte(200) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(200)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 200
+							newTask.mapID = 1187
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false	
+end
 function Transport1188(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
