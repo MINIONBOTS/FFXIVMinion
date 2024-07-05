@@ -1980,12 +1980,25 @@ ffxiv_map_nav.data = {
         },
     },
 	-- Dawntrail
+	[1170] = -- Sunperch
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = 0, y = 2, z = -1, b = 2013923},
+        },
+    },
 	[1185] = -- Tuliyollal
     {
         [962] = { 
-            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047477
+            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047501
                 , requires = {
                     ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
+                },
+			},
+        },
+        [1170] = { 
+            {id = 1170, cost = 1, x = -189, y = 120, z = -367, b = 1047501
+                , requires = {
+                    ["GetQuestInfo(4919,'step') >= 255 or QuestCompleted(4919)"] = true,
                 },
 			},
         },
@@ -2058,13 +2071,13 @@ ffxiv_map_nav.data = {
 			},
         },
     },
-	[1189] = -- Iq Br'aax
+	[1189] = -- Yak T'el
 	{
         [1185] = { 
             {id = 1185, cost = 1, x = 28, y = 8, z = -666, b = 1048925},
         },
     },
-	[1190] = -- Iq Br'aax
+	[1190] = -- Shaaloani
 	{
         [1185] = { 
             {id = 1185, cost = 1, x = 284, y = 16, z = 801, h = -0.03},
