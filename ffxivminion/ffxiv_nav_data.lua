@@ -3025,6 +3025,11 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(9999) end,-- unknown requirement 
 		},
 	},
+	[1192] = { 
+        {id = 1192, aethid = 213, x = -0.23, y = 57.18, z = 796.96},
+        {id = 1192, aethid = 214, x = 657.98, y = 28.98, z = -284.02},
+        {id = 1192, aethid = 215, x = -255.27, y = 59.43, z = -397.67},
+    },
 }	
 
 function ffxiv_map_nav.GetAetherytes()

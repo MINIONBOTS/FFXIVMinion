@@ -4451,6 +4451,11 @@ function GetAetheryteByMapID(mapid, p)
 			[2] = { name = "The Outskirts", aethid = 211, x = -223, y = 31, z = -584},
 			[3] = { name = "Electrope Strike", aethid = 212, x = -219, y = 32, z = 120},
 		},	
+		[1192] = {name = "Living Memory",
+			[1] = { name = "Dont Know 1", aethid = 213, x = -0.23, y = 57.18, z = 796.96},
+			[2] = { name = "Dont Know 2", aethid = 214, x = 657.98, y = 28.98, z = -284.02},
+			[3] = { name = "Dont Know 3", aethid = 215, x = -255.27, y = 59.43, z = -397.67},
+		},	
 	}
 	
 	local list = GetAttunedAetheryteList()
