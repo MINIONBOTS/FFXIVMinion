@@ -6834,7 +6834,7 @@ function GetYakTelSection(pos)
     local sec = 1
 	
     if (table.valid(pos)) then
-		if pos.y < -210 then
+		if pos.y < -280 and pos.x < -700 then
 			return 3
 		end
 		if pos.z > -400 and pos.y < 100 then
@@ -8433,7 +8433,6 @@ function Transport1189(pos1,pos2)
 	
 	-- leave section 3
 	if In(GetYakTelSection(pos1),3) and In(GetYakTelSection(pos2),2) then
-		d("pass 1")
 		return true, function ()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = -782, y = -297, z = 772}
