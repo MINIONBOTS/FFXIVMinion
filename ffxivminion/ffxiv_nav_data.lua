@@ -2082,12 +2082,25 @@ ffxiv_map_nav.data = {
         [1185] = { 
             {id = 1185, cost = 1, x = 284, y = 16, z = 801, h = -0.03},
         },
+        [1191] = { 
+            {id = 1219, cost = 1, x = -652, y = 14, z = -691, h = -2.13
+                , requires = {
+                    ["GetQuestInfo(4926,'step') >= 255 or QuestCompleted(4926)"] = true,
+                },
+			},
+        },
         [1219] = { 
             {id = 1219, cost = 1, x = -652, y = 14, z = -690, b = 1051420
                 , requires = {
-                    ["GetQuestInfo(4926,'step') >= 3 or QuestCompleted(4926)"] = true,
+                    ["GetQuestInfo(4926,'step') == 3"] = true,
                 },
 			},
+        },
+    },
+	[1191] =
+	{
+        [1190] = { 
+            {id = 1190, cost = 1, x = 654, y = 147, z = 753, h = 0.52},
         },
     },
 	[1219] = -- Shaaloani
