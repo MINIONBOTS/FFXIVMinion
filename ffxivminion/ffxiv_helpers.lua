@@ -6850,6 +6850,115 @@ function GetYakTelSection(pos)
     return sec
 end
 
+function GetLivingMemorySection(pos)
+    local sec = 1
+	-- First Island (Bottom Middle)
+--[[	local sections1 = {
+        [1] = {
+            a = {x = -41, z = 321},
+            b = {x = 44, z = 335},
+            c = {x = -28, z = 701},
+            d = {x = 46, z = 709},
+            x = {x = 5.25, z = 516.5},
+        },
+		[2] = {
+            a = {x = -97, z = 680},
+            b = {x = 102, z = 682},
+            c = {x = 105, z = 913},
+            d = {x = -123, z = 904},
+            x = {x = -3.25, z = 794.75},
+        },
+	}
+	
+    if (table.valid(pos)) then
+        for i,section in pairs(sections4) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 1
+            end
+        end
+    end	]]--
+	-- Second Island (Bottom Left)
+	local sections2 = {
+        [1] = {
+            a = {x = -948, z = 187},
+            b = {x = -59, z = 234},
+            c = {x = -57, z = 674},
+            d = {x = -966, z = 689},
+            x = {x = -507.5, z = 446},
+        },
+		[2] = {
+            a = {x = -742, z = 671},
+            b = {x = -255, z = 702},
+            c = {x = -276, z = 901},
+            d = {x = -706, z = 895},
+            x = {x = -494.75, z = 792.25},
+        },
+	}
+	if (table.valid(pos)) then
+        for i,section in pairs(sections2) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 2
+            end
+        end
+    end	
+	-- Third Island (Bottom Right)
+	local sections3 = {
+        [1] = {
+            a = {x = 135, z = 116},
+            b = {x = 939, z = 80},
+            c = {x = 955, z = 848},
+            d = {x = 135, z = 844},
+            x = {x = 541, z = 472},
+        },
+	}
+	if (table.valid(pos)) then
+        for i,section in pairs(sections3) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 3
+            end
+        end
+    end	
+	-- Fourth Island (Top Right)
+	local sections4 = {
+        [1] = {
+            a = {x = 79, z = -927},
+            b = {x = 883, z = -927},
+            c = {x = 831, z = 44},
+            d = {x = 115, z = 80},
+            x = {x = 477, z = -432.5},
+        },
+	}
+	if (table.valid(pos)) then
+        for i,section in pairs(sections4) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 4
+            end
+        end
+    end	
+	-- Fifth Island (Top Right)
+	local sections5 = {
+        [1] = {
+            a = {x = 7, z = 228},
+            b = {x = -940, z = 172},
+            c = {x = -968, z = -975},
+            d = {x = -16, z = -959},
+            x = {x = -479.25, z = -383.5},
+        },
+	}
+	if (table.valid(pos)) then
+        for i,section in pairs(sections5) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 5
+            end
+        end
+    end	
+	return sec
+end
 function Transport139(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -8536,6 +8645,687 @@ function Transport1189(pos1,pos2)
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.aetheryte = 206
 							newTask.mapID = 1189
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false			
+end
+function Transport1192(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	local gilCount = GilCount()
+	
+	if (not CanFlyInZone()) then
+		-- Gate Keeper: 1 -> 2
+		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),2) then
+			d("Moving from section 1 to section 2")
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -36.30, y = 53.20, z = 753.60}
+				newTask.contentid = 1048242
+				newTask.abort = function ()
+					return In(GetLivingMemorySection(Player.pos),2)
+				end
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+		-- Gate Keeper: 1 -> 3
+		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),3) then
+			d("Moving from section 1 to section 3")
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 57.88, y = 53.20, z = 772.03}
+				newTask.contentid = 1048243
+				newTask.abort = function ()
+					return In(GetLivingMemorySection(Player.pos),3)
+				end
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+		-- Gate Keeper: 1 -> 4
+		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),4) then
+			if not CanUseAetheryte(214) then
+				d("Moving from section 1 to section 4")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 35.72, y = 53.20, z = 753.17}
+					newTask.contentid = 1048244
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),4)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(214) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(214)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 214
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		-- Gate Keeper: 1 -> 5
+		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),5) then
+			if not CanUseAetheryte(215) then
+				d("Moving from section 1 to section 5")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -56.99, y = 53.20, z = 768.40}
+					newTask.contentid = 1048245
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),5)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(215) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(215)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 215
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		-- Gate Keeper: 2 -> 1
+		if In(GetLivingMemorySection(pos1),2) and In(GetLivingMemorySection(pos2),1) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 2 to section 1")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -125.11, y = 6.38, z = 562.62}
+					newTask.contentid = 1048247
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),2) and In(GetLivingMemorySection(pos2),3) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 2 to section 3")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -125.11, y = 6.38, z = 562.62}
+					newTask.contentid = 1048247
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),2) and In(GetLivingMemorySection(pos2),4) then
+			if not CanUseAetheryte(214) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 2 to section 4")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -125.11, y = 6.38, z = 562.62}
+						newTask.contentid = 1048247
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(214) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(214)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 214
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),2) and In(GetLivingMemorySection(pos2),5) then
+			if not CanUseAetheryte(215) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 2 to section 5")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -125.11, y = 6.38, z = 562.62}
+						newTask.contentid = 1048247
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(215) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(215)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 215
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		
+		-- Gate Keeper: 3 -> 1
+		if In(GetLivingMemorySection(pos1),3) and In(GetLivingMemorySection(pos2),1) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 3 to section 1")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 206.26, y = 0.20, z = 661.89}
+					newTask.contentid = 1048248
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),3) and In(GetLivingMemorySection(pos2),2) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 3 to section 2")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 206.26, y = 0.20, z = 661.89}
+					newTask.contentid = 1048248
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),3) and In(GetLivingMemorySection(pos2),4) then
+			if not CanUseAetheryte(214) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 3 to section 4")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 206.26, y = 0.20, z = 661.89}
+						newTask.contentid = 1048248
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(214) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(214)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 214
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),3) and In(GetLivingMemorySection(pos2),5) then
+			if not CanUseAetheryte(215) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 3 to section 5")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 206.26, y = 0.20, z = 661.89}
+						newTask.contentid = 1048248
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(215) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(215)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 215
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		-- Gate Keeper: 4 -> 1
+		if In(GetLivingMemorySection(pos1),4) and In(GetLivingMemorySection(pos2),1) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 4 to section 1")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 256.12, y = -13.06, z = 29.10}
+					newTask.contentid = 1048249
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),4) and In(GetLivingMemorySection(pos2),2) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 4 to section 2")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 256.12, y = -13.06, z = 29.10}
+					newTask.contentid = 1048249
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),4) and In(GetLivingMemorySection(pos2),3) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 4 to section 3")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 256.12, y = -13.06, z = 29.10}
+					newTask.contentid = 1048249
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),4) and In(GetLivingMemorySection(pos2),5) then
+			if not CanUseAetheryte(215) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 4 to section 5")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 256.12, y = -13.06, z = 29.10}
+						newTask.contentid = 1048249
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(215) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(215)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 215
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		end
+		-- Gate Keeper: 5 -> 1
+		if In(GetLivingMemorySection(pos1),5) and In(GetLivingMemorySection(pos2),1) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 5 to section 1")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -178.06, y = 37.39, z = 66.91}
+					newTask.contentid = 1048250
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),5) and In(GetLivingMemorySection(pos2),2) then
+			if not CanUseAetheryte(213) then
+				d("Moving from section 5 to section 2")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -178.06, y = 37.39, z = 66.91}
+					newTask.contentid = 1048250
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),1)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(213)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 213
+							newTask.mapID = 1192
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),5) and In(GetLivingMemorySection(pos2),3) then
+			if not CanUseAetheryte(214) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 5 to section 3")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -178.06, y = 37.39, z = 66.91}
+						newTask.contentid = 1048250
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			end
+		elseif In(GetLivingMemorySection(pos1),5) and In(GetLivingMemorySection(pos2),4) then
+			if not CanUseAetheryte(214) then
+				if not CanUseAetheryte(213) then
+					d("Moving from section 5 to section 4")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -178.06, y = 37.39, z = 66.91}
+						newTask.contentid = 1048250
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),1)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (CanUseAetheryte(213) and not Player.incombat) and (gilCount > 100) then
+					return true, function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+							return
+						end
+						if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+							if (Player:Teleport(213)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 213
+								newTask.mapID = 1192
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+					end
+				end
+			elseif (CanUseAetheryte(214) and not Player.incombat) and (gilCount > 100) then
+				return true, function () 
+					if (Player:IsMoving()) then
+						Player:Stop()
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+						return
+					end
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+						if (Player:Teleport(214)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 214
+							newTask.mapID = 1192
 							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 						end
 					end
