@@ -6877,24 +6877,23 @@ function GetLivingMemorySection(pos)
                sec = 1
             end
         end
-    end	]]--
-	-- Second Island (Bottom Left)
-	local sections2 = {
+    end	]]---- Second Island (Bottom Left)
+    local sections2 = {
         [1] = {
-            a = {x = -948, z = 187},
-            b = {x = -59, z = 234},
-            c = {x = -57, z = 674},
-            d = {x = -966, z = 689},
-            x = {x = -507.5, z = 446},
+            a = {x = -955.75, z = 173},
+            b = {x = -319.75, z = 173},
+            c = {x = -319.75, z = 909},
+            d = {x = -955.75, z = 909},
+            x = {x = -637.75, z = 541},
         },
-		[2] = {
-            a = {x = -742, z = 671},
-            b = {x = -255, z = 702},
-            c = {x = -276, z = 901},
-            d = {x = -706, z = 895},
-            x = {x = -494.75, z = 792.25},
+        [2] = {
+            a = {x = -319.75, z = 338},
+            b = {x = -45, z = 338},
+            c = {x = -45, z = 698},
+            d = {x = -319.75, z = 698},
+            x = {x = -182.375, z = 518},
         },
-	}
+    }
 	if (table.valid(pos)) then
         for i,section in pairs(sections2) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
