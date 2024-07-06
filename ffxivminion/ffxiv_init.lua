@@ -1155,6 +1155,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1206, "Main Deck", true)
 		ml_mesh_mgr.SetDefaultMesh(1207, "The Backroom", true)
 		ml_mesh_mgr.SetDefaultMesh(1219, "Vanguard", true)
+		ml_mesh_mgr.SetDefaultMesh(1220, "Summit of Everkeep", true)
+		ml_mesh_mgr.SetDefaultMesh(1222, "Skydeep Cenote Inner Chamber", true)
 				
 	end
 	
