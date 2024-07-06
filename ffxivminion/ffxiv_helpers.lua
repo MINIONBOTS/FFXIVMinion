@@ -9623,6 +9623,7 @@ function IsNormalMap(mapid)
 		[1189] = true,
 		[1190] = true,
 		[1191] = true,
+		[1192] = true,
 	}
 	return maps[mapid] ~= nil
 end

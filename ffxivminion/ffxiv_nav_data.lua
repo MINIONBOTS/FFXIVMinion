@@ -2097,7 +2097,7 @@ ffxiv_map_nav.data = {
 			},
         },
     },
-	[1191] =
+	[1191] = -- HF
 	{
         [1190] = { 
             {id = 1190, cost = 1, x = 654, y = 147, z = 753, h = 0.52},
@@ -3066,8 +3066,12 @@ ffxiv_aetheryte_data = {
 	},
 	[1192] = { 
         {id = 1192, aethid = 213, x = -0.23, y = 57.18, z = 796.96},
-        {id = 1192, aethid = 214, x = 657.98, y = 28.98, z = -284.02},
-        {id = 1192, aethid = 215, x = -255.27, y = 59.43, z = -397.67},
+        {id = 1192, aethid = 214, x = 657.98, y = 28.98, z = -284.02, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        },
+        {id = 1192, aethid = 215, x = -247.76, y = 55.38, z = -398.46, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        },
     },
 }	
 
