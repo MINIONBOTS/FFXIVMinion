@@ -4458,7 +4458,14 @@ function GetAetheryteByMapID(mapid, p)
 		},
 		[1189] = {name = "Yak T'el",
 			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
-			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526},
+			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526,
+				best = function ()  
+					if In(GetUyuypogaSection(pos),2,3) then
+						return true
+					end
+					return false
+				end				
+			},
 		},	
 		[1190] = {name = "Shaaloani",
 			[1] = { name = "Hhusatahwi", aethid = 207, x = 386, y = 0, z = 467},
