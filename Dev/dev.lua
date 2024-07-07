@@ -61,6 +61,7 @@ function dev.Init()
 	gDevX = 0
 	gDevY = 0
 	gDevActionsNameFilter = ""
+	gDevActionsIDFilter = 0
 	gDevActionsUpdatePulse = 500
 	gDevActionsUpdate = 500
 	gDevStoredActions = {}
@@ -856,6 +857,11 @@ function dev.DrawCall(event, ticks )
 					if (changed) then
 						gDevActionsNameFilter = val
 					end
+					GUI:BulletText("ID Filter") GUI:SameLine(200)
+					local val,changed = GUI:InputInt("##gDevActionsIDFilter",gDevActionsIDFilter)
+					if (changed) then
+						gDevActionsIDFilter = IsNull(val,0)
+					end
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(200)
 					local actiontypes = ActionList:GetTypes()
@@ -872,55 +878,60 @@ function dev.DrawCall(event, ticks )
 								end
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.usable)) and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter)) then
+										if (not gDevFilterActions or (action.usable)) 
+											and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
+											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter) 
+										then
 											--local action = ActionList:Get(actiontype,actionid)
-											if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
+											if ( GUI:TreeNode(tostring(actionid).." - "..action.name.."##"..tostring(actionid).."-"..tostring(actiontype))) then --rather slow making 6000+ names :D
 												--if ( GUI:TreeNode(tostring(actionid).." - ")) then
-												GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
-												GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
-												GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
-												GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
-												GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
-												GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
-												GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
-												GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
-												GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
-												GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
-												GUI:BulletText("Range") GUI:SameLine(200) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
-												GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
-												GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
-												GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
-												GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
-												GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
-												GUI:BulletText("IsGroundTargeted") GUI:SameLine(250) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
-												GUI:BulletText("IsReady(Player)") GUI:SameLine(250) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-												GUI:BulletText("IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
-												GUI:BulletText("CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
-												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
+												GUI:BulletText("Ptr") GUI:SameLine(230) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
+												GUI:BulletText(".id") GUI:SameLine(230) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
+												GUI:BulletText(".name") GUI:SameLine(230) GUI:InputText("##devac34"..tostring(actionid),tostring(action.name))
+												GUI:BulletText(".type") GUI:SameLine(230) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
+												GUI:BulletText(".skilltype") GUI:SameLine(230) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
+												GUI:BulletText(".cost") GUI:SameLine(230) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
+												GUI:BulletText(".casttime") GUI:SameLine(230) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
+												GUI:BulletText(".recasttime") GUI:SameLine(230) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
+												GUI:BulletText(".isoncd") GUI:SameLine(230) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
+												GUI:BulletText(".cd") GUI:SameLine(230) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
+												GUI:BulletText(".cdmax") GUI:SameLine(230) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
+												GUI:BulletText(".range") GUI:SameLine(230) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
+												GUI:BulletText(".radius") GUI:SameLine(230) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
+												GUI:BulletText(".level") GUI:SameLine(230) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
+												GUI:BulletText(".job") GUI:SameLine(230) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
+												GUI:BulletText(".iscasting") GUI:SameLine(230) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
+												GUI:BulletText(".combospellid") GUI:SameLine(230) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
+												GUI:BulletText(".isgroundtargeted") GUI:SameLine(250) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
+												GUI:BulletText(":IsReady(Player)") GUI:SameLine(250) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+												GUI:BulletText(":IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+												GUI:BulletText(":CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
+												GUI:BulletText(".usable") GUI:SameLine(230) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
 
 												if (action.type == 1) then
-													GUI:BulletText(".attacktype") GUI:SameLine(200) GUI:InputText("##devac26"..tostring(actionid),tostring(action.attacktype))
-													GUI:BulletText(".cooldowngroup") GUI:SameLine(200) GUI:InputText("##devac27"..tostring(actionid),tostring(action.cooldowngroup))
-													GUI:BulletText(".statusgainedid") GUI:SameLine(200) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
-													GUI:BulletText(".secondarycostid") GUI:SameLine(200) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
-													GUI:BulletText(".aspect") GUI:SameLine(200) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
-													GUI:BulletText(".category") GUI:SameLine(200) GUI:InputText("##devac31"..tostring(actionid),tostring(action.category))
-													GUI:BulletText(".primarycosttype") GUI:SameLine(200) GUI:InputText("##devac32"..tostring(actionid),tostring(action.primarycosttype))
+													GUI:BulletText(".attacktype") GUI:SameLine(230) GUI:InputText("##devac26"..tostring(actionid),tostring(action.attacktype))
+													GUI:BulletText(".cooldowngroup") GUI:SameLine(230) GUI:InputText("##devac27"..tostring(actionid),tostring(action.cooldowngroup))
+													GUI:BulletText(".statusgainedid") GUI:SameLine(230) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
+													GUI:BulletText(".secondarycostid") GUI:SameLine(230) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
+													GUI:BulletText(".aspect") GUI:SameLine(230) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
+													GUI:BulletText(".category") GUI:SameLine(230) GUI:InputText("##devac31"..tostring(actionid),tostring(action.category))
+													GUI:BulletText(".primarycosttype") GUI:SameLine(230) GUI:InputText("##devac32"..tostring(actionid),tostring(action.primarycosttype))
+													GUI:BulletText(".highlighted") GUI:SameLine(230) GUI:InputText("##devac33"..tostring(actionid),tostring(action.highlighted ))
 												end
 
 												if (action.type == 13) then
-													GUI:BulletText(".canfly") GUI:SameLine(200) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
+													GUI:BulletText(".canfly") GUI:SameLine(230) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
 												end
 												local tar = Player:GetTarget()
 												if ( tar ) then
-													GUI:BulletText("IsReady(Target)") GUI:SameLine(250) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
-													GUI:BulletText("IsFacing(Target)") GUI:SameLine(250) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
-													GUI:BulletText("CanCastResult(Target)") GUI:SameLine(250) GUI:InputText("##devac25"..tostring(actionid),tostring(action:CanCastResult(tar.id)))
+													GUI:BulletText(":IsReady(Target)") GUI:SameLine(250) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
+													GUI:BulletText(":IsFacing(Target)") GUI:SameLine(250) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+													GUI:BulletText(":CanCastResult(Target)") GUI:SameLine(250) GUI:InputText("##devac25"..tostring(actionid),tostring(action:CanCastResult(tar.id)))
 												end
-												if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end
+												if (GUI:Button(":Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end
 												if ( tar ) then
 													GUI:SameLine(200)
-													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+													if (GUI:Button(":Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
 												end
 												GUI:TreePop()
 											end

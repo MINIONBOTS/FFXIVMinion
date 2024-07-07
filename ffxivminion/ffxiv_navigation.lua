@@ -1878,10 +1878,10 @@ function ml_navigation.Navigate(event, ticks )
 						local targetnode = shallowcopy(nextnode)
 						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextnode.ground == true))
 
-						if ((not isDescentCon or dist3D > 20) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
-							for i = 2,5,1 do
+						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
+							for i = 3,5,1 do
 								-- modifying position down helps mostly here, but do a quick raycheck to make sure we aren't hitting a low obstacle
-								local hit, hitx, hity, hitz = RayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-3,targetnode.z)
+								local hit, hitx, hity, hitz = RayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-2,targetnode.z)
 								if (not hit) then
 									--d("Aiming "..tostring(i).." units higher with clearance check.")
 									targetnode.y = (targetnode.y + i)
@@ -1911,6 +1911,7 @@ function ml_navigation.Navigate(event, ticks )
 							if (ffnav.descentAttempts < 3) then
 								if (canLand and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and nextnextnode.ground)) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
+									ml_navigation.lastconnectiontimer = Now()
 									d("Attempt descent.")
 									Descend(true)
 									return false
@@ -1934,7 +1935,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
-						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
+						local isCubeCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
 							--d("isCubeCon:"..tostring(isCubeCon))
@@ -2039,7 +2040,7 @@ function ml_navigation.Navigate(event, ticks )
 								local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,forwardPos.x,forwardPos.y+3,forwardPos.z) 
 								local dist3D = math.distance3d(nextnode,ppos)
 
-								if ((not nextnode.is_cube and ml_navigation:CanContinueFlying()) or nextnode.is_cube or (dist3D > 50 and not lbe_hit)) then
+								if ((not nextnode.is_cube and ml_navigation:CanContinueFlying()) or (nextnode.is_cube and (dist3D > 50 or not lbe_hit))) then
 									if (ml_navigation.lastJump == nil) then ml_navigation.lastJump = 0 end
 
 									if (TimeSince(ml_navigation.lastJump) > math.random(2000,4000)) then
