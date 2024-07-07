@@ -4466,7 +4466,7 @@ function GetAetheryteByMapID(mapid, p)
 					return false
 				end				
 			},
-		},	
+		},
 		[1190] = {name = "Shaaloani",
 			[1] = { name = "Hhusatahwi", aethid = 207, x = 386, y = 0, z = 467},
 			[2] = { name = "Sheshenewezi Springs", aethid = 208, x = -291, y = 19, z = -114},
