@@ -4169,10 +4169,17 @@ function GetAetheryteByMapID(mapid, p)
 	if myMap == 813 and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
 		return nil
 	end
+	-- DT path blocking
 	if myMap == 1185 and (HasQuest(4879) or (QuestCompleted(4879) and not CanUseAetheryte(203))) then
-		--d("special path needed for Kozamauka Section 2")
+		d("special path needed for Kozamauka Section 2")
 		return nil
 	end
+	if myMap == 1188 and (HasQuest(4889) or (QuestCompleted(4889) and not CanUseAetheryte(201))) then
+		d("special path needed for Uyuypoga Section 2")
+		return nil
+	end
+	
+	-- assign map for special paths
 	if (mapid == 815 and GetAhmAraengSection(pos) == 1) and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
 		mapid = 813
 	end
@@ -4181,6 +4188,18 @@ function GetAetheryteByMapID(mapid, p)
 	end
 	if (((mapid == 614 and GetYanxiaSection(pos) == 2) or (myMap == 614 and GetYanxiaSection(Player.pos) == 1)) and HasQuest(2518)) then
 		mapid = 622
+	end
+	-- DT Teleports
+	-- Kozamauka Section 2
+	if (mapid == 1188 and GetKozamaukaSection(pos) == 2) and (HasQuest(4879) or (QuestCompleted(4879) and not CanUseAetheryte(203))) then
+		mapid = 1185
+	end
+	d("mapid = "..tostring(mapid))
+	
+	-- Uyuypoga Section 2
+	if (mapid == 1187 and GetUyuypogaSection(pos) == 2) and (HasQuest(4889) or (QuestCompleted(4889) and not CanUseAetheryte(201))) then
+		mapid = 1188
+		d("changed mapid = "..tostring(mapid))
 	end
 	-- Main hall
 	if (mapid == 987 and myMap ~= 962) then
