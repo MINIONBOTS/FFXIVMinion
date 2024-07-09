@@ -653,6 +653,7 @@ end
 c_autopotion = inheritsFrom( ml_cause )
 e_autopotion = inheritsFrom( ml_effect )
 c_autopotion.potions = {
+	{ minlevel = 90, item = 38956 },
 	{ minlevel = 60, item = 23167 },
 	{ minlevel = 50, item = 13637 },
 	{ minlevel = 40, item = 4554 },
@@ -672,7 +673,7 @@ c_autopotion.item = nil
 c_autopotion.lastPass = 0
 function c_autopotion:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")
-		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat or TimeSince(c_autopotion.lastPass) < 1000) 
+		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat or TimeSince(c_autopotion.lastPass) < 1000 or IsPVPMap(Player.localmapid)) 
 	then
 		return false
 	end
