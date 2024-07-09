@@ -2873,20 +2873,48 @@ ffxiv_aethercurrent_dataDT = {
 		{ id = 14, aethid = 2013972, x = -28.99, y = 71.4324, z = 335.38},
 		{ id = 15, aethid = 2013973, x = -457.64, y = -13.3964, z = 693.13},
 	},
-	--DT Untested
-	--[[
 	[1192] = {						
-		{ id = 6, aethid = 2013974, x = -698.848, y = 1.00028, z = 472.007},
-		{ id = 7, aethid = 2013975, x = 753.37, y = 45.0924, z = 347.051},
-		{ id = 8, aethid = 2013979, x = 509.7, y = 36.9993, z = -648.81},
-		{ id = 9, aethid = 2013980, x = -559.59, y = -6.00049, z = -508.52},
-		{ id = 10, aethid = 2013976, x = -516.675, y = 0.0500011, z = 681.003},
-		{ id = 11, aethid = 2013977, x = 232.36, y = 0.000501633, z = 544.51},
-		{ id = 12, aethid = 2013978, x = 627.534, y = 9.05097, z = 637.736},
-		{ id = 13, aethid = 2013981, x = 315.229, y = 43.7318, z = -539.307},
-		{ id = 14, aethid = 2013982, x = 169.581, y = 29.2416, z = -308.061},
-		{ id = 15, aethid = 2013983, x = -484.18, y = 38, z = -49.99},
-	},]]
+		 -- Section 2
+		{ id = 6, aethid = 2013974, x = -698.848, y = 1.00028, z = 472.007, 
+			requires = function () return (HasQuest(4949) and GetQuestInfo(4949,'step') > 2) or QuestCompleted(4949) end,
+		},
+		-- Section 3
+		{ id = 7, aethid = 2013975, x = 753.37, y = 45.0924, z = 347.051, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+		-- Section 4
+		{ id = 8, aethid = 2013979, x = 509.7, y = 36.9993, z = -648.81, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        },
+		-- Section 5
+		{ id = 9, aethid = 2013980, x = -559.59, y = -6.00049, z = -508.52, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        }, 
+		-- Section 2
+		{ id = 10, aethid = 2013976, x = -516.675, y = 0.0500011, z = 681.003, 
+			requires = function () return (HasQuest(4949) and GetQuestInfo(4949,'step') > 2) or QuestCompleted(4949) end,
+		},
+		--Section 3
+		{ id = 11, aethid = 2013977, x = 232.36, y = 0.000501633, z = 544.51, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+	    -- Section 3
+		{ id = 12, aethid = 2013978, x = 627.534, y = 9.05097, z = 637.736, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+		-- Section 4
+		{ id = 13, aethid = 2013981, x = 315.229, y = 43.7318, z = -539.307, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        }, 
+		-- Section 4
+		{ id = 14, aethid = 2013982, x = 169.581, y = 29.2416, z = -308.061, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        }, 
+		-- Section 5
+		{ id = 15, aethid = 2013983, x = -484.18, y = 38, z = -49.99, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        }, 
+	},
 }
 ffxiv_aetheryte_data = {
 	[132] = {
