@@ -1947,7 +1947,9 @@ function ml_global_information.DrawSmall()
 		end
 		
 		if gBotMode == GetString("assistMode") then
-			c_assistqtepress:evaluate()
+			if c_assistqtepress:evaluate() then
+				e_assistqtepress:execute()
+			end
 		end
 	end
 end
@@ -2031,7 +2033,7 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"), gUseSprint), "gUseSprint", function()
 						ffxivminion.SaveClassSettings("gUseSprint", gUseSprint)
 					end);
-					GUI:SameLine(150)
+					GUI:SameLine()
 					GUI:PushItemWidth(100);
 					GUI_DrawIntMinMax(GetString("sprintDist"), "gSprintDist", 5, 10, 0, 200);
 					GUI:PopItemWidth()
@@ -2044,7 +2046,7 @@ function ml_global_information.DrawSettings()
 								end
 							end
 					)
-					GUI:SameLine(150)
+					GUI:SameLine()
 					GUI:PushItemWidth(100);
 					GUI_DrawIntMinMax(GetString("Mount Distance"), "gMountDist", 5, 10, 0, 200);
 					GUI:PopItemWidth()
@@ -2055,11 +2057,11 @@ function ml_global_information.DrawSettings()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
-					GUI:SameLine(275)
+					GUI:SameLine()
 					if (GUI:ImageButton("##main-mounts-refresh", ml_global_information.path .. "\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillMountOptions()
 					end
-					GUI:SameLine(0, 5)
+					GUI:SameLine()
 					GUI_Capture(GUI:Checkbox(GetString("Show Available Mounts Only"), gMountAvailableOnly), "gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
@@ -2071,16 +2073,16 @@ function ml_global_information.DrawSettings()
 					GUI:PushItemWidth(200);
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods);
 					GUI:PopItemWidth()
-					GUI:SameLine(275)
+					GUI:SameLine()
 					if (GUI:ImageButton("##main-food-refresh", ml_global_information.path .. "\\GUI\\UI_Textures\\change.png", 14, 14)) then
 						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
 					end
-					GUI:SameLine(0, 5)
+					GUI:SameLine()
 					GUI_Capture(GUI:Checkbox(GetString("Show Usable Only") .. "##food", gFoodAvailableOnly), "gFoodAvailableOnly");
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, only available items will be shown.")
 					end
-					GUI:SameLine(0, 5)
+					GUI:SameLine()
 					GUI_Capture(GUI:Checkbox(GetString("Enforce Specifics"), gFoodSpecific), "gFoodSpecific");
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("This option will force this specific food to be used, even if another one is currently in use.")
@@ -2113,7 +2115,9 @@ function ml_global_information.DrawSettings()
 						classlookup[abrev] = jobid
 					end
 
-					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD", "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM", "BLU", "GNB", "DNC", "RPR", "SGE" }
+					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
+						, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
+						, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
 					local gatherers = { "MIN", "BTN", "FSH" }
 
@@ -3051,5 +3055,3 @@ end
 RegisterEventHandler("Module.Initalize", ffxivminion.HandleInit, "ffxivminion.HandleInit")
 RegisterEventHandler("Gameloop.Update", ml_global_information.OnUpdate, "ml_global_information.OnUpdate")
 RegisterEventHandler("Gameloop.Draw", ml_global_information.Draw, "ml_global_information.Draw")
-
-

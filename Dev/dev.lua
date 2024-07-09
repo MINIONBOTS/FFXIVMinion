@@ -52,6 +52,7 @@ function dev.Init()
 	gDevScannerShowContentId = true
 	gDevScannerShowId = false
 	gDevScannerShowPos = false
+	gDevScannerShowDistance = false
 	gDevScannerSortByPos = false
 	gDevRecordNPCs = false
 	gDevRecordedNPCs = {}
@@ -60,6 +61,7 @@ function dev.Init()
 	gDevX = 0
 	gDevY = 0
 	gDevActionsNameFilter = ""
+	gDevActionsIDFilter = 0
 	gDevActionsUpdatePulse = 500
 	gDevActionsUpdate = 500
 	gDevStoredActions = {}
@@ -129,44 +131,107 @@ dev.MOUSE_ACTION_LEFT_CLICKED = 0x002
 dev.MOUSE_ACTION_RIGHT_CLICKED = 0x004
 dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED = 0x008
 dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED = 0x010
-dev.MOUSE_ACTION_LEFT_DOWN = 0x020
-dev.MOUSE_ACTION_RIGHT_DOWN = 0x040
+dev.MOUSE_ACTION_LEFT_PRESSED = 0x020
+dev.MOUSE_ACTION_RIGHT_PRESSED = 0x040
 dev.MOUSE_ACTION_LEFT_RELEASED = 0x080
 dev.MOUSE_ACTION_RIGHT_RELEASED = 0x100
 dev.MOUSE_ACTION_ALL = 0x1FF
 dev.MOUSE_ACTION_NONE = 0x000
 
-function dev.GetMouseActions(checkMouseActions)
+dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS = 1
+dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE = 2
+
+local mouseClickCounts =
+{
+	{
+		state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS,
+		itemId = "",
+		nextPressDeadline = 0,
+		clickCount = 0,
+	},
+	{
+		state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS,
+		itemId = "",
+		nextPressDeadline = 0,
+		clickCount = 0,
+	}
+}
+
+local function GetMouseClickCount(mouseButton,itemId,isHovered)
+	local mouseClickCount=mouseClickCounts[mouseButton+1]
+	local clickCount = 0
+	if mouseClickCount.state == dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS then
+		if mouseClickCount.nextPressDeadline > 0 and Now() > mouseClickCount.nextPressDeadline then
+			if itemId == mouseClickCount.itemId then
+				clickCount = mouseClickCount.clickCount
+				mouseClickCount.clickCount = 0
+				mouseClickCount.itemId = ""
+				mouseClickCount.nextPressDeadline = 0
+			end
+		end
+		if isHovered then
+			if GUI:IsMouseClicked(mouseButton) then
+				mouseClickCount.itemId = itemId
+				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE
+			end
+		end
+	elseif mouseClickCount.state == dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE then
+		if itemId == mouseClickCount.itemId then
+			if GUI:IsMouseReleased(mouseButton) then
+				if isHovered then
+					mouseClickCount.clickCount = mouseClickCount.clickCount + 1
+					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+					mouseClickCount.nextPressDeadline = Now() + 200
+				else
+					mouseClickCount.clickCount = 0
+					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+					mouseClickCount.itemId = ""
+					mouseClickCount.nextPressDeadline = 0
+				end
+			end
+		end
+	end
+	return clickCount
+end
+
+function dev.GetMouseActions(itemId,checkMouseActions)
 	local mouseActions = 0
 	if type(checkMouseActions) == "number" then
 		if checkMouseActions ~= dev.MOUSE_ACTION_NONE then
-			local isItemHovered = GUI:IsItemHovered()
-			if (checkMouseActions & dev.MOUSE_ACTION_HOVERED) ~= 0 then
-				mouseActions = mouseActions | ((isItemHovered and dev.MOUSE_ACTION_HOVERED) or 0)
+			local isItemHovered = GUI:IsItemHovered(GUI.HoveredFlags_AllowWhenBlockedByActiveItem)
+			local mouseClickCount0 = GetMouseClickCount(0,itemId,isItemHovered)
+			local mouseClickCount1 = 0
+			if mouseClickCount0 == 0 then
+				mouseClickCount1 = GetMouseClickCount(1,itemId,isItemHovered)
 			end
-			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_CLICKED) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseClicked(0)) and dev.MOUSE_ACTION_LEFT_CLICKED) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_CLICKED) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseClicked(1)) and dev.MOUSE_ACTION_RIGHT_CLICKED) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDoubleClicked(0)) and dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDoubleClicked(1)) and dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_DOWN) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDown(0)) and dev.MOUSE_ACTION_LEFT_DOWN) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_DOWN) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseDown(1)) and dev.MOUSE_ACTION_RIGHT_DOWN) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_LEFT_RELEASED) ~= 0 then
-				mouseActions = mouseActions |(((isItemHovered and GUI:IsMouseReleased(0)) and dev.MOUSE_ACTION_LEFT_RELEASED) or 0)
-			end
-			if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_RELEASED) ~= 0 then
-				mouseActions = mouseActions | (((isItemHovered and GUI:IsMouseReleased(1)) and dev.MOUSE_ACTION_RIGHT_RELEASED) or 0)
+			if isItemHovered then
+				if (checkMouseActions & dev.MOUSE_ACTION_HOVERED) ~= 0 then
+					mouseActions = mouseActions | dev.MOUSE_ACTION_HOVERED
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_LEFT_CLICKED) ~= 0 then
+					mouseActions = mouseActions | ((mouseClickCount0 == 1 and dev.MOUSE_ACTION_LEFT_CLICKED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_CLICKED) ~= 0 then
+					mouseActions = mouseActions | ((mouseClickCount1 == 1 and dev.MOUSE_ACTION_RIGHT_CLICKED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) ~= 0 then
+					mouseActions = mouseActions | ((mouseClickCount0 > 1 and dev.MOUSE_ACTION_LEFT_DOUBLE_CLICKED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) ~= 0 then
+					mouseActions = mouseActions | ((mouseClickCount1 > 1 and dev.MOUSE_ACTION_RIGHT_DOUBLE_CLICKED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_LEFT_PRESSED) ~= 0 then
+					mouseActions = mouseActions | ((GUI:IsMouseClicked(0) and dev.MOUSE_ACTION_LEFT_PRESSED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_LEFT_PRESSED) ~= 0 then
+					mouseActions = mouseActions | ((GUI:IsMouseClicked(1) and dev.MOUSE_ACTION_LEFT_PRESSED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_LEFT_RELEASED) ~= 0 then
+					mouseActions = mouseActions |((GUI:IsMouseReleased(0) and dev.MOUSE_ACTION_LEFT_RELEASED) or 0)
+				end
+				if (checkMouseActions & dev.MOUSE_ACTION_RIGHT_RELEASED) ~= 0 then
+					mouseActions = mouseActions | ((GUI:IsMouseReleased(1) and dev.MOUSE_ACTION_RIGHT_RELEASED) or 0)
+				end
 			end
 		end
 	end
@@ -183,8 +248,9 @@ function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
 		cellData = ""
 	end
 	cellInfo.col = cellInfo.col + 1
-	GUI:Selectable(cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col,false,GUI.SelectableFlags_SpanAllColumns)
-	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(checkMouseActions)
+	local itemId = cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col
+	GUI:Selectable(itemId,false,GUI.SelectableFlags_SpanAllColumns)
+	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(itemId,checkMouseActions)
 	GUI:SameLine()
 	GUI:Text(cellData)
 	if cellInfo.info:len() == 0 then
@@ -325,20 +391,29 @@ function dev.DrawCall(event, ticks )
 															dev.DisplaySelectableCell(cellInfo,tostring(index),dev.MOUSE_ACTION_LEFT_CLICKED)
 															dev.DisplaySelectableCell(cellInfo,tostring(data.type),dev.MOUSE_ACTION_LEFT_CLICKED)
 															GUI:PushItemWidth(500)
-															if (data.type == "int32") then
+															if
+																data.type == "int32" or
+																data.type == "uint32" or
+																data.type == "int" or
+																data.type == "uint" or
+																data.type == "bool" or
+																data.type == "float" or
+																data.type == "int64" or
+																data.type == "uint64" or
+																data.type == "vector" or
+																data.type == "atkvalues"
+															then
 																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "uint32") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "bool") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "string") then
+															elseif
+																data.type == "string" or
+																data.type == "wstring" or
+																data.type == "texture"
+															then
 																dev.DisplaySelectableCell(cellInfo,data.value,dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "float") then
-																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
-															elseif (data.type == "4bytes") then
+															elseif data.type == "4bytes" then
 																dev.DisplaySelectableCell(cellInfo,"A: "..tostring(data.value.A).." B: "..tostring(data.value.B).." C: "..tostring(data.value.C).." D: "..tostring(data.value.D),dev.MOUSE_ACTION_LEFT_CLICKED)
 															else
-																dev.DisplaySelectableCell(cellInfo,"",dev.MOUSE_ACTION_LEFT_CLICKED)
+																dev.DisplaySelectableCell(cellInfo,"<<UNKNOWN TYPE>>",dev.MOUSE_ACTION_LEFT_CLICKED)
 															end
 															GUI:PopItemWidth()
 															if dev.CheckMouseActions(cellInfo.mouseActions,dev.MOUSE_ACTION_LEFT_CLICKED) then
@@ -637,10 +712,12 @@ function dev.DrawCall(event, ticks )
 					GUI:SameLine()
 					gDevScannerShowPos = GUI:Checkbox("Show Pos##dev-scanner.showPos", gDevScannerShowPos)
 					GUI:SameLine()
+					gDevScannerShowDistance = GUI:Checkbox("Show Distance##dev-scanner.showDistance", gDevScannerShowDistance)
+					GUI:SameLine()
 					gDevScannerSortByPos = GUI:Checkbox("Sort by Pos##dev-scanner.sortByPos", gDevScannerSortByPos)
 					GUI:NewLine()
 					GUI:Separator()
-					local columns = 9 + ((gDevScannerShowId and 1) or 0) + ((gDevScannerShowContentId and 1) or 0) + ((gDevScannerShowPos and 1) or 0)
+					local columns = 9 + ((gDevScannerShowId and 1) or 0) + ((gDevScannerShowContentId and 1) or 0) + ((gDevScannerShowPos and 1) or 0) + ((gDevScannerShowDistance and 1) or 0)
 					local el = EntityList(gDevScannerString)
 					if (table.valid(el)) then
 						local entities = {}
@@ -667,6 +744,9 @@ function dev.DrawCall(event, ticks )
 						end
 						if gDevScannerShowPos then
 							GUI:Text("Pos"); GUI:NextColumn()
+						end
+						if gDevScannerShowDistance then
+							GUI:Text("Distance"); GUI:NextColumn()
 						end
 						GUI:Text("Current Target"); GUI:NextColumn()
 						GUI:Text("Casting"); GUI:NextColumn()
@@ -700,6 +780,10 @@ function dev.DrawCall(event, ticks )
 
 							if gDevScannerShowPos then
 								dev.DisplaySelectableCell(cellInfo,dev.FormatPos(entity.pos),dev.MOUSE_ACTION_LEFT_CLICKED)
+							end
+
+							if gDevScannerShowDistance then
+								dev.DisplaySelectableCell(cellInfo,tostring(entity.distance),dev.MOUSE_ACTION_LEFT_CLICKED)
 							end
 
 							local targetname = ""
@@ -773,6 +857,11 @@ function dev.DrawCall(event, ticks )
 					if (changed) then
 						gDevActionsNameFilter = val
 					end
+					GUI:BulletText("ID Filter") GUI:SameLine(200)
+					local val,changed = GUI:InputInt("##gDevActionsIDFilter",gDevActionsIDFilter)
+					if (changed) then
+						gDevActionsIDFilter = IsNull(val,0)
+					end
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(200)
 					local actiontypes = ActionList:GetTypes()
@@ -789,55 +878,60 @@ function dev.DrawCall(event, ticks )
 								end
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.usable)) and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter)) then
+										if (not gDevFilterActions or (action.usable)) 
+											and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
+											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter) 
+										then
 											--local action = ActionList:Get(actiontype,actionid)
-											if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
+											if ( GUI:TreeNode(tostring(actionid).." - "..action.name.."##"..tostring(actionid).."-"..tostring(actiontype))) then --rather slow making 6000+ names :D
 												--if ( GUI:TreeNode(tostring(actionid).." - ")) then
-												GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
-												GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
-												GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
-												GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
-												GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
-												GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
-												GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
-												GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
-												GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
-												GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
-												GUI:BulletText("Range") GUI:SameLine(200) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
-												GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
-												GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
-												GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
-												GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
-												GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
-												GUI:BulletText("IsGroundTargeted") GUI:SameLine(250) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
-												GUI:BulletText("IsReady(Player)") GUI:SameLine(250) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-												GUI:BulletText("IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
-												GUI:BulletText("CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
-												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
+												GUI:BulletText("Ptr") GUI:SameLine(230) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
+												GUI:BulletText(".id") GUI:SameLine(230) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
+												GUI:BulletText(".name") GUI:SameLine(230) GUI:InputText("##devac34"..tostring(actionid),tostring(action.name))
+												GUI:BulletText(".type") GUI:SameLine(230) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
+												GUI:BulletText(".skilltype") GUI:SameLine(230) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
+												GUI:BulletText(".cost") GUI:SameLine(230) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
+												GUI:BulletText(".casttime") GUI:SameLine(230) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
+												GUI:BulletText(".recasttime") GUI:SameLine(230) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
+												GUI:BulletText(".isoncd") GUI:SameLine(230) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
+												GUI:BulletText(".cd") GUI:SameLine(230) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
+												GUI:BulletText(".cdmax") GUI:SameLine(230) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
+												GUI:BulletText(".range") GUI:SameLine(230) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
+												GUI:BulletText(".radius") GUI:SameLine(230) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
+												GUI:BulletText(".level") GUI:SameLine(230) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
+												GUI:BulletText(".job") GUI:SameLine(230) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
+												GUI:BulletText(".iscasting") GUI:SameLine(230) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
+												GUI:BulletText(".combospellid") GUI:SameLine(230) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
+												GUI:BulletText(".isgroundtargeted") GUI:SameLine(250) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
+												GUI:BulletText(":IsReady(Player)") GUI:SameLine(250) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+												GUI:BulletText(":IsFacing(Player)") GUI:SameLine(250) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+												GUI:BulletText(":CanCastResult(Player)") GUI:SameLine(250) GUI:InputText("##devac24"..tostring(actionid),tostring(action:CanCastResult()))
+												GUI:BulletText(".usable") GUI:SameLine(230) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
 
 												if (action.type == 1) then
-													GUI:BulletText(".attacktype") GUI:SameLine(200) GUI:InputText("##devac26"..tostring(actionid),tostring(action.attacktype))
-													GUI:BulletText(".cooldowngroup") GUI:SameLine(200) GUI:InputText("##devac27"..tostring(actionid),tostring(action.cooldowngroup))
-													GUI:BulletText(".statusgainedid") GUI:SameLine(200) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
-													GUI:BulletText(".secondarycostid") GUI:SameLine(200) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
-													GUI:BulletText(".aspect") GUI:SameLine(200) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
-													GUI:BulletText(".category") GUI:SameLine(200) GUI:InputText("##devac31"..tostring(actionid),tostring(action.category))
-													GUI:BulletText(".primarycosttype") GUI:SameLine(200) GUI:InputText("##devac32"..tostring(actionid),tostring(action.primarycosttype))
+													GUI:BulletText(".attacktype") GUI:SameLine(230) GUI:InputText("##devac26"..tostring(actionid),tostring(action.attacktype))
+													GUI:BulletText(".cooldowngroup") GUI:SameLine(230) GUI:InputText("##devac27"..tostring(actionid),tostring(action.cooldowngroup))
+													GUI:BulletText(".statusgainedid") GUI:SameLine(230) GUI:InputText("##devac28"..tostring(actionid),tostring(action.statusgainedid))
+													GUI:BulletText(".secondarycostid") GUI:SameLine(230) GUI:InputText("##devac29"..tostring(actionid),tostring(action.secondarycostid))
+													GUI:BulletText(".aspect") GUI:SameLine(230) GUI:InputText("##devac30"..tostring(actionid),tostring(action.aspect))
+													GUI:BulletText(".category") GUI:SameLine(230) GUI:InputText("##devac31"..tostring(actionid),tostring(action.category))
+													GUI:BulletText(".primarycosttype") GUI:SameLine(230) GUI:InputText("##devac32"..tostring(actionid),tostring(action.primarycosttype))
+													GUI:BulletText(".highlighted") GUI:SameLine(230) GUI:InputText("##devac33"..tostring(actionid),tostring(action.highlighted ))
 												end
 
 												if (action.type == 13) then
-													GUI:BulletText(".canfly") GUI:SameLine(200) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
+													GUI:BulletText(".canfly") GUI:SameLine(230) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
 												end
 												local tar = Player:GetTarget()
 												if ( tar ) then
-													GUI:BulletText("IsReady(Target)") GUI:SameLine(250) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
-													GUI:BulletText("IsFacing(Target)") GUI:SameLine(250) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
-													GUI:BulletText("CanCastResult(Target)") GUI:SameLine(250) GUI:InputText("##devac25"..tostring(actionid),tostring(action:CanCastResult(tar.id)))
+													GUI:BulletText(":IsReady(Target)") GUI:SameLine(250) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
+													GUI:BulletText(":IsFacing(Target)") GUI:SameLine(250) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+													GUI:BulletText(":CanCastResult(Target)") GUI:SameLine(250) GUI:InputText("##devac25"..tostring(actionid),tostring(action:CanCastResult(tar.id)))
 												end
-												if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end
+												if (GUI:Button(":Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end
 												if ( tar ) then
 													GUI:SameLine(200)
-													if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+													if (GUI:Button(":Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
 												end
 												GUI:TreePop()
 											end

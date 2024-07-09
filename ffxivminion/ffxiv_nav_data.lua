@@ -1815,6 +1815,13 @@ ffxiv_map_nav.data = {
 		[990] = {
 			{id = 990, cost = 1, x = -101, y = 4, z = 0, h = 0.7, b = 1037293, i = 1 },
 		},
+        [1185] = { 
+            {id = 1185, cost = 1, x = 138, y = -16, z = 221, b = 1046492
+                , requires = {
+                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
+                },
+			},
+        },
 	},
 	[963] = -- Radz-at-Han:
     {
@@ -1972,6 +1979,289 @@ ffxiv_map_nav.data = {
             {id = 1159, cost = 1, x = 61.98, y = 56.69, z = 477.25, b = 2013365},
         },
     },
+	-- Dawntrail
+	[1170] = -- Sunperch
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = 0, y = 2, z = -1, b = 2013923},
+        },
+    },
+	[1171] = {
+		[1191] = {
+			[1] = {
+				["b"] = 2013853;
+				["cost"] = 1;
+				["id"] = 1191;
+				["requires"] = {
+					["GetQuestInfo(4930,'step') >= 255 or QuestCompleted(4930)"] = true;
+				};
+				["x"] = 0.68126249313354;
+				["y"] = 1;
+				["z"] = 17.543689727783;
+			};
+		};
+	};
+	[1185] = -- Tuliyollal
+    {
+        [962] = { 
+            {id = 962, cost = 1, x = 124, y = -17, z = 141, b = 1047501
+                , requires = {
+                    ["GetQuestInfo(4860,'step') >= 255 or QuestCompleted(4860)"] = true,
+                },
+			},
+        },
+        [1170] = { 
+            {id = 1170, cost = 1, x = -189, y = 120, z = -367, b = 1047501
+                , requires = {
+                    ["GetQuestInfo(4919,'step') >= 255 or QuestCompleted(4919)"] = true,
+                },
+			},
+        },
+        [1187] = { 
+            {id = 1187, cost = 1, x = -276.5, y = 0, z = 87.7, b = 1047751
+                , requires = {
+                    ["GetQuestInfo(4871,'step') >= 255 or QuestCompleted(4871)"] = true,
+                },
+			},
+        },
+        [1188] = { 
+            {id = 1188, cost = 1, x = -293.9, y = 0, z = 129.9, h = -1.61
+                , requires = {
+                    ["GetQuestInfo(4865,'step') >= 255 or QuestCompleted(4865) and (not In(GetKozamaukaSection(ml_task_hub:CurrentTask().pos),2) or (HasQuest(4879) and GetQuestInfo(4879,'step') < 5) or not QuestCompleted(4879))"] = true,
+                },
+			},
+            {id = 1188, cost = 1, x = 167, y = -17, z = 163, b = 1047478
+                , requires = {
+                    ["GetQuestInfo(4879,'step') >= 5 or QuestCompleted(4879) and In(GetKozamaukaSection(ml_task_hub:CurrentTask().pos),2)"] = true,
+                },
+			},
+        },
+        [1189] = { 
+            {id = 1189, cost = 1, x = -426, y = 11, z = -13, b = 1048231
+                , requires = {
+                    ["GetQuestInfo(4897,'step') >= 3 or QuestCompleted(4897)"] = true,
+                },
+			},
+        },
+        [1190] = { 
+            {id = 1190, cost = 1, x = 50, y = 48, z = -430, b = 1046791
+                , requires = {
+                    ["GetQuestInfo(4912,'step') >= 3 or QuestCompleted(4912)"] = true,
+                },
+			},
+        },
+    },
+	[1186] = {
+		[1191] = {
+			[1] = {
+				["cost"] = 1;
+				["h"] = -0.0380539894104;
+				["id"] = 1191;
+				["requires"] = {
+					["(HasQuest(4933) and GetQuestInfo(4933,'step') >= 3) or QuestCompleted(4933)"] = true;
+				};
+				["x"] = -0.22500441968441;
+				["y"] = -6.0500049591064;
+				["z"] = 297.81491088867;
+			};
+		};
+		[1207] = {
+			[1] = {
+				["b"] = 1048083;
+				["cost"] = 1;
+				["id"] = 1207;
+				["requires"] = {
+					["HasQuest(4937) or QuestCompleted(4937)"] = true;
+				};
+				["x"] = 302.05236816406;
+				["y"] = 51.199977874756;
+				["z"] = 205.03540039062;
+			};
+		};
+	};
+	[1187] = -- Urqopacha
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = 659.5, y = -120, z = -451.4, h = 2.47},
+        },
+        [1188] = { 
+            {id = 1188, cost = 1, x = 726, y = 73, z = 636, h = 1.35
+                , requires = {
+                    ["HasQuest(4889) or QuestCompleted(4889)"] = true,
+                },
+			},
+        },
+    },
+	[1188] = -- Kozama'uka
+    {
+        [1185] = { 
+            {id = 1185, cost = 1, x = -285.1, y = 13, z = -849.7, h = -3.08
+                , requires = {
+                    ["In(GetKozamaukaSection(Player.pos),1)"] = true,
+                },
+			},
+            {id = 1185, cost = 1, x = 759, y = 114, z = 565, b = 1047479
+                , requires = {
+                    ["In(GetKozamaukaSection(Player.pos),2)"] = true,
+                },
+			},
+        },
+        [1187] = { 
+            {id = 1187, cost = 1, x = -893, y = 142, z = 472, h = -1.58
+                , requires = {
+                    ["QuestCompleted(4888)"] = true,
+                },
+			},
+        },
+    },
+	[1189] = -- Yak T'el
+	{
+        [1185] = { 
+            {id = 1185, cost = 1, x = 28, y = 8, z = -666, b = 1048925},
+        },
+		[1222] = {
+			[1] = {
+				["b"] = 2013768;
+				["cost"] = 1;
+				["id"] = 1222;
+				["requires"] = {
+					["(HasQuest(4948) and GetQuestInfo(4948,'step') >= 5) or QuestCompleted(4848)"] = true;
+				};
+				["x"] = -827.26788330078;
+				["y"] = -296.04034423828;
+				["z"] = 877.53100585938;
+			};
+		};
+    },
+	[1190] = -- Shaaloani
+	{
+        [1185] = { 
+            {id = 1185, cost = 1, x = 284, y = 16, z = 801, h = -0.03},
+        },
+        [1191] = { 
+            {id = 1219, cost = 1, x = -652, y = 14, z = -691, h = -2.13
+                , requires = {
+                    ["GetQuestInfo(4926,'step') >= 255 or QuestCompleted(4926)"] = true,
+                },
+			},
+        },
+        [1219] = { 
+            {id = 1219, cost = 1, x = -652, y = 14, z = -690, b = 1051420
+                , requires = {
+                    ["GetQuestInfo(4926,'step') == 3"] = true,
+                },
+			},
+        },
+    },
+	[1191] = -- HF
+	{
+		[1171] = {
+			[1] = {
+				["b"] = 2014030;
+				["cost"] = 1;
+				["id"] = 1171;
+				["requires"] = {
+					["GetQuestInfo(4930,'step') >= 255 or QuestCompleted(4930)"] = true;
+				};
+				["x"] = 221.8203125;
+				["y"] = 54.581420898438;
+				["z"] = -693.38525390625;
+			};
+		};
+		[1186] = {
+			[1] = {
+				["cost"] = 1;
+				["h"] = 3.120600938797;
+				["id"] = 1186;
+				["requires"] = {
+					["(HasQuest(4933) and GetQuestInfo(4933,'step') >= 3) or QuestCompleted(4933)"] = true;
+				};
+				["x"] = -293.05706787109;
+				["y"] = 51.004890441895;
+				["z"] = -862.35760498047;
+			};
+		};
+        [1190] = { 
+            {id = 1190, cost = 1, x = 654, y = 147, z = 753, h = 0.52},
+        },
+		[1220] = {
+			[1] = {
+				["b"] = 1048145;
+				["cost"] = 1;
+				["id"] = 1220;
+				["requires"] = {
+					["(HasQuest(4945) and GetQuestInfo(4945,'step') >= 4) or QuestCompleted(4945)"] = true;
+				};
+				["x"] = -614.19091796875;
+				["y"] = -13.382202148438;
+				["z"] = -567.52880859375;
+			};
+		};
+    },
+	[1192] = {
+		[1222] = {
+			[1] = {
+				["b"] = 2014060;
+				["cost"] = 1;
+				["id"] = 1222;
+				["x"] = -0.015319819562137;
+				["y"] = 107.22039794922;
+				["z"] = 866.42156982422;
+			};
+		};
+	};
+	[1207] = {
+		[1186] = {
+			[1] = {
+				["b"] = 2014102;
+				["cost"] = 1;
+				["id"] = 1186;
+				["x"] = -0.01531982421875;
+				["y"] = 0.99176025390625;
+				["z"] = 16.037170410156;
+			};
+		};
+	};
+	[1219] = -- Shaaloani
+	{
+        [1190] = { 
+            {id = 1190, cost = 1, x = 0, y = 0, z = 657, b = 2013884},
+        },
+    },
+	[1220] = {
+		[1191] = {
+			[1] = {
+				["b"] = 2014101;
+				["cost"] = 1;
+				["id"] = 1191;
+				["x"] = 100.00890350342;
+				["y"] = 1;
+				["z"] = 141.67939758301;
+			};
+		};
+	};
+	[1222] = {
+		[1189] = {
+			[1] = {
+				["b"] = 2014059;
+				["cost"] = 1;
+				["id"] = 1189;
+				["x"] = -0.07635498046875;
+				["y"] = 0.99176025390625;
+				["z"] = -8.2857055664062;
+			};
+		};
+		[1192] = {
+			[1] = {
+				["b"] = 2013769;
+				["cost"] = 1;
+				["id"] = 1192;
+				["x"] = 0.07623291015625;
+				["y"] = 1.1749267578125;
+				["z"] = -87.937744140625;
+			};
+		};
+	};
 }-- set reference for mesh mgr
 
 ffxiv_aethercurrent_data = {
@@ -2495,43 +2785,69 @@ ffxiv_aethercurrent_dataDT = {
             requires = function () return QuestCompleted(4459) end,
         },
 	},
-	--DT Untested
-	--[[
 	[1187] = {						
-		{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8},
+		{ id = 6, aethid = 2013924, x = 353.57, y = -107.702, z = -238.8}, -- ok
 		{ id = 7, aethid = 2013925, x = -458.305, y = -29.6484, z = -493.919},
-		{ id = 8, aethid = 2013929, x = -198.46, y = 23.1426, z = -56.54},
-		{ id = 9, aethid = 2013930, x = -812.893, y = 57.4816, z = 105.509},
+		{ id = 8, aethid = 2013929, x = -198.46, y = 23.1426, z = -56.54, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 9, aethid = 2013930, x = -812.893, y = 57.4816, z = 105.509, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
 		{ id = 10, aethid = 2013926, x = -202.8, y = -72.1271, z = -199},
 		{ id = 11, aethid = 2013927, x = 414.78, y = -141.037, z = -681},
 		{ id = 12, aethid = 2013928, x = -134.576, y = -93.0551, z = -582.912},
-		{ id = 13, aethid = 2013931, x = 70.1898, y = 0.658536, z = 746.44},
-		{ id = 14, aethid = 2013932, x = 368.36, y = 61.0765, z = -9.23},
-		{ id = 15, aethid = 2013933, x = 398.81, y = 86.0047, z = 261.39},
+		{ id = 13, aethid = 2013931, x = 70.1898, y = 0.658536, z = 746.44, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 14, aethid = 2013932, x = 368.36, y = 61.0765, z = -9.23, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
+		{ id = 15, aethid = 2013933, x = 398.81, y = 86.0047, z = 261.39, -- ok
+			requires = function () return QuestCompleted(4889) end,
+		},
 	},
-	[1188] = {						
+	[1188] = {		
 		{ id = 6, aethid = 2013934, x = 299.51, y = 1.41398, z = -688.42},
-		{ id = 7, aethid = 2013935, x = -599.553, y = 5.1607, z = -179.443},
+		{ id = 7, aethid = 2013935, x = -599.553, y = 5.1607, z = -179.443}, -- ok
 		{ id = 8, aethid = 2013939, x = -294.179, y = 110.762, z = 640.009},
-		{ id = 9, aethid = 2013940, x = 48.9754, y = 111.338, z = 287.171},
-		{ id = 10, aethid = 2013936, x = -638.039, y = 6.57127, z = -486.501},
+		{ id = 9, aethid = 2013940, x = 48.9754, y = 111.338, z = 287.171, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 10, aethid = 2013936, x = -638.039, y = 6.57127, z = -486.501}, -- ok
 		{ id = 11, aethid = 2013937, x = 918.152, y = 10.1397, z = -404.091},
 		{ id = 12, aethid = 2013938, x = 516.83, y = 17.9898, z = -348.03},
-		{ id = 13, aethid = 2013941, x = -754.104, y = 138.692, z = 122.687},
-		{ id = 14, aethid = 2013942, x = 130.47, y = 115.174, z = 522.93},
-		{ id = 15, aethid = 2013943, x = 485.92, y = 121.404, z = 831.311},
+		{ id = 13, aethid = 2013941, x = -754.104, y = 138.692, z = 122.687, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 14, aethid = 2013942, x = 130.47, y = 115.174, z = 522.93, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
+		{ id = 15, aethid = 2013943, x = 485.92, y = 121.404, z = 831.311, -- ok
+			requires = function () return QuestCompleted(4879) end,
+		},
 	},
 	[1189] = {						
 		{ id = 6, aethid = 2013944, x = -114.388, y = 5.86803, z = -527.111},
 		{ id = 7, aethid = 2013945, x = 416.08, y = 15.5309, z = -544.98},
-		{ id = 8, aethid = 2013949, x = -114.32, y = -212.192, z = 623.79},
-		{ id = 9, aethid = 2013950, x = 39.3742, y = -158.612, z = -2.31141},
+		{ id = 8, aethid = 2013949, x = -114.32, y = -212.192, z = 623.79,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 9, aethid = 2013950, x = 39.3742, y = -158.612, z = -2.31141,
+			requires = function () return QuestCompleted(4903) end,
+		},
 		{ id = 10, aethid = 2013946, x = -550.591, y = -4.35479, z = -137.652},
 		{ id = 11, aethid = 2013947, x = -184.71, y = 22.9362, z = -751.675},
 		{ id = 12, aethid = 2013948, x = 610.773, y = 9.62139, z = 233.051},
-		{ id = 13, aethid = 2013951, x = -676.539, y = -163.973, z = 236.164},
-		{ id = 14, aethid = 2013952, x = 205.188, y = -193.591, z = 160.998},
-		{ id = 15, aethid = 2013953, x = 747.188, y = -176.4, z = 712.672},
+		{ id = 13, aethid = 2013951, x = -676.539, y = -163.973, z = 236.164,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 14, aethid = 2013952, x = 205.188, y = -193.591, z = 160.998,
+			requires = function () return QuestCompleted(4903) end,
+		},
+		{ id = 15, aethid = 2013953, x = 747.188, y = -176.4, z = 712.672,
+			requires = function () return QuestCompleted(4903) end,
+		},
 	},
 	[1190] = {						
 		{ id = 6, aethid = 2013954, x = 296.071, y = 2.39316, z = 504.021},
@@ -2546,29 +2862,59 @@ ffxiv_aethercurrent_dataDT = {
 		{ id = 15, aethid = 2013963, x = 658.289, y = 21.0219, z = 82.9938},
 	},
 	[1191] = {						
-		{ id = 6, aethid = 2013964, x = 397.89, y = 145.347, z = 224.23},
+		{ id = 6, aethid = 2013964, x = 397.89, y = 145.347, z = 224.23},--
 		{ id = 7, aethid = 2013965, x = 204.578, y = 58.1954, z = -678.492},
 		{ id = 8, aethid = 2013969, x = -585.41, y = 20.1695, z = -469.43},
 		{ id = 9, aethid = 2013970, x = -600.09, y = 2.21695, z = 267.44},
 		{ id = 10, aethid = 2013966, x = 77.55, y = 93.1042, z = -144.94},
 		{ id = 11, aethid = 2013967, x = 606.856, y = 127.574, z = -190.36},
 		{ id = 12, aethid = 2013968, x = 686, y = 139.201, z = -516.533},
-		{ id = 13, aethid = 2013971, x = -286.15, y = 59.4742, z = -263.62},
+		{ id = 13, aethid = 2013971, x = -286.15, y = 59.4742, z = -263.62},--
 		{ id = 14, aethid = 2013972, x = -28.99, y = 71.4324, z = 335.38},
 		{ id = 15, aethid = 2013973, x = -457.64, y = -13.3964, z = 693.13},
 	},
 	[1192] = {						
-		{ id = 6, aethid = 2013974, x = -698.848, y = 1.00028, z = 472.007},
-		{ id = 7, aethid = 2013975, x = 753.37, y = 45.0924, z = 347.051},
-		{ id = 8, aethid = 2013979, x = 509.7, y = 36.9993, z = -648.81},
-		{ id = 9, aethid = 2013980, x = -559.59, y = -6.00049, z = -508.52},
-		{ id = 10, aethid = 2013976, x = -516.675, y = 0.0500011, z = 681.003},
-		{ id = 11, aethid = 2013977, x = 232.36, y = 0.000501633, z = 544.51},
-		{ id = 12, aethid = 2013978, x = 627.534, y = 9.05097, z = 637.736},
-		{ id = 13, aethid = 2013981, x = 315.229, y = 43.7318, z = -539.307},
-		{ id = 14, aethid = 2013982, x = 169.581, y = 29.2416, z = -308.061},
-		{ id = 15, aethid = 2013983, x = -484.18, y = 38, z = -49.99},
-	},]]
+		 -- Section 2
+		{ id = 6, aethid = 2013974, x = -698.848, y = 1.00028, z = 472.007, 
+			requires = function () return (HasQuest(4949) and GetQuestInfo(4949,'step') > 2) or QuestCompleted(4949) end,
+		},
+		-- Section 3
+		{ id = 7, aethid = 2013975, x = 753.37, y = 45.0924, z = 347.051, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+		-- Section 4
+		{ id = 8, aethid = 2013979, x = 509.7, y = 36.9993, z = -648.81, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        },
+		-- Section 5
+		{ id = 9, aethid = 2013980, x = -559.59, y = -6.00049, z = -508.52, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        }, 
+		-- Section 2
+		{ id = 10, aethid = 2013976, x = -516.675, y = 0.0500011, z = 681.003, 
+			requires = function () return (HasQuest(4949) and GetQuestInfo(4949,'step') > 2) or QuestCompleted(4949) end,
+		},
+		--Section 3
+		{ id = 11, aethid = 2013977, x = 232.36, y = 0.000501633, z = 544.51, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+	    -- Section 3
+		{ id = 12, aethid = 2013978, x = 627.534, y = 9.05097, z = 637.736, 
+			requires = function () return (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) end,
+		}, 
+		-- Section 4
+		{ id = 13, aethid = 2013981, x = 315.229, y = 43.7318, z = -539.307, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        }, 
+		-- Section 4
+		{ id = 14, aethid = 2013982, x = 169.581, y = 29.2416, z = -308.061, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        }, 
+		-- Section 5
+		{ id = 15, aethid = 2013983, x = -484.18, y = 38, z = -49.99, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        }, 
+	},
 }
 ffxiv_aetheryte_data = {
 	[132] = {
@@ -2846,6 +3192,52 @@ ffxiv_aetheryte_data = {
 			requires = function () return QuestCompleted(4417) end,  -- or 4418
 		},
 	},
+	[1185] = { 
+		{id = 1185, aethid = 216, x = -24, y = 0, z = 7.5},
+	},
+	[1186] = { 
+		{id = 1186, aethid = 217, x = 0, y = 9, z = 0},
+	},
+	[1187] = { 
+		{id = 1187, aethid = 200, x = 332, y = -160, z = -416},
+		{id = 1187, aethid = 201, x = 465, y = 114, z = 634, 
+			requires = function () return QuestCompleted(4889) end,
+		},
+	},
+	[1188] = { 
+		{id = 1188, aethid = 202, x = -162, y = 6, z = -483},
+		{id = 1188, aethid = 203, x = 541, y = 117, z = 203, 
+			requires = function () return (HasQuest(4879) and GetQuestInfo(4879,'step') >= 5) or QuestCompleted(4879) end,
+		},
+		{id = 1188, aethid = 204, x = -477, y = 124, z = 311, 
+			requires = function () return (HasQuest(4884) and GetQuestInfo(4884,'step') >= 4) or QuestCompleted(4884) end,
+		},
+	},
+	[1189] = { 
+		{id = 1189, aethid = 205, x = -397, y = 23, z = -431},
+		{id = 1189, aethid = 206, x = 721, y = -132, z = 526, 
+			requires = function () return QuestCompleted(4903) end,
+		},
+	},
+	[1190] = { 
+		{id = 1190, aethid = 207, x = 386, y = 0, z = 467},
+		{id = 1190, aethid = 208, x = -291, y = 19, z = -114},
+		{id = 1190, aethid = 209, x = 311, y = -14, z = -567},
+	},
+	[1191] = { 
+		{id = 1191, aethid = 210, x = 514, y = 145, z = 207},
+		{id = 1191, aethid = 211, x = -223, y = 31, z = -584},
+		{id = 1191, aethid = 212, x = -219, y = 32, z = 120},
+	},
+	[1192] = { 
+        {id = 1192, aethid = 213, x = -0.23, y = 57.18, z = 796.96},
+        {id = 1192, aethid = 214, x = 657.98, y = 28.98, z = -284.02, 
+            requires = function () return (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) end,
+        },
+        {id = 1192, aethid = 215, x = -247.76, y = 55.38, z = -398.46, 
+            requires = function () return (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) end,
+        },
+    },
 }	
 
 function ffxiv_map_nav.GetAetherytes()

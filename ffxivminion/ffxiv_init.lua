@@ -1141,7 +1141,24 @@ function ml_global_information.Init()
 		
 		-- Island Sanctuary
 		ml_mesh_mgr.SetDefaultMesh(1055, "Unnamed Island", true)
-		
+		-- DT maps
+		ml_mesh_mgr.SetDefaultMesh(1170, "Sunperch", true)
+		ml_mesh_mgr.SetDefaultMesh(1171, "Earthen Sky Hideout", true)
+		ml_mesh_mgr.SetDefaultMesh(1185, "Tuliyollal", true)
+		ml_mesh_mgr.SetDefaultMesh(1186, "Solution Nine", true)
+		ml_mesh_mgr.SetDefaultMesh(1187, "Urqopacha", true)
+		ml_mesh_mgr.SetDefaultMesh(1188, "Kozama'uka", true)
+		ml_mesh_mgr.SetDefaultMesh(1189, "Yak T'el", true)
+		ml_mesh_mgr.SetDefaultMesh(1190, "Shaaloani", true)
+		ml_mesh_mgr.SetDefaultMesh(1191, "Heritage Found", true)
+		ml_mesh_mgr.SetDefaultMesh(1192, "Living Memory", true)
+		ml_mesh_mgr.SetDefaultMesh(1206, "Main Deck", true)
+		ml_mesh_mgr.SetDefaultMesh(1207, "The Backroom", true)
+		ml_mesh_mgr.SetDefaultMesh(1219, "Vanguard", true)
+		ml_mesh_mgr.SetDefaultMesh(1220, "Summit of Everkeep", true)
+		ml_mesh_mgr.SetDefaultMesh(1221, "Interphos", true)
+		ml_mesh_mgr.SetDefaultMesh(1222, "Skydeep Cenote Inner Chamber", true)
+				
 	end
 	
 	-- General overrides.

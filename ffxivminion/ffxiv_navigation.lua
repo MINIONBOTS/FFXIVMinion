@@ -984,11 +984,13 @@ end
 -- Are there more flying nodes so we can continue flying instead of landing uselessly?
 function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
+		local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
 		local pathsize = table.size(self.path)
-		for index,node in pairsByKeys(self.path) do
-			if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0)) then
-				local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
-				if (dist > 15) then
+		if (dist > 15) then
+			for index,node in pairsByKeys(self.path) do
+				if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and 
+					(dist > 30 or IsNull(node.flags,0) == 0 or (node.flags and bit.band(node.flags, GLOBAL.CUBE.AIR) ~= 0))) 
+				then
 					return true
 				end
 			end
@@ -1098,10 +1100,12 @@ end
 ml_navigation.lastPathUpdate = 0
 ml_navigation.pathchanged = false
 ml_navigation.lastBuildCall = 0
-function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
+ml_navigation.lastpos = {x=0, y=0, z=0}
+function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	ml_navigation.debug = nil -- this is just for being able to click "Get Path to target" in the navmanager, so you see the current path and can check  the nodes / manually optimize that path without actually start flying
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
+	
 	if (targetid == 0) then
 		targetid = nil
 	end
@@ -1129,8 +1133,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
-	if (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000)) then
-		d("[NAVIGATION]: We have a recent path, dont call again. (causes double backs)")
+	if not force and (((newGoal.x == ml_navigation.lastpos.x and newGoal.z == ml_navigation.lastpos.z) or ((IsFlying() or IsDiving()) and targetid ~= nil and targetid == ml_navigation.lasttargetid))
+		 and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000))) then
+		--d("[NAVIGATION]: We have a recent path, dont call again. (causes double backs)")
 		return currentPathSize
 	end
 	
@@ -1186,6 +1191,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
 	
 	--table.print(ml_navigation.path)
 	ml_navigation.lastBuildCall = Now()
+	ml_navigation.lastpos = newGoal
 	return ret
 end
 
@@ -1275,12 +1281,35 @@ function ml_navigation.TagNode(node)
 			node.ground_water = (bit.band(flags, GLOBAL.FLOOR.WATER) ~= 0)
 			node.ground_border = (bit.band(flags, GLOBAL.FLOOR.BORDER) ~= 0)
 			node.ground_avoid = (bit.band(flags, GLOBAL.FLOOR.AVOID) ~= 0)
+
+			node.air = false
+			node.water = false
+			node.air_avoid = false
 		elseif (node.is_cube) then
 			--node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0)   -- doesn't work, due to flags sometimes returning 0, needs c++ fix
-			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0 or flags == 0)
+			node.air = (bit.band(flags, GLOBAL.CUBE.AIR) ~= 0 or IsNull(flags,0) == 0)
 			node.water = (bit.band(flags, GLOBAL.CUBE.WATER) ~= 0)
 			node.air_avoid = (bit.band(flags, GLOBAL.CUBE.AVOID) ~= 0)
+
+			node.ground = false
+			node.ground_water = false
+			node.ground_border = false
+			node.ground_avoid = false
 		end
+
+		node.cubecube = false
+		node.floorfloor = false
+		node.floorcube = false
+
+		if (node.navconnectionid and node.navconnectionid ~= 0) then
+			local navcon = NavigationManager:GetNavConnection(node.navconnectionid)
+			if (navcon) then
+				node.cubecube = (navcon.type == 1)
+				node.floorfloor = (navcon.type == 2)
+				node.floorcube = (navcon.type == 3)
+			end
+		end
+
 		node.is_tagged = true
 	end
 end
@@ -1829,6 +1858,8 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist2D = math.distance2d(nextnode,ppos)
 						local dist3D = math.distance3d(nextnode,ppos)
+						local height = (ppos.y - nextnode.y)
+						local navcon = ml_navigation:GetConnection(nextnode)
 						
 						--ml_debug("[Navigation]: Moving to next node")
 						-- We have not yet reached our node
@@ -1845,8 +1876,18 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						local targetnode = shallowcopy(nextnode)
-						if (not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
-							targetnode.y = targetnode.y + 1.5
+						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextnode.ground == true))
+
+						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
+							for i = 3,5,1 do
+								-- modifying position down helps mostly here, but do a quick raycheck to make sure we aren't hitting a low obstacle
+								local hit, hitx, hity, hitz = RayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-2,targetnode.z)
+								if (not hit) then
+									--d("Aiming "..tostring(i).." units higher with clearance check.")
+									targetnode.y = (targetnode.y + i)
+									break
+								end
+							end	
 						end
 						
 						local pitch = GetRequiredPitch(targetnode)
@@ -1858,21 +1899,20 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
-						if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
-							local canLand = (dist2D < 1.5 and dist3D < 3)
-							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
-							if (not hit) then
-								canLand = false
-							end	
-							if (not canLand) then
-								if (nextnode.is_end and nextnode.ground and dist2D < 1.5 and dist3D < 3) then
-									canLand = true
-								end
+						if ( ml_navigation:IsGoalClose(ppos,targetnode,lastnode) or ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
+							local canLand = ((dist2D < 2 or dist3D < 3) and height < 7 and height > 0)
+							if (canLand and not (nextnode.is_end and nextnode.ground)) then
+								local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
+								if (not hit) then
+									canLand = false
+								end	
 							end
-							
-							if (ffnav.descentAttempts < 2) then
-								if (canLand and not nextnode.is_cube and nextnode.ground and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+
+							if (ffnav.descentAttempts < 3) then
+								if (canLand and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and nextnextnode.ground)) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
+									ml_navigation.lastconnectiontimer = Now()
+									d("Attempt descent.")
 									Descend(true)
 									return false
 								end
@@ -1895,7 +1935,7 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
-						local isCubeCon = (navcon and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
+						local isCubeCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
 							--d("isCubeCon:"..tostring(isCubeCon))
@@ -1943,7 +1983,7 @@ function ml_navigation.Navigate(event, ticks )
 										
 									else
 										if (Mount()) then
-											ffnav.AwaitSuccess(500, 
+											ffnav.AwaitSuccess(1000, 
 												function () 
 													return (IsMounting() or UsingBattleItem())
 												end,
@@ -1963,8 +2003,12 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 										
 									else
-										d("[Navigation] - Ascend for flight, using connection ["..tostring(isCubeCon).."].")
-										ffnav.isascending = isCubeCon 
+										local isFlightCon = (nextnode.floorcube == true and (nextnode.air == true or nextnextnode.air == true))
+										local targetnode = shallowcopy({x = nextnode.x, y = nextnode.y + 1.5, z = nextnode.z})
+										local pitch = GetRequiredPitch(targetnode)
+
+										d("[Navigation] - Ascend for flight, using connection ["..tostring(isFlightCon).."].")
+										ffnav.isascending = isFlightCon 
 										Player:Jump()
 										ffnav.AwaitSuccess(500, 2000, function () 
 											local ascended = Player:IsJumping() or IsFlying()
@@ -1975,13 +2019,47 @@ function ml_navigation.Navigate(event, ticks )
 												d("[Navigation]: finished ascending, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
 											end
 											return ascended
-										end, function () Player:TakeOff() end)
+										end, function () 
+											Player:TakeOff() 
+											Player:SetPitch(pitch)
+										end)
 										
 										return
 									end
 								end
 							end
 						else
+							if (not IsFlying() and not IsSwimming() and CanFlyInZone() and Player:IsMoving() and Player.ismounted) then
+								local targetnode = shallowcopy({x = nextnode.x, y = nextnode.y + 1.5, z = nextnode.z})
+								local pitch = GetRequiredPitch(targetnode)
+
+								local ppos = Player.pos
+								local checkdistance = 8
+								local heading = ConvertHeading(ppos.h)
+								local forwardPos = GetPosFromDistanceHeading(ppos, checkdistance, heading)
+								local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,forwardPos.x,forwardPos.y+3,forwardPos.z) 
+								local dist3D = math.distance3d(nextnode,ppos)
+
+								if ((not nextnode.is_cube and ml_navigation:CanContinueFlying()) or (nextnode.is_cube and (dist3D > 50 or not lbe_hit))) then
+									if (ml_navigation.lastJump == nil) then ml_navigation.lastJump = 0 end
+
+									if (TimeSince(ml_navigation.lastJump) > math.random(2000,4000)) then
+										d("[Navigation]: Attempt hover flight.")
+										Player:Jump()
+										ffnav.AwaitSuccess(300, 1000, function () 
+											local ascended = Player:IsJumping() or IsFlying()
+											return ascended
+										end, function () 
+											Player:TakeOff() 
+											Player:SetPitch(pitch)
+										end)
+										ml_navigation.lastJump = Now()
+									end
+								--else
+									--d("[Navigation Hover flight not attempted, collision detected.")
+								end
+							end
+
 							--d("[Navigation]: Navigate to node, backup.")
 							ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	
 						end

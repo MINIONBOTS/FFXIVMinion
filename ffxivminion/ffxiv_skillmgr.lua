@@ -3152,6 +3152,12 @@ SkillMgr.MatchingCraftSkills = {
 	["Trained Instinct"] = { [8] = 100291, [9] = 100292, [10] = 100293, [11] = 100294, [12] = 100295, [13] = 100296, [14] = 100297, [15] = 100298, },
 	["Trained Finesse"] = { [8] = 100435, [9] = 100436, [10] = 100437, [11] = 100438, [12] = 100439, [13] = 100440, [14] = 100441, [15] = 100442, },
 	["Heart and Soul"] = { [8] = 100419, [9] = 100420, [10] = 100421, [11] = 100422, [12] = 100423, [13] = 100424, [14] = 100425, [15] = 100426, },
+	-- DT
+	["Refined Touch"] = { [8] = 100443, [9] = 100444, [10] = 100445, [11] = 100446, [12] = 100447, [13] = 100448, [14] = 100449, [15] = 100450, },
+	["Daring Touch"] = { [8] = 100451, [9] = 100452, [10] = 100453, [11] = 100454, [12] = 100455, [13] = 100456, [14] = 100457, [15] = 100458, },
+	["Quick Innovation"] = { [8] = 100459, [9] = 100460, [10] = 100461, [11] = 100462, [12] = 100463, [13] = 100464, [14] = 100465, [15] = 100466, },
+	["Immaculate Mend"] = { [8] = 100467, [9] = 100468, [10] = 100469, [11] = 100470, [12] = 100471, [13] = 100472, [14] = 100473, [15] = 100474, },
+	["Trained Perfection"] = { [8] = 100475, [9] = 100476, [10] = 100477, [11] = 100478, [12] = 100479, [13] = 100480, [14] = 100481, [15] = 100482, },
 }
 
 SkillMgr.lastquality = 0
@@ -3702,30 +3708,18 @@ function SkillMgr.Gather(item)
 							info = GetControlRawData("GatheringMasterpiece")
 							
 							local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
-							if (GetPatchLevel() >= 6.5) then
+							if (GetPatchLevel() >= 7) then
+								collectableId = info[3].value
+								collectableRarity = info[14].value
+								collectableMax = info[15].value
+								collectableAttemptsRemaining = info[63].value		
+								collectableAttemptsMax = info[64].value	
+							else
 								collectableId = info[3].value
 								collectableRarity = info[14].value
 								collectableMax = info[15].value
 								collectableAttemptsRemaining = info[59].value		
 								collectableAttemptsMax = info[60].value	
-							elseif (GetPatchLevel() >= 6.2) then
-								collectableId = info[3].value
-								collectableRarity = info[14].value
-								collectableMax = info[15].value
-								collectableAttemptsRemaining = info[57].value		
-								collectableAttemptsMax = info[58].value	
-							elseif (GetPatchLevel() >= 6) then
-								collectableId = info[11].value
-								collectableRarity = info[5].value
-								collectableMax = info[6].value
-								collectableAttemptsRemaining = info[50].value		
-								collectableAttemptsMax = info[51].value	
-							else
-								collectableId = info[11].value
-								collectableRarity = info[5].value
-								collectableMax = info[6].value
-								collectableAttemptsRemaining = info[41].value		
-								collectableAttemptsMax = info[42].value	
 							end
 						
 							if (tonumber(skill.collraritylt) > 0 and collectableRarity >= tonumber(skill.collraritylt)) then
