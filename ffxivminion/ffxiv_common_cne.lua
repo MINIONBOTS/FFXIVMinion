@@ -4193,7 +4193,7 @@ function FindCSIndex(itemid)
 				itemid = itemid + 500000
 			end
 			for index, data in pairs(list) do			
-				if (data.type == "uint32" and data.value == itemid) then
+				if ((data.type == "uint32" or data.type == "uint") and data.value == itemid) then
 					return list[index-1].value
 				end
 			end	
@@ -4210,7 +4210,7 @@ function GetCSAvailable(itemid)
 				itemid = itemid + 500000
 			end
 			for index, data in pairs(list) do			
-				if (data.type == "uint32" and data.value == itemid) then
+				if ((data.type == "uint32" or data.type == "uint") and data.value == itemid) then
 					return not In(list[index-2].value,131072,131073)
 				end
 			end	
