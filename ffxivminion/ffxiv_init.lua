@@ -1152,12 +1152,14 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1190, "Shaaloani", true)
 		ml_mesh_mgr.SetDefaultMesh(1191, "Heritage Found", true)
 		ml_mesh_mgr.SetDefaultMesh(1192, "Living Memory", true)
+		ml_mesh_mgr.SetDefaultMesh(1205, "The For'ard Cabins", true)
 		ml_mesh_mgr.SetDefaultMesh(1206, "Main Deck", true)
 		ml_mesh_mgr.SetDefaultMesh(1207, "The Backroom", true)
 		ml_mesh_mgr.SetDefaultMesh(1219, "Vanguard", true)
 		ml_mesh_mgr.SetDefaultMesh(1220, "Summit of Everkeep", true)
 		ml_mesh_mgr.SetDefaultMesh(1221, "Interphos", true)
 		ml_mesh_mgr.SetDefaultMesh(1222, "Skydeep Cenote Inner Chamber", true)
+	
 				
 	end
 	
