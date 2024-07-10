@@ -4426,7 +4426,14 @@ function GetAetheryteByMapID(mapid, p)
 		},
 		[1187] = {name = "Urqopacha",
 			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
-			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634},
+			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634,
+				best = function ()  
+					if In(GetUyuypogaSection(pos),2) then
+						return true
+					end
+					return false
+				end				
+			},
 		},	
 		[1188] = {name = "Kozama'uka",
 			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483,
