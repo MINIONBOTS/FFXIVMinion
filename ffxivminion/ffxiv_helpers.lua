@@ -4458,7 +4458,7 @@ function GetAetheryteByMapID(mapid, p)
 			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
 			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526,
 				best = function ()  
-					if In(GetYakTelSection(pos),2,3) or (In(GetYakTelSection(pos),1) and pos.x > 0) then
+					if In(GetYakTelSection(pos),2,3) or (In(GetYakTelSection(pos),1) and pos.x > 0 and pos.z > 300) then
 						return true
 					end
 					return false
@@ -6866,7 +6866,7 @@ function GetYakTelSection(pos)
 		if pos.y < -280 and pos.x < -700 then
 			return 3
 		end
-		if pos.z > -400 and pos.y < 100 then
+		if pos.z > -400 and pos.y < -35 then
 			return 2
 		end
 	end
