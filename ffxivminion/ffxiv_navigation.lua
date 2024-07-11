@@ -2029,7 +2029,8 @@ function ml_navigation.Navigate(event, ticks )
 								end
 							end
 						else
-							if (not IsFlying() and not IsSwimming() and CanFlyInZone() and Player:IsMoving() and Player.ismounted) then
+							-- too iffy for now, revisit later
+							--[[if (not IsFlying() and not IsSwimming() and CanFlyInZone() and Player:IsMoving() and Player.ismounted) then
 								local targetnode = shallowcopy({x = nextnode.x, y = nextnode.y + 1.5, z = nextnode.z})
 								local pitch = GetRequiredPitch(targetnode)
 
@@ -2058,7 +2059,7 @@ function ml_navigation.Navigate(event, ticks )
 								--else
 									--d("[Navigation Hover flight not attempted, collision detected.")
 								end
-							end
+							end]]
 
 							--d("[Navigation]: Navigate to node, backup.")
 							ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	
