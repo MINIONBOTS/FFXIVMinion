@@ -297,6 +297,7 @@ function dev.DrawCall(event, ticks )
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 
 										GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
+										GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devcr"..tostring(id),tostring(e:IsReady()))										
 										local x,y = e:GetXY()
 										GUI:BulletText("Position") GUI:SameLine(200) GUI:InputText("##devc1pos"..tostring(id),tostring(x).. ", "..tostring(y))
 										GUI:PushItemWidth(50)
