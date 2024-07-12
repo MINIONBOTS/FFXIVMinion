@@ -6836,25 +6836,58 @@ function GetUltimaThuleSection(pos)
     end	
     return sec
 end
-
 function GetUyuypogaSection(pos)
-    local sec = 1
-	
+    local sec = 2
+    
+   local sections1 = {
+        [1] = {
+            a = {x = -834, z = -903},
+            b = {x = -834, z = -135},
+            c = {x = 834, z = -135},
+            d = {x = 834, z = -903},
+            x = {x = 0, z = -519},
+        },
+        [2] = {
+            a = {x = -255, z = -135},
+            b = {x = -249, z = -105},
+            c = {x = -43, z = -94},
+            d = {x = -39, z = -135},
+            x = {x = -146.5, z = -117.25},
+        },
+        [3] = {
+            a = {x = 54, z = -135},
+            b = {x = 63, z = -93},
+            c = {x = 684, z = -108},
+            d = {x = 686, z = -135},
+            x = {x = 371.75, z = -117.5},
+        },
+        [4] = {
+            a = {x = 385, z = -135},
+            b = {x = 432, z = 122},
+            c = {x = 738, z = 90},
+            d = {x = 735, z = -135},
+            x = {x = 572.5, z = -14},
+        },
+        [5] = {
+            a = {x = 236, z = -141},
+            b = {x = 234, z = -79},
+            c = {x = 347, z = -35},
+            d = {x = 357, z = -135},
+            x = {x = 293.5, z = -97.5},
+        },
+    }
+    
     if (table.valid(pos)) then
-		if pos.z > -105 and pos.x < 280 then
-			return 2
-		end
-		if pos.z > -60 and pos.x < 400 then
-			return 2
-		end
-		if pos.z > -46 then
-			return 2
-		end
-	end
-	
-	
+        for i,section in pairs(sections1) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+               sec = 1
+            end
+        end
+    end    
     return sec
 end
+
 function GetKozamaukaSection(pos)
     local sec = 1
 	
