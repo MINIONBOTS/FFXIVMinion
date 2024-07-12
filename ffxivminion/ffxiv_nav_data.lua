@@ -2059,6 +2059,9 @@ ffxiv_map_nav.data = {
 				["y"] = -14.999356269836;
 				["z"] = 208.30078125;
 				["i"] = 1; 
+				["requires"] = {
+					["QuestCompleted(4864)"] = true;
+				};
 			};
 		};
     },
