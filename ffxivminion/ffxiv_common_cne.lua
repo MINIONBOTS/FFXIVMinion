@@ -4329,27 +4329,30 @@ function c_scripexchange_na:evaluate()
 					ml_task_hub:CurrentTask().items[itemid] = nil
 					return true
 				end
-				
-				if (itemid < 500000) then
-					itemid = itemid + 500000
-				end
-				d("[ScripExchange]: Checking item ["..tostring(itemid).."]")
-				local index = FindCSIndex(itemid)
-				if (index ~= nil) then
-					d("[ScripExchange]: Checking index ["..tostring(index).."]")
-					if (GetCSAvailable(itemid)) then
-						if (c_scripexchange_na.lastItem == itemid) then
-							d("[ScripExchange]: Attempting trade.")
-							UseControlAction(addonName,"Trade",0,0,1000)
-							return true
+
+				local exDetails = AceLib.API.Items.ItemExchangeDetails(itemid)
+				if (exDetails and exDetails.class == (currentCategory + 8)) then
+					if (itemid < 500000) then
+						itemid = itemid + 500000
+					end
+					d("[ScripExchange]: Checking item ["..tostring(itemid).."]")
+					local index = FindCSIndex(itemid)
+					if (index ~= nil) then
+						d("[ScripExchange]: Checking index ["..tostring(index).."]")
+						if (GetCSAvailable(itemid)) then
+							if (c_scripexchange_na.lastItem == itemid) then
+								d("[ScripExchange]: Attempting trade.")
+								UseControlAction(addonName,"Trade",0,0,1000)
+								return true
+							else
+								c_scripexchange_na.lastItem = itemid
+								UseControlAction(addonName,"SelectIndex",index,0,1000)
+								return true
+							end
 						else
-							c_scripexchange_na.lastItem = itemid
-							UseControlAction(addonName,"SelectIndex",index,0,1000)
+							ml_task_hub:CurrentTask().items[itemid] = nil
 							return true
 						end
-					else
-						ml_task_hub:CurrentTask().items[itemid] = nil
-						return true
 					end
 				end
 			end

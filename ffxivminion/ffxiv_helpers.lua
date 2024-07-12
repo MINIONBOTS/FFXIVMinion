@@ -10136,7 +10136,7 @@ function FindNearestCollectableAppraiser()
 	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
 	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
 	local radz = { id = 1037306, aethid = 183, mapid = 963, pos = {x =21, y = 0, z = -68} }
-	local solutionNine = { id = 1049084, aethid = 217, mapid = 1186, pos = {x =-162, y = 0, z = -2} }
+	--local solutionNine = { id = 1049084, aethid = 217, mapid = 1186, pos = {x =-164.9, y = 0.92, z = 1} } -- needs mesh fix
 	
 	if (Player.localmapid == morDhona.mapid) then
 		return morDhona
