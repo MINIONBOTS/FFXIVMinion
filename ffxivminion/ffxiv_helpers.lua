@@ -8727,42 +8727,48 @@ function Transport1192(pos1,pos2)
 	if (not CanFlyInZone()) then
 		-- Gate Keeper: 1 -> 2
 		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),2) then
-			d("Moving from section 1 to section 2")
-			return true, function ()
-				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = -36.30, y = 53.20, z = 753.60}
-				newTask.contentid = 1048242
-				newTask.abort = function ()
-					return In(GetLivingMemorySection(Player.pos),2)
+			if (HasQuest(4949) and GetQuestInfo(4949,'step') > 2) or QuestCompleted(4949) then
+				d("Moving from section 1 to section 2")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -36.30, y = 53.20, z = 753.60}
+					newTask.contentid = 1048242
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),2)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
 		-- Gate Keeper: 1 -> 3
 		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),3) then
-			d("Moving from section 1 to section 3")
-			return true, function ()
-				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = 57.88, y = 53.20, z = 772.03}
-				newTask.contentid = 1048243
-				newTask.abort = function ()
-					return In(GetLivingMemorySection(Player.pos),3)
+			if (HasQuest(4951) and GetQuestInfo(4951,'step') > 1) or QuestCompleted(4951) then
+				d("Moving from section 1 to section 3")
+				return true, function ()
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 57.88, y = 53.20, z = 772.03}
+					newTask.contentid = 1048243
+					newTask.abort = function ()
+						return In(GetLivingMemorySection(Player.pos),3)
+					end
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
 		-- Gate Keeper: 1 -> 4
 		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),4) then
 			if not CanUseAetheryte(214) then
-				d("Moving from section 1 to section 4")
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 35.72, y = 53.20, z = 753.17}
-					newTask.contentid = 1048244
-					newTask.abort = function ()
-						return In(GetLivingMemorySection(Player.pos),4)
+				if (HasQuest(4953) and GetQuestInfo(4953,'step') >= 2) or QuestCompleted(4953) then
+					d("Moving from section 1 to section 4")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 35.72, y = 53.20, z = 753.17}
+						newTask.contentid = 1048244
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),4)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			elseif (CanUseAetheryte(214) and not Player.incombat) and (gilCount > 100) then
 				return true, function () 
@@ -8785,15 +8791,17 @@ function Transport1192(pos1,pos2)
 		-- Gate Keeper: 1 -> 5
 		if In(GetLivingMemorySection(pos1),1) and In(GetLivingMemorySection(pos2),5) then
 			if not CanUseAetheryte(215) then
-				d("Moving from section 1 to section 5")
-				return true, function ()
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -56.99, y = 53.20, z = 768.40}
-					newTask.contentid = 1048245
-					newTask.abort = function ()
-						return In(GetLivingMemorySection(Player.pos),5)
+				if (HasQuest(4956) and GetQuestInfo(4956,'step') >= 3) or QuestCompleted(4956) then
+					d("Moving from section 1 to section 5")
+					return true, function ()
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = -56.99, y = 53.20, z = 768.40}
+						newTask.contentid = 1048245
+						newTask.abort = function ()
+							return In(GetLivingMemorySection(Player.pos),5)
+						end
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			elseif (CanUseAetheryte(215) and not Player.incombat) and (gilCount > 100) then
 				return true, function () 
