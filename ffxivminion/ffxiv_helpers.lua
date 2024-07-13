@@ -4446,7 +4446,7 @@ function GetAetheryteByMapID(mapid, p)
 			},
 			[2] = { name = "Many Fires", aethid = 203, x = 541, y = 117, z = 203,
 				best = function ()  
-					if In(GetKozamaukaSection(pos),2) then
+					if In(GetKozamaukaSection(pos),2) and pos.x > 0 then
 						return true
 					end
 					return false
