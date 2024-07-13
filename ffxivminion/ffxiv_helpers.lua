@@ -9835,10 +9835,12 @@ function GetConversationList()
 			local rawtable = control:GetRawData()
 			local stringtable = {}
 			local indexcount = 0
-			for index, data in pairsByKeys(rawtable) do
-				if (data.type == "string") then
-					stringtable[indexcount] = data.value
-					indexcount = indexcount + 1
+			if table.valid(rawtable) then
+				for index, data in pairsByKeys(rawtable) do
+					if (data.type == "string") then
+						stringtable[indexcount] = data.value
+						indexcount = indexcount + 1
+					end
 				end
 			end
 			return stringtable
