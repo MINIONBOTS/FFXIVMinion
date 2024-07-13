@@ -247,6 +247,14 @@ function ffxiv_task_test:Draw()
 		section = GetMareLamentorumSection(Player.pos)
 	elseif In(Player.localmapid,960) then
 		section = GetUltimaThuleSection(Player.pos)
+	elseif In(Player.localmapid,1187) then
+		section = GetUyuypogaSection(Player.pos)
+	elseif In(Player.localmapid,1188) then
+		section = GetKozamaukaSection(Player.pos)
+	elseif In(Player.localmapid,1189) then
+		section = GetYakTelSection(Player.pos)
+	elseif In(Player.localmapid,1192) then
+		section = GetLivingMemorySection(Player.pos)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 	local section = 0
@@ -258,6 +266,14 @@ function ffxiv_task_test:Draw()
 		section = GetMareLamentorumSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,960) then
 		section = GetUltimaThuleSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,1187) then
+		section = GetUyuypogaSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,1188) then
+		section = GetKozamaukaSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,1189) then
+		section = GetYakTelSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,1192) then
+		section = GetLivingMemorySection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 					

@@ -786,7 +786,7 @@ function c_movetotargetsafe:evaluate()
         if (target and target.id ~= 0 and target.alive) then
 			local tpos = target.pos
 			local pos = Player.pos
-			if (Distance3D(tpos.x,tpos.y,tpos.z,pos.x,pos.y,pos.z) > (ml_task_hub:CurrentTask().safeDistance + 2)) then
+			if (Distance3D(tpos.x,tpos.y,tpos.z,pos.x,pos.y,pos.z) > (ml_task_hub:CurrentTask().safeDistance)) then
 				return true
 			end
         end
@@ -3973,7 +3973,7 @@ function c_dointeract:evaluate()
 					
 					--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
 					
-					if (interactable and (IsEntityReachable(interactable,range + 2) or ml_task_hub:CurrentTask().inflight) and interactable.distance2d < range) then
+					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance2d < range) then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
