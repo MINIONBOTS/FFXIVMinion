@@ -238,7 +238,7 @@ function c_findnode:evaluate()
 		if (table.valid(task)) then
 			whitelist = IsNull(task.whitelist,"")
 			radius = IsNull(task.radius,150)
-			nodemaxlevel = IsNull(task.nodemaxlevel,90)
+			nodemaxlevel = IsNull(task.nodemaxlevel,ffxivminion.maxlevel)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			basePos = ffxiv_gather.GetCurrentTaskPos()
 			
@@ -254,8 +254,8 @@ function c_findnode:evaluate()
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker.mincontentlevel,1)
 			if (nodeminlevel == 0) then nodeminlevel = 1 end
-			nodemaxlevel = IsNull(marker.maxcontentlevel,90)
-			if (nodemaxlevel == 0) then nodemaxlevel = 90 end
+			nodemaxlevel = IsNull(marker.maxcontentlevel,ffxivminion.maxlevel)
+			if (nodemaxlevel == 0) then nodemaxlevel = ffxivminion.maxlevel end
 			basePos = marker:GetPosition()
 		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
@@ -3881,7 +3881,7 @@ function ffxiv_task_gather:UIInit()
 	gSteathDangerousQuickMode = ffxivminion.GetSetting("gSteathDangerousQuickMode",false)
 	gQuickstartMinGp = ffxivminion.GetSetting("gQuickstartMinGp",0)
 	gQuickstartMinNodeLvl = ffxivminion.GetSetting("gQuickstartMinNodeLvl",1)
-	gQuickstartMaxNodeLvl = ffxivminion.GetSetting("gQuickstartMaxNodeLvl",90)
+	gQuickstartMaxNodeLvl = ffxivminion.GetSetting("gQuickstartMaxNodeLvl",ffxivminion.maxlevel)
 	
 	local quickslot = { 1, 2, 3,4 ,5 ,6, 7, 8}
 	gGatherQuickSlot = ffxivminion.GetSetting("gGatherQuickSlot",1)
