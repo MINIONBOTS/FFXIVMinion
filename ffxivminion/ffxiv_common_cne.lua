@@ -786,7 +786,7 @@ function c_movetotargetsafe:evaluate()
         if (target and target.id ~= 0 and target.alive) then
 			local tpos = target.pos
 			local pos = Player.pos
-			if (Distance3D(tpos.x,tpos.y,tpos.z,pos.x,pos.y,pos.z) > (ml_task_hub:CurrentTask().safeDistance)) then
+			if (Distance3D(tpos.x,tpos.y,tpos.z,pos.x,pos.y,pos.z) > (ml_task_hub:CurrentTask().safeDistance + 2)) then
 				return true
 			end
         end
@@ -3971,7 +3971,7 @@ function c_dointeract:evaluate()
 						range = 2.5
 					end
 					
-					--d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range + 2)))
+					d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
 					
 					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance2d < range) then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
@@ -4000,7 +4000,7 @@ function c_dointeract:evaluate()
 								return false
 							end
 							
-							--d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
+							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
 							if not IsGatherer(Player.job) then	
 								local tpos = interactable.pos
 								local gPos = ml_task_hub:CurrentTask().pos
@@ -4048,7 +4048,7 @@ function c_dointeract:evaluate()
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		if (table.valid(tpos) and table.valid(gotoPos)) then
 			local dist3d = math.distance3d(gotoPos,tpos)
-			if (dist3d < 3) then
+			if (dist3d < 2) then
 				d("Moving")
 				MoveDirectly3D(tpos)
 				return true
