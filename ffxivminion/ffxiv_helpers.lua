@@ -1862,6 +1862,28 @@ function MissingBuffX(targetid, buffID, stacks, duration, ownerid)
 	
 	return false
 end
+function IsDebuffable(targetid)
+	
+	local entity;
+	if (type(targetid) == "number") then
+		entity = MGetEntity(targetid)
+	elseif (type(targetid) == "table") then
+		entity = targetid
+	end
+	
+	if (table.valid(entity)) then
+		local buffs = entity.buffs
+		if (table.valid(buffs)) then
+			for i, buff in pairs(buffs) do
+				if (buff.dispellable and buff.isdebuff) then
+					return true
+				end
+			end
+		end
+	end
+    
+    return false
+end
 function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
 	--for prio,skill in spairs(SkillMgr.SkillProfile)
