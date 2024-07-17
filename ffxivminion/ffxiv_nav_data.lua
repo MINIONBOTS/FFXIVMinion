@@ -3227,7 +3227,7 @@ ffxiv_aetheryte_data = {
 	[1187] = { 
 		{id = 1187, aethid = 200, x = 332, y = -160, z = -416},
 		{id = 1187, aethid = 201, x = 465, y = 114, z = 634, 
-			requires = function () return QuestCompleted(4889) end,
+			requires = function () return (HasQuest(4889) and GetQuestInfo(4889,'step') >= 4) or QuestCompleted(4889) end,
 		},
 	},
 	[1188] = { 
