@@ -3919,9 +3919,8 @@ function c_dointeract:evaluate()
 		if (myTarget and myTarget.id == interactable.id) then
 			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then	
 				if (interactable.type == 5) then
-					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 6 and ydiff <= 4.7 and ydiff >= -1.3) or  
-						(ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.interactable and interactable.distance2d <= 9 and interactable.distance <= 9) or
-						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2))
+					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and ydiff <= 4.7 and ydiff >= -1.3) and ((interactable.distance2d <= 4.5) or (interactable.interactable and interactable.distance2d <= 9 and interactable.distance <= 9))) or 
+						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2) 
 					then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
