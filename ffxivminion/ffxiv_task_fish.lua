@@ -1332,7 +1332,7 @@ e_resetidle = inheritsFrom( ml_effect )
 function c_resetidle:evaluate()
 	if (ffxiv_fish.attemptedCasts > 0 or ffxiv_fish.biteDetected > 0) then
 		local fs = Player:GetFishingState()
-		if ( fs == 8 or fs == 9 ) then
+		if In(fs,8,9,12) then
 			return true
 		end
 	end
