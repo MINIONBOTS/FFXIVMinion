@@ -3979,11 +3979,11 @@ function c_dointeract:evaluate()
 								return false
 							end
 				
-							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+							--[[if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								return true
-							end 
+							end ]]
 							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
@@ -4003,14 +4003,14 @@ function c_dointeract:evaluate()
 							if not IsGatherer(Player.job) then	
 								local tpos = interactable.pos
 								local gPos = ml_task_hub:CurrentTask().pos
-								local dist3d = math.distance3d(gPos,tpos)  
+								local dist3d = math.distance3d(Player.pos,tpos)  
 								if (table.valid(tpos) and table.valid(gPos)) then
 									if IsControlOpen('_TextError') then
 										return false
-									elseif interactable.interactable then
+									elseif interactable.interactable and (not IsDiving() or dist3d < 2.5) then
 								--	elseif interactable.interactable and (not IsMounted() and not IsDismounting() and not IsPositionLocked()) then	
 										Player:Stop()
-										d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z, tpos.x, tpos.y, tpos.z)))
+										d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(dist3d))
 										Player:Interact(interactable.id)
 										return true
 									end
@@ -4044,10 +4044,9 @@ function c_dointeract:evaluate()
 	
 	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
 		local tpos = interactable.pos
-		local gotoPos = ml_task_hub:CurrentTask().pos
-		if (table.valid(tpos) and table.valid(gotoPos)) then
-			local dist3d = math.distance3d(gotoPos,tpos)
-			if (dist3d < 2) then
+		if (table.valid(tpos)) then
+			local dist3d = math.distance3d(Player.pos,tpos)
+			if (dist3d < 5 or interactable.distance < 5) then
 				d("Moving")
 				MoveDirectly3D(tpos)
 				return true
