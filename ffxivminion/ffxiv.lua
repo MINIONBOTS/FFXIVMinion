@@ -119,7 +119,7 @@ ffxivminion.classes = {
 }
 
 ffxivminion.AutoGrindDefault = [[
-		local mapid = Player.localmapid
+	local mapid = Player.localmapid
 	local level = Player.level
 	if ( mapid and level ) then
 		local inthanalan = 	In(mapid,140,141,145,146,147,130,131)
