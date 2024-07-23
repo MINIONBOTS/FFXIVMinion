@@ -160,6 +160,12 @@ ffxivminion.AutoGrindDefault = [[
 			return 146 -- southern thanalan
 		elseif ((level >= 48 and level < 50) or (level >= 50 and (not QuestCompleted(1583) or not CanAccessMap(397))) and CanAccessMap(147)) then
 			return 147 -- northern thanalan
+		elseif (level >= 96 and CanAccessMap(1191)) then
+			return 1191 -- Heritage Found
+		elseif (level >= 90 and CanAccessMap(1187)) then
+			return 1187 -- Urqopacha
+		elseif (level >= 86 and CanAccessMap(961)) then
+			return 961 -- Elpis
 		elseif (level >= 80 and CanAccessMap(957)) then
 			return 957 -- Thavnairia
 		elseif (level >= 71 and CanAccessMap(816)) then
