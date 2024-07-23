@@ -1000,7 +1000,7 @@ function ffxivminion.SetMainVars()
 	-- Auto Grind Stuff
 
 	-- Version number used to Auto update vaules. YYYYMMDD
-	ffxivminion.AutoGrindDefaultVersion = 20211216
+	ffxivminion.AutoGrindDefaultVersion = 20240723
 	gAutoGrindVersion = ffxivminion.GetSetting("gAutoGrindVersion", 0)
 	local SettingsAutoGrindVersion = Settings.FFXIVMINION.gAutoGrindVersion
 	if Settings.FFXIVMINION.gAutoGrindVersion < ffxivminion.AutoGrindDefaultVersion then
