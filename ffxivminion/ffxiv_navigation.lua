@@ -7,7 +7,7 @@ ml_navigation.NavPointReachedDistances = {
 	["2dmount"] = 1,
 	["3dswim"] = 5,
 	["2dswim"] = .75,
-	["3ddive"] = 5,
+	["3ddive"] = 2.5,
 	["2ddive"] = 1.25,
 	["3dfly"] = 5,
 	["2dfly"] = 1.5,
@@ -1385,7 +1385,7 @@ function ml_navigation.Navigate(event, ticks )
 					ml_navigation.GUI.currentIndex = ml_navigation.pathindex			
 					ml_navigation.GUI.nextNodeDistance = math.distance3d(ppos,nextnode)
 					
-			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
+					-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise NavConnection bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
 					if (adjustedHeading == 0 and table.valid (ml_navigation.ensureposition) and (ml_navigation:EnsurePosition(ppos) )) then
 						return
 					end
@@ -1858,9 +1858,11 @@ function ml_navigation.Navigate(event, ticks )
 						-- Check if the next node is reached:
 						local dist2D = math.distance2d(nextnode,ppos)
 						local dist3D = math.distance3d(nextnode,ppos)
-						local height = (ppos.y - nextnode.y)
+						local height = 0
 						local navcon = ml_navigation:GetConnection(nextnode)
-						
+						if (Player and Player.meshpos and Player.meshpos.meshdistance) then
+							height = Player.meshpos.meshdistance
+						end
 						--ml_debug("[Navigation]: Moving to next node")
 						-- We have not yet reached our node
 						-- Face next node
@@ -1909,7 +1911,7 @@ function ml_navigation.Navigate(event, ticks )
 							end
 
 							if (ffnav.descentAttempts < 3) then
-								if (canLand and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and nextnextnode.ground)) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+								if (canLand and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextnode.ground))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
 									ml_navigation.lastconnectiontimer = Now()
 									d("Attempt descent.")

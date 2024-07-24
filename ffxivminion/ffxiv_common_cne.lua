@@ -3892,7 +3892,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.targetable and interactable.distance2d < 30) then
+	if (interactable and interactable.targetable and interactable.distance < 15) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end
@@ -3905,6 +3905,7 @@ function c_dointeract:evaluate()
 		local defaults = {
 			[0] = 2.5,
 			[3] = 5.5,
+			[6] = 3.5,
 			[7] = 2.1,
 		}
 		
@@ -3962,28 +3963,26 @@ function c_dointeract:evaluate()
 						end
 					end
 				else
-					local range = ((ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange >= 3) and ml_task_hub:CurrentTask().interactRange) or defaults[interactable.type] or radius
-					if (not ml_task_hub:CurrentTask().interactRange and ml_task_hub:CurrentTask().interactRange3d and range > ml_task_hub:CurrentTask().interactRange3d) then
+					local range = defaults[interactable.type]
+					if (not ml_task_hub:CurrentTask().interactRange3d) then
+						ml_task_hub:CurrentTask().interactRange3d = defaults[interactable.type]
 						range = ml_task_hub:CurrentTask().interactRange3d
 					end
-					if (interactable.cangather) then
-						range = 2.5
-					end
 					
-					d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance2d)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
+					d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
 					
-					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance2d < range) then
+					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance < range) then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
 								e_killaggrotarget:execute()
 								return false
 							end
 				
-							--[[if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
+							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
 								Player:Stop()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								return true
-							end ]]
+							end 
 							
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
@@ -4000,36 +3999,26 @@ function c_dointeract:evaluate()
 							end
 							
 							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
-							if not IsGatherer(Player.job) then	
-								local tpos = interactable.pos
-								local gPos = ml_task_hub:CurrentTask().pos
-								local dist3d = math.distance3d(Player.pos,tpos)  
-								if (table.valid(tpos) and table.valid(gPos)) then
-									if IsControlOpen('_TextError') then
-										return false
-									elseif interactable.interactable and (not IsDiving() or dist3d < 2.5) then
-								--	elseif interactable.interactable and (not IsMounted() and not IsDismounting() and not IsPositionLocked()) then	
-										Player:Stop()
-										d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(dist3d))
-										Player:Interact(interactable.id)
-										return true
-									end
+							local tpos = interactable.pos
+							local gPos = ml_task_hub:CurrentTask().pos
+							local dist3d = math.distance3d(gPos,tpos)  
+							if (table.valid(tpos) and table.valid(gPos)) then
+								if IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "Too far away." or GetControl("_TextError"):GetStrings()[2] == "Zu weit entfernt." or GetControl("_TextError"):GetStrings()[2] == "Vous êtes trop loin." or GetControl("_TextError"):GetStrings()[2] == "距離が遠すぎます。" or GetControl("_TextError"):GetStrings()[2] == "距离过远。" or GetControl("_TextError"):GetStrings()[2] == "距离太远。" or GetControl("_TextError"):GetStrings()[2] == "너무 멀리 있습니다.") then
+									return false
+								elseif interactable.interactable then
+									Player:Stop()
+									d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z, tpos.x, tpos.y, tpos.z)))
+									Player:Interact(interactable.id)
+									return true
 								end
-								if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-									ml_task_hub:CurrentTask().interactAttempts = 1
-								else
-									ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-								end
-								return false
-							else 
-								Player:Interact(interactable.id)
-								if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-									ml_task_hub:CurrentTask().interactAttempts = 1
-								else
-									ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-								end
-								return false
 							end
+							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+								ml_task_hub:CurrentTask().interactAttempts = 1
+							else
+								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+							end
+							return false
+						
 						else
 							--Dismount()
 							Descend()
