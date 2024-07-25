@@ -2381,14 +2381,16 @@ function c_fishnextprofilepos:evaluate()
 	if (task.mapid == Player.localmapid) then
 		local pos = GetCurrentTaskPos()
 		local myPos = Player.pos
-		local dist = math.distance3d(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
-		if (dist > 3 or ml_task_hub:CurrentTask().requiresRelocate) then
-			c_fishnextprofilepos.distance = dist
-			return true
-		elseif (Player.ismounted) then
-			Dismount()
-			c_fishnextprofilepos.blockOnly = true
-			return true
+		if table.valid(pos) then
+			local dist = math.distance3d(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+			if (dist > 3 or ml_task_hub:CurrentTask().requiresRelocate) then
+				c_fishnextprofilepos.distance = dist
+				return true
+			elseif (Player.ismounted) then
+				Dismount()
+				c_fishnextprofilepos.blockOnly = true
+				return true
+			end
 		end
 	end
     
