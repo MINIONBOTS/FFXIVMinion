@@ -42,6 +42,10 @@ local obj1 = {
 		[36] = false;
 		[37] = false;
 		[38] = false;
+		[39] = false;
+		[40] = false;
+		[41] = false;
+		[42] = false;
 	};
 	["filters"] = {
 		[1] = "";
@@ -50,54 +54,34 @@ local obj1 = {
 		[4] = "";
 		[5] = "";
 	};
+	["mingp"] = 0;
+	["priosystem"] = false;
 	["skills"] = {
 		[1] = {
 			["gathermax"] = true;
-			["id"] = 234;
-			["isitem"] = "Fire Crystal";
-			["name"] = "Nald'thal's Ward";
+			["gpnbuff"] = "1802";
+			["id"] = 4590;
+			["name"] = "The Giving Land";
 			["prio"] = 1;
+			["singleuseonly"] = false;
 		};
 		[2] = {
 			["gathermax"] = true;
-			["id"] = 293;
-			["isitem"] = "Water Crystal";
-			["name"] = "Thaliak's Ward";
+			["gpbuff"] = "1802";
+			["gpnbuff"] = "825";
+			["gpstart"] = 350;
+			["id"] = 282;
+			["name"] = "The Twelve's Bounty";
 			["prio"] = 2;
+			["singleuseonly"] = false;
 		};
 		[3] = {
 			["gathermax"] = true;
-			["id"] = 219;
-			["isitem"] = "Lightning Crystal";
-			["name"] = "Byregot's Ward";
-			["prio"] = 3;
-		};
-		[4] = {
-			["gathermax"] = true;
-			["id"] = 236;
-			["isitem"] = "Ice Crystal";
-			["name"] = "Menphina's Ward";
-			["prio"] = 4;
-		};
-		[5] = {
-			["gathermax"] = true;
-			["id"] = 217;
-			["isitem"] = "Earth Crystal";
-			["name"] = "Nophica's Ward";
-			["prio"] = 5;
-		};
-		[6] = {
-			["gathermax"] = true;
-			["id"] = 292;
-			["isitem"] = "Wind Crystal";
-			["name"] = "Llymlaen's Ward";
-			["prio"] = 6;
-		};
-		[7] = {
-			["gathermax"] = true;
+			["gpmin"] = 350;
+			["gpnbuff"] = "825";
 			["id"] = 282;
 			["name"] = "The Twelve's Bounty";
-			["prio"] = 7;
+			["prio"] = 3;
 		};
 	};
 	["update"] = 20191115;
