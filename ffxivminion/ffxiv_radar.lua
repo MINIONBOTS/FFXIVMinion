@@ -479,14 +479,23 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][10].Enabled) and ffxiv_radar.HuntFilters.ShB.B[econtentid] == true) then -- ShB B Rank.
 							Colour = ffxiv_radar.Options[2][10].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][13].Enabled) and ffxiv_radar.HuntFilters.EW.S[econtentid] == true) then -- EW S/SS Rank.
-							Colour = ffxiv_radar.Options[2][13].ColourU32
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][15].Enabled) and ffxiv_radar.HuntFilters.EW.S[econtentid] == true) then -- EW S/SS Rank.
+							Colour = ffxiv_radar.Options[2][15].ColourU32
 							Draw = true
 						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][14].Enabled) and ffxiv_radar.HuntFilters.EW.A[econtentid] == true) then -- EW A Rank.
 							Colour = ffxiv_radar.Options[2][14].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][15].Enabled) and ffxiv_radar.HuntFilters.EW.B[econtentid] == true) then -- EW B Rank.
-							Colour = ffxiv_radar.Options[2][15].ColourU32
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][13].Enabled) and ffxiv_radar.HuntFilters.EW.B[econtentid] == true) then -- EW B Rank.
+							Colour = ffxiv_radar.Options[2][13].ColourU32
+							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][18].Enabled) and ffxiv_radar.HuntFilters.DT.S[econtentid] == true) then -- DT S/SS Rank.
+							Colour = ffxiv_radar.Options[2][18].ColourU32
+							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][17].Enabled) and ffxiv_radar.HuntFilters.DT.A[econtentid] == true) then -- DT A Rank.
+							Colour = ffxiv_radar.Options[2][17].ColourU32
+							Draw = true
+						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][16].Enabled) and ffxiv_radar.HuntFilters.DT.B[econtentid] == true) then -- DT B Rank.
+							Colour = ffxiv_radar.Options[2][16].ColourU32
 							Draw = true
 						-- End of hunts.
 						-- Start Of Deep Dungeon
