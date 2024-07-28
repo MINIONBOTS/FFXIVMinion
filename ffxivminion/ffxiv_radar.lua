@@ -885,6 +885,7 @@ function ffxiv_radar.SetData()
 			},
 			["S"] = {
 				[8915] = true, -- SS
+				[8916] = true, -- SS
 				[8653] = true,
 				[8890] = true,
 				[8895] = true,
@@ -927,13 +928,14 @@ function ffxiv_radar.SetData()
 				[10615] = true,
 			},
 			["S"] = {
+				[10615] = true,--SS
+				[10616] = true,--SS
 				[10617] = true,
 				[10618] = true,
 				[10619] = true,
 				[10620] = true,
 				[10621] = true,
 				[10622] = true,
-				[10615] = true,--SS
 			},
 			["A"] = {
 				[10624] = true,
@@ -971,6 +973,7 @@ function ffxiv_radar.SetData()
 			},
 			["S"] = {
 				[13407] = true,--SS
+				[13406] = true,--SS
 				[13360] = true,
 				[13444] = true,
 				[12754] = true,
