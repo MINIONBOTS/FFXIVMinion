@@ -124,6 +124,15 @@ function ffxiv_craft.CanUseTea()
 			local tea, action = GetItem(19884)
 			if (tea and action and not action.isoncd) then
 				return true, tea
+			end		
+			-- "Cunning Craftsman's Tisane",
+			local teahq, action = GetItem(1044169)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(44169)
+			if (tea and action and not action.isoncd) then
+				return true, tea
 			end
 		end
 		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
@@ -154,6 +163,15 @@ function ffxiv_craft.CanUseTea()
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
+			-- "Commanding Craftsman's Tisane",
+			local teahq, action = GetItem(1044168)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(44168)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 		end
 		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
 			-- "Competent Craftsman's Draught",
@@ -180,6 +198,15 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 			local tea, action = GetItem(19882)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
+			-- "Competent Craftsman's Tisane",
+			local teahq, action = GetItem(1044167)
+			if (teahq and action and  not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(44167)
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
