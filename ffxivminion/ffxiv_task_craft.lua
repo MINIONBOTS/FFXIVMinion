@@ -98,6 +98,15 @@ end
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
 		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
+			-- "Cunning Craftsman's Tisane",
+			local teahq, action = GetItem(1044169)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(44169)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 			-- "Cunning Craftsman's Draught",
 			local teahq, action = GetItem(1036116)
 			if (teahq and action and not action.isoncd) then
@@ -124,18 +133,18 @@ function ffxiv_craft.CanUseTea()
 			local tea, action = GetItem(19884)
 			if (tea and action and not action.isoncd) then
 				return true, tea
-			end		
-			-- "Cunning Craftsman's Tisane",
-			local teahq, action = GetItem(1044169)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(44169)
-			if (tea and action and not action.isoncd) then
-				return true, tea
 			end
 		end
 		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
+			-- "Commanding Craftsman's Tisane",
+			local teahq, action = GetItem(1044168)
+			if (teahq and action and not action.isoncd) then
+				return true, teahq
+			end
+			local tea, action = GetItem(44168)
+			if (tea and action and not action.isoncd) then
+				return true, tea
+			end
 			-- "Commanding Craftsman's Draught",
 			local teahq, action = GetItem(1036115)
 			if (teahq and action and not action.isoncd) then
@@ -163,17 +172,17 @@ function ffxiv_craft.CanUseTea()
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
-			-- "Commanding Craftsman's Tisane",
-			local teahq, action = GetItem(1044168)
-			if (teahq and action and not action.isoncd) then
+		end
+		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
+			-- "Competent Craftsman's Tisane",
+			local teahq, action = GetItem(1044167)
+			if (teahq and action and  not action.isoncd) then
 				return true, teahq
 			end
-			local tea, action = GetItem(44168)
+			local tea, action = GetItem(44167)
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
-		end
-		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
 			-- "Competent Craftsman's Draught",
 			local teahq, action = GetItem(1036114)
 			if (teahq and action and not action.isoncd) then
@@ -198,15 +207,6 @@ function ffxiv_craft.CanUseTea()
 				return true, teahq
 			end
 			local tea, action = GetItem(19882)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Competent Craftsman's Tisane",
-			local teahq, action = GetItem(1044167)
-			if (teahq and action and  not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(44167)
 			if (tea and action and not action.isoncd) then
 				return true, tea
 			end
