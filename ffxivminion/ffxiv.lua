@@ -2849,8 +2849,24 @@ invalid name or haven't chosen one."))
 						GUI:TextColored(1, .1, .2, 1, GetString("Not On Mesh"))
 					end
 
-					if CanAccessMap(818) then
-						GUI:Text("Can Access ALL maps");
+					if CanAccessMap(1192) then
+						GUI:Text("Can Access Living Memory");
+					elseif CanAccessMap(1191) then
+						GUI:Text("Can Access Heritage Found");
+					elseif CanAccessMap(1186) then
+						GUI:Text("Can Access Solution Nine");
+					elseif CanAccessMap(1190) then
+						GUI:Text("Can Access Shaaloani");
+					elseif CanAccessMap(1189) then
+						GUI:Text("Can Access Yak T'el");
+					elseif CanAccessMap(1188) then
+						GUI:Text("Can Access Kozama'uka");
+					elseif CanAccessMap(1187) then
+						GUI:Text("Can Access Urqopacha");
+					elseif CanAccessMap(1185) then
+						GUI:Text("Can Access Tuliyollal");
+					elseif CanAccessMap(818) then
+						GUI:Text("Can Access The Tempest");
 					elseif CanAccessMap(817) then
 						GUI:Text("Can Access The Rak'tika Greatwood");
 					elseif CanAccessMap(816) then
