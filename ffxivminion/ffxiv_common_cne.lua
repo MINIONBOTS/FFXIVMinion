@@ -3892,7 +3892,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.targetable and interactable.distance < 15) then
+	if (interactable and interactable.targetable and interactable.distance2d < 30) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end
@@ -3906,7 +3906,7 @@ function c_dointeract:evaluate()
 			[0] = 2.5,
 			[3] = 5.5,
 			[6] = 3.5,
-			[7] = 2.1,
+			[7] = 3.5,
 		}
 		
 		-- general rules so far:
@@ -3963,8 +3963,8 @@ function c_dointeract:evaluate()
 						end
 					end
 				else
-					local range = defaults[interactable.type]
-					if (not ml_task_hub:CurrentTask().interactRange3d) then
+					local range = ml_task_hub:CurrentTask().interactRange3d
+					if (not ml_task_hub:CurrentTask().interactRange3d or ml_task_hub:CurrentTask().interactRange3d == 8) then
 						ml_task_hub:CurrentTask().interactRange3d = defaults[interactable.type]
 						range = ml_task_hub:CurrentTask().interactRange3d
 					end
@@ -4031,7 +4031,7 @@ function c_dointeract:evaluate()
 		end
 	end
 	
-	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
+--[[	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
 		local tpos = interactable.pos
 		if (table.valid(tpos)) then
 			local dist3d = math.distance3d(Player.pos,tpos)
@@ -4041,7 +4041,7 @@ function c_dointeract:evaluate()
 				return true
 			end
 		end
-	end				
+	end		 ]]--		
 	
 	return false
 end
