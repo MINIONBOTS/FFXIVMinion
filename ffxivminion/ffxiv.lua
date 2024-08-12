@@ -57,7 +57,7 @@ if (ffxivminion.gameRegion == 1) then
         [9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
         [10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
         [11] = { "-", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Meteor
-	[12] = { "-", "Halicarnassus", "Maduin", "Marilith", "Seraph"}, -- NA-Dynamis
+	[12] = { "-", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph" }, -- NA-Dynamis
     }
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
