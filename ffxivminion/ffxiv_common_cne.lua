@@ -3965,8 +3965,11 @@ function c_dointeract:evaluate()
 				else
 					local range = ml_task_hub:CurrentTask().interactRange3d
 					if (not ml_task_hub:CurrentTask().interactRange3d or ml_task_hub:CurrentTask().interactRange3d == 8) then
-						ml_task_hub:CurrentTask().interactRange3d = defaults[interactable.type]
-						range = ml_task_hub:CurrentTask().interactRange3d
+					
+						if defaults[interactable.type] then
+							ml_task_hub:CurrentTask().interactRange3d = defaults[interactable.type]
+							range = ml_task_hub:CurrentTask().interactRange3d
+						end
 					end
 					
 					d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
