@@ -512,7 +512,7 @@ function c_startfate:evaluate()
 			local npcid = activatable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
-				local closest,closestDistance = nil,100
+				local closest,closestDistance = nil,IsNull(activatable.range,100)
 				for i,entity in pairs(fatenpc) do
 					local dist = math.distance3d(entity.pos,activatable.pos)
 					if (not closest or dist < closestDistance) then
@@ -564,12 +564,19 @@ function e_startfate:execute()
 		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
 		if (self.interact ~= 0 and dist2d < 50 and dist2d < fate.radius and dist3d < fate.radius) then
 			if (not interactable or not interactable.targetable) then
+				d("[e_startfate] interact not targetable")
+				return true
+			end
+			local npcdist2d = math.distance2d(interactable.pos,self.pos)
+			if interactable and npcdist2d > 5 then
+				d("[e_startfate] intertactable moved...")
 				return true
 			end
 		else
 			if (dist2d <= 5) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
+					d("[e_startfate] no valid interacts found")
 					return true
 				end
 			end			
@@ -1008,6 +1015,12 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 				{ id = 1113, x = -632.5, y = 117.6, z = -251.6 },
 			},
 		},
+		[1189] = {
+			[1] = {
+				{ id = 1895, x = -357.07, y = 21.67, z = -277.82 },
+				{ id = 1896, x = -326.83, y = 24.12, z = -199.01 },
+			},
+		},
 	}
 	
 	local mapChains = chains[mapid]
@@ -1183,6 +1196,13 @@ function ffxiv_task_fate.Activateable(mapid, fateid)
 		[816] = {
 			[1492] = { id = 8677, pos = {x = -686, y = 27, z = -96 } },
 			[1495] = { id = 8677, pos = {x = -560, y = 33, z = 105 } },
+		},
+		[1189] = {
+			[1895] = { id = 13390, pos = {x = -357.07, y = 21.67, z = -277.82 } }, 
+			[1896] = { id = 13390, pos = {x = -328, y = 25, z = -202 }, range = 3 },  
+			[1899] = { id = 13386, pos = {x = -38.42, y = 4.42, z = -350.64 } },
+            [1903] = { id = 13395, pos = {x = -302.85, y = -167.65, z = -441.30 } },
+            [1905] = { id = 13394, pos = {x = 134.82, y = -162.8, z = 722.50 } },
 		},
 	}
 	
