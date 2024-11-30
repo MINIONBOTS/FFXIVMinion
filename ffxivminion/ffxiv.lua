@@ -37,28 +37,28 @@ ffxivminion.loginvars = {
 }
 
 if (ffxivminion.gameRegion == 1) then
-    ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia", "Meteor", "Dynamis" }
+	ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia", "Meteor", "Dynamis" }
 elseif (ffxivminion.gameRegion == 2) then
-    ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
+	ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
 else
-    ffxivminion.logincenters = { "Main" }
+	ffxivminion.logincenters = { "Main" }
 end
 
 if (ffxivminion.gameRegion == 1) then
-    ffxivminion.loginservers = {
-        [1] = { "-" },
-        [2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Tonberry", "Typhon" }, -- JP-Elemental
-        [3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima" }, -- JP-Gaia
-        [4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune" , "Pandaemonium", "Titan"}, -- JP-Mana
-        [5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
-        [6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
-        [7] = { "-", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", }, -- EU-Chaos
-        [8] = { "-", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark" }, -- EU-Light
-        [9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
-        [10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
-        [11] = { "-", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Meteor
-	[12] = { "-", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph" }, -- NA-Dynamis
-    }
+	ffxivminion.loginservers = {
+		[1] = { "-" },
+		[2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Tonberry", "Typhon" }, -- JP-Elemental
+		[3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima" }, -- JP-Gaia
+		[4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune" , "Pandaemonium", "Titan"}, -- JP-Mana
+		[5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
+		[6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
+		[7] = { "-", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", }, -- EU-Chaos
+		[8] = { "-", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark" }, -- EU-Light
+		[9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
+		[10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
+		[11] = { "-", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Meteor
+		[12] = { "-", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph" }, -- NA-Dynamis
+	}
 elseif (ffxivminion.gameRegion == 2) then
 	ffxivminion.loginservers = {
 		[1] = { "-" },
@@ -325,7 +325,7 @@ end
 function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 
-	if pauseOnLoad == nil then 
+	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
 		d("Pausing login on first load")
 	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
@@ -458,20 +458,24 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			end
 		else
 			if (IsControlOpen("SelectYesno")) then
-				local SelectYesnoMessage = GetControl("SelectYesno"):GetStrings()[2] or ""
-				local QueueString = {
-					[0] = "ログイン処理を中断してもよろしいですか？", -- JP
-					[1] = "Are you certain you wish to leave the queue?", -- EN
-					[2] = "Den Login-Prozess abbrechen?", -- DE
-					[3] = "Voulez-vous quitter la queue?", -- FR
-					[4] = "确定要取消登录吗？", -- CN
-					[6] = "로그인 처리를 중단하시겠습니까?", -- KR
-				}
-				local ClientLanguage = GetGameLanguage() or 1
-				local QueueMessage = QueueString[ClientLanguage]
-				if SelectYesnoMessage ~= "" then
-					if string.contains(SelectYesnoMessage, QueueMessage) == false then
-						UseControlAction("SelectYesno", "Yes", 0)
+				local control = GetControl("SelectYesno")
+				if control then
+					local strings = control:GetStrings()
+					local SelectYesnoMessage = (strings and strings[2]) or ""
+					if SelectYesnoMessage ~= "" then
+						local QueueString = {
+							[0] = "ログイン処理を中断してもよろしいですか？", -- JP
+							[1] = "Are you certain you wish to leave the queue?", -- EN
+							[2] = "Den Login-Prozess abbrechen?", -- DE
+							[3] = "Voulez-vous quitter la queue?", -- FR
+							[4] = "确定要取消登录吗？", -- CN
+							[6] = "로그인 처리를 중단하시겠습니까?", -- KR
+						}
+						local ClientLanguage = GetGameLanguage() or 1
+						local QueueMessage = QueueString[ClientLanguage]
+						if string.contains(SelectYesnoMessage, QueueMessage) == false then
+							UseControlAction("SelectYesno", "Yes", 0)
+						end
 					end
 				end
 			else
@@ -483,40 +487,44 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			end
 		end
 	elseif (IsControlOpen("SelectOk")) then
-		local SelectOKMessage = GetControl("SelectOk"):GetStrings()[2] or ""
-		local QueueString = {
-			[1] = "This World is currently full.", -- EN
-			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
-			[3] = "Ce Monde est plein.", -- FR
-			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
-			[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
-			[6] = "현재 서버가 혼잡합니다." -- KR
-		}
-		local ClientLanguage = GetGameLanguage() or 1
-		local QueueMessage = QueueString[ClientLanguage]
-		--d("SelectOKMessage: "..SelectOKMessage)
-		--d("QueueMessage: "..QueueMessage)
-		if SelectOKMessage ~= "" then
-			-- detection for CN language not working, temporarily disable skip
-			if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
-				ml_debug("Waiting In Login Queue...")
-				if (IsControlOpen("Dialogue")) then
-					if (UseControlAction("Dialogue", "PressOK", 0)) then
-						ml_global_information.Await(1000, 10000, function()
-							return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
-						end)
+		local control = GetControl("SelectOk")
+		if control then
+			local strings = control:GetStrings()
+			local SelectOKMessage = (strings and strings[2]) or ""
+			--d("SelectOKMessage: "..SelectOKMessage)
+			if SelectOKMessage ~= "" then
+				local QueueString = {
+					[1] = "This World is currently full.", -- EN
+					[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
+					[3] = "Ce Monde est plein.", -- FR
+					[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
+					[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
+					[6] = "현재 서버가 혼잡합니다." -- KR
+				}
+				local ClientLanguage = GetGameLanguage() or 1
+				local QueueMessage = QueueString[ClientLanguage]
+				--d("QueueMessage: "..QueueMessage)
+				-- detection for CN language not working, temporarily disable skip
+				if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
+					ml_debug("Waiting In Login Queue...")
+					if (IsControlOpen("Dialogue")) then
+						if (UseControlAction("Dialogue", "PressOK", 0)) then
+							ml_global_information.Await(1000, 10000, function()
+								return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+							end)
+						end
 					end
-				end
-				ml_global_information.Await(1000, 2000, function()
-					return (IsControlOpen("SelectOk"))
-				end)
-			else
-				--d("Not In Queue")
-				if (UseControlAction("SelectOk", "Yes", 0)) then
-					d("Skipping Select Window")
-					ml_global_information.Await(500, 1000, function()
+					ml_global_information.Await(1000, 2000, function()
 						return (IsControlOpen("SelectOk"))
 					end)
+				else
+					--d("Not In Queue")
+					if (UseControlAction("SelectOk", "Yes", 0)) then
+						d("Skipping Select Window")
+						ml_global_information.Await(500, 1000, function()
+							return (IsControlOpen("SelectOk"))
+						end)
+					end
 				end
 			end
 		end
@@ -1951,7 +1959,7 @@ function ml_global_information.DrawSmall()
 				GUI:PopStyleColor()
 			end
 		end
-		
+
 		if gBotMode == GetString("assistMode") then
 			if c_assistqtepress:evaluate() then
 				e_assistqtepress:execute()
@@ -2122,8 +2130,8 @@ function ml_global_information.DrawSettings()
 					end
 
 					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
-						, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
-						, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
+					, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
+					, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
 					local gatherers = { "MIN", "BTN", "FSH" }
 
@@ -3077,5 +3085,3 @@ end
 RegisterEventHandler("Module.Initalize", ffxivminion.HandleInit, "ffxivminion.HandleInit")
 RegisterEventHandler("Gameloop.Update", ml_global_information.OnUpdate, "ml_global_information.OnUpdate")
 RegisterEventHandler("Gameloop.Draw", ml_global_information.Draw, "ml_global_information.Draw")
-
-
