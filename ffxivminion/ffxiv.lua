@@ -22,7 +22,7 @@ ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.maxlevel = 100
 ffxivminion.patchLevel = {
-	[1] = 7.0,
+	[1] = 7.1,
 	[2] = 7.0,
 	[3] = 6.55
 }
@@ -483,9 +483,13 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			end
 		end
 	elseif (IsControlOpen("SelectOk")) then
-		local SelectOKMessage = GetControl("SelectOk"):GetStrings()[2] or ""
+		local SelectOKMessage = ""
+		if table.valid(GetControl("SelectOk"):GetStrings()) then
+			SelectOKMessage = GetControl("SelectOk"):GetStrings()[2]
+		end
+		
 		local QueueString = {
-			[1] = "This World is currently full.", -- EN
+			[1] = "The server is currently congested", -- EN
 			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
 			[3] = "Ce Monde est plein.", -- FR
 			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
