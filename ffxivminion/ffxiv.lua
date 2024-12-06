@@ -485,9 +485,9 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	elseif (IsControlOpen("SelectOk")) then
 		local SelectOKMessage = GetControl("SelectOk"):GetStrings()[2] or ""
 		local QueueString = {
-			[1] = "This World is currently full.", -- EN
+			[1] = "The server is currently congested", -- EN
 			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
-			[3] = "Ce Monde est plein.", -- FR
+			[3] = "Ce Monde est plein", -- FR
 			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
 			[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
 			[6] = "현재 서버가 혼잡합니다." -- KR
