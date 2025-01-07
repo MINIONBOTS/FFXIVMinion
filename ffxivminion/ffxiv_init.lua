@@ -2153,15 +2153,15 @@ function PressYesNo(answer)
     end
 
     if (IsControlOpen("SelectYesno")) then
-        if (IsControlOpen("_NotificationParty")) then
+        if (IsControlOpen("_NotificationParty")) and gDeclinePartyInvites then
             return UseControlAction("SelectYesno", "No")
         else
             local txt = GetControlStrings("SelectYesno")
-            if not table.valid(txt) then
+            if not table.valid(txt) and gDeclinePartyInvites then
                 d("text info invalid ? (SelectYesno)")
                 return false
             end
-            if ml_global_information.CheckPartyInviteYesno(txt) then
+            if ml_global_information.CheckPartyInviteYesno(txt) and gDeclinePartyInvites then
                 return UseControlAction("SelectYesno", "No")
             end
             return UseControlAction("SelectYesno", answer)
