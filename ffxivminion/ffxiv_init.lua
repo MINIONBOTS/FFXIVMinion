@@ -2123,24 +2123,53 @@ function ml_global_information.LoadBehaviorFiles()
  end
 RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles,"ml_global_information.LoadBehaviorFiles")
 
-function PressYesNo(answer)
-	local answer = IsNull(answer,true)
-	if (answer == true) then
-		answer = "Yes"
-	elseif (answer == false)then
-		answer = "No"
-	end
-	
-	if (IsControlOpen("SelectYesno")) then
-		if (IsControlOpen("_NotificationParty")) then
-			return UseControlAction("SelectYesno","No")
-		else
-			return UseControlAction("SelectYesno",answer)
-		end
-	end
-	
-	return false
+function ml_global_information.CheckPartyInviteYesno(txt)
+    if table.valid(txt) then
+        for _, b in pairs(txt) do
+            if string.find(b, "'s party?") then
+                if string.find(b, "Join") then
+                    return true
+                end
+            elseif string.find(b, "Rejoindre l'équipe de") then
+                return true
+            elseif string.find(b, "Der Gruppe von") then
+                return true
+            elseif string.find(b, "のパーティに参加します。よろしいですか？") then
+                return true
+            elseif string.find(b, "님의 파티에 참가하시겠습니까?") then
+                return true
+            elseif string.find(b, "确定要加入") and string.find(b, "的小队吗？") then
+                return true
+            end
+        end
+    end
 end
+function PressYesNo(answer)
+    local answer = IsNull(answer, true)
+    if (answer == true) then
+        answer = "Yes"
+    elseif (answer == false) then
+        answer = "No"
+    end
+
+    if (IsControlOpen("SelectYesno")) then
+        if (IsControlOpen("_NotificationParty")) and gDeclinePartyInvites then
+            return UseControlAction("SelectYesno", "No")
+        else
+            local txt = GetControlStrings("SelectYesno")
+            if not table.valid(txt) and gDeclinePartyInvites then
+                d("text info invalid ? (SelectYesno)")
+                return false
+            end
+            if ml_global_information.CheckPartyInviteYesno(txt) and gDeclinePartyInvites then
+                return UseControlAction("SelectYesno", "No")
+            end
+            return UseControlAction("SelectYesno", answer)
+        end
+    end
+    return false
+end
+
 
 function DrawFateListUI(self)
 	local vars = self.GUI.vars
