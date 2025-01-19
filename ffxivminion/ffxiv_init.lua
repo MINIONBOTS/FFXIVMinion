@@ -2147,19 +2147,17 @@ end
 function ml_global_information.CheckGroupTeleportYesno(txt)
     if table.valid(txt) then
         for _, b in pairs(txt) do
-            if string.find(b, "'s party?") then
-                if string.find(b, "Join") then
-                    return true
-                end
-            elseif string.find(b, "Rejoindre l'équipe de") then
+            if string.find(b, "Accept Teleport to ") then
                 return true
-            elseif string.find(b, "Der Gruppe von") then
+            elseif string.find(b, "Voulez-vous vous téléporter vers la destination") then
                 return true
-            elseif string.find(b, "のパーティに参加します。よろしいですか？") then
+            elseif string.find(b, "teleportieren lassen?") then
                 return true
-            elseif string.find(b, "님의 파티에 참가하시겠습니까?") then
+            elseif string.find(b, "へのテレポ勧誘を受けますか？") then
                 return true
-            elseif string.find(b, "确定要加入") and string.find(b, "的小队吗？") then
+            elseif string.find(b, "이동하는 텔레포 초대를 수락하시겠습니까?") then
+                return true
+            elseif string.find(b, "的传送邀请吗？") then
                 return true
             end
         end
