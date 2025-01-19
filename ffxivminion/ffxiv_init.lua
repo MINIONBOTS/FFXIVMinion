@@ -2144,6 +2144,27 @@ function ml_global_information.CheckPartyInviteYesno(txt)
         end
     end
 end
+function ml_global_information.CheckGroupTeleportYesno(txt)
+    if table.valid(txt) then
+        for _, b in pairs(txt) do
+            if string.find(b, "'s party?") then
+                if string.find(b, "Join") then
+                    return true
+                end
+            elseif string.find(b, "Rejoindre l'équipe de") then
+                return true
+            elseif string.find(b, "Der Gruppe von") then
+                return true
+            elseif string.find(b, "のパーティに参加します。よろしいですか？") then
+                return true
+            elseif string.find(b, "님의 파티에 참가하시겠습니까?") then
+                return true
+            elseif string.find(b, "确定要加入") and string.find(b, "的小队吗？") then
+                return true
+            end
+        end
+    end
+end
 function PressYesNo(answer)
     local answer = IsNull(answer, true)
     if (answer == true) then
@@ -2157,11 +2178,16 @@ function PressYesNo(answer)
             return UseControlAction("SelectYesno", "No")
         else
             local txt = GetControlStrings("SelectYesno")
-            if not table.valid(txt) and gDeclinePartyInvites then
-                d("text info invalid ? (SelectYesno)")
+            if not table.valid(txt) and (gDeclinePartyInvites or gDeclinePartyTeleport) then
+                d("text info invalid ? (SelectYesno), decline party invite " .. tostring(gDeclinePartyInvites) .. '  decline group teleport ' .. tostring(gDeclinePartyTeleport))
                 return false
             end
             if ml_global_information.CheckPartyInviteYesno(txt) and gDeclinePartyInvites then
+                d('decline party invite.')
+                return UseControlAction("SelectYesno", "No")
+            end
+            if ml_global_information.CheckGroupTeleportYesno(txt) and gDeclinePartyTeleport then
+                d('decline group teleport.')
                 return UseControlAction("SelectYesno", "No")
             end
             return UseControlAction("SelectYesno", answer)
@@ -2169,7 +2195,6 @@ function PressYesNo(answer)
     end
     return false
 end
-
 
 function DrawFateListUI(self)
 	local vars = self.GUI.vars
