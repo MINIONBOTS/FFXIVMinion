@@ -2105,14 +2105,16 @@ function e_mount:execute()
 		return false
 	end
 	
-	if (Player:IsMoving()) then
-		Player:PauseMovement()
-		ml_global_information.AwaitDo(1000, function () return not Player:IsMoving() end, function () Player:PauseMovement() end)
-		return
-	end
+	if (GetPatchLevel() < 7.2) then
+		if (Player:IsMoving()) then
+			Player:PauseMovement()
+			ml_global_information.AwaitDo(1000, function () return not Player:IsMoving() end, function () Player:PauseMovement() end)
+			return
+		end
 	
-	if (IsMounting() or UsingBattleItem()) then
-		return
+		if (IsMounting() or UsingBattleItem()) then
+			return
+		end
 	end
 	
 	if (Mount(e_mount.id)) then
@@ -2122,7 +2124,7 @@ function e_mount:execute()
 				return (IsMounting() or UsingBattleItem())
 			end,
 			function ()
-				ml_global_information.Await(3000, function () return Player.ismounted end)
+				ml_global_information.Await(3000, function () return (Player.ismounted or GetPatchLevel() >= 7.2)end)
 			end
 		)
 	end
