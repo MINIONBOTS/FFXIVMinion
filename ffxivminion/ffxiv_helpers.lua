@@ -5694,6 +5694,7 @@ local pvpMaps = {
     [1138] = true, -- The Red Sands
     [1139] = true, -- The Red Sands
     
+    [1273] = true, -- secure frontline
 }
 function IsPVPMap(mapid)
     local mapid = tonumber(mapid) or Player.localmapid
