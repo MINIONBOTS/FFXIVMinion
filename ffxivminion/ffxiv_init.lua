@@ -1160,6 +1160,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1221, "Interphos", true)
 		ml_mesh_mgr.SetDefaultMesh(1222, "Skydeep Cenote Inner Chamber", true)
 		ml_mesh_mgr.SetDefaultMesh(1254, "[Quest] Yuweyawata", true)
+		ml_mesh_mgr.SetDefaultMesh(1268, "Break Room", true)
 	
 				
 	end
