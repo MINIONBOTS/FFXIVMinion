@@ -483,40 +483,43 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			end
 		end
 	elseif (IsControlOpen("SelectOk")) then
-		local SelectOKMessage = GetControl("SelectOk"):GetStrings()[2] or ""
-		local QueueString = {
-			[1] = "The server is currently congested", -- EN
-			[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
-			[3] = "Ce Monde est plein", -- FR
-			[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
-			[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
-			[6] = "현재 서버가 혼잡합니다." -- KR
-		}
-		local ClientLanguage = GetGameLanguage() or 1
-		local QueueMessage = QueueString[ClientLanguage]
-		--d("SelectOKMessage: "..SelectOKMessage)
-		--d("QueueMessage: "..QueueMessage)
-		if SelectOKMessage ~= "" then
-			-- detection for CN language not working, temporarily disable skip
-			if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
-				ml_debug("Waiting In Login Queue...")
-				if (IsControlOpen("Dialogue")) then
-					if (UseControlAction("Dialogue", "PressOK", 0)) then
-						ml_global_information.Await(1000, 10000, function()
-							return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
-						end)
+		local selectOkStrings = GetControl("SelectOk"):GetStrings()
+		if table.valid(selectOkStrings) then
+			local SelectOKMessage = selectOkStrings[2] or ""
+			if SelectOKMessage ~= "" then
+				local QueueString = {
+					[1] = "The server is currently congested", -- EN
+					[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
+					[3] = "Ce Monde est plein", -- FR
+					[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
+					[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
+					[6] = "현재 서버가 혼잡합니다." -- KR
+				}
+				local ClientLanguage = GetGameLanguage() or 1
+				local QueueMessage = QueueString[ClientLanguage]
+				--d("SelectOKMessage: "..SelectOKMessage)
+				--d("QueueMessage: "..QueueMessage)
+				-- detection for CN language not working, temporarily disable skip
+				if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
+					ml_debug("Waiting In Login Queue...")
+					if (IsControlOpen("Dialogue")) then
+						if (UseControlAction("Dialogue", "PressOK", 0)) then
+							ml_global_information.Await(1000, 10000, function()
+								return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+							end)
+						end
 					end
-				end
-				ml_global_information.Await(1000, 2000, function()
-					return (IsControlOpen("SelectOk"))
-				end)
-			else
-				--d("Not In Queue")
-				if (UseControlAction("SelectOk", "Yes", 0)) then
-					d("Skipping Select Window")
-					ml_global_information.Await(500, 1000, function()
+					ml_global_information.Await(1000, 2000, function()
 						return (IsControlOpen("SelectOk"))
 					end)
+				else
+					--d("Not In Queue")
+					if (UseControlAction("SelectOk", "Yes", 0)) then
+						d("Skipping Select Window")
+						ml_global_information.Await(500, 1000, function()
+							return (IsControlOpen("SelectOk"))
+						end)
+					end
 				end
 			end
 		end
