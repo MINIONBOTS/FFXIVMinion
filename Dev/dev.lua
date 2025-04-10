@@ -157,6 +157,11 @@ local mouseClickCounts =
 	}
 }
 
+--local function ReplaceDoubleHashes(str,replacement)
+--	local replacement = replacement or "@@"
+--	return tostring(str):gsub("##",replacement)
+--end
+
 local function GetMouseClickCount(mouseButton,itemId,isHovered)
 	local mouseClickCount=mouseClickCounts[mouseButton+1]
 	local clickCount = 0
@@ -164,6 +169,7 @@ local function GetMouseClickCount(mouseButton,itemId,isHovered)
 		if mouseClickCount.nextPressDeadline > 0 and Now() > mouseClickCount.nextPressDeadline then
 			if itemId == mouseClickCount.itemId then
 				clickCount = mouseClickCount.clickCount
+				--d("itemId: ".. ReplaceDoubleHashes(mouseClickCount.itemId)..", mouseButton: "..tostring(mouseButton)..", final clickCount: "..tostring(clickCount))
 				mouseClickCount.clickCount = 0
 				mouseClickCount.itemId = ""
 				mouseClickCount.nextPressDeadline = 0
@@ -171,23 +177,27 @@ local function GetMouseClickCount(mouseButton,itemId,isHovered)
 		end
 		if isHovered then
 			if GUI:IsMouseClicked(mouseButton) then
+				--d("itemId: ".. ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Mouse Press")
 				mouseClickCount.itemId = itemId
+				mouseClickCount.nextReleaseDeadline = Now() + 200
 				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE
 			end
 		end
 	elseif mouseClickCount.state == dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE then
 		if itemId == mouseClickCount.itemId then
-			if GUI:IsMouseReleased(mouseButton) then
-				if isHovered then
-					mouseClickCount.clickCount = mouseClickCount.clickCount + 1
-					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
-					mouseClickCount.nextPressDeadline = Now() + 200
-				else
-					mouseClickCount.clickCount = 0
-					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
-					mouseClickCount.itemId = ""
-					mouseClickCount.nextPressDeadline = 0
-				end
+			local isMouseReleased = GUI:IsMouseReleased(mouseButton)
+			local exceededReleaseDeadline = Now() > mouseClickCount.nextReleaseDeadline
+			if not isHovered or (not isMouseReleased and exceededReleaseDeadline) then
+				--d("itemId: "..ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Click Reset, isHovered: "..tostring(isHovered)..", isMouseReleased: "..tostring(isMouseReleased)..", exceededReleaseDeadline: "..tostring(exceededReleaseDeadline))
+				mouseClickCount.clickCount = 0
+				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+				mouseClickCount.itemId = ""
+				mouseClickCount.nextPressDeadline = 0
+			elseif isHovered and isMouseReleased then
+				mouseClickCount.clickCount = mouseClickCount.clickCount + 1
+				--d("itemId: "..ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Mouse Release, interim clickCount: "..tostring(mouseClickCount.clickCount))
+				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+				mouseClickCount.nextPressDeadline = Now() + 200
 			end
 		end
 	end
@@ -249,8 +259,7 @@ function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
 	end
 	cellInfo.col = cellInfo.col + 1
 	local itemId = cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col
-	GUI:Selectable(itemId,false,GUI.SelectableFlags_SpanAllColumns)
-	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(itemId,checkMouseActions)
+	GUI:Selectable(itemId,false,GUI.SelectableFlags_SpanAllColumns|GUI.SelectableFlags_AllowOverlap)
 	GUI:SameLine()
 	GUI:Text(cellData)
 	if cellInfo.info:len() == 0 then
@@ -258,6 +267,7 @@ function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
 	else
 		cellInfo.info = cellInfo.info..","..tostring(cellData)
 	end
+	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(itemId,checkMouseActions)
 	GUI:NextColumn()
 end
 
@@ -297,7 +307,7 @@ function dev.DrawCall(event, ticks )
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 
 										GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
-										GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devcr"..tostring(id),tostring(e:IsReady()))										
+										GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devcr"..tostring(id),tostring(e:IsReady()))
 										local x,y = e:GetXY()
 										GUI:BulletText("Position") GUI:SameLine(200) GUI:InputText("##devc1pos"..tostring(id),tostring(x).. ", "..tostring(y))
 										GUI:PushItemWidth(50)
@@ -382,7 +392,7 @@ function dev.DrawCall(event, ticks )
 													GUI:Text("Type"); GUI:NextColumn()
 													GUI:Text("Value"); GUI:NextColumn()
 													GUI:Separator()
-													local cellInfo={prefix="##RawDataDetails",row=0,col=0,info="",clicked=false}
+													local cellInfo={prefix="##RawDataDetails",row=0,col=0,info=""}
 													for index, data in table.pairsbykeys(datas) do
 														if (data.type ~= "0") then
 															cellInfo.row = cellInfo.row + 1
@@ -393,22 +403,22 @@ function dev.DrawCall(event, ticks )
 															dev.DisplaySelectableCell(cellInfo,tostring(data.type),dev.MOUSE_ACTION_LEFT_CLICKED)
 															GUI:PushItemWidth(500)
 															if
-																data.type == "int32" or
-																data.type == "uint32" or
-																data.type == "int" or
-																data.type == "uint" or
-																data.type == "bool" or
-																data.type == "float" or
-																data.type == "int64" or
-																data.type == "uint64" or
-																data.type == "vector" or
-																data.type == "atkvalues"
+															data.type == "int32" or
+																	data.type == "uint32" or
+																	data.type == "int" or
+																	data.type == "uint" or
+																	data.type == "bool" or
+																	data.type == "float" or
+																	data.type == "int64" or
+																	data.type == "uint64" or
+																	data.type == "vector" or
+																	data.type == "atkvalues"
 															then
 																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif
-																data.type == "string" or
-																data.type == "wstring" or
-																data.type == "texture"
+															data.type == "string" or
+																	data.type == "wstring" or
+																	data.type == "texture"
 															then
 																dev.DisplaySelectableCell(cellInfo,data.value,dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif data.type == "4bytes" then
@@ -758,7 +768,7 @@ function dev.DrawCall(event, ticks )
 						GUI:Text("Animation"); GUI:NextColumn()
 						GUI:Text("Last Anim"); GUI:NextColumn()
 						GUI:Separator()
-						local cellInfo={prefix="##dev-scanner",row=0,col=0,info="",clicked=false}
+						local cellInfo={prefix="##dev-scanner",row=0,col=0,info=""}
 						for _, entity in ipairs(entities) do
 							cellInfo.row = cellInfo.row + 1
 							cellInfo.col = 0
@@ -879,9 +889,9 @@ function dev.DrawCall(event, ticks )
 								end
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.usable)) 
-											and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
-											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter) 
+										if (not gDevFilterActions or (action.usable))
+												and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
+												and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter)
 										then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name.."##"..tostring(actionid).."-"..tostring(actiontype))) then --rather slow making 6000+ names :D
