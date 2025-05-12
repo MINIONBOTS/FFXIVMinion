@@ -2309,8 +2309,7 @@ function c_sprint:evaluate()
 	if (MIsLocked() or MIsLoading() or IsMounting() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or Player.ismounted or IsTransporting()) then
 		return false
 	end
-
-    if (not HasBuff(Player.id, 50) and Player:IsMoving()) then
+    if (MissingBuff(Player.id, 50) and MissingBuff(Player.id, 4398) and Player:IsMoving()) then
 		if (IsCityMap(Player.localmapid) or gUseSprint) then
 			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 				local myPos = Player.pos
@@ -2330,7 +2329,13 @@ function c_sprint:evaluate()
     return false
 end
 function e_sprint:execute()
-    local sprint = ActionList:Get(1,3)
+
+	local sprintID = 3
+	if In(Player.localmapid,1237) then
+		sprintID = 43357
+	end
+	
+    local sprint = ActionList:Get(1,sprintID)
 	if (sprint and sprint:IsReady(Player.id)) then
 		sprint:Cast()
 	end
