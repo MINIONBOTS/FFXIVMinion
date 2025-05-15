@@ -7096,19 +7096,29 @@ local centerPoints = {
 	--  Far North West teleporter
 	[14] = {x = -539, y = 60, z = -540}, 
 }
-function GetCosmicMoon(pos)
+function GetCosmicMoon(pos,closest)
+	local closestIndex = 0
+	local closestDistance = math.huge
 
 	for index, centerPos in pairs(centerPoints) do
 		local distance = math.distance2d(pos,centerPos)
 		local threshold = In(index,11,12,13,14) and 300 or 150
 
-		if distance < threshold then
-			return index
+		if closest then
+			local distance = math.distance2d(pos, centerPos)
+			if distance < closestDistance then
+				closestDistance = distance
+				closestIndex = index
+			end
+		else
+			if distance < threshold then
+				return index
+			end
 		end
 	end
 	
 	-- default if no match
-	return 0 
+	return closestIndex 
 end
 function CalcMoonTransport(pos1, pos2)
 
@@ -7135,7 +7145,7 @@ function Transport1237(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	local pos1Section = GetCosmicMoon(pos1)
-	local pos2Section = GetCosmicMoon(pos2)
+	local pos2Section = GetCosmicMoon(pos2,true)
 	if In(pos1Section,1) then
 		-- north
 		if In(pos2Section,2,3) then

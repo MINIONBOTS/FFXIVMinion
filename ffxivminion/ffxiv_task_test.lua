@@ -255,6 +255,8 @@ function ffxiv_task_test:Draw()
 		section = GetYakTelSection(Player.pos)
 	elseif In(Player.localmapid,1192) then
 		section = GetLivingMemorySection(Player.pos)
+	elseif In(Player.localmapid,1237) then
+		section = GetCosmicMoon(Player.pos)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 	local section = 0
@@ -274,6 +276,8 @@ function ffxiv_task_test:Draw()
 		section = GetYakTelSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,1192) then
 		section = GetLivingMemorySection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
+	elseif In(Player.localmapid,1237) then
+		section = GetCosmicMoon({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 					
