@@ -10054,8 +10054,8 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 		return closest
 	end
 	
-	local y1 = pos.y
-	local y2 = pos.y
+	local y1 = pos.y or 0
+	local y2 = pos.y or 0
 				
 	for i = y2, y2+10, 0.5 do
 		local trypos = {x = pos.x, y = i, z = pos.z}
