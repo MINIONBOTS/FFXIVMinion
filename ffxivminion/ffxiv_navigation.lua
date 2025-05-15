@@ -1054,7 +1054,16 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	end
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
-	
+	if In(Player.localmapid,1237) then
+		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
+		if (transportFunction ~= nil and type(transportFunction) == "function") then
+			local retval = transportFunction(pos,pos2)
+			if (retval == true) then
+				reachable = true
+			end
+		end
+	end
+		
 	local reachable = NavigationManager:IsReachable(pos2)
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
