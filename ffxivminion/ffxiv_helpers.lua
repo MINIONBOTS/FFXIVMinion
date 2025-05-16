@@ -7102,7 +7102,7 @@ function GetCosmicMoon(pos,closest)
 
 	for index, centerPos in pairs(centerPoints) do
 		local distance = math.distance2d(pos,centerPos)
-		local threshold = In(index,11,12,13,14) and 300 or 150
+		local threshold = 150
 
 		if closest then
 			local distance = math.distance2d(pos, centerPos)
@@ -7121,23 +7121,21 @@ function GetCosmicMoon(pos,closest)
 	return closestIndex 
 end
 function CalcMoonTransport(pos1, pos2)
-
 	if pos1 and pos2 then
 		local endSection1 = GetCosmicMoon(pos1)
-		local endSection2 = GetCosmicMoon(pos2)
-
+		local endSection2 = GetCosmicMoon(pos2,true)
 		if centerPoints[endSection1] and centerPoints[endSection2] then
 			local distance1 = math.distance2d(pos1, pos2)
 			local distance2 =
 				math.distance2d(pos1, centerPoints[endSection1]) +
 				math.distance2d(centerPoints[endSection2], pos2)
-
+				
+			
 			if distance1 > distance2 then
 				return true
 			end
 		end
 	end
-
 	return false
 end
 
@@ -7146,6 +7144,7 @@ function Transport1237(pos1,pos2)
 	local pos2 = pos2
 	local pos1Section = GetCosmicMoon(pos1)
 	local pos2Section = GetCosmicMoon(pos2,true)
+	
 	if In(pos1Section,1) then
 		-- north
 		if In(pos2Section,2,3) then
@@ -7709,9 +7708,9 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,9) then
 		-- north
-		if In(pos2Section,2,3,14,8) then
+		if In(pos2Section,2,3,8,14) then
 			if CalcMoonTransport(pos1, pos2) then
-				local portalPos = {x = -395, y = 38, z = 3.14}
+				local portalPos = {x = -395, y = 38, z = -19}
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 3 then
 					return true, function()
