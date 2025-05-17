@@ -7096,7 +7096,9 @@ local centerPoints = {
 	--  Far North West teleporter
 	[14] = {x = -539, y = 60, z = -540}, 
 	--  Inside Tunnel
-	[15] = {x = -572, y = 51, z = 614}, 
+	[15] = {x = -572, y = 51, z = 614},  
+	--  right of chasm
+	[16] = {x = 93, y = 18, z = 271, markeronly = true}, 
 }
 function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
@@ -7106,19 +7108,24 @@ function GetCosmicMoon(pos,closest)
 	if distance < 310 then
 		return 15
 	end
+	local distance = math.distance2d(pos,centerPoints[16])
+	if distance < 80 then
+		return 5
+	end
 	for index, centerPos in pairs(centerPoints) do
 		local distance = math.distance2d(pos,centerPos)
 		local threshold = 150
-
-		if closest then
-			local distance = math.distance2d(pos, centerPos)
-			if distance < closestDistance then
-				closestDistance = distance
-				closestIndex = index
-			end
-		else
-			if distance < threshold then
-				return index
+		if not centerPos.markeronly then
+			if closest then
+				local distance = math.distance2d(pos, centerPos)
+				if distance < closestDistance then
+					closestDistance = distance
+					closestIndex = index
+				end
+			else
+				if distance < threshold then
+					return index
+				end
 			end
 		end
 	end
@@ -7129,11 +7136,11 @@ end
 function CalcMoonTransport(pos1, pos2, pos1Section, pos2Section)
 	if pos1 and pos2 then
 		if centerPoints[pos1Section] and centerPoints[pos2Section] then
-			local distance1 = math.distance2d(pos1, pos2)
+			local distance1 = (GetPathDistance(pos1, pos2) * 1.5)
 			local distance2 =
-				math.distance2d(pos1, centerPoints[pos1Section]) +
-				math.distance2d(centerPoints[pos2Section], pos2)
-			
+				GetPathDistance(pos1, centerPoints[pos1Section]) +
+				GetPathDistance(centerPoints[pos2Section], pos2)
+		
 			if distance1 > distance2 then
 				return true
 			end
@@ -7209,7 +7216,7 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,9,13,14,8) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -59, y = 2.7, z = -4.4}
+				local portalPos = {x = -61, y = 3.3, z = -4.5}
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -7480,7 +7487,7 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,3,4,10,5,11) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 19, y = 37, z = 404}
+				local portalPos = {x = 21, y = 37, z = 404.5}
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
