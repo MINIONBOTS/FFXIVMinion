@@ -7098,7 +7098,9 @@ local centerPoints = {
 	--  Inside Tunnel
 	[15] = {x = -572, y = 51, z = 614},  
 	--  right of chasm
-	[16] = {x = 93, y = 18, z = 271, markeronly = true}, 
+	[16] = {x = 93, y = 18, z = 271, markeronly = true},  
+	--  left of chasm
+	[17] = {x = 207, y = 19, z = 66, markeronly = true}, 
 }
 function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
@@ -7111,6 +7113,10 @@ function GetCosmicMoon(pos,closest)
 	local distance = math.distance2d(pos,centerPoints[16])
 	if distance < 80 then
 		return 5
+	end
+	local distance = math.distance2d(pos,centerPoints[17])
+	if distance < 100 then
+		return 1
 	end
 	for index, centerPos in pairs(centerPoints) do
 		local distance = math.distance2d(pos,centerPos)
