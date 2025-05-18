@@ -3979,7 +3979,7 @@ function c_dointeract:evaluate()
 						end
 					end
 					
-					d("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
+					ml_debug("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
 					
 					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance < range) then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
