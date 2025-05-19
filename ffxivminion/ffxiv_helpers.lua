@@ -7101,6 +7101,8 @@ local centerPoints = {
 	[16] = {x = 93, y = 18, z = 271, markeronly = true},  
 	--  left of chasm
 	[17] = {x = 207, y = 19, z = 66, markeronly = true}, 
+	--  left of chasm
+	[18] = {x = 229, y = 18, z = -37, markeronly = true}, 
 }
 function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
@@ -7116,6 +7118,10 @@ function GetCosmicMoon(pos,closest)
 	end
 	local distance = math.distance2d(pos,centerPoints[17])
 	if distance < 100 then
+		return 1
+	end
+	local distance = math.distance2d(pos,centerPoints[18])
+	if distance < 90 then
 		return 1
 	end
 	for index, centerPos in pairs(centerPoints) do
@@ -7139,19 +7145,59 @@ function GetCosmicMoon(pos,closest)
 	-- default if no match
 	return closestIndex 
 end
+if not ff.lastTransportCheck then
+	ff.lastTransportCheck = {
+		pos1 = nil,
+		pos2 = nil,
+		result = nil
+	}
+end
+ff.pathingData = {}
 function CalcMoonTransport(pos1, pos2, pos1Section, pos2Section)
-	if pos1 and pos2 then
-		if centerPoints[pos1Section] and centerPoints[pos2Section] then
-			local distance1 = (GetPathDistance(pos1, pos2) * 1.5)
-			local distance2 =
-				GetPathDistance(pos1, centerPoints[pos1Section]) +
-				GetPathDistance(centerPoints[pos2Section], pos2)
-		
-			if distance1 > distance2 then
-				return true
-			end
+	-- Check if positions are close to last check (within 100 units)
+	local last = ff.lastTransportCheck
+	if last.pos1 and last.pos2 then
+		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
+			--d("Returning cached result due to proximity")
+			return last.result
 		end
 	end
+
+	-- Check for existing cached pathingData
+	if ff.pathingData[pos1Section] and ff.pathingData[pos1Section][pos2.x] and ff.pathingData[pos1Section][pos2.x][pos2.z] ~= nil then
+		--d("return 1 (cached pathingData)")
+		local cached = ff.pathingData[pos1Section][pos2.x][pos2.z]
+		-- Save this as the last check
+		ff.lastTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
+		return cached
+	end
+
+	-- Only calculate if all data is present
+	if pos1 and pos2 and centerPoints[pos1Section] and centerPoints[pos2Section] then
+		local distance1 = GetPathDistance(pos1, pos2) * 1.5
+		local distance2 =
+			GetPathDistance(pos1, centerPoints[pos1Section]) +
+			GetPathDistance(centerPoints[pos2Section], pos2)
+
+		-- Init pathingData table
+		ff.pathingData[pos1Section] = ff.pathingData[pos1Section] or {}
+		ff.pathingData[pos1Section][pos2.x] = ff.pathingData[pos1Section][pos2.x] or {}
+
+		local result
+		if distance1 > distance2 then
+			result = true
+			--d("true 1 (new calculation)")
+		else
+			result = false
+			--d("false 1 (new calculation)")
+		end
+
+		-- Save result in both pathingData and last check
+		ff.pathingData[pos1Section][pos2.x][pos2.z] = result
+		ff.lastTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
+		return result
+	end
+
 	return false
 end
 
@@ -7339,7 +7385,7 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,1,9,13,14,8) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 380, y = 42, z = -4.5}
+				local portalPos = {x = 379, y = 42, z = -4.5}
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -7349,10 +7395,10 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.62)
+						Player:SetFacing(-1.55)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
-				end 
+				end
 			end
 		end
 		-- north

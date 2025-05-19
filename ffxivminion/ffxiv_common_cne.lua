@@ -48,6 +48,38 @@ function e_getCurrentInfo:execute()
 		ffxivminion.AetherCurrentCompleted = true
 	end
 end
+
+c_get_mapversion = inheritsFrom( ml_cause )
+e_get_mapversion = inheritsFrom( ml_effect )
+e_get_mapversion.loadedMesh = false
+function c_get_mapversion:evaluate()
+	if ffxivminion.MoonMapVersion == 0 then
+		return true
+	end
+	if (IsControlOpen("WKSHistoryBoard")) then
+		if (IsControlOpen("WKSHud")) then
+			GetControl("WKSHud"):DoAction(14)
+			if not e_get_mapversion.loadedMesh then
+				e_get_mapversion.loadedMesh = true
+				local meshname = GetBestMoonMesh(ffxivminion.MoonMapVersion)
+				d("attempting to load mesh ["..tostring(meshname).."]")
+				ml_mesh_mgr.LoadNavMesh(meshname)
+			end
+		end
+	end
+	
+	return false
+end
+function e_get_mapversion:execute()
+	
+	if not (IsControlOpen("WKSHistoryBoard")) then
+		if (IsControlOpen("WKSHud")) then
+			GetControl("WKSHud"):DoAction(14)
+		end
+	else
+		ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+	end
+end
 c_getDutyComplete = inheritsFrom( ml_cause )
 e_getDutyComplete = inheritsFrom( ml_effect )
 function c_getDutyComplete:evaluate()

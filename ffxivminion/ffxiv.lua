@@ -18,6 +18,7 @@ ffxivminion.scripExchange = {}
 ffxivminion.lastScripExchangeUpdate = {}
 ffxivminion.AetherCurrentData = {}
 ffxivminion.AetherCurrentCompleted = false
+ffxivminion.MoonMapVersion = 0
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.maxlevel = 100
@@ -611,6 +612,11 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			end
 			if (c_getDutyComplete:evaluate()) then
 				e_getDutyComplete:execute()
+			end
+		end
+		if In(Player.localmapid,1237) then
+			if c_get_mapversion:evaluate() then
+				e_get_mapversion:execute()
 			end
 		end
 		if (IsControlOpen("MasterPieceSupply")) then
