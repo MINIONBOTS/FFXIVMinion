@@ -56,10 +56,10 @@ function c_get_mapversion:evaluate()
 	if ffxivminion.MoonMapVersion == 0 then
 		return true
 	end
-	if (IsControlOpen("WKSHistoryBoard")) then
-		if (IsControlOpen("WKSHud")) then
-			GetControl("WKSHud"):DoAction(14)
-			if not e_get_mapversion.loadedMesh then
+	if not e_get_mapversion.loadedMesh then
+		if (IsControlOpen("WKSHistoryBoard")) then
+			if (IsControlOpen("WKSHud")) then
+				GetControl("WKSHud"):DoAction(14)
 				e_get_mapversion.loadedMesh = true
 				local meshname = GetBestMoonMesh(ffxivminion.MoonMapVersion)
 				d("attempting to load mesh ["..tostring(meshname).."]")
@@ -75,9 +75,12 @@ function e_get_mapversion:execute()
 	if not (IsControlOpen("WKSHistoryBoard")) then
 		if (IsControlOpen("WKSHud")) then
 			GetControl("WKSHud"):DoAction(14)
+			return
 		end
 	else
-		ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+		if GetControlRawData("WKSHistoryBoard",1) then
+			ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+		end
 	end
 end
 c_getDutyComplete = inheritsFrom( ml_cause )
