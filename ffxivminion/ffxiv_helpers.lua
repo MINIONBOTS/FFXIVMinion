@@ -7085,18 +7085,23 @@ local centerPoints = {
 	[8] = {x = -281, y = 34, z = -280}, 
 	--  West teleporter
 	[9] = {x = -399, y = 36, z = 0}, 
-	--  Far East teleporter
-	[10] = {x = 743, y = 59, z = -5}, 
-	--  Far South East teleporter
+	
+	--  Far East teleporter -- 7
+	[10] = {x = 743, y = 59, z = -5},
+	
+	--  Far South East teleporter -- 7
 	[11] = {x = 425, y = 45, z = 510}, 
-	--  Far South teleporter
+	--  Far South teleporter -- 7
 	[12] = {x = -99, y = 51, z = 750}, 
-	--  Far West teleporter
+	
+	--  Far West teleporter -- 6
 	[13] = {x = -700, y = 60, z = 10},
-	--  Far North West teleporter
+	--  Far North West teleporter -- 6
 	[14] = {x = -539, y = 60, z = -540}, 
-	--  Inside Tunnel
+	
+	--  Inside Tunnel -- 8
 	[15] = {x = -572, y = 51, z = 614},  
+	
 	--  right of chasm
 	[16] = {x = 93, y = 18, z = 271, markeronly = true},  
 	--  left of chasm
@@ -7206,6 +7211,11 @@ function Transport1237(pos1,pos2)
 	local pos2 = pos2
 	local pos1Section = GetCosmicMoon(pos1)
 	local pos2Section = GetCosmicMoon(pos2,true)
+	
+	-- cosmoliner introduced map 3
+	if ffxivminion.MoonMapVersion < 3 then
+		return false
+	end
 	
 	if In(pos1Section,1) then
 		-- north
@@ -7421,7 +7431,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- east
-		if In(pos2Section,10) then
+		if In(pos2Section,10) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 419, y = 42, z = 4.5}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7479,7 +7489,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- south
-		if In(pos2Section,11) then
+		if In(pos2Section,11) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 290, y = 27, z = 296}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7556,7 +7566,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- south
-		if In(pos2Section,12,15) then
+		if In(pos2Section,12,15) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -4, y = 37, z = 418}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7634,7 +7644,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,8) then
 		-- west
-		if In(pos2Section,14) then
+		if In(pos2Section,14) and ffxivminion.MoonMapVersion >= 6 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -291, y = 36, z = -297}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7749,7 +7759,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- west
-		if In(pos2Section,13) then
+		if In(pos2Section,13) and ffxivminion.MoonMapVersion >= 6 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -419, y = 38, z = -4.5}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7767,7 +7777,7 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,10) then
+	elseif In(pos1Section,10) and ffxivminion.MoonMapVersion >= 7 then
 		-- west
 		if In(pos2Section,1,2,3,4,10,5,6,7,9,13,14,8) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
@@ -7806,7 +7816,7 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,11) then
+	elseif In(pos1Section,11) and ffxivminion.MoonMapVersion >= 7 then
 		-- east
 		if In(pos2Section,10) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
@@ -7864,7 +7874,7 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,12) then
+	elseif In(pos1Section,12) and ffxivminion.MoonMapVersion >= 7 then
 		-- north
 		if In(pos2Section,1,2,3,6,7,9,13,14,8) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
@@ -7922,7 +7932,7 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,13) then
+	elseif In(pos1Section,13) and ffxivminion.MoonMapVersion >= 6 then
 		-- east
 		if In(pos2Section,1,2,3,4,10,5,11,6,12,15,7,9,8) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
@@ -7961,7 +7971,7 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,14) then
+	elseif In(pos1Section,14) and ffxivminion.MoonMapVersion >= 6 then
 		-- south
 		if In(pos2Section,13) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
@@ -8000,7 +8010,8 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,15) then
+		-- redundant check but here just as a note
+	elseif In(pos1Section,15) and ffxivminion.MoonMapVersion >= 8 then
 		-- out of tunnel
 		if not In(pos2Section,15) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
