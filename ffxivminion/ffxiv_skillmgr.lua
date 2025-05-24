@@ -611,6 +611,96 @@ SkillMgr.Variables = {
 	SKM_GAUGE8GT = { default = 0, cast = "number", profile = "gauge8gt", readable = "", section = "fighting", group = "" },
 	SKM_GAUGE8EQ = { default = 0, cast = "number", profile = "gauge8eq", readable = "", section = "fighting", group = "" },
 	SKM_GAUGE8OR = { default = "", cast = "string", profile = "gauge8or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGE9LT = { default = 0, cast = "number", profile = "gauge9lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE9GT = { default = 0, cast = "number", profile = "gauge9gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE9EQ = { default = 0, cast = "number", profile = "gauge9eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE9OR = { default = "", cast = "string", profile = "gauge9or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGE10LT = { default = 0, cast = "number", profile = "gauge10lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE10GT = { default = 0, cast = "number", profile = "gauge10gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE10EQ = { default = 0, cast = "number", profile = "gauge10eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE10OR = { default = "", cast = "string", profile = "gauge10or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGE11LT = { default = 0, cast = "number", profile = "gauge11lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE11GT = { default = 0, cast = "number", profile = "gauge11gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE11EQ = { default = 0, cast = "number", profile = "gauge11eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE11OR = { default = "", cast = "string", profile = "gauge11or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGE12LT = { default = 0, cast = "number", profile = "gauge12lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE12GT = { default = 0, cast = "number", profile = "gauge12gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE12EQ = { default = 0, cast = "number", profile = "gauge12eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE12OR = { default = "", cast = "string", profile = "gauge12or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGE13LT = { default = 0, cast = "number", profile = "gauge13lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE13GT = { default = 0, cast = "number", profile = "gauge13gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE13EQ = { default = 0, cast = "number", profile = "gauge13eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGE13OR = { default = "", cast = "string", profile = "gauge13or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST1LT = { default = 0, cast = "number", profile = "gaugetest1lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST1GT = { default = 0, cast = "number", profile = "gaugetest1gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST1EQ = { default = 0, cast = "number", profile = "gaugetest1eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST1OR = { default = "", cast = "string", profile = "gaugetest1or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST2LT = { default = 0, cast = "number", profile = "gaugetest2lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST2GT = { default = 0, cast = "number", profile = "gaugetest2gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST2EQ = { default = 0, cast = "number", profile = "gaugetest2eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST2OR = { default = "", cast = "string", profile = "gaugetest2or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST3LT = { default = 0, cast = "number", profile = "gaugetest3lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST3GT = { default = 0, cast = "number", profile = "gaugetest3gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST3EQ = { default = 0, cast = "number", profile = "gaugetest3eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST3OR = { default = "", cast = "string", profile = "gaugetest3or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST4LT = { default = 0, cast = "number", profile = "gaugetest4lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST4GT = { default = 0, cast = "number", profile = "gaugetest4gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST4EQ = { default = 0, cast = "number", profile = "gaugetest4eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST4OR = { default = "", cast = "string", profile = "gaugetest4or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST5LT = { default = 0, cast = "number", profile = "gaugetest5lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST5GT = { default = 0, cast = "number", profile = "gaugetest5gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST5EQ = { default = 0, cast = "number", profile = "gaugetest5eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST5OR = { default = "", cast = "string", profile = "gaugetest5or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST6LT = { default = 0, cast = "number", profile = "gaugetest6lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST6GT = { default = 0, cast = "number", profile = "gaugetest6gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST6EQ = { default = 0, cast = "number", profile = "gaugetest6eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST6OR = { default = "", cast = "string", profile = "gaugetest6or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST7LT = { default = 0, cast = "number", profile = "gaugetest7lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST7GT = { default = 0, cast = "number", profile = "gaugetest7gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST7EQ = { default = 0, cast = "number", profile = "gaugetest7eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST7OR = { default = "", cast = "string", profile = "gaugetest7or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST8LT = { default = 0, cast = "number", profile = "gaugetest8lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST8GT = { default = 0, cast = "number", profile = "gaugetest8gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST8EQ = { default = 0, cast = "number", profile = "gaugetest8eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST8OR = { default = "", cast = "string", profile = "gaugetest8or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST9LT = { default = 0, cast = "number", profile = "gaugetest9lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST9GT = { default = 0, cast = "number", profile = "gaugetest9gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST9EQ = { default = 0, cast = "number", profile = "gaugetest9eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST9OR = { default = "", cast = "string", profile = "gaugetest9or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST10LT = { default = 0, cast = "number", profile = "gaugetest10lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST10GT = { default = 0, cast = "number", profile = "gaugetest10gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST10EQ = { default = 0, cast = "number", profile = "gaugetest10eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST10OR = { default = "", cast = "string", profile = "gaugetest10or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST11LT = { default = 0, cast = "number", profile = "gaugetest11lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST11GT = { default = 0, cast = "number", profile = "gaugetest11gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST11EQ = { default = 0, cast = "number", profile = "gaugetest11eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST11OR = { default = "", cast = "string", profile = "gaugetest11or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST12LT = { default = 0, cast = "number", profile = "gaugetest12lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST12GT = { default = 0, cast = "number", profile = "gaugetest12gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST12EQ = { default = 0, cast = "number", profile = "gaugetest12eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST12OR = { default = "", cast = "string", profile = "gaugetest12or", readable = "", section = "fighting", group = "" },
+
+	SKM_GAUGETEST13LT = { default = 0, cast = "number", profile = "gaugetest13lt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST13GT = { default = 0, cast = "number", profile = "gaugetest13gt", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST13EQ = { default = 0, cast = "number", profile = "gaugetest13eq", readable = "", section = "fighting", group = "" },
+	SKM_GAUGETEST13OR = { default = "", cast = "string", profile = "gaugetest13or", readable = "", section = "fighting", group = "" },
 	
 	-- Macro Vars.
 	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", readable = "", section = "fighting" },
@@ -5961,7 +6051,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		
-		for i = 1,8 do
+		for i = 1,13 do
 			local g = Player.gauge
 			
 			if (table.valid(g) and g[i] ~= nil and tonumber(g[i]) ~= nil) then
@@ -6014,7 +6104,64 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-	
+
+	conditional = { name = "Test Gauge Checks"
+	, eval = function()
+		local skill = SkillMgr.CurrentSkill
+
+		for i = 1,13 do
+			local g = Player.gaugetest
+
+			if (table.valid(g) and g[i] ~= nil and tonumber(g[i]) ~= nil) then
+				if (skill["gaugetest"..tostring(1).."or"] == "Gauge") or (skill["gaugetest"..tostring(2).."or"] == "Gauge") then
+					if (skill["gaugetest"..tostring(1).."or"] == "Gauge") then
+						if (g[1] > g[2]) then
+							--d(tostring(skill.name).." returned false because... Gauge 1 ["..tostring(g[1]).."] > Gauge 2 ["..tostring(g[2]).."]")
+							return true
+						end
+					end
+					if (skill["gaugetest"..tostring(2).."or"] == "Gauge") then
+						if (g[2] > g[1]) then
+							--d(tostring(skill.name).." returned false because... Gauge 2 ["..tostring(g[2]).."] > Gauge 1 ["..tostring(g[1]).."]")
+							return true
+						end
+					end
+				else
+					if (skill["gaugetest"..tostring(i).."lt"] ~= 0) then
+						if (g[i] > skill["gaugetest"..tostring(i).."lt"]) then
+							return true
+						end
+					end
+					if (skill["gaugetest"..tostring(i).."gt"] ~= 0) then
+						if (g[i] < skill["gaugetest"..tostring(i).."gt"]) then
+							return true
+						end
+					end
+					if (skill["gaugetest"..tostring(i).."eq"] ~= 0) then
+						if (g[i] ~= skill["gaugetest"..tostring(i).."eq"]) then
+							return true
+						end
+					end
+					if (skill["gaugetest"..tostring(i).."or"] ~= "") then
+						local foundVal = false
+						for val in StringSplit(skill["gaugetest"..tostring(i).."or"],",") do
+							if (tonumber(val) == g[i]) then
+								foundVal = true
+								break
+							end
+						end
+						if (not foundVal) then
+							return true
+						end
+					end
+				end
+			end
+		end
+
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
 end
 
 function SkillMgr.Capture(newVal,varName)
@@ -6540,7 +6687,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-gauges-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
-		for i = 1,8 do
+		for i = 1,#Player.gauge do
 			GUI:Text(GetString("Gauge Indicator "..tostring(i))); GUI:NextColumn(); GUI:NextColumn();
 			GUI:Text(GetString("Value <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."LT",_G["SKM_GAUGE"..tostring(i).."LT"],0,0),"SKM_GAUGE"..tostring(i).."LT"); GUI:NextColumn();
 			GUI:Text(GetString("Value >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGE"..tostring(i).."GT",_G["SKM_GAUGE"..tostring(i).."GT"],0,0),"SKM_GAUGE"..tostring(i).."GT"); GUI:NextColumn();
@@ -6554,7 +6701,26 @@ function SkillMgr.DrawBattleEditor()
 			
 		GUI:Columns(1)
 	end
-	
+
+	if (GUI:CollapsingHeader(GetString("Test Gauges"),"battle-gauges-header")) then
+		GUI:Columns(2,"#battle-gauges-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
+
+		for i = 1,#Player.gaugetest do
+			GUI:Text(GetString("Test Gauge "..tostring(i))); GUI:NextColumn(); GUI:NextColumn();
+			GUI:Text(GetString("Value <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGETEST"..tostring(i).."LT",_G["SKM_GAUGETEST"..tostring(i).."LT"],0,0),"SKM_GAUGETEST"..tostring(i).."LT"); GUI:NextColumn();
+			GUI:Text(GetString("Value >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGETEST"..tostring(i).."GT",_G["SKM_GAUGETEST"..tostring(i).."GT"],0,0),"SKM_GAUGETEST"..tostring(i).."GT"); GUI:NextColumn();
+			GUI:Text(GetString("Value =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAUGETEST"..tostring(i).."EQ",_G["SKM_GAUGETEST"..tostring(i).."EQ"],0,0),"SKM_GAUGETEST"..tostring(i).."EQ"); GUI:NextColumn();
+			GUI:Text(GetString("Value In")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GAUGETEST"..tostring(i).."OR",_G["SKM_GAUGETEST"..tostring(i).."OR"]),"SKM_GAUGETEST"..tostring(i).."OR");
+			if (GUI:IsItemHovered()) then
+				GUI:SetTooltip(GetString("Ex: [0,16,32,48] if the value needs to be 0 or 16 or 32 or 48 (do not include brackets)."))
+			end
+			GUI:NextColumn();
+		end
+
+		GUI:Columns(1)
+	end
+
 	if (GUI:CollapsingHeader(GetString("casting"),"battle-casting-header")) then
 		GUI:Columns(2,"#battle-casting-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
