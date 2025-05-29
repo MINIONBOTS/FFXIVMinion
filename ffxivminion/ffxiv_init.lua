@@ -1162,7 +1162,8 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1254, "[Quest] Yuweyawata", true)
 		ml_mesh_mgr.SetDefaultMesh(1268, "Break Room", true)
 		ml_mesh_mgr.SetDefaultMesh(1274, "[Quest] Throne Room", true)
-	
+		ml_mesh_mgr.SetDefaultMesh(1269, "Phantom Village", true) --	quest
+		ml_mesh_mgr.SetDefaultMesh(1278, "Phantom Village", true) 
 				
 	end
 	

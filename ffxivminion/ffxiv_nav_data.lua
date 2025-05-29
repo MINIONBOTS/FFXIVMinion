@@ -2068,7 +2068,28 @@ ffxiv_map_nav.data = {
 				};
 			};
 		};
+		[1278] = { --Phantom Village
+            [1] = {id = 1278, cost = 1, x = 206.32, y = -17.99, z = 63.31, b = 2014671,},
+        },		
+        [1269] = { --Phantom Village (Quest)
+            [1] = {id = 1269, cost = 1, x = 206.32, y = -17.99, z = 63.31, b = 2014669,},
+        },			
     },
+	
+	--Phantom Village (Quest)
+	[1269] = {
+        [1185] = { --Tuliyollal
+            [1] = {id = 1185, cost = 1, x = 79.55, y = -11.25, z = 17.2, b = 2014670,},
+        },		
+	},
+	
+	
+	--Phantom Village
+	[1278] = {
+        [1185] = { --Tuliyollal
+            [1] = {id = 1185, cost = 1, x = 79.55, y = -11.25, z = 17.2, b = 2014670,},
+        },		
+	},
 	-- Solution Nine
 	[1186] = {
 		[1191] = {
