@@ -1052,6 +1052,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(485, "The Dravanian Hinterlands", true)
 		ml_mesh_mgr.SetDefaultMesh(737, "Royal Palace", true)
 		ml_mesh_mgr.SetDefaultMesh(769, "Duty_3076", true)
+		ml_mesh_mgr.SetDefaultMesh(954, "The Navel", true)
 		
 		-- Latty SHB
 		ml_mesh_mgr.SetDefaultMesh(813, "Lakeland", enforce)
