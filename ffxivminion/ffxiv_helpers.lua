@@ -7695,7 +7695,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- north
-		if In(pos2Section,1,2,3,4,10,23) then
+		if In(pos2Section,1,2,3,4,23) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -263, y = 36, z = -290}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7714,7 +7714,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- south
-		if In(pos2Section,5,6,7,9,11,12,13,15,16,17) then
+		if In(pos2Section,5,6,7,9,10,11,12,13,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -297, y = 36, z = -269}
 				local distance = math.distance2d(pos1, portalPos)
