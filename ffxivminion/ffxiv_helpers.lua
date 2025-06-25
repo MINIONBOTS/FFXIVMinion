@@ -24,7 +24,7 @@ function GetBestMoonMesh(version)
 	
 	local bestMesh = ""
 	local pathName = GetStartupPath()..[[\Navigation\]]
-	for i = 1, 15, 1 do
+	for i = 1, 20, 1 do
 		if i <= tonumber(version) then
 			if FolderExists(pathName.."Sinus Ardorum_V"..tostring(i)) then
 				bestMesh = "Sinus Ardorum_V"..tostring(i)
