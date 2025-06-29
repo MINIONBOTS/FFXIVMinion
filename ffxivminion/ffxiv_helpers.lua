@@ -7114,8 +7114,20 @@ local centerPoints = {
 	--  left of chasm
 	[22] = {x = 229, y = 18, z = -37, markeronly = true}, 
 	
-	--  Inside North East Tunnel -- 
-	[23] = {x = 648, y = -74, z = -577},  
+	--  Inside North East Tunnel -- large area
+	[23] = {x = 648, y = -74, z = -577, markeronly = true},  
+	--  Inside North East Tunnel -- 1st lift
+	[24] = {x = 426, y = -59, z = -410, radius = 100},
+	--  Inside North East Tunnel -- 1st lift
+	[25] = {x = 642, y = -73, z = -570},  
+	--  Inside North East Tunnel -- west lift
+	[26] = {x = 376, y = -119, z = -843},  
+	--  Inside North East Tunnel -- north lift
+	[27] = {x = 633, y = -110, z = -935},  
+	--  Inside North East Tunnel -- east lift
+	[28] = {x = 881, y = -57, z = -362},  
+	--  Inside North East Tunnel -- north, no lift	
+	[29] = {x = 843, y = -50, z = -766},  
 	
 }
 function GetCosmicMoon(pos,closest)
@@ -7139,23 +7151,17 @@ function GetCosmicMoon(pos,closest)
 		return 1
 	end
 	local distance = math.distance2d(pos,centerPoints[23])
-	if distance < 350 then
+	if distance < 350 and ffxivminion.MoonMapVersion < 14 then
 		return 23
 	end
 	for index, centerPos in pairs(centerPoints) do
 		local distance = math.distance2d(pos,centerPos)
-		local threshold = 150
+		local threshold = IsNull(centerPos.radius,150)
 		if not centerPos.markeronly then
-			if closest then
-				local distance = math.distance2d(pos, centerPos)
-				if distance < closestDistance then
-					closestDistance = distance
-					closestIndex = index
-				end
-			else
-				if distance < threshold then
-					return index
-				end
+			local distance = math.distance2d(pos, centerPos)
+			if distance < closestDistance then
+				closestDistance = distance
+				closestIndex = index
 			end
 		end
 	end
@@ -7232,7 +7238,7 @@ function Transport1237(pos1,pos2)
 	
 	if In(pos1Section,1) then
 		-- north
-		if In(pos2Section,2,3,23) then
+		if In(pos2Section,2,3,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 4.5, y = 3, z = -61}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7328,7 +7334,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- east
-		if In(pos2Section,3,4,5,10,11,23) then
+		if In(pos2Section,3,4,5,10,11,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 18.3, y = 39.8, z = -395}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7405,7 +7411,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- enter
-		if In(pos2Section,23) and ffxivminion.MoonMapVersion >= 13 then
+		if In(pos2Section,23,24,25,26,27,28,29) and ffxivminion.MoonMapVersion >= 13 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 320, y = 42, z = -305}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7444,7 +7450,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- north
-		if In(pos2Section,2,3,23) then
+		if In(pos2Section,2,3,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 404, y = 42, z = -19}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7502,7 +7508,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,5) then
 		-- north
-		if In(pos2Section,1,2,3,4,10,23) then
+		if In(pos2Section,1,2,3,4,10,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 297, y = 27, z = 268}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7579,7 +7585,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- east
-		if In(pos2Section,3,4,5,10,11,23) then
+		if In(pos2Section,3,4,5,10,11,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 21, y = 37, z = 404.5}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7637,7 +7643,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,7) then
 		-- north
-		if In(pos2Section,1,2,3,8,9,13,14,23) then
+		if In(pos2Section,1,2,3,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -290, y = 31, z = 263}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7695,7 +7701,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- north
-		if In(pos2Section,1,2,3,4,23) then
+		if In(pos2Section,1,2,3,4,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -263, y = 36, z = -290}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7734,7 +7740,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,9) then
 		-- north
-		if In(pos2Section,2,3,8,14,23) then
+		if In(pos2Section,2,3,8,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -395, y = 38, z = -19}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7811,7 +7817,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,10) and ffxivminion.MoonMapVersion >= 7 then
 		-- west
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,13,14,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 724, y = 61, z = -8.5}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7869,7 +7875,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- north
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,13,14,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 416, y = 47, z = 493}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7908,7 +7914,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,12) and ffxivminion.MoonMapVersion >= 7 then
 		-- north
-		if In(pos2Section,1,2,3,6,7,8,9,13,14,23) then
+		if In(pos2Section,1,2,3,6,7,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -95, y = 52, z = 730}
 				local distance = math.distance2d(pos1, portalPos)
@@ -7966,7 +7972,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,13) and ffxivminion.MoonMapVersion >= 6 then
 		-- east
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -679, y = 62, z = 14.5}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8024,7 +8030,7 @@ function Transport1237(pos1,pos2)
 			end
 		end
 		-- east
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -529, y = 61, z = -523}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8045,7 +8051,7 @@ function Transport1237(pos1,pos2)
 		-- redundant check but here just as a note
 	elseif In(pos1Section,15) and ffxivminion.MoonMapVersion >= 8 then
 		-- out of tunnel
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -319, y = 54, z = 759}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8103,7 +8109,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,16) and ffxivminion.MoonMapVersion >= 9 then
 		-- to tunnel exit
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -599, y = 53, z = 394}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8142,7 +8148,7 @@ function Transport1237(pos1,pos2)
 		end
 	elseif In(pos1Section,17) and ffxivminion.MoonMapVersion >= 9 then
 		-- to tunnel exit
-		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = -713, y = 93, z = 768}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8179,9 +8185,9 @@ function Transport1237(pos1,pos2)
 				end 
 			end
 		end
-	elseif In(pos1Section,23) then
+	elseif In(pos1Section,23,24) then
 		-- exit tunnel
-		if not In(pos2Section,23) then
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
 				local portalPos = {x = 391, y = -57, z = -395}
 				local distance = math.distance2d(pos1, portalPos)
@@ -8194,6 +8200,143 @@ function Transport1237(pos1,pos2)
 				else
 					return true, function()
 						Player:SetFacing(-0.89)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+		-- further into nadir
+		if In(pos2Section,25,26,27,28,29) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 434, y = -57, z = -409}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(2.25)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+	elseif In(pos1Section,25) then
+		-- to exit tunnel
+		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,24) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 624, y = -72, z = -562}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(-0.91)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+		-- west
+		if In(pos2Section,26) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 625, y = -72, z = -582}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(-2.48)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+		-- east
+		if In(pos2Section,28) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 651, y = -72, z = -552}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(0.64)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+	elseif In(pos1Section,26) then
+		-- to exit tunnel
+		if not In(pos2Section,26) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 387, y = -117, z = -848}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(1.91)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+	elseif In(pos1Section,27) then
+		-- to exit tunnel
+		if not In(pos2Section,27) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 645, y = -108, z = -925}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(0.87)
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+					end
+				end 
+			end
+		end
+	elseif In(pos1Section,28) then
+		-- to exit tunnel
+		if not In(pos2Section,28) and ffxivminion.MoonMapVersion >= 14 then
+			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
+				local portalPos = {x = 874, y = -55, z = -374}
+				local distance = math.distance2d(pos1, portalPos)
+				if distance > 2 then
+					return true, function()
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.pos = portalPos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				else
+					return true, function()
+						Player:SetFacing(-2.3)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
