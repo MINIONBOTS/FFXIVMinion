@@ -5716,6 +5716,9 @@ local pvpMaps = {
     [1139] = true, -- The Red Sands
     
     [1273] = true, -- secure frontline
+
+	[1293] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
+    [1294] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
 }
 function IsPVPMap(mapid)
     local mapid = tonumber(mapid) or Player.localmapid
