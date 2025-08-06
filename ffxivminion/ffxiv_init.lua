@@ -1166,7 +1166,9 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(1269, "Phantom Village", true) --	quest
 		ml_mesh_mgr.SetDefaultMesh(1278, "Phantom Village", true)
 		ml_mesh_mgr.SetDefaultMesh(1252, "South Horn",true)
-				
+		ml_mesh_mgr.SetDefaultMesh(1299, "[Quest] Containment Complex 10-29",true)
+		ml_mesh_mgr.SetDefaultMesh(1312, "[Quest] The Ageless Necropolis",true)
+						
 	end
 	
 	-- General overrides.
