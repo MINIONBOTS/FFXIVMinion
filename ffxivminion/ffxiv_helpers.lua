@@ -3473,7 +3473,7 @@ function IsMap(itemid)
 		(itemid >= 12241 and itemid <= 12243) or
 		(itemid >= 17835 and itemid <= 17836) or 
 		In(itemid,19770,24794,26744,26745,33611,36612,39591) or
-		In(itemid,43556,43557))
+		In(itemid,43556,43557,46185))
 end
 function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
