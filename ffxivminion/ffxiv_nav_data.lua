@@ -977,7 +977,7 @@ ffxiv_map_nav.data = {
 		[397] = {
            {id = 397, cost = 5, x = -163.44, y = 2.15, z = -5.51, b = 1011195, i = 1
                 , requires =  {
-                    ["CanUseAetheryte(71)"] = true,
+                    ["QuestCompleted(1583)"] = true,
                 }
             },  
 			{id = 397, cost = 1, x = -186.16, y = 14, z = -57.15, h = -2.27
