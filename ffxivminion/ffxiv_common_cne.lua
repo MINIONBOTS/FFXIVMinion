@@ -53,17 +53,27 @@ c_get_mapversion = inheritsFrom( ml_cause )
 e_get_mapversion = inheritsFrom( ml_effect )
 e_get_mapversion.loadedMesh = false
 function c_get_mapversion:evaluate()
-	if ffxivminion.MoonMapVersion == 0 then
+	if In(Player.localmapid,1237) and ffxivminion.MoonMapVersion == 0 then
+		return true
+	end
+	if In(Player.localmapid,1291) and ffxivminion.PhaennaMapVersion == 0 then
 		return true
 	end
 	if not e_get_mapversion.loadedMesh then
 		if (IsControlOpen("WKSHistoryBoard")) then
 			if (IsControlOpen("WKSHud")) then
 				GetControl("WKSHud"):DoAction(14)
-				e_get_mapversion.loadedMesh = true
-				local meshname = GetBestMoonMesh(ffxivminion.MoonMapVersion)
-				d("attempting to load mesh ["..tostring(meshname).."]")
-				ml_mesh_mgr.LoadNavMesh(meshname)
+				if In(Player.localmapid,1237) then
+					local meshname = GetBestMoonMesh(ffxivminion.MoonMapVersion)
+					d("attempting to load mesh ["..tostring(meshname).."]")
+					ml_mesh_mgr.LoadNavMesh(meshname)
+					e_get_mapversion.loadedMesh = true
+				elseif In(Player.localmapid,1291) then
+					local meshname = GetBestPhaennaMesh(ffxivminion.PhaennaMapVersion)
+					d("attempting to load mesh ["..tostring(meshname).."]")
+					ml_mesh_mgr.LoadNavMesh(meshname)
+					e_get_mapversion.loadedMesh = true
+				end
 			end
 		end
 	end
@@ -79,7 +89,11 @@ function e_get_mapversion:execute()
 		end
 	else
 		if GetControlRawData("WKSHistoryBoard",1) then
-			ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+			if In(Player.localmapid,1237) then
+				ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+			elseif In(Player.localmapid,1291) then
+				ffxivminion.PhaennaMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+			end
 		end
 	end
 end
@@ -2366,7 +2380,7 @@ end
 function e_sprint:execute()
 
 	local sprintID = 3
-	if In(Player.localmapid,1237) then
+	if In(Player.localmapid,1237,1291) then
 		sprintID = 43357
 	end
 	

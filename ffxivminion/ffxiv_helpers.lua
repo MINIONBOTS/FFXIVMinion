@@ -38,6 +38,27 @@ function GetBestMoonMesh(version)
 		return "Sinus Ardorum"
 	end
 end
+function GetBestPhaennaMesh(version)
+	if not tonumber(version) then
+		return "Phaenna"
+	end
+	
+	local bestMesh = ""
+	local pathName = GetStartupPath()..[[\Navigation\]]
+	for i = 1, 20, 1 do
+		if i <= tonumber(version) then
+			if FolderExists(pathName.."Phaenna_V"..tostring(i)) then
+				bestMesh = "Phaenna_V"..tostring(i)
+			end
+		end
+	end 
+	
+	if bestMesh ~= "" then
+		return bestMesh
+	else
+		return "Phaenna"
+	end
+end
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
