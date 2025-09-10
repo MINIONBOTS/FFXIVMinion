@@ -1123,15 +1123,15 @@ ffxiv_map_nav.data = {
 			},
 		},
 		[401] = {
-			{id = 401, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211, i = 5
+			{id = 401, cost = 3, x = 151.99447631836, y = -12.559194564819, z = -8.2321929931641, h = -1.4262824058533, b = 1011211
 				, conversationstrings = {
-            		["E"] = "Seek Passage to Cloudtop",
-					--["J"] = "クラウド・トップへ行く",
-            		--["G"] = "Zum Wolkenhimmel",
-            		--["F"] = "Aller au Sommet des nuages",
-            		--["CN"] = "前往云顶高地",
-            		--["KR"] = "클라우드톱으로 이동",
-            	},
+                    ["E"] = "Seek Passage to Cloudtop",
+                    ["J"] = "「キャンプ・クラウドトップ」へ行く",
+                    ["G"] = "Nach Camp Wolkenwipfel",
+                    ["F"] = "Aller au camp de Cime-des-nuages",
+                    ["CN"] = "前往云顶营地",
+                    ["KR"] = "''구름마루 초소'로 이동",
+                },
 			},
 		},
 		[402] = {
