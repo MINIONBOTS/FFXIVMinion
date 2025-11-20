@@ -47,15 +47,18 @@ function GetBestPhaennaMesh(version)
 	local pathName = GetStartupPath()..[[\Navigation\]]
 	for i = 1, 20, 1 do
 		if i <= tonumber(version) then
-			if FolderExists(pathName.."Phaenna_V"..tostring(i)) then
-				bestMesh = "Phaenna_V"..tostring(i)
+			if FolderExists(pathName.."Phaenna_v"..tostring(i)) then
+				d("folder exists Phaenna_v"..tostring(i))
+				bestMesh = "Phaenna_v"..tostring(i)
 			end
 		end
 	end 
 	
 	if bestMesh ~= "" then
+		d("return bestMesh mesh")
 		return bestMesh
 	else
+		d("return fallback mesh")
 		return "Phaenna"
 	end
 end
