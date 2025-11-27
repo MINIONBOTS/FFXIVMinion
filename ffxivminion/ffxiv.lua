@@ -26,7 +26,8 @@ ffxivminion.maxlevel = 100
 ffxivminion.patchLevel = {
 	[1] = 7.31,
 	[2] = 7.3,
-	[3] = 7.21
+	[3] = 7.3,
+	[4] = 7.2
 }
 ffxivminion.loginvars = {
 	reset = true,
@@ -74,10 +75,9 @@ elseif (ffxivminion.gameRegion == 3) then
 		[1] = { "-", "모그리", "초코보", "카벙클", "톤베리","펜리르" },
 	}
 elseif (ffxivminion.gameRegion == 4) then
-    ffxivminion.loginservers = {
-        [1] = { "-", "伊弗利特", "迦樓羅", "利維坦", "鳳凰" },
-  }    
-
+	ffxivminion.loginservers = {
+		[1] = { "-", "伊弗利特", "迦樓羅", "利維坦", "鳳凰" },
+	}	
 end
 
 ffxivminion.classes = {
