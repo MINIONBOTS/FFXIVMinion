@@ -1791,6 +1791,7 @@ function c_useaethernet:evaluate(mapid, pos)
 				["F"] = "Auberge du Bokairo",
 				["CN"] = "望海楼",
 				["KR"] = "망해루",
+				["TC"] = "望海樓",
 			},
 		}
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
@@ -1806,6 +1807,7 @@ function c_useaethernet:evaluate(mapid, pos)
 				["F"] = "Guilde des aventuriers";
 				["CN"] = "冒险者行会前";
 				["KR"] = "모험가 길드";
+				["TC"] = "冒險者行會前";
 			};
 			["id"] = 33;
 			["mapid"] = 130;
@@ -1828,6 +1830,7 @@ function c_useaethernet:evaluate(mapid, pos)
 				["F"] = "Guilde des aventuriers (Guildes des armuriers & forgerons/Maelstrom)";
 				["CN"] = "冒险者行会前";
 				["KR"] = "모험가 길드";
+				["TC"] = "冒險者行會前（鍛造師行會/甲冑師行會/黑渦團）";
 			};
 			["id"] = 41;
 			["mapid"] = 128;
