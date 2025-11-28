@@ -892,6 +892,7 @@ function ffxiv_task_teleport:task_complete_eval()
 				["F"] = "Enregistrer comme point de retour";
 				["CN"] = "设置返回点";
 				["KR"] = "귀환 지점 설정";
+				["TC"] = "設置返回點";
 			}
 
 			for selectindex,convo in pairs(convoList) do
@@ -2369,6 +2370,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						jp = "都市転送網",
 						cn = "都市传送网",
 						kr = "도시 내 이동",
+						tc = "都市傳送網",
 					}
 					
 					local residential = {
@@ -2400,6 +2402,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						jp = "都市転送網",
 						cn = "都市传送网",
 						kr = "도시 내 이동",
+						tc = "都市傳送網",
 					}
 					
 					local residential = {
