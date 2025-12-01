@@ -76,7 +76,7 @@ elseif (ffxivminion.gameRegion == 3) then
 	}
 elseif (ffxivminion.gameRegion == 4) then
 	ffxivminion.loginservers = {
-		[1] = { "-", "伊弗利特", "迦樓羅", "利維坦", "鳳凰" },
+		[1] = { "-", "伊弗利特", "迦樓羅", "利維坦", "鳳凰","奥汀", "巴哈姆特"},
 	}	
 end
 
