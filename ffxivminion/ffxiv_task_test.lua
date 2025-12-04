@@ -257,6 +257,8 @@ function ffxiv_task_test:Draw()
 		section = GetLivingMemorySection(Player.pos)
 	elseif In(Player.localmapid,1237) then
 		section = GetCosmicMoon(Player.pos)
+	elseif In(Player.localmapid,1291) then
+		section = GetPhaenna(Player.pos)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 	local section = 0
@@ -278,6 +280,8 @@ function ffxiv_task_test:Draw()
 		section = GetLivingMemorySection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
 	elseif In(Player.localmapid,1237) then
 		section = GetCosmicMoon({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
+	elseif In(Player.localmapid,1291) then
+		section = GetPhaenna({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 					
