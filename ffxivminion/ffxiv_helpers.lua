@@ -8833,9 +8833,9 @@ function Transport1291(pos1, pos2)
 			portalData = phaennaPortalPositions[20] and phaennaPortalPositions[20]["20 East"]
 		end
 	elseif In(pos1Section, 21) and ffxivminion.PhaennaMapVersion >= 9 then
-		if In(pos2Section, 19,20,22) then
+		if In(pos2Section, 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,23,24) then
 			portalData = phaennaPortalPositions[21] and phaennaPortalPositions[21]["21 South"]
-		elseif In(pos2Section, 23,24) then
+		elseif In(pos2Section, 22) then
 			portalData = phaennaPortalPositions[21] and phaennaPortalPositions[21]["21 East"]
 		end
 	elseif In(pos1Section, 22) and ffxivminion.PhaennaMapVersion >= 9 then
