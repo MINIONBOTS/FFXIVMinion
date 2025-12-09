@@ -7188,7 +7188,7 @@ local phaennaCenterPoints = {
 	[16] = {x = -88.341079711914, y = 34.549995422363, z = 660.40710449219},
 	[17] = {x = 184.58963012695, y = -4.9500002861023, z = 430.32192993164},
 	[18] = {x = 255.0668182373, y = -8.9499998092651, z = 131.74061584473},
-	[19] = {x = 836.99548339844, y = -167.99984741211, z = 435.69207763672},
+	[19] = {x = 836.99548339844, y = -167.99984741211, z = 435.69207763672, radius = 50},
 	[20] = {x = 528.12316894531, y = -219.81588745117, z = 751.91760253906},
 	[21] = {x = 410.08758544922, y = -229.44999694824, z = 229.9786529541},
 	[22] = {x = 651.92114257812, y = -242, z = 412.4010925293},
@@ -7317,54 +7317,6 @@ local phaennaPortalPositions = {
 	},
 }
 
--- Function to save center point (Moon map)
-function SaveCenterPoint(section, pos)
-	if not section or not pos then
-		return false
-	end
-	centerPoints[section] = {x = pos.x, y = pos.y, z = pos.z}
-	return true
-end
-
--- Function to save portal position (Moon map)
-function SavePortalPosition(section, portalName, pos, facing)
-	if not section or not portalName or not pos or not facing then
-		return false
-	end
-	if not portalPositions[section] then
-		portalPositions[section] = {}
-	end
-	portalPositions[section][portalName] = {
-		pos = {x = pos.x, y = pos.y, z = pos.z},
-		facing = facing
-	}
-	return true
-end
-
--- Function to save center point (Phaenna map)
-function SavePhaennaCenterPoint(section, pos)
-	if not section or not pos then
-		return false
-	end
-	phaennaCenterPoints[section] = {x = pos.x, y = pos.y, z = pos.z}
-	return true
-end
-
--- Function to save portal position (Phaenna map)
-function SavePhaennaPortalPosition(section, portalName, pos, facing)
-	if not section or not portalName or not pos or not facing then
-		return false
-	end
-	if not phaennaPortalPositions[section] then
-		phaennaPortalPositions[section] = {}
-	end
-	phaennaPortalPositions[section][portalName] = {
-		pos = {x = pos.x, y = pos.y, z = pos.z},
-		facing = facing
-	}
-	return true
-end
-
 function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
 	local closestDistance = math.huge
@@ -7433,6 +7385,10 @@ function CalcMoonTransport(pos1, pos2, pos1Section, pos2Section)
 
 	-- Only calculate if all data is present
 	if pos1 and pos2 and centerPoints[pos1Section] and centerPoints[pos2Section] then
+		local distance = GetPathDistance(pos1, pos2)
+		if distance < 150 then
+			return false
+		end
 		local distance1 = GetPathDistance(pos1, pos2) * 1.5
 		local distance2 =
 			GetPathDistance(pos1, centerPoints[pos1Section]) +
@@ -7459,7 +7415,88 @@ function CalcMoonTransport(pos1, pos2, pos1Section, pos2Section)
 
 	return false
 end
+function CalcPhaennaTransport(pos1, pos2, pos1Section, pos2Section)
+	-- Check if positions are close to last check (within 100 units)
+	local last = ff.lastPhaennaTransportCheck
+	if last.pos1 and last.pos2 then
+		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
+			return last.result
+		end
+	end
 
+	-- Check for existing cached pathingData
+	if ff.phaennaPathingData[pos1Section] and ff.phaennaPathingData[pos1Section][pos2.x] and ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] ~= nil then
+		local cached = ff.phaennaPathingData[pos1Section][pos2.x][pos2.z]
+		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
+		return cached
+	end
+
+	-- Only calculate if all data is present
+	if pos1 and pos2 and phaennaCenterPoints[pos1Section] and phaennaCenterPoints[pos2Section] then
+		local distance = GetPathDistance(pos1, pos2)
+		if distance < 150 then
+			return false
+		end
+		local distance1 = GetPathDistance(pos1, pos2) * 1.5
+		local distance2 =
+			GetPathDistance(pos1, phaennaCenterPoints[pos1Section]) +
+			GetPathDistance(phaennaCenterPoints[pos2Section], pos2)
+
+		-- Init pathingData table
+		ff.phaennaPathingData[pos1Section] = ff.phaennaPathingData[pos1Section] or {}
+		ff.phaennaPathingData[pos1Section][pos2.x] = ff.phaennaPathingData[pos1Section][pos2.x] or {}
+
+		local result
+		d("distance = "..tostring(GetPathDistance(pos1, pos2)))
+		d("distance1 = "..tostring(distance1))
+		d("distance2 = "..tostring(distance2))
+		if distance1 > distance2 then
+			result = true
+		else
+			result = false
+		end
+
+		-- Save result in both pathingData and last check
+		ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] = result
+		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
+		return result
+	end
+
+	return false
+end
+-- Phaenna map functions (map ID 1291)
+-- Helper function to find the best portal for a section connection (cycles through portals)
+local portalCycleIndex = {}
+local portalCycleDirection = {}
+function GetPhaenna(pos, closest)
+	local closestIndex = 0
+	local closestDistance = math.huge
+	
+	for index, centerPos in pairs(phaennaCenterPoints) do
+		local distance = math.distance2d(pos, centerPos)
+		local threshold = IsNull(centerPos.radius, 150)
+		if not centerPos.markeronly then
+			if distance < closestDistance then
+				closestDistance = distance
+				closestIndex = index
+			end
+		end
+	end
+	
+	-- default if no match
+	return closestIndex
+end
+
+if not ff.phaennaPathingData then
+	ff.phaennaPathingData = {}
+end
+if not ff.lastPhaennaTransportCheck then
+	ff.lastPhaennaTransportCheck = {
+		pos1 = nil,
+		pos2 = nil,
+		result = nil
+	}
+end
 function Transport1237(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -8580,261 +8617,6 @@ function Transport1237(pos1,pos2)
 	end 
 	return false
 end
-function Transport139(pos1,pos2)
-	local pos1 = pos1 or Player.pos
-	local pos2 = pos2
-	
-	if (CanFlyInZone()) then
-		return false
-	end
-	
-	local gilCount = GilCount()
-	if (pos1.x < 0 and pos2.x > 0) then
-		if (gilCount >= 40) then
-			return true, function ()
-				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = -341.24, y = -1, z = 112.098}
-				newTask.contentid = 1003586
-				newTask.abort = function ()
-					return Player.pos.x > 0
-				end
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
-			end
-		else
-			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
-		end
-	elseif (pos1.x > 0 and pos2.x < 0) then
-		if (gilCount >= 40) then
-			return true, function ()
-				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
-				newTask.contentid = 1003587
-				newTask.abort = function ()
-					return Player.pos.x < 0
-				end
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
-			end
-		else
-			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
-		end
-	end
-	
-	return false			
-end
-
--- Phaenna map functions (map ID 1291)
-function GetPhaenna(pos, closest)
-	local closestIndex = 0
-	local closestDistance = math.huge
-	
-	for index, centerPos in pairs(phaennaCenterPoints) do
-		local distance = math.distance2d(pos, centerPos)
-		local threshold = IsNull(centerPos.radius, 150)
-		if not centerPos.markeronly then
-			if distance < closestDistance then
-				closestDistance = distance
-				closestIndex = index
-			end
-		end
-	end
-	
-	-- default if no match
-	return closestIndex
-end
-
-if not ff.phaennaPathingData then
-	ff.phaennaPathingData = {}
-end
-if not ff.lastPhaennaTransportCheck then
-	ff.lastPhaennaTransportCheck = {
-		pos1 = nil,
-		pos2 = nil,
-		result = nil
-	}
-end
-
-function CalcPhaennaTransport(pos1, pos2, pos1Section, pos2Section)
-	-- Check if positions are close to last check (within 100 units)
-	local last = ff.lastPhaennaTransportCheck
-	if last.pos1 and last.pos2 then
-		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
-			return last.result
-		end
-	end
-
-	-- Check for existing cached pathingData
-	if ff.phaennaPathingData[pos1Section] and ff.phaennaPathingData[pos1Section][pos2.x] and ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] ~= nil then
-		local cached = ff.phaennaPathingData[pos1Section][pos2.x][pos2.z]
-		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
-		return cached
-	end
-
-	-- Only calculate if all data is present
-	if pos1 and pos2 and phaennaCenterPoints[pos1Section] and phaennaCenterPoints[pos2Section] then
-		local distance1 = GetPathDistance(pos1, pos2) * 1.5
-		local distance2 =
-			GetPathDistance(pos1, phaennaCenterPoints[pos1Section]) +
-			GetPathDistance(phaennaCenterPoints[pos2Section], pos2)
-
-		-- Init pathingData table
-		ff.phaennaPathingData[pos1Section] = ff.phaennaPathingData[pos1Section] or {}
-		ff.phaennaPathingData[pos1Section][pos2.x] = ff.phaennaPathingData[pos1Section][pos2.x] or {}
-
-		local result
-		if distance1 > distance2 then
-			result = true
-		else
-			result = false
-		end
-
-		-- Save result in both pathingData and last check
-		ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] = result
-		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
-		return result
-	end
-
-	return false
-end
-
--- Helper function to check if portal meets version requirements
-local function PortalMeetsVersion(portalData)
-	if not portalData then
-		return false
-	end
-	local requiredVersion = portalData.requires or 3
-	return ffxivminion.PhaennaMapVersion >= requiredVersion
-end
-
--- Helper function to find the best portal for a section connection (cycles through portals)
-local portalCycleIndex = {}
-local portalCycleDirection = {}
-
-local function FindPhaennaPortal(sourceSection, targetSection)
-	if not phaennaPortalPositions[sourceSection] then
-		return nil
-	end
-	
-	local sourceCenter = phaennaCenterPoints[sourceSection]
-	local targetCenter = phaennaCenterPoints[targetSection]
-	
-	if not sourceCenter or not targetCenter then
-		return nil
-	end
-	
-	-- Calculate direction from source to target
-	local dx = targetCenter.x - sourceCenter.x
-	local dz = targetCenter.z - sourceCenter.z
-	
-	-- Determine primary direction
-	local primaryDir = nil
-	if math.abs(dx) > math.abs(dz) then
-		if dx > 0 then
-			primaryDir = "East"
-		else
-			primaryDir = "West"
-		end
-	else
-		if dz > 0 then
-			primaryDir = "South"
-		else
-			primaryDir = "North"
-		end
-	end
-	
-	-- Try to find portal by direction name
-	local portals = phaennaPortalPositions[sourceSection]
-	local validPortals = {}
-	
-	-- First, check for special portals (Lava connections)
-	if targetSection == 13 or targetSection == 23 or targetSection == 24 then
-		if portals["13 South"] and PortalMeetsVersion(portals["13 South"]) then
-			table.insert(validPortals, portals["13 South"])
-		end
-		if portals["23 South"] and PortalMeetsVersion(portals["23 South"]) then
-			table.insert(validPortals, portals["23 South"])
-		end
-		if portals["23 North"] and PortalMeetsVersion(portals["23 North"]) then
-			table.insert(validPortals, portals["23 North"])
-		end
-		if portals["24 North"] and PortalMeetsVersion(portals["24 North"]) then
-			table.insert(validPortals, portals["24 North"])
-		end
-	end
-	
-	-- Check for section-specific portals (e.g., "13 West", "12 East")
-	for portalName, portalData in pairs(portals) do
-		local sectionNum = tonumber(string.match(portalName, "^(%d+)"))
-		if sectionNum == targetSection and PortalMeetsVersion(portalData) then
-			table.insert(validPortals, portalData)
-		end
-	end
-	
-	-- Try directional portals
-	if primaryDir and portals[primaryDir] and PortalMeetsVersion(portals[primaryDir]) then
-		table.insert(validPortals, portals[primaryDir])
-	end
-	
-	-- Try section-specific directional portals (e.g., "1 North", "2 South")
-	for portalName, portalData in pairs(portals) do
-		if string.find(portalName, primaryDir) and PortalMeetsVersion(portalData) then
-			table.insert(validPortals, portalData)
-		end
-	end
-	
-	-- Fallback: add all available portals that meet version requirements
-	for portalName, portalData in pairs(portals) do
-		if PortalMeetsVersion(portalData) then
-			local alreadyAdded = false
-			for _, vp in ipairs(validPortals) do
-				if vp == portalData then
-					alreadyAdded = true
-					break
-				end
-			end
-			if not alreadyAdded then
-				table.insert(validPortals, portalData)
-			end
-		end
-	end
-	
-	if #validPortals == 0 then
-		return nil
-	end
-	
-	-- Cycle through portals back and forth
-	local cycleKey = tostring(sourceSection) .. "_" .. tostring(targetSection)
-	if not portalCycleIndex[cycleKey] then
-		portalCycleIndex[cycleKey] = 1
-		portalCycleDirection[cycleKey] = 1 -- 1 for forward, -1 for backward
-	end
-	
-	local currentIndex = portalCycleIndex[cycleKey]
-	local portal = validPortals[currentIndex]
-	
-	-- Move to next portal
-	if portalCycleDirection[cycleKey] == 1 then
-		-- Moving forward
-		if currentIndex >= #validPortals then
-			-- Reached end, reverse direction
-			portalCycleDirection[cycleKey] = -1
-			portalCycleIndex[cycleKey] = currentIndex - 1
-		else
-			portalCycleIndex[cycleKey] = currentIndex + 1
-		end
-	else
-		-- Moving backward
-		if currentIndex <= 1 then
-			-- Reached start, reverse direction
-			portalCycleDirection[cycleKey] = 1
-			portalCycleIndex[cycleKey] = currentIndex + 1
-		else
-			portalCycleIndex[cycleKey] = currentIndex - 1
-		end
-	end
-	
-	return portal
-end
-
 function Transport1291(pos1, pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -9045,10 +8827,10 @@ function Transport1291(pos1, pos2)
 			portalData = phaennaPortalPositions[19] and phaennaPortalPositions[19]["19 South"]
 		end
 	elseif In(pos1Section, 20) and ffxivminion.PhaennaMapVersion >= 9 then
-		if In(pos2Section, 19,21,22) then
-			portalData = phaennaPortalPositions[20] and phaennaPortalPositions[20]["20 East"]
-		elseif In(pos2Section, 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,23,24) then
+		if In(pos2Section, 21,22) then
 			portalData = phaennaPortalPositions[20] and phaennaPortalPositions[20]["20 West"]
+		elseif In(pos2Section, 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,23,24) then
+			portalData = phaennaPortalPositions[20] and phaennaPortalPositions[20]["20 East"]
 		end
 	elseif In(pos1Section, 21) and ffxivminion.PhaennaMapVersion >= 9 then
 		if In(pos2Section, 19,20,22) then
@@ -9079,11 +8861,6 @@ function Transport1291(pos1, pos2)
 		end
 	end
 	
-	-- Fallback to FindPhaennaPortal if no static match found
-	if not portalData then
-		portalData = FindPhaennaPortal(pos1Section, pos2Section)
-	end
-	
 	if not portalData then
 		return false
 	end
@@ -9104,6 +8881,58 @@ function Transport1291(pos1, pos2)
 		end
 	end
 end
+
+function Transport139(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (CanFlyInZone()) then
+		return false
+	end
+	
+	local gilCount = GilCount()
+	if (pos1.x < 0 and pos2.x > 0) then
+		if (gilCount >= 40) then
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -341.24, y = -1, z = 112.098}
+				newTask.contentid = 1003586
+				newTask.abort = function ()
+					return Player.pos.x > 0
+				end
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		else
+			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
+		end
+	elseif (pos1.x > 0 and pos2.x < 0) then
+		if (gilCount >= 40) then
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
+				newTask.contentid = 1003587
+				newTask.abort = function ()
+					return Player.pos.x < 0
+				end
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		else
+			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
+		end
+	end
+	
+	return false			
+end
+
+-- Helper function to check if portal meets version requirements
+local function PortalMeetsVersion(portalData)
+	if not portalData then
+		return false
+	end
+	local requiredVersion = portalData.requires or 3
+	return ffxivminion.PhaennaMapVersion >= requiredVersion
+end
+
 
 function Transport156(pos1,pos2)
 	local pos1 = pos1 or Player.pos
