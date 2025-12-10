@@ -465,20 +465,23 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 			end
 		else
 			if (IsControlOpen("SelectYesno")) then
-				local SelectYesnoMessage = GetControl("SelectYesno"):GetStrings()[2] or ""
-				local QueueString = {
-					[0] = "ログイン処理を中断してもよろしいですか？", -- JP
-					[1] = "Are you certain you wish to leave the queue?", -- EN
-					[2] = "Den Login-Prozess abbrechen?", -- DE
-					[3] = "Voulez-vous quitter la queue?", -- FR
-					[4] = "确定要取消登录吗？", -- CN
-					[6] = "로그인 처리를 중단하시겠습니까?", -- KR
-				}
-				local ClientLanguage = GetGameLanguage() or 1
-				local QueueMessage = QueueString[ClientLanguage]
-				if SelectYesnoMessage ~= "" then
-					if string.contains(SelectYesnoMessage, QueueMessage) == false then
-						UseControlAction("SelectYesno", "Yes", 0)
+				local SelectYesnoStrings = GetControl("SelectYesno"):GetStrings()
+				if table.valid(SelectYesnoStrings) then
+					local SelectYesnoMessage = SelectYesnoStrings[2] or ""
+					local QueueString = {
+						[0] = "ログイン処理を中断してもよろしいですか？", -- JP
+						[1] = "Are you certain you wish to leave the queue?", -- EN
+						[2] = "Den Login-Prozess abbrechen?", -- DE
+						[3] = "Voulez-vous quitter la queue?", -- FR
+						[4] = "确定要取消登录吗？", -- CN
+						[6] = "로그인 처리를 중단하시겠습니까?", -- KR
+					}
+					local ClientLanguage = GetGameLanguage() or 1
+					local QueueMessage = QueueString[ClientLanguage]
+					if SelectYesnoMessage ~= "" then
+						if string.contains(SelectYesnoMessage, QueueMessage) == false then
+							UseControlAction("SelectYesno", "Yes", 0)
+						end
 					end
 				end
 			else
