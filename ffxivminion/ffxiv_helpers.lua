@@ -5743,6 +5743,8 @@ local pvpMaps = {
 
 	[1293] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
     [1294] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
+
+	[1313] = true, -- worqor chirteh (triumph)
 }
 function IsPVPMap(mapid)
     local mapid = tonumber(mapid) or Player.localmapid
