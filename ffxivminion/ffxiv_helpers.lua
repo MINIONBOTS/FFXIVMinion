@@ -7450,9 +7450,6 @@ function CalcPhaennaTransport(pos1, pos2, pos1Section, pos2Section)
 		ff.phaennaPathingData[pos1Section][pos2.x] = ff.phaennaPathingData[pos1Section][pos2.x] or {}
 
 		local result
-		d("distance = "..tostring(GetPathDistance(pos1, pos2)))
-		d("distance1 = "..tostring(distance1))
-		d("distance2 = "..tostring(distance2))
 		if distance1 > distance2 then
 			result = true
 		else
@@ -8828,9 +8825,9 @@ function Transport1291(pos1, pos2)
 		end
 	elseif In(pos1Section, 19) and ffxivminion.PhaennaMapVersion >= 9 then
 		-- Section 19 portals (requires version >= 9)
-		if In(pos2Section, 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18) then
+		if In(pos2Section, 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,23,24) then
 			portalData = phaennaPortalPositions[19] and phaennaPortalPositions[19]["19 North"]
-		elseif In(pos2Section, 20,21,22,23,24) then
+		elseif In(pos2Section, 20,21,22) then
 			portalData = phaennaPortalPositions[19] and phaennaPortalPositions[19]["19 South"]
 		end
 	elseif In(pos1Section, 20) and ffxivminion.PhaennaMapVersion >= 9 then
