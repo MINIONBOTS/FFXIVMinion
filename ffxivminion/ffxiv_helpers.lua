@@ -7197,6 +7197,7 @@ local phaennaCenterPoints = {
 	[23] = {x = -353.89910888672, y = 11, z = 394.69711303711},
 	[24] = {x = -591.08990478516, y = 28.5, z = 714.78485107422},
 	[25] = {x = 362, y = -255, z = 419, radius = 100, markeronly = true}, 
+	[26] = {x = 522, y = -255, z = 461, radius = 200, markeronly = true}, 
 }
 
 -- Portal positions table for Transport1291 function (Phaenna map)
@@ -7473,8 +7474,12 @@ function GetPhaenna(pos, closest)
 	local closestDistance = math.huge
 	
 	local distance = math.distance2d(pos,phaennaCenterPoints[25])
-	if distance < 100 then
+	if distance < phaennaCenterPoints[25].radius then
 		return 21
+	end
+	local distance = math.distance2d(pos,phaennaCenterPoints[26])
+	if distance < phaennaCenterPoints[26].radius then
+		return 22
 	end
 	for index, centerPos in pairs(phaennaCenterPoints) do
 		local distance = math.distance2d(pos, centerPos)
