@@ -1911,7 +1911,8 @@ function ml_global_information.Init()
 				[915] = "Gangos",
 				[928] = "The Puppets' Bunker2",
 				[979] = "Empyreum",
-				[1073] = "Elysion"
+				[1073] = "Elysion",
+				[985] = "Ingleside Apartment Lobby"
 			}
 			ml_mesh_mgr.GetMapNameByMapID = function (mapid) 
 				return IAmTooLazy[mapid]
