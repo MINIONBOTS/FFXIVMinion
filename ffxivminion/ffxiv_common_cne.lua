@@ -1912,7 +1912,11 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	
 	if (not table.valid(gotoPos)) then
 		return false
-	end	
+	end
+
+	if AceLib == nil then
+		return false
+	end
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	
