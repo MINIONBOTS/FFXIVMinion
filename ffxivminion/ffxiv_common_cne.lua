@@ -2354,6 +2354,9 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
+	if (1==1) then
+		return false
+	end
     if (gBotMode == "PVP") then
         return false
     end
@@ -3841,38 +3844,83 @@ local noskip = {
 }
 
 function c_skipcutscene:evaluate()
-		
-	if Player.onlinestatus == 15 and Player.localmapid ~= 0 then
-	
-	--	local delaycsskip = 0
-		if ((noskip[Player.localmapid] ~= true or gSkipUnsafeCutscene) and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and not Player.ismounted and not IsPVPMap(Player.localmapid)) then
-			if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString")) then
-				local convoList = GetConversationList()
-				if (table.valid(convoList)) then
-					SelectConversationIndex(1)
-					d("Skipping cutscene")
-				end
-			else
-				if (IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "This scene cannot be skipped." or GetControl("_TextError"):GetStrings()[2] == "Diese Szene kann nicht übersprungen werden." or GetControl("_TextError"):GetStrings()[2] == "Vous ne pouvez pas passer cette scène." or GetControl("_TextError"):GetStrings()[2] == "このイベントはスキップできません。" or GetControl("_TextError"):GetStrings()[2] == "该过场剧情无法跳过。" or GetControl("_TextError"):GetStrings()[2] == "건너뛸 수 없는 이벤트입니다.")) then	
-					c_skipcutscene.lastSkip = Now() + 10000
-					return false
-				end
-				if TimeSince(c_skipcutscene.lastSkip) > 50 then 
-					PressKey(27) -- Press ESC, used for quest cutscene skipping
-					return true
+        
+    if Player.onlinestatus == 15 and Player.localmapid ~= 0 then
+    
+    --    local delaycsskip = 0
+        if ((noskip[Player.localmapid] ~= true or gSkipUnsafeCutscene) and gSkipCutscene and (FFXIV_Common_BotRunning or not gSkipTalkRunningOnly) and not IsControlOpen("NowLoading") and not IsControlOpen("Snipe") and not IsControlOpen("JournalResult") and not Player.ismounted and not IsPVPMap(Player.localmapid)) then
+			local SS = GetControlByName("SelectString")
+			local SIS = GetControlByName("SelectIconString")
+			local CSSS = GetControlByName("CutSceneSelectString")
+			if (SIS) then
+				return false
+			end
+			if (CSSS) then
+				return false
+			end
+			if (SS) then
+				local SSGS = SS:GetStrings()
+				if (SSGS and SSGS[2]) then
+					if (SSGS[2] ~= "Skip cutscene?"
+						and
+						SSGS[2] ~= "Videosequenz überspringen?"
+						and
+						SSGS[2] ~= "Passer la scène cinématique ?"	
+						and
+						SSGS[2] ~= "このカットシーンをスキップしますか？"	
+						and
+						SSGS[2] ~= "要跳过这段过场动画吗？"	
+						and
+						SSGS[2] ~= "영상을 건너뛰시겠습니까?"			
+						and
+						SSGS[2] ~= "要跳過這段過場動畫嗎？") then
+						return false
+					end			
 				end
 			end
-		end
-		if not c_skipcutscene.togglehack and not gSkipUnsafeCutscene then -- for disabling during unskipable cutscenes
-			c_skipcutscene.togglehack = true
-			Hacks:SkipCutscene(false)
-		end
-	elseif c_skipcutscene.togglehack then
-		c_skipcutscene.togglehack = false
-		Hacks:SkipCutscene(gSkipCutscene)
-	end
-	return false
+            if (IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "This scene cannot be skipped." or GetControl("_TextError"):GetStrings()[2] == "Diese Szene kann nicht übersprungen werden." or GetControl("_TextError"):GetStrings()[2] == "Vous ne pouvez pas passer cette scène." or GetControl("_TextError"):GetStrings()[2] == "このイベントはスキップできません。" or GetControl("_TextError"):GetStrings()[2] == "该过场剧情无法跳过。" or GetControl("_TextError"):GetStrings()[2] == "건너뛸 수 없는 이벤트입니다.")) then    
+                c_skipcutscene.lastSkip = Now() + 10000
+                return false
+            end
+			if (SS) then
+				local SSGS = SS:GetStrings()
+				if (SSGS and SSGS[2]) then
+					if (SSGS[2] == "Skip cutscene?"
+						or
+						SSGS[2] == "Videosequenz überspringen?"
+						or
+						SSGS[2] == "Passer la scène cinématique ?"	
+						or
+						SSGS[2] == "このカットシーンをスキップしますか？"	
+						or
+						SSGS[2] == "要跳过这段过场动画吗？"	
+						or
+						SSGS[2] == "영상을 건너뛰시겠습니까?"			
+						or
+						SSGS[2] == "要跳過這段過場動畫嗎？") then
+						SelectConversationIndex(1)
+						d("Confirm Skip CS")
+						return true
+					end			
+				end
+			end	
+            if TimeSince(c_skipcutscene.lastSkip) > 50 then 
+                PressKey(27) -- Press ESC, used for quest cutscene skipping
+                d("ESC Press")
+                return true
+            end			
+        end
+        if not c_skipcutscene.togglehack and not gSkipUnsafeCutscene then -- for disabling during unskipable cutscenes
+            c_skipcutscene.togglehack = true
+            Hacks:SkipCutscene(false)
+        end
+    elseif c_skipcutscene.togglehack then
+        c_skipcutscene.togglehack = false
+        Hacks:SkipCutscene(gSkipCutscene)
+    end
+    return false
 end
+
 function e_skipcutscene:execute()
 	c_skipcutscene.lastSkip = Now()
 	SetThisTaskProperty("preserveSubtasks",true)
