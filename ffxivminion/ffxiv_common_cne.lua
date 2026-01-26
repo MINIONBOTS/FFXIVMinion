@@ -2354,9 +2354,6 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
-	if (1==1) then
-		return false
-	end
     if (gBotMode == "PVP") then
         return false
     end
