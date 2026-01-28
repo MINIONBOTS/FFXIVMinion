@@ -615,6 +615,11 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		if IsControlOpen("EventTutorial") then
 			GetControlByName("EventTutorial"):Destroy()
     	end
+		if IsControlOpen("ContentsTutorial") then
+            GetControlByName("ContentsTutorial"):PushButton(25,2)
+            GetControlByName("ContentsTutorial"):PushButton(25,3)
+			d("Closing ContentsTutorial")
+        end
 		if IsNormalMap(Player.localmapid) then
 			if QuestCompleted(1597) and (c_getCurrentInfo:evaluate()) then
 				e_getCurrentInfo:execute()
