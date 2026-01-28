@@ -101,6 +101,8 @@ function e_get_mapversion:execute()
 				ffxivminion.MoonMapVersion = GetControlRawData("WKSHistoryBoard",1).value
 			elseif In(Player.localmapid,1291) then
 				ffxivminion.PhaennaMapVersion = GetControlRawData("WKSHistoryBoard",1).value
+			elseif In(Player.localmapid,1310) then
+				ffxivminion.OizysMapVersion = GetControlRawData("WKSHistoryBoard",1).value
 			end
 		end
 	end
