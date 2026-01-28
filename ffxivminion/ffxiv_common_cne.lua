@@ -59,6 +59,9 @@ function c_get_mapversion:evaluate()
 	if In(Player.localmapid,1291) and ffxivminion.PhaennaMapVersion == 0 then
 		return true
 	end
+	if In(Player.localmapid,1310) and ffxivminion.OizysMapVersion == 0 then
+		return true
+	end
 	if not e_get_mapversion.loadedMesh then
 		if (IsControlOpen("WKSHistoryBoard")) then
 			if (IsControlOpen("WKSHud")) then
@@ -70,6 +73,11 @@ function c_get_mapversion:evaluate()
 					e_get_mapversion.loadedMesh = true
 				elseif In(Player.localmapid,1291) then
 					local meshname = GetBestPhaennaMesh(ffxivminion.PhaennaMapVersion)
+					d("attempting to load mesh ["..tostring(meshname).."]")
+					ml_mesh_mgr.LoadNavMesh(meshname)
+					e_get_mapversion.loadedMesh = true
+				elseif In(Player.localmapid,1310) then
+					local meshname = GetBestOizysMesh(ffxivminion.OizysMapVersion)
 					d("attempting to load mesh ["..tostring(meshname).."]")
 					ml_mesh_mgr.LoadNavMesh(meshname)
 					e_get_mapversion.loadedMesh = true

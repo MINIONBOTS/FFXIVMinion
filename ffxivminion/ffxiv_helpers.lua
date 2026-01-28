@@ -62,6 +62,30 @@ function GetBestPhaennaMesh(version)
 		return "Phaenna"
 	end
 end
+function GetBestOizysMesh(version)
+	if not tonumber(version) then
+		return "Oizys"
+	end
+	
+	local bestMesh = ""
+	local pathName = GetStartupPath()..[[\Navigation\]]
+	for i = 1, 20, 1 do
+		if i <= tonumber(version) then
+			if FolderExists(pathName.."Oizys_v"..tostring(i)) then
+				d("folder exists Oizys_v"..tostring(i))
+				bestMesh = "Oizys_v"..tostring(i)
+			end
+		end
+	end 
+	
+	if bestMesh ~= "" then
+		d("return bestMesh mesh")
+		return bestMesh
+	else
+		d("return fallback mesh")
+		return "Oizys"
+	end
+end
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
