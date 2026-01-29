@@ -1119,6 +1119,98 @@ function dev.DrawCall(event, ticks )
 			--  END CRAFTING
 
 
+			if (GUI:TreeNode("Director")) then
+				GUI:PushItemWidth(200)
+				
+				local director = Director:GetActiveDirector()
+				if (director ~= nil) then
+					GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##dirID", tostring(director.id))
+					GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##dirType", tostring(director.type))
+					GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dirName", tostring(director.name))
+					GUI:BulletText(".instancename") GUI:SameLine(200) GUI:InputText("##dirInstName", tostring(director.instancename))
+					GUI:BulletText(".sequence") GUI:SameLine(200) GUI:InputText("##dirSeq", tostring(director.sequence))
+					GUI:BulletText(".timeremaining") GUI:SameLine(200) GUI:InputText("##dirTime", tostring(director.timeremaining))
+					GUI:BulletText(".recommendedlevel") GUI:SameLine(200) GUI:InputText("##dirRecLvl", tostring(director.recommendedlevel))
+					GUI:BulletText(".eventitemid") GUI:SameLine(200) GUI:InputText("##dirEvtItem", tostring(director.eventitemid))
+					GUI:BulletText(".iconid") GUI:SameLine(200) GUI:InputText("##dirIconId", tostring(director.iconid))
+					GUI:BulletText(".text") GUI:SameLine(200) GUI:InputText("##dirText", tostring(director.text))
+					GUI:BulletText(".textstartindex") GUI:SameLine(200) GUI:InputText("##dirTxtStart", tostring(director.textstartindex))
+					GUI:BulletText(".textindex") GUI:SameLine(200) GUI:InputText("##dirTxtIdx", tostring(director.textindex))
+				else
+					GUI:BulletText("No active director")
+				end
+				
+				if (GUI:TreeNode("Company Leve Info")) then
+					if (director ~= nil) then
+						GUI:BulletText(".companyleve_a") GUI:SameLine(200) GUI:InputText("##dirCLA", tostring(director.companyleve_a))
+						GUI:BulletText(".companyleve_b") GUI:SameLine(200) GUI:InputText("##dirCLB", tostring(director.companyleve_b))
+						GUI:BulletText(".companyleve_c") GUI:SameLine(200) GUI:InputText("##dirCLC", tostring(director.companyleve_c))
+					else
+						GUI:BulletText("No data available")
+					end
+					GUI:TreePop()
+				end
+				
+				if (GUI:TreeNode("Objectives")) then
+					if (director ~= nil and table.valid(director.objectives)) then
+						for idx, obj in pairs(director.objectives) do
+							if (GUI:TreeNode(tostring(idx)..": "..tostring(obj.name))) then
+								GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Name", tostring(obj.name))
+								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Type", tostring(obj.type))
+								GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Done", tostring(obj.completed))
+								if (table.valid(obj.values)) then
+									GUI:BulletText(".values[1] (current)") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Val1", tostring(obj.values[1]))
+									GUI:BulletText(".values[2] (max)") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Val2", tostring(obj.values[2]))
+								end
+								GUI:TreePop()
+							end
+						end
+					else
+						GUI:BulletText("No objectives available")
+					end
+					GUI:TreePop()
+				end
+				
+				if (GUI:TreeNode("Bitfields")) then
+					if (director ~= nil) then
+						GUI:BulletText(".I8A") GUI:SameLine(200) GUI:InputText("##dirI8A", tostring(director.I8A))
+						GUI:BulletText(".I8B") GUI:SameLine(200) GUI:InputText("##dirI8B", tostring(director.I8B))
+						GUI:BulletText(".I8C") GUI:SameLine(200) GUI:InputText("##dirI8C", tostring(director.I8C))
+						GUI:BulletText(".I8D") GUI:SameLine(200) GUI:InputText("##dirI8D", tostring(director.I8D))
+						GUI:BulletText(".I8E") GUI:SameLine(200) GUI:InputText("##dirI8E", tostring(director.I8E))
+						GUI:BulletText(".I8F") GUI:SameLine(200) GUI:InputText("##dirI8F", tostring(director.I8F))
+						GUI:BulletText(".I8G") GUI:SameLine(200) GUI:InputText("##dirI8G", tostring(director.I8G))
+						GUI:BulletText(".I8H") GUI:SameLine(200) GUI:InputText("##dirI8H", tostring(director.I8H))
+						GUI:BulletText(".I8I") GUI:SameLine(200) GUI:InputText("##dirI8I", tostring(director.I8I))
+						GUI:BulletText(".I8J") GUI:SameLine(200) GUI:InputText("##dirI8J", tostring(director.I8J))
+						
+						if (GUI:TreeNode("High Nibbles")) then
+							for i = 0, 9 do
+								local letters = {"A","B","C","D","E","F","G","H","I","J"}
+								local field = "I8"..letters[i+1].."H"
+								GUI:BulletText("."..field) GUI:SameLine(200) GUI:InputText("##dir"..field, tostring(director[field]))
+							end
+							GUI:TreePop()
+						end
+						
+						if (GUI:TreeNode("Low Nibbles")) then
+							for i = 0, 9 do
+								local letters = {"A","B","C","D","E","F","G","H","I","J"}
+								local field = "I8"..letters[i+1].."L"
+								GUI:BulletText("."..field) GUI:SameLine(200) GUI:InputText("##dir"..field, tostring(director[field]))
+							end
+							GUI:TreePop()
+						end
+					else
+						GUI:BulletText("No data available")
+					end
+					GUI:TreePop()
+				end
+				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+
 			if ( GUI:TreeNode("Duty Info")) then
 
 				GUI:BulletText("IsQueued") GUI:SameLine(200) GUI:InputText("##devDLx1",tostring(Duty:IsQueued()))
