@@ -259,6 +259,8 @@ function ffxiv_task_test:Draw()
 		section = GetCosmicMoon(Player.pos)
 	elseif In(Player.localmapid,1291) then
 		section = GetPhaenna(Player.pos)
+	elseif In(Player.localmapid,1310) then
+		section = GetOizys(Player.pos)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 	local section = 0
@@ -282,6 +284,8 @@ function ffxiv_task_test:Draw()
 		section = GetCosmicMoon({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
 	elseif In(Player.localmapid,1291) then
 		section = GetPhaenna({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
+	elseif In(Player.localmapid,1310) then
+		section = GetOizys({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
 					
