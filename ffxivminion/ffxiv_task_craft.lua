@@ -34,29 +34,29 @@ ffxiv_craft.collectors = {
 ffxiv_craft.collectibles = {
 	-- Weekly (Custom Delivery)
 	-- Zhloe Alipoh
-	{ name = AceLib.API.Items.GetNameByID(17549), minimum = 55 },	--	Near Eastern Antique
-	{ name = AceLib.API.Items.GetNameByID(17550), minimum = 57 },	--	Coerthan Souvenir	
-	{ name = AceLib.API.Items.GetNameByID(17551), minimum = 59 },	--	Maelstrom Materiel	
-	{ name = AceLib.API.Items.GetNameByID(17552), minimum = 63 },	--	Heartfelt Gift	
-	{ name = AceLib.API.Items.GetNameByID(17553), minimum = 68 },	--	Orphanage Donation	
+	{ name = FFXIVLib.API.Items.GetNameByID(17549), minimum = 55 },	--	Near Eastern Antique
+	{ name = FFXIVLib.API.Items.GetNameByID(17550), minimum = 57 },	--	Coerthan Souvenir	
+	{ name = FFXIVLib.API.Items.GetNameByID(17551), minimum = 59 },	--	Maelstrom Materiel	
+	{ name = FFXIVLib.API.Items.GetNameByID(17552), minimum = 63 },	--	Heartfelt Gift	
+	{ name = FFXIVLib.API.Items.GetNameByID(17553), minimum = 68 },	--	Orphanage Donation	
 	-- M 'naago
-	{ name = AceLib.API.Items.GetNameByID(20775), minimum = 157 },	--	Gyr Abanian Souvenir
-	{ name = AceLib.API.Items.GetNameByID(20776), minimum = 167 },	--	Far Eastern Antique	
-	{ name = AceLib.API.Items.GetNameByID(20777), minimum = 130 },	--	Gold Saucer Consolation Prize	
-	{ name = AceLib.API.Items.GetNameByID(20778), minimum = 130 },	--	M Tribe Sundries	
-	{ name = AceLib.API.Items.GetNameByID(20779), minimum = 104 },	--	Resistance Materiel
+	{ name = FFXIVLib.API.Items.GetNameByID(20775), minimum = 157 },	--	Gyr Abanian Souvenir
+	{ name = FFXIVLib.API.Items.GetNameByID(20776), minimum = 167 },	--	Far Eastern Antique	
+	{ name = FFXIVLib.API.Items.GetNameByID(20777), minimum = 130 },	--	Gold Saucer Consolation Prize	
+	{ name = FFXIVLib.API.Items.GetNameByID(20778), minimum = 130 },	--	M Tribe Sundries	
+	{ name = FFXIVLib.API.Items.GetNameByID(20779), minimum = 104 },	--	Resistance Materiel
 	-- Kurenai
-	{ name = AceLib.API.Items.GetNameByID(23143), minimum = 195 },	--	Gyr Abanian Remedies	
-	{ name = AceLib.API.Items.GetNameByID(23144), minimum = 195 },	--	Anti-shark Harpoon
-	{ name = AceLib.API.Items.GetNameByID(23145), minimum = 130 },	--	Coerthan Cold-weather Gear
-	{ name = AceLib.API.Items.GetNameByID(23146), minimum = 130 },	--	Sui-no-Sato Special
-	{ name = AceLib.API.Items.GetNameByID(23147), minimum = 110 },	--	Cloud Pearl
+	{ name = FFXIVLib.API.Items.GetNameByID(23143), minimum = 195 },	--	Gyr Abanian Remedies	
+	{ name = FFXIVLib.API.Items.GetNameByID(23144), minimum = 195 },	--	Anti-shark Harpoon
+	{ name = FFXIVLib.API.Items.GetNameByID(23145), minimum = 130 },	--	Coerthan Cold-weather Gear
+	{ name = FFXIVLib.API.Items.GetNameByID(23146), minimum = 130 },	--	Sui-no-Sato Special
+	{ name = FFXIVLib.API.Items.GetNameByID(23147), minimum = 110 },	--	Cloud Pearl
 	-- Adkiragh
-	{ name = AceLib.API.Items.GetNameByID(24562), minimum = 233 },	--	Ishgardian Culinary Essentials
-	{ name = AceLib.API.Items.GetNameByID(24563), minimum = 233 },	--	Fermented Juice
-	{ name = AceLib.API.Items.GetNameByID(24564), minimum = 161 },	--	Signature Buuz Cookware
-	{ name = AceLib.API.Items.GetNameByID(24565), minimum = 161 },	--	Hard Place Decorative Furnishings 
-	{ name = AceLib.API.Items.GetNameByID(24566), minimum = 125 },	--	Arkhi Brewing Set
+	{ name = FFXIVLib.API.Items.GetNameByID(24562), minimum = 233 },	--	Ishgardian Culinary Essentials
+	{ name = FFXIVLib.API.Items.GetNameByID(24563), minimum = 233 },	--	Fermented Juice
+	{ name = FFXIVLib.API.Items.GetNameByID(24564), minimum = 161 },	--	Signature Buuz Cookware
+	{ name = FFXIVLib.API.Items.GetNameByID(24565), minimum = 161 },	--	Hard Place Decorative Furnishings 
+	{ name = FFXIVLib.API.Items.GetNameByID(24566), minimum = 125 },	--	Arkhi Brewing Set
 }
 
 ffxiv_task_craft = inheritsFrom(ml_task)
@@ -341,7 +341,7 @@ function c_craftlimit:evaluate()
 			end
 			
 			local taskDetails = ml_task_hub:CurrentTask()
-			local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,taskDetails.useHQ,taskDetails)
+			local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(recipe.id,taskDetails.useHQ,taskDetails)
 			if (not canCraft) then
 				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
 				return true
@@ -434,7 +434,7 @@ function c_startcraft:evaluate()
 				local requireHQ = ml_task_hub:CurrentTask().requireHQ
 				local requireCollect = ml_task_hub:CurrentTask().requireCollect
 				local countHQ = ml_task_hub:CurrentTask().countHQ
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
+				local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 				
 				local itemcounts = ffxiv_craft.itemCounts
 				local itemcountnorm = IsNull(itemcounts[itemid].count,0)
@@ -646,9 +646,9 @@ function e_startcraft:execute()
 						local requireCollect = ml_task_hub:CurrentTask().requireCollect
 						if (usequick and not requireCollect) then
 							local itemid = ml_task_hub:CurrentTask().itemid
-							local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
+							local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(recipe.id,ml_task_hub:CurrentTask().useHQ)
 							local wantedAmount = ml_task_hub:ThisTask().requiredItems
-							local yield = AceLib.API.Items.GetRecipeDetails(recipe.id).yield
+							local yield = FFXIVLib.API.Items.GetRecipeDetails(recipe.id).yield
 							local craftAmount = math.ceil(wantedAmount / yield)
 							if (craftAmount > 0 and craftAmount <= (maxAmount / yield) and craftAmount <= 99) then
 								if (IsControlOpen("SynthesisSimpleDialog")) then
@@ -1025,7 +1025,7 @@ function c_selectcraft:evaluate()
 				orders[id].completed = false
 			end
 			if (order.completed == false and order.skip ~= true) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
+				local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(order.id,order.usehq)
 				if (canCraft) or (order.ifnecessary) then
 					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 					return true
@@ -1051,7 +1051,7 @@ function e_selectcraft:execute()
 		for id,order in spairs(orders) do
 		
 			if (not order.completed and not order.skip) then
-				local canCraft,maxAmount = AceLib.API.Items.CanCraft(order.id,order.usehq)
+				local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(order.id,order.usehq)
 
 				if (canCraft) or (order.ifnecessary) then
 					local itemid = order.item
@@ -1324,13 +1324,13 @@ function ffxiv_task_craft:UIInit()
 		gCraftCollectablePresets = {}
 		GUI_Set("gCraftCollectablePresets",{})
 		for k,v in pairs(ffxiv_craft.collectibles) do
-			local newID = AceLib.API.Items.GetIDByName(v.name)
+			local newID = FFXIVLib.API.Items.GetIDByName(v.name)
 			if newID then
-				gCraftCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+				gCraftCollectablePresets[FFXIVLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
 			end
 		end
 		
-		AceLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
+		FFXIVLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
 		Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
 		
 		gRefreshCollectables = 20200807
@@ -1983,7 +1983,7 @@ function ffxiv_task_craft:Draw()
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
 		if (GUI:Button(GetString("Use Known Defaults"),CollectableFullWidth,20)) then
 			gCraftCollectablePresets = {}
-			AceLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
+			FFXIVLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
 			Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
 		end
 		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
@@ -2010,7 +2010,7 @@ function ffxiv_task_craft:Draw()
 				local newName = GUI:InputText("##craft-collectablepair-name"..tostring(i),collectable.name)
 				if (newName ~= collectable.name) then
 					local newValue = gCraftCollectablePresets[i].value
-					local newIndex = IsNull(AceLib.API.Items.GetIDByName(newName),i)
+					local newIndex = IsNull(FFXIVLib.API.Items.GetIDByName(newName),i)
 					if newIndex ~= i then
 						gCraftCollectablePresets[i] = nil
 					end
@@ -2134,7 +2134,7 @@ function ffxiv_craft.AddToProfile()
 	end
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
-		local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
+		local recipeDetails = FFXIVLib.API.Items.GetRecipeDetails(recipeid)
 		local thisOrder = { 	
 			id = recipeid, 
 			item = recipeDetails.id, 
@@ -2247,7 +2247,7 @@ function ffxiv_craft.UpdateAlertElement()
 					order["ifnecessary"] = false
 				end
 					
-				local canCraft,maxAmount,yield = AceLib.API.Items.CanCraft(order.id,order["usehq"])
+				local canCraft,maxAmount,yield = FFXIVLib.API.Items.CanCraft(order.id,order["usehq"])
 
 				if order["maxcount"] ~= maxAmount then
 					order["maxcount"]= maxAmount
@@ -2336,7 +2336,7 @@ end
 
 function ffxiv_craft.InspectRecipe(key)
 	local key = tonumber(key) or 0
-	local recipeDetails = AceLib.API.Items.GetRecipeDetails(key)
+	local recipeDetails = FFXIVLib.API.Items.GetRecipeDetails(key)
 	gCraftInspectProgress = recipeDetails.progress or ""
 	gCraftInspectDurability = recipeDetails.durability or ""
 	gCraftInspectCraftsmanship = recipeDetails.craftsmanship or ""
@@ -2359,7 +2359,7 @@ function ffxiv_craft.InspectRecipe(key)
 	gCraftInspectIngredient6 = IIF(recipeDetails.ingredient6 ~= 0,IsNull(recipeDetails.ing6name,"").."["..IsNull(recipeDetails.ingredient6,"").."]","")
 	gCraftInspectIAmount6 = IIF(recipeDetails.iamount6 > 0,tostring(IsNull(recipeDetails.iamount6,0)).."("..IsNull(ItemCount(recipeDetails.ingredient6,{0,1,2,3},true),0)..")","")
 
-	local canCraft,maxAmount = AceLib.API.Items.CanCraft(key)
+	local canCraft,maxAmount = FFXIVLib.API.Items.CanCraft(key)
 	gCraftInspectCanCraft = tostring(canCraft)
 	gCraftInspectCraftable = maxAmount
 	
@@ -2415,7 +2415,7 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 			end
 		end
 			
-		local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-4),maxattemptlevel)
+		local recipes,dictionary = FFXIVLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-4),maxattemptlevel)
 		if (dictionary) then
 			if (not ffxiv_craft.dictionaries[craftid] or not ffxiv_craft.dictionariesDisplay[craftid]) then
 				ffxiv_craft.dictionaries[craftid] = {}
@@ -2811,7 +2811,7 @@ function ffxiv_craft.Draw( event, ticks )
 					
 					GUI:Columns()
 					if (gCraftOrderAddHQ) and not gCraftOrderAddIfNecessary then	
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddRecipeID)
+						local recipeDetails = FFXIVLib.API.Items.GetRecipeDetails(gCraftOrderAddRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-add-hq", true)
@@ -3043,7 +3043,7 @@ function ffxiv_craft.Draw( event, ticks )
 					GUI:Columns()
 					if (gCraftOrderEditHQ) and not gCraftOrderEditIfNecessary then
 						GUI:Separator()
-						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditRecipeID)
+						local recipeDetails = FFXIVLib.API.Items.GetRecipeDetails(gCraftOrderEditRecipeID)
 						if (recipeDetails) then
 							
 							GUI:Columns(5, "#craft-edit-hq", true)

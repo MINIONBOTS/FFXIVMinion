@@ -1220,9 +1220,9 @@ function ml_global_information.Init()
 			end
 			
 			ml_mesh_mgr.AllowedMapsLookup = function (mapid) 
-				local placeid = AceLib.API.Map.GetPlaceID(mapid) or 0
+				local placeid = FFXIVLib.API.Map.GetPlaceID(mapid) or 0
 				if (placeid ~= 0) then
-					local allowedMaps = AceLib.API.Map.GetValidMaps(placeid)
+					local allowedMaps = FFXIVLib.API.Map.GetValidMaps(placeid)
 					if (table.valid(allowedMaps)) then
 						return allowedMaps
 					end

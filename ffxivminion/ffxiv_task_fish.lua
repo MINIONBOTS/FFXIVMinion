@@ -12,47 +12,47 @@ ffxiv_fish.profileData = {}
 ffxiv_fish.currentTask = {}
 ffxiv_fish.currentTaskIndex = 0
 ffxiv_fish.collectibles = {
-    { name = AceLib.API.Items.GetNameByID(14211,47), id = 14211, alias = "Amber Salamander", minimum = 900 },
-    { name = AceLib.API.Items.GetNameByID(12827,47), id = 12827, alias = "Barreleye", minimum = 923 },
-    { name = AceLib.API.Items.GetNameByID(12739,47), id = 12739, alias = "Bubble Eye", minimum = 162 },
-    { name = AceLib.API.Items.GetNameByID(12837,47), id = 12837, alias = "Capelin", minimum = 89 },
-    { name = AceLib.API.Items.GetNameByID(13729,47), id = 13729, alias = "Dravanian Smelt", minimum = 83 },
-    { name = AceLib.API.Items.GetNameByID(12742,47), id = 12742, alias = "Dravanian Squeaker", minimum = 158 },
-    { name = AceLib.API.Items.GetNameByID(12724,47), id = 12724, alias = "Glacier Core", minimum = 310 },
-    { name = AceLib.API.Items.GetNameByID(12713,47), id = 12713, alias = "Icepick", minimum = 106 },
-    { name = AceLib.API.Items.GetNameByID(12804,47), id = 12804, alias = "Illuminati Perch", minimum = 826 },
-    { name = AceLib.API.Items.GetNameByID(12830,47), id = 12830, alias = "Loosetongue", minimum = 2441 },
-    { name = AceLib.API.Items.GetNameByID(12814,47), id = 12814, alias = "Moogle Spirit", minimum = 1062 },
-    { name = AceLib.API.Items.GetNameByID(12768,47), id = 12768, alias = "Noontide Oscar", minimum = 258 },
-    { name = AceLib.API.Items.GetNameByID(12726,47), id = 12726, alias = "Sorcerer Fish", minimum = 646 },
-    { name = AceLib.API.Items.GetNameByID(12825,47), id = 12825, alias = "Stupendemys", minimum = 1526 },
-    { name = AceLib.API.Items.GetNameByID(12828,47), id = 12828, alias = "Thunderbolt Eel", minimum = 813 },
-    { name = AceLib.API.Items.GetNameByID(12774,47), id = 12774, alias = "Tiny Axolotl", minimum = 320 },
-    { name = AceLib.API.Items.GetNameByID(12834,47), id = 12834, alias = "Vampiric Tapestry", minimum = 1308 },
-    { name = AceLib.API.Items.GetNameByID(12767,47), id = 12767, alias = "Warmwater Bichir", minimum = 683 },
-    { name = AceLib.API.Items.GetNameByID(12792,47), id = 12792, alias = "Weston Bowfin", minimum = 376 },
-    { name = AceLib.API.Items.GetNameByID(12721,47), id = 12721, alias = "Whilom Catfish", minimum = 459 },
+    { name = FFXIVLib.API.Items.GetNameByID(14211,47), id = 14211, alias = "Amber Salamander", minimum = 900 },
+    { name = FFXIVLib.API.Items.GetNameByID(12827,47), id = 12827, alias = "Barreleye", minimum = 923 },
+    { name = FFXIVLib.API.Items.GetNameByID(12739,47), id = 12739, alias = "Bubble Eye", minimum = 162 },
+    { name = FFXIVLib.API.Items.GetNameByID(12837,47), id = 12837, alias = "Capelin", minimum = 89 },
+    { name = FFXIVLib.API.Items.GetNameByID(13729,47), id = 13729, alias = "Dravanian Smelt", minimum = 83 },
+    { name = FFXIVLib.API.Items.GetNameByID(12742,47), id = 12742, alias = "Dravanian Squeaker", minimum = 158 },
+    { name = FFXIVLib.API.Items.GetNameByID(12724,47), id = 12724, alias = "Glacier Core", minimum = 310 },
+    { name = FFXIVLib.API.Items.GetNameByID(12713,47), id = 12713, alias = "Icepick", minimum = 106 },
+    { name = FFXIVLib.API.Items.GetNameByID(12804,47), id = 12804, alias = "Illuminati Perch", minimum = 826 },
+    { name = FFXIVLib.API.Items.GetNameByID(12830,47), id = 12830, alias = "Loosetongue", minimum = 2441 },
+    { name = FFXIVLib.API.Items.GetNameByID(12814,47), id = 12814, alias = "Moogle Spirit", minimum = 1062 },
+    { name = FFXIVLib.API.Items.GetNameByID(12768,47), id = 12768, alias = "Noontide Oscar", minimum = 258 },
+    { name = FFXIVLib.API.Items.GetNameByID(12726,47), id = 12726, alias = "Sorcerer Fish", minimum = 646 },
+    { name = FFXIVLib.API.Items.GetNameByID(12825,47), id = 12825, alias = "Stupendemys", minimum = 1526 },
+    { name = FFXIVLib.API.Items.GetNameByID(12828,47), id = 12828, alias = "Thunderbolt Eel", minimum = 813 },
+    { name = FFXIVLib.API.Items.GetNameByID(12774,47), id = 12774, alias = "Tiny Axolotl", minimum = 320 },
+    { name = FFXIVLib.API.Items.GetNameByID(12834,47), id = 12834, alias = "Vampiric Tapestry", minimum = 1308 },
+    { name = FFXIVLib.API.Items.GetNameByID(12767,47), id = 12767, alias = "Warmwater Bichir", minimum = 683 },
+    { name = FFXIVLib.API.Items.GetNameByID(12792,47), id = 12792, alias = "Weston Bowfin", minimum = 376 },
+    { name = FFXIVLib.API.Items.GetNameByID(12721,47), id = 12721, alias = "Whilom Catfish", minimum = 459 },
 	-- SB
-    { name = AceLib.API.Items.GetNameByID(20274,47), id = 20274, alias = "Deemster", minimum = 829 },
-    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Wraithfish", minimum = 50 },
-    { name = AceLib.API.Items.GetNameByID(20024,47), id = 20024, alias = "Sweatfish", minimum = 0 },
-    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Soul of the Stallion", minimum = 50 },
-    { name = AceLib.API.Items.GetNameByID(20019,47), id = 20019, alias = "Ala Mhigan Ribbon", minimum = 41 },
-    { name = AceLib.API.Items.GetNameByID(20021,47), id = 20021, alias = "Seraphim", minimum = 49 },
-    { name = AceLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Thousandfang", minimum = 50 },
-    { name = AceLib.API.Items.GetNameByID(20230,47), id = 20230, alias = "Fangshi", minimum = 303 },
-    { name = AceLib.API.Items.GetNameByID(20239,47), id = 20239, alias = "Mosasaur", minimum = 824 },
-    { name = AceLib.API.Items.GetNameByID(20233,47), id = 20233, alias = "Eternal Eye", minimum = 25 },
-    { name = AceLib.API.Items.GetNameByID(20210,47), id = 20210, alias = "Mitsuriku Shark", minimum = 819 },
-    { name = AceLib.API.Items.GetNameByID(20238,47), id = 20238, alias = "Silken Sunfish", minimum = 767 },
-    { name = AceLib.API.Items.GetNameByID(20220,47), id = 20220, alias = "Cherubfish", minimum = 21 },
-    { name = AceLib.API.Items.GetNameByID(20104,47), id = 20104, alias = "Daio Squid", minimum = 1034 },
-    { name = AceLib.API.Items.GetNameByID(20028,47), id = 20028, alias = "Samurai Fish", minimum = 14 },
-    { name = AceLib.API.Items.GetNameByID(20044,47), id = 20044, alias = "Tao Bitterling", minimum = 49 },
-    { name = AceLib.API.Items.GetNameByID(20036,47), id = 20036, alias = "Killifish", minimum = 9 },
-    { name = AceLib.API.Items.GetNameByID(20118,47), id = 20118, alias = "Yanxian Koi", minimum = 451 },
-    { name = AceLib.API.Items.GetNameByID(20098,47), id = 20098, alias = "Butterfly Fish", minimum = 115 },
-    { name = AceLib.API.Items.GetNameByID(20087,47), id = 20087, alias = "Velodyna Grass Carp", minimum = 690 },
+    { name = FFXIVLib.API.Items.GetNameByID(20274,47), id = 20274, alias = "Deemster", minimum = 829 },
+    { name = FFXIVLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Wraithfish", minimum = 50 },
+    { name = FFXIVLib.API.Items.GetNameByID(20024,47), id = 20024, alias = "Sweatfish", minimum = 0 },
+    { name = FFXIVLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Soul of the Stallion", minimum = 50 },
+    { name = FFXIVLib.API.Items.GetNameByID(20019,47), id = 20019, alias = "Ala Mhigan Ribbon", minimum = 41 },
+    { name = FFXIVLib.API.Items.GetNameByID(20021,47), id = 20021, alias = "Seraphim", minimum = 49 },
+    { name = FFXIVLib.API.Items.GetNameByID(20234,47), id = 20234, alias = "Thousandfang", minimum = 50 },
+    { name = FFXIVLib.API.Items.GetNameByID(20230,47), id = 20230, alias = "Fangshi", minimum = 303 },
+    { name = FFXIVLib.API.Items.GetNameByID(20239,47), id = 20239, alias = "Mosasaur", minimum = 824 },
+    { name = FFXIVLib.API.Items.GetNameByID(20233,47), id = 20233, alias = "Eternal Eye", minimum = 25 },
+    { name = FFXIVLib.API.Items.GetNameByID(20210,47), id = 20210, alias = "Mitsuriku Shark", minimum = 819 },
+    { name = FFXIVLib.API.Items.GetNameByID(20238,47), id = 20238, alias = "Silken Sunfish", minimum = 767 },
+    { name = FFXIVLib.API.Items.GetNameByID(20220,47), id = 20220, alias = "Cherubfish", minimum = 21 },
+    { name = FFXIVLib.API.Items.GetNameByID(20104,47), id = 20104, alias = "Daio Squid", minimum = 1034 },
+    { name = FFXIVLib.API.Items.GetNameByID(20028,47), id = 20028, alias = "Samurai Fish", minimum = 14 },
+    { name = FFXIVLib.API.Items.GetNameByID(20044,47), id = 20044, alias = "Tao Bitterling", minimum = 49 },
+    { name = FFXIVLib.API.Items.GetNameByID(20036,47), id = 20036, alias = "Killifish", minimum = 9 },
+    { name = FFXIVLib.API.Items.GetNameByID(20118,47), id = 20118, alias = "Yanxian Koi", minimum = 451 },
+    { name = FFXIVLib.API.Items.GetNameByID(20098,47), id = 20098, alias = "Butterfly Fish", minimum = 115 },
+    { name = FFXIVLib.API.Items.GetNameByID(20087,47), id = 20087, alias = "Velodyna Grass Carp", minimum = 690 },
 	
 }
 
@@ -175,7 +175,7 @@ function HasBaits(name)
 				itemid = tonumber(bait)
 			else
 				--fd("[HasBaits] Searching for bait ID for ["..IsNull(bait,"").."].",3)
-				itemid = AceLib.API.Items.GetIDByName(bait)
+				itemid = FFXIVLib.API.Items.GetIDByName(bait)
 			end
 
 			if (itemid) then
@@ -487,7 +487,7 @@ function c_identicalcast:evaluate()
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 				if (lastCatch and identCastables ~= "") then
 					for identCast in StringSplit(identCastables,",") do
-						if (AceLib.API.Items.GetIDByName(identCast,47) == lastCatch) then
+						if (FFXIVLib.API.Items.GetIDByName(identCast,47) == lastCatch) then
 							d("Identical cast because fish was "..tostring(identCast))
 							return true
 						end
@@ -542,7 +542,7 @@ function c_surfaceslap:evaluate()
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 				if (lastCatch and surfaceSlapList ~= "") then
 					for slap in StringSplit(surfaceSlapList,",") do
-						if (AceLib.API.Items.GetIDByName(slap,47) == lastCatch) then
+						if (FFXIVLib.API.Items.GetIDByName(slap,47) == lastCatch) then
 							d("surface slap because fish was "..tostring(slap))
 							return true
 						end
@@ -607,7 +607,7 @@ function c_mooch2:evaluate()
 					return true
 				elseif (lastCatch and moochables2 ~= "") then
 					for moochables2 in StringSplit(moochables2,",") do
-						if (AceLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
+						if (FFXIVLib.API.Items.GetIDByName(moochables2,47) == lastCatch) then
 							return true
 						end
 					end
@@ -671,7 +671,7 @@ function c_mooch:evaluate()
 					return true
 				elseif (lastCatch and moochables ~= "") then
 					for moochable in StringSplit(moochables,",") do
-						if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
+						if (FFXIVLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
 							return true
 						end
 					end
@@ -735,7 +735,7 @@ function c_release:evaluate()
 							if (tonumber(mustkeep) ~= nil) then
 								mustkeepid = tonumber(mustkeep)
 							else
-								mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
+								mustkeepid = FFXIVLib.API.Items.GetIDByName(mustkeep)
 							end
 							
 							if (mustkeepid == lastCatch) then
@@ -752,7 +752,7 @@ function c_release:evaluate()
 							if (tonumber(throwaway) ~= nil) then
 								throwawayid = tonumber(throwaway)
 							else
-								throwawayid = AceLib.API.Items.GetIDByName(throwaway)
+								throwawayid = FFXIVLib.API.Items.GetIDByName(throwaway)
 							end
 							
 							if (throwawayid == lastCatch) then
@@ -769,7 +769,7 @@ function c_release:evaluate()
 							if (tonumber(mustkeep) ~= nil) then
 								mustkeepid = tonumber(mustkeep)
 							else
-								mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
+								mustkeepid = FFXIVLib.API.Items.GetIDByName(mustkeep)
 							end
 							
 							if (mustkeepid == lastCatch) then
@@ -786,7 +786,7 @@ function c_release:evaluate()
 							if (tonumber(throwaway) ~= nil) then
 								throwawayid = tonumber(throwaway)
 							else
-								throwawayid = AceLib.API.Items.GetIDByName(throwaway)
+								throwawayid = FFXIVLib.API.Items.GetIDByName(throwaway)
 							end
 							
 							if (throwawayid == lastCatch) then
@@ -1262,7 +1262,7 @@ function c_collectibleaddonfish:evaluate()
 			if (table.valid(gFishCollectablePresets)) then
 				for i,collectable in pairsByKeys(gFishCollectablePresets) do
 					if (string.valid(collectable.name) and type(collectable.value) == "number") then
-						local itemid = AceLib.API.Items.GetIDByName(collectable.name)
+						local itemid = FFXIVLib.API.Items.GetIDByName(collectable.name)
 						if (itemid) then
 							if (string.contains(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(collectable.value)) then
@@ -1289,7 +1289,7 @@ function c_collectibleaddonfish:evaluate()
 						for identifier,minvalue in pairs(collectables) do
 							local itemid;
 							if (type(identifier) == "string") then
-								itemid = AceLib.API.Items.GetIDByName(identifier)
+								itemid = FFXIVLib.API.Items.GetIDByName(identifier)
 							else
 								itemid = identifier
 							end
@@ -1398,7 +1398,7 @@ function c_buybait:evaluate()
 						break
 					end
 				else
-					local thisID = AceLib.API.Items.GetIDByName(bait)
+					local thisID = FFXIVLib.API.Items.GetIDByName(bait)
 					if (thisID) then
 						baitIDs[#baitIDs+1] = thisID
 						local item = GetItem(thisID,{0,1,2,3})
@@ -1418,7 +1418,7 @@ function c_buybait:evaluate()
 				local rebuyids = {}
 				for k,v in pairs(rebuy) do
 					if (type(k) == "string") then
-						local thisID = AceLib.API.Items.GetIDByName(k)
+						local thisID = FFXIVLib.API.Items.GetIDByName(k)
 						if (thisID) then
 							rebuyids[thisID] = v
 						end
@@ -1448,7 +1448,7 @@ function e_buybait:execute()
 	local rebuyids = e_buybait.rebuy
 	if (table.valid(rebuyids)) then
 		for itemid,buyamount in pairsByKeys(rebuyids) do
-			local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
+			local nearestPurchase = FFXIVLib.API.Items.FindNearestPurchaseLocation(itemid)
 			if (nearestPurchase) then
 				local newTask = ffxiv_misc_shopping.Create()
 				
@@ -1527,7 +1527,7 @@ function c_setbait:evaluate()
 								end
 							else
 								fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
-								local thisID = AceLib.API.Items.GetIDByName(bait)
+								local thisID = FFXIVLib.API.Items.GetIDByName(bait)
 								if (thisID) then
 									if (currentBait == thisID) then
 										fd("Found the equipped bait, and it is the one we want, and we have at least 1, processing will cease.",3)
@@ -1592,7 +1592,7 @@ function e_setbait:execute()
 					break
 				end
 			else
-				local thisID = AceLib.API.Items.GetIDByName(bait)
+				local thisID = FFXIVLib.API.Items.GetIDByName(bait)
 				if (thisID) then
 					baitIDs[#baitIDs+1] = thisID
 					local item = GetItem(thisID,{0,1,2,3})
@@ -1718,8 +1718,8 @@ function c_fishnexttask:evaluate()
 		local eMinute = eTime.minute
 		local plevel = Player.level
 		
-		local weatherAll = AceLib.API.Weather.GetAll()
-		local shifts = AceLib.API.Weather.GetShifts()
+		local weatherAll = FFXIVLib.API.Weather.GetAll()
+		local shifts = FFXIVLib.API.Weather.GetShifts()
 		local lastShift = shifts.lastShift
 		local nextShift = shifts.nextShift
 		
@@ -2420,7 +2420,7 @@ function e_fishnextprofilepos:execute()
 	newTask.doFacing = true
 	
 	if (CanFlyInZone() and c_fishnextprofilepos.distance > 40 and not gTeleportHack) then
-		local flightApproach, approachDist = AceLib.API.Math.GetFlightApproach(taskPos)
+		local flightApproach, approachDist = FFXIVLib.API.Math.GetFlightApproach(taskPos)
 		if (flightApproach and approachDist < 30) then
 			newTask.pos = flightApproach
 			newTask.range = 5
@@ -3008,7 +3008,7 @@ function ffxiv_task_fish:UIInit()
 	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels)
 	
 	
-	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	--local uistring = IsNull(FFXIVLib.API.Items.BuildUIString(47,120),"")
 	--gFishCollectablesList = { GetString("None") }
 	--if (ValidString(uistring)) then
 		--for collectable in StringSplit(uistring,",") do

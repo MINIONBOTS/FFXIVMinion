@@ -179,7 +179,7 @@ function c_grind_addhuntlogtask:evaluate()
 	--Reset tempvar.
 	c_grind_addhuntlogtask.target = nil
 
-	local bestTarget = AceLib.API.Huntlog.GetBestTarget()
+	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 	if (table.valid(bestTarget)) then
 		local mapid = bestTarget.mapid
 		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
@@ -211,7 +211,7 @@ function c_quest_addhuntlogtask:evaluate()
 	--Reset tempvar.
 	c_quest_addhuntlogtask.target = nil
 	
-	local bestTarget = AceLib.API.Huntlog.GetBestTarget()
+	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 	if (table.valid(bestTarget)) then
 		local mapid = bestTarget.mapid
 		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
@@ -243,7 +243,7 @@ function c_evaluatebesttarget:evaluate()
 	--Reinitialize tempvars.
 	c_evaluatebesttarget.targetinfo = {}
 	
-	local bestTarget = AceLib.API.Huntlog.GetBestTarget()
+	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 	if (table.valid(bestTarget)) then
 		c_evaluatebesttarget.targetinfo = bestTarget
 	end
@@ -322,7 +322,7 @@ function e_huntlogmovetopos:execute()
 	end
 	
 	local id = ml_task_hub:CurrentTask().huntParams["id"]
-	local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
+	local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
 	newTask.customSearch = customSearch
 	newTask.customSearchCompletes = true
@@ -342,7 +342,7 @@ function c_huntlogkill:evaluate()
     if (id and id > 0) then
 		local el = nil
 		local pos = ml_task_hub:CurrentTask().huntParams["pos"]
-		local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
+		local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 		
 		el = EntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
 
@@ -525,7 +525,7 @@ function ffxiv_task_huntlog.UIInit()
 end
 function ffxiv_task_huntlog:task_complete_eval()	
 	if (self.adHoc) then
-		local bestTarget = AceLib.API.Huntlog.GetBestTarget()
+		local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 		if (not table.valid(bestTarget)) then
 			d("no best target, task complete")
 			return true

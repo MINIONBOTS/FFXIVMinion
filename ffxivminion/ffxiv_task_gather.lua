@@ -425,7 +425,7 @@ function e_movetonode:execute()
 			
 			local foundPos = false
 			if (IsFlying()) then
-				local approachPosition = AceLib.API.Math.GetFlightApproach(pos)
+				local approachPosition = FFXIVLib.API.Math.GetFlightApproach(pos)
 				if (approachPosition) then
 					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
 					if (nearestMesh) then
@@ -440,7 +440,7 @@ function e_movetonode:execute()
 			end
 			
 			if (not foundPos) then
-				local approachPosition = AceLib.API.Math.GetSafestApproach(pos)
+				local approachPosition = FFXIVLib.API.Math.GetSafestApproach(pos)
 				if (approachPosition) then
 					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
 					if (nearestMesh) then
@@ -736,7 +736,7 @@ end
 function DoGathering(item)
 
 	if GetPatchLevel() >= 5.4 then
-		if AceLib.API.Items.IsCollectable(item.id) then
+		if FFXIVLib.API.Items.IsCollectable(item.id) then
 			if not IsControlOpen("GatheringMasterpiece") then
 				noskills = true
 				d("Known collectable, lets open the window before wasting GP")
@@ -1119,11 +1119,11 @@ function e_gather:execute()
 		local itemslot3 = 0
 		local nogpitemslot = 0
 		
-		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
+		--d(FFXIVLib.API.Items.GetIDByName("Silkworm Cocoon"))
 
 		if (Player.gp.current < minimumGP or noGPGather) then
 			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none")) then
-				nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
+				nogpitemid = FFXIVLib.API.Items.GetIDByName(nogpitem) or 0
 				if (nogpitemid == 0) then
 					gd("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].",2)
 				else
@@ -1142,7 +1142,7 @@ function e_gather:execute()
 		end
 
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
-			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
+			itemid1 = FFXIVLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",2)
 			else
@@ -1158,7 +1158,7 @@ function e_gather:execute()
 		end
 		
 		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
-			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
+			itemid2 = FFXIVLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",2)
 			else
@@ -1174,7 +1174,7 @@ function e_gather:execute()
 		end
 		
 		if (item3 and item3 ~= "" and item3 ~= GetString("none")) then
-			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
+			itemid3 = FFXIVLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
 				gd("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].",2)
 			else
@@ -1311,7 +1311,7 @@ function ffxiv_gather.CheckBuffs(item)
 	for k,v in pairs(valuepairs) do
 		local itemid;
 		if (type(k) == "string") then
-			itemid = AceLib.API.Items.GetIDByName(k)
+			itemid = FFXIVLib.API.Items.GetIDByName(k)
 		else
 			itemid = k
 		end
@@ -1344,7 +1344,7 @@ function ffxiv_gather.CheckBuffs(item)
 						d("Converted identifier var ["..var.."] to ["..identifier.."]")
 					end
 				
-					itemid = AceLib.API.Items.GetIDByName(identifier)
+					itemid = FFXIVLib.API.Items.GetIDByName(identifier)
 				else
 					itemid = identifier
 				end
@@ -2163,7 +2163,7 @@ function e_collectiblegame:execute()
 		for k,v in pairs(valuepairs) do
 			local itemid;
 			if (type(k) == "string") then
-				itemid = AceLib.API.Items.GetIDByName(k)
+				itemid = FFXIVLib.API.Items.GetIDByName(k)
 			else
 				itemid = k
 			end
@@ -2187,7 +2187,7 @@ function e_collectiblegame:execute()
 							d("Converted identifier var ["..var.."] to ["..identifier.."]")
 						end
 					
-						itemid = AceLib.API.Items.GetIDByName(identifier)
+						itemid = FFXIVLib.API.Items.GetIDByName(identifier)
 					else
 						itemid = identifier
 					end
@@ -2369,7 +2369,7 @@ function e_newcollectiblegame:execute()
 							d("Converted identifier var ["..var.."] to ["..identifier.."]")
 						end
 					
-						itemid = AceLib.API.Items.GetIDByName(identifier)
+						itemid = FFXIVLib.API.Items.GetIDByName(identifier)
 					else
 						itemid = identifier
 					end
@@ -2497,7 +2497,7 @@ function c_collectibleaddongather:evaluate()
 			if (table.valid(gGatherCollectablePresets)) then
 				for i,collectable in pairsByKeys(gGatherCollectablePresets) do
 					if (string.valid(collectable.name) and type(collectable.value) == "number") then
-						local itemid = AceLib.API.Items.GetIDByName(collectable.name)
+						local itemid = FFXIVLib.API.Items.GetIDByName(collectable.name)
 						if (itemid) then
 							if (string.contains(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(collectable.value)) then
@@ -2531,7 +2531,7 @@ function c_collectibleaddongather:evaluate()
 									d("Converted identifier var ["..var.."] to ["..identifier.."]")
 								end
 					
-								itemid = AceLib.API.Items.GetIDByName(identifier)
+								itemid = FFXIVLib.API.Items.GetIDByName(identifier)
 							else
 								itemid = identifier
 							end
@@ -2609,8 +2609,8 @@ function c_gathernexttask:evaluate()
 	local eMinute = eTime.minute
 	local plevel = Player.level
 	
-	local weatherAll = AceLib.API.Weather.GetAll()
-	local shifts = AceLib.API.Weather.GetShifts()
+	local weatherAll = FFXIVLib.API.Weather.GetAll()
+	local shifts = FFXIVLib.API.Weather.GetShifts()
 	local lastShift = shifts.lastShift
 	local nextShift = shifts.nextShift
 	
@@ -3853,7 +3853,7 @@ function ffxiv_task_gather:UIInit()
 	gGatherDebugLevel = ffxivminion.GetSetting("gGatherDebugLevel",1)
 	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
-	--local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	--local uistring = IsNull(FFXIVLib.API.Items.BuildUIString(47,120),"")
 	--gGatherCollectablesList = { GetString("none") }
 	--if (ValidString(uistring)) then
 		--for collectable in StringSplit(uistring,",") do
@@ -3895,7 +3895,7 @@ function ffxiv_task_gather:UIInit()
 		GUI_Set("gGatherCollectablePresets",{})
 		for k,v in pairs(ffxiv_gather.collectibles) do
 			--local newCollectable = { name = v.name, value = v.minimum }
-			gGatherCollectablePresets[AceLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			gGatherCollectablePresets[FFXIVLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
 			--table.insert(gGatherCollectablePresets,newCollectable)
 		end
 		Settings.FFXIVMINION.gGatherCollectablePresets = gGatherCollectablePresets

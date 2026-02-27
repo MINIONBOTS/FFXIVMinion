@@ -479,7 +479,7 @@ function c_assistsyncfatelevel:evaluate()
 		local fate = MGetFateByID(fateID)
 		if ( table.valid(fate)) then
 			if (fate.maxlevel < Player.level) then
-			--if (AceLib.API.Fate.RequiresSync(fate.id)) then
+			--if (FFXIVLib.API.Fate.RequiresSync(fate.id)) then
 				local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 				if (distance <= fate.radius) then
 					Player:SyncLevel()

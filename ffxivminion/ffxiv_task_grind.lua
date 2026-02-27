@@ -397,7 +397,7 @@ function c_grindnexttask:evaluate()
 				end
 				
 				c_grindnexttask.subset = validTasks
-				local eTime = AceLib.API.Weather.GetDateTime() 
+				local eTime = FFXIVLib.API.Weather.GetDateTime() 
 				local eMinute = eTime.minute
 				local quarters = { [5] = true, [10] = true, [15] = true, [20] = true, [25] = true, [30] = true, [35] = true, [40] = true, [45] = true, [50] = true, [55] = true, [60] = true }
 				local expirationDelay = 0

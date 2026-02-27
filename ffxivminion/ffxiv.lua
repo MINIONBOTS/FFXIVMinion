@@ -1435,8 +1435,8 @@ end
 function ffxivminion.FillFoodOptions(availableonly)
 	local availableonly = IsNull(availableonly, false)
 	local allFoods
-	if AceLib then
-		allFoods = AceLib.API.Items.GetAllFoods(availableonly)
+	if FFXIVLib then
+		allFoods = FFXIVLib.API.Items.GetAllFoods(availableonly)
 	else
 		allFoods = {}
 	end

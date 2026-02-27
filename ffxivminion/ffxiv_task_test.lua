@@ -364,7 +364,7 @@ function ffxiv_task_test.GetRandomPosition()
 end
 
 function ffxiv_task_test.TestShopVendor()
-	local vendor = AceLib.API.Items.FindNearestPurchaseLocation(2586)
+	local vendor = FFXIVLib.API.Items.FindNearestPurchaseLocation(2586)
 	if (vendor) then
 		local mapid = vendor.mapid
 		local pos = vendor.pos

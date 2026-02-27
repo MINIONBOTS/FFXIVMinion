@@ -5961,7 +5961,7 @@ function GetELNSection(pos)
 	local sec = 2
 	if (table.valid(pos)) then
         for i,section in pairs(section1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -5970,7 +5970,7 @@ function GetELNSection(pos)
     end
 	 if (table.valid(pos)) then
         for i,section in pairs(section3) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 3
                 break
@@ -6030,7 +6030,7 @@ function GetForelandsSection(pos)
 	local sec = 2
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -6080,7 +6080,7 @@ function GetHinterlandsSection(pos)
 			sec = 1
 		else
 			for i,section in pairs(sections) do
-				local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+				local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
 				if (isInsideRect) then
 					sec = 1
 					break
@@ -6134,7 +6134,7 @@ function GetSeaOfCloudsSection(pos)
     local sec = 2
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -6213,7 +6213,7 @@ function GetFringeSection(pos)
 	local sec = 2
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -6279,7 +6279,7 @@ function GetYanxiaSection(pos)
 	local sec = 2
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -6368,7 +6368,7 @@ function GetPeaksSection(pos)
 	local sec = 2
 	if (table.valid(pos)) then
         for i,section in pairs(section1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 1
                 break
@@ -6377,7 +6377,7 @@ function GetPeaksSection(pos)
     end
 	 if (table.valid(pos)) then
         for i,section in pairs(section3) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 3
                 break
@@ -6440,7 +6440,7 @@ function GetLochsSection(pos)
 	local sec = 1
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6464,7 +6464,7 @@ function GetKholusiaSection(pos)
     local sec = 1
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6540,7 +6540,7 @@ function GetAhmAraengSection(pos)
     local sec = 1
 	if (table.valid(pos)) then
         for i,section in pairs(section2) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6549,7 +6549,7 @@ function GetAhmAraengSection(pos)
     end
 	if (table.valid(pos)) then
         for i,section in pairs(section3) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 3
                 break
@@ -6602,7 +6602,7 @@ function GetTempestSection(pos)
     local sec = 1
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6627,7 +6627,7 @@ function GetThavnairSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) and pos.y > 57 then
                 return 1
             end
@@ -6702,7 +6702,7 @@ function GetThavnairSection(pos)
 
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6726,7 +6726,7 @@ function GetLabyrithosSection(pos)
 
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) and pos.y < -150 then
                 return 3
             end
@@ -6734,7 +6734,7 @@ function GetLabyrithosSection(pos)
     end
     if (table.valid(pos)) then
         for i,section in pairs(sections) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) and (pos.y > -150 and pos.y < 50) then
                 return 2
             end
@@ -6799,7 +6799,7 @@ function GetMareLamentorumSection(pos)
 	}
     if (table.valid(pos)) then
         for i,section in pairs(sections1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
 			  if (isInsideRect) then
                 sec = 1
                 break
@@ -6818,7 +6818,7 @@ function GetMareLamentorumSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections2) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                 sec = 2
                 break
@@ -6849,7 +6849,7 @@ function GetUltimaThuleSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections4) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 4
             end
@@ -6875,7 +6875,7 @@ function GetUltimaThuleSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections5) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 5
             end
@@ -6894,7 +6894,7 @@ function GetUltimaThuleSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 2
             end
@@ -6927,7 +6927,7 @@ function GetUltimaThuleSection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections2) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 3
             end
@@ -6978,7 +6978,7 @@ function GetUyuypogaSection(pos)
     
     if (table.valid(pos)) then
         for i,section in pairs(sections1) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 1
             end
@@ -7035,7 +7035,7 @@ function GetLivingMemorySection(pos)
 	
     if (table.valid(pos)) then
         for i,section in pairs(sections4) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 1
             end
@@ -7059,7 +7059,7 @@ function GetLivingMemorySection(pos)
     }
 	if (table.valid(pos)) then
         for i,section in pairs(sections2) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 2
             end
@@ -7077,7 +7077,7 @@ function GetLivingMemorySection(pos)
 	}
 	if (table.valid(pos)) then
         for i,section in pairs(sections3) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 3
             end
@@ -7095,7 +7095,7 @@ function GetLivingMemorySection(pos)
 	}
 	if (table.valid(pos)) then
         for i,section in pairs(sections4) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 4
             end
@@ -7113,7 +7113,7 @@ function GetLivingMemorySection(pos)
 	}
 	if (table.valid(pos)) then
         for i,section in pairs(sections5) do
-            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
                sec = 5
             end

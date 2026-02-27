@@ -602,7 +602,7 @@ function c_avoid:evaluate()
 		for i,entity in pairs(el) do
 			local e = EntityList:Get(entity.id)
 			if (e) then
-				local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+				local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
 				if (shouldAvoid and spellData) then
 					local lastAvoid = c_avoid.lastAvoid
 					if (lastAvoid) then
@@ -624,7 +624,7 @@ function c_avoid:evaluate()
 		for i,entity in pairs(el) do
 			local e = EntityList:Get(entity.id)
 			if (e) then
-				local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+				local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
 				if (shouldAvoid and spellData) then
 					local lastAvoid = c_avoid.lastAvoid
 					if (lastAvoid) then
@@ -646,7 +646,7 @@ function c_avoid:evaluate()
 			for i,entity in pairs(el) do
 				local e = EntityList:Get(entity.id)
 				if (e) then
-					local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+					local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
 					d(spellData)
 					if (shouldAvoid and spellData) then
 						local lastAvoid = c_avoid.lastAvoid
@@ -665,7 +665,7 @@ function c_avoid:evaluate()
 		end
 	end
 	if (table.valid(c_avoid.newAvoid)) then
-		local newPos,seconds,obstacle = AceLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
+		local newPos,seconds,obstacle = FFXIVLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
 		if (table.valid(newPos)) then
 			local ppos = Player.pos
 			local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
@@ -1768,8 +1768,8 @@ function c_useaethernet:evaluate(mapid, pos)
 	end	
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
-	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
-	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
+	local nearestAethernet,nearestDistance = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
+	local bestAethernet,bestDistance = FFXIVLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	local gatedist = 10000	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
@@ -1926,8 +1926,8 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	
-	local nearestAethernetUnlocked,nearestDistanceUnlocked = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)		
-	local nearestAethernetLocked,nearestDistanceLocked = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
+	local nearestAethernetUnlocked,nearestDistanceUnlocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)		
+	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
 			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernetLocked.id))
@@ -2969,7 +2969,7 @@ end
 function e_completequest:execute()
 	local questid = IsNull(GetControlData("JournalResult","questid"),0)
 	if (questid ~= 0) then
-		local hasReward = AceLib.API.Quest.HasReward(questid)
+		local hasReward = FFXIVLib.API.Quest.HasReward(questid)
 		if (not hasReward) then
 			d("Quest has no reward indicated, use basic accept.",1)
 			ml_global_information.Await(math.random(1500,2500),
@@ -3113,7 +3113,7 @@ function c_autoequip:evaluate()
 					local found = false
 					if (item.slot == slot and item.id ~= 0) then
 						found = true
-						data.equippedValue = AceLib.API.Items.GetItemStatWeight(item,slot)
+						data.equippedValue = FFXIVLib.API.Items.GetItemStatWeight(item,slot)
 						data.equippedItem = item
 						
 						if (table.valid(item)) then
@@ -3128,19 +3128,19 @@ function c_autoequip:evaluate()
 		end
 		
 		if (slot == 0) then
-			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
+			data.unequippedItem,data.unequippedValue = FFXIVLib.API.Items.FindWeaponUpgrade()
 			if (IsNull(data.unequippedItem,0) ~= 0) then
 				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		--elseif (slot == 1) then
-			--if (AceLib.API.Items.IsShieldEligible()) then
-				--data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
+			--if (FFXIVLib.API.Items.IsShieldEligible()) then
+				--data.unequippedItem,data.unequippedValue = FFXIVLib.API.Items.FindShieldUpgrade()
 				--if (IsNull(data.unequippedItem,0) ~= 0) then
 					--ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 				--end
 			--end
 		else
-			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
+			data.unequippedItem,data.unequippedValue = FFXIVLib.API.Items.FindArmorUpgrade(slot)
 			if (IsNull(data.unequippedItem,0) ~= 0) then
 				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
@@ -3156,7 +3156,7 @@ function c_autoequip:evaluate()
 				local firstBag,firstSlot = GetFirstFreeInventorySlot()
 				if (firstBag ~= nil) then
 					if (slot == 0) then
-						local downgrades = AceLib.API.Items.FindWeaponDowngrades()
+						local downgrades = FFXIVLib.API.Items.FindWeaponDowngrades()
 						if (table.valid(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
@@ -3180,7 +3180,7 @@ function c_autoequip:evaluate()
 							end
 						end
 					elseif (slot == 1) then
-						local downgrades = AceLib.API.Items.FindShieldDowngrades()
+						local downgrades = FFXIVLib.API.Items.FindShieldDowngrades()
 						if (table.valid(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
@@ -3202,7 +3202,7 @@ function c_autoequip:evaluate()
 							end
 						end
 					else
-						local downgrades = AceLib.API.Items.FindArmorDowngrades(slot)
+						local downgrades = FFXIVLib.API.Items.FindArmorDowngrades(slot)
 						if (table.valid(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
@@ -4428,13 +4428,13 @@ function c_scripexchange_na:evaluate()
 		if (table.valid(items)) then
 			for itemid,_ in pairs(items) do
 				
-				--31013 AceLib.API.Items.IsRewardCapped(31013)
-				if (AceLib.API.Items.IsRewardCapped(itemid)) then
+				--31013 FFXIVLib.API.Items.IsRewardCapped(31013)
+				if (FFXIVLib.API.Items.IsRewardCapped(itemid)) then
 					ml_task_hub:CurrentTask().items[itemid] = nil
 					return true
 				end
 
-				local exDetails = AceLib.API.Items.ItemExchangeDetails(itemid)
+				local exDetails = FFXIVLib.API.Items.ItemExchangeDetails(itemid)
 				if (exDetails and exDetails.class == (currentCategory + 8)) then
 					if (itemid < 500000) then
 						itemid = itemid + 500000
@@ -4566,7 +4566,7 @@ function c_scripexchange_cnkr:evaluate()
 			for index,itemdata in pairs(currentItems) do
 				--d("[ScripExchange]: Checking data for ["..tostring(itemdata.itemid).."].")
 				
-				local rewardcurrency, currentamount = AceLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
+				local rewardcurrency, currentamount = FFXIVLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
 				--[[
 					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
 				--]]
@@ -4681,7 +4681,7 @@ function c_exchange:evaluate()
 			ml_task_hub:CurrentTask().loaded = true
 		end
 	end
-	local currentItems = AceLib.API.Items.BuildFirmamentExchangeList()	
+	local currentItems = FFXIVLib.API.Items.BuildFirmamentExchangeList()	
 	local controlData = GetControlData("HWDSupply")
 	if not table.valid(controlData) then
 		return false

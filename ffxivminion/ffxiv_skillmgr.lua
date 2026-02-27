@@ -1482,7 +1482,7 @@ function SkillMgr.ParseMacro(data)
 
 							if (targetidentifer == GetString("Ground Target") or targetidentifer == "Ground Player") then
 								local tpos = target.pos
-								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
+								local eh = FFXIVLib.API.Math.ConvertHeading(tpos.h)
 								
 								local randomFront = (math.random(1,5) / 100)
 								local randomRearFlank = (math.random(65,80) / 100)
@@ -1491,22 +1491,22 @@ function SkillMgr.ParseMacro(data)
 								local randomRear = (math.random(90,100) / 100)
 								
 								local positions = {
-									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh) - (math.pi * randomFront))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFlank)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFlank)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRearFlank)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRearFlank)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRear)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRear)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFrontFlank)))%(2*math.pi),
-									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFrontFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh) - (math.pi * randomFront))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh - (math.pi * randomFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh + (math.pi * randomFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh - (math.pi * randomRearFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh + (math.pi * randomRearFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh - (math.pi * randomRear)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh + (math.pi * randomRear)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh + (math.pi * randomFrontFlank)))%(2*math.pi),
+									FFXIVLib.API.Math.ConvertHeading((eh - (math.pi * randomFrontFlank)))%(2*math.pi),
 								}
 								
 								local draw = math.random(1,11)
 								local range = (math.random(30,110) / 100)
-								local newpos = AceLib.API.Math.GetPosFromDistanceHeading(tpos, range, positions[draw])
+								local newpos = FFXIVLib.API.Math.GetPosFromDistanceHeading(tpos, range, positions[draw])
 								if (newpos) then
 									tpos = newpos
 								end
