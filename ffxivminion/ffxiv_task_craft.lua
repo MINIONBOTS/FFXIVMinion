@@ -1231,6 +1231,9 @@ end
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
+	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 160 )
+    self:add( ke_dataReady, self.overwatch_elements)
+	
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 150 )
     self:add( ke_collectible, self.overwatch_elements)
 	

@@ -2860,6 +2860,9 @@ function ffxiv_task_fish:Init()
 	local ke_isLoading = ml_element:create( "IsLoading", c_fishisloading, e_fishisloading, 300 )
     self:add( ke_isLoading, self.process_elements)
 	
+	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 295 )
+    self:add( ke_dataReady, self.process_elements)
+	
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 280 )
     self:add( ke_collectible, self.process_elements)
 	

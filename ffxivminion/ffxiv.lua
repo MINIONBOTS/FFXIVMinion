@@ -538,11 +538,18 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 end
 
 ml_global_information.throttleTick = 0
+ml_global_information._ffxivlib_prewarm_done = false
 function ml_global_information.InGameOnUpdate(event, tickcount)
 	if ((ml_global_information.throttleTick > 0 and (tickcount - ml_global_information.throttleTick) < 35) or not Player) then
 		return false
 	end
 	ml_global_information.throttleTick = tickcount
+
+	-- Trigger FFXIVLib pre-warm once per session (idempotent).
+	if not ml_global_information._ffxivlib_prewarm_done then
+		FFXIVData_PreWarmAll()
+		ml_global_information._ffxivlib_prewarm_done = true
+	end
 
 	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
@@ -575,6 +582,9 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 					end
 					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, 0)
 					NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, 0)
+
+					-- Re-warm map/aetheryte/weather data for the new zone.
+					FFXIVData_PreWarmMap(Player.localmapid)
 				end
 			end
 		end
@@ -1362,6 +1372,10 @@ function ffxivminion.CheckClass()
 		SkillMgr.UpdateBasicSkills()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
+
+		-- Re-warm FFXIVLib caches for the new job's gear and actions.
+		FFXIVData_PreWarmGear()
+		FFXIVData_PreWarmActions(Player.job)
 
 		-- autosetting the correct botmode
 

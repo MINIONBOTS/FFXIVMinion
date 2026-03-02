@@ -1648,6 +1648,8 @@ function SkillMgr.OnUpdate()
 		SkillMgr.LoadInit()
 		SkillMgr.UpdateCurrentProfileData()
 		SkillMgr.doLoad = false
+		-- Pre-warm FFXIVLib action/status data for the current job.
+		FFXIVData_PreWarmActions(Player.job)
 	end
 	
 	local pcast = Player.castinginfo
@@ -2123,6 +2125,10 @@ function SkillMgr.UseProfile(strName)
 		gSkillProfile = SkillMgr.profiles[gSkillProfileIndex]
 	end
 	SkillMgr.UpdateCurrentProfileData()
+	-- Pre-warm FFXIVLib action/status data for the current job.
+	if Player then
+		FFXIVData_PreWarmActions(Player.job)
+	end
 end
 
 --[[

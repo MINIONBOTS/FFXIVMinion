@@ -3744,6 +3744,9 @@ function ffxiv_task_gather:Init()
 	local ke_isLoading = ml_element:create( "IsLoading", c_gatherisloading, e_gatherisloading, 250 )
     self:add( ke_isLoading, self.process_elements)
 	
+	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 245 )
+    self:add( ke_dataReady, self.process_elements)
+	
 	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 220 )
     --self:add( ke_autoEquip, self.process_elements)
 	

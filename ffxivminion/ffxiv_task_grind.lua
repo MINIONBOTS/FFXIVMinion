@@ -630,6 +630,9 @@ function ffxiv_task_grind:Init()
 	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
     self:add( ke_isLoading, self.overwatch_elements)
 	
+	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 245 )
+    self:add( ke_dataReady, self.overwatch_elements)
+	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 200 )
     self:add(ke_dead, self.overwatch_elements)
 	
