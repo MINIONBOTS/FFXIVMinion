@@ -1266,6 +1266,11 @@ function ffxiv_task_craft:InitExtras()
 end
 
 function ffxiv_task_craft.SetModeOptions()
+	-- Activate recipe data loading (lazy; no-op if already enabled).
+	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Recipe and FFXIVLib.API.Recipe.Enable then
+		FFXIVLib.API.Recipe.Enable()
+	end
+
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
