@@ -633,32 +633,41 @@ function ffxiv_assist.GetAttackTarget()
 				end
 			end
         end	
-	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then
+	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then 
+		local tanks = {}
 		local party = EntityList("myparty")
 		if (table.valid(party)) then
-			local tanks = {}
 			for i,member in pairs(party) do
-				if (IsTank(member.job) and member.id ~= Player.id) then
+				if (IsTank(member) and member.id ~= Player.id) then
 					table.insert(tanks,member)
 				end
 			end
-			
-			if (table.valid(tanks)) then
-				local closest = nil
-				local closestDistance = 999
-				for i,tank in pairs(tanks) do
-					if (not closest or (closest and tank.distance2d < closestDistance)) then
-						closest = tank
-						closestDistance = tank.distance2d
-					end
+		end
+		local npcTeam = MEntityList("alive,chartype=9,targetable,maxdistance2d=100")
+		if (npcTeam) then
+			for i,entity in pairs(npcTeam) do
+				local econt = entity.contentid
+				if IsTank(entity) then
+					table.insert(tanks,entity)
 				end
-				
-				if (closest) then
-					if (closest.targetid ~= 0) then
-						local targeted = EntityList:Get(closest.targetid)
-						if (targeted and targeted.attackable and targeted.alive) then
-							target = targeted
-						end
+			end
+		end
+			
+		if (table.valid(tanks)) then
+			local closest = nil
+			local closestDistance = 999
+			for i,tank in pairs(tanks) do
+				if (not closest or (closest and tank.distance2d < closestDistance)) then
+					closest = tank
+					closestDistance = tank.distance2d
+				end
+			end
+			
+			if (closest) then
+				if (closest.targetid ~= 0) then
+					local targeted = EntityList:Get(closest.targetid)
+					if (targeted and targeted.attackable and targeted.alive) then
+						target = targeted
 					end
 				end
 			end

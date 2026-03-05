@@ -912,7 +912,7 @@ function GetBestTankHealTarget( range )
 	--local el = MEntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
     if ( table.valid(el) ) then
 		for i,entity in pairs(el) do
-			if (IsTank(entity.job) and entity.hp.percent < lowestHP ) then
+			if (IsTank(entity) and entity.hp.percent < lowestHP ) then
 				lowest = entity
 				lowestHP = entity.hp.percent
 			end
@@ -3920,8 +3920,13 @@ end
 function IsTank(var)
 	local var = IsNull(var,Player)
 	local jobid;
+	local contentid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		-- npc tanks
+		if In(var.contentid,713,8650,9363,11271,11266,11326,12487) then
+			return true
+		end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -12427,8 +12432,6 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 			if (p.distance <= minDist) then
 				closest = p
 				closestDistance = p.distance
-				d("closest 1 = ")
-				d(p)
 			end
 		end
 	end
@@ -12439,15 +12442,12 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 			if (p.distance <= minDist) then
 				if (p.distance < closestDistance) then
 					closest = p
-					d("closest 2 = ")
-					d(p)
 				end
 			end
 		end
 	end
 	
 	if (closest) then
-	d("return 1")
 		return closest
 	end
 	
@@ -12459,8 +12459,6 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 		local p = NavigationManager:GetClosestPointOnMesh(trypos)
 		if (table.valid(p)) then
 			if (p.distance <= minDist) then	
-				d("closest 3 = ")
-				d(p)
 				return p
 			end
 		end
@@ -12471,13 +12469,10 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 		local p = NavigationManager:GetClosestPointOnMesh(trypos)
 		if (table.valid(p) and p.distance <= minDist) then	
 			if (p.distance <= minDist) then	
-				d("closest 4 = ")
-				d(p)
 				return p
 			end
 		end
 	end
-	d("failed 1")
 	return nil
 end
 function IsEntityReachable(entityid,range)

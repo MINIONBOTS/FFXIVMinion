@@ -607,7 +607,7 @@ function c_avoid:evaluate()
 					local lastAvoid = c_avoid.lastAvoid
 					if (lastAvoid) then
 						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-							--d("Don't dodge, we already dodged this recently.")
+							d("[Avoidance] Don't dodge, we already dodged this recently.")
 							return false							
 						end
 					end
@@ -629,7 +629,7 @@ function c_avoid:evaluate()
 					local lastAvoid = c_avoid.lastAvoid
 					if (lastAvoid) then
 						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-							--d("Don't dodge, we already dodged this recently.")
+							d("[Avoidance] Don't dodge, we already dodged this recently.")
 							return false							
 						end
 					end
@@ -640,6 +640,7 @@ function c_avoid:evaluate()
 			end
 		end
 	end
+	
 	if not IsNormalMap(Player.localmapid) then
 		local el = EntityList("onmesh,maxdistance=40")
 		if (table.valid(el)) then
@@ -647,12 +648,11 @@ function c_avoid:evaluate()
 				local e = EntityList:Get(entity.id)
 				if (e) then
 					local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
-					d(spellData)
 					if (shouldAvoid and spellData) then
 						local lastAvoid = c_avoid.lastAvoid
 						if (lastAvoid) then
 							if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-								--d("Don't dodge, we already dodged this recently.")
+								d("[Avoidance] Don't dodge, we already dodged this recently.")
 								return false							
 							end
 						end
@@ -664,6 +664,7 @@ function c_avoid:evaluate()
 			end
 		end
 	end
+	
 	if (table.valid(c_avoid.newAvoid)) then
 		local newPos,seconds,obstacle = FFXIVLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
 		if (table.valid(newPos)) then
@@ -673,10 +674,10 @@ function c_avoid:evaluate()
 				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
 				return true
 			else
-				d("Dodge distance is very close.")
+				d("[Avoidance] Dodge distance is very close.")
 			end
 		else
-			d("Can't dodge, didn't find a valid position.")
+			d("[Avoidance] Can't dodge, didn't find a valid position.")
 		end
 	end
 	

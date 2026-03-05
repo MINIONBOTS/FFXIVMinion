@@ -34,29 +34,29 @@ ffxiv_craft.collectors = {
 ffxiv_craft.collectibles = {
 	-- Weekly (Custom Delivery)
 	-- Zhloe Alipoh
-	{ name = FFXIVLib.API.Items.GetNameByID(17549), minimum = 55 },	--	Near Eastern Antique
-	{ name = FFXIVLib.API.Items.GetNameByID(17550), minimum = 57 },	--	Coerthan Souvenir	
-	{ name = FFXIVLib.API.Items.GetNameByID(17551), minimum = 59 },	--	Maelstrom Materiel	
-	{ name = FFXIVLib.API.Items.GetNameByID(17552), minimum = 63 },	--	Heartfelt Gift	
-	{ name = FFXIVLib.API.Items.GetNameByID(17553), minimum = 68 },	--	Orphanage Donation	
+	{ id = 17549, minimum = 55 },	--	Near Eastern Antique
+	{ id = 17550, minimum = 57 },	--	Coerthan Souvenir	
+	{ id = 17551, minimum = 59 },	--	Maelstrom Materiel	
+	{ id = 17552, minimum = 63 },	--	Heartfelt Gift	
+	{ id = 17553, minimum = 68 },	--	Orphanage Donation	
 	-- M 'naago
-	{ name = FFXIVLib.API.Items.GetNameByID(20775), minimum = 157 },	--	Gyr Abanian Souvenir
-	{ name = FFXIVLib.API.Items.GetNameByID(20776), minimum = 167 },	--	Far Eastern Antique	
-	{ name = FFXIVLib.API.Items.GetNameByID(20777), minimum = 130 },	--	Gold Saucer Consolation Prize	
-	{ name = FFXIVLib.API.Items.GetNameByID(20778), minimum = 130 },	--	M Tribe Sundries	
-	{ name = FFXIVLib.API.Items.GetNameByID(20779), minimum = 104 },	--	Resistance Materiel
+	{ id = 20775, minimum = 157 },	--	Gyr Abanian Souvenir
+	{ id = 20776, minimum = 167 },	--	Far Eastern Antique	
+	{ id = 20777, minimum = 130 },	--	Gold Saucer Consolation Prize	
+	{ id = 20778, minimum = 130 },	--	M Tribe Sundries	
+	{ id = 20779, minimum = 104 },	--	Resistance Materiel
 	-- Kurenai
-	{ name = FFXIVLib.API.Items.GetNameByID(23143), minimum = 195 },	--	Gyr Abanian Remedies	
-	{ name = FFXIVLib.API.Items.GetNameByID(23144), minimum = 195 },	--	Anti-shark Harpoon
-	{ name = FFXIVLib.API.Items.GetNameByID(23145), minimum = 130 },	--	Coerthan Cold-weather Gear
-	{ name = FFXIVLib.API.Items.GetNameByID(23146), minimum = 130 },	--	Sui-no-Sato Special
-	{ name = FFXIVLib.API.Items.GetNameByID(23147), minimum = 110 },	--	Cloud Pearl
+	{ id = 23143, minimum = 195 },	--	Gyr Abanian Remedies	
+	{ id = 23144, minimum = 195 },	--	Anti-shark Harpoon
+	{ id = 23145, minimum = 130 },	--	Coerthan Cold-weather Gear
+	{ id = 23146, minimum = 130 },	--	Sui-no-Sato Special
+	{ id = 23147, minimum = 110 },	--	Cloud Pearl
 	-- Adkiragh
-	{ name = FFXIVLib.API.Items.GetNameByID(24562), minimum = 233 },	--	Ishgardian Culinary Essentials
-	{ name = FFXIVLib.API.Items.GetNameByID(24563), minimum = 233 },	--	Fermented Juice
-	{ name = FFXIVLib.API.Items.GetNameByID(24564), minimum = 161 },	--	Signature Buuz Cookware
-	{ name = FFXIVLib.API.Items.GetNameByID(24565), minimum = 161 },	--	Hard Place Decorative Furnishings 
-	{ name = FFXIVLib.API.Items.GetNameByID(24566), minimum = 125 },	--	Arkhi Brewing Set
+	{ id = 24562, minimum = 233 },	--	Ishgardian Culinary Essentials
+	{ id = 24563, minimum = 233 },	--	Fermented Juice
+	{ id = 24564, minimum = 161 },	--	Signature Buuz Cookware
+	{ id = 24565, minimum = 161 },	--	Hard Place Decorative Furnishings 
+	{ id = 24566, minimum = 125 },	--	Arkhi Brewing Set
 }
 
 ffxiv_task_craft = inheritsFrom(ml_task)
@@ -1332,9 +1332,9 @@ function ffxiv_task_craft:UIInit()
 		gCraftCollectablePresets = {}
 		GUI_Set("gCraftCollectablePresets",{})
 		for k,v in pairs(ffxiv_craft.collectibles) do
-			local newID = FFXIVLib.API.Items.GetIDByName(v.name)
-			if newID then
-				gCraftCollectablePresets[FFXIVLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
+			local name = FFXIVLib.API.Items.GetNameByID(v.id)
+			if name then
+				gCraftCollectablePresets[v.id] =  { name = name, value = v.minimum }
 			end
 		end
 		
@@ -2422,31 +2422,42 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 				return ffxiv_craft.dictionaries[craftid][maxattemptlevel], ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]
 			end
 		end
-			
-		local recipes,dictionary = FFXIVLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-4),maxattemptlevel)
-		if (dictionary) then
-			if (not ffxiv_craft.dictionaries[craftid] or not ffxiv_craft.dictionariesDisplay[craftid]) then
-				ffxiv_craft.dictionaries[craftid] = {}
-				ffxiv_craft.dictionariesDisplay[craftid] = {}
+
+		local classId = craftid - 8
+		local allRecipes = FFXIVLib.API.Recipe.GetRecipesByClass(classId)
+		if (allRecipes) then
+			local minLevel = maxattemptlevel - 4
+			local filtered = {}
+			for i = 1, #allRecipes do
+				local r = allRecipes[i]
+				if r and r.attemptlevel and r.attemptlevel >= minLevel and r.attemptlevel <= maxattemptlevel then
+					local name = r._nameCell and FFXIVLib.Cache.Text(r._nameCell) or FFXIVLib.API.Items.GetItemName(r.itemid)
+					if name then
+						table.insert(filtered, {recipeid = r.recipeid, itemid = r.itemid, name = name})
+					end
+				end
 			end
-			ffxiv_craft.dictionaries[craftid][maxattemptlevel] = {}
-			ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]  = {}
-			
-			local newDictionary = { [1] = {recipeid = 0, itemid = 0, name = GetString("none")} }
-			local newDisplayDictionary = { [1] = GetString("none") }
-			
-			local sortfunc = function(dictionary,a,b) 
-				return (dictionary[a].name < dictionary[b].name)
+
+			if (#filtered > 0) then
+				if (not ffxiv_craft.dictionaries[craftid] or not ffxiv_craft.dictionariesDisplay[craftid]) then
+					ffxiv_craft.dictionaries[craftid] = {}
+					ffxiv_craft.dictionariesDisplay[craftid] = {}
+				end
+
+				local newDictionary = { [1] = {recipeid = 0, itemid = 0, name = GetString("none")} }
+				local newDisplayDictionary = { [1] = GetString("none") }
+
+				table.sort(filtered, function(a, b) return a.name < b.name end)
+				for _, data in ipairs(filtered) do
+					table.insert(newDictionary, {recipeid = data.recipeid, itemid = data.itemid, name = data.name})
+					table.insert(newDisplayDictionary, data.name.." ["..tostring(data.recipeid).."]")
+				end
+
+				ffxiv_craft.dictionaries[craftid][maxattemptlevel] = newDictionary
+				ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel] = newDisplayDictionary
+
+				return ffxiv_craft.dictionaries[craftid][maxattemptlevel], ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]
 			end
-			for _,data in spairs(dictionary, sortfunc) do
-				table.insert(newDictionary, {recipeid = data.recipeid, itemid = data.itemid, name = data.name})
-				table.insert(newDisplayDictionary, data.name.." ["..tostring(data.recipeid).."]")
-			end
-			
-			ffxiv_craft.dictionaries[craftid][maxattemptlevel] = newDictionary
-			ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel] = newDisplayDictionary
-		
-			return ffxiv_craft.dictionaries[craftid][maxattemptlevel], ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]
 		end
 	end
 	
@@ -2706,8 +2717,17 @@ function ffxiv_craft.Draw( event, ticks )
 			
 			if (tabs.tabs[2].isselected) then	
 				GUI:PushItemWidth(60)
-				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
+				local classChanged = GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
 				GUI:PopItemWidth()
+				
+				if (classChanged) then
+					for j = 5,100,5 do
+						_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
+						_G["gCraftDictionarySelect"..tostring(j)] = GetString("none")
+					end
+					gCraftOrderAddID = 0
+					gCraftOrderAddRecipeID = 0
+				end
 				
 				for k = 5,100,5 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
@@ -3145,6 +3165,7 @@ function ffxiv_craft.Draw( event, ticks )
 			end
 		end
 		GUI:End()
+		GUI:PopStyleColor()
 	end
 end
 
