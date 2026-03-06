@@ -4035,10 +4035,17 @@ function MembersWithBuffs(hasbuffs, hasnot, maxdistance, includeself)
 end
 
 ml_global_information.lastAetheryteCache = 0
-function GetAetheryteList(force)
+-- Returns the game's aetheryte list, optionally filtered by attunement.
+-- force: boolean - force refresh the cache
+-- attunementFlag: 0 or nil = all, 1 = unlocked only, 2 = locked only
+-- Returns: { [index] = aetheryte, ... }
+function GetAetheryteList(force, attunementFlag)
 	
 	--return Player:GetAetheryteList()
 	local force = IsNull(force,false)
+	attunementFlag = IsNull(attunementFlag, 0)
+	if attunementFlag == true then attunementFlag = 1
+	elseif attunementFlag == false then attunementFlag = 2 end
 	
 	if (force == true or ml_global_information.Player_Aetherytes == nil) then
 		local newData = CopyAetheryteData()
@@ -4058,7 +4065,21 @@ function GetAetheryteList(force)
 		end
 	end
 	
-	return ml_global_information.Player_Aetherytes
+	if attunementFlag == 0 then
+		return ml_global_information.Player_Aetherytes
+	end
+	
+	local result = {}
+	local list = ml_global_information.Player_Aetherytes
+	if (table.valid(list)) then
+		for _, aetheryte in pairs(list) do
+			if (attunementFlag == 1 and aetheryte.isattuned)
+				or (attunementFlag == 2 and not aetheryte.isattuned) then
+				table.insert(result, aetheryte)
+			end
+		end
+	end
+	return result
 end
 function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
@@ -4095,20 +4116,8 @@ function GetLocalAetheryte()
     return nil
 end
 function GetAttunedAetheryteList(force)
-	local force = IsNull(force,false)
-	
-	local attuned = {}
-	
-	local list = GetAetheryteList(force)
-	if (table.valid(list)) then
-		for id,aetheryte in pairs(list) do
-			if (aetheryte.isattuned) then
-				table.insert(attuned, aetheryte)
-			end
-		end
-	end
-	
-	return attuned
+	if force then GetAetheryteList(true) end
+	return FFXIVLib.API.Map.GetAetherytes(1)
 end
 function GetUnattunedAetheryteList()
 	local aethList = {}
@@ -4180,9 +4189,9 @@ end
 function GetHomepoint()
 	local homepoint = 0
 	
-	local attuned = GetAttunedAetheryteList(true)
-	if (table.valid(attuned)) then
-		for id,aetheryte in pairs(attuned) do
+	local list = FFXIVLib.API.Map.GetAetherytes(1)
+	if (table.valid(list)) then
+		for _, aetheryte in pairs(list) do
 			if (aetheryte.ishomepoint) then
 				homepoint = aetheryte.territory
 			end
@@ -4587,13 +4596,13 @@ function GetAetheryteByMapID(mapid, p)
 		},	
 	}
 	
-	local list = GetAttunedAetheryteList()
+	local list = FFXIVLib.API.Map.GetAetherytes(1)
 	if (table.valid(list)) then
 		if (not pos or not sharedMaps[mapid]) then
 			--d("This is not a shared map or we were not given a position.")
-			for index,aetheryte in pairs(list) do
+			for _, aetheryte in pairs(list) do
 				if (aetheryte.territory == mapid) then
-					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id) and aetheryte.isattuned) then
+					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id)) then
 						return aetheryte
 					end
 				end
@@ -4605,9 +4614,9 @@ function GetAetheryteByMapID(mapid, p)
 			local sharedMap = sharedMaps[mapid]
 			local choices = {}
 			for _,sharedData in pairs(sharedMap) do
-				for index,aetheryte in pairs(list) do
+				for _, aetheryte in pairs(list) do
 					if (aetheryte.id == sharedData.aethid) then
-						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+						if (GilCount() >= aetheryte.price) then
 							choices[#choices+1] = sharedData
 						end
 					end
@@ -4677,9 +4686,9 @@ end
 function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
-		local list = GetAttunedAetheryteList()
+		local list = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(list)) then
-			for k,aetheryte in pairs(list) do
+			for _, aetheryte in pairs(list) do
 				if (aetheryte.id == aethid) then
 					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aethid)) then
 						return true
@@ -5821,8 +5830,8 @@ function CanAccessMap(mapid)
 				return true
 			end
 			
-			local attunedAetherytes = GetAttunedAetheryteList()
-			for k,aetheryte in pairs(attunedAetherytes) do
+			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
+			for _, aetheryte in pairs(attunedAetherytes) do
 				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
 					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
@@ -12612,9 +12621,9 @@ function FindNearestCollectableAppraiser()
 		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore, hasRadz,hasS9 = false, false, false, false, false, false
 		local idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, radzCost, s9Cost = 0, 0, 0, 0, 0, 0
 		local gil = GilCount()
-		local attuned = GetAttunedAetheryteList(true)
+		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(attuned)) then
-			for id,aetheryte in pairs(attuned) do
+			for _, aetheryte in pairs(attuned) do
 				if (aetheryte.id == morDhona.aethid and gil >= aetheryte.price) then
 					hasMorDhona = true
 					morDhonaCost = aetheryte.price
@@ -12713,9 +12722,9 @@ function FindClosestCity()
 		local hasIdyllshire, hasRhalgr, hasEulmore, hasGridania, hasLimsa, hasUldah = false, false, false, false, false, false, false
 		local idyllshireCost, rhalgrCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost = 1000, 1000, 1000, 1000, 1000, 1000, 1000
 		local gil = GilCount()
-		local attuned = GetAttunedAetheryteList()
+		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(attuned)) then
-			for id,aetheryte in pairs(attuned) do
+			for _, aetheryte in pairs(attuned) do
 				if (aetheryte.id == idyllshire.aethid and gil >= aetheryte.price) then
 					hasIdyllshire = true
 					idyllshireCost = aetheryte.price

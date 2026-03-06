@@ -1737,21 +1737,27 @@ e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
+		d("[c_useaethernet] false 1")
 		return false
 	end
-	if (ml_task_hub:CurrentTask().useAethernet == false) then
+	if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().useAethernet == false) then
+		d("[c_useaethernet] false 2")
 		return false
 	end
 	if Player.localmapid == 478 then
 		local walkDist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,107,207,109)
 		if (walkDist <= 80) then		
+			d("[c_useaethernet] false 3")
 			return false
 		end
 	end
 		
 	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
-	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+	local destMapID = 0
+	if ml_task_hub:CurrentTask() then
+		destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+	end
 	if (destMapID == 0) then
 		destMapID = Player.localmapid
 	end
@@ -1771,6 +1777,12 @@ function c_useaethernet:evaluate(mapid, pos)
 	local gotoDist = Distance3DT(gotoPos,Player.pos)
 	local nearestAethernet,nearestDistance = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = FFXIVLib.API.Map.GetBestAethernet(destMapID,gotoPos)
+	
+	--[[d("CLOSEST = ")
+	d(nearestAethernet)
+	d("BEST = ")
+	d(bestAethernet)]]
+	
 	local gatedist = 10000	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
@@ -1855,7 +1867,7 @@ function c_useaethernet:evaluate(mapid, pos)
 			return true
 		end
 	else
-		if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+		if ml_task_hub:CurrentTask() and (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
 			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
 														ml_task_hub:CurrentTask().destMapID	)
@@ -1865,10 +1877,28 @@ function c_useaethernet:evaluate(mapid, pos)
 			end
 		end
 		local closestDist = GetLowestValue(gatedist,gotoDist)
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
+		
+		--[[d("gotoDist = "..tostring(gotoDist))
+		d("(bestDistance + nearestDistance) = "..tostring((bestDistance + nearestDistance)))
+		
+		
+		d("check must a = "..tostring(nearestAethernet and bestAethernet))
+		d("check must b = "..tostring(nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id)))
+		
+		d("check 1a = "..tostring(bestDistance and nearestDistance and gotoDist and ((bestDistance + nearestDistance) < gotoDist)))
+		d("check 1b = "..tostring(destMapID == Player.localmapid))
+		d("")
+		d("check 2a = "..tostring(nearestDistance and gatedist and (nearestDistance < gatedist)))
+		d("check 2b = "..tostring((destMapID ~= Player.localmapid)))]]
+		
+		
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and 
+			(((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or 
+			(nearestDistance < gatedist and destMapID ~= Player.localmapid)
+			)) then
 			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
 				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
-				--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
+				d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernet.id))
 				e_useaethernet.nearest = nearestAethernet
 				e_useaethernet.destination = bestAethernet
 				return true
@@ -1878,8 +1908,29 @@ function c_useaethernet:evaluate(mapid, pos)
 	
 	return false
 end
+-- Normalizes an aethernet row from the API into the format task code expects.
+-- API rows have WorldX/WorldZ/AethernetName; task code expects .pos and .conversationstrings
+local function NormalizeAethernetRow(row)
+	if not row then return row end
+	if not row.pos and row.WorldX then
+		local y = row.WorldY
+		if not y then
+			local meshPt = NavigationManager:GetClosestPointOnMesh({x = row.WorldX, y = 0, z = row.WorldZ})
+			y = meshPt and meshPt.y or 0
+		end
+		row.pos = { x = row.WorldX, y = y, z = row.WorldZ }
+	end
+	if not row.conversationstrings and row.AethernetName then
+		row.conversationstrings = row.AethernetName
+	end
+	return row
+end
+
 function e_useaethernet:execute()
+d("[e_useaethernet] execute")
 	if (table.valid(e_useaethernet.nearest)) then
+		NormalizeAethernetRow(e_useaethernet.nearest)
+		NormalizeAethernetRow(e_useaethernet.destination)
 		if (e_useaethernet.isresidential) then
 			local newTask = ffxiv_task_moveaethernet.Create()
 			newTask.contentid = e_useaethernet.nearest.id
@@ -1931,7 +1982,7 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
-			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernetLocked.id))
+			d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernetLocked.id))
 			if (nearestDistanceLocked < 15 or nearestDistanceLocked < Distance3DT(Player.pos,gotoPos)) then
 				e_unlockaethernet.nearest = nearestAethernetLocked
 				return true
@@ -1943,7 +1994,8 @@ function c_unlockaethernet:evaluate(mapid, pos)
 end
 function e_unlockaethernet:execute()
 	if (table.valid(e_unlockaethernet.nearest)) then
-		--d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
+		NormalizeAethernetRow(e_unlockaethernet.nearest)
+		d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
 		local newTask = ffxiv_task_moveaethernet.Create()
 		newTask.contentid = e_unlockaethernet.nearest.id
 		newTask.pos = e_unlockaethernet.nearest.pos
