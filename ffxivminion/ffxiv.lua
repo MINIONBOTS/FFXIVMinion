@@ -1449,8 +1449,10 @@ end
 function ffxivminion.FillFoodOptions(availableonly)
 	local availableonly = IsNull(availableonly, false)
 	local allFoods
-	if FFXIVLib then
+	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Items and FFXIVLib.API.Items.GetAllFoods then
 		allFoods = FFXIVLib.API.Items.GetAllFoods(availableonly)
+	elseif AceLib then
+		allFoods = AceLib.API.Items.GetAllFoods(availableonly)
 	else
 		allFoods = {}
 	end
@@ -1458,12 +1460,14 @@ function ffxivminion.FillFoodOptions(availableonly)
 	ml_global_information.foods = {}
 	if (table.valid(allFoods)) then
 		for i, item in pairs(allFoods) do
-			ml_global_information.foods[item.name] = {
-				id = item.hqid,
-				name = item.name,
-				buffid = item.buffid,
-				buffstackid = item.buffstackid,
-			}
+			if item.name then
+				ml_global_information.foods[item.name] = {
+					id = item.hqid,
+					name = item.name,
+					buffid = item.buffid,
+					buffstackid = item.buffstackid,
+				}
+			end
 		end
 	end
 
