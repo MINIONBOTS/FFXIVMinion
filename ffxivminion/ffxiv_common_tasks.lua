@@ -2518,8 +2518,11 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			ml_global_information.Await(10000, function () return (Player and not Busy() and math.distance3d(initiatedPos,Player.pos) > 10) end)
 		end
 		return true
-	elseif (self.unlockAethernet and FFXIVLib.API.Map.HasAttunements(self.contentid)) then
-		return true
+	elseif (self.unlockAethernet) then
+		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
+		if attuned and attuned[self.contentid] then
+			return true
+		end
 	end
 	
 	local interactable = nil
