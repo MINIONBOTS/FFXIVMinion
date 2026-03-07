@@ -144,12 +144,6 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 	GUI:Text("Max Gather Time");
 	GUI:SameLine(0,10)
 	marker.fields.duration, changed = GUI:InputInt("##duration",marker.fields.duration,0,0); if (changed) then dowrite = true end
-	--GUI:Text("Node Search Timeout");
-	--GUI:SameLine(0,10)
-	--marker.fields.timeout, changed = GUI:InputInt("##timeout",marker.fields.timeout,0,0); if (changed) then dowrite = true end
-	--if (GUI:IsItemHovered()) then
-	--	GUI:SetTooltip("Set a timeout for when to failover to the next marker in a list if no gathering nodes are found.")
-	--end
 	GUI:PopItemWidth()
 
 	GUI:PushItemWidth(75)
@@ -184,7 +178,6 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 		marker.fields.chocofood, changed = GUI:Checkbox("Chocobo Food",marker.fields.chocofood); if (changed) then dowrite = true end
 		marker.fields.rares, changed = GUI:Checkbox("Rare Items",marker.fields.rares); if (changed) then dowrite = true end
 		marker.fields.specialrares, changed = GUI:Checkbox("Special Rare Items",marker.fields.specialrares); if (changed) then dowrite = true end
-		marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 		GUI:SameLine(0,10)
 		marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
 		GUI:PopItemWidth()
@@ -252,7 +245,6 @@ function ffxiv_marker_mgr.BuildGather()
 		rares = false,
 		specialrares = false,
 		favoritem = 0,
-		usestealth = false,
 		dangerousarea = false,
 		skillprofile = GetString("none"),
 		mingp = 0,
@@ -299,7 +291,6 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 		marker.fields.usesnagging, changed = GUI:Checkbox("Use Snagging",marker.fields.usesnagging); if (changed) then dowrite = true end
 		marker.fields.usechum, changed = GUI:Checkbox("Use Chum",marker.fields.usechum); if (changed) then dowrite = true end
 		marker.fields.usedoublehook, changed = GUI:Checkbox("Use Double Hook",marker.fields.usedoublehook); if (changed) then dowrite = true end
-		marker.fields.usestealth, changed = GUI:Checkbox("Stealth",marker.fields.usestealth); if (changed) then dowrite = true end
 		GUI:SameLine(0,10)
 		marker.fields.dangerousarea, changed = GUI:Checkbox("Dangerous",marker.fields.dangerousarea); if (changed) then dowrite = true end
 		GUI:PopItemWidth()
@@ -359,7 +350,6 @@ function ffxiv_marker_mgr.BuildFishing()
 		whitelistHQ = "",
 		blacklist = "",
 		blacklistHQ = "",
-		usestealth = true,
 		dangerousarea = false,
 	}
 	

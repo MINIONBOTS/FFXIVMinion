@@ -3387,17 +3387,7 @@ function Dismount()
 			end
 		end
 	end
-	
-	--[[
-	if (Player.ismounted and (not isflying or (isflying and not Player:IsMoving()))) then
-		local dismount = ActionList:Get(5,23)
-		if (dismount and dismount:IsReady(Player.id)) then
-			dismount:Cast(Player.id)
-		else
-			SendTextCommand("/mount")
-		end
-	end
-	--]]
+
 end
 function Repair()
 	if (gRepair) then
@@ -3924,7 +3914,7 @@ function IsTank(var)
 	if (type(var) == "table") then
 		jobid = var.job or 0
 		-- npc tanks
-		if In(var.contentid,713,8650,9363,11271,11266,11326,12487) then
+		if In(var.contentid,713,8650,9363,11271,11266,11326,11330,12487) then
 			return true
 		end
 	elseif (type(var) == "number") then
@@ -4701,39 +4691,6 @@ function CanUseAetheryte(aethid)
 	return false
 end
 function GetOffMapMarkerList(strMeshName, strMarkerType)
-	--[[
-	local markerPath = ml_mesh_mgr.defaultpath.."\\"..strMeshName..".info"
-	if (FileExists(markerPath)) then
-		local markerList, e = persistence.load(markerPath)
-		if (markerList) then
-			local templateKey = ml_marker_mgr.GetTemplateKey(strMarkerType)
-			if (templateKey) then
-				local sublist = markerList[templateKey]
-				if (sublist) then
-					local namestring = ""
-					for k,marker in pairs(sublist) do
-						setmetatable(marker, {__index = ml_marker})
-						
-						local markerName = marker:GetName()
-						if (namestring == "") then
-							namestring = markerName
-						else
-							namestring = namestring..","..markerName
-						end
-					end
-					return namestring
-				else	
-					ml_debug("No markers found on map for type ["..strMarkerType.."].")
-				end
-			end
-		else
-			d("Marker file could not be loaded successfully for destination mesh ["..tostring(strMeshName).."].")
-			d("Error ["..e.."]")
-		end
-	else
-		d("No marker file found for destination mesh ["..tostring(strMeshName).."].")
-	end
-	--]]
 	return nil
 end
 function IsCityMap(mapid)
@@ -7029,32 +6986,7 @@ end
 
 function GetLivingMemorySection(pos)
     local sec = 1
-	-- First Island (Bottom Middle)
---[[	local sections1 = {
-        [1] = {
-            a = {x = -41, z = 321},
-            b = {x = 44, z = 335},
-            c = {x = -28, z = 701},
-            d = {x = 46, z = 709},
-            x = {x = 5.25, z = 516.5},
-        },
-		[2] = {
-            a = {x = -97, z = 680},
-            b = {x = 102, z = 682},
-            c = {x = 105, z = 913},
-            d = {x = -123, z = 904},
-            x = {x = -3.25, z = 794.75},
-        },
-	}
-	
-    if (table.valid(pos)) then
-        for i,section in pairs(sections4) do
-            local isInsideRect = FFXIVLib.API.Math.IsInsideRectangle(pos,section)
-            if (isInsideRect) then
-               sec = 1
-            end
-        end
-    end	]]---- Second Island (Bottom Left)
+	-- Second Island (Bottom Left)
     local sections2 = {
         [1] = {
             a = {x = -955.75, z = 173},
@@ -7530,10 +7462,6 @@ function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
 	local closestDistance = math.huge
 
-	--[[local distance = math.distance2d(pos,centerPoints[15])
-	if distance < 310 then
-		return 15
-	end]]
 	local distance = math.distance2d(pos,centerPoints[20])
 	if distance < 80 then
 		return 5
@@ -7742,6 +7670,25 @@ function GetOizys(pos, closest)
 	end
 	
 	return 0
+end
+
+local _sectionFunctions = {
+	[956]  = function(pos) return GetLabyrithosSection(pos) end,
+	[957]  = function(pos) return GetTempestSection(pos) end,
+	[959]  = function(pos) return GetMareLamentorumSection(pos) end,
+	[960]  = function(pos) return GetUltimaThuleSection(pos) end,
+	[1187] = function(pos) return GetUyuypogaSection(pos) end,
+	[1188] = function(pos) return GetKozamaukaSection(pos) end,
+	[1189] = function(pos) return GetYakTelSection(pos) end,
+	[1192] = function(pos) return GetLivingMemorySection(pos) end,
+	[1237] = function(pos) return GetCosmicMoon(pos, true) end,
+	[1291] = function(pos) return GetPhaenna(pos, true) end,
+	[1310] = function(pos) return GetOizys(pos, true) end,
+}
+
+function GetMapSection(mapId, pos)
+	local fn = _sectionFunctions[mapId]
+	return fn and fn(pos) or 0
 end
 
 if not ff.oizysPathingData then
@@ -12809,42 +12756,6 @@ function GetRequiredPitch(pos,noadjustment)
 	if (table.valid(pos)) then
 		local ppos = Player.pos
 		
-		--[[
-		-- The path is conputed at the feet, so it is possible to get stuck on objects at the head level.
-		-- This code attempts to angle the player down a bit if such an object is found.
-		local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y+4,pos.z) 
-		if (hit) then
-			for i = 3, 15, 3 do
-				d("Obstacle detected, adjust pitch down by [" .. i .. "]..")
-				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+4,ppos.z,pos.x,pos.y-i,pos.z)
-				if (not hit) then
-					d("New trajectory appears safe, use it.")
-					pos = { x = pos.x, y = pos.y - i, z = pos.z }
-					break
-				end
-			end
-		end
-		
-		local nextNode = ml_navigation.path[ml_global_information.pathindex]
-		if (table.isa(nextNode) and nextNode.is_cube) then
-			-- Auto-adjust for feet-level impacts.
-			if (not hit) then
-				hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y,pos.z) 
-				if (hit) then
-					for i = 3, 15, 3 do
-						d("Obstacle detected, adjust pitch up by [" .. i .. "]..")
-						hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y-0.25,ppos.z,pos.x,pos.y+i,pos.z)
-						if (not hit) then
-							d("New trajectory appears safe, use it.")
-							pos = { x = pos.x, y = pos.y + i, z = pos.z }
-							break
-						end
-					end
-				end
-			end
-		end
-		--]]
-		
 		local currentPitch = math.round(Player.flying.pitch,3)
 		local vector = math.normalize(math.vectorize(ppos,pos))
 		
@@ -13018,21 +12929,11 @@ function IsInCombat(includepet,includecompanion)
 	if (Player.incombat) then
 		return true
 	elseif (includepet or includecompanion) then
-		--local el = MEntityList("alive,attackable,incombat")  leaving this out for now, may be necessary, but hopefully not
 		if (includepet) then
 			if (Player.pet) then
 				if (Player.pet.incombat) then
 					return true
 				end
-				--[[
-				if (table.valid(el)) then
-					for i,entity in pairs(el) do
-						if (In(Player.pet.id,entity.targetid,entity.claimedbyid)) then
-							return true
-						end
-					end
-				end
-				--]]
 			end
 		elseif (includecompanion) then
 			local companion = GetCompanionEntity()
@@ -13040,15 +12941,6 @@ function IsInCombat(includepet,includecompanion)
 				if (companion.alive and companion.incombat) then
 					return true
 				end
-				--[[
-				if (table.valid(el)) then
-					for i,entity in pairs(el) do
-						if (In(companion.id,entity.targetid,entity.claimedbyid)) then
-							return true
-						end
-					end
-				end
-				--]]
 			end
 		end
 	end

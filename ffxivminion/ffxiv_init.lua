@@ -1,42 +1,4 @@
 -- Add things to ml_global_information, we no longer create it.	
---[[
-FFXIV.JOBS = {
-	ADVENTURER = 0,
-	GLADIATOR = 1,
-	PUGILIST = 2,
-	MARAUDER = 3,
-	LANCER = 4,
-	ARCHER = 5,
-	CONJURER = 6,
-	THAUMAGURGE = 7,
-	CARPENTER = 8,
-	BLACKSMITH = 9,
-	ARMORER = 10,
-	GOLDSMITH = 11,
-	LEATHERWORKER = 12,
-	WEAVER = 13,
-	ALCHEMIST = 14,
-	CULINARIAN = 15,
-	MINER = 16,
-	BOTANIST = 17,
-	FISHER = 18,
-	PALADIN = 19,
-	MONK = 20,
-	WARRIOR = 21,
-	DRAGOON = 22,
-	BARD = 23,
-	WHITEMAGE = 24,
-	BLACKMAGE = 25,
-	ARCANIST = 26,
-	SUMMONER = 27,
-	SCHOLER= 28,
-	ROGUE = 29,
-	NINJA = 30,
-	MACHINIST = 31,
-	DARKKNIGHT = 32,
-	ASTROLOGIAN = 33,
-}
---]]
 if (FFXIV.JOBS.VIPER == nil) then
 	FFXIV.JOBS.VIPER = 41
 end
@@ -76,7 +38,6 @@ ml_global_information.autoStartQueued = false
 ml_global_information.loadCompleted = false
 ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
---ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
 ml_global_information.lastInventorySnapshot = {}
 ml_global_information.repairBlacklist = {}
@@ -86,9 +47,7 @@ ml_global_information.requiresTransport = {}
 ml_global_information.landing = nil
 ml_global_information.queueLoader = false
 -- Split this into 2 variables to deal with the logic timing.
--- [needsStealth] must be known in order to adjust the path request, and [canStealth] must come after to adjust actual activity performed.
-ml_global_information.needsStealth = false
-ml_global_information.canStealth = false
+
 ml_global_information.gatherid = 0
 ml_global_information.targetid = 0
 ml_global_information.foods = {}
@@ -174,10 +133,8 @@ function ml_global_information.NodeNeighbors(self)
 					end
 					if (not add) then
 						if (TableSize(validNeighbors[id]) > 1) then
-							--d("Requirement not met, removing neighbor ["..tostring(id).."], entry # ["..tostring(i).."].")
 							validNeighbors[id][i] = nil
 						elseif (TableSize(validNeighbors[id]) == 1) then	
-							--d("Requirement not met, removing neighbor ["..tostring(id).."] entirely.")
 							validNeighbors[id] = nil
 						end
 					end
@@ -1185,7 +1142,6 @@ function ml_global_information.Init()
 		
 		-- setup meshmanager
 		if ( ml_mesh_mgr ) then
-			--ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
 			ml_mesh_mgr.GetMapID = function () return Player.localmapid end
 			ml_mesh_mgr.GetMapName = function (mapid)
 				local mapid = IsNull(mapid,Player.localmapid)
@@ -1925,7 +1881,6 @@ function ml_global_information.Init()
 	if (classFiles) then
 		for i,file in pairs(classFiles) do
 			if ( string.ends(file,".lua") ) then
-				--d("loading file ["..tostring(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines\\"..file).."]")
 				local file, e = persistence.load(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines\\"..file)
 				if (e) then
 					d(e)
@@ -1937,7 +1892,6 @@ function ml_global_information.Init()
 	local ffxiv_mainmenu = {
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	
-			--{ id = "FFXIVMINION##MENU_MAINMENU", name = "Windows", sort = true },
 			{ id = "FFXIVMINION##MENU_MAINMENU", name = "Main Task", onClick = function() ffxivminion.GUI.main.open = true ml_global_information.drawMode = 1 end, tooltip = "Open the Main Task window." },
 			{ id = "FFXIVMINION##MENU_DEV", name = "Dev Tools", onClick = function() dev.GUI.open = not dev.GUI.open end, tooltip = "Open the Developer tools." },
 		}

@@ -281,14 +281,12 @@ function c_precastbuff:evaluate()
 		
 	local useCordials = (gFishUseCordials)
 	local useFood = 0
-	local needsStealth = false
 	local taskType = "fishing"
 	local usePatience, usePatience2;
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
-		needsStealth = IsNull(task.usestealth,false)
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		useFood = IsNull(task.food,0)
@@ -296,14 +294,10 @@ function c_precastbuff:evaluate()
 		usePatience = IsNull(task.usepatience,false)
 		usePatience2 = IsNull(task.usepatience2,false)
 	elseif (table.valid(marker)) then
-		needsStealth = IsNull(marker.usestealth,false)
 		usePatience = IsNull(marker.usepatience,false)
 		usePatience2 = IsNull(marker.usepatience2,false)
 	end
 		
-	if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
-		needsStealth = GUI_Get(needsStealth)
-	end
 	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
 		useCordials = GUI_Get(useCordials)
 	end
@@ -333,15 +327,6 @@ function c_precastbuff:evaluate()
 			end
 		end
 		
-		local hasStealth = HasBuff(Player.id,47)
-		if (not hasStealth and needsStealth) then
-			local stealth = SkillMgr.GetAction(298,1)
-			if (stealth and stealth:IsReady(Player.id) and Player.action ~= 367) then
-				c_precastbuff.activity = "stealth"
-				c_precastbuff.requiredismount = true
-				return true
-			end
-		end
 		
 		if (fs == 4) then
 			if (c_mooch2:evaluate()) then
@@ -433,14 +418,6 @@ function e_precastbuff:execute()
 		return
 	end
 	
-	if (activity == "stealth") then
-		d("started stealth task")
-		local newTask = ffxiv_task_stealth.Create()
-		newTask.addingStealth = true
-		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-		ml_global_information.Await(2000)
-		return
-	end
 	
 	if (activity == "usecordial") then
 		local cordial, action = GetItem(activityitemid)
@@ -1450,22 +1427,26 @@ function e_buybait:execute()
 		for itemid,buyamount in pairsByKeys(rebuyids) do
 			local nearestPurchase = FFXIVLib.API.Items.FindNearestPurchaseLocation(itemid)
 			if (nearestPurchase) then
-				local newTask = ffxiv_misc_shopping.Create()
-				
-				newTask["itemid"] = itemid
-				newTask["pos"] = nearestPurchase.pos
-				newTask["mapid"] = nearestPurchase.mapid
-				newTask["id"] = nearestPurchase.id
-				newTask["conversationIndex"] = nearestPurchase.index
-				newTask["conversationstrings"] = nearestPurchase.indexstrings
-				newTask["buyamount"] = buyamount
-				
-				 ml_task_hub:CurrentTask():AddSubTask(newTask)
-				d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(nearestPurchase.id).."]")
-				d("Nearest Pos:")
-				table.print(nearestPurchase.pos)
-				table.print(nearestPurchase.indexstrings)
-				return true
+				local npcId = nearestPurchase.id or nearestPurchase.npcId
+				local mapid = nearestPurchase.mapid
+				local pos = nearestPurchase.pos or {x = nearestPurchase.x, y = nearestPurchase.y, z = nearestPurchase.z}
+				if (npcId and mapid and pos.x) then
+					local newTask = ffxiv_misc_shopping.Create()
+					
+					newTask["itemid"] = itemid
+					newTask["pos"] = pos
+					newTask["mapid"] = mapid
+					newTask["id"] = npcId
+					newTask["conversationIndex"] = nearestPurchase.index
+					newTask["conversationstrings"] = nearestPurchase.indexstrings
+					newTask["buyamount"] = buyamount
+					
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+					d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(npcId).."]")
+					d("Nearest Pos:")
+					table.print(pos)
+					return true
+				end
 			end
 		end
 	end
@@ -2419,9 +2400,9 @@ function e_fishnextprofilepos:execute()
 	newTask.range = 1
 	newTask.doFacing = true
 	
-	if (CanFlyInZone() and c_fishnextprofilepos.distance > 40 and not gTeleportHack) then
+	if (CanFlyInZone() and (c_fishnextprofilepos.distance or 0) > 40 and not gTeleportHack) then
 		local flightApproach, approachDist = FFXIVLib.API.Math.GetFlightApproach(taskPos)
-		if (flightApproach and approachDist < 30) then
+		if (flightApproach and approachDist ~= nil) and (approachDist < 30) then
 			newTask.pos = flightApproach
 			newTask.range = 5
 			newTask.doFacing = false
@@ -2431,7 +2412,6 @@ function e_fishnextprofilepos:execute()
 	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
-	newTask.stealthFunction = ffxiv_fish.NeedsStealth
 	
 	ml_task_hub:CurrentTask().requiresRelocate = false
 	ml_task_hub:CurrentTask().requiresAdjustment = true
@@ -2551,82 +2531,6 @@ function ffxiv_fish.NeedsPatienceCheck()
 	return false
 end
 
-function ffxiv_fish.NeedsStealth()
-	--[=[if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
-		return false
-	end
-
-	if Player.level < 8 then
-		return false
-	end	
-	if GameRegion() ~= 3 then
-		return false
-	end
-	
-	local useStealth = false
-	local task = ffxiv_fish.currentTask
-	local marker = ml_marker_mgr.currentMarker
-	if (table.valid(task)) then
-		useStealth = IsNull(task.usestealth,false)
-	elseif (table.valid(marker)) then
-		useStealth = IsNull(marker.usestealth,false)
-	end
-	
-	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
-		useStealth = GUI_Get(useStealth)
-	end
-	
-	if (useStealth) then	
-		local stealth = SkillMgr.GetAction(298,1)
-		if (stealth) then
-			local dangerousArea = false
-			local myPos = Player.pos
-			local destPos = ml_task_hub:CurrentTask().pos
-			local task = ffxiv_fish.currentTask
-			local marker = ml_marker_mgr.currentMarker
-			if (table.valid(task)) then
-				dangerousArea = IsNull(task.dangerousarea,false)
-			elseif (table.valid(marker)) then
-				dangerousArea = IsNull(marker.dangerousarea,false)
-			end
-			
-			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
-				dangerousArea = GUI_Get(dangerousArea)
-			end
-		
-			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-				local dest = ml_task_hub:CurrentTask().pos
-				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 75) then
-					return false
-				end
-			end
-			
-			local distance2d = Distance2D(myPos.x, myPos.z, destPos.x, destPos.z)
-			if (distance2d <= 10) then
-				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10))
-				if (table.valid(potentialAdds)) then
-					return true
-				end
-			end
-			
-			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthDetect))
-			if (table.valid(addMobList)) then
-				return true
-			end
-			
-			local hasStealth = HasBuff(Player.id,47)
-			if (hasStealth) then
-				local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthRemove))
-				if (table.valid(removeMobList)) then
-					--d("Still detecting enemies, need to keep stealth.")
-					return true
-				end
-			end
-		end
-	end]=]
-	
-	return false
-end
 
 function ffxiv_fish.IsFishing()
 	local fs = Player:GetFishingState()
@@ -2647,111 +2551,7 @@ function ffxiv_fish.StopFishing()
 		end
 	end
 end
-
-c_fishstealth = inheritsFrom( ml_cause )
-e_fishstealth = inheritsFrom( ml_effect )
-e_fishstealth.timer = 0
-function c_fishstealth:evaluate()
-	--[=[if (IsFlying() or ml_task_hub:CurrentTask().name == "MOVE_WITH_FLIGHT") then
-		return false
-	end
-
-	local useStealth = false
-	local task = ffxiv_fish.currentTask
-	local marker = ml_marker_mgr.currentMarker
-	if (table.valid(task)) then
-		useStealth = IsNull(task.usestealth,false)
-	elseif (table.valid(marker)) then
-		useStealth = IsNull(marker.usestealth,false)
-	end
-	
-	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
-		useStealth = GUI_Get(useStealth)
-	end
-	
-	if (useStealth) then
-		if (Player.incombat) then
-			return false
-		end
-		
-		local fs = Player:GetFishingState()
-		if (fs ~= 0) then
-			return false
-		end
-		
-		local stealth = SkillMgr.GetAction(298,1)
-		if (stealth) then
-			local dangerousArea = false
-			local destPos = {}
-			local myPos = Player.pos
-			local task = ffxiv_fish.currentTask
-			local marker = ml_marker_mgr.currentMarker
-			if (table.valid(task)) then
-				dangerousArea = IsNull(task.dangerousarea,false)
-				destPos = GetCurrentTaskPos()
-			elseif (table.valid(marker)) then
-				dangerousArea = marker.dangerousarea
-				destPos = marker:GetPosition()
-			end
-		
-			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
-				dangerousArea = GUI_Get(dangerousArea)
-			end
-		
-			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-				local dest = ml_task_hub:CurrentTask().pos
-				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 75) then
-					if (HasBuff(Player.id, 47)) then
-						return true
-					else
-						return false
-					end
-				end
-			end
 			
-			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-			if (distance <= 6) then
-				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
-				if (TableSize(potentialAdds) > 0) then
-					if (not HasBuff(Player.id, 47)) then
-						return true
-					else
-						return false
-					end
-				end
-			end
-			
-			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthDetect))
-			local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthRemove))
-			
-			if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
-			  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
-			then
-				return true
-			end
-		end
-	else
-		if (HasBuffs(Player,"47")) then
-			return true
-		end
-	end]=]
- 
-    return false
-end
-function e_fishstealth:execute()
-	e_fishstealth.timer = Now() + 3000
-	
-	local newTask = ffxiv_task_stealth.Create()
-	if (HasBuffs(Player,"47")) then
-		newTask.droppingStealth = true
-	else
-		newTask.addingStealth = true
-	end
-	
-	ml_task_hub:ThisTask().preserveSubtasks = true
-	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-end
-
 c_syncadjust = inheritsFrom( ml_cause )
 e_syncadjust = inheritsFrom( ml_effect )
 function c_syncadjust:evaluate()

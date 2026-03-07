@@ -1545,7 +1545,7 @@ function c_getmovementpath:evaluate()
 end
 function e_getmovementpath:execute()
 	-- Logic is reversed here, if we successfully updated the path, there's no reason to do anything.
-	-- If no path was pulled, we should Stop() the character, because there's no reason to try mount/stealth/walk without any path.
+	-- If no path was pulled, we should Stop() the character, because there's no reason to try mount/walk without any path.
 	if (Player:IsMoving()) then
 		Player:Stop()
 	end
@@ -1681,16 +1681,6 @@ function c_avoidaggressives:evaluate()
 							canAdd = false
 						end
 					end
-					
-					--[[
-					if (table.valid(cpos)) then
-						local intDist = math.distance2d(cpos,newArea)
-						if (intDist <= newArea.r) then
-							d("Could not add avoidance area, too close to destination.")
-							canAdd = false
-						end
-					end
-					--]]
 					
 					if (canAdd) then
 						d("Setting avoidance area for ["..tostring(entity.name).."]. Total Avoidance areas: "..tostring(table.size(avoidanceAreas)))
@@ -1927,7 +1917,6 @@ local function NormalizeAethernetRow(row)
 end
 
 function e_useaethernet:execute()
-d("[e_useaethernet] execute")
 	if (table.valid(e_useaethernet.nearest)) then
 		NormalizeAethernetRow(e_useaethernet.nearest)
 		NormalizeAethernetRow(e_useaethernet.destination)
@@ -1982,7 +1971,7 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
-			d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernetLocked.id))
+			--d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernetLocked.id))
 			if (nearestDistanceLocked < 15 or nearestDistanceLocked < Distance3DT(Player.pos,gotoPos)) then
 				e_unlockaethernet.nearest = nearestAethernetLocked
 				return true
@@ -1995,7 +1984,7 @@ end
 function e_unlockaethernet:execute()
 	if (table.valid(e_unlockaethernet.nearest)) then
 		NormalizeAethernetRow(e_unlockaethernet.nearest)
-		d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
+		--d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
 		local newTask = ffxiv_task_moveaethernet.Create()
 		newTask.contentid = e_unlockaethernet.nearest.id
 		newTask.pos = e_unlockaethernet.nearest.pos
@@ -2032,12 +2021,6 @@ function c_usenavinteraction:evaluate(pos)
 			return true
 		end
 	end
-	
-	--[[local requiresTransport = ml_global_information.requiresTransport
-	if (requiresTransport[Player.localmapid]) then
-		e_usenavinteraction.task = requiresTransport[Player.localmapid].reaction
-		return requiresTransport[Player.localmapid].test()
-	end--]]
 	
 	return false
 end
@@ -2159,10 +2142,6 @@ function c_mount:evaluate()
 		return false
 	end
 	
-	--[[if (HasBuffs(Player,"47") and ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount) then
-		return false
-	end]]
-	
 	e_mount.id = 0
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount) then
@@ -2268,10 +2247,6 @@ function c_battlemount:evaluate()
 		return false
 	end
 	
-	--[[if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
-		return false
-	end]]
-	
 	e_battlemount.id = 0
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount) then
@@ -2345,16 +2320,6 @@ function c_companion:evaluate()
     if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or InInstance() or Player.ismounted or IsMounting() or IsDismounting() or
 		IsCompanionSummoned() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
 	then
-		--[[
-		d("1:"..tostring(ffxiv_task_quest.noCompanion))
-		d("2:"..tostring(gBotMode == GetString("pvpMode")))
-		d("3:"..tostring(Player.ismounted))
-		d("4:"..tostring(IsMounting()))
-		d("5:"..tostring(IsDismounting()))
-		d("6:"..tostring(IsCompanionSummoned()))
-		d("7:"..tostring(InInstance()))
-		d("8:"..tostring((Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)))
-		--]]
         return false
     end
 	if not QuestCompleted(1162) then
@@ -2833,136 +2798,9 @@ function e_returntomarker:execute()
 		newTask.useTeleport = true
 	end
 	
-	--[[if (markerType == "Mining" or markerType == "Botany") then
-		newTask.stealthFunction = ffxiv_gather.NeedsStealth
-	elseif (markerType == "Fishing") then
-		newTask.stealthFunction = ffxiv_fish.NeedsStealth
-	end]]
-	
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
---------------------------------------------------------------------------------------------
---  Keep track of whether we need stealth or not so other cne's know if they can break it.
---------------------------------------------------------------------------------------------
-c_stealthupdate = inheritsFrom( ml_cause )
-e_stealthupdate = inheritsFrom( ml_effect )
-c_stealthupdate.timer = 0
-function c_stealthupdate:evaluate()	
-	--[=[local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
-	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
-	
-		local fs = tonumber(Player:GetFishingState())
-		if (IsControlOpen("Gathering") or fs ~= 0) then
-			return false
-		end
-		
-		local needsStealth = (stealthFunction() and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying())
-		if (ml_global_information.needsStealth ~= needsStealth) then
-			ml_global_information.needsStealth = needsStealth
-		end
-	else
-		if (ml_global_information.needsStealth ~= false) then
-			ml_global_information.needsStealth = false
-		end	
-	end]=]
-	
-	return false
-end
-function e_stealthupdate:execute()
-	--Nothing here, just update the variable.
-end
-
-c_dostealth = inheritsFrom( ml_cause )
-e_dostealth = inheritsFrom( ml_effect )
-c_dostealth.lastStealth = 0
-c_dostealth.addStealth = false
-c_dostealth.dropStealth = false
-function c_dostealth:evaluate()	
-	c_dostealth.addStealth = false
-	c_dostealth.dropStealth = false
-
-	--[=[if ffxivminion.gameRegion ~= 3 then
-		return false
-	end
-	local needsStealth = ml_global_information.needsStealth
-	ml_global_information.canStealth = ml_global_information.needsStealth
-	local hasStealth = HasBuff(Player.id,47)
-	local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
-	ml_navigation.TagNode(nextnode)
-	if (needsStealth and nextnode and nextnode.is_cube) then
-		-- If we have stealth, we could actually walk up to a cube node to some degree sometimes, but this may not be needed, so keeping it simple for now.
-		-- Not going to remove stealth in this cne because mounting should take care of it for us and be safer.
-		d("[DoStealth]: Next node type is a cube, we won't be able to stealth to it.")
-		ml_global_information.canStealth = false
-		return false
-	end
-	
-	if (not IsGatherer(Player.job) and not IsFisher(Player.job)) then
-		ml_global_information.canStealth = false
-		return false
-	end
-	
-	-- 367 is the player animation for stealth and 1200 is just a little more than the time it usually takes to add it.
-	if (Player.action ~= 367 and TimeSince(c_dostealth.lastStealth) > 1200) then
-		if (needsStealth and not hasStealth) then
-			c_dostealth.addStealth = true
-			return true
-		elseif (not needsStealth and hasStealth) then
-			
-			-- Check if stealth will be broken by mount, if it will, don't manually remove it.
-			local myPos = Player.pos
-			local gotoPos = ml_task_hub:CurrentTask().pos
-			if (table.valid(gotoPos)) then
-				local dist2d = math.distance2d(myPos, gotoPos)
-				local dist3d = math.distance3d(myPos, gotoPos)
-				
-				local needsMount = false
-				if (table.valid(ml_navigation.path)) then
-					for i, node in pairs(ml_navigation.path) do
-						if (i >= ml_navigation.pathindex) then
-							ml_navigation.TagNode(node)
-							if (node.air or node.air_avoid) then
-								needsMount = truec_autopotion
-							end
-						end
-					end		
-				end
-				
-				local noMountMaps = {
-					[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
-					[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
-				}
-				
-				if (not noMountMaps[Player.localmapid]) then
-					local forcemount = false
-					if (CanFlyInZone()) then
-						if (ml_task_hub:CurrentTask().alwaysMount) then
-							forcemount = true
-						end
-					end
-				
-					if ((dist3d > tonumber(gMountDist)) or forcemount or needsMount) then
-						return false
-					end
-				end
-			
-			end
-			
-			c_dostealth.dropStealth = true
-			return true
-		end
-	end]=]
-	
-	return false
-end
-function e_dostealth:execute()
-	local newTask = ffxiv_task_stealth.Create()
-	newTask.addingStealth = c_dostealth.addStealth
-	newTask.droppingStealth = c_dostealth.dropStealth
-	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-	c_dostealth.lastStealth = Now()
-end
 
 c_acceptquest = inheritsFrom( ml_cause )
 e_acceptquest = inheritsFrom( ml_effect )
@@ -3202,88 +3040,6 @@ function c_autoequip:evaluate()
 	
 	for slot,data in pairsByKeys(applicableSlots) do		
 		if (IsNull(data.unequippedItem,0) ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
-			--[[
-			if (ArmoryItemCount(slot) == 25 and (data.unequippedItem.bag >= 0 and data.unequippedItem.bag <= 3)) then
-				ml_debug("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
-				
-				local firstBag,firstSlot = GetFirstFreeInventorySlot()
-				if (firstBag ~= nil) then
-					if (slot == 0) then
-						local downgrades = FFXIVLib.API.Items.FindWeaponDowngrades()
-						if (table.valid(downgrades)) then
-							for i,item in pairs(downgrades) do
-								if (item.bag > 3) then
-									ml_debug("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
-									
-									e_autoequip.item = item
-									e_autoequip.bag = firstBag
-									e_autoequip.slot = firstSlot
-									return true
-								end
-							end
-						else
-							lowestItem = LowestArmoryItem(slot)
-							if (lowestItem) then
-								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
-								
-								e_autoequip.item = lowestItem
-								e_autoequip.bag = firstBag
-								e_autoequip.slot = firstSlot
-								return true
-							end
-						end
-					elseif (slot == 1) then
-						local downgrades = FFXIVLib.API.Items.FindShieldDowngrades()
-						if (table.valid(downgrades)) then
-							for i,item in pairs(downgrades) do
-								if (item.bag > 3) then
-									e_autoequip.item = item
-									e_autoequip.bag = firstBag
-									e_autoequip.slot = firstSlot
-									return true
-								end
-							end
-						else
-							lowestItem = LowestArmoryItem(slot)
-							if (lowestItem) then
-								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
-								
-								e_autoequip.item = lowestItem
-								e_autoequip.bag = firstBag
-								e_autoequip.slot = firstSlot
-								return true
-							end
-						end
-					else
-						local downgrades = FFXIVLib.API.Items.FindArmorDowngrades(slot)
-						if (table.valid(downgrades)) then
-							for i,item in pairs(downgrades) do
-								if (item.bag > 3) then
-									e_autoequip.item = item
-									e_autoequip.bag = firstBag
-									e_autoequip.slot = firstSlot
-									return true
-								end
-							end
-						else
-							lowestItem = LowestArmoryItem(slot)
-							if (lowestItem) then
-								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
-								
-								e_autoequip.item = lowestItem
-								e_autoequip.bag = firstBag
-								e_autoequip.slot = firstSlot
-								return true
-							end
-						end
-					end
-				end
-				
-				ml_debug("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
-				return false
-			end
-			--]]
-			
 			d("Try to equip item ["..tostring(data.unequippedItem.hqid).."]")
 			
 			e_autoequip.item = data.unequippedItem
@@ -4201,18 +3957,6 @@ function c_dointeract:evaluate()
 		end
 	end
 	
---[[	if (interactable and interactable.los and interactable.distance2d < 15 and IsDiving()) then
-		local tpos = interactable.pos
-		if (table.valid(tpos)) then
-			local dist3d = math.distance3d(Player.pos,tpos)
-			if (dist3d < 5 or interactable.distance < 5) then
-				d("Moving")
-				MoveDirectly3D(tpos)
-				return true
-			end
-		end
-	end		 ]]--		
-	
 	return false
 end
 function e_dointeract:execute()
@@ -4620,9 +4364,6 @@ function c_scripexchange_cnkr:evaluate()
 				--d("[ScripExchange]: Checking data for ["..tostring(itemdata.itemid).."].")
 				
 				local rewardcurrency, currentamount = FFXIVLib.API.Items.GetExchangeRewardCurrency(itemdata.itemid, currentCategory)
-				--[[
-					expreward = 111750, isdeliverable = false, itemid = 520087, name = "Velodyna Grass Carp", ownedquantity = 0, requiredquantity = 1, scripreward = 18
-				--]]
 				if ((currentamount + itemdata.scripreward) <= 2000) then
 					if (itemdata.ownedquantity >= itemdata.requiredquantity) then
 						local originalQuantity = itemdata.ownedquantity
@@ -4804,11 +4545,6 @@ function c_exchange:evaluate()
 					if currentItems[currentCategory + 8][itemid - 500000] then
 						indexCorrect = true
 					end
-					--[[d("itemid = "..tostring(itemid))
-					d("itemNumbers = "..tostring(itemNumbers))
-					d("minRating = "..tostring(minRating))
-					d("currentIndex TEST = "..tostring(currentIndex))
-					d("indexCorrect TEST = "..tostring(indexCorrect))]]
 				end
 				
 				

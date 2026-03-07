@@ -1,11 +1,3 @@
---[[
-  swapped values  09/16/2021
-  SettingsUUID.Login.DataCenter = Settings.Global.FFXIV_Login_DataCenters[uuid]
-  SettingsUUID.Login.Server = Settings.Global.FFXIV_Login_DataCenters[uuid]
-  SettingsUUID.Login.ServiceAccount = Settings.Global.FFXIV_Login_ServiceAccounts[uuid]
-  SettingsUUID.Login.Character = Settings.Global.FFXIV_Login_Characters[uuid]
-]]
-
 ffxivminion = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
@@ -298,7 +290,6 @@ function ml_global_information.OnUpdate(event, tickcount)
 
 	ml_global_information.Queueables()
 	if (ml_global_information.IsYielding()) then
-		--d("stuck in yield")
 		return false
 	end
 
@@ -319,7 +310,6 @@ end
 function ml_global_information.ErrorScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
-		--d("checking mainmenu")
 		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue", "PressOK", 0)) then
 				ml_global_information.Await(1000, 10000, function()
@@ -343,8 +333,6 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 
 
 	if (not ffxivminion.loginvars.loginPaused and not pauseOnLoad) and login.useAutoLogin then
-		--d("checking mainmenu")
-
 		if (ffxivminion.gameRegion == 1) then
 
 			local serviceAccountList = GetConversationList()
@@ -383,7 +371,6 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 								end)
 							end
 						else
-							--d("login paused:Attempt to issue notice")
 							ffxivminion.loginvars.loginPaused = true
 							ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
 						end
@@ -421,7 +408,6 @@ end
 
 function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
-	--if (not login.loginPaused and not IsControlOpen("SelectOk")) then
 
 	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
@@ -433,8 +419,6 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 
 	if not ffxivminion.loginvars.useAutoLogin then return false end
 	if (not (login.loginPaused or pauseOnLoad) and not IsControlOpen("SelectOk")) then
-		--d("checking charselect")
-
 		if not (login.serverSelected or ffxivminion.loginvars.useLastLogin) then
 			if (IsControlOpen("CharaSelect")) then
 				if (not IsControlOpen("_CharaSelectWorldServer")) then
@@ -508,8 +492,6 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 				}
 				local ClientLanguage = GetGameLanguage() or 1
 				local QueueMessage = QueueString[ClientLanguage]
-				--d("SelectOKMessage: "..SelectOKMessage)
-				--d("QueueMessage: "..QueueMessage)
 				-- detection for CN language not working, temporarily disable skip
 				if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
 					ml_debug("Waiting In Login Queue...")
@@ -524,7 +506,6 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 						return (IsControlOpen("SelectOk"))
 					end)
 				else
-					--d("Not In Queue")
 					if (UseControlAction("SelectOk", "Yes", 0)) then
 						d("Skipping Select Window")
 						ml_global_information.Await(500, 1000, function()
@@ -592,11 +573,9 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 
 	if (c_skiptalk:evaluate()) then
 		e_skiptalk:execute()
-		--return false
 	end
 	if (c_skipcutscene:evaluate()) then
 		e_skipcutscene:execute()
-		--return false
 	end
 
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
@@ -815,7 +794,6 @@ function SetGearsetInfo(disable)
 			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
-				--d("clearing old gearsets")
 			end
 
 			for i, e in spairs(searchList) do
@@ -838,7 +816,6 @@ function SetGearsetInfo(disable)
 			for i = 1, 40, 1 do
 				_G["gGearset" .. tostring(i)] = 0
 				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
-				--d("clearing old gearsets")
 			end
 		end
 	end
@@ -863,10 +840,8 @@ function ffxivminion.SetMainVars()
 	if not SettingsUUID.Login.Server then
 		if (Settings.Global.FFXIV_Login_Servers and string.valid(uuid) and Settings.Global.FFXIV_Login_Servers[uuid]) then
 			SettingsUUID.Login.Server = Settings.Global.FFXIV_Login_Servers[uuid]
-			--d("pulling login server name for uuid ["..tostring(uuid).."], ["..tostring(FFXIV_Login_ServerName).."]")
 		else
 			SettingsUUID.Login.Server = ffxivminion.GetSetting("FFXIV_Login_ServerName", ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
-			--d("pulling first available login server name ["..tostring(FFXIV_Login_ServerName).."]")
 		end
 	end
 	FFXIV_Login_ServerName = SettingsUUID.Login.Server
@@ -1115,12 +1090,6 @@ function ffxivminion.HandleInit()
 	local monsterBlacklist = ml_list_mgr.AddList("Mob Blacklist")
 	local monsterWhitelist = ml_list_mgr.AddList("Mob Whitelist")
 
-	--[[
-    spotList.GUI.vars = { temptimer = 0, temptext = "", mapid = 0, name = "", pos = { x = 0, y = 0, z = 0} }
-    spotList.draw = spotList.DefaultDraw2
-    --]]
-
-
 	local uuid = GetUUID()
 	if Settings.FFXIVMINION.classturnins == nil then
 		Settings.FFXIVMINION.classturnins = {}
@@ -1242,7 +1211,6 @@ function ffxivminion.SaveClassSettings(strName, value)
 			local classSettings = classOptions.settings
 			if (classSettings) then
 				classSettings[strName] = value
-				--d("SaveClassSettings: Saving settings in : "..tostring(currentClass.optionsPath))
 				persistence.store(currentClass.optionsPath, classOptions)
 			end
 		end
@@ -1438,7 +1406,6 @@ function ml_global_information.Stop()
 end
 
 function ffxivminion.AddMode(name, task)
-	--d("added mode ["..name.."] with type ["..tostring(type(task)).."]")
 	if task then
 		task.friendly = name
 		ffxivminion.modesToLoad[name] = task
@@ -1706,7 +1673,6 @@ function ml_global_information.DrawMainFull()
 							Settings.FFXIVMINION.gBotModes = Settings.FFXIVMINION.gBotModes
 						end
 					end
-					--GUI:EndGroup()
 
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("Assist: Handles combat with a selected skill profile while you do the moving.\
@@ -1810,22 +1776,6 @@ Quest: Completes quests based on a questing profile.\
 					end
 
 					GUI:Separator()
-					--[[
-                    GUI:PushItemWidth(width-80)
-                    GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList,
-                        function ()
-                            if ( FFXIV_Common_NavMesh ~= GetString("none")) then
-                                local filename = ml_mesh_mgr.GetFileName(FFXIV_Common_NavMesh)
-                                d("Attempting to set new mesh ["..tostring(filename).."]")
-                                ml_mesh_mgr.SetDefaultMesh(Player.localmapid, filename)
-                                ml_mesh_mgr.LoadNavMesh( filename )
-                            else
-                                NavigationManager:ClearNavMesh()
-                            end
-                        end
-                    )
-                    GUI:PopItemWidth()
-                    --]]
 
 					local space = -50
 					if (In(gBotMode, GetString("grindMode"), GetString("gatherMode"), GetString("fishMode"))) then
@@ -1930,7 +1880,6 @@ function ml_global_information.DrawSmall()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then
 			if (ml_global_information.drawMode ~= 1) then
-				--if gBotMode == GetString("assistMode") or gBotMode == "NavTest" then -- People using this feature are basically hiding the UI.
 				if gBotMode == "NavTest" then
 					GUI:SetNextWindowSize(200, 70, GUI.SetCond_Always) --set the next window size, only on first ever
 				else
@@ -1979,13 +1928,6 @@ function ml_global_information.DrawSmall()
 				end
 				GUI:EndChild()
 
-				--[[
-                if gBotMode == GetString("assistMode") then
-                    GUI:AlignFirstTextHeightToWidgets()
-                    GUI:Text(GetString("Target Mode").." = "..tostring(FFXIV_Assist_Modes[FFXIV_Assist_ModeIndex]))
-                end
-                --]]
-
 				if gBotMode == "NavTest" then
 					GUI:AlignFirstTextHeightToWidgets()
 					GUI:Text(GetString("Distance 3d") .. " = " .. tostring(Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, gTestMapX, gTestMapY, gTestMapZ)))
@@ -2024,9 +1966,6 @@ function ml_global_information.DrawSettings()
 				GUI:SameLine(170)
 
 				GUI:BeginChild("main-content", 0, 0, false)
-
-				--local tabindex, tabname = GUI_DrawTabs(ffxivminion.GUI.settings.main_tabs)
-				--local tabs = ffxivminion.GUI.settings.main_tabs
 
 
 				if (tabindex == 9) then
@@ -2385,7 +2324,6 @@ function ml_global_information.DrawSettings()
 					end
 
 					if (table.valid(ffxivminion.loginservers[FFXIV_Login_DataCenter])) then
-						--d("servers are valid for this datacenter")
 
 						local serverChanged = GUI_Combo("Server", "FFXIV_Login_Server", "FFXIV_Login_ServerName", ffxivminion.loginservers[FFXIV_Login_DataCenter])
 						if (serverChanged) then
@@ -2541,7 +2479,6 @@ function ml_global_information.DrawLoginHandler()
 			end
 
 			if (table.valid(ffxivminion.loginservers[FFXIV_Login_DataCenter])) then
-				--d("servers are valid for this datacenter")
 
 				local serverChanged = GUI_Combo("Server", "FFXIV_Login_Server", "FFXIV_Login_ServerName", ffxivminion.loginservers[FFXIV_Login_DataCenter])
 				if (serverChanged) then
@@ -2657,21 +2594,6 @@ function ml_global_information.DrawHelper()
 			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
 			ffxivminion.GUI.help.visible, ffxivminion.GUI.help.open = GUI:Begin(ffxivminion.GUI.help.name, ffxivminion.GUI.help.open)
 			if (ffxivminion.GUI.help.visible) then
-				--[[
-                    if (gBotMode == GetString("grindMode")) then
-                    elseif (gBotMode == GetString("gatherMode")) then
-                    elseif (gBotMode == GetString("fishMode")) then
-                    end
-
-                    assistMode                      = "Assist",
-                    grindMode                       = "Grind",
-                    gatherMode                      = "Gather",
-                    fishMode                        = "Fish",
-                    huntMode						= "Hunt",
-                    huntlogMode						= "Hunting Log",
-                    partyMode                       = "Party-Grind",
-                    craftMode                       = "Crafting",
-                ]]--
 
 				GUI:Text(GetString("Current Bot Mode: ") .. gBotMode)
 				GUI:Separator()
@@ -2863,7 +2785,6 @@ invalid name or haven't chosen one."))
 					local inPvP = IsPVPMap(Player.localmapid)
 					local pveACRValid = (not inPvP and acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					local pvpACRValid = (inPvP and gACREnabledPVP and table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job])
-					--local acrValid = gACREnabled and (gACRSelectedProfiles[Player.job])
 					if pveACRValid then
 						GUI:Text("ACR Profile: ");
 						GUI:SameLine();

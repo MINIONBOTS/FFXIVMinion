@@ -223,7 +223,6 @@ function ffxiv_craft.Canextractmateria()
 		if (table.valid(ilist)) then
 			for slot, items in pairs(ilist) do 			
 				if (items.spiritbond == 100) then
-					--items:Convert()
 					return true
 				end
 			end
@@ -272,7 +271,6 @@ function c_closelog:evaluate()
 		return false
 	end
 	if (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("SynthesisSimpleDialog") or IsControlOpen("SelectYesno") or IsControlOpen("SelectYesNoCountItem") or MIsLoading() or IsControlOpen("Talk") or IsControlOpen("Request")) then	
-		--d("Cannot clear inventory, basic reasons.")
 		return false
 	end
 	if (IsControlOpen("RecipeNote")) then
@@ -512,7 +510,6 @@ function c_startcraft:evaluate()
 										e_startcraft.blocktime = math.random(150,300)
 										return true
 									elseif (ingredient.needed > (ingredient.selectednq + ingredient.selectedhq) and ingredient.needed <= (ingredient.inventoryhq + ingredient.inventorynq)) then -- ghetto fix, can't manually update nq mats atm
-										--ml_global_information:ToggleRun()
 										ffxiv_craft:ToggleCraftingLog()
 										ml_task_hub:CurrentTask().allowWindowOpen = true
 										return false
@@ -718,7 +715,6 @@ function e_startcraft:execute()
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
 		ml_global_information.Await(5000, function () return (IsControlOpen("Synthesis") and not IsControlOpen("RecipeNote")) end)
-		--ml_task_hub:CurrentTask().allowWindowOpen = false
 	end
 end
 
@@ -940,9 +936,6 @@ c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
 	local addonName = "SelectYesno"
-	--if (ffxivminion.gameRegion == 3) then
-		--addonName = "SelectYesNoCountItem"
-	--end
 	if (IsControlOpen("SelectYesNoItem") or IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
 		if (info and IsNull(info.collectability,-1) >= 0) then
@@ -1033,6 +1026,9 @@ function c_selectcraft:evaluate()
 					d("Can't Craft:"..tostring(order.name))
 				end
 			end
+		end
+		if not FFXIVLib.Cache.IsPreWarmReady() then
+			return false
 		end
 		ffxiv_craft.ToggleCraftingLog()
 		ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
@@ -1231,9 +1227,6 @@ end
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
-	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 160 )
-    self:add( ke_dataReady, self.overwatch_elements)
-	
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 150 )
     self:add( ke_collectible, self.overwatch_elements)
 	
@@ -1266,11 +1259,6 @@ function ffxiv_task_craft:InitExtras()
 end
 
 function ffxiv_task_craft.SetModeOptions()
-	-- Activate recipe data loading (lazy; no-op if already enabled).
-	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Recipe and FFXIVLib.API.Recipe.Enable then
-		FFXIVLib.API.Recipe.Enable()
-	end
-
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
@@ -1317,10 +1305,6 @@ function ffxiv_task_craft:UIInit()
 	gCraftUseHQ = ffxivminion.GetSetting("gCraftUseHQ",false)
 	gCraftCollectable = ffxivminion.GetSetting("gCraftCollectable",false)
 	gCraftUseHQBackup = ffxivminion.GetSetting("gCraftUseHQBackup",false)
-	
-	--for i = 8,15 do
-	--	_G["gGearset"..tostring(i)] = ffxivminion.GetSetting("gGearset"..tostring(i),0)
-	--end
 	
 	gCraftOrderSelectIndex = 1
 	gCraftOrderSelect = "CRP"
@@ -1510,7 +1494,6 @@ function ffxiv_task_craft:Draw()
 			ffxiv_craft.ResetOrders()
 		end
 		GUI:PopItemWidth()
-		--GUI:SameLine()
 		
 		if (GUI:Button(GetString("Craft Orders"),newButtonWidth,20)) and gCraftProfile ~= GetString("none") then
 			ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
@@ -1661,7 +1644,6 @@ function ffxiv_task_craft:Draw()
 				GUI:NextColumn()
 				
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				
 				if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
@@ -1777,7 +1759,6 @@ function ffxiv_task_craft:Draw()
 				
 				GUI:NextColumn()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				
 				local acrEnabled = false					
@@ -2038,7 +2019,6 @@ function ffxiv_task_craft:Draw()
 				GUI:PopItemWidth()
 				GUI:SameLine()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				if (GUI:ImageButton("##craft-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
 					gCraftCollectablePresets[i] = nil
@@ -2309,7 +2289,6 @@ function ffxiv_craft.UpdateAlertElement()
 				end
 			end
 		end
-		--ffxiv_craft.SaveProfile()
 		ffxiv_craft.tracking.measurementDelay = Now() + 1000
 	end
 end	
@@ -2464,35 +2443,6 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 	return nil, nil
 end
 
---[[
-function ffxiv_craft.GUIVarUpdate(Event, NewVals, OldVals)
-	local backupVals = {}
-	for k,v in pairs(OldVals) do
-		backupVals[k] = v
-	end
-    for k,v in pairs(NewVals) do
-        if 	( 	k == "gCraftMinCP" or 
-				k == "gCraftMaxItems" or
-				k == "gCraftDebug" or
-				k == "gCraftDebugLevel" or
-				string.contains(tostring(k),"gCraftCollectible") or
-				string.contains(tostring(k),"gGearset"))				
-		then
-            SafeSetVar(tostring(k),v)
-		elseif (k == "gCraftOrderSelect") then
-			SafeSetVar(tostring(k),v)
-			ffxiv_craft.SwitchCraftWindow()
-		elseif (string.contains(tostring(k),"gCraftOrderEdit")) then
-			ffxiv_craft.EditOrderElement(k,v)
-		elseif ( k == "gProfile" and gBotMode == GetString("craftMode")) then
-			ffxiv_craft.LoadProfile(v)
-			Settings.FFXIVMINION["gLastCraftProfile"] = v
-        end
-    end
-    GUI_RefreshWindow(GetString("craftMode"))
-end
---]]
-
 function ffxiv_craft.Draw( event, ticks ) 
 	if (ffxiv_task_craft.GUI.orders.open) then
 		GUI:SetNextWindowSize(500,200,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
@@ -2562,7 +2512,6 @@ function ffxiv_craft.Draw( event, ticks )
 						GUI:NextColumn()
 						
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 						
 						if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
@@ -2609,7 +2558,6 @@ function ffxiv_craft.Draw( event, ticks )
 						
 						GUI:PopStyleColor(2)
 						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
-						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
 						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 						local gACREnabledCraft = false					
 						if (IsGatherer(Player.job)) then
@@ -2732,7 +2680,6 @@ function ffxiv_craft.Draw( event, ticks )
 				for k = 5,100,5 do
 					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
 					if (dictionary and dictionaryDisplay) then
-						--d("found dictionary for k = "..tostring(k))
 						GUI:PushItemWidth(300)
 						local selectionChanged = GUI_Combo(tostring(k-4).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
 						if (selectionChanged) then

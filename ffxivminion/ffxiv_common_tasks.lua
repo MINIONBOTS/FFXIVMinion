@@ -48,12 +48,9 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.flightPath = nil
 	newinst.noFlight = false
-	newinst.stealthFunction = nil
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
-	ml_global_information.needsStealth = false
-	ml_global_information.canStealth = false
 	
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
@@ -83,18 +80,12 @@ function ffxiv_task_movetopos:Init()
 			
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
-	
-	local ke_stealth = ml_element:create( "CheckStealth", c_stealthupdate, e_stealthupdate, 100 )
-    self:add( ke_stealth, self.process_elements)
-	
+		
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 90 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 85 )
     self:add( ke_getMovementPath, self.process_elements)
-
-	local ke_useStealth = ml_element:create( "Stealth", c_dostealth, e_dostealth, 80 )
-    self:add( ke_useStealth, self.process_elements)
 	
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 75 )
     self:add( ke_mount, self.process_elements)
@@ -459,7 +450,6 @@ function ffxiv_task_movetointeract.Create()
 	newinst.conversationindex = -1
 	newinst.blockExecution = false
 	newinst.detectedMovement = false
-	newinst.stealthFunction = nil
 	
 	newinst.interactAttempts = 0
 	newinst.maxAttempts = 0
@@ -468,8 +458,6 @@ function ffxiv_task_movetointeract.Create()
 	gSkipTalk = true
 	
 	ml_global_information.monitorStuck = true
-	ml_global_information.needsStealth = false
-	ml_global_information.canStealth = false
 	newinst.alwaysMount = false
 	
 	ffxiv_unstuck.Reset()
@@ -493,19 +481,13 @@ function ffxiv_task_movetointeract:Init()
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 125 )
     self:add( ke_useNavInteraction, self.process_elements)
-	
-	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
-    self:add( ke_stealth, self.process_elements)
-	
+		
 	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 100 )
     self:add( ke_interact, self.process_elements)
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 90 )
     self:add( ke_getMovementPath, self.process_elements)
-	
-	local ke_useStealth = ml_element:create( "Stealth", c_dostealth, e_dostealth, 85 )
-    self:add( ke_useStealth, self.process_elements)
-	
+		
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
     
@@ -962,103 +944,6 @@ function ffxiv_task_teleport:task_fail_execute()
 	self.valid = false
 end
 
---=======================STEALTH TASK=========================-
---This is a blocking task to prevent anything else from happening
---while stealth is being added or removed.
-
-ffxiv_task_stealth = inheritsFrom(ml_task)
-function ffxiv_task_stealth.Create()
-    local newinst = inheritsFrom(ffxiv_task_stealth)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_killtarget members
-    newinst.name = "LT_STEALTH"
-	newinst.droppingStealth = false
-	newinst.addingStealth = false
-	newinst.timer = 0
-	newinst.failTimer = Now() + 6000
-
-    return newinst
-end
-
-function ffxiv_task_stealth:Init()    
-    self:AddTaskCheckCEs()    
-end
-
-function ffxiv_task_stealth:task_complete_eval()
-	if (self.addingStealth) then
-		if (Player.ismounted) then
-			Dismount()
-			return false
-		end
-	end
-	
-	local action = nil
-    if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = SkillMgr.GetAction(212)
-    elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = SkillMgr.GetAction(229)
-    elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = SkillMgr.GetAction(298)
-    end
-
-	if (self.droppingStealth) then
-		if (MissingBuffs(Player,"47")) then
-			return true
-		end
-	end
-	
-	if (self.addingStealth) then
-		if (HasBuffs(Player,"47")) then
-			return true
-		end
-		if (action and action.isoncd and Player:IsMoving()) then
-			Player:PauseMovement()
-		end
-	end
-	
-	if (action and not action.isoncd) then
-		if (action:Cast(Player.id)) then
-			ml_global_information.Await(1000, function () return HasBuff(Player,47) end)
-			return true
-		end
-    end
-	
-	return false
-end
-function ffxiv_task_stealth:task_complete_execute()
-	-- Need this or the Player will continue moving at slow speeds.
-	if (self.droppingStealth and Player:IsMoving()) then
-		Player:PauseMovement()
-		Player:Move(FFXIV.MOVEMENT.FORWARD)
-	end
-    self.completed = true
-end
-
-function ffxiv_task_stealth:task_fail_eval()
-	if (not Player.alive or Player.incombat or MIsLocked() or IsControlOpen("GatheringMasterpiece")) then
-		return true
-	end
-	
-	local fs = tonumber(Player:GetFishingState())
-	if (IsControlOpen("Gathering") or fs ~= 0) then
-		return true
-	end
-	
-	if (Now() > self.failTimer) then
-		return true
-	end
-	
-	return false
-end
-
 --=======================USEITEM TASK=========================-
 
 ffxiv_task_useitem = inheritsFrom(ml_task)
@@ -1267,7 +1152,6 @@ end
 
 --=======================REST TASK=========================-
 --This is a blocking task to prevent anything else from happening
---while stealth is being added or removed.
 
 ffxiv_task_rest = inheritsFrom(ml_task)
 function ffxiv_task_rest.Create()
@@ -2264,7 +2148,6 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.unlockAethernet = false
 	newinst.blockExecution = false
 	newinst.detectedMovement = false
-	newinst.stealthFunction = nil
 	
 	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true

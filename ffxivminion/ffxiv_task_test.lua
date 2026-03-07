@@ -189,11 +189,6 @@ ffxiv_task_test.GUI = {
 }
 
 function ffxiv_task_test:Draw()
-	--if (not FFXIV_Common_BotRunning) then
-		--NavigationManager:ResetPath()
-		--NavigationManager.NavPathNode = 0
-	--end
-
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = GUI:GetStyle().windowpadding.y
 	local framePaddingY = GUI:GetStyle().framepadding.y
@@ -238,56 +233,8 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,IsNull(tonumber(gTestMapX),0),IsNull(tonumber(gTestMapY),0),IsNull(tonumber(gTestMapZ),0))))
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(NavigationManager:IsReachable({x = IsNull(tonumber(gTestMapX),0), y = IsNull(tonumber(gTestMapY),0), z = IsNull(tonumber(gTestMapZ),0)})))
 	
-	local section = 0
-	if In(Player.localmapid,956) then
-		section = GetLabyrithosSection(Player.pos)
-	elseif In(Player.localmapid,957) then
-		section = GetTempestSection(Player.pos)
-	elseif In(Player.localmapid,959) then
-		section = GetMareLamentorumSection(Player.pos)
-	elseif In(Player.localmapid,960) then
-		section = GetUltimaThuleSection(Player.pos)
-	elseif In(Player.localmapid,1187) then
-		section = GetUyuypogaSection(Player.pos)
-	elseif In(Player.localmapid,1188) then
-		section = GetKozamaukaSection(Player.pos)
-	elseif In(Player.localmapid,1189) then
-		section = GetYakTelSection(Player.pos)
-	elseif In(Player.localmapid,1192) then
-		section = GetLivingMemorySection(Player.pos)
-	elseif In(Player.localmapid,1237) then
-		section = GetCosmicMoon(Player.pos)
-	elseif In(Player.localmapid,1291) then
-		section = GetPhaenna(Player.pos)
-	elseif In(Player.localmapid,1310) then
-		section = GetOizys(Player.pos)
-	end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
-	local section = 0
-	if In(Player.localmapid,956) then
-		section = GetLabyrithosSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,957) then
-		section = GetTempestSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,959) then
-		section = GetMareLamentorumSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,960) then
-		section = GetUltimaThuleSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,1187) then
-		section = GetUyuypogaSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,1188) then
-		section = GetKozamaukaSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,1189) then
-		section = GetYakTelSection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,1192) then
-		section = GetLivingMemorySection({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})
-	elseif In(Player.localmapid,1237) then
-		section = GetCosmicMoon({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
-	elseif In(Player.localmapid,1291) then
-		section = GetPhaenna({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
-	elseif In(Player.localmapid,1310) then
-		section = GetOizys({x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)},true)
-	end
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(section))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(GetMapSection(Player.localmapid, Player.pos)))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(GetMapSection(Player.localmapid, {x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})))
 					
 	GUI:PopItemWidth()
 	GUI:Columns()
@@ -360,31 +307,5 @@ function ffxiv_task_test.GetRandomPosition()
 		GUI_Set("gTestMapX",gTestMapX)
 		GUI_Set("gTestMapY",gTestMapY)
 		GUI_Set("gTestMapZ",gTestMapZ)
-	end
-end
-
-function ffxiv_task_test.TestShopVendor()
-	local vendor = FFXIVLib.API.Items.FindNearestPurchaseLocation(2586)
-	if (vendor) then
-		local mapid = vendor.mapid
-		local pos = vendor.pos
-		
-		gTestMapX = pos.x
-		gTestMapY = pos.y
-		gTestMapZ = pos.z
-		gTestMapID = mapid
-		
-		Settings.FFXIVMINION.gTestMapID = gTestMapID
-		Settings.FFXIVMINION.gTestMapX = gTestMapX
-		Settings.FFXIVMINION.gTestMapY = gTestMapY
-		Settings.FFXIVMINION.gTestMapZ = gTestMapZ
-		
-		local newTask = ffxiv_task_test.Create()
-		ml_task_hub:ClearQueues()
-		ml_task_hub.shouldRun = true
-		FFXIV_Common_BotRunning = "1"
-		ml_task_hub:Add(newTask, LONG_TERM_GOAL, TP_ASAP)
-	else
-		d("Did not find a vendor for the item.")
 	end
 end

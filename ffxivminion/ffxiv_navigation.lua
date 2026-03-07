@@ -12,16 +12,6 @@ ml_navigation.NavPointReachedDistances = {
 	["3dfly"] = 5,
 	["2dfly"] = 1.5,
 }
---[[ Distance required basic task goals. A little softer than nav points.
-Using this vs the ones above results in inconstent logic ... whne for ex e_walktopos uses different values than the actual navigation here, then A sais "walk" while B sais "already there" 
-ml_navigation.PointReachedDistances = { 	
-	["3dwalk"] = 2,		
-	["2dwalk"] = 1,
-	["3dmount"] = 5,
-	["2dmount"] = 1,
-	["3dfly"] = 5,
-	["2dfly"] = 1.5,	
-} clutter ? not used anywhere]]
 
 -- Distance to the next node in the path, in case it is an OffMeshConnection, at which the ml_navigation.pathindex is iterated 
 ml_navigation.OMCReachedDistances = { 			
@@ -631,7 +621,7 @@ end
 -- New setup, split path building and movement so that calls aren't duplicated and re-checked unnecessarily.
 -- [canPath] flag allows .Navigate() to run, this is necessary to that simply building a path does not necessarily mean it will be used.
 -- in ffxiv_common_cne, walktopos will be split into getmovementpath and walktopos.
--- this is mostly because many things like stealth, mount, flight, etc, require not only knowing if they are needed but if they are possible (mesh exists, path exists, etc)
+-- this is mostly because many things like mount, flight, etc, require not only knowing if they are needed but if they are possible (mesh exists, path exists, etc)
 
 ml_navigation.CanRun = function() 
 	return (GetGameState() == FFXIV.GAMESTATE.INGAME and not MIsLoading() and Player.alive)
@@ -656,7 +646,6 @@ ml_navigation.DisablePathing = function (self)
 end
 
 ml_navigation.HasPath = function (self)
-	--return (table.valid(self.path) and self.path[self.pathindex] ~= nil)
 	return (table.valid(self.path))
 end
 
@@ -701,60 +690,57 @@ ml_navigation.tracking = {}
 ml_navigation.lastObstacleCheck = 0
 function ml_navigation.CheckObstacles()
 	
-	--if (TimeSince(ml_navigation.lastObstacleCheck) > 150) then
-		local ppos = Player.pos
-		local nextNode = ml_navigation.path[ml_global_information.pathindex]
+	local ppos = Player.pos
+	local nextNode = ml_navigation.path[ml_global_information.pathindex]
+	
+	if (false and table.isa(nextNode)) then
+	
+		local h = ppos.h
 		
-		if (false and table.isa(nextNode)) then
+		-- Using node heading to make sure we're following the path and not some wild correction vector.
+		local angle = AngleFromPos(Player.pos, nextNode)
+		local nodeHeading = DegreesToHeading(angle)
 		
-			local h = ppos.h
-			
-			-- Using node heading to make sure we're following the path and not some wild correction vector.
-			local angle = AngleFromPos(Player.pos, nextNode)
-			local nodeHeading = DegreesToHeading(angle)
-			
-			local leftBaseHeading = ConvertHeading(nodeHeading + (math.pi/2))%(2*math.pi)
-			local rightBaseHeading = ConvertHeading(nodeHeading - (math.pi/2))%(2*math.pi)
-			local forwardHeading = ConvertHeading(nodeHeading)%(2*math.pi)
-			
-			local slightLeft = ConvertHeading(nodeHeading + (math.pi * .04))%(2*math.pi)
-			local slightRight = ConvertHeading(nodeHeading - (math.pi * .04))%(2*math.pi)
-			
-			local leftBase = GetPosFromDistanceHeading(ppos, 0.5, leftBaseHeading)
-			local rightBase = GetPosFromDistanceHeading(ppos, 0.5, rightBaseHeading)
-			local leftBaseExtended = GetPosFromDistanceHeading(ppos, 2, leftBaseHeading)
-			local rightBaseExtended = GetPosFromDistanceHeading(ppos, 2, rightBaseHeading)	
-			local leftTest = GetPosFromDistanceHeading(leftBase, 1, nodeHeading)
-			local rightTest = GetPosFromDistanceHeading(rightBase, 1, nodeHeading)
-			local straightTest = GetPosFromDistanceHeading(ppos, 1, nodeHeading)
+		local leftBaseHeading = ConvertHeading(nodeHeading + (math.pi/2))%(2*math.pi)
+		local rightBaseHeading = ConvertHeading(nodeHeading - (math.pi/2))%(2*math.pi)
+		local forwardHeading = ConvertHeading(nodeHeading)%(2*math.pi)
 		
-			local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,leftBaseExtended.x,leftBaseExtended.y+0.5,leftBaseExtended.z) 
-			local rbe_hit, rbe_hitx, rbe_hity, rbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,rightBaseExtended.x,rightBaseExtended.y+0.5,rightBaseExtended.z) 
-			local lblt_hit, lblt_hitx, lblt_hity, lblt_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,leftTest.x,leftTest.y+0.5,leftTest.z) 
-			local rbrt_hit, rbrt_hitx, rbrt_hity, rbrt_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,rightTest.x,rightTest.y+0.5,rightTest.z) 
-			local st_hit, st_hitx, st_hity, st_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
-			local lbst_hit, lbst_hitx, lbst_hity, lbst_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
-			local rbst_hit, rbst_hitx, rbst_hity, rbst_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
-			
-			if (st_hit) then
-				if (lbst_hit or lblt_hit) then
-					d("slight left")
-					return slightLeft	
-				elseif (rbst_hit or rbrt_hit) then
-					d("slight right")
-					return slightRight
-				end			
-			elseif (lbe_hit and lblt_hit) then
+		local slightLeft = ConvertHeading(nodeHeading + (math.pi * .04))%(2*math.pi)
+		local slightRight = ConvertHeading(nodeHeading - (math.pi * .04))%(2*math.pi)
+		
+		local leftBase = GetPosFromDistanceHeading(ppos, 0.5, leftBaseHeading)
+		local rightBase = GetPosFromDistanceHeading(ppos, 0.5, rightBaseHeading)
+		local leftBaseExtended = GetPosFromDistanceHeading(ppos, 2, leftBaseHeading)
+		local rightBaseExtended = GetPosFromDistanceHeading(ppos, 2, rightBaseHeading)	
+		local leftTest = GetPosFromDistanceHeading(leftBase, 1, nodeHeading)
+		local rightTest = GetPosFromDistanceHeading(rightBase, 1, nodeHeading)
+		local straightTest = GetPosFromDistanceHeading(ppos, 1, nodeHeading)
+	
+		local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,leftBaseExtended.x,leftBaseExtended.y+0.5,leftBaseExtended.z) 
+		local rbe_hit, rbe_hitx, rbe_hity, rbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,rightBaseExtended.x,rightBaseExtended.y+0.5,rightBaseExtended.z) 
+		local lblt_hit, lblt_hitx, lblt_hity, lblt_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,leftTest.x,leftTest.y+0.5,leftTest.z) 
+		local rbrt_hit, rbrt_hitx, rbrt_hity, rbrt_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,rightTest.x,rightTest.y+0.5,rightTest.z) 
+		local st_hit, st_hitx, st_hity, st_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+		local lbst_hit, lbst_hitx, lbst_hity, lbst_hitz = RayCast(leftBase.x,leftBase.y+0.5,leftBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+		local rbst_hit, rbst_hitx, rbst_hity, rbst_hitz = RayCast(rightBase.x,rightBase.y+0.5,rightBase.z,straightTest.x,straightTest.y+0.5,straightTest.z) 
+		
+		if (st_hit) then
+			if (lbst_hit or lblt_hit) then
 				d("slight left")
 				return slightLeft	
-			elseif (rbe_hit and rbrt_hit) then
+			elseif (rbst_hit or rbrt_hit) then
 				d("slight right")
 				return slightRight
-			end
+			end			
+		elseif (lbe_hit and lblt_hit) then
+			d("slight left")
+			return slightLeft	
+		elseif (rbe_hit and rbrt_hit) then
+			d("slight right")
+			return slightRight
 		end
-		ml_navigation.lastObstacleCheck = Now()
-	--end
-	
+	end
+	ml_navigation.lastObstacleCheck = Now()	
 	return 0
 end
 
@@ -762,7 +748,6 @@ end
 function ml_navigation.GetClearance(nodepos)
 	local ppos = Player.pos
 	
-	--local posBase = { x = ppos.x, y = ppos.y + 0.5, z = ppos.z }
 	local posMid = { x = ppos.x, y = ppos.y + 1.5, z = ppos.z }
 	local posHigh = { x = ppos.x, y = ppos.y + 2.5, z = ppos.z }
 	
@@ -838,18 +823,11 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	local isLast = (ml_navigation.path[ml_navigation.pathindex+1]==nil)
 	local clear3d,clear2d = ml_navigation.GetClearance(node)
 	
-	--d("lastdist:"..tostring(lastdist)..",lastgoal:"..tostring(lastgoal))
-	
-	--d("[Navigation]: Goal 3D ["..tostring(goaldist).."] , 2D ["..tostring(goaldist2d).."]")
-	--d("[Navigation]: Clearance 3D ["..tostring(clear3d).."] , 2D ["..tostring(clear2d).."]")
-	
-	if (goaldist2d < 2 and goaldist < 6) then
+if (goaldist2d < 2 and goaldist < 6) then
 		if (clear3d < goaldist) then
-			--d("[Navigation]: Using clearance 3D distance.")
 			goaldist = clear3d
 		end
 		if (clear2d < goaldist2d) then
-			--d("[Navigation]: Using clearance 2D distance.")
 			goaldist2d = clear2d
 		end
 	end
@@ -893,7 +871,6 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 					goaldist = goaldist - ncradius
 				end
 			else
-				--d("substracing the radius from the remaining distance")
 				goaldist = goaldist - ncradius
 				goaldist2d = goaldist2d - ncradius
 			end
@@ -901,9 +878,7 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	end
 	
 	if (Player.flying.isflying) then
-		--d("index = "..tostring(ml_navigation.pathindex)..", y = "..tostring(node.y)..",goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dfly"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dfly"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
-			--if (lastdist == nil or lastdist >= lastgoal) then
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then				
 					self.omc_id = nc.id
@@ -912,9 +887,7 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 						self.omc_direction = ncdirectionFromA == true and 1 or 2
 					end
 				end
-				--d("close enough, flying")
 				return true
-			--end
 		end
 	elseif (Player.diving.isdiving) then
 		--d("diving goaldist 3d:"..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3ddive"]).." and 2d:" ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2ddive"]))
@@ -1134,7 +1107,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	local currentPathSize = table.size(ml_navigation.path)
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid -- needed, so it doesnt constantly pull a new path n doing a spinny dance on the navcon startpoint when following a moving target 
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
-	--if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending or TimeSince(ml_navigation.lastPathUpdate) < 2000)) then
 	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending) and (TimeSince(ml_navigation.lastconnectiontimer) < 5000)) then
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
@@ -1773,43 +1745,6 @@ function ml_navigation.Navigate(event, ticks )
 								-- C++ is already optimizing / shortening the path wherever possible. You tried to do here the same thing with just one recast, where c++ has full access to cube n recast data and uses about 6 raycasts around the player object.
 								-- C++ can suck it, lua4eva
 								
-								--[[local originalIndex = ml_navigation.pathindex + 1
-								
-								local newIndex = originalIndex
-								if (FFXIV_Common_SmoothPathing and ml_navigation.lastconnectionid == 0 and nextnode.navconnectionid == 0) then
-									for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
-										local node = ml_navigation.path[i]
-										if (node) then
-											local nc = ml_navigation:GetConnection(node)
-											if (not nc or not In(nc.type,0,5)) then
-												local dist3d = math.distance3d(node,ppos)
-												if (dist3d < 100 and (node.type == GLOBAL.NODETYPE.CUBE) and node.flags and bit.band(node.flags, GLOBAL.CUBE.WATER) ~= 0) then
-													local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y,ppos.z,node.x,node.y,node.z)
-													if (not hit) then
-														--d("Bumped index to [" .. i .. "]")
-														newIndex = i
-													end
-												end
-											end
-										end
-									end
-									if (newIndex > originalIndex) then
-										--d("Need to compact path.")
-										for i = ml_navigation.pathindex + 2, ml_navigation.pathindex + 10 do
-											if (newIndex > i) then
-												 ml_navigation.path[i] = nil
-												 --d("Removing skipped node [" .. i .. "] from path.")
-											end
-										end
-										ffnav.CompactPath()
-									end
-								end
-								
-								ml_navigation.lastconnectionid = nextnode.navconnectionid
-								ml_navigation.pathindex = originalIndex	
-								NavigationManager.NavPathNode = ml_navigation.pathindex
-								]]
-								
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.lastconnectiontimer = Now()
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
@@ -2037,37 +1972,6 @@ function ml_navigation.Navigate(event, ticks )
 								end
 							end
 						else
-							-- too iffy for now, revisit later
-							--[[if (not IsFlying() and not IsSwimming() and CanFlyInZone() and Player:IsMoving() and Player.ismounted) then
-								local targetnode = shallowcopy({x = nextnode.x, y = nextnode.y + 1.5, z = nextnode.z})
-								local pitch = GetRequiredPitch(targetnode)
-
-								local ppos = Player.pos
-								local checkdistance = 8
-								local heading = ConvertHeading(ppos.h)
-								local forwardPos = GetPosFromDistanceHeading(ppos, checkdistance, heading)
-								local lbe_hit, lbe_hitx, lbe_hity, lbe_hitz = RayCast(ppos.x,ppos.y+0.5,ppos.z,forwardPos.x,forwardPos.y+3,forwardPos.z) 
-								local dist3D = math.distance3d(nextnode,ppos)
-
-								if ((not nextnode.is_cube and ml_navigation:CanContinueFlying()) or (nextnode.is_cube and (dist3D > 50 or not lbe_hit))) then
-									if (ml_navigation.lastJump == nil) then ml_navigation.lastJump = 0 end
-
-									if (TimeSince(ml_navigation.lastJump) > math.random(2000,4000)) then
-										d("[Navigation]: Attempt hover flight.")
-										Player:Jump()
-										ffnav.AwaitSuccess(300, 1000, function () 
-											local ascended = Player:IsJumping() or IsFlying()
-											return ascended
-										end, function () 
-											Player:TakeOff() 
-											Player:SetPitch(pitch)
-										end)
-										ml_navigation.lastJump = Now()
-									end
-								--else
-									--d("[Navigation Hover flight not attempted, collision detected.")
-								end
-							end]]
 
 							--d("[Navigation]: Navigate to node, backup.")
 							ml_navigation:NavigateToNode(ppos,nextnode,lastnode)	

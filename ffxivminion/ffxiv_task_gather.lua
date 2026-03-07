@@ -180,7 +180,6 @@ function GetMinGP()
 		if task.mingp == "skillProfileDefined" then
 			if IsNull(SkillMgr.ProfileRaw.mingp,0) ~= 0 then
 				minimumGP = SkillMgr.ProfileRaw.mingp
-				--d("[Gather Information]: Skill profile requires at least ["..tostring(minimumGP).."] GP for optimal performance.")
 				ml_global_information.ShowInformation(GetString("[Information]: Selected skill profile requires at least ["..tostring(minimumGP).."] GP."), 4000)
 			else
 				minimumGP = 0
@@ -277,13 +276,10 @@ function c_findnode:evaluate()
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
-					--d("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
 					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
-					--d("Using blacklist filter ["..filter.."].",3)
 				else
 					filter = "onmesh,gatherable,targetable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
-					--d("Using filter ["..filter.."].",3)
 				end
 				
 				local gatherable = nil
@@ -358,7 +354,6 @@ function c_movetonode:evaluate()
 				noGPitem = IsNull(task.nogpitem,"")
 			end
 			
-			--local reachable = (IsEntityReachable(gatherable,5) and gatherable.distance2d > 0 and gatherable.distance2d < 2.5)
 			local reachable = (gatherable.interactable and gatherable.distance2d <= 2.5 and gatherable.distance <= 4)
 			if (not reachable) then
 			
@@ -369,13 +364,11 @@ function c_movetonode:evaluate()
 					e_movetonode.blockOnly = true
 				end
 					
-				--gd("[MoveToNode]: > 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			elseif (gatherable.interactable and IsFlying()) then
 				Descend()
 				return true
 			else	
-				--gd("[MoveToNode]: <= 2.5 distance, need to move to id ["..tostring(gatherable.id).."].",2)				
 				if (Player.gp.current >= minimumGP or noGPitem ~= "" or touchOnly) then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
@@ -502,7 +495,6 @@ function e_movetonode:execute()
 						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
-						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 						d("[MoveToNode]: Starting alternate MOVETOPOS task to use a cordial.")
 					end
@@ -516,7 +508,6 @@ function e_movetonode:execute()
 						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
-						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 						d("[MoveToNode]: Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.")
 					end
@@ -530,7 +521,6 @@ function e_movetonode:execute()
 						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = math.random(3,6)
 						alternateTask.remainMounted = false
-						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 						d("[MoveToNode]: Starting alternate MOVETOPOS task to wait for GP.")
 					end
@@ -549,7 +539,6 @@ function e_movetonode:execute()
 			newTask.touchOnly = touchOnly
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.navid = ml_task_hub:CurrentTask().gatherid
-			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask().seriescount = ml_task_hub:CurrentTask().seriescount + 1
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)
@@ -581,10 +570,7 @@ function c_returntobase:evaluate()
 			if (CanFlyInZone()) then
 				local basePosCube = FindClosestMesh(basePos,20,true,true)
 				if (basePosCube) then
-					--d("using cube pos for marker")
 					basePos = basePosCube
-				else
-					--d("didn't find a cube pos")
 				end
 			end
 		elseif (table.valid(marker)) then
@@ -593,11 +579,6 @@ function c_returntobase:evaluate()
 			basePos = ml_task_hub:CurrentTask().pos
 		end
 		
-		--local p = FindClosestMesh(basePos)
-		--if (p and NavigationManager:IsReachable(p)) then
-		--	basePos = p
-		--end
-
 		if (table.valid(basePos)) then
 			local myPos = Player.pos
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
@@ -635,7 +616,6 @@ function e_returntobase:execute()
 		newTask.alwaysMount = true
 	end
 	newTask.remainMounted = true
-	newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -643,7 +623,6 @@ c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
 	if (Now() < ffxiv_gather.timer or IsControlOpen("Gathering")) then
-		--d("Next gather marker, returning false in block1.")
 		return false
 	end
 	if ((gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1) or (gBotMode ~= GetString("gatherMode")) then
@@ -669,7 +648,6 @@ function c_nextgathermarker:evaluate()
 	end
 	
 	if (gMarkerMgrMode == GetString("Marker Team")) then
-		--d("Checking marker team section.")
 		local gatherid = ml_task_hub:CurrentTask().gatherid or 0
 		if (gatherid == 0 and ml_task_hub:CurrentTask().failedSearches > 5) then
 			marker = ml_marker_mgr.GetNextMarker(markerType, filter)
@@ -1097,17 +1075,7 @@ function e_gather:execute()
 		
 		gd("Checking unknown item section.",2)
 		
-			-- Gather unknown items to unlock them.
-		--if (Player.level < 70) then
-		--[[if (thisNode.contentid <= 4) then
-			for i,item in pairs(list) do
-				if (item.chance > 0 and (toboolean(item.isunknown))) then
-					return DoGathering(item)
-				end
-			end
-		end]]
-		
-		gd("Checking regular item section.",2)
+gd("Checking regular item section.",2)
 		
 		local itemid1 = 0
 		local itemid2 = 0
@@ -1119,8 +1087,6 @@ function e_gather:execute()
 		local itemslot3 = 0
 		local nogpitemslot = 0
 		
-		--d(FFXIVLib.API.Items.GetIDByName("Silkworm Cocoon"))
-
 		if (Player.gp.current < minimumGP or noGPGather) then
 			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none")) then
 				nogpitemid = FFXIVLib.API.Items.GetIDByName(nogpitem) or 0
@@ -1253,8 +1219,6 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking unknown items, couldn't find any regular items.")
-			
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
 			if (toboolean(item.isunknown) or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
@@ -1263,8 +1227,6 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking random items with good chance.")
-			
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
 			if (not IsMap(item.id)) then
@@ -1274,8 +1236,6 @@ function e_gather:execute()
 				end
 			end
 		end
-		
-		--d("Checking random items.")
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
@@ -1458,13 +1418,11 @@ function CanUseCordialSoon()
 		
 		if gpDeficit >= lowestRequired then		
 			if not IsFisher(Player.job) or (IsFisher(Player.job) and (HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51)) then
-				--if cordialHigh and ((gpDeficit >= highGp) or ((missingNormal and (gpDeficit >= normGp)) and (missingQuick and (gpDeficit >= wateredGP)))) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
 						gd("[CanUseCordialSoon]: Returning Min. High cordial.")
 						return true, cordialHigh
 					end
-				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick and (gpDeficit >= wateredGP))) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
 						gd("[CanUseCordialSoon]: Returning Min. Cordial.")
@@ -1540,13 +1498,11 @@ function CanUseCordial()
 		
 		if gpDeficit >= lowestRequired then			
 			if IsGatherer(Player.job) or (IsFisher(Player.job) and ((HasBuff(Player,764,0,40) or HasBuff(Player,762,0,40) or Player.level < 51) or (not usePatience and not usePatience2))) then
-				--if cordialHigh and ((gpDeficit >= highGp) or (missingNormal and missingQuick)) then
 				if cordialHigh and (gpDeficit >= highGp) then
 					if (cordialHigh and cordialHighAction and not cordialHighAction.isoncd) then
 						gd("[CanUseCordial]: Returning High cordial.")
 						return true, cordialHigh
 					end
-				--elseif cordialNormal and ((gpDeficit >= normGp) or (missingQuick)) then
 				elseif cordialNormal and (gpDeficit >= normGp) then
 					if (cordialNormal and cordialNormalAction and not cordialNormalAction.isoncd) then
 						gd("[CanUseCordial]: Returning Cordial.")
@@ -1576,7 +1532,6 @@ function CanUseExpManual()
 		if (Player.level >= 70 and Player.level < 80 and  MissingBuff(Player,46)) then
             local revised, action = GetItem(26553)
             if (revised and action and not action.isoncd) then
-                --d("Can use revised manual.")
                 return true, revised
             end
         end
@@ -1584,7 +1539,6 @@ function CanUseExpManual()
 		if (Player.level >= 60 and MissingBuff(Player,1081)) then
 			local squadron, action = GetItem(14949)
 			if (squadron and action and not action.isoncd) then
-				--d("Can use squadron manual.")
 				return true, squadron
 			end
 		end
@@ -1597,12 +1551,10 @@ function CanUseExpManual()
 			
 			if commercial then
 				if (commercial and action and not action.isoncd) then
-					--d("Can use commercial manual.")
 					return true, commercial
 				end
 			elseif manual2 then 
 				if (manual2 and action2 and not action2.isoncd) then
-					--d("Can use level 2 manual.")
 					return true, manual2
 				end
 			elseif manual1 then 
@@ -1615,7 +1567,6 @@ function CanUseExpManual()
 		if (Player.level >= 70 and MissingBuff(Player,45)) then
             local revised, action = GetItem(26554)
             if (revised and action and not action.isoncd) then
-                --d("Can use revised manual.")
                 return true, revised
             end
         end
@@ -1623,7 +1574,6 @@ function CanUseExpManual()
 		if (Player.level >= 60 and MissingBuff(Player,1082)) then
 			local squadron, action = GetItem(14949)
 			if (squadron and action and not action.isoncd) then
-				--d("Can use squadron manual.")
 				return true, squadron
 			end
 		end
@@ -1635,12 +1585,10 @@ function CanUseExpManual()
 			
 			if commercial then
 				if (commercial and action and not action.isoncd) then
-					--d("Can use commercial manual.")
 					return true, commercial
 				end
 			elseif manual2 then 
 				if (manual2 and action2 and not action2.isoncd) then
-					--d("Can use level 2 manual.")
 					return true, manual2
 				end
 			elseif manual1 then 
@@ -2079,16 +2027,6 @@ function e_gatherflee:execute()
 	end
 end
 
---[[
-GatheringMasterpiece
-.rarity
-.raritymax
-.wear
-.wearmax
-.chance
-.chancehq
---]]
-
 function SetMasterpieceLocation()
 
 end
@@ -2105,7 +2043,6 @@ function c_collectiblegame:evaluate()
 		return false
 	end
 	if (IsControlOpen("GatheringMasterpiece")) then
-		--d("[CollectableGame]: Found the gathering masterpiece addon.")
 		return true
 	end
 	return false
@@ -2320,7 +2257,6 @@ function e_newcollectiblegame:execute()
 	end
 	
 	d("[CollectableGame]: Checking collectable info.",1)
-	--local info = GetControlData("GatheringMasterpiece")
 	local info = GetControlRawData("GatheringMasterpiece")
 	if (table.valid(info)) then
 		
@@ -2440,12 +2376,6 @@ function e_newcollectiblegame:execute()
 					[17] = 22188,
 				}
 			
-			--[[[33] = { name = "Scour", [16] = 22182, [17] = 22186, col = true },
-            [34] = { name = "Brazen Prospector", [16] = 22183, [17] = 22187, col = true },
-            [35] = { name = "Meticulous Prospector", [16] = 22184, [17] = 22188, col = true },
-            [36] = { name = "Scrutiny", [16] = 22185, [17] = 22189, col = true },]]
-			
-			
 				d("[CollectableGame]: Attempting to use auto-skills.",1)
 				local methodical = ActionList:Get(1,scour[Player.job])
 				local discerning = ActionList:Get(1,scrutiny[Player.job])
@@ -2487,9 +2417,6 @@ c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
 	local addonName = "SelectYesno"
-	--if (ffxivminion.gameRegion == 3) then -- maybe
-		--addonName = "SelectYesNoCountItem"
-	--end
 	if (IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
 		if (info and info.collectability ~= nil) then
@@ -3308,7 +3235,6 @@ function e_gathernextprofilemap:execute()
 			end
 		end
 		
-		--ffxiv_dialog_manager.IssueStopNotice("Gather_NextTask", "No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
 	end
 end
 
@@ -3343,287 +3269,7 @@ function e_gathersneak:execute()
 	-- nothing to do here
 end
 
-c_gatherstealth = inheritsFrom( ml_cause )
-e_gatherstealth = inheritsFrom( ml_effect )
-e_gatherstealth.timer = 0
-function c_gatherstealth:evaluate()
-	--[=[
-	if (IsFlying() or ml_task_hub:CurrentTask().name == "MOVE_WITH_FLIGHT") then
-		return false
-	end
-	
-	if GameRegion() ~= 3 then
-		return false
-	end
-	local useStealth = false
-	local task = ffxiv_gather.currentTask
-	local marker = ml_marker_mgr.currentMarker
-	if (table.valid(task)) then
-		useStealth = IsNull(task.usestealth,false)
-	elseif (table.valid(marker)) then
-		useStealth = (marker.usestealth )
-	elseif gGatherMarkerOrProfileIndex == 3 then
-		useStealth = gSteathQuickMode
-	end
-	
-	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
-		useStealth = GUI_Get(useStealth)
-	end
-	
-	if (useStealth) then
-		if (Player.incombat) then
-			return false
-		end
-		
-		if (IsControlOpen("Gathering")) then
-			return false
-		end
-		
-		local stealth = nil
-		if (Player.job == FFXIV.JOBS.BOTANIST) then
-			stealth = ActionList:Get(1,212)
-		elseif (Player.job == FFXIV.JOBS.MINER) then
-			stealth = ActionList:Get(1,229)
-		end
-		
-		if (stealth) then
-			local dangerousArea = false
-			local destPos = {}
-			local myPos = Player.pos
-			local task = ffxiv_gather.currentTask
-			local marker = ml_marker_mgr.currentMarker
-			if (table.valid(task)) then
-				dangerousArea = IsNull(task.dangerousarea,false)
-				destPos = ffxiv_gather.GetCurrentTaskPos()
-			elseif (table.valid(marker)) then
-				dangerousArea = marker.dangerousarea
-				destPos = marker:GetPosition()
-			elseif gGatherMarkerOrProfileIndex == 3 then
-				destPos = ml_task_hub:CurrentTask().pos
-				dangerousArea = gSteathDangerousQuickMode
-			end
-			
-			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
-				dangerousArea = GUI_Get(dangerousArea)
-			end
-		
-			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-				local dest = ml_task_hub:CurrentTask().pos
-				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 30) then
-					if (HasBuff(Player.id, 47)) then
-						return true
-					else
-						return false
-					end
-				end
-			end
-			
-			local gatherid = ml_task_hub:ThisTask().gatherid
-			if ( gatherid and gatherid ~= 0 ) then
-				local gatherable = EntityList:Get(gatherid)
-				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(tonumber(FFXIV_Common_StealthDetect)*2)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-					if (TableSize(potentialAdds) > 0) then
-						if (not HasBuff(Player.id, 47)) then
-							return true
-						else
-							return false
-						end
-					end
-				end
-				
-				if (gatherable) then
-					if (gTeleportHack and c_teleporttopos:evaluate()) then
-						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(FFXIV_Common_StealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-						if (TableSize(potentialAdds) > 0) then
-							if (not HasBuff(Player.id, 47)) then
-								return true
-							else
-								return false
-							end
-						end
-					end
-				end
-			end
-			
-			
-			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthDetect))
-			local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthRemove))
-			if (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) then
-				return true
-			elseif (table.valid(addMobList)) then
-				if (FFXIV_Common_StealthSmart ) then
-					local ph = ConvertHeading(Player.pos.h)
-					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
-					local nextPos = IsNull(GetPosFromDistanceHeading(Player.pos, 10, playerFront),Player.pos)
-				
-					for i,entity in pairs(addMobList) do
-						if ((IsFrontSafer(entity) or IsFrontSafer(entity,nextPos)) and entity.targetid == 0) then
-							if (not HasBuff(Player.id, 47)) then
-								return true
-							else
-								return false
-							end
-						end
-					end
-					if (HasBuff(Player.id, 47)) then
-						return true
-					end
-				else
-					if (not HasBuff(Player.id, 47)) then
-						return true
-					end		
-				end
-			end
-		end
-	else
-		if (HasBuffs(Player,"47")) then
-			return true
-		end
-	end]=]
- 
-    return false
-end
-function e_gatherstealth:execute()
-	e_gatherstealth.timer = Now() + 3000
-	
-	local newTask = ffxiv_task_stealth.Create()
-	if (HasBuffs(Player,"47")) then
-		newTask.droppingStealth = true
-	else
-		newTask.addingStealth = true
-	end
-	ml_task_hub:ThisTask().preserveSubtasks = true
-	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-end
 
-function ffxiv_gather.NeedsStealth()
-	--[=[if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
-		return false
-	end
-	if Player.level < 8 then
-		return false
-	end	
-	if GameRegion() ~= 3 then
-		return false
-	end
-	local useStealth = true
-	local task = ffxiv_gather.currentTask
-	local marker = ml_marker_mgr.currentMarker
-	if (table.valid(task)) then
-		useStealth = IsNull(task.usestealth,true)
-	elseif (table.valid(marker)) then
-		useStealth = (marker.usestealth )
-	elseif gGatherMarkerOrProfileIndex == 3 then
-		useStealth = gSteathQuickMode
-	end
-	
-	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
-		useStealth = GUI_Get(useStealth)
-	end
-	
-	if (useStealth) then	
-		local stealth = nil
-		if (Player.job == FFXIV.JOBS.BOTANIST) then
-			stealth = ActionList:Get(1,212)
-		elseif (Player.job == FFXIV.JOBS.MINER) then
-			stealth = ActionList:Get(1,229)
-		end
-		
-		if (stealth) then
-			local dangerousArea = false
-			local destPos = ml_task_hub:CurrentTask().pos
-			local myPos = Player.pos
-			local task = ffxiv_gather.currentTask
-			local marker = ml_marker_mgr.currentMarker
-			if (table.valid(task)) then
-				dangerousArea = IsNull(task.dangerousarea,false)
-			elseif (table.valid(marker)) then
-				dangerousArea = marker.dangerousarea
-			elseif gGatherMarkerOrProfileIndex == 3 then
-				dangerousArea = gSteathDangerousQuickMode
-			end
-			
-			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
-				dangerousArea = GUI_Get(dangerousArea)
-			end
-			
-			if (destPos) then
-				if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-					local dist = PDistance3D(myPos.x,myPos.y,myPos.z,destPos.x,destPos.y,destPos.z)
-					if (dist > 30) then
-						--d("Too far from destination to use stealth.")
-						return false
-					end
-				end
-			end
-			
-			local gatherid = ml_global_information.gatherid
-			if ( gatherid and gatherid ~= 0 ) then
-				local gatherable = EntityList:Get(gatherid)
-				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(tonumber(FFXIV_Common_StealthDetect)*2)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-					if (table.valid(potentialAdds)) then
-						return true
-					end
-				end
-				
-				if (gatherable) then
-					if (gTeleportHack and c_teleporttopos:evaluate()) then
-						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(FFXIV_Common_StealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-						if (table.valid(potentialAdds)) then
-							return true
-						end
-					end
-				end
-			end
-			
-			local hasStealth = HasBuff(Player.id,47)
-			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthDetect))
-			if (table.valid(addMobList)) then
-				if (FFXIV_Common_StealthSmart and not dangerousArea) then
-					local ph = ConvertHeading(Player.pos.h)
-					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
-					local nextPos = IsNull(GetPosFromDistanceHeading(Player.pos, 10, playerFront),Player.pos)
-				
-					for i,entity in pairs(addMobList) do
-						if (entity.targetid == 0) then
-							local epos = entity.pos
-							local ray1 = RayCast(epos.x,(epos.y+1.5),epos.z,myPos.x,(myPos.y+1.5),myPos.z)
-							local ray2 = RayCast(epos.x,(epos.y+1.5),epos.z,nextPos.x,(nextPos.y+1.5),nextPos.z)
-							if ((IsFrontSafer(entity) and ray1 == nil) or 
-								(IsFrontSafer(entity,nextPos) and ray2 == nil)) 
-							then
-								--d("Aggressive enemy within los, need stealth.")
-								return true
-							end
-						end
-					end
-				else
-					--d("Potential adds within our detection distance.")
-					return true
-				end
-			end
-			
-			if (hasStealth) then
-				if (not FFXIV_Common_StealthSmart) then
-					local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthRemove))
-					if (table.valid(removeMobList)) then
-						--d("Still detecting enemies, need to keep stealth.")
-						return true
-					end
-				end
-			end
-		else
-			--d("Could not find stealth action.")
-		end
-	else
-		--d("Task is not set to use stealth.")
-	end
-	
-	--d("Defaulted out of function.")]=]
-	return false
-end
 
 c_gatherisloading = inheritsFrom( ml_cause )
 e_gatherisloading = inheritsFrom( ml_effect )
@@ -3676,7 +3322,6 @@ function c_resettask:evaluate()
 		resetTask = IsNull(task.evaluate,false)
 		ids = IsNull(task.ids,"")
 		if (task.mapid ~= Player.localmapid) then
-			--d("[flag reset]: Not on correct map yet.",3)
 			return false
 		end
 	end
@@ -3727,9 +3372,6 @@ function ffxiv_task_gather:Init()
 	local ke_gatherrandomDelay = ml_element:create( "RandomFateDelay", c_gatherrandomdelay, e_gatherrandomdelay, 80 )
     self:add( ke_gatherrandomDelay, self.process_elements)
 
-	--local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
-    --self:add( ke_avoidAggressives, self.overwatch_elements)
-	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )
     self:add( ke_inventoryFull, self.overwatch_elements)
 	
@@ -3746,9 +3388,6 @@ function ffxiv_task_gather:Init()
 	
 	local ke_dataReady = ml_element:create( "DataReady", c_ffxivlib_dataready, e_ffxivlib_dataready, 245 )
     self:add( ke_dataReady, self.process_elements)
-	
-	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 220 )
-    --self:add( ke_autoEquip, self.process_elements)
 	
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 220 )
     self:add( ke_recommendEquip, self.process_elements)
@@ -3777,9 +3416,6 @@ function ffxiv_task_gather:Init()
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 150 )
     self:add( ke_nextMarker, self.process_elements)
 	
-	
-	--local ke_noActivity = ml_element:create( "NoActivity", c_gathernoactivity, e_gathernoactivity, 145 )
-    --self:add( ke_noActivity, self.process_elements)
 	
 	local ke_moveToNode = ml_element:create( "MoveToNode", c_movetonode, e_movetonode, 140 )
     self:add(ke_moveToNode, self.process_elements)
@@ -3856,14 +3492,6 @@ function ffxiv_task_gather:UIInit()
 	gGatherDebugLevel = ffxivminion.GetSetting("gGatherDebugLevel",1)
 	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
-	--local uistring = IsNull(FFXIVLib.API.Items.BuildUIString(47,120),"")
-	--gGatherCollectablesList = { GetString("none") }
-	--if (ValidString(uistring)) then
-		--for collectable in StringSplit(uistring,",") do
-			--table.insert(gGatherCollectablesList,collectable)
-		--end
-	--end
-	
 	gGatherRandomDelayMin = ffxivminion.GetSetting("gGatherRandomDelayMin",1)
 	gGatherRandomDelayMax = ffxivminion.GetSetting("gGatherRandomDelayMax",5)
 	
@@ -3891,22 +3519,6 @@ function ffxiv_task_gather:UIInit()
 	gGatherQuickSlotIndex = GetKeyByValue(gGatherQuickSlot,quickslot)
 	
 	gGatherCollectablePresets = ffxivminion.GetSetting("gGatherCollectablePresets",{})	
-	
-	--[[grefreshGatheringCollectables = ffxivminion.GetSetting("grefreshGatheringCollectables",0)
-	if grefreshGatheringCollectables < 20190910 then
-		gGatherCollectablePresets = {}
-		GUI_Set("gGatherCollectablePresets",{})
-		for k,v in pairs(ffxiv_gather.collectibles) do
-			--local newCollectable = { name = v.name, value = v.minimum }
-			gGatherCollectablePresets[FFXIVLib.API.Items.GetIDByName(v.name)] =  { name = v.name, value = v.minimum }
-			--table.insert(gGatherCollectablePresets,newCollectable)
-		end
-		Settings.FFXIVMINION.gGatherCollectablePresets = gGatherCollectablePresets
-		
-		grefreshGatheringCollectables = 20190910
-		Settings.FFXIVMINION.grefreshGatheringCollectables = grefreshGatheringCollectables
-		d("[Gather] Collectables Updated")
-	end]]
 	gGatherTaskFilterID = 0
 	gGatherTaskFilterAlias = ""
 	
@@ -4299,14 +3911,6 @@ function ffxiv_task_gather:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Stealth")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Stealth in Quick Start Mode.")
-		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Dangerous Area")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Uses Stealth at increased range.")
-		end
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Min GP to interact with node.")
@@ -4349,14 +3953,6 @@ function ffxiv_task_gather:Draw()
 		GUI_Capture(GUI:Checkbox("##gQuickstartChocoboFood",gQuickstartChocoboFood),"gQuickstartChocoboFood")
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
-		end
-		GUI_Capture(GUI:Checkbox("##QuickStealth",gSteathQuickMode),"gSteathQuickMode")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Stealth in Quick Start Mode.")
-		end
-		GUI_Capture(GUI:Checkbox("##QuickStealthDangerous",gSteathDangerousQuickMode),"gSteathDangerousQuickMode")
-		if (GUI:IsItemHovered()) then
-			GUI:SetTooltip("Uses Stealth at increased range.")
 		end
 		GUI_DrawIntMinMax(GetString("##gQuickstartMinGp"),"gQuickstartMinGp",10,50,0,800);
 		if (GUI:IsItemHovered()) then
@@ -4532,10 +4128,6 @@ function ffxiv_gather.GetUnspoiledMarkers(mapid)
 	
 	return nil
 end
-
---d(ffxiv_gather.GetLastGather("Example",1))
---d(ffxiv_gather.SetLastGather("Example",1))
---d(TimePassed(GetCurrentTime(),1400000))
 
 function ffxiv_gather.GetLastGather(profile,task)
 	if (Settings.FFXIVMINION.gLastGather ~= nil) then
