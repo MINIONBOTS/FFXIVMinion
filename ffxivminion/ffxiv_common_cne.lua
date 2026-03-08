@@ -596,26 +596,54 @@ function c_avoid:evaluate()
 	c_avoid.newAvoid = {}
 	c_avoid.avoidDetails = {}
 	
+	-- Collect ALL active avoidances from nearby entities into a list.
+	local avoidList = {}
+	local lastAvoid = c_avoid.lastAvoid
+	
+	local function check_entity(e)
+		if not e then return end
+		local ci = e.castinginfo
+		local castId = ci and (ci.castingid or 0) or 0
+		local chanId = ci and (ci.channelingid or 0) or 0
+		local castTime = ci and (ci.casttime or 0) or 0
+		local chanTime = ci and (ci.channeltime or 0) or 0
+		-- Skip entities not casting/channeling, or instant abilities (< 1.3s)
+		if (castId == 0 and chanId == 0) or castTime < 1.3 then return end
+		if castId ~= 0 or chanId ~= 0 then
+			d("[Avoid] check entity="..tostring(e.id).." ("..tostring(e.name)..")"
+			  .." castId="..tostring(castId).." chanId="..tostring(chanId)
+			  .." castTime="..tostring(castTime).." chanTime="..tostring(chanTime)
+			  .." dist="..tostring(e.distance).." hitR="..tostring(e.hitradius))
+		end
+		local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
+		if shouldAvoid and spellData then
+			-- Skip if we already dodged this exact spell from this exact caster recently
+			if lastAvoid then
+				for _, prev in ipairs(lastAvoid) do
+					if spellData.id == prev.data.id and e.id == prev.attacker.id and Now() < prev.timer then
+						d("[Avoid] skip recently dodged: spell="..tostring(spellData.id).." caster="..tostring(e.id))
+						return
+					end
+				end
+			end
+			d("[Avoid] ADDING to avoidList: spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
+			  .." type="..tostring(spellData.type).." caster="..tostring(e.id).." ("..tostring(e.name)..")"
+			  .." castTime="..tostring(spellData.castTime))
+			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+		else
+			if castId ~= 0 or chanId ~= 0 then
+				d("[Avoid] NOT avoidable: spell="..tostring(castId ~= 0 and castId or chanId)
+				  .." shouldAvoid="..tostring(shouldAvoid).." hasData="..tostring(spellData ~= nil)
+				  .." caster="..tostring(e.id).." ("..tostring(e.name)..")") 
+			end
+		end
+	end
+	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
 	if (table.valid(el)) then
 		for i,entity in pairs(el) do
-			local e = EntityList:Get(entity.id)
-			if (e) then
-				local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
-				if (shouldAvoid and spellData) then
-					local lastAvoid = c_avoid.lastAvoid
-					if (lastAvoid) then
-						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-							d("[Avoidance] Don't dodge, we already dodged this recently.")
-							return false							
-						end
-					end
-					
-					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
-					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-				end
-			end
+			check_entity(EntityList:Get(entity.id))
 		end
 	end
 	
@@ -623,19 +651,17 @@ function c_avoid:evaluate()
 	if (table.valid(el)) then
 		for i,entity in pairs(el) do
 			local e = EntityList:Get(entity.id)
-			if (e) then
-				local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
-				if (shouldAvoid and spellData) then
-					local lastAvoid = c_avoid.lastAvoid
-					if (lastAvoid) then
-						if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-							d("[Avoidance] Don't dodge, we already dodged this recently.")
-							return false							
-						end
+			if e then
+				-- Only add if not already in avoidList (from aggro scan)
+				local dominated = false
+				for _, existing in ipairs(avoidList) do
+					if existing.attacker.id == e.id then
+						dominated = true
+						break
 					end
-					
-					--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
-					c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+				end
+				if not dominated then
+					check_entity(e)
 				end
 			end
 		end
@@ -646,27 +672,35 @@ function c_avoid:evaluate()
 		if (table.valid(el)) then
 			for i,entity in pairs(el) do
 				local e = EntityList:Get(entity.id)
-				if (e) then
-					local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
-					if (shouldAvoid and spellData) then
-						local lastAvoid = c_avoid.lastAvoid
-						if (lastAvoid) then
-							if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-								d("[Avoidance] Don't dodge, we already dodged this recently.")
-								return false							
-							end
+				if e then
+					local dominated = false
+					for _, existing in ipairs(avoidList) do
+						if existing.attacker.id == e.id then
+							dominated = true
+							break
 						end
-						
-						--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
-						c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+					end
+					if not dominated then
+						check_entity(e)
 					end
 				end
 			end
 		end
 	end
 	
-	if (table.valid(c_avoid.newAvoid)) then
-		local newPos,seconds,obstacle = FFXIVLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
+	if #avoidList > 0 then
+		-- Store the full list for the execute phase and for lastAvoid tracking
+		c_avoid.newAvoid = avoidList
+		
+		local newPos, seconds
+		if #avoidList == 1 then
+			-- Single AoE: use legacy single-spell path
+			newPos, seconds = FFXIVLib.API.Avoidance.GetAvoidancePos(avoidList[1])
+		else
+			-- Multiple AoEs: find a position safe from ALL of them
+			newPos, seconds = FFXIVLib.API.Avoidance.GetSafePosition(avoidList)
+		end
+		
 		if (table.valid(newPos)) then
 			local ppos = Player.pos
 			local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
@@ -696,7 +730,9 @@ function e_avoid:execute()
 	c_avoid.lastAvoid = c_avoid.newAvoid
 	local newTask = ffxiv_task_avoid.Create()
 	newTask.pos = details.pos
-	newTask.targetid = c_avoid.newAvoid.attacker.id
+	-- newAvoid is now a list; use the first entry's attacker for the task target
+	local primaryAttacker = c_avoid.newAvoid[1] and c_avoid.newAvoid[1].attacker
+	newTask.targetid = primaryAttacker and primaryAttacker.id or 0
 	newTask.attackTarget = tid
 	newTask.interruptCasting = true
 	newTask.maxTime = details.seconds
@@ -1867,19 +1903,18 @@ function c_useaethernet:evaluate(mapid, pos)
 			end
 		end
 		local closestDist = GetLowestValue(gatedist,gotoDist)
-		
-		--[[d("gotoDist = "..tostring(gotoDist))
-		d("(bestDistance + nearestDistance) = "..tostring((bestDistance + nearestDistance)))
-		
-		
-		d("check must a = "..tostring(nearestAethernet and bestAethernet))
-		d("check must b = "..tostring(nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id)))
-		
-		d("check 1a = "..tostring(bestDistance and nearestDistance and gotoDist and ((bestDistance + nearestDistance) < gotoDist)))
-		d("check 1b = "..tostring(destMapID == Player.localmapid))
-		d("")
-		d("check 2a = "..tostring(nearestDistance and gatedist and (nearestDistance < gatedist)))
-		d("check 2b = "..tostring((destMapID ~= Player.localmapid)))]]
+		--[[
+		if nearestAethernet and bestAethernet then
+			d("nearest aethernet is ["..tostring(nearestAethernet.id).."] at distance ["..tostring(nearestDistance).."]")
+			d("best aethernet is ["..tostring(bestAethernet.id).."] at distance ["..tostring(bestDistance).."]")
+			d("check must a = "..tostring(nearestAethernet and bestAethernet))
+			d("check must b = "..tostring(nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id)))
+			d("check 1a = "..tostring(bestDistance and nearestDistance and gotoDist and ((bestDistance + nearestDistance) < gotoDist)))
+			d("check 1b = "..tostring(destMapID == Player.localmapid))
+			d("")
+			d("check 2a = "..tostring((nearestDistance < gatedist)))
+			d("check 2b = "..tostring((destMapID ~= Player.localmapid)))
+		end]]
 		
 		
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and 
