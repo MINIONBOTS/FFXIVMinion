@@ -575,7 +575,7 @@ e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
-	if gBotMode == GetString("assistMode") then
+	if gBotMode == GetString("assistMode") and not gAssistAvoidAOE then
 		return false
 	end
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
@@ -602,19 +602,222 @@ function c_avoid:evaluate()
 	
 	local function check_entity(e)
 		if not e then return end
+		-- Skip friendly/allied entities — we only dodge hostile casters.
+		-- Enemies are attackable or have aggro. Allied NPCs (Scion Thaumaturge,
+		-- Scion Conjurer, etc.) are neither attackable nor aggro.
+		if not e.attackable and not e.aggro then return end
 		local ci = e.castinginfo
 		local castId = ci and (ci.castingid or 0) or 0
 		local chanId = ci and (ci.channelingid or 0) or 0
 		local castTime = ci and (ci.casttime or 0) or 0
 		local chanTime = ci and (ci.channeltime or 0) or 0
 		-- Skip entities not casting/channeling, or instant abilities (< 1.3s)
-		if (castId == 0 and chanId == 0) or castTime < 1.3 then return end
+		if (castId == 0 and chanId == 0) or castTime < 1.3 then
+			--[[ Clear heading match and tracking if entity is no longer casting —
+			-- prevents stale heading from previous Landslide carrying into the next one.
+			if FFXIVLib._headingMatch and FFXIVLib._headingMatch[e.id] then
+				FFXIVLib._headingMatch[e.id] = nil
+			end
+			if FFXIVLib._headingTrack and FFXIVLib._headingTrack[e.id] then
+				FFXIVLib._headingTrack[e.id] = nil
+			end
+			if FFXIVLib._broadScanDone then
+				FFXIVLib._broadScanDone[e.id .. "_650"] = nil
+				FFXIVLib._broadScanDone[e.id .. "_644"] = nil
+			end]]
+			return
+		end
 		if castId ~= 0 or chanId ~= 0 then
 			d("[Avoid] check entity="..tostring(e.id).." ("..tostring(e.name)..")"
 			  .." castId="..tostring(castId).." chanId="..tostring(chanId)
 			  .." castTime="..tostring(castTime).." chanTime="..tostring(chanTime)
 			  .." dist="..tostring(e.distance).." hitR="..tostring(e.hitradius))
 		end
+		--[[ Pulse diagnostic: when casting Landslide (650), log caster heading vs
+		-- heading-to-each-nearby-entity every tick so we can see which entity
+		-- Titan is actually facing.  pos.h is in the SAME coordinate system
+		-- as atan2(dx, dz) — no + π offset needed.
+		local activeSpell = castId ~= 0 and castId or chanId
+		if activeSpell == 650 and e.pos then
+			local cH = e.pos.h or 0
+			-- Normalize pos.h to [0, 2π) for comparison with atan2 values
+			if cH < 0 then cH = cH + 2 * math.pi end
+
+			-- Track heading stability: Titan rotates from its previous
+			-- facing to the Landslide target over ~0.5s. The STABLE
+			-- heading (delta < 0.02 for 2+ frames) is the correct one.
+			FFXIVLib._headingTrack = FFXIVLib._headingTrack or {}
+			local track = FFXIVLib._headingTrack[e.id]
+			if not track then
+				track = { prevH = cH, stableCount = 0 }
+				FFXIVLib._headingTrack[e.id] = track
+			end
+			local hDelta = math.abs(cH - track.prevH)
+			if hDelta > math.pi then hDelta = 2 * math.pi - hDelta end
+			track.prevH = cH
+			if hDelta < 0.02 then
+				track.stableCount = track.stableCount + 1
+			else
+				track.stableCount = 0
+			end
+
+			local candidates = {}
+			-- Gather all nearby entities that could be targets
+			local nearby = EntityList("alive,onmesh,maxdistance=40")
+			if table.valid(nearby) then
+				for _, ne in pairs(nearby) do
+					if ne.id ~= e.id and ne.pos then
+						local dx = ne.pos.x - e.pos.x
+						local dz = ne.pos.z - e.pos.z
+						local dist = math.sqrt(dx * dx + dz * dz)
+						if dist > 0.5 then
+							local hToEnt = math.atan2(dx, dz)
+							if hToEnt < 0 then hToEnt = hToEnt + 2 * math.pi end
+							local diff = math.abs(hToEnt - cH)
+							if diff > math.pi then diff = 2 * math.pi - diff end
+							candidates[#candidates + 1] = {
+								name = ne.name or "?",
+								id = ne.id,
+								dist = dist,
+								heading = hToEnt,
+								diff = diff,
+								chartype = ne.chartype or 0
+							}
+						end
+					end
+				end
+			end
+			-- Also include Player
+			if Player and Player.pos then
+				local dx = Player.pos.x - e.pos.x
+				local dz = Player.pos.z - e.pos.z
+				local dist = math.sqrt(dx * dx + dz * dz)
+				if dist > 0.5 then
+					local hToEnt = math.atan2(dx, dz)
+					if hToEnt < 0 then hToEnt = hToEnt + 2 * math.pi end
+					local diff = math.abs(hToEnt - cH)
+					if diff > math.pi then diff = 2 * math.pi - diff end
+					candidates[#candidates + 1] = {
+						name = "PLAYER",
+						id = Player.id,
+						dist = dist,
+						heading = hToEnt,
+						diff = diff,
+						chartype = 0
+					}
+				end
+			end
+			-- Sort by heading difference (best match first)
+			table.sort(candidates, function(a, b) return a.diff < b.diff end)
+			-- Log caster heading and top matches
+			local chanTgtId = ci and ci.channeltargetid or 0
+			d("[PULSE] spell=650 casterH="..string.format("%.4f", cH)
+			  .." stable="..tostring(track.stableCount)
+			  .." delta="..string.format("%.4f", hDelta)
+			  .." chanTime="..string.format("%.2f", chanTime)
+			  .." chanTgt="..tostring(chanTgtId))
+			for idx = 1, math.min(#candidates, 6) do
+				local c = candidates[idx]
+				d("[PULSE]  #"..idx.." "..tostring(c.name)
+				  .." id="..tostring(c.id)
+				  .." dist="..string.format("%.1f", c.dist)
+				  .." h="..string.format("%.4f", c.heading)
+				  .." diff="..string.format("%.4f", c.diff)
+				  .." ct="..tostring(c.chartype)
+				  ..(c.diff < 0.15 and " <<< MATCH" or ""))
+			end
+			-- STABILITY LOCK: once pos.h stabilizes (2+ frames with
+			-- delta < 0.02), lock it as the Landslide heading.
+			-- pos.h IS the facing direction (same coords as atan2).
+			FFXIVLib._headingMatch = FFXIVLib._headingMatch or {}
+			local existing = FFXIVLib._headingMatch[e.id]
+			if existing then
+				-- Keep the locked heading alive while the cast continues
+				existing.tick = Now()
+				d("[PULSE] LOCKED heading="..string.format("%.4f", existing.heading)
+				  .." target="..tostring(existing.name).." (stable lock)")
+			elseif track.stableCount >= 2 then
+				-- Heading has stabilized — lock pos.h directly.
+				-- Find best matching entity for diagnostic logging.
+				local matchName = "unknown"
+				local matchId = 0
+				local matchDiff = 999
+				if #candidates > 0 and candidates[1].diff < 0.15 then
+					matchName = candidates[1].name
+					matchId = candidates[1].id
+					matchDiff = candidates[1].diff
+				end
+				FFXIVLib._headingMatch[e.id] = {
+					targetId = matchId,
+					heading = cH,  -- pos.h directly, same as atan2
+					diff = matchDiff,
+					name = matchName,
+					tick = Now()
+				}
+				d("[PULSE] LOCKED NEW heading="..string.format("%.4f", cH)
+				  .." target="..tostring(matchName)
+				  .." diff="..string.format("%.4f", matchDiff)
+				  .." stableFrames="..tostring(track.stableCount))
+			end
+		end]]
+
+		-- Broad entity scan: dump ALL entities within 100y when spell 650
+		-- or 644 first detected, to find invisible marker entities that
+		-- may appear at the target position.
+		--[[if (activeSpell == 650 or activeSpell == 644) and e.pos then
+			FFXIVLib._broadScanDone = FFXIVLib._broadScanDone or {}
+			local scanKey = e.id .. "_" .. tostring(activeSpell)
+			if not FFXIVLib._broadScanDone[scanKey] then
+				FFXIVLib._broadScanDone[scanKey] = true
+				d("[SCAN] === ALL ENTITIES r=100 for spell="..tostring(activeSpell)
+				  .." caster="..tostring(e.id).." ("..tostring(e.name)..") ===")
+				-- Use broadest possible filter — no alive/attackable/aggro restriction
+				local allEnts = EntityList("maxdistance=100")
+				local count = 0
+				if table.valid(allEnts) then
+					for _, ent in pairs(allEnts) do
+						count = count + 1
+						local eci = ent.castinginfo
+						local eCastId = eci and (eci.castingid or 0) or 0
+						local eChanId = eci and (eci.channelingid or 0) or 0
+						local eChanTgt = eci and (eci.channeltargetid or 0) or 0
+						local casting = ""
+						if eCastId ~= 0 or eChanId ~= 0 then
+							casting = " CASTING="..tostring(eCastId).."/"..tostring(eChanId)
+							  .." chanTgt="..tostring(eChanTgt)
+						end
+						local epos = ent.pos
+						local posStr = epos and string.format("(%.1f,%.1f,%.1f h=%.4f)",
+							epos.x, epos.y, epos.z, epos.h or 0) or "(no pos)"
+						d("[SCAN]  "..tostring(ent.name or "?")
+						  .." id="..tostring(ent.id)
+						  .." type="..tostring(ent.type or "?")
+						  .." chartype="..tostring(ent.chartype or "?")
+						  .." alive="..tostring(ent.alive)
+						  .." vis="..tostring(ent.visible)
+						  .." atk="..tostring(ent.attackable)
+						  .." aggro="..tostring(ent.aggro)
+						  .." dist="..string.format("%.1f", ent.distance or 0)
+						  .." pos="..posStr
+						  ..casting)
+					end
+				end
+				-- Also log Player
+				if Player and Player.pos then
+					d("[SCAN]  PLAYER id="..tostring(Player.id)
+					  .." pos="..string.format("(%.1f,%.1f,%.1f)", Player.pos.x, Player.pos.y, Player.pos.z))
+				end
+				d("[SCAN] === total="..tostring(count).." entities ===")
+			end
+		end]]
+
+		-- Cache castinginfo so evaluate() doesn't re-read it from the entity.
+		-- The game engine can clear castinginfo between reads (especially for
+		-- completed channels where chanTime == castTime), causing a race.
+		-- Entities are C++ userdata so we can't set properties on them;
+		-- use a module-level table keyed by entity ID instead.
+		FFXIVLib._ciCache = FFXIVLib._ciCache or {}
+		FFXIVLib._ciCache[e.id] = ci
 		local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
 		if shouldAvoid and spellData then
 			-- Skip if we already dodged this exact spell from this exact caster recently
@@ -639,51 +842,39 @@ function c_avoid:evaluate()
 		end
 	end
 	
+	-- Track which entity IDs we've already checked across all scans
+	local checked = {}
+	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
 	if (table.valid(el)) then
 		for i,entity in pairs(el) do
-			check_entity(EntityList:Get(entity.id))
+			if not checked[entity.id] then
+				checked[entity.id] = true
+				check_entity(EntityList:Get(entity.id))
+			end
 		end
 	end
 	
 	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
 	if (table.valid(el)) then
 		for i,entity in pairs(el) do
-			local e = EntityList:Get(entity.id)
-			if e then
-				-- Only add if not already in avoidList (from aggro scan)
-				local dominated = false
-				for _, existing in ipairs(avoidList) do
-					if existing.attacker.id == e.id then
-						dominated = true
-						break
-					end
-				end
-				if not dominated then
-					check_entity(e)
-				end
+			if not checked[entity.id] then
+				checked[entity.id] = true
+				check_entity(EntityList:Get(entity.id))
 			end
 		end
 	end
 	
-	if not IsNormalMap(Player.localmapid) then
-		local el = EntityList("onmesh,maxdistance=40")
-		if (table.valid(el)) then
-			for i,entity in pairs(el) do
-				local e = EntityList:Get(entity.id)
-				if e then
-					local dominated = false
-					for _, existing in ipairs(avoidList) do
-						if existing.attacker.id == e.id then
-							dominated = true
-							break
-						end
-					end
-					if not dominated then
-						check_entity(e)
-					end
-				end
+	-- Broad scan: catches environmental AoE sources (traps, untargetable
+	-- casters, FATE hazards) that lack aggro/incombat/attackable flags.
+	-- check_entity() does fast early-returns for non-casting entities.
+	local el = EntityList("onmesh,maxdistance=40")
+	if (table.valid(el)) then
+		for i,entity in pairs(el) do
+			if not checked[entity.id] then
+				checked[entity.id] = true
+				check_entity(EntityList:Get(entity.id))
 			end
 		end
 	end
@@ -1763,17 +1954,14 @@ e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
-		d("[c_useaethernet] false 1")
 		return false
 	end
 	if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().useAethernet == false) then
-		d("[c_useaethernet] false 2")
 		return false
 	end
 	if Player.localmapid == 478 then
 		local walkDist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,107,207,109)
-		if (walkDist <= 80) then		
-			d("[c_useaethernet] false 3")
+		if (walkDist <= 80) then
 			return false
 		end
 	end
