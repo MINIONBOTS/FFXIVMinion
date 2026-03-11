@@ -408,7 +408,7 @@ function c_add_fate:evaluate()
 	c_add_fate.fate = {}
     
     if (gGrindDoFates) then
-		local fate = GetClosestFate(Player.pos,true)
+		local fate = FFXIVLib.API.Fate.GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
 			c_add_fate.fate = fate
 			return true
@@ -628,10 +628,6 @@ function c_avoid:evaluate()
 			return
 		end
 		if castId ~= 0 or chanId ~= 0 then
-			d("[Avoid] check entity="..tostring(e.id).." ("..tostring(e.name)..")"
-			  .." castId="..tostring(castId).." chanId="..tostring(chanId)
-			  .." castTime="..tostring(castTime).." chanTime="..tostring(chanTime)
-			  .." dist="..tostring(e.distance).." hitR="..tostring(e.hitradius))
 		end
 		--[[ Pulse diagnostic: when casting Landslide (650), log caster heading vs
 		-- heading-to-each-nearby-entity every tick so we can see which entity
@@ -824,21 +820,15 @@ function c_avoid:evaluate()
 			if lastAvoid then
 				for _, prev in ipairs(lastAvoid) do
 					if spellData.id == prev.data.id and e.id == prev.attacker.id and Now() < prev.timer then
-						d("[Avoid] skip recently dodged: spell="..tostring(spellData.id).." caster="..tostring(e.id))
 						return
 					end
 				end
 			end
-			d("[Avoid] ADDING to avoidList: spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
-			  .." type="..tostring(spellData.type).." caster="..tostring(e.id).." ("..tostring(e.name)..")"
+			d("[Avoid] spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
+			  .." type="..tostring(spellData.type).." range="..tostring(spellData.range)
+			  .." caster="..tostring(e.id).." ("..tostring(e.name)..")"
 			  .." castTime="..tostring(spellData.castTime))
 			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
-		else
-			if castId ~= 0 or chanId ~= 0 then
-				d("[Avoid] NOT avoidable: spell="..tostring(castId ~= 0 and castId or chanId)
-				  .." shouldAvoid="..tostring(shouldAvoid).." hasData="..tostring(spellData ~= nil)
-				  .." caster="..tostring(e.id).." ("..tostring(e.name)..")") 
-			end
 		end
 	end
 	
@@ -2669,7 +2659,7 @@ function c_rest:evaluate()
 			return false
 		end
 	elseif (ml_task_hub:ThisTask().name == "LT_FATE") then
-		local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+		local fate = FFXIVLib.API.Fate.GetActiveFateById(ml_task_hub:ThisTask().fateid)
 		if (table.valid(fate)) then
 			local fatePos = {x = fate.x,y = fate.y,z = fate.z}
 			local myPos = Player.pos
@@ -2713,7 +2703,7 @@ function c_rest:evaluate()
 		if (not gRestInFates) then
 			if (gBotMode == GetString("grindMode")) then
 			--d("Cannot rest, not Rest In Fates.")
-				return not IsInsideFate()
+				return not FFXIVLib.API.Fate.IsInsideFate()
 			end
 		end
 		

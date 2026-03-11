@@ -197,7 +197,6 @@ function MIsCasting(fullcheck)
 	if (memoized) then
 		return memoized
 	else
-		--local ret = IsPlayerCasting(fullcheck)
 		local ret = ActionList:IsCasting()
 		SetMemoized(memString,ret)
 		return ret
@@ -333,29 +332,10 @@ function MPartySMemberWithBuff(ptbuff, ptnbuff, maxrange)
 	end
 end
 
-function MGetFateByID(fateID)
-	local memString = "MGetFateByID;"..tostring(fateID)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local fate = GetFateByID(fateID)
-		SetMemoized(memString,fate)
-		return fate
-	end
-end
-
-function MFateList()
-	local memString = "MFateList"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local fateList = GetFateList()
-		SetMemoized(memString,fateList)
-		return fateList
-	end
-end
+-- MGetFateByID and MFateList are now provided by lib_fate.lua
+-- via global aliases set from FFXIVLib.API.Fate.
+-- The original implementations have been moved to lib_fate.get_active_fate
+-- and lib_fate.get_fate_list respectively.
 			
 -- Functions below pertain to permanent memoize, never-changing data.
 

@@ -2928,7 +2928,7 @@ invalid name or haven't chosen one."))
 							local maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel), 0)
 							GUI:Text("Yes I was silly and altered deault fate settings!");
 							if gGrindDoFates then
-								GUI:Text(table.size(GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
+								GUI:Text(table.size(FFXIVLib.API.Fate.GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
 								if SetNoMinFateLevel then
 									GUI:Text("No Min fate level");
 								else
@@ -2947,7 +2947,7 @@ invalid name or haven't chosen one."))
 							local maxFateLevel = 2
 							GUI:Text("Using Default Grind settings");
 							if gGrindDoFates then
-								GUI:Text(table.size(GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
+								GUI:Text(table.size(FFXIVLib.API.Fate.GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
 								if SetNoMinFateLevel then
 									GUI:Text("No Min fate level");
 								else

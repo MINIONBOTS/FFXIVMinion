@@ -1443,8 +1443,11 @@ function e_buybait:execute()
 					
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 					d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(npcId).."]")
+					d("Nearest Map: "..tostring(mapid))
 					d("Nearest Pos:")
 					table.print(pos)
+					d("Conversation Index: "..tostring(nearestPurchase.index))
+					d("Conversation Strings: "..tostring(nearestPurchase.indexstrings))
 					return true
 				end
 			end

@@ -2198,7 +2198,7 @@ function DrawFateListUI(self)
 		local fateList = {}
 		local fateDisplayList = {}
 		
-		local flist = MFateList()
+		local flist = FFXIVLib.API.Fate.GetActiveFateList()
 		if (table.valid(flist)) then
 			for id, e in pairs(flist) do
 				if (self:Find(e.id,"id") == nil) then

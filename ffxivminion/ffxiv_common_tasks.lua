@@ -273,7 +273,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		d("Complete Blocked due to off mesh")
 		return false
 	end
-	local fate = MGetFateByID(self.fateid)
+	local fate = FFXIVLib.API.Fate.GetActiveFateById(self.fateid)
 	if (table.valid(fate)) then
 		local myPos = Player.pos
 		local fatedist = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
@@ -404,7 +404,7 @@ function ffxiv_task_movetofate:task_complete_execute()
 end
 
 function ffxiv_task_movetofate:task_fail_eval()
-	local fate = MGetFateByID(self.fateid)
+	local fate = FFXIVLib.API.Fate.GetActiveFateById(self.fateid)
 	if (not table.valid(fate)) then
 		return true
 	end
@@ -1397,7 +1397,7 @@ function ffxiv_task_grindCombat:Process()
 		if (target.fateid ~= 0) then
 			--d("Check fate details.")
 			local fateID = target.fateid
-			local fate = MGetFateByID(fateID)
+			local fate = FFXIVLib.API.Fate.GetActiveFateById(fateID)
 			if ( fate and fate.completion < 100 and fate.status == 2) then
 				if (Player.level > fate.maxlevel) then
 					local myPos = Player.pos
@@ -1616,7 +1616,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		if (target.fateid > 0 and target.fateid < 1500) then
 			--d("checking if task should fail due to fate.")
 			local fateID = target.fateid
-			local fate = MGetFateByID(fateID)
+			local fate = FFXIVLib.API.Fate.GetActiveFateById(fateID)
 			if (not fate) then
 				--d("[GrindCombat]: Task complete due to fate target and fate not found.")
 				return true
@@ -2203,8 +2203,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					for _,aethernet in pairs(aethernets) do
 						local cleanedline = CleanConvoLine(aethernet.string)
 						local cleanedv = CleanConvoLine(self.conversationstring)
-						d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-						d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. aethernet.string .. "]")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == aethernet.string) then
 							d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(self.conversationstring).."].")
 							UseControlAction("TelepotTown","Teleport",aethernet.index)
@@ -2220,10 +2218,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedline = CleanConvoLine(aethernet.string)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
-							d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-							d("Aethernet[2] - checking [" .. v  .. "] against [" .. aethernet.string .. "]")
 							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == aethernet.string) then
-								d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(cleanedv).."].")
+								d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).."] for ["..tostring(cleanedv).."].")
 								UseControlAction("TelepotTown","Teleport",aethernet.index)
 								self.initiatedPos = Player.pos
 								ml_global_information.Await(500,2000, function () return not IsControlOpen("TelepotTown") end)
@@ -2352,8 +2348,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					for selectindex,convo in pairs(convoList) do
 						local cleanedline = CleanConvoLine(convo)
 						local cleanedv = CleanConvoLine(self.conversationstring)
-						d("Aethernet[1] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-						d("Aethernet[1] - checking [" .. self.conversationstring  .. "] against [" .. convo .. "]")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 							SelectConversationLine(selectindex)
@@ -2368,8 +2362,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedline = CleanConvoLine(convo)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
-							d("Aethernet[2] - checking [" .. cleanedv .. "] against [" .. cleanedline .. "]")
-							d("Aethernet[2] - checking [" .. v  .. "] against [" .. convo .. "]")
 							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
 								d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 								SelectConversationLine(selectindex)

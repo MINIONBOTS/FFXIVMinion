@@ -446,7 +446,7 @@ function c_ekassistsyncfatelevel:evaluate()
 	if (target and target.fateid ~= 0 and not Player.ismounted) then
 		local myPos = Player.pos
 		local fateID = target.fateid
-		local fate = MGetFateByID(fateID)
+		local fate = FFXIVLib.API.Fate.GetActiveFateById(fateID)
 		if ( table.valid(fate)) then
 			if (fate.maxlevel < Player.eurekainfo.level) then
 				local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
@@ -480,7 +480,7 @@ function c_assistsyncfatelevel:evaluate()
 	if (target and target.fateid ~= 0 and not Player.ismounted) then
 		local myPos = Player.pos
 		local fateID = target.fateid
-		local fate = MGetFateByID(fateID)
+		local fate = FFXIVLib.API.Fate.GetActiveFateById(fateID)
 		if ( table.valid(fate)) then
 			if (fate.maxlevel < Player.level) then
 			--if (FFXIVLib.API.Fate.RequiresSync(fate.id)) then

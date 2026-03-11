@@ -5707,7 +5707,7 @@ function SkillMgr.AddDefaultConditions()
 			if (target and target.fateid ~= 0) then
 				
 				SkillMgr.DebugOutput(skill.prio, "Target has a FATE ID of ["..tostring(target.fateid).."].")
-				local fate = GetFateByID(target.fateid)
+				local fate = FFXIVLib.API.Fate.GetActiveFateById(target.fateid)
 				if (table.valid(fate)) then
 					if (fate.status == 2) then
 						if (Player:GetSyncLevel() == 0 and Player.level > fate.maxlevel) then

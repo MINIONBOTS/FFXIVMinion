@@ -406,7 +406,7 @@ end
 
 function GetNearestFateAttackable2()
 
-	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+	local fate = FFXIVLib.API.Fate.GetActiveFateById(ml_task_hub:CurrentTask().fateid)
 	if (fate) then
 		local maxLevel = fate.maxlevel
 		local overMaxLevel = (Player.level > maxLevel)
@@ -625,7 +625,7 @@ end
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = Player.pos
-    local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+    local fate = FFXIVLib.API.Fate.GetActiveFateById(ml_task_hub:CurrentTask().fateid)
 	
 	if (fate) then
 		local maxLevel = fate.maxlevel
@@ -2587,218 +2587,18 @@ function GetPosFromDistanceHeading(startPos, distance, heading)
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
 end
-function GetFateByID(fateID)
-    local fateList = MFateList()
-	if (table.valid(fateList)) then
-		for _,fate in pairs(fateList) do
-			 if (fate.id == fateID) then
-                return fate
-            end
-		end	
-	end
-	
-	return nil
-end
-function GetApprovedFates()
-	local approvedFates = {}
-	
-	local level = Player.level
-	local fatelist = MFateList()
-	if (table.valid(fatelist)) then
-		for _,fate in pairs(fatelist) do
-			local minFateLevel = 70
-			local maxFateLevel = 2
-			
-			if gEnableAdvancedGrindSettings then
-				minFateLevel = IsNull(tonumber(gGrindFatesMinLevel),0)
-				maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel),0)
-			end
-			
-			--local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-			
-			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
-			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
-			
-			if ((gGrindFatesNoMinLevel or (fate.level >= (level - minFateLevel))) and 
-				(gGrindFatesNoMaxLevel or (fate.level <= (level + maxFateLevel)))) 
-			then
-				if (not (isChain or isPrio) and (fate.type == 0 and gGrindDoBattleFates  and fate.completion >= tonumber(gFateBattleWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 1 and gGrindDoBossFates  and fate.completion >= tonumber(gFateBossWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 2 and gGrindDoGatherFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 3 and gGrindDoDefenseFates  and fate.completion >= tonumber(gFateDefenseWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 4 and gGrindDoEscortFates  and fate.completion >= tonumber(gFateEscortWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == -1 and fate.completion >= tonumber(gFateEscortWaitPercent))) then
-					table.insert(approvedFates,fate)
-				elseif ((isChain or isPrio) and gDoChainFates ) then
-					if (fate.completion >= tonumber(gFateChainWaitPercent) or not firstChain) then
-						table.insert(approvedFates,fate)
-					end
-				end
-			end
-		end
-	end
-	
-	return approvedFates
-end
-function IsFateApproved(fateid)
-	local fateid = tonumber(fateid) or 0
-	if (fateid == 0) then
-		return false
-	end
-	
-	local fateList = GetApprovedFates()
-	if (fateList) then
-		for k,fate in pairs(fateList) do
-			if (fate.id == fateid) then
-				return true
-			end
-		end
-	end
 
-	return false
-end
-function IsInsideFate()
-	local closestFate = GetClosestFate()
-	if (table.valid(closestFate)) then
-		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
-		local myPos = Player.pos
-		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
-		if (dist < closestFate.radius) then
-			return true
-		end
-	end
-	
-	return false
-end
-function GetClosestFate(pos)
-	local fateList = GetApprovedFates()
-	if (table.valid(fateList)) then	
+-- Delegated to FFXIVLib.API.Fate.GetActiveFateById via lib_fate.lua
+-- GetFateByID is now a global alias set in lib_fate.lua
+-- Delegated to FFXIVLib.API.Fate.GetApprovedFates via lib_fate.lua
+-- GetApprovedFates is now a global alias set in lib_fate.lua
+-- Delegated to FFXIVLib.API.Fate.IsFateApproved via lib_fate.lua
+-- IsFateApproved is now a global alias set in lib_fate.lua
+-- Delegated to FFXIVLib.API.Fate.IsInsideFate via lib_fate.lua
+-- IsInsideFate is now a global alias set in lib_fate.lua
+-- Delegated to FFXIVLib.API.Fate.GetClosestFate via lib_fate.lua
+-- GetClosestFate is now a global alias set in lib_fate.lua
 
-		if (not gTeleportHack) then
-			local ppos = Player.pos
-			for i=TableSize(fateList),1,-1 do
-				local fate = fateList[i]
-				local fatePos = {x = fate.x, y = fate.y, z = fate.z}	
-
-				if (not ml_navigation:CheckPath(fatePos)) then
-					--d("[GetClosestFate] - Cannot find path to fate ["..tostring(fate.name).."] - From ["..tostring(math.round(ppos.x,0))..","..tostring(math.round(ppos.y,0))..","..tostring(math.round(ppos.z,0)).."] - To ["..tostring(math.round(fatePos.x,0))..","..tostring(math.round(fatePos.y,0))..","..tostring(math.round(fatePos.z,0)).."] - MapID ["..tostring(Player.localmapid) .."]")
-					table.remove(fateList, i)
-				end
-			end
-		end
-		
-		--d("Found some approved fates.")
-        local nearestFate = nil
-        local nearestDistance = 99999
-        local level = Player.level
-		local myPos = Player.pos
-		
-		local hasWhitelist = false
-		local fateBlacklist = ml_list_mgr.GetList("FATE Blacklist")
-		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
-		if (table.valid(fateWhitelist)) then
-			local entries = fateWhitelist.entries
-			for i, entry in pairs(entries) do
-				if (entry.mapid == Player.localmapid) then
-					hasWhitelist = true
-					break
-				end
-			end
-		end
-		
-		local recheck = true
-		local noPaths = {}
-		
-		while (recheck) do
-			recheck = false
-			if (hasWhitelist) then
-				d("[GetClosestFate]: Player has a whitelist setup, need to follow it.")
-				for k, fate in pairs(fateList) do
-					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-					if (fateWhitelist:Find(id,"id") ~= nil and status == 2 and not noPaths[fate.id]) then
-						d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is whitelisted and active.")
-						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z)
-						if (distance) then
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = fate
-								nearestDistance = distance
-							end
-						end
-					end
-				end
-			else
-				local validFates = {}
-				--Add fates that are high priority or chains first.
-				for k, fate in pairs(fateList) do
-					local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-					if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
-						local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
-						if (fate.status == 2) or ((fate.status == 7) and activatable) then	
-							if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
-								table.insert(validFates,fate)
-							end
-						end
-					else
-						--d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
-					end
-				end
-				
-				if (not table.valid(validFates)) then
-					for k, fate in pairs(fateList) do
-						local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-						if (fateBlacklist:Find(id,"id") == nil and not noPaths[fate.id]) then
-							local activatable = (table.valid(ffxiv_task_fate.Activateable(Player.localmapid, fate.id)))
-							if (fate.status == 2) or ((fate.status == 7) and activatable) then	
-								table.insert(validFates,fate)
-							end
-						else
-							--d("[GetClosestFate]: Fate ["..tostring(fate.name).."] is blacklisted, ignore it.")
-						end
-					end
-				end
-				
-				if (table.valid(validFates)) then
-					--d("Found some valid fates, figuring out which one is closest.")
-					for k, fate in pairs(validFates) do
-						local id,name,status,x,y,z = fate.id, fate.name, fate.status, fate.x, fate.y, fate.z
-						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or -1
-						--d("distance for ["..tostring(fate.name).."] is ["..tostring(distance).."]")
-						if (distance ~= -1) then
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = fate
-								nearestDistance = distance
-							end
-						end
-					end
-				end
-			end
-			
-			if (nearestFate) then
-				--d("we have a nearest fate")
-				if (not ml_navigation:CheckPath(nearestFate)) then
-					if (table.size(validFates) > 1) then
-						recheck = true
-						noPaths[nearestFate.id] = true
-					end
-					nearestFate = nil
-					nearestDistance = 99999
-				end
-			end
-		end
-    
-        if (nearestFate) then
-			--d("[GetClosestFate] - Nearest Fate details: Name="..nearestFate.name..",id="..tostring(nearestFate.id)..",completion="..tostring(nearestFate.completion)..",pos="..tostring(nearestFate.x)..","..tostring(nearestFate.y)..","..tostring(nearestFate.z))
-            return nearestFate
-        end
-    end
-    
-    return nil
-end
 function IsOnMap(mapid)
 	local mapid = tonumber(mapid)
 	if (Player.localmapid == mapid) then

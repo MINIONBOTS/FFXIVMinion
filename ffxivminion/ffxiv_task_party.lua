@@ -17,7 +17,7 @@ function c_partysyncfatelevel:evaluate()
 	end
     
     local myPos = Player.pos
-    local fate = GetClosestFate(myPos)
+    local fate = FFXIVLib.API.Fate.GetClosestFate(myPos)
 	if (table.valid(fate)) then
 		if (Player.level > fate.maxlevel) then
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
