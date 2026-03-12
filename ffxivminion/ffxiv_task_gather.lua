@@ -63,24 +63,7 @@ function ffxiv_task_gather.Create()
 end
 
 function gd(var,level)
-	local level = tonumber(level) or 3
-
-	local requiredLevel = gGatherDebugLevel
-	if (gBotMode == GetString("questMode") and gQuestDebug) then
-		requiredLevel = gQuestDebugLevel
-	end
-	
-	if ( gGatherDebug or (gQuestDebug and gBotMode == GetString("questMode"))) then
-		if ( level <= tonumber(requiredLevel)) then
-			if (type(var) == "string") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
-			elseif (type(var) == "number" or type(var) == "boolean") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
-			elseif (type(var) == "table") then
-				outputTable(var)
-			end
-		end
-	end
+	ff.debugLog(var, level, gGatherDebug, gGatherDebugLevel, true)
 end
 
 function ffxiv_gather.RandomizePosition(pos, x, y, z)

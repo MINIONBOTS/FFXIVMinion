@@ -110,24 +110,7 @@ function ffxiv_task_fish.Create()
 end
 
 function fd(var,level)
-	local level = tonumber(level) or 3
-	
-	local requiredLevel = gFishDebugLevel
-	if (gBotMode == GetString("questMode") and gQuestDebug) then
-		requiredLevel = gQuestDebugLevel
-	end
-	
-	if ( gFishDebug or (gQuestDebug and gBotMode == GetString("questMode"))) then
-		if ( level <= tonumber(requiredLevel)) then
-			if (type(var) == "string") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
-			elseif (type(var) == "number" or type(var) == "boolean") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
-			elseif (type(var) == "table") then
-				outputTable(var)
-			end
-		end
-	end
+	ff.debugLog(var, level, gFishDebug, gFishDebugLevel, true)
 end
 
 function ffxiv_fish.CanAccessFishingMap(mapid)

@@ -2893,7 +2893,7 @@ function SkillMgr.GetTankedTarget( range )
     local party = EntityList("chartype=4,myparty")
     if ( table.valid(party) ) then
 		for i,e in pairs(party) do
-			if (IsTank(e.job)) then
+			if (IsTank(e)) then
 				tanks[i] = e
 			end
         end
@@ -5644,11 +5644,11 @@ function SkillMgr.AddDefaultConditions()
 		
 		if (GetString(skill.trgtype) ~= GetString("Any") and target.job ~= nil) then
 			local found = true
-			local roleString = GetRoleString(target.job)
+			local roleString = GetRoleString(target)
 			if not skill.trgtype ~= roleString then 
 				found = false
 			end
-			if skill.trgtype == GetString("Caster") and IsCaster(target.job) then
+			if skill.trgtype == GetString("Caster") and IsCaster(target) then
 				found = true
 			end
 			if not found then 

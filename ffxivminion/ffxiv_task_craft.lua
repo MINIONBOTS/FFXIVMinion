@@ -81,134 +81,48 @@ function ffxiv_task_craft.Create()
 end
 
 function cd(var,level)
-	local level = tonumber(level) or 3
-
-	if ( gCraftDebug ) then
-		if ( level <= tonumber(gCraftDebugLevel)) then
-			if (type(var) == "string") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
-			elseif (type(var) == "number" or type(var) == "boolean") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
-			elseif (type(var) == "table") then
-				outputTable(var)
-			end
-		end
-	end
+	ff.debugLog(var, level, gCraftDebug, gCraftDebugLevel, false)
 end
+-- Tea items by type index: { typeIndex = { {hqId, nqId}, ... } }
+-- Ordered highest tier first so best available is returned
+local _teaItems = {
+	[2] = { -- Cunning
+		{1044169, 44169}, -- Tisane
+		{1036116, 36116}, -- Draught
+		{1027959, 27959}, -- Syrup
+		{1019884, 19884}, -- Tea
+	},
+	[3] = { -- Commanding
+		{1044168, 44168}, -- Tisane
+		{1036115, 36115}, -- Draught
+		{1027958, 27958}, -- Syrup
+		{1019883, 19883}, -- Tea
+	},
+	[4] = { -- Competent
+		{1044167, 44167}, -- Tisane
+		{1036114, 36114}, -- Draught
+		{1027957, 27957}, -- Syrup
+		{1019882, 19882}, -- Tea
+	},
+}
+
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
-		if gCraftTeaTypeIndex == 2 or gCraftTeaTypeIndex == 5 then
-			-- "Cunning Craftsman's Tisane",
-			local teahq, action = GetItem(1044169)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(44169)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Cunning Craftsman's Draught",
-			local teahq, action = GetItem(1036116)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(36116)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Cunning Craftsman's Syrup",
-			local teahq, action = GetItem(1027959)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(27959)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end		
-			-- "Cunning Craftsman's Tea",
-			local teahq, action = GetItem(1019884)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(19884)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
+		local typesToCheck = {}
+		if gCraftTeaTypeIndex == 5 then
+			typesToCheck = {2, 3, 4}
+		elseif _teaItems[gCraftTeaTypeIndex] then
+			typesToCheck = {gCraftTeaTypeIndex}
 		end
-		if gCraftTeaTypeIndex == 3 or gCraftTeaTypeIndex == 5 then
-			-- "Commanding Craftsman's Tisane",
-			local teahq, action = GetItem(1044168)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(44168)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Commanding Craftsman's Draught",
-			local teahq, action = GetItem(1036115)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(36115)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Commanding Craftsman's Syrup",
-			local teahq, action = GetItem(1027958)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(27958)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Commanding Craftsman's Tea",
-			local teahq, action = GetItem(1019883)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(19883)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-		end
-		if gCraftTeaTypeIndex == 4 or gCraftTeaTypeIndex == 5 then
-			-- "Competent Craftsman's Tisane",
-			local teahq, action = GetItem(1044167)
-			if (teahq and action and  not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(44167)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Competent Craftsman's Draught",
-			local teahq, action = GetItem(1036114)
-			if (teahq and action and not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(36114)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Competent Craftsman's Syrup",
-			local teahq, action = GetItem(1027957)
-			if (teahq and action and  not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(27957)
-			if (tea and action and not action.isoncd) then
-				return true, tea
-			end
-			-- "Competent Craftsman's Tea",
-			local teahq, action = GetItem(1019882)
-			if (teahq and action and  not action.isoncd) then
-				return true, teahq
-			end
-			local tea, action = GetItem(19882)
-			if (tea and action and not action.isoncd) then
-				return true, tea
+		
+		for _, typeIdx in ipairs(typesToCheck) do
+			for _, pair in ipairs(_teaItems[typeIdx]) do
+				for _, itemId in ipairs(pair) do
+					local item, action = GetItem(itemId)
+					if (item and action and not action.isoncd) then
+						return true, item
+					end
+				end
 			end
 		end
 	end

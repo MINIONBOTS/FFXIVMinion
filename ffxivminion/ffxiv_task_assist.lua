@@ -74,16 +74,16 @@ function ffxiv_task_assist:Process()
 		
 		if not gDisableAssistOptions and ( FFXIV_Assist_Mode ~= GetString("none") ) then
 			local newTarget = nil
+			local canHeal = IsHealer(Player.job) or Player.job == FFXIV.JOBS.ARCANIST
 			
-			if ( FFXIV_Assist_Priority == GetString("healer") ) then
+			if ( canHeal and FFXIV_Assist_Priority == GetString("healer") ) then
 				newTarget = ffxiv_assist.GetHealingTarget()
 				if ( newTarget == nil ) then
 					newTarget = ffxiv_assist.GetAttackTarget()				
 				end		
-
-			elseif ( FFXIV_Assist_Priority == GetString("dps") ) then
+			else
 				newTarget = ffxiv_assist.GetAttackTarget()
-				if ( newTarget == nil ) then
+				if ( canHeal and newTarget == nil ) then
 					newTarget = ffxiv_assist.GetHealingTarget()				
 				end			
 			end
@@ -502,9 +502,9 @@ end
 function ffxiv_assist.GetHealingTarget()
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
-        local target = GetBestHealTarget()		
+        target = GetBestHealTarget()		
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
-        local target = GetClosestHealTarget()	
+        target = GetClosestHealTarget()	
     end
     
     if ( target and target.hp.percent < SkillMgr.GetHealSpellHPLimit() ) then
@@ -514,129 +514,38 @@ function ffxiv_assist.GetHealingTarget()
     return nil
 end
 
+-- Helper: get first entity from a query, returns nil if empty
+local function firstEntity(query)
+	local el = MEntityList(query)
+	if (table.valid(el)) then
+		local i,e = next(el)
+		if (i and e) then return e end
+	end
+	return nil
+end
+
+-- Helper: find attack target using given sort order, with LOS→nearest fallback chain
+local function findAttackTarget(sortOrder, maxDistance)
+	local base = "alive,attackable,maxdistance2d="..tostring(maxDistance)
+	-- Try LOS + sort order first, then no-LOS + sort order
+	local e = firstEntity("los,"..sortOrder..","..base) or firstEntity(sortOrder..","..base)
+	-- If target is at 100% HP (not yet pulled), prefer nearest instead
+	if (e and e.hp.percent == 100) then
+		e = firstEntity("los,nearest,"..base) or firstEntity("nearest,"..base) or e
+	end
+	return e
+end
+
 function ffxiv_assist.GetAttackTarget()
 	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or 25
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
-        local el = MEntityList("los,lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
-        if ( table.valid(el) ) then
-            local i,e = next(el)
-			if (i and e) then
-				if (e.hp.percent == 100) then
-					el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-					if ( table.valid(el) ) then
-						i,e = next(el)
-						if (i and e) then
-							target = e
-						end
-					else
-						el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-						if ( table.valid(el) ) then
-							i,e = next(el)
-							if (i and e) then
-								target = e
-							end
-						end
-					end	
-				else
-					target = e
-				end
-			end
-		else
-			el = MEntityList("lowesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
-			if ( table.valid(el) ) then
-				local i,e = next(el)
-				if (i and e) then
-					if (e.hp.percent == 100) then
-						el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-						if ( table.valid(el) ) then
-							i,e = next(el)
-							if (i and e) then
-								target = e
-							end
-						else
-							el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-							if ( table.valid(el) ) then
-								i,e = next(el)
-								if (i and e) then
-									target = e
-								end
-							end
-						end	
-					else
-						target = e
-					end
-				end
-			end
-        end
+        target = findAttackTarget("lowesthealth", maxDistance)
     elseif ( FFXIV_Assist_Mode == GetString("highestHealth")) then	
-        local el = MEntityList("los,highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
-        if ( table.valid(el) ) then
-            local i,e = next(el)
-            if (i and e) then
-                if (e.hp.percent == 100) then
-					el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-					if ( table.valid(el) ) then
-						i,e = next(el)
-						if (i and e) then
-							target = e
-						end
-					else
-						el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-						if ( table.valid(el) ) then
-							i,e = next(el)
-							if (i and e) then
-								target = e
-							end
-						end
-					end	
-				else
-					target = e
-				end
-            end
-		else
-			el = MEntityList("highesthealth,alive,attackable,maxdistance2d="..tostring(maxDistance))
-			if ( table.valid(el) ) then
-				local i,e = next(el)
-				if (i and e) then
-					if (e.hp.percent == 100) then
-						el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-						if ( table.valid(el) ) then
-							i,e = next(el)
-							if (i and e) then
-								target = e
-							end
-						else
-							el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-							if ( table.valid(el) ) then
-								i,e = next(el)
-								if (i and e) then
-									target = e
-								end
-							end
-						end	
-					else
-						target = e
-					end
-				end
-			end
-        end
+        target = findAttackTarget("highesthealth", maxDistance)
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
-        local el = MEntityList("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-        if ( table.valid(el) ) then
-            local i,e = next(el)
-            if (i and e) then
-                target = e
-            end
-		else
-			el = MEntityList("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-			if ( table.valid(el) ) then
-				local i,e = next(el)
-				if (i and e) then
-					target = e
-				end
-			end
-        end	
+        target = firstEntity("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+			or firstEntity("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then 
 		local tanks = {}
 		local party = EntityList("myparty")
@@ -650,7 +559,6 @@ function ffxiv_assist.GetAttackTarget()
 		local npcTeam = MEntityList("alive,chartype=9,targetable,maxdistance2d=100")
 		if (npcTeam) then
 			for i,entity in pairs(npcTeam) do
-				local econt = entity.contentid
 				if IsTank(entity) then
 					table.insert(tanks,entity)
 				end
@@ -661,18 +569,16 @@ function ffxiv_assist.GetAttackTarget()
 			local closest = nil
 			local closestDistance = 999
 			for i,tank in pairs(tanks) do
-				if (not closest or (closest and tank.distance2d < closestDistance)) then
+				if (not closest or tank.distance2d < closestDistance) then
 					closest = tank
 					closestDistance = tank.distance2d
 				end
 			end
 			
-			if (closest) then
-				if (closest.targetid ~= 0) then
-					local targeted = EntityList:Get(closest.targetid)
-					if (targeted and targeted.attackable and targeted.alive) then
-						target = targeted
-					end
+			if (closest and closest.targetid ~= 0) then
+				local targeted = EntityList:Get(closest.targetid)
+				if (targeted and targeted.attackable and targeted.alive) then
+					target = targeted
 				end
 			end
 		end

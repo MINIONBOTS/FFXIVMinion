@@ -9,6 +9,87 @@ ff.mapsections = {
 	[399] = 0,
 }
 
+-- Trust member role tables (by contentid)
+-- Derived from AST card targeting: Bole/Ewer = tanks, Balance/Spear = DPS, remainder = healers
+ff.trust_tanks = {
+	[713]=true, [1455]=true, [5964]=true, [8650]=true, [9348]=true, [9363]=true,
+	[11262]=true, [11266]=true, [11271]=true, [11313]=true, [11326]=true, [11330]=true, [11334]=true,
+	[11416]=true, [11431]=true, [12236]=true, [12312]=true, [12463]=true, [12464]=true, [12487]=true, [12488]=true,
+}
+ff.trust_healers = {
+	[1492]=true, [4130]=true,
+	[8650]=true, [9346]=true, [9349]=true, [9363]=true, [10586]=true,
+	[11264]=true, [11267]=true, [11271]=true, [11329]=true, [11333]=true, [11337]=true,
+	[12239]=true, [12465]=true, [12468]=true, [12469]=true,
+	[12487]=true, [12488]=true,
+}
+ff.trust_melee_dps = {
+	[4133]=true, -- Raubahn (Gladiator)
+	[5970]=true, -- Lyse (Monk)
+	[6148]=true, -- Hien (Samurai)
+	[8650]=true, -- Crystal Exarch (all-rounder)
+	[8889]=true, -- Ryne (Rogue)
+	[8917]=true, -- Minfilia (Rogue)
+	[9363]=true, -- G'raha Tia (all-rounder)
+	[10013]=true, -- Estinien (Dragoon)
+	[11269]=true, -- Ryne's avatar (Rogue)
+	[11270]=true, -- Estinien's avatar
+	[11271]=true, -- G'raha Tia's avatar (all-rounder)
+	[11331]=true, -- Scion Lancer
+	[11335]=true, -- Serpent Lancer
+	[11433]=true, -- Temple Banneret (Lancer)
+	[12237]=true, -- House Fortemps Banneret (Lancer)
+	[12466]=true, -- Yugiri (Ninja)
+	[12470]=true, -- Resistance Pikedance (Lancer)
+	[12487]=true, -- Wuk Lamat (all-rounder)
+	[12488]=true, -- G'raha Tia (all-rounder)
+	[12635]=true, -- J'moldva (Lancer)
+}
+ff.trust_phys_ranged_dps = {
+	[8919]=true, -- Lyna (Dancer)
+	[10899]=true, -- Hythlodaeus (Bard)
+	[11418]=true, -- Zero (Bard)
+	[12053]=true, -- Zero's avatar (Bard)
+	[12740]=true, -- Koana (Phys Ranged)
+}
+ff.trust_caster_dps = {
+	[4846]=true, -- Krile (Pictomancer)
+	[5239]=true, -- Alisaie (Red Mage)
+	[8378]=true, -- Y'shtola (caster DPS)
+	[10898]=true, -- Emet-Selch (caster DPS)
+	[11265]=true, -- Alisaie's avatar (Red Mage)
+	[11268]=true, -- Y'shtola's avatar (caster DPS)
+	[11328]=true, [11332]=true, [11336]=true, -- Thaumaturges
+	[12739]=true, -- Zoraal Ja (Magic DPS)
+	[13522]=true, -- Krile's avatar (Pictomancer)
+}
+ff.trust_dps = {
+	[4133]=true, [4846]=true, [5239]=true, [5970]=true, [6148]=true,
+	[8378]=true, [8650]=true, [8889]=true, [8917]=true, [8919]=true, [9347]=true, [9363]=true,
+	[10013]=true, [10898]=true, [10899]=true, [11265]=true, [11268]=true,
+	[11269]=true, [11270]=true, [11271]=true, [11282]=true, [11328]=true, [11331]=true, [11332]=true, [11335]=true, [11336]=true, [11418]=true, [11433]=true,
+	[12053]=true, [12237]=true, [12466]=true, [12467]=true, [12470]=true, [12487]=true, [12488]=true, [12489]=true, [12635]=true, [12739]=true, [12740]=true, [13522]=true,
+}
+
+function ff.debugLog(var, level, debugFlag, debugLevel, questAware)
+	local level = tonumber(level) or 3
+	local requiredLevel = debugLevel
+	if (questAware and gBotMode == GetString("questMode") and gQuestDebug) then
+		requiredLevel = gQuestDebugLevel
+	end
+	if (debugFlag or (questAware and gQuestDebug and gBotMode == GetString("questMode"))) then
+		if (level <= tonumber(requiredLevel)) then
+			if (type(var) == "string") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
+			elseif (type(var) == "number" or type(var) == "boolean") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
+			elseif (type(var) == "table") then
+				outputTable(var)
+			end
+		end
+	end
+end
+
 
 function GetPatchLevel()
 	local gr = ffxivminion.gameRegion
@@ -18,17 +99,19 @@ function GetPatchLevel()
 	end
 	return ffxivminion.patchLevel[gr]
 end
-function GetBestMoonMesh(version)
+function GetBestMesh(baseName, version, suffix)
 	if not tonumber(version) then
-		return "Sinus Ardorum"
+		return baseName
 	end
+	suffix = suffix or "_V"
 	
 	local bestMesh = ""
 	local pathName = GetStartupPath()..[[\Navigation\]]
 	for i = 1, 20, 1 do
 		if i <= tonumber(version) then
-			if FolderExists(pathName.."Sinus Ardorum_V"..tostring(i)) then
-				bestMesh = "Sinus Ardorum_V"..tostring(i)
+			local candidate = baseName..suffix..tostring(i)
+			if FolderExists(pathName..candidate) then
+				bestMesh = candidate
 			end
 		end
 	end 
@@ -36,56 +119,17 @@ function GetBestMoonMesh(version)
 	if bestMesh ~= "" then
 		return bestMesh
 	else
-		return "Sinus Ardorum"
+		return baseName
 	end
+end
+function GetBestMoonMesh(version)
+	return GetBestMesh("Sinus Ardorum", version, "_V")
 end
 function GetBestPhaennaMesh(version)
-	if not tonumber(version) then
-		return "Phaenna"
-	end
-	
-	local bestMesh = ""
-	local pathName = GetStartupPath()..[[\Navigation\]]
-	for i = 1, 20, 1 do
-		if i <= tonumber(version) then
-			if FolderExists(pathName.."Phaenna_v"..tostring(i)) then
-				d("folder exists Phaenna_v"..tostring(i))
-				bestMesh = "Phaenna_v"..tostring(i)
-			end
-		end
-	end 
-	
-	if bestMesh ~= "" then
-		d("return bestMesh mesh")
-		return bestMesh
-	else
-		d("return fallback mesh")
-		return "Phaenna"
-	end
+	return GetBestMesh("Phaenna", version, "_v")
 end
 function GetBestOizysMesh(version)
-	if not tonumber(version) then
-		return "Oizys"
-	end
-	
-	local bestMesh = ""
-	local pathName = GetStartupPath()..[[\Navigation\]]
-	for i = 1, 20, 1 do
-		if i <= tonumber(version) then
-			if FolderExists(pathName.."Oizys_v"..tostring(i)) then
-				d("folder exists Oizys_v"..tostring(i))
-				bestMesh = "Oizys_v"..tostring(i)
-			end
-		end
-	end 
-	
-	if bestMesh ~= "" then
-		d("return bestMesh mesh")
-		return bestMesh
-	else
-		d("return fallback mesh")
-		return "Oizys"
-	end
+	return GetBestMesh("Oizys", version, "_v")
 end
 
 function FilterByProximity(entities,center,radius,sortfield)
@@ -468,8 +512,7 @@ function GetNearestFateAttackable2()
 			local pet = Player.pet
 			local companion = GetCompanionEntity()
 			
-			for i,e in pairs(attackables) do
-				local entity = EntityList:Get(e.id)
+			for i,entity in pairs(attackables) do
 				if (entity) then
 					local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat, fateid = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.targetid, entity.targetid, entity.incombat, entity.fateid
 					local cached = { id = eid, hpp = hpp, pos = epos, distance2d = distance2d, contentid = contentid, aggro = aggro, claimedbyid = claimedbyid, targetid = targetid, incombat = incombat, fateid = fateid }
@@ -482,12 +525,8 @@ function GetNearestFateAttackable2()
 						end
 					end
 					
-					-- Filter out white/blacklists
-					if (table.valid(huntTable)) then
-						if (not huntTable[contentid]) then
-							attackables[i] = nil
-						end
-					elseif (table.valid(excludeTable)) then
+					-- Filter out blacklists
+					if (table.valid(excludeTable)) then
 						if (excludeTable[contentid]) then
 							attackables[i] = nil
 						end
@@ -599,27 +638,6 @@ function GetNearestFateAttackable2()
 	end
 	
     return nil
-end
-
-function GetNearestGrindPriority()
-	local huntString = GetWhitelistIDString
-	local excludeString = GetBlacklistIDString
-	local el = nil
-	
-	if (gClaimFirst	) then
-		if (not IsNullString(huntString)) then
-			local el = MEntityList("shortestpath,contentid="..tostring(huntString)..",targeting=0,notincombat,alive,attackable,onmesh")
-			if ( el ) then
-				local i,e = next(el)
-				if ( i~= nil and e~= nil and 
-					e.distance <= tonumber(gClaimRange)) then
-					return e
-				end
-			end
-		end
-	end	
-
-	return nil
 end
 
 function GetNearestFateAttackable()
@@ -792,20 +810,20 @@ function GetNearestFateAttackable()
     return nil
 end
 function GetHuntTarget()
-	local nearest = nil
-	local nearestDistance = 9999
 	local excludeString = GetBlacklistIDString()
-	local el = nil
+	local myPos = Player.pos
 	
-	if (gHuntSRankHunt ) then
+	local function findNearest(contentids, rank)
+		local el
 		if (excludeString) then
-			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+			el = MEntityList("contentid="..contentids..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 		else
-			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
+			el = MEntityList("contentid="..contentids..",alive,attackable,onmesh")
 		end
 		if (table.valid(el)) then
+			local nearest = nil
+			local nearestDistance = 9999
 			for i,e in pairs(el) do
-				local myPos = Player.pos
 				local tpos = e.pos
 				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
@@ -813,81 +831,32 @@ function GetHuntTarget()
 					nearestDistance = distance
 				end
 			end
-			
 			if (table.valid(nearest)) then
-				return "S", nearest
+				return rank, nearest
 			end
 		end
+		return nil
+	end
+	
+	if (gHuntSRankHunt ) then
+		local rank, target = findNearest(ffxiv_task_hunt.rankS, "S")
+		if (rank) then return rank, target end
 	end
 	
 	if (gHuntARankHunt ) then
-		if (excludeString) then
-			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-		else
-			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
-		end
-		if (table.valid(el)) then
-			for i,e in pairs(el) do
-				local myPos = Player.pos
-				local tpos = e.pos
-				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-				if (distance < nearestDistance) then
-					nearest = e
-					nearestDistance = distance
-				end
-			end
-			
-			if (table.valid(nearest)) then
-				return "A", nearest
-			end
-		end
+		local rank, target = findNearest(ffxiv_task_hunt.rankA, "A")
+		if (rank) then return rank, target end
 	end
 	
 	if (gHuntBRankHunt ) then
 		if (gHuntBRankHuntID ~= "") then
-			if (excludeString) then
-				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
-			end
-			if (table.valid(el)) then
-				for i,e in pairs(el) do
-					local myPos = Player.pos
-					local tpos = e.pos
-					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-					if (distance < nearestDistance) then
-						nearest = e
-						nearestDistance = distance
-					end
-				end
-				
-				if (table.valid(nearest)) then
-					return "B", nearest
-				end
-			end
+			local rank, target = findNearest(tostring(gHuntBRankHuntID), "B")
+			if (rank) then return rank, target end
 		end
 		
 		if (gHuntBRankHuntAny ) then
-			if (excludeString) then
-				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
-			end
-			if (table.valid(el)) then
-				for i,e in pairs(el) do
-					local myPos = Player.pos
-					local tpos = e.pos
-					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-					if (distance < nearestDistance) then
-						nearest = e
-						nearestDistance = distance
-					end
-				end
-				
-				if (table.valid(nearest)) then
-					return "B", nearest
-				end
-			end
+			local rank, target = findNearest(ffxiv_task_hunt.rankB, "B")
+			if (rank) then return rank, target end
 		end
 	end
 	
@@ -1350,7 +1319,7 @@ function GetBestRevive( party, role)
 	
 	local el = nil
 	if (party) then
-		el = MEntityList("myparty,friendly,chartype=4,targtable,dead,maxdistance="..tostring(range))
+		el = MEntityList("myparty,friendly,chartype=4,targetable,dead,maxdistance="..tostring(range))
 	else
 		el = MEntityList("friendly,dead,chartype=4,targetable,maxdistance="..tostring(range))
 	end 
@@ -1453,13 +1422,13 @@ function GetPVPTarget()
 			end
 			
             if (not HasBuff(entity.id, 3) and not HasBuff(entity.id, 397) and entity.chartype ~= 2 and not beingSlept) then -- get sleep buff id
-				local role = GetRoleString(entity.job)
+				local role = GetRoleString(entity)
                 if role == GetString("healer") then
                     targets[GetString("healer")] = entity
                 elseif role == GetString("dps") then
                     if (targets[GetString("dps")] ~= nil) then
 						-- keep blackmage as highest prioritized ranged target
-						if (gPrioritizeRanged  and IsRangedDPS(entity.job)) then
+						if (gPrioritizeRanged  and IsRangedDPS(entity)) then
 							if (targets[GetString("dps")].job ~= FFXIV.JOBS.BLACKMAGE) then
 								targets[GetString("dps")] = entity
 							end
@@ -1489,11 +1458,11 @@ function GetPVPTarget()
 					end
 				end
 				
-				if IsMeleeDPS(entity.job) then
+				if IsMeleeDPS(entity) then
 					targets[GetString("meleeDPS")] = entity				
 				end
 				
-				if IsCasterDPS(entity.job) then
+				if IsCasterDPS(entity) then
 					if (targets[GetString("caster")] ~= nil) then
 						if (targets[GetString("caster")].job ~= FFXIV.JOBS.BLACKMAGE) then
 							targets[GetString("caster")] = entity
@@ -1503,7 +1472,7 @@ function GetPVPTarget()
 					end
 				end
 				
-				if IsRangedDPS(entity.job) then
+				if IsRangedDPS(entity) then
 					if (targets[GetString("ranged")] ~= nil) then
 						if (targets[GetString("ranged")].job ~= FFXIV.JOBS.BLACKMAGE) then
 							targets[GetString("ranged")] = entity
@@ -1567,7 +1536,9 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 function GetNearestAggro()
-	taskName = ml_task_hub:ThisTask().name
+	local taskName = ml_task_hub:ThisTask().name
+	local excludeString = GetBlacklistIDString()
+	local el = nil
 	
 	if (not IsNullString(excludeString)) then
 		if (taskName == "LT_GRIND") then
@@ -3441,6 +3412,16 @@ end
 --Class/Role Helpers
 --===========================
 function GetRoleString(jobID)
+	-- Support entity tables (trust NPCs have no valid jobID)
+	if (type(jobID) == "table") then
+		local cid = jobID.contentid
+		if (cid) then
+			if (ff.trust_tanks[cid]) then return GetString("tank") end
+			if (ff.trust_healers[cid]) then return GetString("healer") end
+			if (ff.trust_dps[cid]) then return GetString("dps") end
+		end
+		jobID = jobID.job or 0
+	end
     if 
         jobID == FFXIV.JOBS.ARCANIST or
         jobID == FFXIV.JOBS.ARCHER or
@@ -3569,6 +3550,7 @@ function IsMeleeDPS(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		if (ff.trust_melee_dps[var.contentid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3588,6 +3570,8 @@ function IsRangedDPS(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		local cid = var.contentid
+		if (ff.trust_phys_ranged_dps[cid] or ff.trust_caster_dps[cid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3609,6 +3593,8 @@ function IsRanged(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		local cid = var.contentid
+		if (ff.trust_phys_ranged_dps[cid] or ff.trust_caster_dps[cid] or ff.trust_healers[cid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3635,6 +3621,8 @@ function IsPhysicalDPS(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		local cid = var.contentid
+		if (ff.trust_melee_dps[cid] or ff.trust_phys_ranged_dps[cid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3658,6 +3646,7 @@ function IsCasterDPS(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		if (ff.trust_caster_dps[var.contentid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3675,6 +3664,8 @@ function IsCaster(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		local cid = var.contentid
+		if (ff.trust_caster_dps[cid] or ff.trust_healers[cid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3697,6 +3688,7 @@ function IsHealer(var)
 	local jobid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
+		if (ff.trust_healers[var.contentid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -3710,13 +3702,9 @@ end
 function IsTank(var)
 	local var = IsNull(var,Player)
 	local jobid;
-	local contentid;
 	if (type(var) == "table") then
 		jobid = var.job or 0
-		-- npc tanks
-		if In(var.contentid,713,8650,9363,11271,11266,11326,11330,12487) then
-			return true
-		end
+		if (ff.trust_tanks[var.contentid]) then return true end
 	elseif (type(var) == "number") then
 		jobid = var
 	end
@@ -4602,7 +4590,7 @@ function ShouldTeleport(pos)
 end
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
-    local excludeString = ml_blacklist.GetExcludeString(GetString("monsters"))
+    local excludeString = ml_blacklist and ml_blacklist.GetExcludeString(GetString("monsters")) or nil
     
     -- then add on any local contentIDs to exclude
     if (ml_global_information.BlacklistContentID and ml_global_information.BlacklistContentID ~= "") then
