@@ -963,56 +963,9 @@ function GetBestPartyHealTarget( npc, range, hp, whitelist )
 end
 function GetPetSkillRangeRadius(id)
 	local id = tonumber(id) or 0
-	
-	local petRangeRadius = {
-		--Carbuncle 1
-		[9] = { range = 25, radius = 0},
-		[10] = { range = 5, radius = 0},
-		[11] = { range = 25, radius = 5},
-		[12] = { range = 25, radius = 15},
-		
-		--Carbuncle 2
-		[13] = { range = 25, radius = 0},
-		[14] = { range = 5, radius = 0},
-		[15] = { range = 25, radius = 5},
-		[16] = { range = 25, radius = 15},
-		
-		--Garuda
-		[17] = { range = 25, radius = 0},
-		[18] = { range = 5, radius = 0},
-		[19] = { range = 25, radius = 5},
-		[20] = { range = 25, radius = 15},
-		
-		--Titan
-		[22] = { range = 3, radius = 0},
-		[23] = { range = 0, radius = 4},
-		[24] = { range = 0, radius = 0},
-		[25] = { range = 3, radius = 0},
-		
-		--Ifrit
-		[27] = { range = 3, radius = 0},
-		[28] = { range = 3, radius = 0},
-		[29] = { range = 0, radius = 0},
-		[30] = { range = 0, radius = 3},
-		
-		--Eos
-		[32] = { range = 30, radius = 0},
-		[33] = { range = 0, radius = 15},
-		[34] = { range = 0, radius = 15},
-		[35] = { range = 0, radius = 15},
-		
-		--Selene
-		[36] = { range = 30, radius = 0},
-		[37] = { range = 25, radius = 0},
-		[38] = { range = 0, radius = 20},
-		[39] = { range = 0, radius = 20},		
-	}
-	
-	if (petRangeRadius[id]) then
-		return petRangeRadius[id]
-	end
-	
-	return nil
+	if id == 0 then return nil end
+
+	return FFXIVLib.API.Action.GetPetActionById(id)
 end
 function GetLowestHPParty( skill )
     npc = (skill.npc )
@@ -3899,20 +3852,15 @@ function GetAttunedAetheryteList(force)
 end
 function GetUnattunedAetheryteList()
 	local aethList = {}
-	for map,aethdata in pairs(ffxiv_aetheryte_data) do
-		for k,aeth in pairs(aethdata) do
-			local valid = true
-			local requirement = aeth.requires
-			if (requirement ~= nil and type(requirement) == "function") then
-				valid = IsNull(requirement(),false)
-			end
-			
-			if (valid) then
-				aethList[aeth.aethid] = aeth
-			end
+	local dict = FFXIVLib.API.Map.GetAethernetDictionary()
+	if not dict then return aethList end
+
+	for aethId, row in pairs(dict) do
+		if row.IsAetheryte == true then
+			aethList[aethId] = row
 		end
 	end
-	
+
 	if (table.valid(aethList)) then
 		local list = ml_global_information.Player_Aetherytes
 		if (table.valid(list)) then
@@ -3923,44 +3871,45 @@ function GetUnattunedAetheryteList()
 			end
 		end
 	end
-	
+
 	return aethList
 end
 
 function GetUnattunedCurrents()
-	local currentList = {}
 	if not QuestCompleted(1597) then
 		return nil
 	end
-	local list = ffxiv_aethercurrent_data
-	if GetPatchLevel() >= 7 then
-		list = ffxiv_aethercurrent_dataDT
-	end
-	for map,currentdata in pairs(list) do
-		for j,current in pairs(currentdata) do
-			local valid = true
-			local validmap = true
-			local attuned = false
-			local requirement = current.requires
-			
-			if map ~= Player.localmapid then
-				validmap = false 
-			end
-			
-			if (requirement ~= nil and type(requirement) == "function") then
-				valid = IsNull(requirement(),false)
-			end
-			
-			if GetAetherCurrentData(Player.localmapid)[current.id] == true then
-				attuned = true
-			end
-			
-			if (valid) and (validmap) and (not attuned) then
-				currentList[current.aethid] = current
-			end
+
+	local currents = FFXIVLib.API.AetherCurrent.GetAetherCurrentsByTerritoryId(Player.localmapid)
+	if not currents then return nil end
+
+	local attunedStatus = GetAetherCurrentData(Player.localmapid)
+	local currentList = {}
+
+	for i = 1, #currents do
+		local row = currents[i]
+
+		-- Skip if already attuned (SlotIndex matches the old "id" field)
+		if attunedStatus[row.SlotIndex] == true then
+			-- already attuned, skip
+		-- Skip if no world position (quest-only currents without a field object)
+		elseif not row.EObjId or not row.WorldX then
+			-- no field object, skip
+		-- Check quest gate
+		elseif row.QuestId and row.QuestId > 0 and not QuestCompleted(row.QuestId) then
+			-- quest not completed, skip
+		else
+			-- Return in old-compatible shape: keyed by EObjId (old "aethid")
+			currentList[row.EObjId] = {
+				id = row.SlotIndex,
+				aethid = row.EObjId,
+				x = row.WorldX,
+				y = row.WorldY,
+				z = row.WorldZ,
+			}
 		end
 	end
-	
+
 	return currentList
 end
 
@@ -4001,19 +3950,90 @@ function IsAetheryteUnattuned(id)
 	return false
 end
 function IsAetheryte(id)
-	local aethData = ffxiv_aetheryte_data
-	if (table.valid(aethData)) then
-		for mapid,aetherytes in pairs(aethData) do
-			for aetheryte,aethdata in pairs(aetherytes) do
-				if (aethdata.aethid == id) then
-					return true
-				end
-			end
-		end
-	end
-	
-	return false
+	if not id then return false end
+	local row = FFXIVLib.API.Map.GetAetheryteById(id)
+	if not row then return false end
+	return row.IsAetheryte == true
 end
+
+------------------------------------------------------------
+-- Section-aware aetheryte selection overrides
+--
+-- Maps territory IDs to rules that override distance-based
+-- aetheryte selection when the destination is in a specific
+-- map section (terrain obstacles make closer aetheryte impractical).
+--
+-- Each rule: { sections = {sectionIds}, aethid = preferredId }
+-- Or: { fn = function(section, pos) -> aethid|nil } for complex cases
+------------------------------------------------------------
+AETHERYTE_SECTION_OVERRIDES = {
+	-- Eastern La Noscea: sections 1,3 -> Costa Del Sol (11); section 2 -> Wineport (12)
+	[137] = {
+		{ sections = {1, 3}, aethid = 11 },
+		{ sections = {2},    aethid = 12 },
+	},
+	-- Sea of Clouds: section 2 -> Cloudtop (72); section 1 -> Ok'Zundu (73)
+	[401] = {
+		{ sections = {2}, aethid = 72 },
+		{ sections = {1}, aethid = 73 },
+	},
+	-- Dravanian Forelands: section 1 -> Tailfeather (76); section 2 -> Anyx Trine (77)
+	[398] = {
+		{ sections = {1}, aethid = 76 },
+		{ sections = {2}, aethid = 77 },
+	},
+	-- Yanxia: section 1 -> Namai (107); section 2 -> House of the Fierce (108)
+	[614] = {
+		{ sections = {1}, aethid = 107 },
+		{ sections = {2}, aethid = 108 },
+	},
+	-- Kholusia: section 2 -> Tomra (139)
+	[814] = {
+		{ sections = {2}, aethid = 139 },
+	},
+	-- Labyrinthos: section 2 -> Hamlet (167); section 3 -> Aporia (168)
+	[956] = {
+		{ sections = {2}, aethid = 167 },
+		{ sections = {3}, aethid = 168 },
+	},
+	-- Thavnair: section 2 -> Palaka's Stand (171)
+	[957] = {
+		{ sections = {2}, aethid = 171 },
+	},
+	-- Ultima Thule: section 2 -> Abode of the Ea (180); sections 3,4,5 -> Base Omicron (181)
+	[960] = {
+		{ sections = {2},       aethid = 180 },
+		{ sections = {3, 4, 5}, aethid = 181 },
+	},
+	-- Urqopacha: section 2 -> Wolar's Echo (201)
+	[1187] = {
+		{ sections = {2}, aethid = 201 },
+	},
+	-- Kozama'uka: section 1 -> Ok'hanu (202);
+	-- section 2 + pos.x > 0 -> Many Fires (203); section 2 (else) -> Earthenshire (204)
+	[1188] = {
+		{ sections = {1}, aethid = 202 },
+		{ fn = function(section, pos)
+			if section == 2 then
+				if pos.x > 0 then return 203 end
+				return 204
+			end
+		end },
+	},
+	-- Yak T'el: sections 2,3 -> Mamook (206); section 1 + pos.x > 0 + pos.z > 300 -> Mamook (206)
+	[1189] = {
+		{ fn = function(section, pos)
+			if In(section, 2, 3) then return 206 end
+			if section == 1 and pos.x > 0 and pos.z > 300 then return 206 end
+		end },
+	},
+}
+
+-- Aetherytes to always prefer regardless of distance (workarounds)
+AETHERYTE_ALWAYS_PREFER = {
+	[958] = 172, -- Garlemald: always Camp Broken Glass (pathing issue exiting Tertium)
+}
+
 function GetAetheryteByMapID(mapid, p)
 	local pos = p
 	
@@ -4088,359 +4108,88 @@ function GetAetheryteByMapID(mapid, p)
 	if (mapid == 987 and myMap ~= 962) then
 		mapid = 962
 	end
-	
-	
-	local ppos = Player.pos
-	
-	sharedMaps = {
-		[153] = { name = "South Shroud",
-			[1] = { name = "Quarrymill", aethid = 5, x = 181, z = -66},
-			[2] = { name = "Camp Tranquil", aethid = 6, x = -226, z = 355},
-		},
-		[137] = {name = "Eastern La Noscea",
-			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0,
-				best = function ()  
-					if In(GetELNSection(pos),1,3) then
-						return true
-					end
-					return false
-				end	
-			},
-			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0, 
-				best = function ()  
-					if In(GetELNSection(pos),2) then
-						return true
-					end
-					return false
-				end	
-			},
-		},
-		[138] = {name = "Western La Noscea",
-			[1] = { name = "Swiftperch", aethid = 13, x = 652, z = 509 },
-			[2] = { name = "Aleport", aethid = 14, x = 261, z = 223 },		
-		},
-		[146] = {name = "Southern Thanalan",
-			[1] = { name = "Little Ala Mhigo", aethid = 19, x = -165, z = -414 },
-			[2] = { name = "Forgotten Springs", aethid = 20, x = -320, z = 406 },
-		},
-		[147] = {name = "Northern Thanalan",
-			[1] = { name = "Bluefog", aethid = 21, x = 24, z = 458 },
-			[2] = { name = "Ceruleum", aethid = 22, x = -24, z = -27 },
-		},
-		[401] = {name = "Sea of Clouds",
-			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545, 
-				best = function ()  
-					if In(GetSeaOfCloudsSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419,
-				best = function ()  
-					if In(GetSeaOfCloudsSection(pos),1) then
-						return true
-					end
-					return false
-				end				
-			},
-		},
-		[398] = {name = "The Dravanian Forelands",
-            [1] = { name = "Tailfeather", aethid = 76, x = 531.49, z = 20.57, 
-                best = function ()  
-					if In(GetForelandsSection(pos),1) then
-                        return true
-                    end
-                    return false
-                end                
-            },
-            [2] = { name = "Anyx Trine", aethid = 77, x = -301.09, z = 38.07,
-                best = function ()  
-					if In(GetForelandsSection(pos),2) then
-                        return true
-                    end
-                    return false
-                end                
-            },
-        },
-		[400] = {name = "Churning Mists",
-			[1] = { name = "Moghome", aethid = 78, x = 256, z = 599 },
-			[2] = { name = "Zenith", aethid = 79, x = -583, z = 316 },
-		},		
-		[612] = {name = "The Fringe",
-			[1] = { name = "Castrum Oriens", aethid = 98, x = -629, z = -509 },
-			[2] = { name = "The Peering Stones", aethid = 99, x = 417, z = 240 },
-		},	
-		[613] = {name = "The Ruby Sea",
-			[1] = { name = "Onokoro", aethid = 106, x = 90, z = -587 },
-			[2] = { name = "Tamamizu", aethid = 105, x = 365, z = -263 },
-		},	
-		[614] = {name = "Yanxia",
-			[1] = { name = "Namai", aethid = 107, x = 432, z = -85,
-				best = function ()  
-					if In(GetYanxiaSection(pos),1) then
-						return true
-					end
-					return false
-				end				
-			},
-			[2] = { name = "The House of the Fierce", aethid = 108, x = 241, z = -402,
-				best = function ()  
-					if In(GetYanxiaSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-		},
-		[620] = {name = "The Peaks",
-			[1] = { name = "Ala Gannha", aethid = 100, x = 114, z = -747 },
-			[2] = { name = "Ala Ghiri", aethid = 101, x = -272, z = 746 },
-		},
-		[621] = {name = "The Lochs",
-			[1] = { name = "Porta Praetoria", aethid = 102, x = -653.27, y = 50.50, z = -12.33 },
-			[2] = { name = "The Ala Mhigan Quarter", aethid = 103, x = 616.35, y = 81.39, z = 657.47 },
-		},
-		[622] = {name = "The Azim Steppe",
-			[1] = { name = "Reunion", aethid = 109, x = 555, z = 346 },
-			[2] = { name = "The Dawn Throne", aethid = 110, x = 71, z = 36 },
-		},		
-		[813] = {name = "Lakeland",
-			[1] = { name = "Fort Jobb", aethid = 132, x = 753, z = -28.8},
-			[2] = { name = "Osttall", aethid = 136, x = -735, z = -230},
-		},		
-		[814] = {name = "Kholusia",
-			[1] = { name = "Stilltide", aethid = 137, x = 668, z = 289},
-			[2] = { name = "Wright", aethid = 138, x = -244, z = 385},
-			[3] = { name = "Tomra", aethid = 139, x = -431, z = -618,
-				best = function ()  
-					if In(GetKholusiaSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-		},		
-		[815] = {name = "Amh Araeng",
-			[1] = { name = "Mord", aethid = 140, x = 246, z = -200 },
-			[2] = { name = "Inn", aethid = 161, x = 399, z = 307 },
-			[3] = { name = "Twine", aethid = 141, x = -499, z = -210},
-		},		
-		[816] = {name = "Il Mheg",
-			[1] = { name = "Lydha Lran", aethid = 144, x = -344, z = 512},
-			[2] = { name = "Pla Enni", aethid = 145, x = -72, z = -857},
-			[3] = { name = "Wolekdorf", aethid = 146, x = 380, z = -687},
-		},	
-		[817] = {name = "Greatwood",
-			[1] = { name = "Slitherbough", aethid = 142, x = -103, z = 297},
-			[2] = { name = "Fanow", aethid = 143, x = 382, z = -194},
-		},
-		[818] = {name = "The Tempest",
-			[1] = { name = "The Ondo Cups", aethid = 147, x = 561, z = -199},
-			[2] = { name = "Macarenses", aethid = 148, x = -141, z = 218},
-		},	
-		[956] = {name = "Labyrinthos",
-			[1] = { name = "The Archeion", aethid = 166, x = 440, z = -480},
-			[2] = { name = "Hamlet", aethid = 167, x = 11, z = -42,
-				best = function ()  
-					if In(GetLabyrithosSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-			[3] = { name = "Aporia", aethid = 168, x = -725, z = 306,
-				best = function ()  
-					if In(GetLabyrithosSection(pos),3) then
-						return true
-					end
-					return false
-				end				
-			},
-		},	
-		[957] = {name = "Thavnair",
-			[1] = { name = "Yedlihmad", aethid = 169, x = 194, z = 623},
-			[2] = { name = "The Great Work", aethid = 170, x = -528, z = 31},
-			[3] = { name = "Palaka's Stand", aethid = 171, x = 406, z = -251,
-				best = function ()  
-					if In(GetThavnairSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-		},	
-		[958] = {name = "Garlemald",
-			[1] = { name = "Camp Broken Glass", aethid = 172, x = -461, z = 480,
-				best = function ()  
-					if true then -- pathing issue exiting other aetheryte
-						return true
-					end
-					return false
-				end				
-			},
-			[2] = { name = "Tertium", aethid = 173, x = 524, z = -183},
-		},	
-		[959] = {name = "Mare Lamentorum",
-			[1] = { name = "Sinus Lacrimarum", aethid = 174, x = -576, z = 632},
-			[2] = { name = "Bestways Burrow", aethid = 175, x = 0, z = -497},
-		},	
-		[960] = {name = "Ultima Thule",
-			[1] = { name = "Reah Tahra", aethid = 179, x = -550, z = 271},
-			[2] = { name = "Abode of the Ea", aethid = 180, x = 70, z = -657,
-				best = function ()  
-					if In(GetUltimaThuleSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-			[3] = { name = "Base Omicron", aethid = 181, x = 492, z = 337,
-				best = function ()  
-					if In(GetUltimaThuleSection(pos),3,4,5) then
-						return true
-					end
-					return false
-				end				
-			},
-		},
-		[961] = {name = "Elpis",
-			[1] = { name = "Anagnorisis", aethid = 176, x = 162, z = 126},
-			[2] = { name = "Twelve Wonders", aethid = 177, x = -630, z = 550},
-			[3] = { name = "Poieten Oikos", aethid = 178, x = -533, z = -228},
-		},
-		[1187] = {name = "Urqopacha",
-			[1] = { name = "Wachunpelo", aethid = 200, x = 332, y = -160, z = -416},
-			[2] = { name = "Wolar's Echo", aethid = 201, x = 465, y = 114, z = 634,
-				best = function ()  
-					if In(GetUyuypogaSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-		},	
-		[1188] = {name = "Kozama'uka",
-			[1] = { name = "Ok'hanu", aethid = 202, x = -162, y = 6, z = -483,
-				best = function ()  
-					if In(GetKozamaukaSection(pos),1) then
-						return true
-					end
-					return false
-				end				
-			},
-			[2] = { name = "Many Fires", aethid = 203, x = 541, y = 117, z = 203,
-				best = function ()  
-					if In(GetKozamaukaSection(pos),2) and pos.x > 0 then
-						return true
-					end
-					return false
-				end				
-			},
-			[3] = { name = "Earthernshire", aethid = 204, x = -477, y = 124, z = 311,
-				best = function ()  
-					if In(GetKozamaukaSection(pos),2) then
-						return true
-					end
-					return false
-				end				
-			},
-		},
-		[1189] = {name = "Yak T'el",
-			[1] = { name = "Iq Br'aax", aethid = 205, x = -397, y = 23, z = -431},
-			[2] = { name = "Mamook", aethid = 206, x = 721, y = -132, z = 526,
-				best = function ()  
-					if In(GetYakTelSection(pos),2,3) or (In(GetYakTelSection(pos),1) and pos.x > 0 and pos.z > 300) then
-						return true
-					end
-					return false
-				end				
-			},
-		},
-		[1190] = {name = "Shaaloani",
-			[1] = { name = "Hhusatahwi", aethid = 207, x = 386, y = 0, z = 467},
-			[2] = { name = "Sheshenewezi Springs", aethid = 208, x = -291, y = 19, z = -114},
-			[3] = { name = "Mehwahhetsoan", aethid = 209, x = 311, y = -14, z = -567},
-		},	
-		[1191] = {name = "Heritage Found",
-			[1] = { name = "Yyasulani Station", aethid = 210, x = 514, y = 145, z = 207},
-			[2] = { name = "The Outskirts", aethid = 211, x = -223, y = 31, z = -584},
-			[3] = { name = "Electrope Strike", aethid = 212, x = -219, y = 32, z = 120},
-		},	
-		[1192] = {name = "Living Memory",
-			[1] = { name = "Dont Know 1", aethid = 213, x = -0.23, y = 57.18, z = 796.96},
-			[2] = { name = "Dont Know 2", aethid = 214, x = 657.98, y = 28.98, z = -284.02},
-			[3] = { name = "Dont Know 3", aethid = 215, x = -255.27, y = 59.43, z = -397.67},
-		},	
-	}
-	
+
+
+	-- Section-aware aetheryte overrides: (mapId → section → preferred aethid)
+	-- For zones where terrain makes straight-line distance misleading.
+	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[mapid]
+
 	local list = FFXIVLib.API.Map.GetAetherytes(1)
 	if (table.valid(list)) then
-		if (not pos or not sharedMaps[mapid]) then
-			--d("This is not a shared map or we were not given a position.")
-			for _, aetheryte in pairs(list) do
-				if (aetheryte.territory == mapid) then
-					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id)) then
-						return aetheryte
-					end
-				end
+		-- Build list of affordable, unlocked aetherytes on this map
+		local candidates = {}
+		for _, aetheryte in pairs(list) do
+			if aetheryte.territory == mapid and GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id) then
+				candidates[#candidates+1] = aetheryte
 			end
-		else
-			--d("This is a shared map and we were given a position.")
-			local bestID = nil
-			
-			local sharedMap = sharedMaps[mapid]
-			local choices = {}
-			for _,sharedData in pairs(sharedMap) do
-				for _, aetheryte in pairs(list) do
-					if (aetheryte.id == sharedData.aethid) then
-						if (GilCount() >= aetheryte.price) then
-							choices[#choices+1] = sharedData
-						end
-					end
-				end
-			end
-			
-			local size = TableSize(choices)
-			if (size > 1) then
-			
-				local closest,closestDistance = nil,5000
-				for i,choice in pairsByKeys(choices) do
-					if (choice.aethid) then
-						if (choice.best and type(choice.best) == "function") then
-							if (choice.best() == true) then
-								closest = choice.aethid
-								break
+		end
+
+		if #candidates == 0 then
+			return nil
+		end
+
+		-- No destination position: return first available
+		if not pos then
+			return candidates[1]
+		end
+
+		-- Single candidate: return it
+		if #candidates == 1 then
+			return candidates[1]
+		end
+
+		-- Check section-aware override first
+		if sectionOverride then
+			local section = GetMapSection(mapid, pos)
+			if section and section > 0 then
+				-- Check override functions (Kozama'uka, Yak T'el special cases)
+				for _, rule in ipairs(sectionOverride) do
+					if rule.fn then
+						local overrideId = rule.fn(section, pos)
+						if overrideId then
+							for _, c in ipairs(candidates) do
+								if c.id == overrideId then return c end
 							end
 						end
-					
-						local dist = Distance2D(pos.x, pos.z, choice.x, choice.z)
-						if not closest or (dist < closestDistance) then
-							closest = choice.aethid
-							closestDistance = dist
+					elseif rule.sections and rule.aethid then
+						if In(section, unpack(rule.sections)) then
+							for _, c in ipairs(candidates) do
+								if c.id == rule.aethid then return c end
+							end
 						end
-					end
-				end
-				
-				if (closest) then
-					bestID = closest
-				end
-					
-				if (bestID ~= nil) then
-					for index,aetheryte in pairs(list) do
-						if (aetheryte.id == bestID) then
-							return aetheryte
-						end
-					end
-				end
-			elseif (size == 1) then
-				for index,aetheryte in pairs(list) do
-					if (aetheryte.id == choices[1].aethid) then
-						return aetheryte
 					end
 				end
 			end
 		end
+
+		-- Always-prefer override (Garlemald pathing workaround)
+		local alwaysPrefer = AETHERYTE_ALWAYS_PREFER[mapid]
+		if alwaysPrefer then
+			for _, c in ipairs(candidates) do
+				if c.id == alwaysPrefer then return c end
+			end
+		end
+
+		-- Distance-based fallback: pick closest aetheryte to destination
+		local best = nil
+		local bestDist = math.huge
+		local aethData = FFXIVLib.API.Map.GetAetherytesByMapId(mapid)
+		for _, c in ipairs(candidates) do
+			local row = aethData and aethData[c.id]
+			local dist
+			if row and row.WorldX and row.WorldZ then
+				dist = Distance2D(pos.x, pos.z, row.WorldX, row.WorldZ)
+			else
+				-- Fallback to game aetheryte pos
+				dist = Distance2D(pos.x, pos.z, c.pos and c.pos.x or 0, c.pos and c.pos.z or 0)
+			end
+			if dist < bestDist then
+				best = c
+				bestDist = dist
+			end
+		end
+
+		return best
 	else
 		--d("No attuned aetherytes found.")
 	end
@@ -4449,17 +4198,10 @@ function GetAetheryteByMapID(mapid, p)
 end
 function GetAetheryteLocation(id)
 	local aethid = tonumber(id) or 0
-	
-	local aetheryteData = ffxiv_aetheryte_data
-	for mapid,mapdata in pairs(aetheryteData) do
-		for k,aethdata in pairs(mapdata) do
-			if (aethdata.aethid == aethid) then
-				return {x = aethdata.x, y = aethdata.y, z = aethdata.z}
-			end
-		end
-	end
-	
-	return nil
+	if aethid == 0 then return nil end
+	local row = FFXIVLib.API.Map.GetAetheryteById(aethid)
+	if not row then return nil end
+	return {x = row.WorldX, y = row.WorldY, z = row.WorldZ}
 end
 function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
@@ -6855,620 +6597,37 @@ function GetLivingMemorySection(pos)
     end	
 	return sec
 end
-local centerPoints = {
-	[1] = {x = 0, y = 0, z = 0},
-	-- northern teleporter
-	[2] = {x = 0, y = 38, z = -400},
-	-- northern East teleporter
-	[3] = {x = 290, y = 41, z = -300},
-	--  East teleporter
-	[4] = {x = 400, y = 40, z = -0},
-	--  South East teleporter
-	[5] = {x = 280, y = 25, z = 279},
-	--  South teleporter
-	[6] = {x = 0, y = 35, z = 400}, 
-	--  South West teleporter
-	[7] = {x = -279, y = 30, z = 280},
-	--  North West teleporter
-	[8] = {x = -281, y = 34, z = -280}, 
-	--  West teleporter
-	[9] = {x = -399, y = 36, z = 0}, 
-	
-	--  Far East teleporter -- 7
-	[10] = {x = 743, y = 59, z = -5},
-	
-	--  Far South East teleporter -- 7
-	[11] = {x = 425, y = 45, z = 510}, 
-	--  Far South teleporter -- 7
-	[12] = {x = -99, y = 51, z = 750}, 
-	
-	--  Far West teleporter -- 6
-	[13] = {x = -700, y = 60, z = 10},
-	--  Far North West teleporter -- 6
-	[14] = {x = -539, y = 60, z = -540}, 
-	
-	--  Inside Tunnel Entry-- 9
-	--[15] = {x = -572, y = 51, z = 614}, 
-	[15] = {x = -340, y = 50, z = 750}, 
-	--  Inside Tunnel North -- 9
-	[16] = {x = -620, y = 50, z = 389},  
-	--  Inside Tunnel South -- 9
-	[17] = {x = -734, y = 91, z = 763},  
-	
-	--  right of chasm
-	[20] = {x = 93, y = 18, z = 271, markeronly = true},  
-	--  left of chasm
-	[21] = {x = 207, y = 19, z = 66, markeronly = true}, 
-	--  left of chasm
-	[22] = {x = 229, y = 18, z = -37, markeronly = true}, 
-	
-	--  Inside North East Tunnel -- large area
-	[23] = {x = 648, y = -74, z = -577, markeronly = true},  
-	--  Inside North East Tunnel -- 1st lift
-	[24] = {x = 426, y = -59, z = -410, radius = 100},
-	--  Inside North East Tunnel -- 1st lift
-	[25] = {x = 642, y = -73, z = -570},  
-	--  Inside North East Tunnel -- west lift
-	[26] = {x = 376, y = -119, z = -843},  
-	--  Inside North East Tunnel -- north lift
-	[27] = {x = 633, y = -110, z = -935},  
-	--  Inside North East Tunnel -- east lift
-	[28] = {x = 881, y = -57, z = -362},  
-	--  Inside North East Tunnel -- north, no lift	
-	[29] = {x = 843, y = -50, z = -766},  
-	
-}
+-- Cosmic data now lives in FFXIVLib.API.CosmicExploration (data_cosmic.lua).
+-- Local aliases kept so Transport1237/1291/1310 references still resolve.
+local centerPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1237)
+local portalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1237)
 
--- Portal positions table for Transport1237 function (Moon map)
--- Structure: portalPositions[section][portalName] = {pos = {x, y, z}, facing = direction}
-local portalPositions = {
-	-- Example structure:
-	-- [1] = {
-	--     ["north"] = {pos = {x = 4.5, y = 3, z = -61}, facing = 3.13},
-	--     ["east"] = {pos = {x = 59, y = 3, z = 4.5}, facing = 1.57},
-	-- },
-}
+local phaennaCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1291)
+local phaennaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1291)
 
--- Center points table for Phaenna map (map ID 1291)
-local phaennaCenterPoints = {
-	[1] = {x = 340.81204223633, y = 53.232280731201, z = -424.27734375},
-	[2] = {x = 300.49435424805, y = 135.00500488281, z = -780.23266601562},
-	[3] = {x = 705.83892822266, y = 45.015674591064, z = -719.89788818359},
-	[4] = {x = 779.9892578125, y = 52.006637573242, z = -429.95877075195},
-	[5] = {x = 729.52398681641, y = 36.549999237061, z = -36.863914489746},
-	[6] = {x = 329.41143798828, y = 53.049999237061, z = -128.61769104004},
-	[7] = {x = 9.90452003479, y = -9.4500007629395, z = -127.33629608154},
-	[8] = {x = -75.855514526367, y = 26.049999237061, z = -401.98278808594},
-	[9] = {x = -132.62884521484, y = 63.049999237061, z = -755.02081298828},
-	[10] = {x = -640.17669677734, y = -1.4500000476837, z = -640.10382080078},
-	[11] = {x = -410.17105102539, y = -1.450000166893, z = -409.90023803711},
-	[12] = {x = -768.30712890625, y = 14.050000190735, z = -270.01968383789},
-	[13] = {x = -579.93798828125, y = 25.049999237061, z = 50.097881317139},
-	[14] = {x = -310.49234008789, y = -4.4500002861023, z = -134.61961364746},
-	[15] = {x = -159.8309173584, y = 29.049997329712, z = 304.79067993164},
-	[16] = {x = -88.341079711914, y = 34.549995422363, z = 660.40710449219},
-	[17] = {x = 184.58963012695, y = -4.9500002861023, z = 430.32192993164},
-	[18] = {x = 255.0668182373, y = -8.9499998092651, z = 131.74061584473},
-	[19] = {x = 836.99548339844, y = -167.99984741211, z = 435.69207763672, radius = 50},
-	[20] = {x = 528.12316894531, y = -219.81588745117, z = 751.91760253906},
-	[21] = {x = 410.08758544922, y = -229.44999694824, z = 229.9786529541},
-	[22] = {x = 651.92114257812, y = -242, z = 412.4010925293},
-	[23] = {x = -353.89910888672, y = 11, z = 394.69711303711},
-	[24] = {x = -591.08990478516, y = 28.5, z = 714.78485107422},
-	[25] = {x = 362, y = -255, z = 419, radius = 100, markeronly = true}, 
-	[26] = {x = 522, y = -255, z = 461, radius = 200, markeronly = true}, 
-}
+local oizysCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1310)
+local oizysPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1310)
 
--- Portal positions table for Transport1291 function (Phaenna map)
--- Structure: phaennaPortalPositions[section][portalName] = {pos = {x, y, z}, facing = direction, requires = version}
-local phaennaPortalPositions = {
-	[1] = {
-		["1 South"] = {pos = {x = 335.44281005859, y = 54.712898254395, z = -358.22018432617}, facing = -0.012654781341553, requires = 3},
-		["1 East"] = {pos = {x = 401.81268310547, y = 54.720272064209, z = -415.56481933594}, facing = 1.5231320858002, requires = 3},
-		["1 North"] = {pos = {x = 344.38037109375, y = 54.788475036621, z = -482.10101318359}, facing = -3.1412332057953, requires = 3},
-		["1 West"] = {pos = {x = 278.26257324219, y = 54.703285217285, z = -424.41870117188}, facing = -1.605092048645, requires = 3},
-	},
-	[2] = {
-		["2 West"] = {pos = {x = 280.6510925293, y = 137.11187744141, z = -784.58874511719}, facing = -1.5683875083923, requires = 3},
-		["2 South"] = {pos = {x = 295.38925170898, y = 137.12284851074, z = -760.60290527344}, facing = 0.014217376708984, requires = 3},
-		["2 East"] = {pos = {x = 319.10369873047, y = 137.05345153809, z = -775.52221679688}, facing = 1.5640726089478, requires = 3},
-	},
-	[3] = {
-		["3 North"] = {pos = {x = 693.21905517578, y = 47.162975311279, z = -731.97808837891}, facing = -2.1145758628845, requires = 3},
-		["3 South"] = {pos = {x = 706.93615722656, y = 47.072654724121, z = -702.64990234375}, facing = 0.35668730735779, requires = 3},
-	},
-	[4] = {
-		["4 North"] = {pos = {x = 784.53430175781, y = 54.136222839355, z = -449.45394897461}, facing = 3.1168847084045, requires = 3},
-		["4 West"] = {pos = {x = 760.48773193359, y = 54.15030670166, z = -434.46020507812}, facing = -1.6024422645569, requires = 3},
-		["4 South"] = {pos = {x = 775.45471191406, y = 54.149658203125, z = -410.48895263672}, facing = -0.015213012695312, requires = 3},
-	},
-	[5] = {
-		["5 North"] = {pos = {x = 734.57006835938, y = 38.105602264404, z = -56.32381439209}, facing = -3.1168489456177, requires = 3},
-		["5 West"] = {pos = {x = 710.79028320312, y = 38.079124450684, z = -41.526634216309}, facing = -1.5963478088379, requires = 3},
-	},
-	[6] = {
-		["6 East"] = {pos = {x = 349.74792480469, y = 54.705028533936, z = -123.49275970459}, facing = 1.5488958358765, requires = 3},
-		["6 South"] = {pos = {x = 325.39205932617, y = 54.616321563721, z = -108.63063049316}, facing = -0.012403011322021, requires = 3},
-		["6 West"] = {pos = {x = 310.15768432617, y = 54.727970123291, z = -132.47853088379}, facing = -1.6209945678711, requires = 3},
-		["6 North"] = {pos = {x = 334.47598266602, y = 54.611267089844, z = -147.34788513184}, facing = 3.0946049690247, requires = 3},
-	},
-	[7] = {
-		["7 North"] = {pos = {x = -0.69419074058533, y = -7.8070383071899, z = -144.15887451172}, facing = -2.3638982772827, requires = 3},
-		["7 South"] = {pos = {x = 20.726938247681, y = -7.7953882217407, z = -109.8038482666}, facing = 0.77561831474304, requires = 3},
-		["7 West"] = {pos = {x = -7.4188623428345, y = -7.7117071151733, z = -115.99282073975}, facing = -0.79098653793335, requires = 3},
-		["7 East"] = {pos = {x = 27.120849609375, y = -7.8077831268311, z = -137.72773742676}, facing = 2.3547949790955, requires = 3},
-	},
-	[8] = {
-		["8 West"] = {pos = {x = -94.784133911133, y = 27.478994369507, z = -406.62219238281}, facing = -1.5451340675354, requires = 3},
-		["8 North"] = {pos = {x = -71.450614929199, y = 27.457103729248, z = -420.69268798828}, facing = -3.1033663749695, requires = 3},
-		["8 East"] = {pos = {x = -56.633628845215, y = 27.615243911743, z = -397.41510009766}, facing = 1.5755242109299, requires = 3},
-		["8 South"] = {pos = {x = -80.446273803711, y = 27.536111831665, z = -382.97152709961}, facing = -0.02249002456665, requires = 3},
-	},
-	[9] = {
-		["9 West"] = {pos = {x = -152.2115020752, y = 64.502410888672, z = -757.90411376953}, facing = -1.4898562431335, requires = 3},
-		["9 South"] = {pos = {x = -135.81600952148, y = 64.560539245605, z = -735.54821777344}, facing = 0.070456266403198, requires = 3},
-		["9 East"] = {pos = {x = -113.65897369385, y = 64.535682678223, z = -752.23718261719}, facing = 1.6307830810547, requires = 3},
-	},
-	[10] = {
-		["10 South"] = {pos = {x = -656.77233886719, y = 0.062476754188538, z = -629.70349121094}, facing = -0.78653764724731, requires = 3},
-		["10 South East"] = {pos = {x = -629.52423095703, y = 0.098739981651306, z = -623.18896484375}, facing = 0.72142219543457, requires = 3},
-		["10 North"] = {pos = {x = -623.51904296875, y = 0.015967726707458, z = -650.30834960938}, facing = 2.3320145606995, requires = 3},
-	},
-	[11] = {
-		["11 North"] = {pos = {x = -415.42221069336, y = -0.049300670623779, z = -428.42251586914}, facing = -2.614227771759, requires = 3},
-		["11 East"] = {pos = {x = -391.35348510742, y = 0.016456723213196, z = -415.59317016602}, facing = 2.0437049865723, requires = 3},
-		["11 South"] = {pos = {x = -404.26916503906, y = 0.072002291679382, z = -391.16036987305}, facing = 0.49805617332458, requires = 3},
-		["11 West"] = {pos = {x = -428.5358581543, y = -0.015488028526306, z = -404.48669433594}, facing = -1.0580801963806, requires = 3},
-	},
-	[12] = {
-		["12 East"] = {pos = {x = -749.30236816406, y = 15.457899093628, z = -265.50018310547}, facing = 1.539519071579, requires = 3},
-		["12 South"] = {pos = {x = -772.53259277344, y = 15.569341659546, z = -250.83029174805}, facing = -0.016607284545898, requires = 3},
-		["12 North"] = {pos = {x = -763.44354248047, y = 15.576946258545, z = -289.20202636719}, facing = -3.12468957901, requires = 3},
-	},
-	[13] = {
-		["13 South"] = {pos = {x = -584.45642089844, y = 26.543340682983, z = 69.059196472168}, facing = 0.010619640350342, requires = 15},
-		["13 West"] = {pos = {x = -597.75872802734, y = 26.237712860107, z = 45.515167236328}, facing = -1.608350276947, requires = 3},
-		["13 East"] = {pos = {x = -560.92022705078, y = 26.547811508179, z = 54.541576385498}, facing = 1.5688467025757, requires = 3},
-	},
-	[14] = {
-		["14 East"] = {pos = {x = -292.8388671875, y = -2.8136219978333, z = -145.65234375}, facing = 2.3666830062866, requires = 3},
-		["14 South"] = {pos = {x = -299.26968383789, y = -2.804785490036, z = -117.86373138428}, facing = 0.76867461204529, requires = 3},
-		["14 West"] = {pos = {x = -327.21426391602, y = -2.7655930519104, z = -124.11211395264}, facing = -0.80211496353149, requires = 3},
-		["14 North"] = {pos = {x = -320.95230102539, y = -2.7299892902374, z = -152.3638458252}, facing = -2.3708186149597, requires = 3},
-	},
-	[15] = {
-		["15 North"] = {pos = {x = -155.56791687012, y = 30.692188262939, z = 285.30819702148}, facing = 3.1173610687256, requires = 3},
-		["15 East"] = {pos = {x = -139.88655090332, y = 30.791036605835, z = 309.4778137207}, facing = 1.527715086937, requires = 3},
-		["15 South"] = {pos = {x = -164.53030395508, y = 30.692029953003, z = 324.6911315918}, facing = -0.023638248443604, requires = 3},
-	},
-	[16] = {
-		["16 North"] = {pos = {x = -83.446899414062, y = 36.184600830078, z = 640.34045410156}, facing = -3.1358206272125, requires = 3},
-		["16 East"] = {pos = {x = -68.001731872559, y = 36.263927459717, z = 664.58166503906}, facing = 1.5682384967804, requires = 3},
-	},
-	[17] = {
-		["17 South"] = {pos = {x = 180.55389404297, y = -3.349100112915, z = 449.5163269043}, facing = -0.020385265350342, requires = 3},
-		["17 West"] = {pos = {x = 165.22975158691, y = -3.2889921665192, z = 425.54071044922}, facing = -1.5932784080505, requires = 3},
-		["17 North"] = {pos = {x = 189.46684265137, y = -3.2384967803955, z = 410.01361083984}, facing = 3.1316757202148, requires = 3},
-	},
-	[18] = {
-		["18 South"] = {pos = {x = 250.40814208984, y = -7.2467384338379, z = 151.95135498047}, facing = -0.0060591697692871, requires = 3},
-		["18 West"] = {pos = {x = 235.23783874512, y = -7.29088306427, z = 127.39561462402}, facing = -1.6187477111816, requires = 3},
-		["18 North"] = {pos = {x = 259.66940307617, y = -7.3011531829834, z = 112.27989959717}, facing = -3.1246209144592, requires = 3},
-		["18 East"] = {pos = {x = 274.87707519531, y = -7.2645902633667, z = 136.57699584961}, facing = 1.5810908079147, requires = 9},
-	},
-	[19] = {
-		["19 North"] = {pos = {x = 835.71246337891, y = -165.84983825684, z = 417.6955871582}, facing = -2.8157787322998, requires = 9},
-		["19 South"] = {pos = {x = 827.09887695312, y = -165.75074768066, z = 449.61749267578}, facing = -0.34333086013794, requires = 9},
-	},
-	[20] = {
-		["20 East"] = {pos = {x = 546.57580566406, y = -217.72845458984, z = 753.64434814453}, facing = 1.7485721111298, requires = 9},
-		["20 West"] = {pos = {x = 516.11279296875, y = -217.76351928711, z = 739.70544433594}, facing = -2.1073679924011, requires = 9},
-	},
-	[21] = {
-		["21 South"] = {pos = {x = 402.00695800781, y = -227.70248413086, z = 249.0407409668}, facing = -0.15734910964966, requires = 9},
-		["21 East"] = {pos = {x = 428.91177368164, y = -227.73727416992, z = 237.87274169922}, facing = 1.3945111036301, requires = 9},
-	},
-	[22] = {
-		["22 West"] = {pos = {x = 666.41296386719, y = -239.86967468262, z = 420.05157470703}, facing = -2.3591361045837, requires = 9},
-	},
-	[23] = {
-		["23 South"] = {pos = {x = -360.09902954102, y = 12.913031578064, z = 408.48693847656}, facing = -0.18243551254272, requires = 15},
-		["23 North"] = {pos = {x = -356.82244873047, y = 12.94538974762, z = 377.64999389648}, facing = -2.6249966621399, requires = 15},
-	},
-	[24] = {
-		["24 North"] = {pos = {x = -585.68463134766, y = 29.867956161499, z = 719.50628662109}, facing = 1.5795422792435, requires = 15},
-	},
-}
-
--- Center points table for Oizys map (map ID 1310)
-local oizysCenterPoints = {
-	[1] = {x = -181.25546264648, y = 0.6499959230423, z = 127.43065643311},
-	[2] = {x = -541.97692871094, y = 23.549997329712, z = 120.22773742676},
-	[3] = {x = -660.28717041016, y = 28.549997329712, z = 430.60397338867},
-	[4] = {x = -389.13525390625, y = 45.049995422363, z = 402.38745117188},
-	[5] = {x = -444.86801147461, y = 102.05000305176, z = 770.24237060547},
-	[6] = {x = 92.751541137695, y = 98.049995422363, z = 353.21557617188},
-	[7] = {x = 337.31475830078, y = 100.55000305176, z = 395.31646728516},
-	[8] = {x = 179.93156433105, y = 0.049999952316284, z = -7.2751002311707},
-	[9] = {x = 495.63558959961, y = -51.950000762939, z = -312.27783203125},
-	[10] = {x = 191.55912780762, y = -53.950000762939, z = -399.96929931641},
-	[11] = {x = 311.0680847168, y = -153.44999694824, z = -625.77490234375},
-	[12] = {x = -150.49978637695, y = -22.450000762939, z = -236.86859130859},
-	[13] = {x = -529.56372070312, y = -26.950000762939, z = -240.56285095215},
-	[14] = {x = -702.82159423828, y = -87.449996948242, z = -493.96188354492},
-	[15] = {x = -479.48474121094, y = -104.44999694824, z = -760.41607666016},
-	[16] = {x = -131.52336120605, y = -74.949996948242, z = -582.13360595703},
-	[17] = {
-		["x"] = 670.26629638672;
-		["y"] = 134.05000305176;
-		["z"] = 290.24176025391;
-	};
-	[18] = {
-		["x"] = 723.94598388672;
-		["y"] = 218.80000305176;
-		["z"] = -102.77082061768;
-	};
-}
-
--- Portal positions table for Transport1310 function (Oizys map)
--- Structure: OizysPortalPositions[section][portalName] = {pos = {x, y, z}, facing = direction, requires = version}
-local oizysPortalPositions = {
-	[1] = {
-		["1-2"] = {pos = {x = -293.25036621094, y = 2.3533852100372, z = 133.51333618164}, facing = -1.6008443832397},
-		["1-8"] = {pos = {x = -66.465103149414, y = 2.419600725174, z = 142.51440429688}, facing = 1.5686157941818},
-		["1-12"] = {pos = {x = -175.4949798584, y = 2.2701947689056, z = 58.101634979248}, facing = 3.1179733276367},
-	},
-	[2] = {
-		["2-1"] = {pos = {x = -523.32775878906, y = 24.951919555664, z = 124.49559020996}, facing = 1.5395995378494},
-		["2-3"] = {pos = {x = -560.31311035156, y = 24.868143081665, z = 115.5802230835}, facing = -1.5978035926819},
-		["2-4"] = {pos = {x = -546.51708984375, y = 24.996839523315, z = 138.8616027832}, facing = -0.037478923797607},
-		["2-13"] = {pos = {x = -537.58197021484, y = 24.800720214844, z = 101.97190093994}, facing = 3.1236026287079},
-	},
-	[3] = {
-		["3-2"] = {pos = {x = -656.48608398438, y = 29.951251983643, z = 412.33215332031}, facing = 3.105987071991},
-		["3-4"] = {pos = {x = -642.73937988281, y = 29.855072021484, z = 435.42391967773}, facing = 1.551945567131},
-		["3-5"] = {pos = {x = -665.48620605469, y = 29.793533325195, z = 448.99755859375}, facing = -0.0167555809021},
-	},
-	[4] = {
-		["4-2"] = {pos = {x = -383.57571411133, y = 46.204975128174, z = 383.37881469727}, facing = 3.1282544136047},
-		["4-3"] = {pos = {x = -405.98107910156, y = 46.290012359619, z = 396.64071655273}, facing = -1.6281161308289},
-		["4-5"] = {pos = {x = -392.45858764648, y = 46.244190216064, z = 418.78784179688}, facing = -0.027034282684326},
-		["4-6"] = {pos = {x = -369.78717041016, y = 46.343814849854, z = 405.59954833984}, facing = 1.5417629480362},
-	},
-	[5] = {
-		["5-3"] = {pos = {x = -463.4543762207, y = 103.40139770508, z = 765.39892578125}, facing = -1.5589146614075},
-		["5-4"] = {pos = {x = -440.57000732422, y = 103.35195922852, z = 751.75415039062}, facing = 3.1073977947235},
-	},
-	[6] = {
-		["6-4"] = {pos = {x = 73.946029663086, y = 99.307167053223, z = 348.57626342773}, facing = -1.5912556648254},
-		["6-7"] = {pos = {x = 110.15033721924, y = 99.329116821289, z = 357.55178833008}, facing = 1.5565414428711},
-		["6-8"] = {pos = {x = 96.469818115234, y = 99.340370178223, z = 334.80340576172}, facing = 3.1288359165192},
-	},
-	[7] = {
-		["7-6"] = {pos = {x = 322.52560424805, y = 101.69618988037, z = 399.90118408203}, facing = -1.0836730003357},
-		["7-17"] = {
-			["facing"] = 2.0872359275818;
-			["pos"] = {
-				["x"] = 357.75033569336;
-				["y"] = 101.76557159424;
-				["z"] = 389.98706054688;
-			};
-		};
-	},
-	[8] = {
-		["8-1"] = {pos = {x = 161.19082641602, y = 1.4848711490631, z = -12.497827529907}, facing = -1.5819816589355},
-		["8-6"] = {pos = {x = 175.43371582031, y = 1.372104883194, z = 10.331471443176}, facing = 0.0034759044647217},
-		["8-9"] = {pos = {x = 198.06694030762, y = 1.3095018863678, z = -3.5957391262054}, facing = 1.5317976474762},
-	},
-	[9] = {
-		["9-8"] = {pos = {x = 491.5051574707, y = -50.650585174561, z = -294.76495361328}, facing = 0.0017528533935547},
-		["9-10"] = {pos = {x = 478.24984741211, y = -50.764305114746, z = -317.58221435547}, facing = -1.5648550987244},
-		["9-11"] = {pos = {x = 500.58871459961, y = -50.740970611572, z = -330.85092163086}, facing = 3.1119289398193},
-		["9-18"] = {
-			["facing"] = 1.5631812810898;
-			["pos"] = {
-				["x"] = 513.87536621094;
-				["y"] = -50.735580444336;
-				["z"] = -308.50253295898;
-			};
-		};
-	},
-	[10] = {
-		["10-8"] = {pos = {x = 187.51667785645, y = -52.709445953369, z = -382.01510620117}, facing = -0.011734008789062},
-		["10-9"] = {pos = {x = 210.29347229004, y = -52.63720703125, z = -395.47219848633}, facing = 1.5506862401962},
-		["10-11"] = {pos = {x = 196.52470397949, y = -52.680435180664, z = -418.10818481445}, facing = 3.0963513851166},
-		["10-12"] = {pos = {x = 173.90007019043, y = -52.682018280029, z = -404.41467285156}, facing = -1.582531452179},
-	},
-	[11] = {
-		["11-9"] = {pos = {x = 327.99136352539, y = -152.20829772949, z = -621.45568847656}, facing = 1.5643068552017},
-		["11-10"] = {pos = {x = 305.57891845703, y = -152.2045135498, z = -607.994140625}, facing = -0.031622409820557},
-	},
-	[12] = {
-		["12-1"] = {pos = {x = -154.40957641602, y = -21.216987609863, z = -219.04716491699}, facing = 0.00052022933959961},
-		["12-10"] = {pos = {x = -131.81372070312, y = -21.162435531616, z = -232.38307189941}, facing = 1.5378059148788},
-		["12-13"] = {pos = {x = -168.65303039551, y = -21.051862716675, z = -241.56370544434}, facing = -1.5749621391296},
-		["12-16"] = {pos = {x = -145.55340576172, y = -21.084846496582, z = -255.51443481445}, facing = 3.1177649497986},
-	},
-	[13] = {
-		["13-2"] = {pos = {x = -534.53161621094, y = -25.598592758179, z = -221.54399108887}, facing = -0.0080380439758301},
-		["13-12"] = {pos = {x = -511.68930053711, y = -25.633157730103, z = -235.41729736328}, facing = 1.5732287168503},
-		["13-14"] = {pos = {x = -525.52416992188, y = -25.410577774048, z = -259.25506591797}, facing = 3.1166689395905},
-	},
-	[14] = {
-		["14-13"] = {pos = {x = -706.41021728516, y = -86.137657165527, z = -475.71002197266}, facing = -0.035250186920166},
-		["14-15"] = {pos = {x = -697.58343505859, y = -86.136566162109, z = -512.29461669922}, facing = 3.1314754486084},
-		["14-16"] = {pos = {x = -684.18811035156, y = -86.250518798828, z = -489.50271606445}, facing = 1.5648678541183},
-	},
-	[15] = {
-		["15-14"] = {pos = {x = -498.39517211914, y = -103.11254882812, z = -764.427734375}, facing = -1.6053042411804},
-		["15-16"] = {pos = {x = -461.677734375, y = -103.13042449951, z = -755.49774169922}, facing = 1.5612200498581},
-	},
-	[16] = {
-		["16-12"] = {pos = {x = -136.58618164062, y = -73.603134155273, z = -563.56329345703}, facing = -0.017890453338623},
-		["16-14"] = {pos = {x = -150.05581665039, y = -73.6923828125, z = -586.57208251953}, facing = -1.6096305847168},
-		["16-15"] = {pos = {x = -127.47785949707, y = -73.626647949219, z = -600.33679199219}, facing = -3.1238789558411},
-	},
-	[17] = {
-		["17-18"] = {
-			["facing"] = 3.1180248260498;
-			["pos"] = {
-				["x"] = 674.48175048828;
-				["y"] = 135.34675598145;
-				["z"] = 271.77624511719;
-			};
-		};
-		["17-7"] = {
-			["facing"] = -1.6097817420959;
-			["pos"] = {
-				["x"] = 651.80187988281;
-				["y"] = 135.3410949707;
-				["z"] = 285.5080871582;
-			};
-		};
-	};
-	[18] = {
-		["18-17"] = {
-			["facing"] = -0.014599800109863;
-			["pos"] = {
-				["x"] = 719.46624755859;
-				["y"] = 220.13746643066;
-				["z"] = -82.603202819824;
-			};
-		};
-		["18-9"] = {
-			["facing"] = 3.113264799118;
-			["pos"] = {
-				["x"] = 728.43121337891;
-				["y"] = 220.09199523926;
-				["z"] = -119.20355224609;
-			};
-		};
-	};
-}
-
-function GetCosmicMoon(pos,closest)
-	local closestIndex = 0
-	local closestDistance = math.huge
-
-	local distance = math.distance2d(pos,centerPoints[20])
-	if distance < 80 then
-		return 5
-	end
-	local distance = math.distance2d(pos,centerPoints[21])
-	if distance < 100 then
-		return 1
-	end
-	local distance = math.distance2d(pos,centerPoints[22])
-	if distance < 90 then
-		return 1
-	end
-	local distance = math.distance2d(pos,centerPoints[23])
-	if distance < 350 and ffxivminion.MoonMapVersion < 14 then
-		return 23
-	end
-	for index, centerPos in pairs(centerPoints) do
-		local distance = math.distance2d(pos,centerPos)
-		local threshold = IsNull(centerPos.radius,150)
-		if not centerPos.markeronly then
-			local distance = math.distance2d(pos, centerPos)
-			if distance < closestDistance then
-				closestDistance = distance
-				closestIndex = index
-			end
-		end
-	end
-	
-	-- Sections >= 100 are marker-only, return section 8 to break transport loop
-	if closestIndex >= 100 then
-		return 8
-	end
-	
-	-- default if no match
-	return closestIndex 
+function GetCosmicMoon(pos, closest)
+	return FFXIVLib.API.CosmicExploration.GetSection(1237, pos, closest)
 end
-if not ff.lastTransportCheck then
-	ff.lastTransportCheck = {
-		pos1 = nil,
-		pos2 = nil,
-		result = nil
-	}
-end
-ff.pathingData = {}
+
 function CalcMoonTransport(pos1, pos2, pos1Section, pos2Section)
-	-- Check if positions are close to last check (within 100 units)
-	local last = ff.lastTransportCheck
-	if last.pos1 and last.pos2 then
-		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
-			--d("Returning cached result due to proximity")
-			return last.result
-		end
-	end
-
-	-- Check for existing cached pathingData
-	if ff.pathingData[pos1Section] and ff.pathingData[pos1Section][pos2.x] and ff.pathingData[pos1Section][pos2.x][pos2.z] ~= nil then
-		--d("return 1 (cached pathingData)")
-		local cached = ff.pathingData[pos1Section][pos2.x][pos2.z]
-		-- Save this as the last check
-		ff.lastTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
-		return cached
-	end
-
-	-- Only calculate if all data is present
-	if pos1 and pos2 and centerPoints[pos1Section] and centerPoints[pos2Section] then
-		local distance = GetPathDistance(pos1, pos2)
-		if distance < 150 then
-			return false
-		end
-		local distance1 = GetPathDistance(pos1, pos2) * 1.5
-		local distance2 =
-			GetPathDistance(pos1, centerPoints[pos1Section]) +
-			GetPathDistance(centerPoints[pos2Section], pos2)
-
-		-- Init pathingData table
-		ff.pathingData[pos1Section] = ff.pathingData[pos1Section] or {}
-		ff.pathingData[pos1Section][pos2.x] = ff.pathingData[pos1Section][pos2.x] or {}
-
-		local result
-		if distance1 > distance2 then
-			result = true
-			--d("true 1 (new calculation)")
-		else
-			result = false
-			--d("false 1 (new calculation)")
-		end
-
-		-- Save result in both pathingData and last check
-		ff.pathingData[pos1Section][pos2.x][pos2.z] = result
-		ff.lastTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
-		return result
-	end
-
-	return false
+	return FFXIVLib.API.CosmicExploration.ShouldTransport(1237, pos1, pos2, pos1Section, pos2Section)
 end
+
 function CalcPhaennaTransport(pos1, pos2, pos1Section, pos2Section)
-	-- Check if positions are close to last check (within 100 units)
-	local last = ff.lastPhaennaTransportCheck
-	if last.pos1 and last.pos2 then
-		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
-			return last.result
-		end
-	end
-
-	-- Check for existing cached pathingData
-	if ff.phaennaPathingData[pos1Section] and ff.phaennaPathingData[pos1Section][pos2.x] and ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] ~= nil then
-		local cached = ff.phaennaPathingData[pos1Section][pos2.x][pos2.z]
-		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
-		return cached
-	end
-
-	-- Only calculate if all data is present
-	if pos1 and pos2 and phaennaCenterPoints[pos1Section] and phaennaCenterPoints[pos2Section] then
-		local distance = GetPathDistance(pos1, pos2)
-		if distance < 150 then
-			return false
-		end
-		local distance1 = GetPathDistance(pos1, pos2) * 1.5
-		local distance2 =
-			GetPathDistance(pos1, phaennaCenterPoints[pos1Section]) +
-			GetPathDistance(phaennaCenterPoints[pos2Section], pos2)
-
-		-- Init pathingData table
-		ff.phaennaPathingData[pos1Section] = ff.phaennaPathingData[pos1Section] or {}
-		ff.phaennaPathingData[pos1Section][pos2.x] = ff.phaennaPathingData[pos1Section][pos2.x] or {}
-
-		local result
-		if distance1 > distance2 then
-			result = true
-		else
-			result = false
-		end
-
-		-- Save result in both pathingData and last check
-		ff.phaennaPathingData[pos1Section][pos2.x][pos2.z] = result
-		ff.lastPhaennaTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
-		return result
-	end
-
-	return false
+	return FFXIVLib.API.CosmicExploration.ShouldTransport(1291, pos1, pos2, pos1Section, pos2Section)
 end
--- Phaenna map functions (map ID 1291)
--- Helper function to find the best portal for a section connection (cycles through portals)
-local portalCycleIndex = {}
-local portalCycleDirection = {}
 function GetPhaenna(pos, closest)
-	local closestIndex = 0
-	local closestDistance = math.huge
-	
-	local distance = math.distance2d(pos,phaennaCenterPoints[25])
-	if distance < phaennaCenterPoints[25].radius then
-		return 21
-	end
-	local distance = math.distance2d(pos,phaennaCenterPoints[26])
-	if distance < phaennaCenterPoints[26].radius then
-		return 22
-	end
-	for index, centerPos in pairs(phaennaCenterPoints) do
-		local distance = math.distance2d(pos, centerPos)
-		local threshold = IsNull(centerPos.radius, 150)
-		if not centerPos.markeronly then
-			if distance < closestDistance then
-				closestDistance = distance
-				closestIndex = index
-			end
-		end
-	end
-	
-	-- default if no match
-	return closestIndex
+	return FFXIVLib.API.CosmicExploration.GetSection(1291, pos, closest)
 end
 
-if not ff.phaennaPathingData then
-	ff.phaennaPathingData = {}
-end
-if not ff.lastPhaennaTransportCheck then
-	ff.lastPhaennaTransportCheck = {
-		pos1 = nil,
-		pos2 = nil,
-		result = nil
-	}
-end
--- Oizys map functions (map ID 1310)
 function GetOizys(pos, closest)
-	local closestIndex = 0
-	local closestDistance = math.huge
-	
-	for index, centerPos in pairs(oizysCenterPoints) do
-		local distance = math.distance2d(pos, centerPos)
-		local threshold = IsNull(centerPos.radius, 150)
-		if not centerPos.markeronly then
-			if distance < closestDistance then
-				closestDistance = distance
-				closestIndex = index
-			end
-		end
-	end
-	
-	-- Return section if within 150 units of a center point
-	if closestDistance < 150 then
-		return closestIndex
-	end
-	
-	if closest then
-		return closestIndex
-	end
-	
-	return 0
+	return FFXIVLib.API.CosmicExploration.GetSection(1310, pos, closest)
 end
 
 local _sectionFunctions = {
-	[956]  = function(pos) return GetLabyrithosSection(pos) end,
-	[957]  = function(pos) return GetTempestSection(pos) end,
-	[959]  = function(pos) return GetMareLamentorumSection(pos) end,
-	[960]  = function(pos) return GetUltimaThuleSection(pos) end,
-	[1187] = function(pos) return GetUyuypogaSection(pos) end,
-	[1188] = function(pos) return GetKozamaukaSection(pos) end,
-	[1189] = function(pos) return GetYakTelSection(pos) end,
-	[1192] = function(pos) return GetLivingMemorySection(pos) end,
 	[1237] = function(pos) return GetCosmicMoon(pos, true) end,
 	[1291] = function(pos) return GetPhaenna(pos, true) end,
 	[1310] = function(pos) return GetOizys(pos, true) end,
@@ -7476,65 +6635,12 @@ local _sectionFunctions = {
 
 function GetMapSection(mapId, pos)
 	local fn = _sectionFunctions[mapId]
-	return fn and fn(pos) or 0
-end
-
-if not ff.oizysPathingData then
-	ff.oizysPathingData = {}
-end
-if not ff.lastOizysTransportCheck then
-	ff.lastOizysTransportCheck = {
-		pos1 = nil,
-		pos2 = nil,
-		result = nil
-	}
+	if fn then return fn(pos) end
+	return FFXIVLib.API.Map.GetMapSection(mapId, pos)
 end
 
 function CalcOizysTransport(pos1, pos2, pos1Section, pos2Section)
-	-- Check if positions are close to last check (within 100 units)
-	local last = ff.lastOizysTransportCheck
-	if last.pos1 and last.pos2 then
-		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
-			return last.result
-		end
-	end
-
-	-- Check for existing cached pathingData
-	if ff.oizysPathingData[pos1Section] and ff.oizysPathingData[pos1Section][pos2.x] and ff.oizysPathingData[pos1Section][pos2.x][pos2.z] ~= nil then
-		local cached = ff.oizysPathingData[pos1Section][pos2.x][pos2.z]
-		ff.lastOizysTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
-		return cached
-	end
-
-	-- Only calculate if all data is present
-	if pos1 and pos2 and oizysCenterPoints[pos1Section] and oizysCenterPoints[pos2Section] then
-		local distance = GetPathDistance(pos1, pos2)
-		if distance < 150 then
-			return false
-		end
-		local distance1 = GetPathDistance(pos1, pos2) * 1.5
-		local distance2 =
-			GetPathDistance(pos1, oizysCenterPoints[pos1Section]) +
-			GetPathDistance(oizysCenterPoints[pos2Section], pos2)
-
-		-- Init pathingData table
-		ff.oizysPathingData[pos1Section] = ff.oizysPathingData[pos1Section] or {}
-		ff.oizysPathingData[pos1Section][pos2.x] = ff.oizysPathingData[pos1Section][pos2.x] or {}
-
-		local result
-		if distance1 > distance2 then
-			result = true
-		else
-			result = false
-		end
-
-		-- Save result in both pathingData and last check
-		ff.oizysPathingData[pos1Section][pos2.x][pos2.z] = result
-		ff.lastOizysTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
-		return result
-	end
-
-	return false
+	return FFXIVLib.API.CosmicExploration.ShouldTransport(1310, pos1, pos2, pos1Section, pos2Section)
 end
 function Transport1237(pos1,pos2)
 	local pos1 = pos1 or Player.pos
@@ -11889,28 +10995,11 @@ function TestConditions(conditions)
 end
 
 function IsPOTD(mapid)
-	local potd = {
-		[561] = true,
-		[562] = true,
-		[563] = true,
-		[564] = true,
-		[565] = true,
-	}
-	
-	return potd[mapid]
+	return FFXIVLib.API.Map.IsDeepDungeon(mapid) or false
 end
 
 function IsHW(mapid)
-	local hw = {
-		[397] = true,
-		[398] = true,
-		[399] = true,
-		[400] = true,
-		[401] = true,
-		[402] = true,
-	}
-	
-	return hw[mapid]
+	return FFXIVLib.API.Map.GetExpansion(mapid) == 1
 end
 
 function QueueAction( actionid, targetid, actiontype )
@@ -12324,87 +11413,70 @@ function GetAetherCurrentData(mapid)
 end
 
 function FindNearestCollectableAppraiser()
-	local idyllshire = { id = 1012300, aethid = 75, mapid = 478, pos = {x = -18.3, y = 206.5, z = 45.1} }
-	local morDhona = { id = 1013396, aethid = 24, mapid = 156, pos = {x = 50.28, y = 31.09, z = -735.2} }
-	local rhalgr = { id = 1019457, aethid = 104, mapid = 635, pos = {x = -66.80, y = 0.01, z = 63.40} }
-	local gridania = { id = 1003076, aethid = 2, mapid = 133, pos = {x = 143, y = 13, z = -103} }
-	local limsa = { id = 1003632, aethid = 8, mapid = 129, pos = {x = -257, y = 16, z = 40} }
-	local uldah = { id = 1001616, aethid = 9, mapid = 131, pos = {x =149, y = 4, z = -17} }
-	local eulmore = { id = 1027542, aethid = 134, mapid = 820, pos = {x =17, y = 82, z = -19} }
-	local radz = { id = 1037306, aethid = 183, mapid = 963, pos = {x =21, y = 0, z = -68} }
-	local solutionNine = { id = 1049084, aethid = 217, mapid = 1186, pos = {x =-162, y = 0, z = -33} }
-	
-	if (Player.localmapid == morDhona.mapid) then
-		return morDhona
-	elseif (Player.localmapid == idyllshire.mapid) then
-		return idyllshire
-	elseif (Player.localmapid == rhalgr.mapid) then
-		return rhalgr
-	elseif (Player.localmapid == gridania.mapid) then
-		return gridania
-	elseif (Player.localmapid == limsa.mapid) then
-		return limsa
-	elseif (Player.localmapid == uldah.mapid) then
-		return uldah
-	elseif (Player.localmapid == eulmore.mapid) and QuestCompleted(3603) then
-		return eulmore
-	elseif (Player.localmapid == radz.mapid) and QuestCompleted(4175) then
-		return radz
-	elseif (Player.localmapid == solutionNine.mapid) and QuestCompleted(5008) then
-		return solutionNine
-	else
-		local hasIdyllshire, hasRhalgr, hasMorDhona, hasEulmore, hasRadz,hasS9 = false, false, false, false, false, false
-		local idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, radzCost, s9Cost = 0, 0, 0, 0, 0, 0
-		local gil = GilCount()
-		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
-		if (table.valid(attuned)) then
-			for _, aetheryte in pairs(attuned) do
-				if (aetheryte.id == morDhona.aethid and gil >= aetheryte.price) then
-					hasMorDhona = true
-					morDhonaCost = aetheryte.price
-				elseif (aetheryte.id == idyllshire.aethid and gil >= aetheryte.price) then
-					hasIdyllshire = true
-					idyllshireCost = aetheryte.price
-				elseif (aetheryte.id == rhalgr.aethid and gil >= aetheryte.price) then
-					hasRhalgr = true
-					rhalgrCost = aetheryte.price
-				elseif QuestCompleted(3603) and (aetheryte.id == eulmore.aethid and gil >= aetheryte.price) then
-					hasEulmore = true
-					eulmoreCost = aetheryte.price
-				elseif QuestCompleted(4175) and (aetheryte.id == radz.aethid and gil >= aetheryte.price) then
-					hasRadz = true
-					radzCost = aetheryte.price
-				elseif QuestCompleted(5008) and (aetheryte.id == solutionNine.aethid and gil >= aetheryte.price) then
-					hasS9 = true
-					s9Cost = aetheryte.price
-				end
-				if (hasS9) then
-					break
+	-- Collectable Appraiser ENpc IDs and their access requirements
+	local appraisers = {
+		{ id = 1049084, aethid = 217, mapid = 1186, quest = 5008 }, -- Solution Nine
+		{ id = 1037306, aethid = 183, mapid = 963,  quest = 4175 }, -- Radz-at-Han
+		{ id = 1027542, aethid = 134, mapid = 820,  quest = 3603 }, -- Eulmore
+		{ id = 1019457, aethid = 104, mapid = 635 },                -- Rhalgr's Reach
+		{ id = 1012300, aethid = 75,  mapid = 478 },                -- Idyllshire
+		{ id = 1013396, aethid = 24,  mapid = 156 },                -- Mor Dhona
+		{ id = 1003076, aethid = 2,   mapid = 133 },                -- Old Gridania
+		{ id = 1003632, aethid = 8,   mapid = 129 },                -- Limsa Lominsa
+		{ id = 1001616, aethid = 9,   mapid = 131 },                -- Ul'dah
+	}
+
+	-- Resolve NPC positions from game data
+	local function resolveAppraiser(entry)
+		local spawns = FFXIVLib.API.NPC.GetENpcSpawns(entry.id)
+		if spawns and #spawns > 0 then
+			-- Find the spawn on the expected map
+			for _, spawn in ipairs(spawns) do
+				if spawn.mapid == entry.mapid then
+					return { id = entry.id, aethid = entry.aethid, mapid = entry.mapid,
+						pos = { x = spawn.x, y = spawn.y, z = spawn.z } }
 				end
 			end
+			-- Fallback to first spawn
+			local s = spawns[1]
+			return { id = entry.id, aethid = entry.aethid, mapid = entry.mapid,
+				pos = { x = s.x, y = s.y, z = s.z } }
 		end
-		if hasS9 then
-			return solutionNine
-		end
-		if hasRadz then
-			return radz
-		end
-		if hasEulmore then
-			return eulmore
-		end
-		if (hasIdyllshire and hasMorDhona and hasRhalgr) then
-			if (morDhonaCost < rhalgrCost and morDhonaCost < idyllshireCost) then
-				return morDhona
-			elseif (idyllshireCost < morDhonaCost and idyllshireCost < rhalgrCost) then
-				return idyllshire
-			elseif (rhalgrCost < morDhonaCost and rhalgrCost < idyllshireCost) then
-				return rhalgr
+		return nil
+	end
+
+	-- Check if player is already on an appraiser's map
+	for _, entry in ipairs(appraisers) do
+		if Player.localmapid == entry.mapid then
+			if not entry.quest or QuestCompleted(entry.quest) then
+				return resolveAppraiser(entry)
 			end
-		elseif (hasMorDhona) then
-			return morDhona
 		end
 	end
-	
+
+	-- Find cheapest reachable appraiser via aetheryte cost
+	local gil = GilCount()
+	local attuned = FFXIVLib.API.Map.GetAetherytes(1)
+	if not table.valid(attuned) then return nil end
+
+	local best = nil
+	local bestCost = math.huge
+	for _, entry in ipairs(appraisers) do
+		if not entry.quest or QuestCompleted(entry.quest) then
+			local aetheryte = attuned[entry.aethid]
+			if aetheryte and gil >= aetheryte.price then
+				if aetheryte.price < bestCost then
+					bestCost = aetheryte.price
+					best = entry
+				end
+			end
+		end
+	end
+
+	if best then
+		return resolveAppraiser(best)
+	end
+
 	return nil
 end
 function GetLowestValue(...)
@@ -12429,15 +11501,7 @@ function FindClosestCity()
 	local uldah = { aethid = 9, mapid = 131 }
 	local eulmore = { aethid = 134, mapid = 820 }
 	
-	local inns = {
-		[177] = "Mizzenmast Inn",
-		[178] = "The Hourglass",
-		[179] = "The Roost",
-		[429] = "Cloud Nine",
-		[629] = "Bokairo Inn",
-		[843] = "The Pendants Personal Suite"
-	}
-	if inns[Player.localmapid] then
+	if FFXIVLib.API.Map.IsInn(Player.localmapid) then
 		return Player.localmapid
 	end
 	
@@ -12566,98 +11630,10 @@ function GetRequiredPitch(pos,noadjustment)
 	return 0
 end
 function IsNormalMap(mapid)
-	local maps = {
-		[130] = true,
-		[134] = true,
-		[135] = true,
-		[137] = true,
-		[138] = true,
-		[139] = true,
-		[140] = true,
-		[141] = true,
-		[145] = true,
-		[146] = true,
-		[147] = true,
-		[148] = true,
-		[152] = true,
-		[153] = true,
-		[154] = true,
-		[155] = true,
-		[156] = true,
-		[180] = true,
-		[130] = true,
-		[182] = true,
-		[131] = true,
-		[128] = true,
-		[181] = true,
-		[129] = true,
-		[132] = true,
-		[183] = true,
-		[133] = true,
-		[179] = true,
-		[178] = true,
-		[177] = true,
-		[144] = true,
-		[351] = true,
-		[388] = true,
-		[395] = true,
-		[397] = true,
-		[398] = true,
-		[399] = true,
-		[400] = true,
-		[401] = true,
-		[402] = true,
-		[418] = true,
-		[419] = true,
-		[463] = true, 
-		[478] = true, 
-		[612] = true,
-		[613] = true,
-		[614] = true,
-		[620] = true,
-		[621] = true,
-		[622] = true,
-		[628] = true,		
-		[635] = true,	
-		[759] = true,	
-		[813] = true,	
-		[814] = true,	
-		[815] = true,	
-		[816] = true,		
-		[817] = true,	
-		[818] = true,			
-		[819] = true,			
-		[820] = true,	
-		[844] = true,
-		[956] = true,
-		[957] = true,
-		[958] = true,
-		[959] = true,
-		[960] = true,
-		[961] = true,
-		[962] = true,
-		[963] = true,
-		[971] = true,
-		[1185] = true,	
-		[1186] = true,	
-		[1187] = true,
-		[1188] = true,
-		[1189] = true,
-		[1190] = true,
-		[1191] = true,
-		[1192] = true,
-	}
-	return maps[mapid] ~= nil
+	return FFXIVLib.API.Map.IsFieldZone(mapid) or false
 end
 function IsHousingMap(mapid)
-	local maps = {
-		[339] = true,
-		[340] = true,
-		[341] = true,
-		[641] = true,
-		[979] = true,
-	}
-	return maps[mapid] ~= nil
+	return FFXIVLib.API.Map.IsHousingZone(mapid) or false
 end
 function ValidPosition(pos)
 	if (table.valid(pos)) then
@@ -12769,21 +11745,9 @@ end
 -- Returns center points and portal positions for the given map
 -- mapid: 1237 = Moon, 1291 = Phaenna, 1310 = Oizys
 function GetCosmicCenterPoints(mapid)
-	if mapid == 1310 then
-		return oizysCenterPoints
-	elseif mapid == 1291 then
-		return phaennaCenterPoints
-	else
-		return centerPoints
-	end
+	return FFXIVLib.API.CosmicExploration.GetCenterPoints(mapid or 1237)
 end
 
 function GetCosmicPortalPositions(mapid)
-	if mapid == 1310 then
-		return oizysPortalPositions
-	elseif mapid == 1291 then
-		return phaennaPortalPositions
-	else
-		return portalPositions
-	end
+	return FFXIVLib.API.CosmicExploration.GetPortalPositions(mapid or 1237)
 end

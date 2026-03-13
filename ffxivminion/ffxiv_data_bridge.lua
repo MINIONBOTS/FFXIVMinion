@@ -23,14 +23,8 @@ e_ffxivlib_dataready = inheritsFrom( ml_effect )
 
 function c_ffxivlib_dataready:evaluate()
     -- If FFXIVLib is not loaded, skip the gate (backward compat)
-    if not FFXIVLib then 
-		d("false 1")
-		return false 
-	end
-    if not FFXIVLib.PreWarm then
-		d("false 2")
-		return false 
-	end
+    if not FFXIVLib then return false end
+    if not FFXIVLib.PreWarm then return false end
 
     -- Fire pre-warm if not yet done
     if not FFXIVLib.PreWarm._ready then
@@ -39,7 +33,6 @@ function c_ffxivlib_dataready:evaluate()
 
     -- Block if essential data hasn't arrived yet
     if not FFXIVLib.PreWarm.IsPreWarmReady() then
-		d("true, block")
         return true  -- condition is met = we need to block
     end
 
@@ -203,10 +196,7 @@ end
 -- @param mapId (number)
 -- @return (table|nil)
 function FFXIVData_GetMap(mapId)
-    if not FFXIVLib or not mapId then
-		d("FFXIVData_GetMap issue")
-		return nil
-	end
+    if not FFXIVLib or not mapId then return nil end
     return FFXIVLib.API.Map.GetMapById(mapId)
 end
 
@@ -214,10 +204,7 @@ end
 -- @param mapId (number)
 -- @return (table|nil)
 function FFXIVData_GetAetherytes(mapId)
-    if not FFXIVLib or not mapId then
-		d("FFXIVData_GetAetherytes issue")
-		return nil
-	end
+    if not FFXIVLib or not mapId then return nil end
     return FFXIVLib.API.Map.GetAetherytesByMapId(mapId)
 end
 
@@ -229,10 +216,7 @@ end
 -- @param bnpcId (number)
 -- @return (table|nil)
 function FFXIVData_GetNPC(bnpcId)
-    if not FFXIVLib or not bnpcId then
-		d("bnpcpid issue")
-		return 
-	end
+    if not FFXIVLib or not bnpcId then return nil end
     return FFXIVLib.API.NPC.GetBNpcById(bnpcId)
 end
 
@@ -244,10 +228,7 @@ end
 -- @param npcId (number)
 -- @return (table|nil)
 function FFXIVData_GetShopsByNPC(npcId)
-    if not FFXIVLib or not npcId then
-		d("npcid issue")
-		return 
-	end
+    if not FFXIVLib or not npcId then return nil end
     return FFXIVLib.API.Shop.GetShopsByNpcId(npcId)
 end
 
@@ -255,10 +236,7 @@ end
 -- @param itemId (number)
 -- @return (table|nil)
 function FFXIVData_FindShopsForItem(itemId)
-    if not FFXIVLib or not itemId then
-		d("itemid issue")
-		return 
-	end
+    if not FFXIVLib or not itemId then return nil end
     return FFXIVLib.API.Shop.FindShopsByItemId(itemId)
 end
 
@@ -266,10 +244,7 @@ end
 -- @param vendorId (number)
 -- @return (table|nil)
 function FFXIVData_GetVendor(vendorId)
-    if not FFXIVLib or not vendorId then
-		d("vendor issue")
-		return 
-	end
+    if not FFXIVLib or not vendorId then return nil end
     return FFXIVLib.API.Shop.GetVendorData(vendorId)
 end
 
@@ -281,10 +256,7 @@ end
 -- @param mapId (number)
 -- @return (table|nil)
 function FFXIVData_GetWeatherRate(mapId)
-    if not FFXIVLib or not mapId then
-		d("weather issue")
-		return 
-	end
+    if not FFXIVLib or not mapId then return nil end
     return FFXIVLib.API.Weather.GetWeatherRateByMapId(mapId)
 end
 
@@ -296,10 +268,7 @@ end
 -- @param actionId (number)
 -- @return (table|nil)
 function FFXIVData_GetAvoidance(actionId)
-    if not FFXIVLib or not actionId then
-		d("actionId issue")
-		return 
-	end
+    if not FFXIVLib or not actionId then return nil end
     return FFXIVLib.API.Avoidance.GetAvoidanceByActionId(actionId)
 end
 
@@ -307,10 +276,7 @@ end
 -- @param bnpcId (number)
 -- @return (table|nil)
 function FFXIVData_GetAvoidancesByBNPC(bnpcId)
-    if not FFXIVLib or not bnpcId then
-		d("bnpcId issue")
-		return 
-	end
+    if not FFXIVLib or not bnpcId then return nil end
     return FFXIVLib.API.Avoidance.GetAvoidancesByBNpcId(bnpcId)
 end
 
@@ -343,10 +309,7 @@ end
 -- @param language (string|nil)
 -- @return (string|nil)
 function FFXIVData_GetQuestName(questId, language)
-    if not FFXIVLib or not questId then
-		d("questId issue")
-		return 
-	end
+    if not FFXIVLib or not questId then return nil end
     return FFXIVLib.API.Quest.GetQuestName(questId, language)
 end
 
@@ -358,10 +321,7 @@ end
 -- @param fateId (number)
 -- @return (table|nil)
 function FFXIVData_GetFate(fateId)
-    if not FFXIVLib or not fateId then
-		d("Fateid issue")
-		return 
-	end
+    if not FFXIVLib or not fateId then return nil end
     return FFXIVLib.API.Fate.GetFateById(fateId)
 end
 
@@ -370,15 +330,13 @@ end
 ------------------------------------------------------------
 
 --- Get hunt log entries. Returns nil if pending.
--- @param classId (number)
--- @param rank (number)
+-- @param job (number) Base class ID or GC ID.
+-- @param isGC (boolean) true for Grand Company hunts.
+-- @param rank (number) Hunt log rank.
 -- @return (table|nil)
-function FFXIVData_GetHuntLogEntries(classId, rank)
-    if not FFXIVLib or not classId or not rank then
-		d("Rank issue")
-		return 
-	end
-    return FFXIVLib.API.Huntlog.GetHuntLogEntries(classId, rank)
+function FFXIVData_GetHuntLogEntries(job, isGC, rank)
+    if not FFXIVLib or not job or not rank then return nil end
+    return FFXIVLib.API.Huntlog.GetHuntLogEntries(job, isGC or false, rank)
 end
 
 ------------------------------------------------------------
@@ -390,10 +348,7 @@ end
 -- @param language (string|nil)
 -- @return (string|nil)
 function FFXIVData_GetTranslation(key, language)
-    if not FFXIVLib or not key then
-		d("Key issue")
-		return 
-	end
+    if not FFXIVLib or not key then return nil end
     return FFXIVLib.API.Translations.GetTranslation(key, language)
 end
 
@@ -408,10 +363,7 @@ end
 -- Call from crafting task setup.
 -- @param classId (number) Crafting class index (0=CRP..7=CUL)
 function FFXIVData_PreWarmCraft(classId)
-    if not FFXIVLib or not classId then
-		d("Class issue")
-		return 
-	end
+    if not FFXIVLib or not classId then return nil end
     FFXIVLib.PreWarm.PreWarmRecipeData(classId)
 end
 
@@ -419,10 +371,7 @@ end
 -- Call from gathering task setup for collectable profiles.
 -- @param itemIds (table) Array of item IDs
 function FFXIVData_PreWarmCollectables(itemIds)
-    if not FFXIVLib or not itemIds then
-		d("Items issue")
-		return 
-	end
+    if not FFXIVLib or not itemIds then return nil end
     FFXIVLib.PreWarm.PreWarmCollectableData(itemIds)
 end
 
@@ -430,10 +379,7 @@ end
 -- Call when the skill manager loads a new profile.
 -- @param classJobId (number)
 function FFXIVData_PreWarmActions(classJobId)
-    if not FFXIVLib or not classJobId then
-		d("Classid issue")
-		return 
-	end
+    if not FFXIVLib or not classJobId then return nil end
     FFXIVLib.PreWarm.PreWarmClassActions(classJobId)
 end
 
@@ -441,42 +387,76 @@ end
 -- Call when a task selects a new destination map.
 -- @param mapId (number)
 function FFXIVData_PreWarmMap(mapId)
-    if not FFXIVLib or not mapId then 
-		d("mapId issue")
-		return 
-	end
+    if not FFXIVLib or not mapId then return nil end
     FFXIVLib.PreWarm.PreWarmCurrentMap(mapId)
 end
 
 --- Pre-warm equipped gear repair info.
 -- Call after equipping new gear.
 function FFXIVData_PreWarmGear()
-    if not FFXIVLib then 
-		d("gear issue")
-		return 
-	end
+    if not FFXIVLib then return nil end
     FFXIVLib.PreWarm.PreWarmEquippedGear()
 end
 
 --- Trigger the full pre-warm sweep (called once at login).
 function FFXIVData_PreWarmAll()
-    if not FFXIVLib then 
-		d("lib issue")
-		return 
-	end
+    if not FFXIVLib then return nil end
     FFXIVLib.PreWarm.PreWarmAll()
 end
 
 --- Check if minimum pre-warm data is ready.
 -- @return (boolean)
 function FFXIVData_IsReady()
-    if not FFXIVLib then 
-		d("not FFXIV Lib = true") 
-		return true 
-	end -- no FFXIVLib = no gate
-    if not FFXIVLib.PreWarm then 
-		d("not warm")
-		return true 
-	end
+    if not FFXIVLib then return true end -- no FFXIVLib = no gate
+    if not FFXIVLib.PreWarm then return true end
     return FFXIVLib.PreWarm.IsPreWarmReady()
+end
+
+------------------------------------------------------------
+-- ClassJob bridge functions
+------------------------------------------------------------
+
+--- Returns full ClassJob row by ID.
+-- @param classJobId (number)
+-- @return (table|nil)
+function FFXIVData_GetClassJob(classJobId)
+    if not FFXIVLib or not classJobId then return nil end
+    return FFXIVLib.API.ClassJob.GetClassJobById(classJobId)
+end
+
+--- Returns the localized abbreviation for a ClassJob.
+-- @param classJobId (number)
+-- @param language   (string|nil)
+-- @return (string)
+function FFXIVData_GetClassJobAbbreviation(classJobId, language)
+    if not FFXIVLib or not classJobId then return "" end
+    return FFXIVLib.API.ClassJob.GetAbbreviation(classJobId, language)
+end
+
+--- Returns the role number for a ClassJob.
+-- @param classJobId (number)
+-- @return (number|nil)
+function FFXIVData_GetClassJobRole(classJobId)
+    if not FFXIVLib or not classJobId then return nil end
+    return FFXIVLib.API.ClassJob.GetRole(classJobId)
+end
+
+------------------------------------------------------------
+-- Map type bridge functions
+------------------------------------------------------------
+
+--- Returns the TerritoryIntendedUse value for a map.
+-- @param mapId (number)
+-- @return (number|nil)
+function FFXIVData_GetTerritoryIntendedUse(mapId)
+    if not FFXIVLib or not mapId then return nil end
+    return FFXIVLib.API.Map.GetTerritoryIntendedUse(mapId)
+end
+
+--- Returns the expansion number for a map.
+-- @param mapId (number)
+-- @return (number|nil)
+function FFXIVData_GetExpansion(mapId)
+    if not FFXIVLib or not mapId then return nil end
+    return FFXIVLib.API.Map.GetExpansion(mapId)
 end

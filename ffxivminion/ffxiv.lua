@@ -73,50 +73,21 @@ elseif (ffxivminion.gameRegion == 4) then
     }
 end
 
-ffxivminion.classes = {
-	[FFXIV.JOBS.ARCANIST] = "ACN",
-	[FFXIV.JOBS.SCHOLAR] = "SCH",
-	[FFXIV.JOBS.SUMMONER] = "SMN",
-	[FFXIV.JOBS.THAUMATURGE] = "THM",
-	[FFXIV.JOBS.BLACKMAGE] = "BLM",
-	[FFXIV.JOBS.ARCHER] = "ARC",
-	[FFXIV.JOBS.BARD] = "BRD",
-	[FFXIV.JOBS.CONJURER] = "CNJ",
-	[FFXIV.JOBS.WHITEMAGE] = "WHM",
-	[FFXIV.JOBS.LANCER] = "LNC",
-	[FFXIV.JOBS.DRAGOON] = "DRG",
-	[FFXIV.JOBS.GLADIATOR] = "GLD",
-	[FFXIV.JOBS.PALADIN] = "PLD",
-	[FFXIV.JOBS.MARAUDER] = "MRD",
-	[FFXIV.JOBS.WARRIOR] = "WAR",
-	[FFXIV.JOBS.PUGILIST] = "PUG",
-	[FFXIV.JOBS.MONK] = "MNK",
-	[FFXIV.JOBS.ROGUE] = "ROG",
-	[FFXIV.JOBS.NINJA] = "NIN",
-	[FFXIV.JOBS.MACHINIST] = "MCH",
-	[FFXIV.JOBS.DARKKNIGHT] = "DRK",
-	[FFXIV.JOBS.ASTROLOGIAN] = "AST",
-	[FFXIV.JOBS.REDMAGE] = "RDM",
-	[FFXIV.JOBS.SAMURAI] = "SAM",
-	[FFXIV.JOBS.BOTANIST] = "BTN",
-	[FFXIV.JOBS.FISHER] = "FSH",
-	[FFXIV.JOBS.MINER] = "MIN",
-	[FFXIV.JOBS.CARPENTER] = "CRP",
-	[FFXIV.JOBS.BLACKSMITH] = "BSM",
-	[FFXIV.JOBS.ARMORER] = "ARM",
-	[FFXIV.JOBS.GOLDSMITH] = "GSM",
-	[FFXIV.JOBS.LEATHERWORKER] = "LTW",
-	[FFXIV.JOBS.WEAVER] = "WVR",
-	[FFXIV.JOBS.ALCHEMIST] = "ALC",
-	[FFXIV.JOBS.CULINARIAN] = "CUL",
-	[FFXIV.JOBS.BLUEMAGE] = "BLU",
-	[FFXIV.JOBS.DANCER] = "DNC",
-	[FFXIV.JOBS.GUNBREAKER] = "GNB",
-	[FFXIV.JOBS.REAPER] = "RPR",
-	[FFXIV.JOBS.SAGE] = "SGE",
-	[FFXIV.JOBS.VIPER] = "VPR",
-	[FFXIV.JOBS.PICTOMANCER] = "PCT",
-}
+-- Refreshes login datacenter/server lists from FFXIVLib World data.
+-- Called lazily from the GUI; replaces hardcoded lists once data is loaded.
+function ffxivminion.RefreshLoginData()
+	if ffxivminion.gameRegion ~= 1 then return end
+	if ffxivminion._loginDataRefreshed then return end
+	local centers = FFXIVLib.API.World.GetLoginCenters()
+	local servers = FFXIVLib.API.World.GetLoginServers()
+	if centers and servers and #centers > 1 and table.valid(servers[2]) then
+		ffxivminion.logincenters = centers
+		ffxivminion.loginservers = servers
+		ffxivminion._loginDataRefreshed = true
+		-- Re-resolve DC index for current saved name
+		FFXIV_Login_DataCenter = IsNull(GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters), 1)
+	end
+end
 
 ffxivminion.AutoGrindDefault = [[
 	local mapid = Player.localmapid
@@ -1002,9 +973,11 @@ function ffxivminion.SetMainVars()
 	gStuckDisable = ffxivminion.GetSetting("gStuckDisable", true)
 	gStuckRemesh = ffxivminion.GetSetting("gStuckRemesh", false)
 
-	for jobid, abrev in pairs(ffxivminion.classes) do
-		local str = "gGearset" .. tostring(jobid)
-		_G[str] = ffxivminion.GetSetting(str, 0)
+	for _, jobid in pairs(FFXIV.JOBS) do
+		if type(jobid) == "number" and jobid > 0 then
+			local str = "gGearset" .. tostring(jobid)
+			_G[str] = ffxivminion.GetSetting(str, 0)
+		end
 	end
 
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip", true)
@@ -2100,8 +2073,13 @@ function ml_global_information.DrawSettings()
 
 					GUI:BeginChild("##main-header-autoequip-gearsets", 0, GUI_GetFrameHeight(8), true)
 					local classlookup = {}
-					for jobid, abrev in pairs(ffxivminion.classes) do
-						classlookup[abrev] = jobid
+					for _, jobid in pairs(FFXIV.JOBS) do
+						if type(jobid) == "number" and jobid > 0 then
+							local abbr = FFXIVLib.API.ClassJob.GetAbbreviation(jobid)
+							if abbr and abbr ~= "" then
+								classlookup[abbr] = jobid
+							end
+						end
 					end
 
 					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
@@ -2313,6 +2291,7 @@ function ml_global_information.DrawSettings()
 						GUI:SetTooltip(GetString("Just presses the start button, using whatever the client has saved as last login location."))
 					end
 
+					ffxivminion.RefreshLoginData()
 					GUI:PushItemWidth(120)
 					local dcChanged = GUI_Combo("DataCenter", "FFXIV_Login_DataCenter", "FFXIV_Login_DataCenterName", ffxivminion.logincenters)
 					if (dcChanged) then
@@ -2468,6 +2447,7 @@ function ml_global_information.DrawLoginHandler()
 				GUI:SetTooltip(GetString("Just presses the start button, using whatever the client has saved as last login location."))
 			end
 
+			ffxivminion.RefreshLoginData()
 			GUI:PushItemWidth(120)
 			local dcChanged = GUI_Combo("DataCenter", "FFXIV_Login_DataCenter", "FFXIV_Login_DataCenterName", ffxivminion.logincenters)
 			if (dcChanged) then

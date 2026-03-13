@@ -4565,7 +4565,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (skill.stype == GetString("Pet")) then
 		petRangeRadius = GetPetSkillRangeRadius(skill.id)
 		if (petRangeRadius) then
-			maxrange = petRangeRadius.range
+			maxrange = petRangeRadius.ActionRange
 		end
 	end
 	

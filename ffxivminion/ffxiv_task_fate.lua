@@ -971,108 +971,84 @@ end
 function ffxiv_task_fate.IsChain(mapid, fateid)
 	local mapid = tonumber(mapid) or 0
 	local fateid = tonumber(fateid) or 0
-	
+
 	--d("Checking to see if fateid:"..tostring(fateid).." is a chain for mapid:"..tostring(mapid))
-	
-	local chains = {
-		[155] = {
-			[1] = {
-				{ id = 501, x = 278.2, y = 338.7, z = -505.9 },
-				{ id = 502, x = 266.5, y = 360.7, z = -624.6 },
-				--{ id = 504, x = 260.5, y = 360.3, z = -624.3 },
-				--{ id = 503, x = 225.5, y = 356.1, z = -656.7 },
-			},
-		},
-		[147] = {
-			[1] = {
-				{ id = 643, x = 255.6, y = 25, z = 45.5 },
-				{ id = 644, x = 255.6, y = 25, z = 10 },
-				{ id = 645, x = 255.6, y = 25, z = 10 },
-				{ id = 646, x = 255.6, y = 25, z = 10 },
-			},
-		},
-		[152] = {
-			[1] = {
-				{ id = 610, x = 338, y = -4, z = -58 },
-				{ id = 611, x = 280, y = -5, z = 12 },
-			},
-		},
-		[400] = {
-			[1] = {
-				{ id = 868, x = -214.5, y = 138.5, z = -644.5 },
-				{ id = 869, x = -214.5, y = 138.5, z = -644.5 },
-				{ id = 870, x = -214.5, y = 138.5, z = -644.5 },
-			},
-		},
-		[397] = {
-			[1] = {
-				{ id = 791, x = 391.9, y = 162.4, z = -163.65 },
-				{ id = 792, x = 412.26, y = 159.88, z = -94.812 },
-			},
-		},
-		[612] = {
-			[1] = {
-				{ id = 1112, x = -632.5, y = 117.6, z = -251.6 },
-				{ id = 1113, x = -632.5, y = 117.6, z = -251.6 },
-			},
-		},
-		[1187] = {  --DTmaps
-			[1] = {
-        { id = 1891, x = 74.79, y = 20.65, z = 302.16 },
-				{ id = 1892, x = 74.80, y = 20.65, z = 302.16 },
-			},
-		},
-		[1189] = {
-			[1] = {
-				{ id = 1895, x = -357.07, y = 21.67, z = -277.82 },
-				{ id = 1896, x = -326.83, y = 24.12, z = -199.01 },
-			},
-		},
-		[1190] = {
-			[1] = {
-				--{ id = 1867, x = 99.58, y = 8.55, z = 551.01 }, --starts chain of serpentlord fate boss
-				--{ id = 1868, x = 373.54, y = -15.61, z = -186.97 }, 
-				{ id = 1869, x = -30.66, y = 27.12, z = -651.36 }, --gatherable
-				{ id = 1870, x = 2.20, y = 20, z = -648.06 },
-			},
-		},
-		[1192] = {
-			[1] = {
-			  { id = 1920, x = 712.43, y = 7.80, z = 635.64 },
-				{ id = 1921, x = 712.43, y = 7.80, z = 635.64 },
-			},
-		},
-		[1192] = {
-			[1] = {
-			  { id = 1914, x = -661.11, y = 0.00, z = 626.65 },
-				{ id = 1915, x = -661.11, y = 0.00, z = 626.65 },
-			},
-		},
+
+	-- Wait positions for chain FATEs (bot-specific; not in game data)
+	local chainWaitPositions = {
+		[501] = { x = 278.2, y = 338.7, z = -505.9 },
+		[502] = { x = 266.5, y = 360.7, z = -624.6 },
+		[643] = { x = 255.6, y = 25, z = 45.5 },
+		[644] = { x = 255.6, y = 25, z = 10 },
+		[645] = { x = 255.6, y = 25, z = 10 },
+		[646] = { x = 255.6, y = 25, z = 10 },
+		[610] = { x = 338, y = -4, z = -58 },
+		[611] = { x = 280, y = -5, z = 12 },
+		[868] = { x = -214.5, y = 138.5, z = -644.5 },
+		[869] = { x = -214.5, y = 138.5, z = -644.5 },
+		[870] = { x = -214.5, y = 138.5, z = -644.5 },
+		[791] = { x = 391.9, y = 162.4, z = -163.65 },
+		[792] = { x = 412.26, y = 159.88, z = -94.812 },
+		[1112] = { x = -632.5, y = 117.6, z = -251.6 },
+		[1113] = { x = -632.5, y = 117.6, z = -251.6 },
+		[1891] = { x = 74.79, y = 20.65, z = 302.16 },
+		[1892] = { x = 74.80, y = 20.65, z = 302.16 },
+		[1895] = { x = -357.07, y = 21.67, z = -277.82 },
+		[1896] = { x = -326.83, y = 24.12, z = -199.01 },
+		[1869] = { x = -30.66, y = 27.12, z = -651.36 },
+		[1870] = { x = 2.20, y = 20, z = -648.06 },
+		[1914] = { x = -661.11, y = 0.00, z = 626.65 },
+		[1915] = { x = -661.11, y = 0.00, z = 626.65 },
+		[1920] = { x = 712.43, y = 7.80, z = 635.64 },
+		[1921] = { x = 712.43, y = 7.80, z = 635.64 },
 	}
-	
-	local mapChains = chains[mapid]
-	if (mapChains) then
-		for chainid,chaindata in pairs(mapChains) do
-			for order,fatedata in pairs(chaindata) do
-				if (fatedata.id == fateid) then
-					local firstChain = (order == 1)
-					local lastChain = (order == TableSize(chaindata))
-					local nextFate = nil
-					
-					if (not lastChain) then
-						if (chaindata[order+1]) then
-							nextFate = chaindata[order+1]
-						end
-					end
-					
-					ml_debug("IsChain:"..tostring(firstChain)..","..tostring(lastChain)..tostring(nextFate))
-					return true, firstChain, lastChain, nextFate
+
+	-- Use FFXIVLib to detect chains via FATEChain field
+	local fateData = FFXIVLib.API.Fate.GetFateById(fateid)
+	if not fateData then return false, nil, nil, nil end
+
+	-- Check if this FATE is part of a chain
+	local chainId = fateData.FATEChain
+	local isInChain = (chainId and chainId > 0)
+
+	if not isInChain then
+		-- Check if any other FATE chains FROM this one
+		local followers = FFXIVLib.API.Fate.GetFateChain(fateid)
+		if followers and #followers > 1 then
+			isInChain = true
+		end
+	end
+
+	if not isInChain then
+		return false, nil, nil, nil
+	end
+
+	-- Determine chain position
+	local firstChain = (not chainId or chainId == 0)
+
+	-- Find the next FATE in the chain (the one whose FATEChain points to us)
+	local followers = FFXIVLib.API.Fate.GetFateChain(fateid)
+	local nextFate = nil
+	local lastChain = true
+
+	if followers then
+		for _, f in ipairs(followers) do
+			if f.FATEChain == fateid then
+				lastChain = false
+				local waitPos = chainWaitPositions[f.id]
+				nextFate = { id = f.id }
+				if waitPos then
+					nextFate.x = waitPos.x
+					nextFate.y = waitPos.y
+					nextFate.z = waitPos.z
 				end
+				break
 			end
 		end
 	end
-	
-	return false, nil, nil, nil
+
+	ml_debug("IsChain:"..tostring(firstChain)..","..tostring(lastChain)..tostring(nextFate))
+	return true, firstChain, lastChain, nextFate
 end
 
 function ffxiv_task_fate.Activateable(mapid, fateid)
