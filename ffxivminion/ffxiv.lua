@@ -424,18 +424,8 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 				local SelectYesnoStrings = GetControl("SelectYesno"):GetStrings()
 				if table.valid(SelectYesnoStrings) then
 					local SelectYesnoMessage = SelectYesnoStrings[2] or ""
-					local QueueString = {
-						[0] = "ログイン処理を中断してもよろしいですか？", -- JP
-						[1] = "Are you certain you wish to leave the queue?", -- EN
-						[2] = "Den Login-Prozess abbrechen?", -- DE
-						[3] = "Voulez-vous quitter la queue?", -- FR
-						[4] = "确定要取消登录吗？", -- CN
-						[6] = "로그인 처리를 중단하시겠습니까?", -- KR
-					}
-					local ClientLanguage = GetGameLanguage() or 1
-					local QueueMessage = QueueString[ClientLanguage]
 					if SelectYesnoMessage ~= "" then
-						if string.contains(SelectYesnoMessage, QueueMessage) == false then
+						if FFXIVLib.API.Strings.Contains(SelectYesnoMessage, FFXIVLib.API.Strings.QUEUE_LEAVE_CONFIRM) == false then
 							UseControlAction("SelectYesno", "Yes", 0)
 						end
 					end
@@ -453,18 +443,8 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 		if table.valid(selectOkStrings) then
 			local SelectOKMessage = selectOkStrings[2] or ""
 			if SelectOKMessage ~= "" then
-				local QueueString = {
-					[1] = "The server is currently congested", -- EN
-					[2] = "Auf dieser Welt herrscht momentan hoher Andrang", --DE
-					[3] = "Ce Monde est plein", -- FR
-					[0] = "順次ログイン処理を行っていますのでしばらくお待ちください。", -- JP
-					[4] = "当前服务器繁忙，需要排队进行登录，请耐心等待。", -- CN
-					[6] = "현재 서버가 혼잡합니다." -- KR
-				}
-				local ClientLanguage = GetGameLanguage() or 1
-				local QueueMessage = QueueString[ClientLanguage]
 				-- detection for CN language not working, temporarily disable skip
-				if ffxivminion.gameRegion == 2 or string.contains(SelectOKMessage, QueueMessage) == true then
+				if ffxivminion.gameRegion == 2 or FFXIVLib.API.Strings.Contains(SelectOKMessage, FFXIVLib.API.Strings.SERVER_CONGESTED) == true then
 					ml_debug("Waiting In Login Queue...")
 					if (IsControlOpen("Dialogue")) then
 						if (UseControlAction("Dialogue", "PressOK", 0)) then

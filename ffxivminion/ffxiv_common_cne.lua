@@ -2009,64 +2009,19 @@ function c_useaethernet:evaluate(mapid, pos)
 		return true
 	elseif (Player.localmapid == 628 and destMapID == 629) then
 		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = {
-			["id"] = 116, ["mapid"] = 628, ["pos"] = { ["x"] = -76.01, ["y"] = 19.06, ["z"] = -161.1 },
-			["conversationstrings"] = {
-				["E"] = "Bokairo Inn",
-				["J"] = "望海楼",
-				["G"] = "Badehaus Bokairo",
-				["F"] = "Auberge du Bokairo",
-				["CN"] = "望海楼",
-				["KR"] = "망해루",
-				["TC"] = "望海樓",
-			},
-		}
+		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(116) -- Bokairo Inn
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			return true
 		end
 	elseif (In(Player.localmapid,130,131) and destMapID == 178) then
 		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = {
-			["conversationstrings"] = {
-				["E"] = "Adventurers' Guild";
-				["J"] = "冒険者ギルド前";
-				["G"] = "Abenteurergilde";
-				["F"] = "Guilde des aventuriers";
-				["CN"] = "冒险者行会前";
-				["KR"] = "모험가 길드";
-				["TC"] = "冒險者行會前";
-			};
-			["id"] = 33;
-			["mapid"] = 130;
-			["pos"] = {
-				["x"] = 65.10;
-				["y"] = 4.1;
-				["z"] = -116.62;
-			};
-		}
+		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(33) -- Adventurers' Guild
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			return true
 		end
 	elseif (In(Player.localmapid,128,129) and destMapID == 177) then
 		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = {
-			["conversationstrings"] = {
-				["E"] = "The Aftcastle";
-				["J"] = "冒険者ギルド前";
-				["G"] = "Achterburg";
-				["F"] = "Guilde des aventuriers (Guildes des armuriers & forgerons/Maelstrom)";
-				["CN"] = "冒险者行会前";
-				["KR"] = "모험가 길드";
-				["TC"] = "冒險者行會前（鍛造師行會/甲冑師行會/黑渦團）";
-			};
-			["id"] = 41;
-			["mapid"] = 128;
-			["pos"] = {
-				["x"] = 16.09;
-				["y"] = 40;
-				["z"] = 70.61;
-			};
-		}
+		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(41) -- The Aftcastle
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
 			return true
 		end
@@ -3890,47 +3845,27 @@ function c_skipcutscene:evaluate()
 			if (SS) then
 				local SSGS = SS:GetStrings()
 				if (SSGS and SSGS[2]) then
-					if (SSGS[2] ~= "Skip cutscene?"
-						and
-						SSGS[2] ~= "Videosequenz überspringen?"
-						and
-						SSGS[2] ~= "Passer la scène cinématique ?"	
-						and
-						SSGS[2] ~= "このカットシーンをスキップしますか？"	
-						and
-						SSGS[2] ~= "要跳过这段过场动画吗？"	
-						and
-						SSGS[2] ~= "영상을 건너뛰시겠습니까?"			
-						and
-						SSGS[2] ~= "要跳過這段過場動畫嗎？") then
+					local skipStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.SKIP_CUTSCENE)
+					local skipStrOpening = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.SKIP_CUTSCENE_OPENING)
+					if (not skipStr or SSGS[2] ~= skipStr) and (not skipStrOpening or SSGS[2] ~= skipStrOpening) then
 						return false
-					end			
+					end
 				end
 			end
-            if (IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "This scene cannot be skipped." or GetControl("_TextError"):GetStrings()[2] == "Diese Szene kann nicht übersprungen werden." or GetControl("_TextError"):GetStrings()[2] == "Vous ne pouvez pas passer cette scène." or GetControl("_TextError"):GetStrings()[2] == "このイベントはスキップできません。" or GetControl("_TextError"):GetStrings()[2] == "该过场剧情无法跳过。" or GetControl("_TextError"):GetStrings()[2] == "건너뛸 수 없는 이벤트입니다.")) then    
+            if (IsControlOpen("_TextError") and FFXIVLib.API.Strings.Contains(GetControl("_TextError"):GetStrings()[2], FFXIVLib.API.Strings.CANNOT_SKIP_SCENE)) then
                 c_skipcutscene.lastSkip = Now() + 10000
                 return false
             end
 			if (SS) then
 				local SSGS = SS:GetStrings()
 				if (SSGS and SSGS[2]) then
-					if (SSGS[2] == "Skip cutscene?"
-						or
-						SSGS[2] == "Videosequenz überspringen?"
-						or
-						SSGS[2] == "Passer la scène cinématique ?"	
-						or
-						SSGS[2] == "このカットシーンをスキップしますか？"	
-						or
-						SSGS[2] == "要跳过这段过场动画吗？"	
-						or
-						SSGS[2] == "영상을 건너뛰시겠습니까?"			
-						or
-						SSGS[2] == "要跳過這段過場動畫嗎？") then
+					local skipStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.SKIP_CUTSCENE)
+					local skipStrOpening = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.SKIP_CUTSCENE_OPENING)
+					if (skipStr and SSGS[2] == skipStr) or (skipStrOpening and SSGS[2] == skipStrOpening) then
 						SelectConversationIndex(1)
 						d("Confirm Skip CS")
 						return true
-					end			
+					end
 				end
 			end	
             if TimeSince(c_skipcutscene.lastSkip) > 50 then 
@@ -4142,7 +4077,7 @@ function c_dointeract:evaluate()
 							local gPos = ml_task_hub:CurrentTask().pos
 							local dist3d = math.distance3d(gPos,tpos)  
 							if (table.valid(tpos) and table.valid(gPos)) then
-								if IsControlOpen('_TextError') and (GetControl("_TextError"):GetStrings()[2] == "Too far away." or GetControl("_TextError"):GetStrings()[2] == "Zu weit entfernt." or GetControl("_TextError"):GetStrings()[2] == "Vous êtes trop loin." or GetControl("_TextError"):GetStrings()[2] == "距離が遠すぎます。" or GetControl("_TextError"):GetStrings()[2] == "距离过远。" or GetControl("_TextError"):GetStrings()[2] == "距离太远。" or GetControl("_TextError"):GetStrings()[2] == "너무 멀리 있습니다.") then
+								if IsControlOpen("_TextError") and FFXIVLib.API.Strings.Contains(GetControl("_TextError"):GetStrings()[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
 									return false
 								elseif interactable.interactable then
 									Player:Stop()
