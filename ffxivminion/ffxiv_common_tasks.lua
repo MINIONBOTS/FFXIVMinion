@@ -2197,7 +2197,17 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		if (IsControlOpen("TelepotTown")) then
 			local aethernets = GetControlData("TelepotTown","aethernet")
 			if (table.valid(aethernets)) then
-				
+				d("[MoveAethernet] TelepotTown open. conversationstring=["..tostring(self.conversationstring).."] conversationstrings type=["..type(self.conversationstrings).."] conversationindex=["..tostring(self.conversationindex).."]")
+				if (table.valid(self.conversationstrings)) then
+					d("[MoveAethernet] conversationstrings contents:")
+					for k,v in pairs(self.conversationstrings) do
+						d("  ["..tostring(k).."] = ["..tostring(v).."]")
+					end
+				end
+				d("[MoveAethernet] Available aethernets:")
+				for _,ae in pairs(aethernets) do
+					d("  index=["..tostring(ae.index).."] string=["..tostring(ae.string).."]")
+				end
 				if (string.valid(self.conversationstring)) then
 					d("Checking task conversation string.")
 					for _,aethernet in pairs(aethernets) do
