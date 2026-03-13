@@ -3857,7 +3857,15 @@ function GetUnattunedAetheryteList()
 
 	for aethId, row in pairs(dict) do
 		if row.IsAetheryte == true then
-			aethList[aethId] = row
+			-- Remap new field names to old-compatible shape
+			aethList[aethId] = {
+				aethid = aethId,
+				id = row.TerritoryId or row.territory,
+				x = row.WorldX,
+				y = row.WorldY,
+				z = row.WorldZ,
+				IsAetheryte = true,
+			}
 		end
 	end
 
