@@ -32,61 +32,48 @@ ffxivminion.loginvars = {
 	useAutoLogin = false,
 }
 
-if (ffxivminion.gameRegion == 1) then
-    ffxivminion.logincenters = { "-", "Elemental", "Gaia", "Mana", "Aether", "Primal", "Chaos", "Light", "Crystal", "Materia", "Meteor", "Dynamis" }
-elseif (ffxivminion.gameRegion == 2) then
-    ffxivminion.logincenters = { "-", "陆行鸟", "莫古力", "猫小胖", "豆豆柴"}
-else
-    ffxivminion.logincenters = { "Main" }
-end
-
-if (ffxivminion.gameRegion == 1) then
-    ffxivminion.loginservers = {
-        [1] = { "-" },
-        [2] = { "-", "Aegis", "Atomos", "Carbuncle", "Garuda", "Gungnir", "Kujata", "Tonberry", "Typhon" }, -- JP-Elemental
-        [3] = { "-", "Alexander", "Bahamut", "Durandal", "Fenrir", "Ifrit", "Ridill", "Tiamat", "Ultima" }, -- JP-Gaia
-        [4] = { "-", "Anima", "Asura", "Chocobo", "Hades", "Ixion", "Masamune" , "Pandaemonium", "Titan"}, -- JP-Mana
-        [5] = { "-", "Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgardsormr", "Sargatanas", "Siren" }, -- NA-Aether
-        [6] = { "-", "Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros" }, -- NA-Primal
-        [7] = { "-", "Cerberus", "Louisoix", "Moogle", "Omega", "Phantom", "Ragnarok", "Sagittarius", "Spriggan", }, -- EU-Chaos
-        [8] = { "-", "Alpha", "Lich", "Odin", "Phoenix", "Raiden", "Shiva", "Twintania", "Zodiark" }, -- EU-Light
-        [9] = { "-", "Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera" }, -- NA-Crystal
-        [10] = { "-", "Bismarck", "Ravana", "Sephirot", "Sophia", "Zurvan", }, -- OC-Materia
-        [11] = { "-", "Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus" }, -- JP-Meteor
-	[12] = { "-", "Cuchulainn", "Golem", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph" }, -- NA-Dynamis
-    }
-elseif (ffxivminion.gameRegion == 2) then
-	ffxivminion.loginservers = {
-		[1] = { "-" },
-		[2] = { "-", "宇宙和音", "幻影群岛", "拉诺西亚", "晨曦王座", "沃仙曦染", "神意之地", "红玉海", "萌芽池" },
-		[3] = { "-", "拂晓之间", "旅人栈桥", "梦羽宝境", "潮风亭", "白金幻象", "白银乡", "神拳痕", "龙巢神殿" },
-		[4] = { "-", "延夏", "摩杜纳", "柔风海湾", "海猫茶屋", "琥珀原", "紫水栈桥", "静语庄园", },
-		[5] = { "-", "伊修加德", "太阳海岸", "水晶塔", "红茶川" , "银泪湖",  },
-	}
-elseif (ffxivminion.gameRegion == 3) then
-	ffxivminion.loginservers = {
-		[1] = { "-", "모그리", "초코보", "카벙클", "톤베리","펜리르" },
-	}
-elseif (ffxivminion.gameRegion == 4) then
-	ffxivminion.loginservers = {
-        [1] = { "-", "伊弗利特", "迦樓羅", "利維坦", "鳳凰", "奧汀", "巴哈姆特", "泰坦"},
-    }
-end
+-- Minimal fallback login data; replaced dynamically by FFXIVLib
+-- World data once it loads asynchronously.
+ffxivminion.logincenters = { "-" }
+ffxivminion.loginservers = { [1] = { "-" } }
+ffxivminion._loginDataRefreshed = false
 
 -- Refreshes login datacenter/server lists from FFXIVLib World data.
--- Called lazily from the GUI; replaces hardcoded lists once data is loaded.
+-- Called from MainMenuScreenOnUpdate and the GUI.
+-- Replaces minimal fallback lists once async data is loaded.
+-- Returns true if dynamic data is populated.
 function ffxivminion.RefreshLoginData()
-	if ffxivminion.gameRegion ~= 1 then return end
-	if ffxivminion._loginDataRefreshed then return end
-	local centers = FFXIVLib.API.World.GetLoginCenters()
-	local servers = FFXIVLib.API.World.GetLoginServers()
+	if ffxivminion._loginDataRefreshed then return true end
+	if not FFXIVLib or not FFXIVLib.API or not FFXIVLib.API.World then return false end
+
+	local region = ffxivminion.gameRegion
+	local centers = FFXIVLib.API.World.GetLoginCenters(region)
+	local servers = FFXIVLib.API.World.GetLoginServers(region)
+
 	if centers and servers and #centers > 1 and table.valid(servers[2]) then
 		ffxivminion.logincenters = centers
 		ffxivminion.loginservers = servers
 		ffxivminion._loginDataRefreshed = true
+
 		-- Re-resolve DC index for current saved name
-		FFXIV_Login_DataCenter = IsNull(GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters), 1)
+		if FFXIV_Login_DataCenterName then
+			FFXIV_Login_DataCenter = IsNull(
+				GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters), 1)
+		end
+		-- Re-resolve server index for current saved name
+		if FFXIV_Login_ServerName and ffxivminion.loginservers[FFXIV_Login_DataCenter] then
+			local serverIdx = GetKeyByValue(
+				FFXIV_Login_ServerName, ffxivminion.loginservers[FFXIV_Login_DataCenter])
+			if serverIdx then
+				FFXIV_Login_Server = serverIdx
+			end
+		end
+		return true
 	end
+
+	-- Data not yet loaded; fire pre-warm to accelerate loading
+	FFXIVData_PreWarmWorld(region)
+	return false
 end
 
 ffxivminion.AutoGrindDefault = [[
@@ -294,13 +281,17 @@ end
 function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 
-	if pauseOnLoad == nil then 
+	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
 		d("Pausing login on first load")
 	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
 		pauseOnLoad = false
 		d("Delay is over, unpausing login.")
 	end
+
+	-- Try to load dynamic login data each frame until it arrives.
+	-- Covers the window between HandleInit and auto-login start.
+	ffxivminion.RefreshLoginData()
 
 
 	if (not ffxivminion.loginvars.loginPaused and not pauseOnLoad) and login.useAutoLogin then
@@ -328,7 +319,7 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 					end
 				else
 					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 12) then
+						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= #ffxivminion.logincenters) then
 							d("trying to login on datacenter:" .. tostring(FFXIV_Login_DataCenter))
 							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
 								login.datacenterSelected = true
@@ -776,6 +767,9 @@ function ffxivminion.SetMainVars()
 	-- Login
 	local uuid = GetUUID()
 
+	-- Try to load dynamic login data immediately (may return false if async not ready)
+	ffxivminion.RefreshLoginData()
+
 	---DataCenter
 	if not SettingsUUID.Login.DataCenter then
 		if (Settings.Global.FFXIV_Login_DataCenters and string.valid(uuid) and Settings.Global.FFXIV_Login_DataCenters[uuid]) then
@@ -792,16 +786,22 @@ function ffxivminion.SetMainVars()
 		if (Settings.Global.FFXIV_Login_Servers and string.valid(uuid) and Settings.Global.FFXIV_Login_Servers[uuid]) then
 			SettingsUUID.Login.Server = Settings.Global.FFXIV_Login_Servers[uuid]
 		else
-			SettingsUUID.Login.Server = ffxivminion.GetSetting("FFXIV_Login_ServerName", ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
+			local dcServers = ffxivminion.loginservers[FFXIV_Login_DataCenter]
+			SettingsUUID.Login.Server = ffxivminion.GetSetting("FFXIV_Login_ServerName", dcServers and dcServers[1] or "-")
 		end
 	end
 	FFXIV_Login_ServerName = SettingsUUID.Login.Server
-	local serverIndex = GetKeyByValue(FFXIV_Login_ServerName, ffxivminion.loginservers[FFXIV_Login_DataCenter])
-	if (serverIndex == nil) then
-		FFXIV_Login_Server = 1
-		FFXIV_Login_ServerName = ffxivminion.loginservers[FFXIV_Login_DataCenter]
+	local dcServers = ffxivminion.loginservers[FFXIV_Login_DataCenter]
+	if dcServers then
+		local serverIndex = GetKeyByValue(FFXIV_Login_ServerName, dcServers)
+		if (serverIndex == nil) then
+			FFXIV_Login_Server = 1
+			FFXIV_Login_ServerName = dcServers[1] or "-"
+		else
+			FFXIV_Login_Server = serverIndex
+		end
 	else
-		FFXIV_Login_Server = serverIndex
+		FFXIV_Login_Server = 1
 	end
 
 	--ServiceAccount (when multi ff14-accounts tagged in single SE-account)
