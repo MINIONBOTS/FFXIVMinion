@@ -4044,6 +4044,7 @@ function c_dointeract:evaluate()
 							range = ml_task_hub:CurrentTask().interactRange3d
 						end
 					end
+					range = range or 3.5
 					
 					ml_debug("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
 					
