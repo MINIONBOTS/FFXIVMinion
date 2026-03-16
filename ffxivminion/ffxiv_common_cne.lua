@@ -577,6 +577,9 @@ e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
+	if gBotMode == GetString("assistMode") then
+		return false
+	end
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
 		return false
 	end
