@@ -1407,7 +1407,6 @@ function ffxiv_task_craft:Draw()
 			ffxiv_craft.orders = ffxiv_craft.profileData.orders
 			ffxiv_craft.ResetOrders()
 		end
-		GUI:PopItemWidth()
 		
 		if (GUI:Button(GetString("Craft Orders"),newButtonWidth,20)) and gCraftProfile ~= GetString("none") then
 			ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open

@@ -2932,6 +2932,7 @@ function ffxiv_task_fish:Draw()
 				Settings.minionlib.gMarkerModes = Settings.minionlib.gMarkerModes
 			end
 		end
+		GUI:PopItemWidth()
 	-- Profile Options
 	elseif gFishMarkerOrProfileIndex == 2 then
 		GUI:AlignFirstTextHeightToWidgets() 
@@ -3265,6 +3266,7 @@ function ffxiv_task_fish:Draw()
 			GUI:SetTooltip("Surface Slap List.")
 		end
 		
+		GUI:PopItemWidth()
 		GUI:Columns()
 		GUI:EndChild()
 	end

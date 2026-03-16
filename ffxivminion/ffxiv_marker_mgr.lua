@@ -200,6 +200,7 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 				dowrite = true
 			end
 		end
+		GUI:PopItemWidth()
 	end
 	
 	if (GUI:CollapsingHeader("Blacklist","gatherblacklist")) then
@@ -304,6 +305,7 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 		marker.fields.identicalcastables, changed = GUI:InputText("##identicalcastables",marker.fields.identicalcastables); if (changed) then dowrite = true end
 		GUI:Text("Surface Slap Fish");
 		marker.fields.surfaceslaplist, changed = GUI:InputText("##surfaceslaplist",marker.fields.surfaceslaplist); if (changed) then dowrite = true end
+		GUI:PopItemWidth()
 	end
 	
 	if (GUI:CollapsingHeader("Whitelist##fish","fishWhitelist")) then
@@ -321,8 +323,6 @@ function ffxiv_marker_mgr.FishingDraw(marker)
 	GUI:Text("HQ"); GUI:SameLine(0,5);
 	marker.fields.blacklistHQ, changed = GUI:InputText("##blacklistHQ",marker.fields.blacklistHQ); if (changed) then dowrite = true end
 	end
-
-	GUI:PopItemWidth()
 	
 	if (dowrite) then
 		ml_marker_mgr.WriteMarkerFile()

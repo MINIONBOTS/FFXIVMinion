@@ -6512,6 +6512,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("skmHasBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill if a party member is being affected by buffs with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTBuff",SKM_PTBuff),"SKM_PTBuff"); GUI:NextColumn();
 		GUI:Text(GetString("Known Debuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When selected, use this skill when being affected by a Minion-maintained list of debuffs (helpful for Esuna skills).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_PTKBuff",SKM_PTKBuff),"SKM_PTKBuff"); GUI:NextColumn();
 		GUI:Text(GetString("skmMissBuffs")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Use this skill if a party member is missing a buff with the ID entered.")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PTNBuff",SKM_PTNBuff),"SKM_PTNBuff"); GUI:NextColumn();
+		GUI:PopItemWidth()
 		GUI:Columns(1)
 	end
 	
@@ -6539,6 +6540,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Text(GetString("skmTCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TCONTIDS",SKM_TCONTIDS),"SKM_TCONTIDS"); GUI:NextColumn();
 		GUI:Text(GetString("skmTNCONTIDS")); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("Target must NOT have one of the listed contentids (comma-separated list).")) end GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TNCONTIDS",SKM_TNCONTIDS),"SKM_TNCONTIDS"); GUI:NextColumn();
 
+		GUI:PopItemWidth()
 		GUI:Columns(1)
 	end
 	

@@ -2010,6 +2010,7 @@ function ml_global_information.DrawSettings()
 					end
 					GUI:PushItemWidth(200);
 					GUI:InputText("##Current Active gFood", gFood, GUI.InputTextFlags_ReadOnly)
+					GUI:PopItemWidth()
 					GUI:SameLine()
 					GUI:Text(GetString("Current Active Food"))
 					GUI:PushItemWidth(200);
