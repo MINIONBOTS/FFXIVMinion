@@ -1425,7 +1425,16 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (range > 5) then			
+		if (range > 5) then
+			-- No LOS while in distance range — move closer before trying to cast.
+			if (not IsFlying() and target.distance2d <= range and not target.los and not target.los2) then
+				local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+				if (pathLength <= 0) then
+					Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
+				end
+				return false
+			end
+		
 			if (IsFlying() or (not InCombatRange(target.id) and not MIsCasting())) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
@@ -1521,30 +1530,38 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			if ((InCombatRange(target.id) or target.distance2d <= 15) and not IsFlying()) then
-				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (Player:IsMoving() and InCombatRange(target.id)) then
-					Player:Stop()
-				end
-				-- Check for combat range before executing.
-				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
-					if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
-						--Player:Stop()
-						local pullPos = nil
-						local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
-						if (dist1 > 6) then
-							--d("using pullpos 1")
-							pullPos = self.pullPos1
-						else
-							--d("using pullpos 2")
-							pullPos = self.pullPos2
-						end
-						--Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
-						Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1)
-						self.pullTimer = Now() + 5000
+				-- Close range but no LOS — move directly to target.
+				if (target.distance2d <= 15 and not target.los and not target.los2 and not InCombatRange(target.id)) then
+					local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
+					if (pathLength <= 0) then
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 					end
-					if (self.attackThrottle) then
-						if (Player.level > target.level) then
-							self.attackThrottleTimer = Now() + 2900
+				else
+					Player:SetFacing(pos.x,pos.y,pos.z) 
+					if (Player:IsMoving() and InCombatRange(target.id)) then
+						Player:Stop()
+					end
+					-- Check for combat range before executing.
+					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+						if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
+							--Player:Stop()
+							local pullPos = nil
+							local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
+							if (dist1 > 6) then
+								--d("using pullpos 1")
+								pullPos = self.pullPos1
+							else
+								--d("using pullpos 2")
+								pullPos = self.pullPos2
+							end
+							--Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
+							Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1)
+							self.pullTimer = Now() + 5000
+						end
+						if (self.attackThrottle) then
+							if (Player.level > target.level) then
+								self.attackThrottleTimer = Now() + 2900
+							end
 						end
 					end
 				end
@@ -2229,32 +2246,46 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		else
 			local convoList = GetConversationList()
 			if (table.valid(convoList)) then
+				d("[MoveAethernet] ConvoList open. useAethernet=["..tostring(self.useAethernet).."] isResidential=["..tostring(self.isResidential).."]")
+				for ci,cv in pairs(convoList) do
+					d("[MoveAethernet] ConvoLine ["..tostring(ci).."] = ["..tostring(cv).."]")
+				end
 				if (self.useAethernet and not self.isResidential) then
 					local aethStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_AETHERNET)
 					local resStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_RESIDENTIAL_AETHERNET)
-					if aethStr then
-						for selectindex,convo in pairs(convoList) do
-							local cleanedline = CleanConvoLine(convo)
-							local cleanedastring = CleanConvoLine(aethStr)
-							if (string.contains(cleanedline,cleanedastring) and (not resStr or not string.contains(cleanedline,CleanConvoLine(resStr)))) then
-								d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
-								SelectConversationLine(selectindex)
-								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-							end
+					d("[MoveAethernet] aethStr=["..tostring(aethStr).."] resStr=["..tostring(resStr).."]")
+					if not aethStr then
+						d("[MoveAethernet] aethStr not yet loaded, waiting for async query.")
+						return false
+					end
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo):gsub("^%s+",""):gsub("%s+$","")
+						local cleanedastring = CleanConvoLine(aethStr):gsub("^%s+",""):gsub("%s+$","")
+						local containsAeth = string.contains(cleanedline,cleanedastring)
+						local containsRes = resStr and string.contains(cleanedline,CleanConvoLine(resStr):gsub("^%s+",""):gsub("%s+$",""))
+						d("[MoveAethernet] Check ["..tostring(selectindex).."]: cleaned=["..tostring(cleanedline).."] vs aeth=["..tostring(cleanedastring).."] match=["..tostring(containsAeth).."] resMatch=["..tostring(containsRes).."]")
+						if (containsAeth and (not resStr or not containsRes)) then
+							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+							SelectConversationLine(selectindex)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							return false
 						end
 					end
 					d("Checked if we need to open aetheryte menu.")
 				elseif (self.useAethernet and self.isResidential) then
 					local resStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_RESIDENTIAL_AETHERNET)
-					if resStr then
-						for selectindex,convo in pairs(convoList) do
-							local cleanedline = CleanConvoLine(convo)
-							local cleanedastring = CleanConvoLine(resStr)
-							if (string.contains(cleanedline,cleanedastring)) then
-								d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
-								SelectConversationLine(selectindex)
-								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
-							end
+					if not resStr then
+						d("[MoveAethernet] resStr not yet loaded, waiting for async query.")
+						return false
+					end
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = CleanConvoLine(convo):gsub("^%s+",""):gsub("%s+$","")
+						local cleanedastring = CleanConvoLine(resStr):gsub("^%s+",""):gsub("%s+$","")
+						if (string.contains(cleanedline,cleanedastring)) then
+							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+							SelectConversationLine(selectindex)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							return false
 						end
 					end
 					d("Checked if we need to open residential aetheryte menu.")
@@ -2297,10 +2328,15 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					end
 				elseif (table.valid(self.conversationstrings)) then
 					d("Checking task conversation strings.")
+					d("[MoveAethernet] conversationstrings contents:")
+					for ck,cv in pairs(self.conversationstrings) do
+						d("[MoveAethernet]   ["..tostring(ck).."] = ["..tostring(cv).."]")
+					end
 					for selectindex,convo in pairs(convoList) do
 						local cleanedline = CleanConvoLine(convo)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
+							d("[MoveAethernet] Compare convo["..tostring(selectindex).."] cleaned=["..tostring(cleanedline).."] vs str["..tostring(k).."] cleaned=["..tostring(cleanedv).."] contains=["..tostring(string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))).." exact=["..tostring(v == convo).."]")
 							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
 								d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 								SelectConversationLine(selectindex)

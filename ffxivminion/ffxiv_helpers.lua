@@ -652,6 +652,7 @@ function GetNearestFateAttackable()
 		if (fate.status == 2 and fate.completion < 100) then
 		
 			local nearest,nearestDistance = nil,0
+			local nearestNoLos,nearestNoLosDist = nil,0
 			el = MEntityList("alive,attackable,onmesh,maxdistance2d=100,contentid=6737;6738")
 			if (table.valid(el)) then
 				for i,entity in pairs(el) do
@@ -660,14 +661,23 @@ function GetNearestFateAttackable()
 						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 						if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10))) then
 							local dist = entity.distance2d
-							if (not nearest or dist < nearestDistance) then
-								nearest, nearestDistance = entity, dist
+							if (entity.los) then
+								if (not nearest or dist < nearestDistance) then
+									nearest, nearestDistance = entity, dist
+								end
+							else
+								if (not nearestNoLos or dist < nearestNoLosDist) then
+									nearestNoLos, nearestNoLosDist = entity, dist
+								end
 							end
 						end
 					end
 				end
 				if (nearest) then
 					return nearest
+				end
+				if (nearestNoLos) then
+					return nearestNoLos
 				end
 			end	
 			
@@ -723,6 +733,7 @@ function GetNearestFateAttackable()
 			end
 			
 			local nearest,nearestDistance = nil,0
+			local nearestNoLos,nearestNoLosDist = nil,0
 			el = MEntityList("alive,attackable,targetingme,onmesh,maxdistance2d=10")
 			if (table.valid(el)) then
 				for i,entity in pairs(el) do
@@ -731,8 +742,14 @@ function GetNearestFateAttackable()
 						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 						if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10)) or entity.fateid == 0) then
 							local dist = entity.distance2d
-							if (not nearest or dist < nearestDistance) then
-								nearest, nearestDistance = entity, dist
+							if (entity.los) then
+								if (not nearest or dist < nearestDistance) then
+									nearest, nearestDistance = entity, dist
+								end
+							else
+								if (not nearestNoLos or dist < nearestNoLosDist) then
+									nearestNoLos, nearestNoLosDist = entity, dist
+								end
 							end
 						end
 					end
@@ -740,9 +757,13 @@ function GetNearestFateAttackable()
 				if (nearest) then
 					return nearest
 				end
+				if (nearestNoLos) then
+					return nearestNoLos
+				end
 			end	
 
 			nearest,nearestDistance = nil,0
+			nearestNoLos,nearestNoLosDist = nil,0
 			local companion = GetCompanionEntity()
 			if (companion) then
 				el = MEntityList("alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
@@ -753,14 +774,23 @@ function GetNearestFateAttackable()
 							local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 							if (fatedist <= fate.radius or (not overMaxLevel and fatedist <= (fate.radius * 1.10)) or e.fateid == 0) then
 								local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
-								if (not nearest or dist3d < nearestDistance) then
-									nearest, nearestDistance = e, dist3d
+								if (e.los) then
+									if (not nearest or dist3d < nearestDistance) then
+										nearest, nearestDistance = e, dist3d
+									end
+								else
+									if (not nearestNoLos or dist3d < nearestNoLosDist) then
+										nearestNoLos, nearestNoLosDist = e, dist3d
+									end
 								end
 							end
 						end
 					end
 					if (nearest) then
 						return nearest
+					end
+					if (nearestNoLos) then
+						return nearestNoLos
 					end
 				end	
 			end
@@ -786,6 +816,7 @@ function GetNearestFateAttackable()
 			end	
 			
 			nearest,nearestDistance = nil,0
+			nearestNoLos,nearestNoLosDist = nil,0
 			el = MEntityList("alive,attackable,onmesh")
 			if (table.valid(el)) then
 				for i,entity in pairs(el) do
@@ -794,14 +825,23 @@ function GetNearestFateAttackable()
 						local fatedist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 						if (fatedist <= fate.radius) then
 							local dist3d = Distance3D(epos.x,epos.y,epos.z,myPos.x,myPos.y,myPos.z)
-							if (not nearest or dist3d < nearestDistance) then
-								nearest, nearestDistance = entity, dist3d
+							if (entity.los) then
+								if (not nearest or dist3d < nearestDistance) then
+									nearest, nearestDistance = entity, dist3d
+								end
+							else
+								if (not nearestNoLos or dist3d < nearestNoLosDist) then
+									nearestNoLos, nearestNoLosDist = entity, dist3d
+								end
 							end
 						end
 					end
 				end
 				if (nearest) then
 					return nearest
+				end
+				if (nearestNoLos) then
+					return nearestNoLos
 				end
 			end	
 		end
@@ -3856,7 +3896,7 @@ function GetUnattunedAetheryteList()
 	if not dict then return aethList end
 
 	for aethId, row in pairs(dict) do
-		if row.IsAetheryte == true then
+		if row.IsAetheryte == true and FFXIVLib.API.Map.CanAttuneAetheryte(row) then
 			-- Remap new field names to old-compatible shape
 			aethList[aethId] = {
 				aethid = aethId,
@@ -11638,7 +11678,7 @@ function GetRequiredPitch(pos,noadjustment)
 	return 0
 end
 function IsNormalMap(mapid)
-	return FFXIVLib.API.Map.IsFieldZone(mapid) or false
+	return FFXIVLib.API.Map.IsFieldZone(mapid) or FFXIVLib.API.Map.IsTown(mapid)
 end
 function IsHousingMap(mapid)
 	return FFXIVLib.API.Map.IsHousingZone(mapid) or false

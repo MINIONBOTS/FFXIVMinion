@@ -193,6 +193,10 @@ ffxivminion.GUI = {
 		name = "Help Window",
 		open = false,
 		visible = true,
+		access_cache = {},
+		access_cache_time = 0,
+		access_cache_mapid = 0,
+		access_cache_questcount = -1,
 	},
 	informational = {
 		name = "Information Window",
@@ -2775,55 +2779,72 @@ invalid name or haven't chosen one."))
 						GUI:TextColored(1, .1, .2, 1, GetString("Not On Mesh"))
 					end
 
-					if CanAccessMap(1192) then
+					-- Cache CanAccessMap results; invalidate on map change, quest completion, or every 5 minutes
+					local hc = ffxivminion.GUI.help
+					local currentMap = Player.localmapid
+					local ql = Quest:GetQuestList()
+					local qcount = (ql and TableSize(ql)) or 0
+					if (hc.access_cache_mapid ~= currentMap or hc.access_cache_questcount ~= qcount or Now() - hc.access_cache_time > 300000) then
+						hc.access_cache_time = Now()
+						hc.access_cache_mapid = currentMap
+						hc.access_cache_questcount = qcount
+						local c = {}
+						local check_order = {1192,1191,1186,1190,1189,1188,1187,1185,818,817,816,815,814,819,621,622,614,613,612,402,399,398,397,418}
+						for _, mid in ipairs(check_order) do
+							c[mid] = CanAccessMap(mid)
+						end
+						hc.access_cache = c
+					end
+					local ac = hc.access_cache
+					if ac[1192] then
 						GUI:Text("Can Access Living Memory");
-					elseif CanAccessMap(1191) then
+					elseif ac[1191] then
 						GUI:Text("Can Access Heritage Found");
-					elseif CanAccessMap(1186) then
+					elseif ac[1186] then
 						GUI:Text("Can Access Solution Nine");
-					elseif CanAccessMap(1190) then
+					elseif ac[1190] then
 						GUI:Text("Can Access Shaaloani");
-					elseif CanAccessMap(1189) then
+					elseif ac[1189] then
 						GUI:Text("Can Access Yak T'el");
-					elseif CanAccessMap(1188) then
+					elseif ac[1188] then
 						GUI:Text("Can Access Kozama'uka");
-					elseif CanAccessMap(1187) then
+					elseif ac[1187] then
 						GUI:Text("Can Access Urqopacha");
-					elseif CanAccessMap(1185) then
+					elseif ac[1185] then
 						GUI:Text("Can Access Tuliyollal");
-					elseif CanAccessMap(818) then
+					elseif ac[818] then
 						GUI:Text("Can Access The Tempest");
-					elseif CanAccessMap(817) then
+					elseif ac[817] then
 						GUI:Text("Can Access The Rak'tika Greatwood");
-					elseif CanAccessMap(816) then
+					elseif ac[816] then
 						GUI:Text("Can Access Il Mheg");
-					elseif CanAccessMap(815) then
+					elseif ac[815] then
 						GUI:Text("Can Access Amh Araeng");
-					elseif CanAccessMap(814) then
+					elseif ac[814] then
 						GUI:Text("Can Access Lakeland");
-					elseif CanAccessMap(819) then
+					elseif ac[819] then
 						GUI:Text("Can Access The Crystarium");
-					elseif CanAccessMap(621) then
+					elseif ac[621] then
 						GUI:Text("Can Access The Lochs");
-					elseif CanAccessMap(622) then
+					elseif ac[622] then
 						GUI:Text("Can Access Azim Steppes");
-					elseif CanAccessMap(614) then
+					elseif ac[614] then
 						GUI:Text("Can Access Yanxia");
-					elseif CanAccessMap(613) then
+					elseif ac[613] then
 						GUI:Text("Can Access The Ruby Sea");
-					elseif CanAccessMap(612) then
+					elseif ac[612] then
 						GUI:Text("Can Access The Fringes");
-					elseif CanAccessMap(402) then
+					elseif ac[402] then
 						GUI:Text("Can Access Azys Lla");
-					elseif CanAccessMap(399) then
+					elseif ac[399] then
 						GUI:Text("Can Access Dravanian Hinterlands");
-					elseif CanAccessMap(398) then
+					elseif ac[398] then
 						GUI:Text("Can Access Dravanian Forelands");
-					elseif CanAccessMap(397) then
+					elseif ac[397] then
 						GUI:Text("Can Access CWH");
-					elseif CanAccessMap(418) then
+					elseif ac[418] then
 						GUI:Text("Can NOT Access CWH");
-					elseif not CanAccessMap(418) then
+					elseif not ac[418] then
 						GUI:Text("Can NOT Access Heavensward maps");
 					end
 

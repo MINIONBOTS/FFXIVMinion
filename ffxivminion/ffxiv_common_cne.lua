@@ -38,6 +38,8 @@ function e_getCurrentInfo:execute()
 			for i,e in pairs(aeclist) do 
 				if table.size(e.status) < 20 then
 					ffxivminion.AetherCurrentData[e.mapid] = aeclist[e.mapid].status
+					-- Preload aether current position data so GetUnattunedCurrents has it cached
+					FFXIVLib.API.AetherCurrent.GetAetherCurrentsByTerritoryId(e.mapid)
 				else
 					return false
 				end
@@ -575,7 +577,7 @@ e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
-	if gBotMode == GetString("assistMode") and not gAssistAvoidAOE then
+	if gBotMode == GetString("assistMode") then
 		return false
 	end
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
@@ -2071,12 +2073,12 @@ end
 local function NormalizeAethernetRow(row)
 	if not row then return row end
 	if not row.pos and row.WorldX then
-		local y = row.WorldY
-		if not y then
-			local meshPt = NavigationManager:GetClosestPointOnMesh({x = row.WorldX, y = 0, z = row.WorldZ})
-			y = meshPt and meshPt.y or 0
+		local meshPt = NavigationManager:GetClosestPointOnMesh({x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ})
+		if meshPt then
+			row.pos = meshPt
+		else
+			row.pos = { x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ }
 		end
-		row.pos = { x = row.WorldX, y = y, z = row.WorldZ }
 	end
 	if not row.conversationstrings and row.AethernetName then
 		row.conversationstrings = row.AethernetName
@@ -4042,6 +4044,7 @@ function c_dointeract:evaluate()
 							range = ml_task_hub:CurrentTask().interactRange3d
 						end
 					end
+					range = range or 3.5
 					
 					ml_debug("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
 					
