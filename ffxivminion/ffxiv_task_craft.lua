@@ -2087,8 +2087,8 @@ function ffxiv_craft.DeleteOrder(key)
 end
 	
 function ffxiv_craft.UpdateAlertElement()
-	if (ffxiv_craft.IsCrafting() or (gBotMode == GetString("craftMode") and gCraftMarkerOrProfileIndex ~= 1) or 
-		gBotMode ~= GetString("craftMode") or 
+	if (ffxiv_craft.IsCrafting() or (gBotMode == "craftMode" and gCraftMarkerOrProfileIndex ~= 1) or 
+		gBotMode ~= "craftMode" or 
 		(Now() < ffxiv_craft.tracking.measurementDelay))
 	then
 		return false

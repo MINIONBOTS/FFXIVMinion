@@ -4,4 +4,3 @@ Version=1
 Dependencies=minionlib
 Enabled=1
 Files=translations.lua
-EnvironmentLevel=0

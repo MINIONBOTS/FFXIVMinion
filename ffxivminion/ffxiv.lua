@@ -585,14 +585,14 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			end
 		end
 
-		if (gBotMode ~= GetString("assistMode")) then
+		if (gBotMode ~= "assistMode") then
 			ffxivminion.UpdateGlobals()
 		end
 
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and
-				gBotMode ~= GetString("assistMode") and
-				gBotMode ~= GetString("dutyMode"))
+				gBotMode ~= "assistMode" and
+				gBotMode ~= "dutyMode")
 		then
 			ffxivminion.ClearAddons()
 		end
@@ -844,10 +844,10 @@ function ffxivminion.SetMainVars()
 	if (Settings.FFXIVMINION.gBotModes and string.valid(uuid) and Settings.FFXIVMINION.gBotModes[uuid]) then
 		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
 	else
-		gBotMode = ffxivminion.GetSetting("gBotMode", GetString("assistMode"))
+		gBotMode = ffxivminion.GetSetting("gBotMode", "assistMode")
 	end
-	gBotMode = GetString(gBotMode)
-	gBotModeList = { GetString("none") }
+	gBotModeList = {}
+	gBotModeDisplayList = {}
 
 	gSkillProfileIndex = 1
 	gSkillProfile = GetString("none")
@@ -1003,24 +1003,24 @@ end
 function ffxivminion.HandleInit()
 	-- Build bottom menu for new GUI addons.
 	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings,Stuck!", true)
-	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ,Mesh Report", true)
+	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ,Mesh Report", false)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
 
 	FFXIV_Common_NavMesh = GetString("none")
 
 	-- Add "known" modes, safe.
-	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind)
-	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
-	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
-	ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
-	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
-	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
-	--ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
-	--ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
-	--ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
-	--ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
-	--ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
+	ffxivminion.AddMode("grindMode", ffxiv_task_grind)
+	ffxivminion.AddMode("fishMode", ffxiv_task_fish)
+	ffxivminion.AddMode("gatherMode", ffxiv_task_gather)
+	ffxivminion.AddMode("craftMode", ffxiv_task_craft)
+	ffxivminion.AddMode("assistMode", ffxiv_task_assist)
+	ffxivminion.AddMode("partyMode", ffxiv_task_party)
+	--ffxivminion.AddMode("pvpMode", ffxiv_task_pvp)
+	--ffxivminion.AddMode("frontlines", ffxiv_task_frontlines)
+	--ffxivminion.AddMode("huntMode", ffxiv_task_hunt)
+	--ffxivminion.AddMode("huntlogMode", ffxiv_task_huntlog)
+	--ffxivminion.AddMode("quickStartMode", ffxiv_task_qs_wrapper)
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 
 	-- New GUI code, need new strings and handlers for combo boxes.
@@ -1304,20 +1304,20 @@ function ffxivminion.CheckClass()
 
 		-- autosetting the correct botmode
 
-		if (gBotMode ~= GetString("questMode")) then
+		if (gBotMode ~= "questMode") then
 			local newModeName = ""
 			if (ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
-				newModeName = GetString("gatherMode")
+				newModeName = "gatherMode"
 			elseif (ml_global_information.CurrentClass == ffxiv_gather_fisher) then
-				newModeName = GetString("fishMode")
+				newModeName = "fishMode"
 			elseif (ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith
 					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
 					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
 					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-				newModeName = GetString("craftMode")
+				newModeName = "craftMode"
 				--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-			elseif (gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
-				newModeName = GetString("assistMode")
+			elseif (gBotMode == "gatherMode" or gBotMode == "fishMode" or gBotMode == "craftMode") then
+				newModeName = "assistMode"
 			end
 
 			if (gBotMode ~= newModeName and newModeName ~= "") then
@@ -1333,13 +1333,13 @@ function ffxivminion.CheckMode()
 		if (not ml_task_hub:CheckForTask(task)) then
 			ffxivminion.SetMode(gBotMode)
 		end
-	elseif (gBotMode == GetString("none")) then
+	elseif (gBotMode == "none") then
 		ml_task_hub:ClearQueues()
 	end
 end
 
 function ffxivminion.UpdateGlobals()
-	if (gBotMode ~= GetString("assistMode")) then
+	if (gBotMode ~= "assistMode") then
 		if (Player) then
 			ml_global_information.Player_Aetherytes = GetAetheryteList()
 		end
@@ -1355,7 +1355,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= GetString("assistMode") then
+	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= "assistMode" then
 		Player:Stop()
 	end
 	SkillMgr.receivedMacro = {}
@@ -1427,12 +1427,9 @@ function ffxivminion.LoadModes()
 
 	if (table.valid(ffxivminion.modesToLoad)) then
 		for modeName, task in pairs(ffxivminion.modesToLoad) do
-			-- Retranslate mode name to current language (modes may have been
-			-- registered before the translation DB was loaded)
-			local translatedName = Retranslate(modeName)
-			d("Loading mode [" .. tostring(translatedName) .. "].")
-			ffxivminion.modes[translatedName] = task
-			task.friendly = translatedName
+			d("Loading mode [" .. tostring(modeName) .. "].")
+			ffxivminion.modes[modeName] = task
+			task.friendly = GetString(modeName)
 			if (task.UIInit) then
 				task:UIInit()
 			end
@@ -1442,29 +1439,28 @@ function ffxivminion.LoadModes()
 		ffxivminion.modesToLoad = {}
 	end
 
-	-- Retranslate gBotMode to match current language mode keys
-	gBotMode = Retranslate(gBotMode)
-
 	gBotModeList = {}
+	gBotModeDisplayList = {}
 	if (table.valid(ffxivminion.modes)) then
 		local modes = ffxivminion.modes
 		for modeName, task in spairs(modes, function(modes, a, b)
 			return modes[a].friendly < modes[b].friendly
 		end) do
 			table.insert(gBotModeList, modeName)
+			table.insert(gBotModeDisplayList, task.friendly)
 			if (modeName == gBotMode) then
 				gBotModeIndex = table.size(gBotModeList)
 			end
 		end
 	end
 
-	local modeIndex = GetKeyByValue(Retranslate(gBotMode), gBotModeList)
+	local modeIndex = GetKeyByValue(gBotMode, gBotModeList)
 	if (modeIndex) then
 		gBotModeIndex = modeIndex
 	else
-		local backupIndex = GetKeyByValue(GetString("assistMode"), gBotModeList)
+		local backupIndex = GetKeyByValue("assistMode", gBotModeList)
 		gBotModeIndex = backupIndex
-		gBotMode = GetString("assistMode")
+		gBotMode = "assistMode"
 	end
 
 	ffxivminion.SwitchMode(gBotMode)
@@ -1624,9 +1620,12 @@ function ml_global_information.DrawMainFull()
 					GUI:Text(GetString("botMode"))
 					GUI:SameLine(110)
 					GUI:PushItemWidth(contentwidth - 165)
-					local modeChanged = GUI_Combo("##" .. GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
+					local newModeIndex = GUI:Combo("##" .. GetString("botMode"), gBotModeIndex, gBotModeDisplayList)
 					GUI:PopItemWidth()
+					local modeChanged = (newModeIndex ~= gBotModeIndex)
 					if (modeChanged) then
+						gBotModeIndex = newModeIndex
+						gBotMode = gBotModeList[gBotModeIndex]
 						ffxivminion.SwitchMode(gBotMode)
 						local uuid = GetUUID()
 						if (string.valid(uuid)) then
@@ -1734,7 +1733,7 @@ function ml_global_information.DrawMainFull()
 					GUI:Separator()
 
 					local space = -50
-					if (In(gBotMode, GetString("grindMode"), GetString("gatherMode"), GetString("fishMode"))) then
+					if (In(gBotMode, "grindMode", "gatherMode", "fishMode")) then
 						local GatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
 						if (GatherClasses) then
 							space = -75
@@ -1766,15 +1765,15 @@ function ml_global_information.DrawMainFull()
 						if (GUI:Button(GetString("Edit/View Markers"), (contentwidth / 2) - 4, 20)) then
 							ml_marker_mgr.GUI.main_window.open = true
 
-							if (gBotMode == GetString("grindMode")) then
+							if (gBotMode == "grindMode") then
 								gMarkerType = GetString("Grind")
-							elseif (gBotMode == GetString("gatherMode")) then
+							elseif (gBotMode == "gatherMode") then
 								if (Player.job == 16) then
 									gMarkerType = GetString("Mining")
 								elseif (Player.job == 17) then
 									gMarkerType = GetString("Botany")
 								end
-							elseif (gBotMode == GetString("fishMode")) then
+							elseif (gBotMode == "fishMode") then
 								gMarkerType = GetString("Fishing")
 							end
 
@@ -1788,10 +1787,10 @@ function ml_global_information.DrawMainFull()
 							ml_marker_mgr.GUI.main_window.open = true
 
 							local markerAddType = ""
-							if (gBotMode == GetString("grindMode")) then
+							if (gBotMode == "grindMode") then
 								gMarkerType = GetString("Grind")
 								markerAddType = "Grind"
-							elseif (gBotMode == GetString("gatherMode")) then
+							elseif (gBotMode == "gatherMode") then
 								if (Player.job == 16) then
 									gMarkerType = GetString("Mining")
 									markerAddType = "Mining"
@@ -1799,7 +1798,7 @@ function ml_global_information.DrawMainFull()
 									gMarkerType = GetString("Botany")
 									markerAddType = "Botany"
 								end
-							elseif (gBotMode == GetString("fishMode")) then
+							elseif (gBotMode == "fishMode") then
 								gMarkerType = GetString("Fishing")
 								markerAddType = "Fishing"
 							end
@@ -1857,7 +1856,7 @@ function ml_global_information.DrawSmall()
 
 				GUI:BeginChild("##label-" .. gBotMode, 120, 40, true)
 				GUI:AlignFirstTextHeightToWidgets()
-				GUI:Text(gBotMode)
+				GUI:Text(GetString(gBotMode))
 				GUI:EndChild()
 				if (GUI:IsItemHovered()) then
 					if (GUI:IsMouseClicked(0)) then
@@ -1894,7 +1893,7 @@ function ml_global_information.DrawSmall()
 			end
 		end
 		
-		if gBotMode == GetString("assistMode") then
+		if gBotMode == "assistMode" then
 			if c_assistqtepress:evaluate() then
 				e_assistqtepress:execute()
 			end
@@ -2044,7 +2043,7 @@ function ml_global_information.DrawSettings()
 
 					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"), gAutoEquip), "gAutoEquip",
 							function()
-								if (gBotMode == GetString("questMode")) then
+								if (gBotMode == "questMode") then
 									GUI_Set("gQuestAutoEquip", gAutoEquip)
 								end
 							end
@@ -2232,7 +2231,7 @@ function ml_global_information.DrawSettings()
 					end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"), gTeleportHack), "gTeleportHack",
 							function()
-								if (gBotMode == GetString("dutyMode")) then
+								if (gBotMode == "dutyMode") then
 									GUI_Set("gDutyTeleportHack", gDutyTeleportHack)
 								end
 							end
@@ -2559,7 +2558,8 @@ function ml_global_information.DrawHelper()
 			ffxivminion.GUI.help.visible, ffxivminion.GUI.help.open = GUI:Begin(ffxivminion.GUI.help.name, ffxivminion.GUI.help.open)
 			if (ffxivminion.GUI.help.visible) then
 
-				GUI:Text(GetString("Current Bot Mode: ") .. gBotMode)
+				local modeKey = GetStringKey(gBotMode)
+				GUI:Text("Current Bot Mode: " .. (string.valid(modeKey) and GetStringByLang(modeKey, "en") or gBotMode))
 				GUI:Separator()
 				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
 				local tabs = ffxivminion.GUI.help.main_tabs
@@ -2573,13 +2573,13 @@ function ml_global_information.DrawHelper()
 					NavigationManager.RenderAlpha = 115
 					Settings.minionlib.ShowNavPath = true
 
-					GUI:Text(GetString("Report issues in the Forum or Discord Channel."))
+					GUI:Text("Report issues in the Forum or Discord Channel.")
 					GUI:Spacing();
 					GUI:Spacing();
-					GUI:Text(GetString("Please provide : "))
-					GUI:Text(GetString("An image of your ENTIRE SCREEN with your report."))
-					GUI:Text(GetString("This tab must be included in the image."))
-					GUI:Text(GetString("Hide your Char name!!"))
+					GUI:Text("Please provide : ")
+					GUI:Text("An image of your ENTIRE SCREEN with your report.")
+					GUI:Text("This tab must be included in the image.")
+					GUI:Text("Hide your Char name!!")
 					GUI:Spacing();
 					GUI:Spacing();
 					GUI:Separator()
@@ -2595,15 +2595,15 @@ function ml_global_information.DrawHelper()
 				end
 				-- Help tab.
 				if (tabs.tabs[2].isselected) then
-					if (gBotMode == GetString("assistMode")) then
-						GUI:Text(GetString("Assist Mode will... \
+					if (gBotMode == "assistMode") then
+						GUI:Text("Assist Mode will... \
 \
 You Steer, we Shoot. \
 \
 Combat routines come from Skill Profile or ACR. \
-Combat is only as good as the Profile used."))
-					elseif (gBotMode == GetString("grindMode")) then
-						GUI:Text(GetString("Grind Mode will... \
+Combat is only as good as the Profile used.")
+					elseif (gBotMode == "grindMode") then
+						GUI:Text("Grind Mode will... \
 \
 Do Fates, Huntlogs and Grind Mobs. \
 \
@@ -2613,25 +2613,25 @@ While we endevour to Automate Settings, \
 Settings can be changed if Advanced Settings is enabled. \
 \
 Combat routines come from Skill Profile or ACR. \
-Combat is only as good as the Profile used."))
-					elseif (gBotMode == GetString("gatherMode")) then
-						GUI:Text(GetString("Gather Mode will... \
+Combat is only as good as the Profile used.")
+					elseif (gBotMode == "gatherMode") then
+						GUI:Text("Gather Mode will... \
 \
 Use Markers, Profiles or Quickstart. \
 Only for Miner or Botanist. \
 \
-Skills use are set by Skill Profile"))
-					elseif (gBotMode == GetString("fishMode")) then
-						GUI:Text(GetString("Fish Mode will... \
+Skills use are set by Skill Profile")
+					elseif (gBotMode == "fishMode") then
+						GUI:Text("Fish Mode will... \
 \
 Use Markers, Profiles or Quickstart. \
 \
 Only for Fisher. \
 \
 Skills are NOT set via Skill Profile. \
-Set Skills Via Marker or Profiles."))
-					elseif (gBotMode == GetString("craftMode")) then
-						GUI:Text(GetString("Craft Mode will... \
+Set Skills Via Marker or Profiles.")
+					elseif (gBotMode == "craftMode") then
+						GUI:Text("Craft Mode will... \
  \
 Craft a list of items Set via Profile\
 or \
@@ -2648,40 +2648,40 @@ or \
 \
 Quickstart will use the Active Skill Profile Selection. \
 \
-Craft Mode is Only as Good as the Skill Profile!!"))
+Craft Mode is Only as Good as the Skill Profile!!")
 					else
-						GUI:Text(GetString("Accepting help and Faq suggestions"))
+						GUI:Text("Accepting help and Faq suggestions")
 					end
 				end
 				-- FAQ tab.
 				if (tabs.tabs[3].isselected) then
-					if (gBotMode == GetString("assistMode")) then
-						GUI:Text(GetString("My Bot Wont attack? \
+					if (gBotMode == "assistMode") then
+						GUI:Text("My Bot Wont attack? \
 \
 Check your skill profile is set to the right Class/Job. \
-Is Start combat Checked?"))
-					elseif (gBotMode == GetString("grindMode")) then
-						GUI:Text(GetString("My Bot Doesnt move? \
+Is Start combat Checked?")
+					elseif (gBotMode == "grindMode") then
+						GUI:Text("My Bot Doesnt move? \
 \
 Are any valid Fates Available? \
 Are Max Fate settings to low? \
 \
 My Bot Wont attack? \
 \
-Check your skill profile is set to the right Class/Job."))
-					elseif (gBotMode == GetString("gatherMode")) then
-						GUI:Text(GetString("Bot Doesnt move? \
+Check your skill profile is set to the right Class/Job.")
+					elseif (gBotMode == "gatherMode") then
+						GUI:Text("Bot Doesnt move? \
 \
 Profile has no valid tasks? \
 Markers have radius to small? \
-Heavensward or Stormblood may need Marker list."))
-					elseif (gBotMode == GetString("fishMode")) then
-						GUI:Text(GetString("Bot Doesnt Fish? \
+Heavensward or Stormblood may need Marker list.")
+					elseif (gBotMode == "fishMode") then
+						GUI:Text("Bot Doesnt Fish? \
 \
 Profile has no valid tasks? \
-Current location has Lockout out due to fishing Limit?"))
-					elseif (gBotMode == GetString("craftMode")) then
-						GUI:Text(GetString("Bot Doesnt Craft? \
+Current location has Lockout out due to fishing Limit?")
+					elseif (gBotMode == "craftMode") then
+						GUI:Text("Bot Doesnt Craft? \
 \
 Profiles... \
 Check UI alert and see if there is an alert. \
@@ -2689,24 +2689,24 @@ Check UI alert and see if there is an alert. \
 \
 Quick start \
 Have you set a Skill Profile? \
-Do you have materials?"))
-					elseif gBotMode == GetString("questMode") then
-						GUI:Text(GetString("I'm doing the 1-70 quests and above level 30,\
-but I still don't have my Chocobo.  Why?"))
+Do you have materials?")
+					elseif gBotMode == "questMode" then
+						GUI:Text("I'm doing the 1-70 quests and above level 30,\
+but I still don't have my Chocobo.  Why?")
 
-						GUI:TextColored(1, .1, .2, 1, GetString("Most likely it's still doing side quests and hasn't\
+						GUI:TextColored(1, .1, .2, 1, "Most likely it's still doing side quests and hasn't\
 advanced the main quest line far enough to get your\
 chocobo, that's totally normal.\
 Also make sure you've configured the bot to select \
-a grand company."))
+a grand company.")
 
-						GUI:Text(GetString("Why is it stuck at the quest asking for my \
-chocobo name?"))
+						GUI:Text("Why is it stuck at the quest asking for my \
+chocobo name?")
 
-						GUI:TextColored(1, .1, .2, 1, GetString("You've either configured the bot to use an \
-invalid name or haven't chosen one."))
+						GUI:TextColored(1, .1, .2, 1, "You've either configured the bot to use an \
+invalid name or haven't chosen one.")
 					else
-						GUI:Text(GetString("Accepting help and Faq suggestions"))
+						GUI:Text("Accepting help and Faq suggestions")
 					end
 				end
 				-- Report tab.
@@ -2771,11 +2771,11 @@ invalid name or haven't chosen one."))
 					GUI:Separator()
 					local ppos = ml_mesh_mgr.GetPlayerPos()
 					if NavigationManager:IsOnMesh(ppos) then
-						GUI:Text(GetString("Is On Mesh: "))
+						GUI:Text("Is On Mesh: ")
 						GUI:SameLine()
 						GUI:Text(tostring(NavigationManager:IsOnMesh(ppos)))
 					else
-						GUI:TextColored(1, .1, .2, 1, GetString("Not On Mesh"))
+						GUI:TextColored(1, .1, .2, 1, "Not On Mesh")
 					end
 
 					-- Cache CanAccessMap results to avoid expensive per-frame nav/aetheryte lookups
@@ -2846,7 +2846,7 @@ invalid name or haven't chosen one."))
 					GUI:SameLine();
 					GUI:Text(tostring(IsPositionLocked()))
 					GUI:Separator()
-					if gBotMode == GetString("questMode") then
+					if gBotMode == "questMode" then
 						local questList = Quest:GetQuestList()
 						if (TableSize(questList) > 0) then
 							GUI:Text("Quest Journal size : ");
@@ -2884,7 +2884,7 @@ invalid name or haven't chosen one."))
 						end
 					end
 
-					if (gBotMode == GetString("questMode") and _G["gQuestStepType"] == "grind") or gBotMode == GetString("grindMode") then
+					if (gBotMode == "questMode" and _G["gQuestStepType"] == "grind") or gBotMode == "grindMode" then
 						if gEnableAdvancedGrindSettings then
 
 							local minFateLevel = IsNull(tonumber(gGrindFatesMinLevel), 0)

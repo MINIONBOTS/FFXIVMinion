@@ -239,7 +239,7 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker.maxcontentlevel,ffxivminion.maxlevel)
 			if (nodemaxlevel == 0) then nodemaxlevel = ffxivminion.maxlevel end
 			basePos = marker:GetPosition()
-		elseif (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex == 3) then
+		elseif (gBotMode == "gatherMode" and gGatherMarkerOrProfileIndex == 3) then
 			basePos = ml_task_hub:CurrentTask().pos
 			nodemaxlevel = IsNull(gQuickstartMaxNodeLvl,ffxivminion.maxlevel)
 			nodeminlevel = IsNull(gQuickstartMinNodeLvl,1)
@@ -608,7 +608,7 @@ function c_nextgathermarker:evaluate()
 	if (Now() < ffxiv_gather.timer or IsControlOpen("Gathering")) then
 		return false
 	end
-	if ((gBotMode == GetString("gatherMode")) and gGatherMarkerOrProfileIndex ~= 1) or (gBotMode ~= GetString("gatherMode")) then
+	if ((gBotMode == "gatherMode") and gGatherMarkerOrProfileIndex ~= 1) or (gBotMode ~= "gatherMode") then
 		return false
 	end
 	
@@ -759,7 +759,7 @@ function e_gather:execute()
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
 			if (IsUnspoiled(thisNode.contentid) or IsNull(ffxiv_gather.currentTask.resetdaily,false)) then
-				local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+				local profileName = (gBotMode == "questMode" and gQuestProfile) or gGatherProfile
 				ffxiv_gather.SetLastGather(profileName,ffxiv_gather.currentTaskIndex)
 			end
 		end
@@ -1156,7 +1156,7 @@ gd("Checking regular item section.",2)
 		
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
-				if (gBotMode ~= GetString("gatherMode") or (gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
+				if (gBotMode ~= "gatherMode" or (gBotMode == "gatherMode" and gGatherMarkerOrProfileIndex ~= 3)) and (item.id == itemid1) then
 					gd("[Gather]: Run gathering procedure for itemid1 ["..item.name.."]",2)
 					return DoGathering(item)
 				end
@@ -2498,7 +2498,7 @@ function c_gathernexttask:evaluate()
 		return false
 	end
 	
-	if ((gBotMode == GetString("gatherMode") and gGatherMarkerOrProfileIndex ~= 2)) then
+	if ((gBotMode == "gatherMode" and gGatherMarkerOrProfileIndex ~= 2)) then
 		return false
 	end
 	
@@ -2524,7 +2524,7 @@ function c_gathernexttask:evaluate()
 	local lastShift = shifts.lastShift
 	local nextShift = shifts.nextShift
 	
-	local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+	local profileName = (gBotMode == "questMode" and gQuestProfile) or gGatherProfile
 	
 	if (not table.valid(currentTask)) then
 		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
@@ -3134,7 +3134,7 @@ function e_gathernexttask:execute()
 	local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
 	gStatusTaskName = taskName
 	
-	if (gBotMode == GetString("questMode")) then
+	if (gBotMode == "questMode") then
 		gQuestStepType = "gather - ["..tostring(taskName).."]"
 	end
 	ml_marker_mgr.currentMarker = nil

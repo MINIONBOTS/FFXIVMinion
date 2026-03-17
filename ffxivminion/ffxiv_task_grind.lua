@@ -68,7 +68,7 @@ function ffxiv_task_grind.Create()
 	newinst.correctMap = nil
 	newinst.correctMapFunction = nil -- Use this to trigger an always updating map.
 	
-	if (gGrindAutoLevel and gBotMode == GetString("grindMode")) then
+	if (gGrindAutoLevel and gBotMode == "grindMode") then
 		newinst.correctMapFunction = "GetBestGrindMap"
 	end
 	--if (gGrindAutoLevel and Player.level < 10) then
@@ -100,7 +100,7 @@ function c_nextgrindmarker:evaluate()
 		return false
 	end
 	
-    if ((gBotMode == GetString("partyMode") and not IsPartyLeader()) or
+    if ((gBotMode == "partyMode" and not IsPartyLeader()) or
 		(gGrindDoFates and ((gGrindFatesOnly) and Player.level > 10)))
 	then
         return false
@@ -163,7 +163,7 @@ function c_nextgrindarea:evaluate()
 		return false
 	end
 	
-	if (FFXIV_Common_BotRunning and gBotMode == GetString("grindMode")) then
+	if (FFXIV_Common_BotRunning and gBotMode == "grindMode") then
 		if (gGrindAutoLevel) then
 			if (ml_task_hub:ThisTask().correctMapFunction == nil) then
 				ml_task_hub:ThisTask().correctMapFunction = "GetBestGrindMap"
@@ -286,7 +286,7 @@ function c_grindnexttask:evaluate()
 		end
 		
 		if (not invalid) then
-			local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGrindProfile
+			local profileName = (gBotMode == "questMode" and gQuestProfile) or gGrindProfile
 			local lastGrind = ffxiv_grind.GetLastGrind(profileName,currentTaskIndex)
 			if (lastGrind ~= 0) then
 				if (TimePassed(GetCurrentTime(), lastGrind) < 1400) then
@@ -372,7 +372,7 @@ function c_grindnexttask:evaluate()
 					end
 					
 					if (valid) then
-						local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGrindProfile
+						local profileName = (gBotMode == "questMode" and gQuestProfile) or gGrindProfile
 						local lastGrind = ffxiv_grind.GetLastGrind(profileName,i)
 						if (lastGrind ~= 0) then
 							if (TimePassed(GetCurrentTime(), lastGrind) < 1400) then
@@ -607,7 +607,7 @@ function e_grindnexttask:execute()
 	local taskName = ffxiv_grind.currentTask.name or ffxiv_grind.currentTaskIndex
 	gStatusTaskName = taskName
 	
-	if (gBotMode == GetString("questMode")) then
+	if (gBotMode == "questMode") then
 		gQuestStepType = "grind - ["..tostring(taskName).."]"
 	end
 	

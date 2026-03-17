@@ -74,10 +74,10 @@ ff.trust_dps = {
 function ff.debugLog(var, level, debugFlag, debugLevel, questAware)
 	local level = tonumber(level) or 3
 	local requiredLevel = debugLevel
-	if (questAware and gBotMode == GetString("questMode") and gQuestDebug) then
+	if (questAware and gBotMode == "questMode" and gQuestDebug) then
 		requiredLevel = gQuestDebugLevel
 	end
-	if (debugFlag or (questAware and gQuestDebug and gBotMode == GetString("questMode"))) then
+	if (debugFlag or (questAware and gQuestDebug and gBotMode == "questMode")) then
 		if (level <= tonumber(requiredLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
@@ -989,7 +989,7 @@ function GetBestPartyHealTarget( npc, range, hp, whitelist )
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -1351,7 +1351,7 @@ function GetBestRevive( party, role)
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -2829,7 +2829,7 @@ function IsLeader()
     return false
 end
 function GetPartyLeader()
-	if (gBotMode == GetString("partyMode") and not gPartyGrindUsePartyLeader) then
+	if (gBotMode == "partyMode" and not gPartyGrindUsePartyLeader) then
 		if (gPartyLeaderName ~= "") then
 			local el = MEntityList("type=1,name="..gPartyLeaderName)
 			if (table.valid(el)) then
@@ -2930,9 +2930,9 @@ function InCombatRange(targetid)
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
 	--d(ml_task_queue.rootTask)
-	if (gBotMode == GetString("dutyMode")) then
+	if (gBotMode == "dutyMode") then
 		return true
-	elseif (gBotMode == GetString("gatherMode")) then
+	elseif (gBotMode == "gatherMode") then
 		local node = EntityList:Get(targetid)
 		if (node and node.distance2d ~= 0 and node.distance2d < 4) then
 			return true

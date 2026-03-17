@@ -156,7 +156,7 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (gBotMode == "partyMode" and not IsPartyLeader()) then
         return false
     end
 	
@@ -202,11 +202,11 @@ c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
-	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or IsPOTD(Player.localmapid) or not IsFighter(Player.job)) then
+	if ((gBotMode == "partyMode" and IsPartyLeader()) or IsPOTD(Player.localmapid) or not IsFighter(Player.job)) then
         return false
     end
 	
-	if (gBotMode == GetString("partyMode")) then
+	if (gBotMode == "partyMode") then
 		local leader, isEntity = GetPartyLeader()	
 		if (leader and leader.id ~= 0) then
 			local entity = EntityList:Get(leader.id)
@@ -243,7 +243,7 @@ e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
 c_assistleader.movementDelay = 0
 function c_assistleader:evaluate()
-    if (gBotMode == GetString("partyMode") and IsPartyLeader()) then
+    if (gBotMode == "partyMode" and IsPartyLeader()) then
         return false
     end
 	
@@ -394,7 +394,7 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 c_add_fate.fate = {}
 function c_add_fate:evaluate()
-    if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+    if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		return false
     end
 	
@@ -568,7 +568,7 @@ e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
-	if gBotMode == GetString("assistMode") and not gAssistAvoidAOE then
+	if gBotMode == "assistMode" and not gAssistAvoidAOE then
 		return false
 	end
 	if (IsFlying() or not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent or not Player.onmesh) then
@@ -1499,7 +1499,7 @@ c_followleader.passageNearLeader = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or MIsCasting(true)) then
+	if ((gBotMode == "partyMode" and IsPartyLeader()) or MIsCasting(true)) then
         return false
     end
 	
@@ -1720,7 +1720,7 @@ function c_getmovementpath:evaluate()
 				d("new goal distance:"..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)))
 			end
 			local cubeFilter = IsNull(ml_task_hub:CurrentTask().cubefilters,0)
-			if (gBotMode == GetString("NavTest") and gTestNoFly) and not IsFlying() then
+			if (gBotMode == "NavTest" and gTestNoFly) and not IsFlying() then
 				cubeFilter = 1
 			end
 			if (pathLength <= 0) then
@@ -2210,7 +2210,7 @@ c_bettertargetsearch.targetid = 0
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
     if (MIsLoading() or MIsLocked() or
-		(gBotMode == GetString("partyMode") and not IsPartyLeader()) or
+		(gBotMode == "partyMode" and not IsPartyLeader()) or
 		Now() < c_bettertargetsearch.postpone) 
 	then
         return false
@@ -2486,7 +2486,7 @@ end
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
-    if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or InInstance() or Player.ismounted or IsMounting() or IsDismounting() or
+    if (ffxiv_task_quest.noCompanion == true or gBotMode == "pvpMode" or InInstance() or Player.ismounted or IsMounting() or IsDismounting() or
 		IsCompanionSummoned() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
 	then
         return false
@@ -2494,9 +2494,9 @@ function c_companion:evaluate()
 	if not QuestCompleted(1162) then
 		return false
 	end
-    if ((gChocoGrind and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode") or ml_task_hub:CurrentTask().name == "GRIND_COMBAT")) or
-		(gChocoAssist and gBotMode == GetString("assistMode")) or
-		(gChocoQuest and gBotMode == GetString("questMode"))) 
+    if ((gChocoGrind and (gBotMode == "grindMode" or gBotMode == "partyMode" or ml_task_hub:CurrentTask().name == "GRIND_COMBAT")) or
+		(gChocoAssist and gBotMode == "assistMode") or
+		(gChocoQuest and gBotMode == "questMode")) 
 	then	
 		local green = GetItem(4868)
 		if (green and green:IsReady()) then
@@ -2657,7 +2657,7 @@ function c_rest:evaluate()
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
 		if (not gRestInFates) then
-			if (gBotMode == GetString("grindMode")) then
+			if (gBotMode == "grindMode") then
 			--d("Cannot rest, not Rest In Fates.")
 				return not FFXIVLib.API.Fate.IsInsideFate()
 			end
@@ -2770,7 +2770,7 @@ c_dead.timer = 0
 e_dead.blockOnly = false
 function c_dead:evaluate()	
     if (not Player.alive) then
-		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
+		if (gBotMode == "grindMode" or gBotMode == "partyMode") then
 			if (c_dead.timer == 0) then
 				c_dead.timer = Now() + 30000
 				return false
@@ -2840,7 +2840,7 @@ end
 c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
-	if (gBotMode == GetString("assistMode")) then
+	if (gBotMode == "assistMode") then
 		return (gAssistConfirmDuty and IsControlOpen("ContentsFinderConfirm") and not MIsLoading())
 	end
 	
@@ -2848,9 +2848,9 @@ function c_pressconfirm:evaluate()
 end
 function e_pressconfirm:execute()
 	if (UseControlAction("ContentsFinderConfirm","Confirm")) then
-		if (gBotMode == GetString("pvpMode")) then
+		if (gBotMode == "pvpMode") then
 			ml_task_hub:ThisTask().state = "DUTY_STARTED"
-		elseif (gBotMode == GetString("dutyMode") and IsDutyLeader()) then
+		elseif (gBotMode == "dutyMode" and IsDutyLeader()) then
 			ffxiv_task_duty.state = "DUTY_ENTER"
 		end
 		ml_global_information.Await(5000, function () return not IsControlOpen("ContentsFinderConfirm")  end)
@@ -2865,7 +2865,7 @@ function c_returntomarker:evaluate()
 		return false
 	end
 	
-    if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+    if (gBotMode == "partyMode" and not IsPartyLeader()) then
         return false
     end
 	
@@ -2892,7 +2892,7 @@ function c_returntomarker:evaluate()
 		end
 	end
 	
-	if (gBotMode == GetString("pvpMode")) then
+	if (gBotMode == "pvpMode") then
 		if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 			if (distance > 25) then
 				return true
@@ -2902,13 +2902,13 @@ function c_returntomarker:evaluate()
 		end
 	end	
 	
-	if (gBotMode == GetString("huntMode")) then
+	if (gBotMode == "huntMode") then
 		if (distance > 15) then
 			return true
 		end
 	end		
 	
-	if (gBotMode == GetString("gatherMode")) then
+	if (gBotMode == "gatherMode") then
 		local gatherid = ml_task_hub:CurrentTask().gatherid or 0
 		if (gatherid == 0 and distance > 25) then
 			d("No gatherable currently, return to the marker.")
@@ -2926,14 +2926,14 @@ function c_returntomarker:evaluate()
 		end
 	end
 	
-	if (gBotMode == GetString("fishMode") and distance > 3) then
+	if (gBotMode == "fishMode" and distance > 3) then
 		return true
 	end
     
     return false
 end
 function e_returntomarker:execute()
-	if (gBotMode == GetString("fishMode")) then
+	if (gBotMode == "fishMode") then
 		local fs = tonumber(Player:GetFishingState())
 		if (fs ~= 0) then
 			local finishcast = ActionList:Get(1,299)
@@ -2974,7 +2974,7 @@ end
 c_acceptquest = inheritsFrom( ml_cause )
 e_acceptquest = inheritsFrom( ml_effect )
 function c_acceptquest:evaluate()
-	if (gBotMode == GetString("assistMode") and not gQuestHelpers) then
+	if (gBotMode == "assistMode" and not gQuestHelpers) then
 		return false
 	end
 	return IsControlOpen("JournalAccept")
@@ -2987,7 +2987,7 @@ end
 c_handoverquest = inheritsFrom( ml_cause )
 e_handoverquest = inheritsFrom( ml_effect )
 function c_handoverquest:evaluate()
-	if (gBotMode == GetString("assistMode") and not gQuestHelpers) then
+	if (gBotMode == "assistMode" and not gQuestHelpers) then
 		return false
 	end
 	return IsControlOpen("Request")
@@ -3018,7 +3018,7 @@ end
 c_completequest = inheritsFrom( ml_cause )
 e_completequest = inheritsFrom( ml_effect )
 function c_completequest:evaluate()
-	if (gBotMode == GetString("assistMode") and not gQuestHelpers) then
+	if (gBotMode == "assistMode" and not gQuestHelpers) then
 		return false
 	end
 	if (IsControlOpen("JournalResult")) then
@@ -3112,7 +3112,7 @@ function c_autoequip:evaluate()
 	-- Check to see if we can get valid data from the game, if not, skip it.
 	local weapon = GetItemBySlot(1,1000)
 	if (not weapon and IsNull(weapon.name,"") == "") then
-		if (gBotMode ~= GetString("assistMode")) then
+		if (gBotMode ~= "assistMode") then
 			ml_global_information.Await(1000, function () return GetItemBySlot(1,1000) ~= nil end)
 			return true
 		else
@@ -3259,7 +3259,7 @@ function c_recommendequip:evaluate()
 		end	
 	end
 	
-	if (gBotMode == GetString("questMode")) then
+	if (gBotMode == "questMode") then
 		ml_debug("[RecommendEquip]: Checking quest version ["..tostring(gQuestAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
 		return (gQuestAutoEquip or gForceAutoEquip)
 	else
@@ -3800,7 +3800,7 @@ function c_skiptalk:evaluate()
 			end
 		end
 
-		if (gBotMode == GetString("questMode") and IsControlOpen("AkatsukiNote")) then
+		if (gBotMode == "questMode" and IsControlOpen("AkatsukiNote")) then
 			UseControlAction("AkatsukiNote","Close")
 			return true			
 		end

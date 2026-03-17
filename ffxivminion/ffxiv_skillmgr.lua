@@ -4691,7 +4691,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		
 		--[[
 		d("Condition1:"..tostring(ml_global_information.AttackRange < 5))
-		d("Condition2:"..tostring(gBotMode == GetString("dutyMode")))
+		d("Condition2:"..tostring(gBotMode == "dutyMode"))
 		d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
 		d("Condition4:"..tostring(gTeleportHack))
 		d("Condition5:"..tostring(not IsDutyLeader() or ffxiv_task_duty.independentMode))
@@ -4705,7 +4705,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		--]]
 		
 		if (ml_global_information.AttackRange < 5 and gUseTelecast  and
-			gBotMode == GetString("dutyMode") and target.castinginfo and target.castinginfo.channelingid == 0 and
+			gBotMode == "dutyMode" and target.castinginfo and target.castinginfo.channelingid == 0 and
 			gTeleportHack and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
 			
@@ -4722,7 +4722,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		SkillMgr.Cast( target )
 		
 		if (TableSize(SkillMgr.teleBack) > 0 and 
-			gBotMode == GetString("dutyMode") and 
+			gBotMode == "dutyMode" and 
 			(Now() > SkillMgr.teleCastTimer or (target.castinginfo and target.castinginfo.channelingid ~= 0))) then
 			local back = SkillMgr.teleBack
 			Hacks:TeleportToXYZ(back.x, back.y, back.z)
@@ -4753,7 +4753,7 @@ end
 c_triggersuppressions = inheritsFrom( ml_cause )
 e_triggersuppressions = inheritsFrom( ml_effect )
 function c_triggersuppressions:evaluate()
-	if (gBotMode ~= GetString("dutyMode")) then
+	if (gBotMode ~= "dutyMode") then
 		return false
 	end
 	
@@ -5702,7 +5702,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local TID = SkillMgr.CurrentTID
 		
-		if (gBotMode ~= GetString("assistMode")) then
+		if (gBotMode ~= "assistMode") then
 			local target = EntityList:Get(TID)
 			if (target and target.fateid ~= 0) then
 				

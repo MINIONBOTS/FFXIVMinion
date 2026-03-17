@@ -420,7 +420,7 @@ end
 c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )
 function c_assistyesno:evaluate()
-	if ((gBotMode == GetString("assistMode") and not gQuestHelpers) or
+	if ((gBotMode == "assistMode" and not gQuestHelpers) or
 		IsControlOpen("_NotificationParty") or
 		IsControlOpen("_NotificationTelepo") or
 		IsControlOpen("_NotificationFcJoin") or

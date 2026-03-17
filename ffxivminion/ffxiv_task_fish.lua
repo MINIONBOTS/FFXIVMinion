@@ -947,7 +947,7 @@ end
 c_chum = inheritsFrom( ml_cause )
 e_chum = inheritsFrom( ml_effect )
 function c_chum:evaluate()
-	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
+	if (not ffxiv_fish.HasDirective() and (gBotMode ~= "fishMode" and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end
 		
@@ -999,7 +999,7 @@ end
 c_fisheyes = inheritsFrom( ml_cause )
 e_fisheyes = inheritsFrom( ml_effect )
 function c_fisheyes:evaluate()
-	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
+	if (not ffxiv_fish.HasDirective() and (gBotMode ~= "fishMode" and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end
 
@@ -1044,7 +1044,7 @@ end
 c_snagging = inheritsFrom( ml_cause )
 e_snagging = inheritsFrom( ml_effect )
 function c_snagging:evaluate()
-	if (not ffxiv_fish.HasDirective() and (not gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex == 3)) then
+	if (not ffxiv_fish.HasDirective() and (gBotMode ~= "fishMode" and gFishMarkerOrProfileIndex == 3)) then
 		return false
 	end	
 		
@@ -1577,7 +1577,7 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
-	if (gBotMode ~= GetString("fishMode")) or (gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex ~= 1) then
+	if (gBotMode ~= "fishMode") or (gBotMode == "fishMode" and gFishMarkerOrProfileIndex ~= 1) then
 		return false
 	end
 	
@@ -1661,7 +1661,7 @@ function c_fishnexttask:evaluate()
 		return false
 	end
 	
-	if ((gBotMode == GetString("fishMode") and gFishMarkerOrProfileIndex ~= 2)) then
+	if ((gBotMode == "fishMode" and gFishMarkerOrProfileIndex ~= 2)) then
 		return false
 	end
 	
@@ -1690,7 +1690,7 @@ function c_fishnexttask:evaluate()
 		local lastShift = shifts.lastShift
 		local nextShift = shifts.nextShift
 		
-		local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
+		local profileName = (gBotMode == "questMode" and gQuestProfile) or gFishProfile
 		
 		if (not table.valid(currentTask)) then
 			fd("No current task, set invalid flag.")
@@ -2235,7 +2235,7 @@ function e_fishnexttask:execute()
 	local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
 	gStatusTaskName = taskName
 	
-	if (gBotMode == GetString("questMode")) then
+	if (gBotMode == "questMode") then
 		gQuestStepType = "fish - ["..tostring(taskName).."]"
 	end
 	
