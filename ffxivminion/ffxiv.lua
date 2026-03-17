@@ -1063,7 +1063,7 @@ function ffxivminion.HandleInit()
 	end
 
 	gForceAutoEquip = false
-	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SETTINGS", name = "Settings", onClick = function()
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SETTINGS", name = GetString("Settings"), onClick = function()
 		ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 	end, tooltip = "Open the FFXIVMinion settings." }, "FFXIVMINION##MENU_HEADER")
 end
@@ -1427,8 +1427,12 @@ function ffxivminion.LoadModes()
 
 	if (table.valid(ffxivminion.modesToLoad)) then
 		for modeName, task in pairs(ffxivminion.modesToLoad) do
-			d("Loading mode [" .. tostring(modeName) .. "].")
-			ffxivminion.modes[modeName] = task
+			-- Retranslate mode name to current language (modes may have been
+			-- registered before the translation DB was loaded)
+			local translatedName = Retranslate(modeName)
+			d("Loading mode [" .. tostring(translatedName) .. "].")
+			ffxivminion.modes[translatedName] = task
+			task.friendly = translatedName
 			if (task.UIInit) then
 				task:UIInit()
 			end
@@ -1437,6 +1441,9 @@ function ffxivminion.LoadModes()
 		-- Empty out the table to prevent reloading.
 		ffxivminion.modesToLoad = {}
 	end
+
+	-- Retranslate gBotMode to match current language mode keys
+	gBotMode = Retranslate(gBotMode)
 
 	gBotModeList = {}
 	if (table.valid(ffxivminion.modes)) then
@@ -1632,15 +1639,7 @@ function ml_global_information.DrawMainFull()
 					end
 
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("Assist: Handles combat with a selected skill profile while you do the moving.\
-Crafting: Automates crafting of a single item or list using crafting orders.\
-Fish: Automates fishing with a marker system, profile or quickstart.\
-Gather: Automates gathering with a marker system, profile or quickstart.\
-Grind: Various tasks like Fates, Mob farming, Relic (Atma/Luminous) and Hunting log.\
-Minigames: Farms MGP via Cuff-a-Cur, Monster Toss and Tower Striker minigames.\
-Party-Grind: Follows a party leader around assisting  them in combat.\
-Quest: Completes quests based on a questing profile.\
-")
+					GUI:SetTooltip(GetString("BotMode.Descriptions"))
 					end
 
 					GUI:SameLine()
@@ -2779,72 +2778,55 @@ invalid name or haven't chosen one."))
 						GUI:TextColored(1, .1, .2, 1, GetString("Not On Mesh"))
 					end
 
-					-- Cache CanAccessMap results; invalidate on map change, quest completion, or every 5 minutes
-					local hc = ffxivminion.GUI.help
-					local currentMap = Player.localmapid
-					local ql = Quest:GetQuestList()
-					local qcount = (ql and TableSize(ql)) or 0
-					if (hc.access_cache_mapid ~= currentMap or hc.access_cache_questcount ~= qcount or Now() - hc.access_cache_time > 300000) then
-						hc.access_cache_time = Now()
-						hc.access_cache_mapid = currentMap
-						hc.access_cache_questcount = qcount
-						local c = {}
-						local check_order = {1192,1191,1186,1190,1189,1188,1187,1185,818,817,816,815,814,819,621,622,614,613,612,402,399,398,397,418}
-						for _, mid in ipairs(check_order) do
-							c[mid] = CanAccessMap(mid)
-						end
-						hc.access_cache = c
-					end
-					local ac = hc.access_cache
-					if ac[1192] then
+					if CanAccessMap(1192) then
 						GUI:Text("Can Access Living Memory");
-					elseif ac[1191] then
+					elseif CanAccessMap(1191) then
 						GUI:Text("Can Access Heritage Found");
-					elseif ac[1186] then
+					elseif CanAccessMap(1186) then
 						GUI:Text("Can Access Solution Nine");
-					elseif ac[1190] then
+					elseif CanAccessMap(1190) then
 						GUI:Text("Can Access Shaaloani");
-					elseif ac[1189] then
+					elseif CanAccessMap(1189) then
 						GUI:Text("Can Access Yak T'el");
-					elseif ac[1188] then
+					elseif CanAccessMap(1188) then
 						GUI:Text("Can Access Kozama'uka");
-					elseif ac[1187] then
+					elseif CanAccessMap(1187) then
 						GUI:Text("Can Access Urqopacha");
-					elseif ac[1185] then
+					elseif CanAccessMap(1185) then
 						GUI:Text("Can Access Tuliyollal");
-					elseif ac[818] then
+					elseif CanAccessMap(818) then
 						GUI:Text("Can Access The Tempest");
-					elseif ac[817] then
+					elseif CanAccessMap(817) then
 						GUI:Text("Can Access The Rak'tika Greatwood");
-					elseif ac[816] then
+					elseif CanAccessMap(816) then
 						GUI:Text("Can Access Il Mheg");
-					elseif ac[815] then
+					elseif CanAccessMap(815) then
 						GUI:Text("Can Access Amh Araeng");
-					elseif ac[814] then
+					elseif CanAccessMap(814) then
 						GUI:Text("Can Access Lakeland");
-					elseif ac[819] then
+					elseif CanAccessMap(819) then
 						GUI:Text("Can Access The Crystarium");
-					elseif ac[621] then
+					elseif CanAccessMap(621) then
 						GUI:Text("Can Access The Lochs");
-					elseif ac[622] then
+					elseif CanAccessMap(622) then
 						GUI:Text("Can Access Azim Steppes");
-					elseif ac[614] then
+					elseif CanAccessMap(614) then
 						GUI:Text("Can Access Yanxia");
-					elseif ac[613] then
+					elseif CanAccessMap(613) then
 						GUI:Text("Can Access The Ruby Sea");
-					elseif ac[612] then
+					elseif CanAccessMap(612) then
 						GUI:Text("Can Access The Fringes");
-					elseif ac[402] then
+					elseif CanAccessMap(402) then
 						GUI:Text("Can Access Azys Lla");
-					elseif ac[399] then
+					elseif CanAccessMap(399) then
 						GUI:Text("Can Access Dravanian Hinterlands");
-					elseif ac[398] then
+					elseif CanAccessMap(398) then
 						GUI:Text("Can Access Dravanian Forelands");
-					elseif ac[397] then
+					elseif CanAccessMap(397) then
 						GUI:Text("Can Access CWH");
-					elseif ac[418] then
+					elseif CanAccessMap(418) then
 						GUI:Text("Can NOT Access CWH");
-					elseif not ac[418] then
+					elseif not CanAccessMap(418) then
 						GUI:Text("Can NOT Access Heavensward maps");
 					end
 

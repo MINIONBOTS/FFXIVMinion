@@ -170,7 +170,7 @@ function sck.ModuleInit()
 		_G[hotkey.mouse] = ffxivminion.GetSetting(hotkey.mouse,0)
 	end
 
-	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SHORTCUTS", name = "Shortcuts", onClick = function() sck.GUI.open = not sck.GUI.open end, tooltip = "Open the Shortcut Manager."},"FFXIVMINION##MENU_HEADER")
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SHORTCUTS", name = GetString("Shortcuts"), onClick = function() sck.GUI.open = not sck.GUI.open end, tooltip = "Open the Shortcut Manager."},"FFXIVMINION##MENU_HEADER")
 end
 
 -- Use this for third-party to add their own shortcuts.

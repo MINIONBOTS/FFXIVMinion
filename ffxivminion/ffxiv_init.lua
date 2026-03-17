@@ -1209,8 +1209,8 @@ function ml_global_information.Init()
 	local ffxiv_mainmenu = {
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	
-			{ id = "FFXIVMINION##MENU_MAINMENU", name = "Main Task", onClick = function() ffxivminion.GUI.main.open = true ml_global_information.drawMode = 1 end, tooltip = "Open the Main Task window." },
-			{ id = "FFXIVMINION##MENU_DEV", name = "Dev Tools", onClick = function() dev.GUI.open = not dev.GUI.open end, tooltip = "Open the Developer tools." },
+			{ id = "FFXIVMINION##MENU_MAINMENU", name = GetString("Main Task"), onClick = function() ffxivminion.GUI.main.open = true ml_global_information.drawMode = 1 end, tooltip = "Open the Main Task window." },
+			{ id = "FFXIVMINION##MENU_DEV", name = GetString("Dev Tools"), onClick = function() dev.GUI.open = not dev.GUI.open end, tooltip = "Open the Developer tools." },
 		}
 	}
 	ml_gui.ui_mgr:AddComponent(ffxiv_mainmenu)

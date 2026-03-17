@@ -211,7 +211,7 @@ function ffxiv_music.Init()
 		ffxiv_music.LoadMML(gMusicMML)
 	end
 
-	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_Music", name = "Music", onClick = function() ffxiv_music.GUI.open = not ffxiv_music.GUI.open end, tooltip = "Open the Music editor."},"FFXIVMINION##MENU_HEADER")
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_Music", name = GetString("Music"), onClick = function() ffxiv_music.GUI.open = not ffxiv_music.GUI.open end, tooltip = "Open the Music editor."},"FFXIVMINION##MENU_HEADER")
 end
 
 function ffxiv_music.UpdateFiles()

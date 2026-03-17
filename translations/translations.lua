@@ -322,6 +322,9 @@ function translations.LoadTranslations()
 			_G["ml_memoizedstrings"] = {} -- reset
 		end
 	end
+	if ml_gui and ml_gui.RefreshUIStrings then
+		ml_gui.RefreshUIStrings()
+	end
 end
 
 function translations.GetVersion()

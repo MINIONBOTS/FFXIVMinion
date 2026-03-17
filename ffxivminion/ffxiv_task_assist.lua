@@ -176,6 +176,7 @@ end
 -- New GUI.
 function ffxiv_task_assist:UIInit()
 	gStartCombat = ffxivminion.GetSetting("gStartCombat",true)
+	gAssistAvoidAOE = ffxivminion.GetSetting("gAssistAvoidAOE",false)
 	gAssistConfirmDuty = ffxivminion.GetSetting("gAssistConfirmDuty",false)
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
 	gQTEHelper = ffxivminion.GetSetting("gQTEHelper",false)
@@ -301,6 +302,11 @@ function ffxiv_task_assist:Draw()
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
 	end
+	GUI:AlignFirstTextHeightToWidgets() 
+	GUI:Text("Avoid AOE")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("If enabled, the bot will attempt to dodge enemy AoE attacks while in Assist Mode.")
+	end
 	
 	if not gDisableAssistOptions then
 		GUI:AlignFirstTextHeightToWidgets() 
@@ -328,7 +334,10 @@ function ffxiv_task_assist:Draw()
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
 	end
-
+	GUI_Capture(GUI:Checkbox("##Avoid AOE",gAssistAvoidAOE),"gAssistAvoidAOE")
+	if (GUI:IsItemHovered()) then
+		GUI:SetTooltip("If enabled, the bot will attempt to dodge enemy AoE attacks while in Assist Mode.")
+	end
 	if not gDisableAssistOptions then
 		GUI_Capture(GUI:Checkbox("##"..GetString("Follow Target"),gAssistFollowTarget),"gAssistFollowTarget")
 		if (GUI:IsItemHovered()) then

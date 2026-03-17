@@ -330,7 +330,7 @@ function e_huntlogmovetopos:execute()
 	end
 	
 	local id = ml_task_hub:CurrentTask().huntParams["id"]
-	local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
+	local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
 	newTask.customSearch = customSearch
 	newTask.customSearchCompletes = true
@@ -350,7 +350,7 @@ function c_huntlogkill:evaluate()
     if (id and id > 0) then
 		local el = nil
 		local pos = ml_task_hub:CurrentTask().huntParams["pos"]
-		local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
+		local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 		
 		el = EntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
 
@@ -511,6 +511,25 @@ function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(GetString("huntlogMode"))
 end
 function ffxiv_task_huntlog.UIInit()
+	--[[
+	ffxivminion.Windows.HuntLog = { id = strings["en"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.HuntLog)
+	
+	local winName = GetString("huntlogMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"FFXIV_Common_NavMesh",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
+	
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	--]]
 end
 function ffxiv_task_huntlog:task_complete_eval()	
 	if (self.adHoc) then
