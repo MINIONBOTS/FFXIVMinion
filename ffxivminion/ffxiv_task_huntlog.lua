@@ -204,46 +204,6 @@ function e_grind_addhuntlogtask:execute()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
-c_quest_addhuntlogtask = inheritsFrom( ml_cause )
-e_quest_addhuntlogtask = inheritsFrom( ml_effect )
-c_quest_addhuntlogtask.target = nil
-function c_quest_addhuntlogtask:evaluate()
-	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked() or not IsFighter(Player.job) or not gGrindDoHuntlog) then
-		return false
-	end
-	
-	--Reset tempvar.
-	c_quest_addhuntlogtask.target = nil
-	
-	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
-	if bestTarget == "loading" then
-		d("huntlog data still loading, waiting...")
-		return true
-	end
-	if (table.valid(bestTarget)) then
-		local mapid = bestTarget.mapid
-		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
-			d("Adding huntlog target: ID ["..tostring(bestTarget.id).."], @ MAPID ["..tostring(bestTarget.mapid).."].")
-			c_quest_addhuntlogtask.target = bestTarget
-			return true
-		end
-	end
-	
-	return false
-end
-function e_quest_addhuntlogtask:execute()
-	local newTask = ffxiv_task_huntlog.Create()
-	newTask.huntParams = c_quest_addhuntlogtask.target
-	newTask.adHoc = true
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
-	
-	gCurrQuestID = ""
-	gCurrQuestObjective = ""
-	gCurrQuestStep = ""
-	gQuestStepType = "huntlog"
-	gQuestKillCount = ""
-end
-
 c_evaluatebesttarget = inheritsFrom( ml_cause )
 e_evaluatebesttarget = inheritsFrom( ml_effect )
 c_evaluatebesttarget.targetinfo = {}
@@ -426,8 +386,7 @@ function e_huntlogkill:execute()
 		newTask.task_complete_execute = function ()
 			Player:Stop()
 			ml_task_hub:CurrentTask().completed = true
-			ml_task_hub:CurrentTask():ParentTask().completed = true
-			ml_task_hub:CurrentTask():ParentTask():SetDelay(2000)
+			ml_global_information.Await(2000)
 		end
 	else
 		newTask.task_complete_execute = function ()
@@ -535,17 +494,8 @@ function ffxiv_task_huntlog:task_complete_eval()
 	if (self.adHoc) then
 		local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 		if (not table.valid(bestTarget)) then
-			d("no best target, task complete")
+			d("[Huntlog] No best target, task complete.")
 			return true
-		else
-			if (not deepcompare(bestTarget,self.huntParams,true)) then
-				d("best target did not equal huntparams")
-				d("-----------------------")
-				table.print(bestTarget)
-				d("-----------------------")
-				table.print(self.huntParams)
-				return true
-			end
 		end
     end
     
