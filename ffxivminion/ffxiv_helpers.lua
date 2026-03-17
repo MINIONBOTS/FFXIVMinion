@@ -2820,19 +2820,11 @@ function GetAggroDetectionPoints(pos1,pos2)
 	return points
 end
 function IsLeader()
-	local leader = nil
 	for i,m in pairs(EntityList.myparty) do
 		if m.isleader then
-			--d("Name:"..tostring(m.name)..", ID:"..tostring(m.id))
-			leader = m
+			return m.id == Player.id
 		end
 	end
-	
-	if ( leader ) then
-		if ( leader.id == Player.id ) then
-			return true
-		end
-	end	
 		
     return false
 end
@@ -2851,8 +2843,7 @@ function GetPartyLeader()
 			if (table.valid(party)) then
 				for i,member in pairs(party) do
 					if (member.name == gPartyLeaderName) then
-						leader = member
-						return leader, false
+						return member, false
 					end
 				end
 			end
@@ -2865,24 +2856,17 @@ function GetPartyLeader()
 			for i,member in pairs(party) do
 				if member.isleader then
 					leader = member
-					isEntity = false
+					break
 				end
 			end
 		end
 		
 		if (leader) then
-			local el = MEntityList("type=1,name="..leader.name)
-			if (table.valid(el)) then
-				local i,leaderentity = next (el)
-				if (i and leaderentity) then
-					leader = leaderentity
-					isEntity = true
-				end
+			local entity = EntityList:Get(leader.id)
+			if (entity and entity.id ~= 0) then
+				return entity, true
 			end
-		end
-		
-		if (leader) then
-			return leader, isEntity
+			return leader, false
 		end
 	end 
     
@@ -11678,7 +11662,7 @@ function GetRequiredPitch(pos,noadjustment)
 	return 0
 end
 function IsNormalMap(mapid)
-	return FFXIVLib.API.Map.IsFieldZone(mapid) or FFXIVLib.API.Map.IsTown(mapid)
+	return FFXIVLib.API.Map.IsFieldZone(mapid) or false
 end
 function IsHousingMap(mapid)
 	return FFXIVLib.API.Map.IsHousingZone(mapid) or false

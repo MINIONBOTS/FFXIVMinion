@@ -95,7 +95,7 @@ function ffxiv_task_party:Init()
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 50 )--leader only
     self:add( ke_returnToMarker, self.process_elements)
 	
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 40 )--leader only
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 40 )--leader only
     self:add( ke_nextMarker, self.process_elements)
 
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 30 ) --leader only
@@ -104,10 +104,12 @@ function ffxiv_task_party:Init()
     self:AddTaskCheckCEs()
 end
 
+ffxiv_task_party.lastOOCCast = 0
 function ffxiv_task_party:Process()
     local target = MGetTarget()
-	if ( target == nil and not IsPlayerCasting()) then
+	if ( target == nil and not IsPlayerCasting() and Now() > ffxiv_task_party.lastOOCCast) then
 		SkillMgr.Cast( Player, true )
+		ffxiv_task_party.lastOOCCast = Now() + 1000
 	end
 
     if (TableSize(self.process_elements) > 0) then
@@ -138,8 +140,6 @@ end
 
 function ffxiv_task_party.SetModeOptions()
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
-	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
-	gGrindDoHuntlog = Settings.FFXIVMINION.gGrindDoHuntlog
 	gGrindDoFates = Settings.FFXIVMINION.gGrindDoFates
 	gGrindFatesOnly = Settings.FFXIVMINION.gGrindFatesOnly
 	gGrindFatesMinLevel = Settings.FFXIVMINION.gGrindFatesMinLevel
@@ -159,9 +159,6 @@ function ffxiv_task_party.SetModeOptions()
 	Hacks:SkipCutscene(gSkipCutscene)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-	FFXIV_Common_Profile = "NA"
-	FFXIV_Common_ProfileIndex = 1
-	FFXIV_Common_ProfileList = { "NA" }
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 

@@ -261,20 +261,10 @@ function c_assistleader:evaluate()
 			end
 		end
 		
-		if (NotQueued()) then
-			--d("executing not queued version>")
-			local target = EntityList:Get(leadtarget)				
-			if (table.valid(target) and target.alive) then
-				c_assistleader.targetid = target.id
-				return true
-			end
-		else	
-			--d("executing queued version>")
-			local target = EntityList:Get(leadtarget)				
-			if (table.valid(target) and target.alive) then
-				c_assistleader.targetid = target.id
-				return true
-			end
+		local target = EntityList:Get(leadtarget)				
+		if (table.valid(target) and target.alive) then
+			c_assistleader.targetid = target.id
+			return true
 		end
     end
     
@@ -310,6 +300,7 @@ function e_assistleader:execute()
 		end
 
 		local target = MGetEntity(c_assistleader.targetid)
+		if (not target or not table.valid(target)) then return end
 		local targetid = target.id
 		local pos = target.pos
 		local ppos = Player.pos
@@ -1503,6 +1494,8 @@ c_followleader.leaderpos = nil
 c_followleader.leader = nil
 c_followleader.distance = nil
 c_followleader.hasEntity = false
+c_followleader.lastPassageCheck = 0
+c_followleader.passageNearLeader = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
@@ -1525,15 +1518,23 @@ function c_followleader:evaluate()
 			rangeClose,rangeFar = 5,8
 		end
 		
-		local passages = EntityList("contentid=2007188")
-		if (table.valid(passages)) then
-			local i, passage = next(passages)
-			if (passage) then
-				local passagePos = passage.pos
-				if (Distance3DT(passagePos,leaderPos) < 5) then
-					rangeClose,rangeFar = 3,3
+		if (Now() > c_followleader.lastPassageCheck) then
+			c_followleader.passageNearLeader = false
+			local passages = EntityList("contentid=2007188")
+			if (table.valid(passages)) then
+				local i, passage = next(passages)
+				if (passage) then
+					local passagePos = passage.pos
+					if (Distance3DT(passagePos,leaderPos) < 5) then
+						c_followleader.passageNearLeader = true
+					end
 				end
 			end
+			c_followleader.lastPassageCheck = Now() + 2000
+		end
+		
+		if (c_followleader.passageNearLeader) then
+			rangeClose,rangeFar = 3,3
 		end
 		
 		if ((isHealer and distance > rangeFar) or (isDPS and distance > rangeClose) or (distance > rangeFar)) or (isEntity and (leader.ismounted and not Player.ismounted)) then	
@@ -1597,14 +1598,12 @@ function e_followleader:execute()
 		if (c_followleader.hasEntity and leader.los) then
 			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), 0, 0, leader.id)))	
 		else
-			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range), 0, 0, leader.id)))	
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range))))	
 		end
-		if ( not Player:IsMoving()) then
-			if ( ml_global_information.AttackRange < 5 ) then
-				c_followleader.range = math.random(4,6)
-			else
-				c_followleader.range = math.random(10,12)
-			end
+		if ( ml_global_information.AttackRange < 5 ) then
+			c_followleader.range = math.random(4,6)
+		else
+			c_followleader.range = math.random(10,12)
 		end
 		e_followleader.isFollowing = true
 	else
