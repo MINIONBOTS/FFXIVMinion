@@ -1186,6 +1186,7 @@ end
 
 -- New GUI.
 function ffxiv_task_craft:UIInit()
+	FFXIVLib.API.Recipe.Enable()
 	gCrafts = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
 	
@@ -2301,6 +2302,7 @@ function ffxiv_craft.InspectRecipe(key)
 end
 
 function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
+	FFXIVLib.API.Recipe.Enable()
 	local craftid = IsNull(craftid,0)
 	local maxattemptlevel = IsNull(maxattemptlevel,5)
 	if (craftid == 0) then
