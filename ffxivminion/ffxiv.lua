@@ -2779,7 +2779,7 @@ invalid name or haven't chosen one."))
 					end
 
 					-- Cache CanAccessMap results to avoid expensive per-frame nav/aetheryte lookups
-					local helpData = FFXIV_Common_BotRunning.ui.help
+					local helpData = ffxivminion.GUI.help
 					local now = os.clock()
 					local currentMap = Player.localmapid
 					if (now - helpData.access_cache_time > 5) or (currentMap ~= helpData.access_cache_mapid) then
