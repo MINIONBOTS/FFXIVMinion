@@ -2782,7 +2782,7 @@ invalid name or haven't chosen one."))
 					local helpData = ffxivminion.GUI.help
 					local now = os.clock()
 					local currentMap = Player.localmapid
-					if (now - helpData.access_cache_time > 5) or (currentMap ~= helpData.access_cache_mapid) then
+					if (now - helpData.access_cache_time > 30) or (currentMap ~= helpData.access_cache_mapid) then
 						helpData.access_cache_time = now
 						helpData.access_cache_mapid = currentMap
 						local accessChecks = {
