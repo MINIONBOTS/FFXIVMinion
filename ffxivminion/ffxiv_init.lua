@@ -1514,9 +1514,9 @@ function DrawFateListUI(self)
 			GUI:Spacing(); GUI:Spacing();
 			
 			local fate = fateList[FateListComboIndex]
-			GUI:Text("ID :"); GUI:SameLine(75); GUI:Text(fate.id)
-			GUI:Text("Name :"); GUI:SameLine(75); GUI:Text(fate.name)
-			GUI:Text("Map ID :"); GUI:SameLine(75); GUI:Text(fate.mapid)
+			GUI:Text(GetString("ID :")); GUI:SameLine(75); GUI:Text(fate.id)
+			GUI:Text(GetString("Name :")); GUI:SameLine(75); GUI:Text(fate.name)
+			GUI:Text(GetString("Map ID :")); GUI:SameLine(75); GUI:Text(fate.mapid)
 			
 			GUI:Spacing(); GUI:Spacing();
 
@@ -1533,7 +1533,7 @@ function DrawFateListUI(self)
 				end
 			end
 		else
-			GUI:Text("No active fates.")
+			GUI:Text(GetString("No active fates."))
 		end
 	end
 end

@@ -50,11 +50,11 @@ function ffxiv_radar.DrawCall(event, ticks )
 					MainWindowSizex, MainWindowSizey = GUI:GetWindowSize()
 					-- GUI Start.
 					GUI:Columns(2,"Main Tab") GUI:SetColumnOffset(1, MainWindowSizex/2)
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Show 3D Radar:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show 3D Radar:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
 					GUI:SameLine()
 					ffxiv_radar.Enable3D, changed  = GUI:Checkbox("##Enable3D", ffxiv_radar.Enable3D) if (changed) then Settings.ffxiv_radar.Enable3D = ffxiv_radar.Enable3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
 					GUI:NextColumn()
-					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Show 2D Radar:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
+					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show 2D Radar:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
 					GUI:SameLine()
 					ffxiv_radar.Enable2D, changed  = GUI:Checkbox("##Enable2D", ffxiv_radar.Enable2D) if (changed) then Settings.ffxiv_radar.Enable2D = ffxiv_radar.Enable2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
 					GUI:Columns()
@@ -108,7 +108,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 						elseif Tabs.CurrentSelected == 2 then -- Custom List Tab.
 							-- Add to custom list.
 							-- Column names.
-							GUI:Columns(5) GUI:SetColumnOffset(1, 100) GUI:SetColumnOffset(2, 160) GUI:SetColumnOffset(3, MainWindowSizex-185) GUI:SetColumnOffset(4, MainWindowSizex-100) 	GUI:Text("ContentID") GUI:NextColumn() GUI:Text("Colour") GUI:NextColumn() GUI:Text("Custom Name") GUI:NextColumn() GUI:Text("Get Target") GUI:NextColumn() GUI:Text("Add")
+							GUI:Columns(5) GUI:SetColumnOffset(1, 100) GUI:SetColumnOffset(2, 160) GUI:SetColumnOffset(3, MainWindowSizex-185) GUI:SetColumnOffset(4, MainWindowSizex-100) 	GUI:Text(GetString("ContentID")) GUI:NextColumn() GUI:Text(GetString("Colour")) GUI:NextColumn() GUI:Text(GetString("Custom Name")) GUI:NextColumn() GUI:Text(GetString("Get Target")) GUI:NextColumn() GUI:Text(GetString("Add"))
 							GUI:NextColumn() -- Column data.
 							GUI:PushItemWidth(85) ffxiv_radar.ContentID = GUI:InputText("##ContentID", ffxiv_radar.ContentID) GUI:PopItemWidth() GUI:NextColumn()
 							GUI:ColorEditMode(GUI.ColorEditMode_NoInputs+GUI.ColorEditMode_AlphaBar)
@@ -124,7 +124,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 								end
 							end
 							GUI:NextColumn()
-							if GUI:Button("Add", 70, 20) then 
+							if GUI:Button(GetString("Add"), 70, 20) then 
 								if ffxiv_radar.ContentID ~= "" then
 									ffxiv_radar.CustomList[tonumber(ffxiv_radar.ContentID)] = { ["Name"] = ffxiv_radar.CustomName, ["Enabled"] = true, ["Colour"] = ffxiv_radar.AddColour.Colour, ["ColourU32"] = ffxiv_radar.AddColour.ColourU32 }
 									Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList
@@ -134,7 +134,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:Columns()
 							-- Custom list.
 							GUI:Separator() -- Column names.
-							GUI:Columns(5) GUI:SetColumnOffset(1, 100) GUI:SetColumnOffset(2, 160) GUI:SetColumnOffset(3, MainWindowSizex-185) GUI:SetColumnOffset(4, MainWindowSizex-100) GUI:Text("ContentID") GUI:NextColumn() GUI:Text("Colour") GUI:NextColumn() GUI:Text("Custom Name") GUI:NextColumn() GUI:Text("Enabled") GUI:NextColumn() GUI:Text("Delete") GUI:Columns()
+							GUI:Columns(5) GUI:SetColumnOffset(1, 100) GUI:SetColumnOffset(2, 160) GUI:SetColumnOffset(3, MainWindowSizex-185) GUI:SetColumnOffset(4, MainWindowSizex-100) GUI:Text(GetString("ContentID")) GUI:NextColumn() GUI:Text(GetString("Colour")) GUI:NextColumn() GUI:Text(GetString("Custom Name")) GUI:NextColumn() GUI:Text(GetString("Enabled")) GUI:NextColumn() GUI:Text(GetString("Delete")) GUI:Columns()
 							GUI:Separator()-- Column data.
 							GUI:Columns(5) GUI:SetColumnOffset(1, 100) GUI:SetColumnOffset(2, 160) GUI:SetColumnOffset(3, MainWindowSizex-185) GUI:SetColumnOffset(4, MainWindowSizex-100)
 							for i,e in pairs(ffxiv_radar.CustomList) do
@@ -152,28 +152,28 @@ function ffxiv_radar.DrawCall(event, ticks )
 								e.Enabled, changed = GUI:Checkbox("##Enabled"..i, e.Enabled) if (changed) then Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList RadarTable = {} end 
 								GUI:NextColumn()
 								-- Delete entry.
-								if GUI:Button("Delete##"..i, 70, 20) then ffxiv_radar.CustomList[i] = nil Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList RadarTable = {} end 
+								if GUI:Button(GetString("Delete").."##"..i, 70, 20) then ffxiv_radar.CustomList[i] = nil Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList RadarTable = {} end 
 								GUI:NextColumn()
 							end
 							GUI:Columns()
 							GUI:TreePop()
 						elseif Tabs.CurrentSelected == 3 then -- Settings Tab
 							GUI:Columns(2) GUI:SetColumnOffset(1, 250) -- Column names.
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Show HP Bars:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Black Behind Names:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - HP Bar Style:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Toggle Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String Format:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,Distance2D,Type,HP" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Show Names:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Marker Shapes:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Enable Click Through:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Radar Scale (%%):") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Radar Opacity:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Text Scale:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text("Add Presets to Custom List:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Add Presets into the Custom List, this will not overwrite existing entries." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Show HP Bars:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Black Behind Names:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - HP Bar Style:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Toggle Scan Distance:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Scan Distance:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Custom String:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("3D - Custom String Format:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,Distance2D,Type,HP" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Show Names:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Marker Shapes:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Enable Click Through:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Radar Scale (%%):")) if ( GUI:IsItemHovered() ) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Scan Distance:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Radar Opacity:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Text Scale:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Add Presets to Custom List:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Add Presets into the Custom List, this will not overwrite existing entries." ) end
 							GUI:NextColumn() -- Settings stuff.
 							local Size = GUI:GetContentRegionAvail()
 							ffxiv_radar.ShowHPBars, changed = GUI:Checkbox("##ShowHPBars", ffxiv_radar.ShowHPBars) if (changed) then Settings.ffxiv_radar.ShowHPBars = ffxiv_radar.ShowHPBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
@@ -191,7 +191,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance2D, changed = GUI:SliderInt("##RadarDistance2D", ffxiv_radar.RadarDistance2D,0,300) if (changed) then Settings.ffxiv_radar.RadarDistance2D = ffxiv_radar.RadarDistance2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
 							GUI:PushItemWidth(Size) ffxiv_radar.Opacity, changed = GUI:SliderInt("##Opacity", ffxiv_radar.Opacity,0,100) if (changed) then Settings.ffxiv_radar.Opacity = ffxiv_radar.Opacity ffxiv_radar.UpdateColours() end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end GUI:PopItemWidth()
 							GUI:PushItemWidth(Size) ffxiv_radar.TextScale, changed = GUI:SliderInt("##TextScale", ffxiv_radar.TextScale,50,250) if (changed) then Settings.ffxiv_radar.TextScale = ffxiv_radar.TextScale end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end GUI:PopItemWidth()
-							if GUI:Button("Add Preset Data",Size,20) then ffxiv_radar.AddPreset() end
+							if GUI:Button(GetString("Add Preset Data"),Size,20) then ffxiv_radar.AddPreset() end
 							GUI:Columns()
 						end
 					end

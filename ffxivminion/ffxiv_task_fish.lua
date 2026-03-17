@@ -2897,7 +2897,7 @@ function ffxiv_task_fish:Draw()
 	GUI:Separator()
 	end
 	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text("Fish Mode")
+	GUI:Text(GetString("Fish Mode"))
 	GUI:SameLine(110)
 	GUI:PushItemWidth(MarkerOrProfileWidth-110)
 	local MarkerOrProfile = GUI_Combo("##FishMarkerOrProfile", "gFishMarkerOrProfileIndex", "gFishMarkerOrProfile", gFishMarkerOrProfileOptions)
@@ -2920,7 +2920,7 @@ function ffxiv_task_fish:Draw()
 			gFishProfile = GetString("None")
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Marker Mode")
+		GUI:Text(GetString("Marker Mode"))
 		GUI:SameLine(110)
 		GUI:PushItemWidth(MarkerOrProfileWidth - 110)
 		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
@@ -2974,21 +2974,21 @@ function ffxiv_task_fish:Draw()
 		GUI:Columns()
 		GUI:Separator()
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Cordials")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Cordials"))
 		GUI:Separator()
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use Cordials")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Cordials"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for High Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Missing GP for High Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a High Cordial.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Missing GP for Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Cordial.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Missing GP for Watered Cordial Usage")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Missing GP for Watered Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
@@ -3017,7 +3017,7 @@ function ffxiv_task_fish:Draw()
 	-- Collectables
 	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
-		if (GUI:Button("Use Known Defaults",CollectableFullWidth,20)) then
+		if (GUI:Button(GetString("Use Known Defaults"),CollectableFullWidth,20)) then
 			GUI_Set("gFishCollectablePresets",{})
 			for k,v in pairs(ffxiv_fish.collectibles) do
 				local name = FFXIVLib.API.Items.GetNameByID(v.id) or v.alias
@@ -3026,17 +3026,17 @@ function ffxiv_task_fish:Draw()
 			end
 			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 		end
-		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
+		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
 			table.insert(gFishCollectablePresets,newCollectable)
 			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 		end
 		GUI:Columns(2)
 		local CollectableWidth1 = GUI:GetContentRegionAvail()
-		GUI:Text("Item Name")
+		GUI:Text(GetString("Item Name"))
 		GUI:NextColumn()
 		local CollectableWidth2 = GUI:GetContentRegionAvail()
-		GUI:Text("Min Value")
+		GUI:Text(GetString("Min Value"))
 		GUI:Columns()
 		GUI:Separator()
 		-- Collectable List
@@ -3085,7 +3085,7 @@ function ffxiv_task_fish:Draw()
 		local currentMap = ml_marker_mgr.activeMap
 		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Marker Type")
+		GUI:Text(GetString("Marker Type"))
 		GUI:SameLine(110)
 		GUI:PushItemWidth(MarkerOrProfileWidth - 110)
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
@@ -3166,47 +3166,47 @@ function ffxiv_task_fish:Draw()
 		GUI:Columns(2)
 		
 	
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Bait Type")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Bait Type"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Select the bait you would like to use.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Mooch")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Mooch"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Allow fish mooching.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Mooch II")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Mooch II"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Allow fish mooching (Mooch 2).")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Patience")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Patience"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Patience while fishing.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Patience II")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Patience II"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Patience 2 while fishing.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Snagging")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Snagging"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Apply the Snagging buff when fishing.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Eyes")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Fish Eyes"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Apply the Fish Eyes buff when fishing.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Chum")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Chum"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Chum while fishing.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Double Hook")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Double Hook"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Use Double Hook.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Identical Cast List")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Identical Cast List"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Identical Cast List.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Surface Slap List")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Surface Slap List"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Surface Slap List.")
 		end
@@ -3275,11 +3275,11 @@ function ffxiv_task_fish:Draw()
 	if (tabname == GetString("Debug")) then
 		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Fish Debug")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Fish Debug"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Enable Debug messages in console.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Debug Level")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Debug Level"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
 		end

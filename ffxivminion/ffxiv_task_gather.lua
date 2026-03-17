@@ -3582,7 +3582,7 @@ function ffxiv_task_gather:Draw()
 	-- Gather Mode Selections.
 	GUI:Separator()
 	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text("Gather Mode")
+	GUI:Text(GetString("Gather Mode"))
 	GUI:SameLine(110)
 	GUI:PushItemWidth(MarkerOrProfileWidth-110)
 	local MarkerOrProfile = GUI_Combo("##MarkerOrProfile", "gGatherMarkerOrProfileIndex", "gGatherMarkerOrProfile", gGatherMarkerOrProfileOptions)
@@ -3602,7 +3602,7 @@ function ffxiv_task_gather:Draw()
 			gGatherProfileIndex = 1
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Marker Mode")
+		GUI:Text(GetString("Marker Mode"))
 		GUI:SameLine(110)
 		GUI:PushItemWidth(MarkerOrProfileWidth-110)
 		local modeChanged = GUI_Combo("##Marker Mode", "gMarkerModeIndex", "gMarkerMode", ml_marker_mgr.modesDisplay)
@@ -3657,25 +3657,25 @@ function ffxiv_task_gather:Draw()
 		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Cordials")
+		GUI:Text(GetString("Cordials"))
 		GUI:Separator()
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Use Cordials")
+		GUI:Text(GetString("Use Cordials"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Allow use of Cordials for GP.")
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Missing GP for High Cordial Usage")
+		GUI:Text(GetString("Missing GP for High Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a High Cordial.")
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Missing GP for Cordial Usage")
+		GUI:Text(GetString("Missing GP for Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Cordial.")
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Missing GP for Watered Cordial Usage")
+		GUI:Text(GetString("Missing GP for Watered Cordial Usage"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Missing GP required before using a Watered Cordial.")
 		end
@@ -3702,15 +3702,15 @@ function ffxiv_task_gather:Draw()
 		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Random Delay")
+		GUI:Text(GetString("Random Delay"))
 		GUI:Separator()
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Min Delay")
+		GUI:Text(GetString("Min Delay"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Minimum time to wait after Gathering a node.")
 		end
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Max Delay")
+		GUI:Text(GetString("Max Delay"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Maximum time to wait after Gathering a node.")
 		end
@@ -3731,17 +3731,17 @@ function ffxiv_task_gather:Draw()
 	-- Collectable Tab
 	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
-		if (GUI:Button("Add Collectable",CollectableFullWidth,20)) then
+		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
 			table.insert(gGatherCollectablePresets,newCollectable)
 			GUI_Set("gGatherCollectablePresets",gGatherCollectablePresets)
 		end
 		GUI:Columns(2)
 		local CollectableWidth1 = GUI:GetContentRegionAvail()
-		GUI:Text("Item Name")
+		GUI:Text(GetString("Item Name"))
 		GUI:NextColumn()
 		local CollectableWidth2 = GUI:GetContentRegionAvail()
-		GUI:Text("Min Value")
+		GUI:Text(GetString("Min Value"))
 		GUI:Columns()
 		GUI:Separator()
 		-- Collectable List
@@ -3791,7 +3791,7 @@ function ffxiv_task_gather:Draw()
 		local currentMap = ml_marker_mgr.activeMap
 		local currentList = ml_marker_mgr.GetList(currentMode,currentType,currentMap)
 		GUI:AlignFirstTextHeightToWidgets() 
-		GUI:Text("Marker Type")
+		GUI:Text(GetString("Marker Type"))
 		GUI:SameLine(110)
 		GUI:PushItemWidth(MarkerOrProfileWidth-110)
 		local modeChanged = ml_gui.Combo("##Marker Type", "gMarkerTypeIndex", "gMarkerType", ml_marker_mgr.templateDisplay)
@@ -3873,36 +3873,36 @@ function ffxiv_task_gather:Draw()
 		GUI:Columns(2)
 		
 	
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Slot")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Gather Slot"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Slot to collect inside Node.")
 		end
 		
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Maps")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Maps"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Maps If Available.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gardening")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Gardening"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Seeds etc If Available.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Rares")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Rares"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Rare Items If Available.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Chocobo Food")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Chocobo Food"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Gather Chocobo Food Items If Available.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Min GP")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Min GP"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Min GP to interact with node.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Node Min Level")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Node Min Level"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Min node level to gather.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Node Max Level")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Node Max Level"))
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Max node level to gather.")
 		end
@@ -3957,11 +3957,11 @@ function ffxiv_task_gather:Draw()
 	if (tabname == GetString("Debug"))  then
 		GUI:BeginChild("##header-debug",-8,GUI_GetFrameHeight(2),true)
 		GUI:Columns(2)
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Gather Debug")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Gather Debug"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Enable Debug messages in console.")
 		end
-		GUI:AlignFirstTextHeightToWidgets() GUI:Text("Debug Level")
+		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Debug Level"))
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Change the Debug message level. (The higher the number the more detailed the messages)")
 		end

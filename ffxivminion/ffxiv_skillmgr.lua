@@ -6126,8 +6126,8 @@ function SkillMgr.DrawSkillBook()
 			
 			SkillMgr.GUI.skillbook.x = x; SkillMgr.GUI.skillbook.y = y; SkillMgr.GUI.skillbook.width = width; SkillMgr.GUI.skillbook.height = height;
 			
-			GUI_Capture(GUI:Checkbox("This Job Only",gSkillMgrFilterJob),"gSkillMgrFilterJob")
-			GUI_Capture(GUI:Checkbox("Usable Only",gSkillMgrFilterUsable),"gSkillMgrFilterUsable")
+			GUI_Capture(GUI:Checkbox(GetString("This Job Only"),gSkillMgrFilterJob),"gSkillMgrFilterJob")
+			GUI_Capture(GUI:Checkbox(GetString("Usable Only"),gSkillMgrFilterUsable),"gSkillMgrFilterUsable")
 			
 			SkillMgr.FillSkillBook()
 			
@@ -6414,7 +6414,7 @@ end
 
 function SkillMgr.DrawBattleEditor()
 	
-	if (GUI:CollapsingHeader("Basic","battle-basic-header")) then
+	if (GUI:CollapsingHeader(GetString("Basic"),"battle-basic-header")) then
 		GUI:Columns(2,"#battle-basic-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6451,7 +6451,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader("Chain","battle-chain-header")) then
+	if (GUI:CollapsingHeader(GetString("Chain"),"battle-chain-header")) then
 		GUI:Columns(2,"#battle-chain-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6462,7 +6462,7 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	if (GUI:CollapsingHeader("Other Skill Checks","battle-otherskills-header")) then
+	if (GUI:CollapsingHeader(GetString("Other Skill Checks"),"battle-otherskills-header")) then
 		GUI:Columns(2,"#battle-otherskills-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,450);
 		
@@ -6678,7 +6678,7 @@ end
 
 function SkillMgr.DrawCraftEditor()
 	
-	if (GUI:CollapsingHeader("Crafting","crafting-header")) then
+	if (GUI:CollapsingHeader(GetString("Crafting"),"crafting-header")) then
 		GUI:Columns(2,"#craft-main",false)
 		GUI:SetColumnOffset(1,155); GUI:SetColumnOffset(2,500);
 		
@@ -6742,7 +6742,7 @@ function SkillMgr.DrawCraftEditor()
 end
 
 function SkillMgr.DrawGatherEditor()
-	if (GUI:CollapsingHeader("Gathering","gathering-header")) then
+	if (GUI:CollapsingHeader(GetString("Gathering"),"gathering-header")) then
 		GUI:Columns(2,"#gathering-main",false)
 		GUI:SetColumnOffset(1,180); GUI:SetColumnOffset(2,300);
 		
@@ -6834,7 +6834,7 @@ function SkillMgr.DrawManager()
 					SkillMgr.SaveProfile()
 				end
 					
-				if (GUI:CollapsingHeader("Valid Classes","classes-header")) then
+				if (GUI:CollapsingHeader(GetString("Valid Classes"),"classes-header")) then
 					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE","VPR","PCT"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 					local gatherers = {"MIN","BTN","FSH"}
@@ -6868,12 +6868,12 @@ function SkillMgr.DrawManager()
 					GUI:NewLine();
 					GUI:Spacing(2)
 				end
-				if (GUI:CollapsingHeader("Extra Filters","filters-header")) then
+				if (GUI:CollapsingHeader(GetString("Extra Filters"),"filters-header")) then
 					for i = 1, 5 do
 						SkillMgr.Capture(GUI:InputText("Filter "..tostring(i),_G["gSkillManagerFilter"..tostring(i)]),"gSkillManagerFilter"..tostring(i))
 					end
 				end
-				if (GUI:CollapsingHeader("Profile Skills","skills-header")) then
+				if (GUI:CollapsingHeader(GetString("Profile Skills"),"skills-header")) then
 					local skills = SkillMgr.SkillProfile
 					if (table.valid(skills)) then
 						
@@ -7025,7 +7025,7 @@ function SkillMgr.DrawManager()
 			end			
 			if (tabs.tabs[2].isselected) then
 				GUI_Capture(GUI:InputText(GetString("name"),gSkillManagerNewProfile),"gSkillManagerNewProfile");
-				if ( GUI:Button("Create Profile")) then
+				if ( GUI:Button(GetString("Create Profile"))) then
 					SkillMgr.SkillProfile = {}
 					SkillMgr.WriteToFile(gSkillManagerNewProfile)
 					SkillMgr.UpdateProfiles()

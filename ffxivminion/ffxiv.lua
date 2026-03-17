@@ -1942,25 +1942,25 @@ function ml_global_information.DrawSettings()
 					GUI_DrawIntMinMax(GetString("Pulse Time"), "gPulseTime", 5, 10, 5, 2000)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(60)
-					GUI:Text("# Active Task Count");
+					GUI:Text(GetString("# Active Task Count"));
 					GUI:SameLine(150);
 					GUI:InputText("##active-task-count", FFXIV_Core_ActiveTaskCount, GUI.InputTextFlags_ReadOnly)
 					GUI:PushItemWidth(200)
-					GUI:Text("# Active Task Name");
+					GUI:Text(GetString("# Active Task Name"));
 					GUI:SameLine(150);
 					GUI:InputText("##active-task-name", FFXIV_Core_ActiveTaskName, GUI.InputTextFlags_ReadOnly)
 					GUI:PopItemWidth()
-					GUI:Text("# Active Task Delay");
+					GUI:Text(GetString("# Active Task Delay"));
 					GUI:SameLine(150);
 					GUI:InputText("##active-task-delay", FFXIV_Core_ActiveTaskDelay, GUI.InputTextFlags_ReadOnly)
-					GUI:Text("Idle Pulse Count");
+					GUI:Text(GetString("Idle Pulse Count"));
 					GUI:SameLine(150);
 					GUI:InputText("##idle-pulse-count", FFXIV_Core_IdlePulseCount, GUI.InputTextFlags_ReadOnly)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(100)
 					GUI_Capture(GUI:Checkbox(GetString("Enable Log"), gEnableLog), "gEnableLog");
 					GUI_Capture(GUI:Checkbox(GetString("Log CNE"), gLogCNE), "gLogCNE");
-					GUI_Capture(GUI:Combo("Log Level", gLogLevel, gLogLevels), "gLogLevel")
+					GUI_Capture(GUI:Combo(GetString("Log Level"), gLogLevel, gLogLevels), "gLogLevel")
 
 					GUI:LabelText("Eorzea Time", FFXIV_Common_EorzeaTime)
 					GUI:LabelText("Memory Usage", FFXIV_Core_MemoryUsage)

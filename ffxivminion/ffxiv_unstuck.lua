@@ -560,7 +560,7 @@ bugReport = bugReport.."Z: "..tostring(ffxiv_unstuck.lastPos.z).."\n"
 GUI:Separator()
 					
 			end
-			if (GUI:Button("Close")) then
+			if (GUI:Button(GetString("Close"))) then
 				ffxiv_unstuck.GUI.open = false
 				NavigationManager.ShowFloorMesh = false 
 				Settings.minionlib.ShowNavPath = false

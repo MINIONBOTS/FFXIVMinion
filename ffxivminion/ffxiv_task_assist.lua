@@ -303,7 +303,7 @@ function ffxiv_task_assist:Draw()
 		GUI:SetTooltip("If this option is off, the bot will not attack a mob that is not in combat already.")
 	end
 	GUI:AlignFirstTextHeightToWidgets() 
-	GUI:Text("Avoid AOE")
+	GUI:Text(GetString("Avoid AOE"))
 	if (GUI:IsItemHovered()) then
 		GUI:SetTooltip("If enabled, the bot will attempt to dodge enemy AoE attacks while in Assist Mode.")
 	end

@@ -325,15 +325,15 @@ function ffxiv_music.DrawCall(event, ticks )
 					Settings.FFXIVMINION.gMusicText = gMusicText
 				end
 				if (ffxiv_music.is_playing) then
-					if (GUI:Button("Stop Playing")) then
+					if (GUI:Button(GetString("Stop Playing"))) then
 						ffxiv_music.StopPlayback()
 					end
 				else
-					if (GUI:Button("Resume Playing")) then
+					if (GUI:Button(GetString("Resume Playing"))) then
 						ffxiv_music.StartPlayback()
 					end
 					GUI:SameLine(0,10)
-					if (GUI:Button("Play From Beginning")) then
+					if (GUI:Button(GetString("Play From Beginning"))) then
 						ffxiv_music.Reset()
 						
 						local i = 1
