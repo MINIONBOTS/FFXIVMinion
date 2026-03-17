@@ -169,7 +169,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Show Names:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Marker Shapes:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the shape of the markers used within the 2D radar." ) end
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Enable Click Through:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
-							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Radar Scale (%%):")) if ( GUI:IsItemHovered() ) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
+							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Radar Scale (%%):")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Scan Distance:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("2D - Radar Opacity:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Text Scale:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end
