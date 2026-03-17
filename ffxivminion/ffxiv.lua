@@ -2778,56 +2778,55 @@ invalid name or haven't chosen one."))
 						GUI:TextColored(1, .1, .2, 1, GetString("Not On Mesh"))
 					end
 
-					if CanAccessMap(1192) then
-						GUI:Text("Can Access Living Memory");
-					elseif CanAccessMap(1191) then
-						GUI:Text("Can Access Heritage Found");
-					elseif CanAccessMap(1186) then
-						GUI:Text("Can Access Solution Nine");
-					elseif CanAccessMap(1190) then
-						GUI:Text("Can Access Shaaloani");
-					elseif CanAccessMap(1189) then
-						GUI:Text("Can Access Yak T'el");
-					elseif CanAccessMap(1188) then
-						GUI:Text("Can Access Kozama'uka");
-					elseif CanAccessMap(1187) then
-						GUI:Text("Can Access Urqopacha");
-					elseif CanAccessMap(1185) then
-						GUI:Text("Can Access Tuliyollal");
-					elseif CanAccessMap(818) then
-						GUI:Text("Can Access The Tempest");
-					elseif CanAccessMap(817) then
-						GUI:Text("Can Access The Rak'tika Greatwood");
-					elseif CanAccessMap(816) then
-						GUI:Text("Can Access Il Mheg");
-					elseif CanAccessMap(815) then
-						GUI:Text("Can Access Amh Araeng");
-					elseif CanAccessMap(814) then
-						GUI:Text("Can Access Lakeland");
-					elseif CanAccessMap(819) then
-						GUI:Text("Can Access The Crystarium");
-					elseif CanAccessMap(621) then
-						GUI:Text("Can Access The Lochs");
-					elseif CanAccessMap(622) then
-						GUI:Text("Can Access Azim Steppes");
-					elseif CanAccessMap(614) then
-						GUI:Text("Can Access Yanxia");
-					elseif CanAccessMap(613) then
-						GUI:Text("Can Access The Ruby Sea");
-					elseif CanAccessMap(612) then
-						GUI:Text("Can Access The Fringes");
-					elseif CanAccessMap(402) then
-						GUI:Text("Can Access Azys Lla");
-					elseif CanAccessMap(399) then
-						GUI:Text("Can Access Dravanian Hinterlands");
-					elseif CanAccessMap(398) then
-						GUI:Text("Can Access Dravanian Forelands");
-					elseif CanAccessMap(397) then
-						GUI:Text("Can Access CWH");
-					elseif CanAccessMap(418) then
-						GUI:Text("Can NOT Access CWH");
-					elseif not CanAccessMap(418) then
-						GUI:Text("Can NOT Access Heavensward maps");
+					-- Cache CanAccessMap results to avoid expensive per-frame nav/aetheryte lookups
+					local helpData = FFXIV_Common_BotRunning.ui.help
+					local now = os.clock()
+					local currentMap = Player.localmapid
+					if (now - helpData.access_cache_time > 5) or (currentMap ~= helpData.access_cache_mapid) then
+						helpData.access_cache_time = now
+						helpData.access_cache_mapid = currentMap
+						local accessChecks = {
+							{1192, "Can Access Living Memory"},
+							{1191, "Can Access Heritage Found"},
+							{1186, "Can Access Solution Nine"},
+							{1190, "Can Access Shaaloani"},
+							{1189, "Can Access Yak T'el"},
+							{1188, "Can Access Kozama'uka"},
+							{1187, "Can Access Urqopacha"},
+							{1185, "Can Access Tuliyollal"},
+							{818,  "Can Access The Tempest"},
+							{817,  "Can Access The Rak'tika Greatwood"},
+							{816,  "Can Access Il Mheg"},
+							{815,  "Can Access Amh Araeng"},
+							{814,  "Can Access Lakeland"},
+							{819,  "Can Access The Crystarium"},
+							{621,  "Can Access The Lochs"},
+							{622,  "Can Access Azim Steppes"},
+							{614,  "Can Access Yanxia"},
+							{613,  "Can Access The Ruby Sea"},
+							{612,  "Can Access The Fringes"},
+							{402,  "Can Access Azys Lla"},
+							{399,  "Can Access Dravanian Hinterlands"},
+							{398,  "Can Access Dravanian Forelands"},
+							{397,  "Can Access CWH"},
+						}
+						helpData.access_cache.text = nil
+						for _, check in ipairs(accessChecks) do
+							if CanAccessMap(check[1]) then
+								helpData.access_cache.text = check[2]
+								break
+							end
+						end
+						if not helpData.access_cache.text then
+							if CanAccessMap(418) then
+								helpData.access_cache.text = "Can NOT Access CWH"
+							else
+								helpData.access_cache.text = "Can NOT Access Heavensward maps"
+							end
+						end
+					end
+					if helpData.access_cache.text then
+						GUI:Text(helpData.access_cache.text)
 					end
 
 					GUI:Text("Can Fly on Map: ");
