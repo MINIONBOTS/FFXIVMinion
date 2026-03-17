@@ -18,3 +18,9 @@
 /AceLib
 /.vs/slnx.sqlite
 /.vs
+
+/DataBrowser
+/FFXIVLib
+/HMax ACR Pack
+/ffxivminion/SkillManagerProfiles/*.lua
+/ffxivminion/class_routines/*.info
