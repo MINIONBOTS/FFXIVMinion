@@ -36,6 +36,7 @@ ffxivminion.loginvars = {
 -- World data once it loads asynchronously.
 ffxivminion.logincenters = { "-" }
 ffxivminion.loginservers = { [1] = { "-" } }
+ffxivminion.logincenterIds = {}  -- DC name -> RowId mapping
 ffxivminion._loginDataRefreshed = false
 
 -- Refreshes login datacenter/server lists from FFXIVLib World data.
@@ -49,23 +50,29 @@ function ffxivminion.RefreshLoginData()
 	local region = ffxivminion.gameRegion
 	local centers = FFXIVLib.API.World.GetLoginCenters(region)
 	local servers = FFXIVLib.API.World.GetLoginServers(region)
+	local centerIds = FFXIVLib.API.World.GetLoginCenterIds(region)
 
 	if centers and servers and #centers > 1 and table.valid(servers[2]) then
 		ffxivminion.logincenters = centers
 		ffxivminion.loginservers = servers
+		ffxivminion.logincenterIds = centerIds or {}
 		ffxivminion._loginDataRefreshed = true
 
 		-- Re-resolve DC index for current saved name
 		if FFXIV_Login_DataCenterName then
-			FFXIV_Login_DataCenter = IsNull(
-				GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters), 1)
+			local dcIdx = GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters)
+			FFXIV_Login_DataCenter = IsNull(dcIdx, 1)
 		end
 		-- Re-resolve server index for current saved name
-		if FFXIV_Login_ServerName and ffxivminion.loginservers[FFXIV_Login_DataCenter] then
+		-- Use SettingsUUID as authoritative source since FFXIV_Login_ServerName
+		-- may have been clobbered by SetMainVars before data loaded
+		local savedServerName = (SettingsUUID and SettingsUUID.Login and SettingsUUID.Login.Server) or FFXIV_Login_ServerName
+		if savedServerName and ffxivminion.loginservers[FFXIV_Login_DataCenter] then
 			local serverIdx = GetKeyByValue(
-				FFXIV_Login_ServerName, ffxivminion.loginservers[FFXIV_Login_DataCenter])
+				savedServerName, ffxivminion.loginservers[FFXIV_Login_DataCenter])
 			if serverIdx then
 				FFXIV_Login_Server = serverIdx
+				FFXIV_Login_ServerName = savedServerName
 			end
 		end
 		return true
@@ -219,15 +226,15 @@ setmetatable(tasktracking, { __mode = 'v' })
 
 function ml_global_information.ResetLoginVars()
 	if (not ffxivminion.loginvars.reset) then
-		ffxivminion.loginvars = {
-			reset = true,
-			loginPaused = false,
-			datacenterSelected = false,
-			serverSelected = false,
-			charSelected = false,
-			useLastLogin = false,
-			useAutoLogin = false,
-		}
+		pauseOnLoad = nil
+		ffxivminion.loginvars.reset = true
+		ffxivminion.loginvars.loginPaused = false
+		ffxivminion.loginvars.datacenterSelected = false
+		ffxivminion.loginvars.dcSet = false
+		ffxivminion.loginvars.dcSelectedTime = nil
+		ffxivminion.loginvars.serverSelected = false
+		ffxivminion.loginvars.charSelected = false
+		-- Preserve useAutoLogin and useLastLogin so re-login works
 	end
 end
 
@@ -285,12 +292,23 @@ end
 function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 	local login = ffxivminion.loginvars
 
+	-- If we returned from character select without completing login, reset flow
+	-- (reset is set to false in CharacterSelectScreenOnUpdate)
+	if not login.reset then
+		pauseOnLoad = nil
+		login.reset = true
+		login.loginPaused = false
+		login.datacenterSelected = false
+		login.dcSet = false
+		login.dcSelectedTime = nil
+		login.serverSelected = false
+		login.charSelected = false
+	end
+
 	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
-		d("Pausing login on first load")
 	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
 		pauseOnLoad = false
-		d("Delay is over, unpausing login.")
 	end
 
 	-- Try to load dynamic login data each frame until it arrives.
@@ -311,38 +329,12 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 			else
 				-- TitleDCWorldMap is used since 4.0 , before older versions use TitleDataCenter
 				if (not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap")) then
-					if (login.useLastLogin and UseControlAction("_TitleMenu", "Start", 0)) or (UseControlAction("_TitleMenu", "OpenDataCenter", 0)) then
-						ml_global_information.Await(100, 10000, function()
-							if (UseControlAction("Dialogue", "PressOK", 0)) then
-								ml_global_information.Await(1000, 10000, function()
-									return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
-								end)
-							end
-							return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
-						end)
-					end
-				else
-					if (not login.datacenterSelected) then
-						if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= #ffxivminion.logincenters) then
-							d("trying to login on datacenter:" .. tostring(FFXIV_Login_DataCenter))
-							if (UseControlAction("TitleDataCenter", "SetDataCenter", (FFXIV_Login_DataCenter - 2)) or UseControlAction("TitleDCWorldMap", "SetDataCenter", (FFXIV_Login_DataCenter - 2))) then
-								login.datacenterSelected = true
-								ml_global_information.Await(100, 10000, function()
-									if (UseControlAction("Dialogue", "PressOK", 0)) then
-										ml_global_information.Await(1000, 10000, function()
-											return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
-										end)
-									end
-									return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
-								end)
-							end
-						else
-							ffxivminion.loginvars.loginPaused = true
-							ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
-						end
-					else
-						if (UseControlAction("TitleDataCenter", "Proceed", 0) or UseControlAction("TitleDCWorldMap", "Proceed", 0)) then
-							ml_global_information.Await(1000, 60000, function()
+					if login.useLastLogin or login.datacenterSelected then
+						-- DC already confirmed (or using last login), click Start
+						if UseControlAction("_TitleMenu", "Start", 0) then
+							login.datacenterSelected = false
+							login.dcSelectedTime = nil
+							ml_global_information.Await(500, 10000, function()
 								if (UseControlAction("Dialogue", "PressOK", 0)) then
 									ml_global_information.Await(1000, 10000, function()
 										return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
@@ -350,7 +342,64 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 								end
 								return (table.valid(GetConversationList()) or MGetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN)
 							end)
-							ffxivminion.loginvars.datacenterSelected = false
+						end
+					else
+						-- Need to open DC panel to select datacenter
+						if UseControlAction("_TitleMenu", "OpenDataCenter", 0) then
+							ml_global_information.Await(100, 10000, function()
+								if (UseControlAction("Dialogue", "PressOK", 0)) then
+									ml_global_information.Await(1000, 10000, function()
+										return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+									end)
+								end
+								return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
+							end)
+						end
+					end
+				else
+					if (not login.dcSet) then
+						if (FFXIV_Login_DataCenterName and FFXIV_Login_DataCenterName ~= "-") then
+							-- Use the DC RowId from our data to compute the SetDataCenter arg
+							local dcRowId = ffxivminion.logincenterIds[FFXIV_Login_DataCenterName]
+							local gameDCIndex = nil
+							if dcRowId then
+								gameDCIndex = dcRowId - 1  -- SetDataCenter is 0-based RowId
+							end
+
+							if gameDCIndex ~= nil then
+								if (UseControlAction("TitleDataCenter", "SetDataCenter", gameDCIndex) or UseControlAction("TitleDCWorldMap", "SetDataCenter", gameDCIndex)) then
+									login.dcSet = true
+									login.dcSelectedTime = Now()
+									ml_global_information.Await(100, 10000, function()
+										if (UseControlAction("Dialogue", "PressOK", 0)) then
+											ml_global_information.Await(1000, 10000, function()
+												return MGetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN
+											end)
+										end
+										return IsControlOpen("TitleDataCenter") or IsControlOpen("TitleDCWorldMap")
+									end)
+								end
+							else
+								ffxivminion.loginvars.loginPaused = true
+								ffxiv_dialog_manager.IssueNotice("DataCenter Not Found", "DataCenter '" .. tostring(FFXIV_Login_DataCenterName) .. "' was not found in the game's datacenter list.")
+							end
+						else
+							ffxivminion.loginvars.loginPaused = true
+							ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
+						end
+					else
+						-- DC is set in the panel, now click Proceed to confirm and close
+						if login.dcSelectedTime and TimeSince(login.dcSelectedTime) > 15000 then
+							login.dcSet = false
+							login.dcSelectedTime = nil
+						else
+							if (UseControlAction("TitleDataCenter", "Proceed", 0) or UseControlAction("TitleDCWorldMap", "Proceed", 0)) then
+								login.dcSet = false
+								login.datacenterSelected = true  -- Flag: DC confirmed, next step is Start
+								ml_global_information.Await(500, 10000, function()
+									return not IsControlOpen("TitleDataCenter") and not IsControlOpen("TitleDCWorldMap")
+								end)
+							end
 						end
 					end
 				end
@@ -373,14 +422,14 @@ function ml_global_information.MainMenuScreenOnUpdate(event, tickcount)
 end
 
 function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
+	-- Mark that a login is in progress so ResetLoginVars fires when we reach INGAME
+	ffxivminion.loginvars.reset = false
 	local login = ffxivminion.loginvars
 
 	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
-		d("Pausing login on first load")
 	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
 		pauseOnLoad = false
-		d("Delay is over, unpausing login.")
 	end
 
 	if not ffxivminion.loginvars.useAutoLogin then return false end
@@ -396,16 +445,24 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 						end)
 					end
 				else
-					if (FFXIV_Login_Server and FFXIV_Login_Server > 0) then
+					if (not FFXIV_Login_ServerName or FFXIV_Login_ServerName == "-" or FFXIV_Login_ServerName == "") then
+						ffxivminion.loginvars.loginPaused = true
+						ffxiv_dialog_manager.IssueNotice("Server Required", "You must select a Server to continue the login process.")
+					elseif (FFXIV_Login_Server and FFXIV_Login_Server > 0) then
 						local servers = GetServerList()
 						if (table.valid(servers)) then
+							local found = false
 							for id, e in pairs(servers) do
 								if (e.name == FFXIV_Login_ServerName) then
-									d("selected server id:" .. tostring(id))
 									SelectServer(id)
 									ffxivminion.loginvars.serverSelected = true
 									ml_global_information.Await(2000)
+									found = true
 								end
+							end
+							if not found then
+								ffxivminion.loginvars.loginPaused = true
+								ffxiv_dialog_manager.IssueNotice("Server Not Found", "Server '" .. tostring(FFXIV_Login_ServerName) .. "' was not found in the server list for this datacenter.")
 							end
 						end
 					else
@@ -783,7 +840,8 @@ function ffxivminion.SetMainVars()
 		end
 	end
 	FFXIV_Login_DataCenterName = SettingsUUID.Login.DataCenter
-	FFXIV_Login_DataCenter = IsNull(GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters), 1)
+	local dcMatchIdx = GetKeyByValue(FFXIV_Login_DataCenterName, ffxivminion.logincenters)
+	FFXIV_Login_DataCenter = IsNull(dcMatchIdx, 1)
 
 	---Server
 	if not SettingsUUID.Login.Server then
@@ -2439,6 +2497,7 @@ function ml_global_information.DrawLoginHandler()
 				GUI_Set("FFXIV_Login_ServerName", "")
 				SettingsUUID.Login.Server = FFXIV_Login_ServerName
 				ffxivminion.loginvars.datacenterSelected = false
+				ffxivminion.loginvars.dcSet = false
 			end
 
 			if (table.valid(ffxivminion.loginservers[FFXIV_Login_DataCenter])) then
@@ -2467,14 +2526,16 @@ function ml_global_information.DrawLoginHandler()
 			local str = "Pause"
 			if ffxivminion.loginvars.loginPaused or pauseOnLoad then
 				str = "Start"
+				if pauseOnLoad and type(pauseOnLoad) == "number" and ffxivminion.loginvars.useAutoLogin then
+					local timer = math.floor(10 - (TimeSince(pauseOnLoad) / 1000))
+					if timer > 0 then
+						str = "Start (" .. tostring(timer) .. "s)"
+					end
+				end
 			end
 			if (GUI:Button(str, width, 20)) then
 				ffxivminion.loginvars.loginPaused = IIF(pauseOnLoad == false, not ffxivminion.loginvars.loginPaused, false)
 				pauseOnLoad = false
-			end
-			if pauseOnLoad and ffxivminion.loginvars.useAutoLogin then
-				local timer = 10-(TimeSince(pauseOnLoad)/1000)
-				GUI:TextColored(0.75,0.75,0,1,GetString("Auto start in "..tostring(math.floor(timer)).." seconds."))
 			end
 		end
 
