@@ -545,7 +545,12 @@ ffxiv_map_nav.data = {
 		[418] = {
 			{id = 418, cost = 5, x = -163.6195,	y = 304.1538,    z = -332.2256,	h = -2.4607, b = 1012149
 				, requires =  {
-					["QuestCompleted(428)"] = true,
+					["GetQuestInfo(1580,'step') > 2 or QuestCompleted(1580)"] = true,
+				},
+			},
+			{id = 418, cost = 5, x = -163.9,	y = 304.1538,    z = -333,	h = -2.4607, b = 1012309
+				, requires =  {
+					["GetQuestInfo(1580,'step') == 2"] = true,
 				},
 			},
 		},
