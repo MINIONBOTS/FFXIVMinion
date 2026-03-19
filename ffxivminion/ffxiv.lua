@@ -2157,7 +2157,7 @@ function ml_global_information.DrawSettings()
 						end
 					end
 
-					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
+					local fighters = { "GLA", "PLD", "PGL", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
 						, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
 						, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
