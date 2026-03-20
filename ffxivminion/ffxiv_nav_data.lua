@@ -2579,6 +2579,7 @@ end
 
 function ffxiv_map_nav.SetupNavNodes()
 	ml_nav_manager.nodes = {}
+	ml_nav_manager._pathCache = {}
     for id, neighbors in pairs(ffxiv_map_nav.data) do
 		local node = ml_node:Create()
 		if (ValidTable(node)) then

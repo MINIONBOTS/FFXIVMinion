@@ -1683,6 +1683,7 @@ e_getmovementpath = inheritsFrom( ml_effect )
 c_getmovementpath.lastFallback = 0
 c_getmovementpath.lastGoal = {}
 c_getmovementpath.lastOptimalPath = 0
+c_getmovementpath.asyncPrefetchPos = nil
 function c_getmovementpath:evaluate()
 	if not Player.onmesh then
 		return false
@@ -1690,7 +1691,7 @@ function c_getmovementpath:evaluate()
 	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing()) then
 		return false
 	end
-	if TimeSince(c_getmovementpath.lastOptimalPath) < 2000 then
+	if TimeSince(c_getmovementpath.lastOptimalPath) < 2000 and not c_getmovementpath.asyncPrefetchPos then
 		return false
 	end
 	
@@ -1705,16 +1706,40 @@ function c_getmovementpath:evaluate()
 		end
 		
 		if (table.valid(gotoPos)) then
+			-- Prefetch path asynchronously so the sync BuildPath call below hits a warm cache
+			local _tNavTotal = os.clock() * 1000
+			local ppos = Player.pos
+			if (ppos) then
+				local _ta = os.clock() * 1000
+				NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, gotoPos.x, gotoPos.y, gotoPos.z, 0, true)
+				local _dta = os.clock() * 1000 - _ta
+				if (_dta > 1) then
+					d("[QPerf] c_getmovementpath GetPathAsync: " .. string.format("%.2f", _dta) .. "ms")
+				end
+			end
+
+			-- Defer BuildPath by one frame so GetPathAsync has time to warm
+			-- the cache on its worker thread. Applies to both new destinations
+			-- and same-destination refreshes (player moved, so start pos changed).
+			-- Re-defers if destination changed (stale prefetch from old task).
+			local prefetchStale = c_getmovementpath.asyncPrefetchPos and math.distance3d(c_getmovementpath.asyncPrefetchPos, gotoPos) > 2
+			if not c_getmovementpath.asyncPrefetchPos or prefetchStale then
+				c_getmovementpath.asyncPrefetchPos = gotoPos
+				d("[QPerf] c_getmovementpath: deferring BuildPath for async cache warm")
+				return false
+			end
+			c_getmovementpath.asyncPrefetchPos = nil
+
 			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
 				local meshpos = FindClosestMesh(gotoPos,6,true)
 				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
 					ml_task_hub:CurrentTask().gatePos = meshpos
 				end
 			end
-			
+
 			local pathLength = 0
 			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
-			
+
 			local dist = math.distance2d(gotoPos,Player.pos)
 			if (table.valid(c_getmovementpath.lastGoal)) then
 				d("new goal distance:"..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)))
@@ -1726,25 +1751,41 @@ function c_getmovementpath:evaluate()
 			if (pathLength <= 0) then
 				-- attempt to get a path with no avoidance first
 				if (TimeSince(c_getmovementpath.lastFallback) > 10000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 2) then
+					local _tb = os.clock() * 1000
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,cubeFilter),navid)
+					local _dtb = os.clock() * 1000 - _tb
+					if (_dtb > 1) then
+						d("[QPerf] c_getmovementpath BuildPath(optimal): " .. string.format("%.2f", _dtb) .. "ms pathLen=" .. tostring(pathLength))
+					end
 					if (pathLength > 0) then
 						--d("found optimal path")
 						c_getmovementpath.lastOptimalPath = Now()
+						c_getmovementpath.lastGoal = gotoPos
 					end
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					ml_debug("[GetMovementPath]: pathLength with no avoids = "..tostring(pathLength))
 				end
-				
+
 				if (TimeSince(c_getmovementpath.lastOptimalPath) > 2000 or not table.valid(c_getmovementpath.lastGoal) or math.distance3d(c_getmovementpath.lastGoal,gotoPos) > 2) then
 					if (pathLength <= 0) then
 						--d("found non-optimal path")
 						ml_debug("[GetMovementPath]: rebuild cube path..")
+						local _tc = os.clock() * 1000
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
+						local _dtc = os.clock() * 1000 - _tc
+						if (_dtc > 1) then
+							d("[QPerf] c_getmovementpath BuildPath(fallback): " .. string.format("%.2f", _dtc) .. "ms pathLen=" .. tostring(pathLength))
+						end
 						c_getmovementpath.lastFallback = Now()
 						c_getmovementpath.lastGoal = gotoPos
 						ml_debug("[GetMovementPath]: pathLength cube path = "..tostring(pathLength))
 					end
 				end
+			end
+
+			local _dtNavTotal = os.clock() * 1000 - _tNavTotal
+			if (_dtNavTotal > 1) then
+				d("[QPerf] c_getmovementpath TOTAL: " .. string.format("%.2f", _dtNavTotal) .. "ms")
 			end
 			
 			if (pathLength > 0 or ml_navigation:HasPath()) then
@@ -2337,26 +2378,39 @@ function c_mount:evaluate()
 			--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
 			local mountID
 			local mountIndex
+			local _tMount = os.clock() * 1000
 			local mountlist = ActionList:Get(13)
-			
+
 			if (table.valid(mountlist)) then
 				--First pass, look for our named mount.
 				for id,acMount in pairsByKeys(mountlist) do
 					if (acMount.name == gMountName and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 						if (acMount:IsReady(Player.id)) then
 							e_mount.id = acMount.id
+							local _dtMount = os.clock() * 1000 - _tMount
+							if (_dtMount > 1) then
+								d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found named)")
+							end
 							return true
 						end
 					end
 				end
-				
+
 				--Second pass, look for any mount as backup.
 				for id,acMount in pairsByKeys(mountlist) do
 					if (acMount:IsReady(Player.id) and ((acMount.canfly and (id > 1 or QuestCompleted(2117))) or (patchLevel >= 5.3 and QuestCompleted(524)) or not CanFlyInZone())) then
 						e_mount.id = acMount.id
+						local _dtMount = os.clock() * 1000 - _tMount
+						if (_dtMount > 1) then
+							d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found backup)")
+						end
 						return true
 					end
-				end		
+				end
+			end
+			local _dtMount = os.clock() * 1000 - _tMount
+			if (_dtMount > 1) then
+				d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (none found)")
 			end
 		end
     end
@@ -3442,6 +3496,7 @@ function c_clearaggressive:evaluate()
 	
 	local clearAggressive = ml_task_hub:CurrentTask().clearAggressive or false
 	if (clearAggressive) then
+		local _tCA = os.clock() * 1000
 		local ppos = Player.pos
 		local id = ml_task_hub:CurrentTask().targetid or 0
 		if (id > 0) then
@@ -3462,6 +3517,7 @@ function c_clearaggressive:evaluate()
 									local tdist = PDistance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
 									if (dist <= 12 and dist < tdist) then
 										c_questclearaggressive.targetid = aggressive.id
+										d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 										return true
 									end
 								end
@@ -3488,6 +3544,7 @@ function c_clearaggressive:evaluate()
 							local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 							if (dist <= 15) then
 								c_questclearaggressive.targetid = aggressive.id
+								d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 								return true
 							end
 						end
@@ -3495,11 +3552,15 @@ function c_clearaggressive:evaluate()
 				end
 			end
 		end
+		local _dtCA = os.clock() * 1000 - _tCA
+		if (_dtCA > 1) then
+			d("[QPerf] c_clearaggressive: " .. string.format("%.2f", _dtCA) .. "ms")
+		end
 	end
-    
+
     return false
 end
-function e_clearaggressive:execute()	
+function e_clearaggressive:execute()
 	Player:Stop()
 	
 	local newTask = ffxiv_task_grindCombat.Create()

@@ -1034,7 +1034,12 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 		end
 	end
 		
+	local _t0 = os.clock() * 1000
 	local reachable = NavigationManager:IsReachable(pos2)
+	local _dt = os.clock() * 1000 - _t0
+	if (_dt > 1) then
+		d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
+	end
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
 		if (transportFunction ~= nil and type(transportFunction) == "function") then
@@ -1139,7 +1144,12 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
 	--d("building path to ["..tostring(newGoal.x)..","..tostring(newGoal.y)..","..tostring(newGoal.z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
+	local _t0 = os.clock() * 1000
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
+	local _dt = os.clock() * 1000 - _t0
+	if (_dt > 1) then
+		d("[QPerf] BuildPath->MoveTo: " .. string.format("%.2f", _dt) .. "ms ret=" .. tostring(ret))
+	end
 	ml_navigation.lastPathUpdate = Now()
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
@@ -1327,9 +1337,23 @@ function ml_navigation.Navigate(event, ticks )
 					ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 					
 					if (not ml_navigation:IsUsingConnection()  and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
+						local _t0 = os.clock() * 1000
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
+						local _dt = os.clock() * 1000 - _t0
+						if (_dt > 1) then
+							d("[QPerf] Navigate refresh BuildPath: " .. string.format("%.2f", _dt) .. "ms")
+						end
 						ml_navigation.lastPathUpdate = Now()
+						ml_navigation._refreshPrefetched = false
 						return -- needed here, or you can check again for navpath / index valid ...your choice
+					end
+					-- Prefetch path ~1s before the 2s refresh so BuildPath hits warm cache
+					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 1000 and not ml_navigation._refreshPrefetched) then
+						ml_navigation._refreshPrefetched = true
+						local tp = ml_navigation.targetposition
+						if (tp) then
+							NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, tp.x, tp.y, tp.z, 0, true)
+						end
 					end
 					
 					local adjustedHeading = ml_navigation.CheckObstacles()

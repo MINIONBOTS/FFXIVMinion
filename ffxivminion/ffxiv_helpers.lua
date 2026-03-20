@@ -2754,11 +2754,16 @@ function GetPathDistance(pos1,pos2,threshold)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
 	local threshold = IsNull(threshold,100)
-	
+
 	local dist = math.distance3d(pos1,pos2)
 	if (dist < threshold) then
 		--local path = NavigationManager:MoveTo(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) -- this does something else in addition to path
+		local _t0 = os.clock() * 1000
 		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		local _dt = os.clock() * 1000 - _t0
+		if (_dt > 1) then
+			d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
+		end
 		if (table.valid(path)) then
 			local pathdist = PathDistance(path)
 			if (table.valid(pathdist)) then
@@ -2766,8 +2771,37 @@ function GetPathDistance(pos1,pos2,threshold)
 			end
 		end
 	end
-	
+
 	return dist
+end
+-- Non-blocking variant. Returns (distance, resolved).
+-- resolved=true means navmesh distance (or beyond threshold). resolved=false means Euclidean estimate, async pending.
+function GetPathDistanceAsync(pos1,pos2,threshold)
+	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistanceAsync is invalid.")
+	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistanceAsync is invalid.")
+	local threshold = IsNull(threshold,100)
+	
+	local dist = math.distance3d(pos1,pos2)
+	if (dist < threshold) then
+		local result = NavigationManager:GetPathAsync(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		if (type(result) == "table" and table.valid(result)) then
+			-- Path table returned from cache — extract distance from first node
+			if (result[1] and result[1].pathdistance) then
+				return result[1].pathdistance, true
+			end
+			local pathdist = PathDistance(result)
+			if (table.valid(pathdist)) then
+				return pathdist, true
+			end
+		elseif (type(result) == "number" and result <= 0) then
+			-- Cached path failure (unreachable): resolved but no valid path
+			return nil, true
+		end
+		-- result is positive integer (cacheID, request enqueued) or nil — return Euclidean estimate
+		return dist, false
+	end
+	
+	return dist, true
 end
 function GetLinePoints(pos1,pos2,length)
 	local distance = PDistance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
@@ -5173,13 +5207,13 @@ function TimePassed(t1, t2)
 	return diff
 end
 function GetQuestByID(questID)
-	local list = Quest:GetQuestList()
-	if(table.valid(list)) then
-		for id, quest in pairs(list) do
-			if(id == questID) then
-				return quest
-			end
-		end
+	if not memoize.questList then
+		local list = Quest:GetQuestList()
+		memoize.questList = list or false
+	end
+	local list = memoize.questList
+	if list and table.valid(list) then
+		return list[questID]
 	end
 end
 function IsLimsa(mapid)
@@ -5336,24 +5370,22 @@ function CanUseAirship()
 	return false
 end
 
-function CanAccessMap(mapid)
-	local mapid = tonumber(mapid) or 0
-	
+local _canAccessMapCache = {}
+local _canAccessMapCacheTime = 0
+
+local function _CanAccessMapImpl(mapid)
 	if (mapid ~= 0) then
 		if (Player.localmapid ~= mapid) then
 			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
 														mapid	)
 			if (table.valid(pos)) then
-				--d("Found a nav path for mapid ["..tostring(mapid).."].")
 				return true
 			end
 			
 			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
 			for _, aetheryte in pairs(attunedAetherytes) do
-				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
-					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -5361,7 +5393,6 @@ function CanAccessMap(mapid)
 			local nearestAetheryte = GetAetheryteByMapID(mapid)
 			if (nearestAetheryte) then
 				if (GilCount() >= nearestAetheryte.price) then
-					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -5386,7 +5417,6 @@ function CanAccessMap(mapid)
 						local aethPos = {x = -244, y = 20, z = 385}
 						local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
 						if (table.valid(backupPos)) then
-							--d("Found an attuned backup position aetheryte for 820 in Kholusia.")
 							e_teleporttomap.aeth = aetheryte
 							return true
 						end
@@ -5400,7 +5430,6 @@ function CanAccessMap(mapid)
 					local aethPos = {x = -65, y = 4, z = 0}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,mapid)
 					if (table.valid(backupPos)) then
-						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -5413,7 +5442,6 @@ function CanAccessMap(mapid)
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
 					if (table.valid(backupPos)) then
-						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						return true
 					end
 				end
@@ -5425,7 +5453,6 @@ function CanAccessMap(mapid)
 					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
 					if (table.valid(backupPos)) then
-						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						return true
 					end
 				end
@@ -5459,6 +5486,24 @@ function CanAccessMap(mapid)
 	end
 	
 	return false
+end
+
+function CanAccessMap(mapid)
+	local mapid = tonumber(mapid) or 0
+	
+	local now = Now()
+	if (now - _canAccessMapCacheTime) > 30000 then
+		_canAccessMapCache = {}
+		_canAccessMapCacheTime = now
+	end
+	local cached = _canAccessMapCache[mapid]
+	if (cached ~= nil) then
+		return cached
+	end
+	
+	local result = _CanAccessMapImpl(mapid)
+	_canAccessMapCache[mapid] = result
+	return result
 end
 
 function GetELNSection(pos)
