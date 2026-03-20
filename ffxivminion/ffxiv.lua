@@ -426,6 +426,17 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 	ffxivminion.loginvars.reset = false
 	local login = ffxivminion.loginvars
 
+	-- Ensure string DB is available for congestion/queue detection
+	if not ml_global_information._stringsInitAtLogin
+		and FFXIVLib and FFXIVLib.API and FFXIVLib.API.Strings and FFXIVLib.API.Strings.Init then
+		local initResult = FFXIVLib.API.Strings.Init()
+		d("[Login] Strings.Init() result: " .. tostring(initResult) .. " | Data=" .. tostring(Data ~= nil) .. " | IsInitialized=" .. tostring(Data and Data.IsInitialized and Data:IsInitialized()))
+		if initResult then
+			ml_global_information._stringsInitAtLogin = true
+			d("[Login] String DB initialized successfully at character select")
+		end
+	end
+
 	if pauseOnLoad == nil then
 		pauseOnLoad = Now()
 	elseif pauseOnLoad and (TimeSince(pauseOnLoad) > 10000 or login.loginPaused) then
@@ -495,9 +506,32 @@ function ml_global_information.CharacterSelectScreenOnUpdate(event, tickcount)
 		if table.valid(selectOkStrings) then
 			local SelectOKMessage = selectOkStrings[2] or ""
 			if SelectOKMessage ~= "" then
+				-- Check via localized DB string first, then fallback to raw English text
+				-- in case the string DB hasn't loaded yet (common at login)
+				local dbCheck = FFXIVLib.API.Strings.Contains(SelectOKMessage, FFXIVLib.API.Strings.SERVER_CONGESTED)
+				if not dbCheck and not ml_global_information._dbCheckDebugDone then
+					ml_global_information._dbCheckDebugDone = true
+					local getResult = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.SERVER_CONGESTED)
+					local errorLoaded = Data and Data.IsTableLoaded and Data:IsTableLoaded("Error")
+					local cache = FFXIVLib.API.Strings._error
+					local cached13206 = cache and cache:Get(13206)
+					local pending = cache and cache._pending and cache._pending[13206]
+					d("[Login-DBG] dbCheck=false: Get()=" .. tostring(getResult)
+						.. " | ErrorTableLoaded=" .. tostring(errorLoaded)
+						.. " | cached13206=" .. tostring(cached13206)
+						.. " | pending=" .. tostring(pending))
+				end
+				local rawCongested = string.find(SelectOKMessage, "server is currently congested", 1, true) ~= nil
+				local rawQueue = string.find(SelectOKMessage, "Players in queue", 1, true) ~= nil
+				local isCongested = dbCheck or rawCongested or rawQueue
 				-- detection for CN language not working, temporarily disable skip
-				if ffxivminion.gameRegion == 2 or FFXIVLib.API.Strings.Contains(SelectOKMessage, FFXIVLib.API.Strings.SERVER_CONGESTED) == true then
-					ml_debug("Waiting In Login Queue...")
+				if ffxivminion.gameRegion == 2 or isCongested == true then
+					-- Throttle queue status to log once every 30 seconds
+					local now = os.clock()
+					if not ml_global_information._lastQueueLog or (now - ml_global_information._lastQueueLog) >= 30 then
+						ml_global_information._lastQueueLog = now
+						d("[Login] Waiting in queue: " .. tostring(SelectOKMessage) .. " | dbCheck=" .. tostring(dbCheck) .. " stringsInit=" .. tostring(ml_global_information._stringsInitAtLogin))
+					end
 					if (IsControlOpen("Dialogue")) then
 						if (UseControlAction("Dialogue", "PressOK", 0)) then
 							ml_global_information.Await(1000, 10000, function()
@@ -2123,7 +2157,7 @@ function ml_global_information.DrawSettings()
 						end
 					end
 
-					local fighters = { "GLD", "PLD", "PUG", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
+					local fighters = { "GLA", "PLD", "PGL", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
 						, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
 						, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
 					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
@@ -2533,7 +2567,7 @@ function ml_global_information.DrawLoginHandler()
 					end
 				end
 			end
-			if (GUI:Button(str, width, 20)) then
+			if (GUI:Button(str, width - 20, 20)) then
 				ffxivminion.loginvars.loginPaused = IIF(pauseOnLoad == false, not ffxivminion.loginvars.loginPaused, false)
 				pauseOnLoad = false
 			end
