@@ -569,6 +569,11 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		ml_global_information._ffxivlib_prewarm_done = true
 	end
 
+	-- Drive nav data discovery, enrichment & resolution until complete.
+	if FFXIVData_NavDiscoverTick then FFXIVData_NavDiscoverTick() end
+	if FFXIVData_NavEnrichTick then FFXIVData_NavEnrichTick() end
+	if FFXIVData_NavResolveTick then FFXIVData_NavResolveTick() end
+
 	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		FFXIV_Common_BotRunning = false

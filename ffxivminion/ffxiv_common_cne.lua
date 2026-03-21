@@ -1714,7 +1714,7 @@ function c_getmovementpath:evaluate()
 				NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, gotoPos.x, gotoPos.y, gotoPos.z, 0, true)
 				local _dta = os.clock() * 1000 - _ta
 				if (_dta > 1) then
-					d("[QPerf] c_getmovementpath GetPathAsync: " .. string.format("%.2f", _dta) .. "ms")
+					--d("[QPerf] c_getmovementpath GetPathAsync: " .. string.format("%.2f", _dta) .. "ms")
 				end
 			end
 
@@ -1725,7 +1725,7 @@ function c_getmovementpath:evaluate()
 			local prefetchStale = c_getmovementpath.asyncPrefetchPos and math.distance3d(c_getmovementpath.asyncPrefetchPos, gotoPos) > 2
 			if not c_getmovementpath.asyncPrefetchPos or prefetchStale then
 				c_getmovementpath.asyncPrefetchPos = gotoPos
-				d("[QPerf] c_getmovementpath: deferring BuildPath for async cache warm")
+				--d("[QPerf] c_getmovementpath: deferring BuildPath for async cache warm")
 				return false
 			end
 			c_getmovementpath.asyncPrefetchPos = nil
@@ -1755,7 +1755,7 @@ function c_getmovementpath:evaluate()
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,cubeFilter),navid)
 					local _dtb = os.clock() * 1000 - _tb
 					if (_dtb > 1) then
-						d("[QPerf] c_getmovementpath BuildPath(optimal): " .. string.format("%.2f", _dtb) .. "ms pathLen=" .. tostring(pathLength))
+						--d("[QPerf] c_getmovementpath BuildPath(optimal): " .. string.format("%.2f", _dtb) .. "ms pathLen=" .. tostring(pathLength))
 					end
 					if (pathLength > 0) then
 						--d("found optimal path")
@@ -1774,7 +1774,7 @@ function c_getmovementpath:evaluate()
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 						local _dtc = os.clock() * 1000 - _tc
 						if (_dtc > 1) then
-							d("[QPerf] c_getmovementpath BuildPath(fallback): " .. string.format("%.2f", _dtc) .. "ms pathLen=" .. tostring(pathLength))
+							--d("[QPerf] c_getmovementpath BuildPath(fallback): " .. string.format("%.2f", _dtc) .. "ms pathLen=" .. tostring(pathLength))
 						end
 						c_getmovementpath.lastFallback = Now()
 						c_getmovementpath.lastGoal = gotoPos
@@ -1785,7 +1785,7 @@ function c_getmovementpath:evaluate()
 
 			local _dtNavTotal = os.clock() * 1000 - _tNavTotal
 			if (_dtNavTotal > 1) then
-				d("[QPerf] c_getmovementpath TOTAL: " .. string.format("%.2f", _dtNavTotal) .. "ms")
+				--d("[QPerf] c_getmovementpath TOTAL: " .. string.format("%.2f", _dtNavTotal) .. "ms")
 			end
 			
 			if (pathLength > 0 or ml_navigation:HasPath()) then
@@ -2113,11 +2113,12 @@ end
 local function NormalizeAethernetRow(row)
 	if not row then return row end
 	if not row.pos and row.WorldX then
-		local meshPt = NavigationManager:GetClosestPointOnMesh({x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ})
+		local rawPos = {x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ}
+		local meshPt = FindClosestMesh(rawPos, 15, true)
 		if meshPt then
 			row.pos = meshPt
 		else
-			row.pos = { x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ }
+			row.pos = rawPos
 		end
 	end
 	if not row.conversationstrings and row.AethernetName then
@@ -2389,7 +2390,7 @@ function c_mount:evaluate()
 							e_mount.id = acMount.id
 							local _dtMount = os.clock() * 1000 - _tMount
 							if (_dtMount > 1) then
-								d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found named)")
+								--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found named)")
 							end
 							return true
 						end
@@ -2402,7 +2403,7 @@ function c_mount:evaluate()
 						e_mount.id = acMount.id
 						local _dtMount = os.clock() * 1000 - _tMount
 						if (_dtMount > 1) then
-							d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found backup)")
+							--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found backup)")
 						end
 						return true
 					end
@@ -2410,7 +2411,7 @@ function c_mount:evaluate()
 			end
 			local _dtMount = os.clock() * 1000 - _tMount
 			if (_dtMount > 1) then
-				d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (none found)")
+				--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (none found)")
 			end
 		end
     end
@@ -3517,7 +3518,7 @@ function c_clearaggressive:evaluate()
 									local tdist = PDistance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
 									if (dist <= 12 and dist < tdist) then
 										c_questclearaggressive.targetid = aggressive.id
-										d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
+										--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 										return true
 									end
 								end
@@ -3544,7 +3545,7 @@ function c_clearaggressive:evaluate()
 							local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 							if (dist <= 15) then
 								c_questclearaggressive.targetid = aggressive.id
-								d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
+								--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 								return true
 							end
 						end
@@ -3554,7 +3555,7 @@ function c_clearaggressive:evaluate()
 		end
 		local _dtCA = os.clock() * 1000 - _tCA
 		if (_dtCA > 1) then
-			d("[QPerf] c_clearaggressive: " .. string.format("%.2f", _dtCA) .. "ms")
+			--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", _dtCA) .. "ms")
 		end
 	end
 
