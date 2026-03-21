@@ -1304,12 +1304,12 @@ e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	local _destCheck = IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid)
 	--d("[TeleportToMap] busy=" .. tostring(Busy()) .. " gil=" .. tostring(GilCount()) .. " destMapID=" .. tostring(ml_task_hub:ThisTask().destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " destCheck=" .. tostring(_destCheck))
-	if (Busy() or GilCount() < 500 or _destCheck == Player.localmapid) then
-		--d("[TeleportToMap] blocked: busy=" .. tostring(Busy()) .. " lowgil=" .. tostring(GilCount() < 500) .. " sameMap=" .. tostring(_destCheck == Player.localmapid))
+	if (Busy() or GilCount() < 2000 or _destCheck == Player.localmapid) then
+		--d("[TeleportToMap] blocked: busy=" .. tostring(Busy()) .. " lowgil=" .. tostring(GilCount() < 2000) .. " sameMap=" .. tostring(_destCheck == Player.localmapid))
 		return false
 	end
-	if (GilCount() < 500) then
-		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 500."))
+	if (GilCount() < 2000) then
+		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 2000."))
 		return false
 	end
 	
