@@ -5459,29 +5459,18 @@ local function _CanAccessMapImpl(mapid)
 		if (Player.localmapid ~= mapid) then
 			local ppos = Player.pos
 			local srcMap = Player.localmapid
-			d("[Nav] _CanAccessMapImpl: mapid=" .. tostring(mapid) .. " srcMap=" .. tostring(srcMap))
-
-			-- Check if src and dest nodes exist in nav graph
-			local srcNode = ml_nav_manager.GetNode and ml_nav_manager.GetNode(srcMap)
-			local destNode = ml_nav_manager.GetNode and ml_nav_manager.GetNode(mapid)
-			d("[Nav]   srcNode=" .. tostring(srcNode ~= nil) .. " destNode=" .. tostring(destNode ~= nil))
-
-			-- Check direct neighbor
-			if srcNode and srcNode.GetNeighbor then
-				local directNeighbor = srcNode:GetNeighbor(mapid)
-				d("[Nav]   directNeighbor=" .. tostring(directNeighbor ~= nil)
-					.. " valid=" .. tostring(table.valid(directNeighbor)))
-			end
 
 			local pos = ml_nav_manager.GetNextPathPos(	ppos,
 														srcMap,
 														mapid	)
-			d("[Nav]   GetNextPathPos=" .. tostring(pos ~= nil) .. " valid=" .. tostring(table.valid(pos)))
 			if (table.valid(pos)) then
 				if _canTraverseNavPath(srcMap, mapid) then
 					return true
-				else
-					d("[Nav]   Path found but blocked by requirements")
+				end
+			else
+				-- GetNextPathPos failed but BFS may still find a traversable path
+				if _canTraverseNavPath(srcMap, mapid) then
+					return true
 				end
 			end
 			
