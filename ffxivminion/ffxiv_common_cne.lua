@@ -1224,15 +1224,19 @@ e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
 	if (Busy()) then
+		--d("[MoveToGate] blocked: Busy")
 		return false
 	end
 	
 	e_movetogate.pos = {}
 	
-    if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+	local destMapID = ml_task_hub:CurrentTask().destMapID
+	--d("[MoveToGate] destMapID=" .. tostring(destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " taskName=" .. tostring(ml_task_hub:CurrentTask().name))
+    if (destMapID and (Player.localmapid ~= destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 													Player.localmapid,
-													ml_task_hub:CurrentTask().destMapID	)
+													destMapID	)
+		--d("[MoveToGate] GetNextPathPos result=" .. tostring(table.valid(pos)) .. " pos=" .. tostring(pos and pos.x) .. "," .. tostring(pos and pos.y) .. "," .. tostring(pos and pos.z))
 		if (table.valid(pos)) then
 			if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 				e_movetogate.pos = pos
@@ -1240,7 +1244,11 @@ function c_movetogate:evaluate()
 			else
 				d("[MoveToGate]: One or more coordinate components was missing, X"..tostring(pos.x)..",Y:"..tostring(pos.y)..",Z:"..tostring(pos.z))
 			end
+		else
+			--d("[MoveToGate] GetNextPathPos returned nil/empty for " .. tostring(Player.localmapid) .. " -> " .. tostring(destMapID))
 		end
+	else
+		--d("[MoveToGate] no destMapID or already on dest map")
 	end
 	
 	return false
@@ -1294,12 +1302,14 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
-		ml_debug("Cannot use teleport, position is locked, or we are casting.")
+	local _destCheck = IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid)
+	--d("[TeleportToMap] busy=" .. tostring(Busy()) .. " gil=" .. tostring(GilCount()) .. " destMapID=" .. tostring(ml_task_hub:ThisTask().destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " destCheck=" .. tostring(_destCheck))
+	if (Busy() or GilCount() < 500 or _destCheck == Player.localmapid) then
+		--d("[TeleportToMap] blocked: busy=" .. tostring(Busy()) .. " lowgil=" .. tostring(GilCount() < 500) .. " sameMap=" .. tostring(_destCheck == Player.localmapid))
 		return false
 	end
-	if (GilCount() < 1500) then
-		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 1500."))
+	if (GilCount() < 500) then
+		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 500."))
 		return false
 	end
 	
@@ -1314,7 +1324,7 @@ function c_teleporttomap:evaluate()
 	--Only perform this check when dismounted.
 	local teleport = ActionList:Get(5,7)
 	if (not teleport or not teleport:IsReady(Player.id) or Player.castinginfo.channelingid == 5) then
-		ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
+		--d("[TeleportToMap] blocked: teleport not ready")
 		return false
 	end
 	
@@ -1331,12 +1341,16 @@ function c_teleporttomap:evaluate()
         local pos = ml_nav_manager.GetNextPathPos(	ppos,
                                                     Player.localmapid,
                                                     destMapID	)
+		--d("[TeleportToMap] GetNextPathPos valid=" .. tostring(table.valid(pos)) .. " destMapID=" .. tostring(destMapID))
 		if (table.valid(pos)) then
 			local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-			
-			if (table.valid(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
+			local pathSize = TableSize(ml_nav_manager.currPath)
+			local pathValid = table.valid(ml_nav_manager.currPath)
+			--d("[TeleportToMap] dist=" .. tostring(dist) .. " pathSize=" .. tostring(pathSize) .. " pathValid=" .. tostring(pathValid))
+			if (pathValid and (pathSize > 2 or (pathSize <= 2 and dist > 120))) then
 				
 				local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
+				--d("[TeleportToMap] GetAetheryteByMapID(" .. tostring(destMapID) .. ")=" .. tostring(aeth and aeth.id))
 				if (aeth) then
 					e_teleporttomap.aeth = aeth
 					return true
@@ -1346,6 +1360,7 @@ function c_teleporttomap:evaluate()
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
 					if (node.id ~= Player.localmapid) then
 						local aeth = GetAetheryteByMapID(node.id)
+						--d("[TeleportToMap] path node " .. tostring(node.id) .. " aeth=" .. tostring(aeth and aeth.id))
 						if (aeth) then
 							lastAeth = aeth
 						end
@@ -1355,7 +1370,11 @@ function c_teleporttomap:evaluate()
 				if (lastAeth ~= nil) then
 					e_teleporttomap.aeth = lastAeth
 					return true
+				else
+					--d("[TeleportToMap] no aetheryte found in path nodes")
 				end
+			else
+				--d("[TeleportToMap] skipped: pathSize=" .. tostring(pathSize) .. " dist=" .. tostring(dist) .. " (need >2 nodes or dist>120)")
 			end
 		else
 			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
@@ -3985,7 +4004,8 @@ function c_dointeract:evaluate()
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]",3)
-			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
+			local interactTypes = ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
+			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid, interactTypes)
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			else

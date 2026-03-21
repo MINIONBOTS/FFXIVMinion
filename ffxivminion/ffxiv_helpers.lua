@@ -5379,8 +5379,8 @@ local function _canTraverseNavPath(fromMap, toMap)
 	if fromMap == toMap then return true end
 	local navData = ffxiv_map_nav and ffxiv_map_nav.data
 	if not navData then d("[BFS] no navData"); return false end
-	if not navData[fromMap] or not navData[toMap] then
-		d("[BFS] missing node: from=" .. tostring(navData[fromMap] ~= nil) .. " to=" .. tostring(navData[toMap] ~= nil))
+	if not navData[fromMap] then
+		d("[BFS] missing source node: " .. tostring(fromMap))
 		return false
 	end
 
