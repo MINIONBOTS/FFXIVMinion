@@ -1207,6 +1207,11 @@ function c_transportgate:evaluate()
 end
 function e_transportgate:execute()
 	local gateDetails = e_transportgate.details
+	navd("[TRANSPORTGATE] creating NAV_INTERACT: contentid=" .. tostring(gateDetails.contentid)
+		.. " pos=" .. tostring(gateDetails.pos and gateDetails.pos.x) .. "," .. tostring(gateDetails.pos and gateDetails.pos.z)
+		.. " destMapID=" .. tostring(ml_task_hub:CurrentTask().destMapID)
+		.. " map=" .. tostring(Player.localmapid)
+		.. " parentTask=" .. tostring(ml_task_hub:CurrentTask().name))
 	local newTask = ffxiv_nav_interact.Create()
 	if (gTeleportHack) then
 		newTask.useTeleport = true
@@ -4002,6 +4007,10 @@ function c_dointeract:evaluate()
 		ml_task_hub:CurrentTask().lastInteractableSearch = 0
 	end
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
+		navd("[DoInteract DBG] searching: task=" .. tostring(ml_task_hub:CurrentTask().name)
+			.. " contentid=" .. tostring(ml_task_hub:CurrentTask().contentid)
+			.. " map=" .. tostring(Player.localmapid)
+			.. " pos=" .. tostring(ml_task_hub:CurrentTask().pos and ml_task_hub:CurrentTask().pos.x) .. "," .. tostring(ml_task_hub:CurrentTask().pos and ml_task_hub:CurrentTask().pos.z))
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]",3)
 			local interactTypes = ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE" and {5} or nil

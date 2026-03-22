@@ -108,7 +108,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 	end
 	
 	if (Busy() or self.startMap ~= Player.localmapid) then
-		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
+		navd("[MOVETOPOS TCE] completing: busy=" .. tostring(Busy()) .. " startMap=" .. tostring(self.startMap) .. " localmap=" .. tostring(Player.localmapid) .. " destMapID=" .. tostring(self.destMapID))
 		return true
 	end
 	
@@ -1795,6 +1795,10 @@ function ffxiv_nav_interact.Create()
 end
 
 function ffxiv_nav_interact:Init()
+	navd("[NAV_INTERACT INIT] contentid=" .. tostring(self.contentid)
+		.. " pos=" .. tostring(self.pos and self.pos.x) .. "," .. tostring(self.pos and self.pos.z)
+		.. " destMapID=" .. tostring(self.destMapID)
+		.. " map=" .. tostring(Player.localmapid))
 	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
     self:add(ke_skipTalk, self.overwatch_elements)
 	
@@ -1845,11 +1849,16 @@ function ffxiv_nav_interact:task_complete_eval()
 	end
 	
 	if (MIsLoading() and not self.areaChanged) then
+		navd("[NAV_INTERACT TCE] loading detected, setting areaChanged. contentid=" .. tostring(self.contentid) .. " map=" .. tostring(Player.localmapid))
 		self.areaChanged = true
+		if questing and questing._navPathCache then
+			questing._navPathCache = {}
+		end
 		return false
 	end
 	
 	if (not MIsLoading() and self.areaChanged) then
+		navd("[NAV_INTERACT TCE] completing after load. contentid=" .. tostring(self.contentid) .. " map=" .. tostring(Player.localmapid))
 		return true
 	end
 	

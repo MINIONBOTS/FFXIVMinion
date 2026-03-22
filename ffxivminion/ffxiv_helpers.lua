@@ -5378,13 +5378,13 @@ local _canAccessMapCacheTime = 0
 local function _canTraverseNavPath(fromMap, toMap)
 	if fromMap == toMap then return true end
 	local navData = ffxiv_map_nav and ffxiv_map_nav.data
-	if not navData then d("[BFS] no navData"); return false end
+	if not navData then navd("[BFS] no navData"); return false end
 	if not navData[fromMap] then
-		d("[BFS] missing source node: " .. tostring(fromMap))
+		navd("[BFS] missing source node: " .. tostring(fromMap))
 		return false
 	end
 
-	d("[BFS] start " .. fromMap .. " -> " .. toMap)
+	navd("[BFS] start " .. fromMap .. " -> " .. toMap)
 	local visited = { [fromMap] = true }
 	local parent = {}
 	local queue = { fromMap }
@@ -5406,7 +5406,7 @@ local function _canTraverseNavPath(fromMap, toMap)
 				pathStr = pathStr .. tostring(path[i])
 				if i > 1 then pathStr = pathStr .. " -> " end
 			end
-			d("[BFS] FOUND path: " .. pathStr)
+			navd("[BFS] FOUND path: " .. pathStr)
 			return true
 		end
 		local neighbors = navData[current]
@@ -5418,7 +5418,7 @@ local function _canTraverseNavPath(fromMap, toMap)
 					for ei, entry in ipairs(entries) do
 						if not entry.requires then
 							anyValid = true
-							d("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " NO requires (pass)")
+							navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " NO requires (pass)")
 							break
 						end
 						local allPass = true
@@ -5433,7 +5433,7 @@ local function _canTraverseNavPath(fromMap, toMap)
 						end
 						if allPass then
 							anyValid = true
-							d("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " requires MET")
+							navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " requires MET")
 							break
 						else
 							blockReason = failedReq
@@ -5444,13 +5444,13 @@ local function _canTraverseNavPath(fromMap, toMap)
 						parent[nid] = current
 						queue[#queue + 1] = nid
 					else
-						d("[BFS]   " .. current .. " -> " .. nid .. " BLOCKED (" .. tostring(blockReason) .. ")")
+						navd("[BFS]   " .. current .. " -> " .. nid .. " BLOCKED (" .. tostring(blockReason) .. ")")
 					end
 				end
 			end
 		end
 	end
-	d("[BFS] NO path " .. fromMap .. " -> " .. toMap .. " visited " .. TableSize(visited) .. " nodes")
+	navd("[BFS] NO path " .. fromMap .. " -> " .. toMap .. " visited " .. TableSize(visited) .. " nodes")
 	return false
 end
 
@@ -5598,7 +5598,7 @@ function CanAccessMap(mapid)
 		d("[Nav] traceback: " .. tostring(tb))
 	end)
 	if not ok then result = false end
-	d("[Nav] CanAccessMap(" .. tostring(mapid) .. ") = " .. tostring(result) .. " ok=" .. tostring(ok))
+	navd("[Nav] CanAccessMap(" .. tostring(mapid) .. ") = " .. tostring(result) .. " ok=" .. tostring(ok))
 	_canAccessMapCache[mapid] = result
 	return result
 end
@@ -8768,23 +8768,23 @@ function Transport212(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
-	if ((pos1.x < 23.85 and pos1.x > -15.46) and not (pos2.x < 23.85 and pos2.x > -15.46)) then
+	if ((pos1.x < 23.85 and pos1.x > -16.5) and not (pos2.x < 23.85 and pos2.x > -16.5)) then
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 22.386226654053, y = 0.99999862909317, z = -0.097462706267834}
 			newTask.contentid = 2001715
 			newTask.abort = function () 
-				return not (Player.pos.x < 23.85 and Player.pos.x > -15.46)
+				return not (Player.pos.x < 23.85 and Player.pos.x > -16.5)
 			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
-	elseif (not (pos1.x < 23.85 and pos1.x > -15.46) and (pos2.x < 23.85 and pos2.x > -15.46 )) then
+	elseif (not (pos1.x < 23.85 and pos1.x > -16.5) and (pos2.x < 23.85 and pos2.x > -16.5 )) then
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 26.495914459229, y = 1.0000013113022, z = -0.018158292397857}
 			newTask.contentid = 2001717
 			newTask.abort = function () 
-				return (Player.pos.x < 23.85 and Player.pos.x > -15.46)
+				return (Player.pos.x < 23.85 and Player.pos.x > -16.5)
 			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end

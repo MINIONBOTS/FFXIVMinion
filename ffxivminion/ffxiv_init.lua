@@ -181,7 +181,7 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 				elseif not posTable.x or not posTable.y or not posTable.z then
 					skippedNil = skippedNil + 1
 				elseif not origin or not origin.x or not origin.y or not origin.z then
-					d("[Nav] NodeClosestNeighbor: nil origin for dest=" .. tostring(id))
+					navd("[Nav] NodeClosestNeighbor: nil origin for dest=" .. tostring(id))
 				else
 					local dist = PDistance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
 					if (dist < bestDist) then
@@ -200,13 +200,13 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 				if ((key ~= _navLogKey and (now - _navLogTime) > 500) or (now - _navLogTime) > 10000) then
 					_navLogKey = key
 					_navLogTime = now
-					d("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
+					navd("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
 						.. " | pos=" .. posFrom .. " dest=" .. destFrom
 						.. " | (" .. string.format("%.1f, %.1f, %.1f", bestPos.x, bestPos.y, bestPos.z) .. ")")
 				end
 				return bestPos
 			else
-				d("[Nav] NodeClosestNeighbor: NO bestPos for dest=" .. tostring(id)
+				navd("[Nav] NodeClosestNeighbor: NO bestPos for dest=" .. tostring(id)
 					.. " entries=" .. nsize .. " skippedReq=" .. skippedReq .. " skippedNil=" .. skippedNil)
 			end
 		elseif (nsize == 1) then
@@ -218,7 +218,7 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 					for requirement,value in pairs(requirements) do
 						local ok, ret = LoadString("return " .. requirement)
 						if (ok and ret ~= nil and ret ~= value) then
-							d("[Nav] NodeClosestNeighbor: single entry for dest=" .. tostring(id)
+							navd("[Nav] NodeClosestNeighbor: single entry for dest=" .. tostring(id)
 								.. " failed requirement: " .. tostring(requirement))
 							return nil
 						end
@@ -232,14 +232,14 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 				if ((key ~= _navLogKey and (now - _navLogTime) > 500) or (now - _navLogTime) > 10000) then
 					_navLogKey = key
 					_navLogTime = now
-					d("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
+					navd("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
 						.. " | pos=" .. posFrom .. " dest=" .. destFrom
 						.. " | (" .. string.format("%.1f, %.1f, %.1f", best.x, best.y, best.z) .. ")")
 				end
 				return best
 			end
 		else
-			d("[Nav] NodeClosestNeighbor: unexpected nsize=" .. tostring(nsize) .. " for dest=" .. tostring(id))
+			navd("[Nav] NodeClosestNeighbor: unexpected nsize=" .. tostring(nsize) .. " for dest=" .. tostring(id))
 		end
     end
     
