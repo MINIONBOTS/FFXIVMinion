@@ -2751,8 +2751,8 @@ function CanUseCannon()
 	return false
 end
 function GetPathDistance(pos1,pos2,threshold)
-	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
-	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
+	if not (pos1 and pos1.x and pos1.y and pos1.z) then return nil end
+	if not (pos2 and pos2.x and pos2.y and pos2.z) then return nil end
 	local threshold = IsNull(threshold,100)
 
 	local dist = math.distance3d(pos1,pos2)
@@ -2762,7 +2762,7 @@ function GetPathDistance(pos1,pos2,threshold)
 		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		local _dt = os.clock() * 1000 - _t0
 		if (_dt > 1) then
-			d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
+			--d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
 		end
 		if (table.valid(path)) then
 			local pathdist = PathDistance(path)
@@ -5222,11 +5222,11 @@ function IsLimsa(mapid)
 end
 function IsUldah(mapid)
 	local mapid = tonumber(mapid)
-	return (mapid == 132 or mapid == 133)
+	return (mapid == 130 or mapid == 131)
 end
 function IsGridania(mapid)
 	local mapid = tonumber(mapid)
-	return (mapid == 130 or mapid == 131)
+	return (mapid == 132 or mapid == 133)
 end
 function IsFoundation(mapid)
 	local mapid = tonumber(mapid)
@@ -5373,14 +5373,105 @@ end
 local _canAccessMapCache = {}
 local _canAccessMapCacheTime = 0
 
+-- BFS that walks the nav graph (Lua side) and only follows edges
+-- where at least one entry satisfies its requirements.
+local function _canTraverseNavPath(fromMap, toMap)
+	if fromMap == toMap then return true end
+	local navData = ffxiv_map_nav and ffxiv_map_nav.data
+	if not navData then d("[BFS] no navData"); return false end
+	if not navData[fromMap] then
+		d("[BFS] missing source node: " .. tostring(fromMap))
+		return false
+	end
+
+	d("[BFS] start " .. fromMap .. " -> " .. toMap)
+	local visited = { [fromMap] = true }
+	local parent = {}
+	local queue = { fromMap }
+	local head = 1
+	while head <= #queue do
+		local current = queue[head]
+		head = head + 1
+		if current == toMap then
+			-- reconstruct path for debug
+			local path = { toMap }
+			local node = toMap
+			while parent[node] do
+				node = parent[node]
+				path[#path + 1] = node
+			end
+			-- reverse
+			local pathStr = ""
+			for i = #path, 1, -1 do
+				pathStr = pathStr .. tostring(path[i])
+				if i > 1 then pathStr = pathStr .. " -> " end
+			end
+			d("[BFS] FOUND path: " .. pathStr)
+			return true
+		end
+		local neighbors = navData[current]
+		if neighbors then
+			for nid, entries in pairs(neighbors) do
+				if not visited[nid] and type(entries) == "table" and #entries > 0 then
+					local anyValid = false
+					local blockReason = nil
+					for ei, entry in ipairs(entries) do
+						if not entry.requires then
+							anyValid = true
+							d("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " NO requires (pass)")
+							break
+						end
+						local allPass = true
+						local failedReq = nil
+						for req, val in pairs(entry.requires) do
+							local ok, ret = LoadString("return " .. req)
+							if ok and ret ~= nil and ret ~= val then
+								allPass = false
+								failedReq = req .. "=" .. tostring(ret) .. " want=" .. tostring(val)
+								break
+							end
+						end
+						if allPass then
+							anyValid = true
+							d("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " requires MET")
+							break
+						else
+							blockReason = failedReq
+						end
+					end
+					if anyValid then
+						visited[nid] = true
+						parent[nid] = current
+						queue[#queue + 1] = nid
+					else
+						d("[BFS]   " .. current .. " -> " .. nid .. " BLOCKED (" .. tostring(blockReason) .. ")")
+					end
+				end
+			end
+		end
+	end
+	d("[BFS] NO path " .. fromMap .. " -> " .. toMap .. " visited " .. TableSize(visited) .. " nodes")
+	return false
+end
+
 local function _CanAccessMapImpl(mapid)
 	if (mapid ~= 0) then
 		if (Player.localmapid ~= mapid) then
-			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
-														Player.localmapid,
+			local ppos = Player.pos
+			local srcMap = Player.localmapid
+
+			local pos = ml_nav_manager.GetNextPathPos(	ppos,
+														srcMap,
 														mapid	)
 			if (table.valid(pos)) then
-				return true
+				if _canTraverseNavPath(srcMap, mapid) then
+					return true
+				end
+			else
+				-- GetNextPathPos failed but BFS may still find a traversable path
+				if _canTraverseNavPath(srcMap, mapid) then
+					return true
+				end
 			end
 			
 			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
@@ -5402,7 +5493,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 0, y = 82, z = 0}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(820, mapid) then
 						d("Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
 						e_teleporttomap.aeth = aetheryte
 						return true
@@ -5416,7 +5507,7 @@ local function _CanAccessMapImpl(mapid)
 					if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
 						local aethPos = {x = -244, y = 20, z = 385}
 						local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
-						if (table.valid(backupPos)) then
+						if (table.valid(backupPos)) and _canTraverseNavPath(814, 820) then
 							e_teleporttomap.aeth = aetheryte
 							return true
 						end
@@ -5429,7 +5520,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -65, y = 4, z = 0}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(819, mapid) then
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -5441,7 +5532,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(418, mapid) then
 						return true
 					end
 				end
@@ -5452,7 +5543,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(478, mapid) then
 						return true
 					end
 				end
@@ -5463,7 +5554,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 111 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 45.89, y = 4.2, z = -40.59}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,628,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(628, mapid) then
 						d("Found an attuned backup position aetheryte for mapid 2["..tostring(mapid).."].")
 						return true
 					end
@@ -5474,7 +5565,7 @@ local function _CanAccessMapImpl(mapid)
 				if (aetheryte.id == 216 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -24, y = 0, z = 7.5}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,mapid)
-					if (table.valid(backupPos)) then
+					if (table.valid(backupPos)) and _canTraverseNavPath(1185, mapid) then
 						d("Found an attuned backup position aetheryte for mapid 3["..tostring(mapid).."].")
 						return true
 					end
@@ -5501,7 +5592,13 @@ function CanAccessMap(mapid)
 		return cached
 	end
 	
-	local result = _CanAccessMapImpl(mapid)
+	local ok, result = xpcall(function() return _CanAccessMapImpl(mapid) end, function(err)
+		d("[Nav] _CanAccessMapImpl ERROR mapid=" .. tostring(mapid) .. ": " .. tostring(err))
+		local tb = debug and debug.traceback and debug.traceback("", 2) or "no traceback"
+		d("[Nav] traceback: " .. tostring(tb))
+	end)
+	if not ok then result = false end
+	d("[Nav] CanAccessMap(" .. tostring(mapid) .. ") = " .. tostring(result) .. " ok=" .. tostring(ok))
 	_canAccessMapCache[mapid] = result
 	return result
 end

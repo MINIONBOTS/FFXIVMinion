@@ -1224,15 +1224,19 @@ e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
 	if (Busy()) then
+		--d("[MoveToGate] blocked: Busy")
 		return false
 	end
 	
 	e_movetogate.pos = {}
 	
-    if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+	local destMapID = ml_task_hub:CurrentTask().destMapID
+	--d("[MoveToGate] destMapID=" .. tostring(destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " taskName=" .. tostring(ml_task_hub:CurrentTask().name))
+    if (destMapID and (Player.localmapid ~= destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 													Player.localmapid,
-													ml_task_hub:CurrentTask().destMapID	)
+													destMapID	)
+		--d("[MoveToGate] GetNextPathPos result=" .. tostring(table.valid(pos)) .. " pos=" .. tostring(pos and pos.x) .. "," .. tostring(pos and pos.y) .. "," .. tostring(pos and pos.z))
 		if (table.valid(pos)) then
 			if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 				e_movetogate.pos = pos
@@ -1240,7 +1244,11 @@ function c_movetogate:evaluate()
 			else
 				d("[MoveToGate]: One or more coordinate components was missing, X"..tostring(pos.x)..",Y:"..tostring(pos.y)..",Z:"..tostring(pos.z))
 			end
+		else
+			--d("[MoveToGate] GetNextPathPos returned nil/empty for " .. tostring(Player.localmapid) .. " -> " .. tostring(destMapID))
 		end
+	else
+		--d("[MoveToGate] no destMapID or already on dest map")
 	end
 	
 	return false
@@ -1294,12 +1302,14 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if (Busy() or GilCount() < 1500 or IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid) == Player.localmapid) then
-		ml_debug("Cannot use teleport, position is locked, or we are casting.")
+	local _destCheck = IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid)
+	--d("[TeleportToMap] busy=" .. tostring(Busy()) .. " gil=" .. tostring(GilCount()) .. " destMapID=" .. tostring(ml_task_hub:ThisTask().destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " destCheck=" .. tostring(_destCheck))
+	if (Busy() or GilCount() < 2000 or _destCheck == Player.localmapid) then
+		--d("[TeleportToMap] blocked: busy=" .. tostring(Busy()) .. " lowgil=" .. tostring(GilCount() < 2000) .. " sameMap=" .. tostring(_destCheck == Player.localmapid))
 		return false
 	end
-	if (GilCount() < 1500) then
-		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 1500."))
+	if (GilCount() < 2000) then
+		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 2000."))
 		return false
 	end
 	
@@ -1314,7 +1324,7 @@ function c_teleporttomap:evaluate()
 	--Only perform this check when dismounted.
 	local teleport = ActionList:Get(5,7)
 	if (not teleport or not teleport:IsReady(Player.id) or Player.castinginfo.channelingid == 5) then
-		ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
+		--d("[TeleportToMap] blocked: teleport not ready")
 		return false
 	end
 	
@@ -1331,12 +1341,16 @@ function c_teleporttomap:evaluate()
         local pos = ml_nav_manager.GetNextPathPos(	ppos,
                                                     Player.localmapid,
                                                     destMapID	)
+		--d("[TeleportToMap] GetNextPathPos valid=" .. tostring(table.valid(pos)) .. " destMapID=" .. tostring(destMapID))
 		if (table.valid(pos)) then
 			local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-			
-			if (table.valid(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
+			local pathSize = TableSize(ml_nav_manager.currPath)
+			local pathValid = table.valid(ml_nav_manager.currPath)
+			--d("[TeleportToMap] dist=" .. tostring(dist) .. " pathSize=" .. tostring(pathSize) .. " pathValid=" .. tostring(pathValid))
+			if (pathValid and (pathSize > 2 or (pathSize <= 2 and dist > 120))) then
 				
 				local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
+				--d("[TeleportToMap] GetAetheryteByMapID(" .. tostring(destMapID) .. ")=" .. tostring(aeth and aeth.id))
 				if (aeth) then
 					e_teleporttomap.aeth = aeth
 					return true
@@ -1346,6 +1360,7 @@ function c_teleporttomap:evaluate()
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
 					if (node.id ~= Player.localmapid) then
 						local aeth = GetAetheryteByMapID(node.id)
+						--d("[TeleportToMap] path node " .. tostring(node.id) .. " aeth=" .. tostring(aeth and aeth.id))
 						if (aeth) then
 							lastAeth = aeth
 						end
@@ -1355,7 +1370,11 @@ function c_teleporttomap:evaluate()
 				if (lastAeth ~= nil) then
 					e_teleporttomap.aeth = lastAeth
 					return true
+				else
+					--d("[TeleportToMap] no aetheryte found in path nodes")
 				end
+			else
+				--d("[TeleportToMap] skipped: pathSize=" .. tostring(pathSize) .. " dist=" .. tostring(dist) .. " (need >2 nodes or dist>120)")
 			end
 		else
 			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
@@ -1714,7 +1733,7 @@ function c_getmovementpath:evaluate()
 				NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, gotoPos.x, gotoPos.y, gotoPos.z, 0, true)
 				local _dta = os.clock() * 1000 - _ta
 				if (_dta > 1) then
-					d("[QPerf] c_getmovementpath GetPathAsync: " .. string.format("%.2f", _dta) .. "ms")
+					--d("[QPerf] c_getmovementpath GetPathAsync: " .. string.format("%.2f", _dta) .. "ms")
 				end
 			end
 
@@ -1725,7 +1744,7 @@ function c_getmovementpath:evaluate()
 			local prefetchStale = c_getmovementpath.asyncPrefetchPos and math.distance3d(c_getmovementpath.asyncPrefetchPos, gotoPos) > 2
 			if not c_getmovementpath.asyncPrefetchPos or prefetchStale then
 				c_getmovementpath.asyncPrefetchPos = gotoPos
-				d("[QPerf] c_getmovementpath: deferring BuildPath for async cache warm")
+				--d("[QPerf] c_getmovementpath: deferring BuildPath for async cache warm")
 				return false
 			end
 			c_getmovementpath.asyncPrefetchPos = nil
@@ -1755,7 +1774,7 @@ function c_getmovementpath:evaluate()
 					pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),bit.bor(GLOBAL.FLOOR.AVOID,IsNull(ml_task_hub:CurrentTask().floorfilters,0)),bit.bor(GLOBAL.CUBE.AVOID,cubeFilter),navid)
 					local _dtb = os.clock() * 1000 - _tb
 					if (_dtb > 1) then
-						d("[QPerf] c_getmovementpath BuildPath(optimal): " .. string.format("%.2f", _dtb) .. "ms pathLen=" .. tostring(pathLength))
+						--d("[QPerf] c_getmovementpath BuildPath(optimal): " .. string.format("%.2f", _dtb) .. "ms pathLen=" .. tostring(pathLength))
 					end
 					if (pathLength > 0) then
 						--d("found optimal path")
@@ -1774,7 +1793,7 @@ function c_getmovementpath:evaluate()
 						pathLength = Player:BuildPath(tonumber(gotoPos.x), tonumber(gotoPos.y), tonumber(gotoPos.z),IsNull(ml_task_hub:CurrentTask().floorfilters,0),IsNull(ml_task_hub:CurrentTask().cubefilters,0),navid)
 						local _dtc = os.clock() * 1000 - _tc
 						if (_dtc > 1) then
-							d("[QPerf] c_getmovementpath BuildPath(fallback): " .. string.format("%.2f", _dtc) .. "ms pathLen=" .. tostring(pathLength))
+							--d("[QPerf] c_getmovementpath BuildPath(fallback): " .. string.format("%.2f", _dtc) .. "ms pathLen=" .. tostring(pathLength))
 						end
 						c_getmovementpath.lastFallback = Now()
 						c_getmovementpath.lastGoal = gotoPos
@@ -1785,7 +1804,7 @@ function c_getmovementpath:evaluate()
 
 			local _dtNavTotal = os.clock() * 1000 - _tNavTotal
 			if (_dtNavTotal > 1) then
-				d("[QPerf] c_getmovementpath TOTAL: " .. string.format("%.2f", _dtNavTotal) .. "ms")
+				--d("[QPerf] c_getmovementpath TOTAL: " .. string.format("%.2f", _dtNavTotal) .. "ms")
 			end
 			
 			if (pathLength > 0 or ml_navigation:HasPath()) then
@@ -2113,11 +2132,12 @@ end
 local function NormalizeAethernetRow(row)
 	if not row then return row end
 	if not row.pos and row.WorldX then
-		local meshPt = NavigationManager:GetClosestPointOnMesh({x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ})
+		local rawPos = {x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ}
+		local meshPt = FindClosestMesh(rawPos, 15, true)
 		if meshPt then
 			row.pos = meshPt
 		else
-			row.pos = { x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ }
+			row.pos = rawPos
 		end
 	end
 	if not row.conversationstrings and row.AethernetName then
@@ -2389,7 +2409,7 @@ function c_mount:evaluate()
 							e_mount.id = acMount.id
 							local _dtMount = os.clock() * 1000 - _tMount
 							if (_dtMount > 1) then
-								d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found named)")
+								--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found named)")
 							end
 							return true
 						end
@@ -2402,7 +2422,7 @@ function c_mount:evaluate()
 						e_mount.id = acMount.id
 						local _dtMount = os.clock() * 1000 - _tMount
 						if (_dtMount > 1) then
-							d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found backup)")
+							--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (found backup)")
 						end
 						return true
 					end
@@ -2410,7 +2430,7 @@ function c_mount:evaluate()
 			end
 			local _dtMount = os.clock() * 1000 - _tMount
 			if (_dtMount > 1) then
-				d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (none found)")
+				--d("[QPerf] c_mount ActionList+search: " .. string.format("%.2f", _dtMount) .. "ms (none found)")
 			end
 		end
     end
@@ -3517,7 +3537,7 @@ function c_clearaggressive:evaluate()
 									local tdist = PDistance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
 									if (dist <= 12 and dist < tdist) then
 										c_questclearaggressive.targetid = aggressive.id
-										d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
+										--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 										return true
 									end
 								end
@@ -3544,7 +3564,7 @@ function c_clearaggressive:evaluate()
 							local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 							if (dist <= 15) then
 								c_questclearaggressive.targetid = aggressive.id
-								d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
+								--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 								return true
 							end
 						end
@@ -3554,7 +3574,7 @@ function c_clearaggressive:evaluate()
 		end
 		local _dtCA = os.clock() * 1000 - _tCA
 		if (_dtCA > 1) then
-			d("[QPerf] c_clearaggressive: " .. string.format("%.2f", _dtCA) .. "ms")
+			--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", _dtCA) .. "ms")
 		end
 	end
 
@@ -3984,7 +4004,8 @@ function c_dointeract:evaluate()
 	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]",3)
-			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid)
+			local interactTypes = ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
+			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid, interactTypes)
 			if (nearestInteract) then
 				ml_task_hub:CurrentTask().interact = nearestInteract.id
 			else

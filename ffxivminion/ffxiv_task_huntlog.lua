@@ -398,7 +398,20 @@ function e_huntlogkill:execute()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
+c_huntlog_disabled = inheritsFrom( ml_cause )
+e_huntlog_disabled = inheritsFrom( ml_effect )
+function c_huntlog_disabled:evaluate()
+	return not gQuestDoHuntlog
+end
+function e_huntlog_disabled:execute()
+	d("[Huntlog] Huntlog disabled, terminating task.")
+	ml_task_hub:CurrentTask():Terminate()
+end
+
 function ffxiv_task_huntlog:Init()
+	local ke_huntlogDisabled = ml_element:create( "HuntlogDisabled", c_huntlog_disabled, e_huntlog_disabled, 240 )
+	self:add( ke_huntlogDisabled, self.overwatch_elements)
+
 	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
     self:add( ke_isLoading, self.overwatch_elements)
 	

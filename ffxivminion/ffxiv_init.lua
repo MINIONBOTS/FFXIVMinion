@@ -147,12 +147,18 @@ function ml_global_information.NodeNeighbors(self)
     return nil
 end
 
+local _navLogKey = ""
+local _navLogTime = 0
+
 function ml_global_information.NodeClosestNeighbor(self, origin, id)
 	local neighbor = self:GetNeighbor(id)
 	if (table.valid(neighbor)) then
-		if (TableSize(neighbor) > 1) then
+		local nsize = TableSize(neighbor)
+		if (nsize > 1) then
 			local bestPos = nil
 			local bestDist = math.huge
+			local skippedReq = 0
+			local skippedNil = 0
 			for id, posTable in pairs(neighbor) do
 				local valid = true
 				if (posTable.requires) then
@@ -170,7 +176,13 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 					end
 				end
 				
-				if (valid) then
+				if not valid then
+					skippedReq = skippedReq + 1
+				elseif not posTable.x or not posTable.y or not posTable.z then
+					skippedNil = skippedNil + 1
+				elseif not origin or not origin.x or not origin.y or not origin.z then
+					d("[Nav] NodeClosestNeighbor: nil origin for dest=" .. tostring(id))
+				else
 					local dist = PDistance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
 					if (dist < bestDist) then
 						bestPos = posTable
@@ -180,13 +192,54 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 			end
 			
 			if (table.valid(bestPos)) then
+				local ref = bestPos.b or bestPos.g or bestPos.a or "walk"
+				local posFrom  = bestPos._pos_source  or "static"
+				local destFrom = bestPos._dest_source or "static"
+				local key = tostring(id) .. "|" .. tostring(ref)
+				local now = Now()
+				if ((key ~= _navLogKey and (now - _navLogTime) > 500) or (now - _navLogTime) > 10000) then
+					_navLogKey = key
+					_navLogTime = now
+					d("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
+						.. " | pos=" .. posFrom .. " dest=" .. destFrom
+						.. " | (" .. string.format("%.1f, %.1f, %.1f", bestPos.x, bestPos.y, bestPos.z) .. ")")
+				end
 				return bestPos
+			else
+				d("[Nav] NodeClosestNeighbor: NO bestPos for dest=" .. tostring(id)
+					.. " entries=" .. nsize .. " skippedReq=" .. skippedReq .. " skippedNil=" .. skippedNil)
 			end
-		elseif (TableSize(neighbor == 1)) then
+		elseif (nsize == 1) then
 			local i,best = next(neighbor)
 			if (i and best) then
+				-- Check requires for single-entry edges too
+				if (best.requires) then
+					local requirements = shallowcopy(best.requires)
+					for requirement,value in pairs(requirements) do
+						local ok, ret = LoadString("return " .. requirement)
+						if (ok and ret ~= nil and ret ~= value) then
+							d("[Nav] NodeClosestNeighbor: single entry for dest=" .. tostring(id)
+								.. " failed requirement: " .. tostring(requirement))
+							return nil
+						end
+					end
+				end
+				local ref = best.b or best.g or best.a or "walk"
+				local posFrom  = best._pos_source  or "static"
+				local destFrom = best._dest_source or "static"
+				local key = tostring(id) .. "|" .. tostring(ref)
+				local now = Now()
+				if ((key ~= _navLogKey and (now - _navLogTime) > 500) or (now - _navLogTime) > 10000) then
+					_navLogKey = key
+					_navLogTime = now
+					d("[Nav] -> map " .. tostring(id) .. " via " .. tostring(ref)
+						.. " | pos=" .. posFrom .. " dest=" .. destFrom
+						.. " | (" .. string.format("%.1f, %.1f, %.1f", best.x, best.y, best.z) .. ")")
+				end
 				return best
 			end
+		else
+			d("[Nav] NodeClosestNeighbor: unexpected nsize=" .. tostring(nsize) .. " for dest=" .. tostring(id))
 		end
     end
     

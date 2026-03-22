@@ -1038,7 +1038,7 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local reachable = NavigationManager:IsReachable(pos2)
 	local _dt = os.clock() * 1000 - _t0
 	if (_dt > 1) then
-		d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
+		--d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
 	end
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
@@ -1148,7 +1148,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 	local _dt = os.clock() * 1000 - _t0
 	if (_dt > 1) then
-		d("[QPerf] BuildPath->MoveTo: " .. string.format("%.2f", _dt) .. "ms ret=" .. tostring(ret))
+		--d("[QPerf] BuildPath->MoveTo: " .. string.format("%.2f", _dt) .. "ms ret=" .. tostring(ret))
 	end
 	ml_navigation.lastPathUpdate = Now()
 	ml_navigation.lastconnectionid = 0
@@ -1341,7 +1341,7 @@ function ml_navigation.Navigate(event, ticks )
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
 						local _dt = os.clock() * 1000 - _t0
 						if (_dt > 1) then
-							d("[QPerf] Navigate refresh BuildPath: " .. string.format("%.2f", _dt) .. "ms")
+							--d("[QPerf] Navigate refresh BuildPath: " .. string.format("%.2f", _dt) .. "ms")
 						end
 						ml_navigation.lastPathUpdate = Now()
 						ml_navigation._refreshPrefetched = false
