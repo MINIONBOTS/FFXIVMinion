@@ -630,6 +630,9 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		ml_global_information.nextRun = tickcount + pulseTime
 		ml_global_information.lastPulseShortened = false
 
+		-- Frame timing diagnostic: find where stutter actually comes from
+		local _ftPC = os.clock() * 1000
+
 		if (ml_mesh_mgr) then
 			if (IsControlOpen("NowLoading")) then
 				if (ml_global_information.queueLoader == false) then
@@ -676,9 +679,11 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			end
 		end
 
+		local _ftPreGlobals = os.clock() * 1000
 		if (gBotMode ~= "assistMode") then
 			ffxivminion.UpdateGlobals()
 		end
+		local _ftPostGlobals = os.clock() * 1000
 
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and
@@ -770,11 +775,15 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			end
 		end
 
+		local _ftPreBT = os.clock() * 1000
 		if (ml_task_hub.shouldRun) then
 			if (not ml_task_hub:Update()) then
 				d("No task queued, please select a valid bot mode in the Settings drop-down menu")
 			end
 		end
+		local _ftEnd = os.clock() * 1000
+		local _ftTotal = _ftEnd - _ftPC
+		d("[FrameTime] TOTAL=" .. string.format("%.2f", _ftTotal) .. "ms  PreGlobals=" .. string.format("%.2f", _ftPreGlobals - _ftPC) .. "ms  Globals=" .. string.format("%.2f", _ftPostGlobals - _ftPreGlobals) .. "ms  PreBT=" .. string.format("%.2f", _ftPreBT - _ftPostGlobals) .. "ms  BT=" .. string.format("%.2f", _ftEnd - _ftPreBT) .. "ms")
 	end
 end
 
