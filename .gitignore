@@ -1,4 +1,4 @@
-﻿################################################################################
+################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
@@ -24,3 +24,5 @@
 /HMax ACR Pack
 /ffxivminion/SkillManagerProfiles/*.lua
 /ffxivminion/class_routines/*.info
+ffxivminion/CraftProfiles/
+ffxivminion/LuaMods.code-workspace
