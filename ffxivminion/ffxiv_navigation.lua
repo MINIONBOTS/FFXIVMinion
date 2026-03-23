@@ -1937,27 +1937,32 @@ function ml_navigation.Navigate(event, ticks )
 								
 							elseif (not IsFlying() and CanFlyInZone()) then
 								if (not Player.ismounted) then
-									d("[Navigation] - Mount for flight.")
-									d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode,lastnode)).."].")
-									d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
-									d("[Navigation] - Node tags - floor ["..tostring(nextnode.is_floor).."], cube ["..tostring(nextnode.is_cube).."], ground ["..tostring(nextnode.ground).."], ground_water ["..tostring(nextnode.ground_water).."], ground_border ["..tostring(nextnode.ground_border).."], ground_avoid ["..tostring(nextnode.ground_avoid).."], air ["..tostring(nextnode.air).."], water ["..tostring(nextnode.water).."], air_avoid ["..tostring(nextnode.air_avoid).."].")									
-									
+
 									if (Player:IsMoving()) then
+										d("[Navigation] - Mount for flight, stopping first.")
 										Player:StopMovement()
 										ffnav.AwaitDo(3000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
 										ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
-										
+
 									else
 										if (Mount()) then
-											ffnav.AwaitSuccess(1000, 
-												function () 
+											d("[Navigation] - Mount for flight.")
+											ffnav.AwaitSuccess(1000,
+												function ()
 													return (IsMounting() or UsingBattleItem())
 												end,
 												function ()
 													ffnav.Await(3000, function () return Player.ismounted end)
 												end
 											)
+											ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
+										else
+											d("[Navigation] - Mount for flight failed, retrying...")
+											d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode,lastnode)).."].")
+											d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
+											d("[Navigation] - Node tags - floor ["..tostring(nextnode.is_floor).."], cube ["..tostring(nextnode.is_cube).."], ground ["..tostring(nextnode.ground).."], ground_water ["..tostring(nextnode.ground_water).."], ground_border ["..tostring(nextnode.ground_border).."], ground_avoid ["..tostring(nextnode.ground_avoid).."], air ["..tostring(nextnode.air).."], water ["..tostring(nextnode.water).."], air_avoid ["..tostring(nextnode.air_avoid).."].")
+											ffnav.Await(1000)
 											ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
 										end
 										return

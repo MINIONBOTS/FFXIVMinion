@@ -1511,6 +1511,211 @@ function e_teleporttomap:execute()
 	end
 end
 
+------------------------------------------------------------------------
+-- Same-map aetheryte teleport (+ Return if homepoint is closer)
+------------------------------------------------------------------------
+c_teleportsamemap = inheritsFrom( ml_cause )
+e_teleportsamemap = inheritsFrom( ml_effect )
+e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
+e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
+e_teleportsamemap.MIN_ADVANTAGE = 80 -- teleport must save at least this many yalms
+
+function c_teleportsamemap:evaluate()
+	e_teleportsamemap.aeth = nil
+	e_teleportsamemap.useReturn = false
+
+	if (Busy() or GilCount() < 200 or InInstance()) then
+		return false
+	end
+
+	if (ml_task_hub:CurrentTask().noTeleport) then
+		return false
+	end
+
+	local task = ml_task_hub:ThisTask()
+	local destPos = task.pos
+	if (not table.valid(destPos) or not destPos.x) then
+		return false
+	end
+
+	local myMapID = Player.localmapid
+	local ppos = Player.pos
+	local distToDest = PDistance3D(ppos.x, ppos.y, ppos.z, destPos.x, destPos.y, destPos.z)
+
+	-- Only bother when the destination is far enough that a teleport + load screen is worth it
+	if (distToDest < 150) then
+		return false
+	end
+
+	-- ----------------------------------------------------------------
+	-- 1) Check Return first (free, no gil cost)
+	-- ----------------------------------------------------------------
+	local returnAction = ActionList:Get(1, 6)
+	if (returnAction and returnAction:IsReady(Player.id)) then
+		local list = FFXIVLib.API.Map.GetAetherytes(1)
+		if (table.valid(list)) then
+			for _, aetheryte in pairs(list) do
+				if (aetheryte.ishomepoint and aetheryte.territory == myMapID and IsAetheryte(aetheryte.id)) then
+					local aethPos = GetAetheryteLocation(aetheryte.id)
+					if (aethPos) then
+						local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+						if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+							e_teleportsamemap.aeth = aetheryte
+							e_teleportsamemap.useReturn = true
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- ----------------------------------------------------------------
+	-- 2) Check paid aetheryte teleport
+	-- ----------------------------------------------------------------
+	local teleport = ActionList:Get(5, 7)
+	if (not teleport or not teleport:IsReady(Player.id) or Player.castinginfo.channelingid == 5) then
+		return false
+	end
+
+	local list = FFXIVLib.API.Map.GetAetherytes(1)
+	if (not table.valid(list)) then
+		return false
+	end
+
+	-- Collect candidate aetherytes on this map
+	local candidates = {}
+	for _, aetheryte in pairs(list) do
+		if (aetheryte.territory == myMapID and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id)) then
+			candidates[#candidates + 1] = aetheryte
+		end
+	end
+
+	if (#candidates == 0) then
+		return false
+	end
+
+	-- Use section-aware override if available
+	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[myMapID]
+	if (sectionOverride) then
+		local section = GetMapSection(myMapID, destPos)
+		if (section and section > 0) then
+			for _, rule in ipairs(sectionOverride) do
+				if (rule.fn) then
+					local overrideId = rule.fn(section, destPos)
+					if (overrideId) then
+						for _, c in ipairs(candidates) do
+							if (c.id == overrideId) then
+								local aethPos = GetAetheryteLocation(c.id)
+								if (aethPos) then
+									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+									if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+										e_teleportsamemap.aeth = c
+										return true
+									end
+								end
+							end
+						end
+					end
+				elseif (rule.sections and rule.aethid) then
+					if (In(section, unpack(rule.sections))) then
+						for _, c in ipairs(candidates) do
+							if (c.id == rule.aethid) then
+								local aethPos = GetAetheryteLocation(c.id)
+								if (aethPos) then
+									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+									if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+										e_teleportsamemap.aeth = c
+										return true
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Always-prefer override
+	local alwaysPrefer = AETHERYTE_ALWAYS_PREFER[myMapID]
+	if (alwaysPrefer) then
+		for _, c in ipairs(candidates) do
+			if (c.id == alwaysPrefer) then
+				local aethPos = GetAetheryteLocation(c.id)
+				if (aethPos) then
+					local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+					if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+						e_teleportsamemap.aeth = c
+						return true
+					end
+				end
+			end
+		end
+	end
+
+	-- Distance-based: pick aetheryte closest to destination
+	local best = nil
+	local bestDist = math.huge
+	for _, c in ipairs(candidates) do
+		local aethPos = GetAetheryteLocation(c.id)
+		if (aethPos) then
+			local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+			if (aethToDest < bestDist) then
+				best = c
+				bestDist = aethToDest
+			end
+		end
+	end
+
+	if (best and (distToDest - bestDist) > e_teleportsamemap.MIN_ADVANTAGE) then
+		e_teleportsamemap.aeth = best
+		return true
+	end
+
+	return false
+end
+
+function e_teleportsamemap:execute()
+	if (Player:IsMoving()) then
+		Player:Stop()
+		return
+	end
+
+	if (e_teleportsamemap.useReturn) then
+		local returnAction = ActionList:Get(1, 6)
+		if (returnAction and returnAction:IsReady(Player.id)) then
+			if (returnAction:Cast(Player.id)) then
+				d("[TeleportSameMap] Using Return to homepoint aetheryte " .. tostring(e_teleportsamemap.aeth.id))
+				ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
+
+				local newTask = ffxiv_task_teleport.Create()
+				newTask.setHomepoint = false
+				newTask.aetheryte = e_teleportsamemap.aeth.id
+				newTask.mapID = e_teleportsamemap.aeth.territory
+				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			end
+		end
+	else
+		if (ActionIsReady(7, 5)) then
+			local useTicket = ml_task_hub:ThisTask().useAethernetTickets
+			if (ItemCount(7569) < 1) then
+				useTicket = false
+			end
+			if (Player:Teleport(e_teleportsamemap.aeth.id, nil, useTicket)) then
+				d("[TeleportSameMap] Teleporting to aetheryte " .. tostring(e_teleportsamemap.aeth.id) .. " on same map")
+				ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
+
+				local newTask = ffxiv_task_teleport.Create()
+				newTask.setHomepoint = false
+				newTask.aetheryte = e_teleportsamemap.aeth.id
+				newTask.mapID = e_teleportsamemap.aeth.territory
+				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			end
+		end
+	end
+end
+
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
 c_followleader.range = math.random(3,8)
@@ -1765,12 +1970,6 @@ function c_getmovementpath:evaluate()
 			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
 
 			local dist = math.distance2d(gotoPos,Player.pos)
-			if (table.valid(c_getmovementpath.lastGoal)) then
-				local goalDist = math.distance3d(c_getmovementpath.lastGoal,gotoPos)
-				if goalDist > 0 then
-					d("new goal distance:"..tostring(goalDist))
-				end
-			end
 			local cubeFilter = IsNull(ml_task_hub:CurrentTask().cubefilters,0)
 			if (gBotMode == "NavTest" and gTestNoFly) and not IsFlying() then
 				cubeFilter = 1
@@ -1788,6 +1987,7 @@ function c_getmovementpath:evaluate()
 						--d("found optimal path")
 						c_getmovementpath.lastOptimalPath = Now()
 						c_getmovementpath.lastGoal = gotoPos
+						d("new goal distance:"..tostring(math.distance3d(Player.pos,gotoPos)))
 					end
 					--d("Pulled a path with no avoids: Last Fallback ["..tostring(TimeSince(c_getmovementpath.lastFallback)).."], goal dist ["..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)).."]")
 					ml_debug("[GetMovementPath]: pathLength with no avoids = "..tostring(pathLength))
@@ -1805,6 +2005,7 @@ function c_getmovementpath:evaluate()
 						end
 						c_getmovementpath.lastFallback = Now()
 						c_getmovementpath.lastGoal = gotoPos
+						d("new goal distance:"..tostring(math.distance3d(Player.pos,gotoPos)))
 						ml_debug("[GetMovementPath]: pathLength cube path = "..tostring(pathLength))
 					end
 				end

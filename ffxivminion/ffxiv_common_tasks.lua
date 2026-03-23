@@ -77,7 +77,10 @@ function ffxiv_task_movetopos:Init()
 
 	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
     self:add( ke_teleportToMap, self.process_elements)
-			
+
+	local ke_teleportSameMap = ml_element:create( "TeleportSameMap", c_teleportsamemap, e_teleportsamemap, 138 )
+    self:add( ke_teleportSameMap, self.process_elements)
+
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
 		
@@ -475,7 +478,10 @@ function ffxiv_task_movetointeract:Init()
 	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 135 )
     self:add( ke_useAethernet, self.process_elements)
 	c_useaethernet.used = false
-	
+
+	local ke_teleportSameMap = ml_element:create( "TeleportSameMap", c_teleportsamemap, e_teleportsamemap, 133 )
+    self:add( ke_teleportSameMap, self.process_elements)
+
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
     self:add( ke_teleportToPos, self.process_elements)
 	
