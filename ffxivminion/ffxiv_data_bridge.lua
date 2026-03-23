@@ -125,7 +125,7 @@ ml_global_information._nav_resolve_done = false
 -- @return (boolean) true when discovery is complete.
 function FFXIVData_NavDiscoverTick()
     if ml_global_information._nav_discover_done then return true end
-    if not FFXIVLib or not FFXIVLib.API.Nav then return false end
+    if not FFXIVLib or not FFXIVLib.API.Nav or not FFXIVLib.API.Nav.DiscoverConnections then return false end
     local done = FFXIVLib.API.Nav.DiscoverConnections()
     if done then
         ml_global_information._nav_discover_done = true

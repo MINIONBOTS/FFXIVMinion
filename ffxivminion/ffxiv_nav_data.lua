@@ -1,5 +1,17 @@
 ffxiv_map_nav = {}
-ffxiv_map_nav.data = FFXIVLib.API.Nav and FFXIVLib.API.Nav.BuildNavData() or {}
+if FFXIVLib.API.Nav and FFXIVLib.API.Nav.BuildNavData then
+	local navTable = FFXIVLib.API.Nav.BuildNavData()
+	if navTable and next(navTable) then
+		ffxiv_map_nav.data = navTable
+		d("[Nav] ffxiv_map_nav.data loaded: " .. tostring(TableSize(navTable)) .. " maps")
+	else
+		d("[Nav] WARNING: BuildNavData() returned empty table")
+		ffxiv_map_nav.data = {}
+	end
+else
+	d("[Nav] ERROR: FFXIVLib.API.Nav missing! Nav=" .. tostring(FFXIVLib.API.Nav) .. " BuildNavData=" .. tostring(FFXIVLib.API.Nav and FFXIVLib.API.Nav.BuildNavData))
+	ffxiv_map_nav.data = {}
+end
 
 function ffxiv_map_nav.IsAetheryte(id)
 	if not id then return false end
