@@ -1766,7 +1766,10 @@ function c_getmovementpath:evaluate()
 
 			local dist = math.distance2d(gotoPos,Player.pos)
 			if (table.valid(c_getmovementpath.lastGoal)) then
-				d("new goal distance:"..tostring(math.distance3d(c_getmovementpath.lastGoal,gotoPos)))
+				local goalDist = math.distance3d(c_getmovementpath.lastGoal,gotoPos)
+				if goalDist > 0 then
+					d("new goal distance:"..tostring(goalDist))
+				end
 			end
 			local cubeFilter = IsNull(ml_task_hub:CurrentTask().cubefilters,0)
 			if (gBotMode == "NavTest" and gTestNoFly) and not IsFlying() then
@@ -4083,8 +4086,8 @@ function c_dointeract:evaluate()
 		if (myTarget and myTarget.id == interactable.id) then
 			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then	
 				if (interactable.type == 5) then
-					if ((ffxiv_map_nav.IsAetheryte(interactable.contentid) and ydiff <= 4.7 and ydiff >= -1.3) and ((interactable.distance2d <= 4.5) or (interactable.interactable and interactable.distance2d <= 9 and interactable.distance <= 9))) or 
-						(not ffxiv_map_nav.IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2) 
+					if ((IsAetheryte(interactable.contentid) and ydiff <= 4.7 and ydiff >= -1.3) and ((interactable.distance2d <= 4.5) or (interactable.interactable and interactable.distance2d <= 9 and interactable.distance <= 9))) or
+						(not IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2)
 					then
 						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
 							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then

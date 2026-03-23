@@ -5,6 +5,17 @@ ff.lastPath = 0
 ff.lastFail = 0
 ff.lastaetherCurrent = {}
 ff.aetherCurrent = {}
+
+-- Nav debug logger (no-op by default, set navd = d to enable debug output)
+function navd() end
+
+-- QuestCompleted fallback: C++ registers this global, but if missing provide a Lua shim
+if (not QuestCompleted) then
+	function QuestCompleted(id)
+		return Quest:IsQuestCompleted(id)
+	end
+end
+
 ff.mapsections = {
 	[399] = 0,
 }
@@ -4185,7 +4196,7 @@ function GetAetheryteByMapID(mapid, p)
 		-- Build list of affordable, unlocked aetherytes on this map
 		local candidates = {}
 		for _, aetheryte in pairs(list) do
-			if aetheryte.territory == mapid and GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aetheryte.id) then
+			if aetheryte.territory == mapid and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id) then
 				candidates[#candidates+1] = aetheryte
 			end
 		end
@@ -4276,7 +4287,7 @@ function CanUseAetheryte(aethid)
 		if (table.valid(list)) then
 			for _, aetheryte in pairs(list) do
 				if (aetheryte.id == aethid) then
-					if (GilCount() >= aetheryte.price and ffxiv_map_nav.IsAetheryte(aethid)) then
+					if (GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
 						return true
 					end
 				end

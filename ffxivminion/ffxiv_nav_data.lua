@@ -1,5 +1,5 @@
 ffxiv_map_nav = {}
-ffxiv_map_nav.data = FFXIVLib.API.Nav.BuildNavData()
+ffxiv_map_nav.data = FFXIVLib.API.Nav and FFXIVLib.API.Nav.BuildNavData() or {}
 
 function ffxiv_map_nav.IsAetheryte(id)
 	if not id then return false end
