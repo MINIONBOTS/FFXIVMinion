@@ -505,7 +505,7 @@ function ml_navigation.ParseInstructions(data)
 								end,
 								function ()
 									local myPos = Player.pos
-									Player:SetFacing(pos.x,pos.y,pos.z,true)
+									ml_navigation.SmoothFaceTarget(pos.x,pos.y,pos.z)
 
 									local currentPitch = math.round(Player.flying.pitch,3)
 									local minVector = math.normalize(math.vectorize(myPos,pos))
@@ -544,7 +544,7 @@ function ml_navigation.ParseInstructions(data)
 								end,
 								function ()
 									local myPos = Player.pos
-									Player:SetFacing(pos.x,pos.y,pos.z,true)
+									ml_navigation.SmoothFaceTarget(pos.x,pos.y,pos.z)
 									
 									local currentPitch = math.round(Player.flying.pitch,3)
 									local minVector = math.normalize(math.vectorize(myPos,pos))
@@ -652,6 +652,22 @@ end
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
 ml_navigation.avoidanceareasize = 2
+ml_navigation.smoothFacing = false
+ml_navigation.smoothFacingRatio = 0.30
+
+function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
+	Player:SetFacing(targetX, targetY, targetZ, true)
+end
+
+function ml_navigation.SyncSmoothFacingSettings()
+	if gSmoothFacing ~= nil then ml_navigation.smoothFacing = gSmoothFacing end
+	if gSmoothFacingRatio ~= nil then
+		ml_navigation.smoothFacingRatio = gSmoothFacingRatio
+		Player:SetSmoothFacingRatio(gSmoothFacingRatio)
+	end
+end
+RegisterEventHandler("Module.Initalize", ml_navigation.SyncSmoothFacingSettings, "ml_navigation.SyncSmoothFacingSettings")
+
 ml_navigation.GUI = {
 	pathHops = 0,
 	currentIndex = 0,
@@ -1728,7 +1744,7 @@ function ml_navigation.Navigate(event, ticks )
 							else
 								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
 								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-									Player:SetFacing(tpos.x,tpos.y,tpos.z, true) -- smooth facing
+									ml_navigation.SmoothFaceTarget(tpos.x,tpos.y,tpos.z)
 								else
 									Player:SetFacing(tpos.x,tpos.y,tpos.z)
 								end
@@ -1784,7 +1800,7 @@ function ml_navigation.Navigate(event, ticks )
 								else
 									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
 									if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+										ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
 									else
 										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 									end
@@ -1836,7 +1852,7 @@ function ml_navigation.Navigate(event, ticks )
 						else
 							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
 							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+								ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
 							else
 								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 							end
@@ -2068,7 +2084,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 		else
 			local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})											
 			if ( anglediff < 35 and nodedist > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-				Player:SetFacing(nextnode.x,nextnode.y,nextnode.z,true)
+				ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
 			else
 				Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 			end

@@ -180,10 +180,6 @@ function c_grind_addhuntlogtask:evaluate()
 	c_grind_addhuntlogtask.target = nil
 
 	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
-	if bestTarget == "loading" then
-		d("huntlog data still loading, waiting...")
-		return false
-	end
 	if (table.valid(bestTarget)) then
 		local mapid = bestTarget.mapid
 		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
@@ -503,15 +499,21 @@ function ffxiv_task_huntlog.UIInit()
 	GUI_WindowVisible(winName, false)
 	--]]
 end
-function ffxiv_task_huntlog:task_complete_eval()	
+function ffxiv_task_huntlog:task_complete_eval()
 	if (self.adHoc) then
+		if not FFXIVLib.API.Huntlog.IsReady() then
+			return false
+		end
 		local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
+		if bestTarget == nil then
+			return false
+		end
 		if (not table.valid(bestTarget)) then
 			d("[Huntlog] No best target, task complete.")
 			return true
 		end
     end
-    
+
     return false
 end
 function ffxiv_task_huntlog:task_complete_execute()

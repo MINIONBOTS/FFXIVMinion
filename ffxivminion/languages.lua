@@ -26,6 +26,8 @@
 		disabledrawing 					= "Disable Rendering",
 		killaggrononfateenemies 		= "Kill attacking None-Fate Enemies",
 		avoidAOE						 = "Avoid AOE",
+		smoothFacing					 = "Smooth Facing",
+		smoothFacingRatio				 = "Smooth Facing Ratio",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",

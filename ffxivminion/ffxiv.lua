@@ -1034,6 +1034,8 @@ function ffxivminion.SetMainVars()
 	gChocoItemString = gChocoItems[gChocoItem]
 
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE", false)
+	gSmoothFacing = ffxivminion.GetSetting("gSmoothFacing", false)
+	gSmoothFacingRatio = ffxivminion.GetSetting("gSmoothFacingRatio", 0.30)
 	gAvoidHP = ffxivminion.GetSetting("gAvoidHP", 100)
 	gRestHP = ffxivminion.GetSetting("gRestHP", 70)
 	gRestMP = ffxivminion.GetSetting("gRestMP", 0)
@@ -1195,6 +1197,9 @@ function ffxivminion.SetModeOptions(mode)
 			Hacks:SkipCutscene(gSkipCutscene)
 			Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+			gSmoothFacing = Settings.FFXIVMINION.gSmoothFacing
+			gSmoothFacingRatio = Settings.FFXIVMINION.gSmoothFacingRatio
+			if gSmoothFacingRatio then Player:SetSmoothFacingRatio(gSmoothFacingRatio) end
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 		end
 	end
@@ -2134,6 +2139,19 @@ function ml_global_information.DrawSettings()
 					end
 
 					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"), gAvoidAOE), "gAvoidAOE");
+
+					GUI_Capture(GUI:Checkbox(GetString("Smooth Facing"), gSmoothFacing), "gSmoothFacing", function()
+						ml_navigation.smoothFacing = gSmoothFacing
+					end);
+					if (gSmoothFacing) then
+						GUI:SameLine(150)
+						GUI:PushItemWidth(100);
+						GUI_DrawFloatMinMax(GetString("Smooth Facing Ratio"), "gSmoothFacingRatio", 0.005, 0.05, 3, 0.005, 1.0, function()
+							ml_navigation.smoothFacingRatio = gSmoothFacingRatio
+							Player:SetSmoothFacingRatio(gSmoothFacingRatio)
+						end);
+						GUI:PopItemWidth()
+					end
 
 					GUI:Separator();
 				end
