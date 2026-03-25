@@ -69,12 +69,8 @@ end
 
 RegisterEventHandler("Module.Initalize",dev.Init,"dev.Init")
 
-dev.logUiEvent = false
-
 RegisterEventHandler("Game.UIEvent", function(eventName, eventJson)
-	if dev.logUiEvent then
-		d(eventJson)
-	end
+	d(eventJson)
 end, "Game.UIEvent")
 
 function dev.ChatTest()
@@ -2700,10 +2696,6 @@ function dev.DrawCall(event, ticks )
 					},
 				}
 				local ua = dev.uiAgents
-
-				-- Moved here from "UI Events" top-level node
-				dev.logUiEvent = GUI:Checkbox("Log Game.UIEvent to console", dev.logUiEvent)
-				GUI:Separator()
 
 				-- Agent name list sourced from C++ (sorted, no unknown_N entries)
 				if not ua.agentNames then
