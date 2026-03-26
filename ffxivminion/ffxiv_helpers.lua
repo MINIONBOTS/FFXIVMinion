@@ -3957,6 +3957,7 @@ end
 local AetherCurrentQuestOverrides = {
 	[2007967] = 2530,
 	[2007971] = 2530,
+	[2007972] = 2530,
 }
 
 function GetUnattunedCurrents()
