@@ -2783,7 +2783,8 @@ function ffxiv_task_fish:UIInit()
 		Settings.FFXIVMINION.gLastFishProfiles[uuid] = {}
 	end
 	
-	_G["gFishProfile"] = Settings.FFXIVMINION.gLastFishProfiles[uuid] or ffxiv_fish.profilesDisplay[1]
+	local savedFishProfile = Settings.FFXIVMINION.gLastFishProfiles[uuid]
+	_G["gFishProfile"] = (type(savedFishProfile) == "string" and string.valid(savedFishProfile)) and savedFishProfile or ffxiv_fish.profilesDisplay[1]
 	_G["gFishProfileIndex"] = GetKeyByValue(gFishProfile,ffxiv_fish.profilesDisplay) or 1
 	if (ffxiv_fish.profilesDisplay[gFishProfileIndex] ~= gFishProfile) then
 		_G["gFishProfile"] = ffxiv_fish.profilesDisplay[gFishProfileIndex]

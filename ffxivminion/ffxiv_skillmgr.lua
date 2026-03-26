@@ -1088,7 +1088,8 @@ function SkillMgr.LoadInit()
 		if ( starterDefault ) then
 			local filePath = SkillMgr.profilePath..starterDefault..".lua"
 			if (FileExists(filePath)) then
-				gSkillProfile = gSMDefaultProfiles[Player.job]
+				gSkillProfile = starterDefault
+				gSMDefaultProfiles[Player.job] = starterDefault
 				local uuid = GetUUID()
 				Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
 				Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles

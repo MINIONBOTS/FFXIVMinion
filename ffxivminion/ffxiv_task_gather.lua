@@ -3463,7 +3463,8 @@ function ffxiv_task_gather:UIInit()
 		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = {}
 	end
 	
-	_G["gGatherProfile"] = Settings.FFXIVMINION.gLastGatherProfiles[uuid] or ffxiv_gather.profilesDisplay[1]
+	local savedGatherProfile = Settings.FFXIVMINION.gLastGatherProfiles[uuid]
+	_G["gGatherProfile"] = (type(savedGatherProfile) == "string" and string.valid(savedGatherProfile)) and savedGatherProfile or ffxiv_gather.profilesDisplay[1]
 	_G["gGatherProfileIndex"] = GetKeyByValue(gGatherProfile,ffxiv_gather.profilesDisplay) or 1
 	if (ffxiv_gather.profilesDisplay[gGatherProfileIndex] ~= gGatherProfile) then
 		_G["gGatherProfile"] = ffxiv_gather.profilesDisplay[gGatherProfileIndex]

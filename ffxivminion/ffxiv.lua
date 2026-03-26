@@ -1559,6 +1559,13 @@ function ffxivminion.LoadModes()
 		end
 	end
 
+	-- Re-read gBotMode from UUID-based settings now that we're in-game
+	-- (SetMainVars may have run before login when UUID was unavailable)
+	local uuid = GetUUID()
+	if (Settings.FFXIVMINION.gBotModes and string.valid(uuid) and Settings.FFXIVMINION.gBotModes[uuid]) then
+		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
+	end
+
 	local modeIndex = GetKeyByValue(gBotMode, gBotModeList)
 	if (modeIndex) then
 		gBotModeIndex = modeIndex
@@ -1739,6 +1746,7 @@ function ml_global_information.DrawMainFull()
 							end
 							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
 							Settings.FFXIVMINION.gBotModes = Settings.FFXIVMINION.gBotModes
+							Settings.FFXIVMINION.gBotMode = gBotMode
 						end
 					end
 

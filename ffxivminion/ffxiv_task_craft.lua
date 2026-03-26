@@ -1199,7 +1199,8 @@ function ffxiv_task_craft:UIInit()
 		Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
 	end
 	
-	_G["gCraftProfile"] = Settings.FFXIVMINION.gLastCraftProfiles[uuid] or ffxiv_craft.profilesDisplay[1]
+	local savedCraftProfile = Settings.FFXIVMINION.gLastCraftProfiles[uuid]
+	_G["gCraftProfile"] = (type(savedCraftProfile) == "string" and string.valid(savedCraftProfile)) and savedCraftProfile or ffxiv_craft.profilesDisplay[1]
 	_G["gCraftProfileIndex"] = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay) or 1
 	if (ffxiv_craft.profilesDisplay[gCraftProfileIndex] ~= gCraftProfile) then
 		_G["gCraftProfile"] = ffxiv_craft.profilesDisplay[gCraftProfileIndex]

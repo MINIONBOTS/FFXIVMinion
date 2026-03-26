@@ -1857,8 +1857,8 @@ function ffxiv_nav_interact:task_complete_eval()
 	if (MIsLoading() and not self.areaChanged) then
 		navd("[NAV_INTERACT TCE] loading detected, setting areaChanged. contentid=" .. tostring(self.contentid) .. " map=" .. tostring(Player.localmapid))
 		self.areaChanged = true
-		if questing and questing._navPathCache then
-			questing._navPathCache = {}
+		if FFXIVLib and FFXIVLib.Questing and FFXIVLib.Questing.ClearNavPathCache then
+			FFXIVLib.Questing.ClearNavPathCache()
 		end
 		return false
 	end
