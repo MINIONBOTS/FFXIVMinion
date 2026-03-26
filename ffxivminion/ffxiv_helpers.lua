@@ -3952,6 +3952,13 @@ function GetUnattunedAetheryteList()
 	return aethList
 end
 
+-- Quest unlock overrides for aether currents gated behind content
+-- that the data tables don't reflect. Key = EObjId, Value = QuestId.
+local AetherCurrentQuestOverrides = {
+	[2007967] = 2530,
+	[2007971] = 2530,
+}
+
 function GetUnattunedCurrents()
 	if not QuestCompleted(1597) then
 		return nil
@@ -3975,6 +3982,9 @@ function GetUnattunedCurrents()
 		-- Check quest gate
 		elseif row.QuestId and row.QuestId > 0 and not QuestCompleted(row.QuestId) then
 			-- quest not completed, skip
+		-- Check quest override gate
+		elseif AetherCurrentQuestOverrides[row.EObjId] and not QuestCompleted(AetherCurrentQuestOverrides[row.EObjId]) then
+			-- quest override not completed, skip
 		else
 			-- Return in old-compatible shape: keyed by EObjId (old "aethid")
 			currentList[row.EObjId] = {
@@ -9029,7 +9039,7 @@ function Transport612(pos1,pos2)
 							end
 						end
 					end
-				else
+				elseif QuestCompleted(2530) then
 					if (CanUseAetheryte(99) and not Player.incombat) and (gilCount > 100) then
 						return true, function () 
 							if (Player:IsMoving()) then
