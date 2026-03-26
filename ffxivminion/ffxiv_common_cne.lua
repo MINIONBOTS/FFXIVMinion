@@ -1341,7 +1341,7 @@ function c_teleporttomap:evaluate()
 	end]=]
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
-    if (destMapID) then
+    if (destMapID and destMapID > 0) then
 		local ppos = Player.pos
         local pos = ml_nav_manager.GetNextPathPos(	ppos,
                                                     Player.localmapid,
@@ -2216,6 +2216,9 @@ function c_useaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
 		return false
 	end
+	if (not IsCityMap(Player.localmapid)) then
+		return false
+	end
 	if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().useAethernet == false) then
 		return false
 	end
@@ -2296,10 +2299,10 @@ function c_useaethernet:evaluate(mapid, pos)
 			return true
 		end
 	else
-		if ml_task_hub:CurrentTask() and (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
+		if (destMapID ~= Player.localmapid) then
 			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
-														ml_task_hub:CurrentTask().destMapID	)
+														destMapID	)
 			if (table.valid(gate)) then
 				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
 				gatedist = Distance3DT(gatepos,Player.pos)
