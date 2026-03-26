@@ -1099,6 +1099,7 @@ function ffxivminion.SetMainVars()
 	ml_global_information.autoStartQueued = gAutoStart
 	Hacks:Disable3DRendering(gDisableDrawing)
 	Hacks:SkipCutscene(gSkipCutscene)
+
 end
 
 -- Module Event Handler
@@ -2161,7 +2162,6 @@ function ml_global_information.DrawSettings()
 						GUI:PopItemWidth()
 					end
 
-					GUI:Separator();
 				end
 
 				if (tabindex == 3) then
