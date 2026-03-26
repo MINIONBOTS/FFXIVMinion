@@ -8807,8 +8807,15 @@ end
 function Transport351(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
+	local enterSolar = true
+
 	
-	if ((pos1.z < 27.394 and pos1.z > -27.20) and not (pos2.z < 27.39 and pos2.z > -27.20)) then
+		local task = ml_task_hub and ml_task_hub.CurrentTask and ml_task_hub:CurrentTask()
+		if task and task.destMapID and task.destMapID ~= 351 then
+			enterSolar = false
+		end
+
+	if ((pos1.z < 27.394 and pos1.z > -27.20) and not (pos2.z < 27.39 and pos2.z > -27.20)) and enterSolar then
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
