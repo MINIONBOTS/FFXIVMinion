@@ -2684,15 +2684,19 @@ function dev.DrawCall(event, ticks )
 
 				-- ── state (persisted across frames in local upvalues) ───────────────
 				dev.uiAgents = dev.uiAgents or {
-					spyState  = {},
+					spyState   = {},
+					-- shared toggle: when true both Spy and InputHandler use a numeric slot index
+					useRawId   = false,
+					rawSpyId   = 0,   -- slot index used by the Spy section
 					ih = {
 						-- GUI:Combo is 1-based: 1 = placeholder, 2..N+1 = allAgentNames[1..N]
-						agentIdx  = 1,
-						eventId   = 0,
-						numArgs   = 1,
+						agentIdx   = 1,
+						eventId    = 0,
+						numArgs    = 1,
+						rawAgentId = 0,   -- slot index used by the InputHandler section
 						-- tpIdx: 1-based (GUI:Combo returns 1 for first item)
 						-- 3 = "Int(3)" which is atkTypeStrings[3] / atkTypeValues[3]
-						args      = { {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0} },
+						args       = { {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0} },
 					},
 				}
 				local ua = dev.uiAgents
@@ -2703,38 +2707,58 @@ function dev.DrawCall(event, ticks )
 				end
 				local allAgentNames = ua.agentNames
 
+				-- Shared mode toggle — applies to both Spy and InputHandler sub-sections
+				ua.useRawId = GUI:Checkbox("Use raw agent index##ua_useraw", ua.useRawId or false)
+				GUI:Separator()
+
 				-- ── Spy section ──────────────────────────────────────────────────────
 				if ( GUI:TreeNode("Spy / Monitor")) then
 					GUI:TextColored(1,1,0,1,"Hook ProcessEvent on agents - output to console via")
 					GUI:Separator()
 
-					-- Spy All / Spy None convenience buttons
-					if GUI:SmallButton("Spy All") then
-						for _, name in ipairs(allAgentNames) do
-							ua.spyState[name] = true
-							UIEvent(name, "spy", true)
+					if ua.useRawId then
+						-- Raw index mode: target a single agent slot directly
+						GUI:PushItemWidth(130)
+						ua.rawSpyId = (GUI:InputInt("Agent Index##spy_rawid", ua.rawSpyId or 0))
+						if ua.rawSpyId < 0 then ua.rawSpyId = 0 end
+						GUI:PopItemWidth()
+						GUI:SameLine()
+						if GUI:SmallButton("Spy On##spy_raw_on") then
+							UIEvent(ua.rawSpyId, "spy", true)
 						end
-					end
-					GUI:SameLine()
-					if GUI:SmallButton("Spy None") then
-						for _, name in ipairs(allAgentNames) do
-							ua.spyState[name] = false
-							UIEvent(name, "spy", false)
+						GUI:SameLine()
+						if GUI:SmallButton("Spy Off##spy_raw_off") then
+							UIEvent(ua.rawSpyId, "spy", false)
 						end
-					end
-					GUI:Separator()
+					else
+						-- Name mode: Spy All / Spy None + per-agent checkbox list
+						if GUI:SmallButton("Spy All") then
+							for _, name in ipairs(allAgentNames) do
+								ua.spyState[name] = true
+								UIEvent(name, "spy", true)
+							end
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Spy None") then
+							for _, name in ipairs(allAgentNames) do
+								ua.spyState[name] = false
+								UIEvent(name, "spy", false)
+							end
+						end
+						GUI:Separator()
 
-					-- Scrollable checkbox list — avoids GUI:Columns which causes FocusScope mismatch
-					GUI:BeginChild("##spy_list", 0, 280, true)
-					for _, name in ipairs(allAgentNames) do
-						local spyOn = ua.spyState[name] or false
-						local newVal = GUI:Checkbox(name.."##spy_"..name, spyOn)
-						if newVal ~= spyOn then
-							ua.spyState[name] = newVal
-							UIEvent(name, "spy", newVal)
+						-- Scrollable checkbox list — avoids GUI:Columns which causes FocusScope mismatch
+						GUI:BeginChild("##spy_list", 0, 280, true)
+						for _, name in ipairs(allAgentNames) do
+							local spyOn = ua.spyState[name] or false
+							local newVal = GUI:Checkbox(name.."##spy_"..name, spyOn)
+							if newVal ~= spyOn then
+								ua.spyState[name] = newVal
+								UIEvent(name, "spy", newVal)
+							end
 						end
+						GUI:EndChild()
 					end
-					GUI:EndChild()
 
 					GUI:TreePop()
 				end -- Spy / Monitor
@@ -2750,14 +2774,26 @@ function dev.DrawCall(event, ticks )
 					local atkTypeStrings = {"None(0)","Bool(2)","Int(3)","Int64(4)","UInt(5)","UInt64(6)","Float(7)"}
 					local atkTypeValues  = {0, 2, 3, 4, 5, 6, 7}
 
-					-- Agent combo: entry 0 = placeholder, 1..N = allAgentNames[i]
-					local agentComboList = {"-- select agent --"}
-					for _, n in ipairs(allAgentNames) do agentComboList[#agentComboList+1] = n end
-
-					GUI:PushItemWidth(230)
-					ih.agentIdx = GUI:Combo("Agent##ih_agent", ih.agentIdx or 1, agentComboList)
+					local ihAgentRef  -- string name OR integer id passed to UIEvent
+					if ua.useRawId then
+						GUI:PushItemWidth(130)
+						ih.rawAgentId = (GUI:InputInt("Agent Index##ih_rawid", ih.rawAgentId or 0))
+						if ih.rawAgentId < 0 then ih.rawAgentId = 0 end
+						GUI:PopItemWidth()
+						ihAgentRef = ih.rawAgentId
+					else
+						-- Agent combo: entry 1 = placeholder, 2..N+1 = allAgentNames[1..N]
+						local agentComboList = {"-- select agent --"}
+						for _, n in ipairs(allAgentNames) do agentComboList[#agentComboList+1] = n end
+						GUI:PushItemWidth(230)
+						ih.agentIdx = GUI:Combo("Agent##ih_agent", ih.agentIdx or 1, agentComboList)
+						GUI:PopItemWidth()
+						-- GUI:Combo is 1-based; idx 1 = placeholder, 2+ = allAgentNames[idx-1]
+						ihAgentRef = (ih.agentIdx and ih.agentIdx > 1) and allAgentNames[ih.agentIdx - 1] or ""
+					end
 
 					-- EventId
+					GUI:PushItemWidth(130)
 					ih.eventId = (GUI:InputInt("EventId (cmd)", ih.eventId or 0))
 					if ih.eventId < 0 then ih.eventId = 0 end
 
@@ -2795,27 +2831,25 @@ function dev.DrawCall(event, ticks )
 
 					GUI:Separator()
 
-					-- GUI:Combo returns 1-based index; idx 1 = placeholder, idx 2+ = allAgentNames[idx-1]
-					local ihAgentName = (ih.agentIdx and ih.agentIdx > 1) and allAgentNames[ih.agentIdx - 1] or ""
-
 					-- Call preview
 					local previewParts = {}
 					for i = 1, ih.numArgs do
-						local arg = ih.args[i] or {tpIdx=2, vi=0, vf=0.0}
+						local arg = ih.args[i] or {tpIdx=3, vi=0, vf=0.0}
 						local atype = atkTypeValues[arg.tpIdx or 3] or 3
 						local vStr = (atype == 7) and string.format("%.4f", arg.vf or 0) or tostring(arg.vi or 0)
 						previewParts[#previewParts+1] = string.format("{%d,%s}", atype, vStr)
 					end
+					local agentDisplay = ua.useRawId and tostring(ih.rawAgentId or 0)
+						or (type(ihAgentRef) == "string" and ihAgentRef ~= "" and '"'..ihAgentRef..'"' or '"?"')
 					GUI:TextColored(0.7,0.9,1,1, string.format(
-						'UIEvent("%s",%d,{%s})',
-						ihAgentName ~= "" and ihAgentName or "?",
-						ih.eventId,
-						table.concat(previewParts, ",")
+						'UIEvent(%s,%d,{%s})',
+						agentDisplay, ih.eventId, table.concat(previewParts, ",")
 					))
 
 					GUI:Spacing()
 
-					if ihAgentName == "" then
+					local canFire = ua.useRawId or (type(ihAgentRef) == "string" and ihAgentRef ~= "")
+					if not canFire then
 						GUI:TextColored(1,0.4,0.4,1,"Select an agent above")
 					else
 						if GUI:Button("Fire Event##ih_fire") then
@@ -2824,8 +2858,8 @@ function dev.DrawCall(event, ticks )
 								local arg = ih.args[i] or {tpIdx=3, vi=0, vf=0.0}
 								local atype = atkTypeValues[arg.tpIdx or 3] or 3
 								tblArgs[i] = { atype, atype == 7 and (arg.vf or 0.0) or (arg.vi or 0) }
-							end							
-							UIEvent(ihAgentName, ih.eventId, tblArgs)
+							end
+							UIEvent(ihAgentRef, ih.eventId, tblArgs)
 						end
 					end
 
