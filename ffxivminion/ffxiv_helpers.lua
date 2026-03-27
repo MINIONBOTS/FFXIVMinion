@@ -2773,7 +2773,7 @@ function GetPathDistance(pos1,pos2,threshold)
 		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		local _dt = os.clock() * 1000 - _t0
 		if (_dt > 1) then
-			--d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
+			d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
 		end
 		if (table.valid(path)) then
 			local pathdist = PathDistance(path)

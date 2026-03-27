@@ -1707,7 +1707,12 @@ function ml_global_information.DrawMainFull()
 					ffxivminion.GUI.width = width;
 					ffxivminion.GUI.height = height;
 
-					if (FFXIV_Common_BotRunning) then
+					local _dataReady = not FFXIVData_IsReady or FFXIVData_IsReady()
+					if not _dataReady then
+						GUI:Text(GetString("Bot Status:"))
+						GUI:SameLine()
+						GUI:TextColored(1, .8, 0, 1, "Loading...")
+					elseif (FFXIV_Common_BotRunning) then
 						GUI:Text(GetString("Bot Status:"))
 						GUI:SameLine()
 						GUI:TextColored(.1, 1, .2, 1, GetString("RUNNING"))
@@ -1932,9 +1937,18 @@ function ml_global_information.DrawMainFull()
 					if (GUI:Button(GetString("Advanced Settings"), contentwidth, 20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
-					if (GUI:Button(GetString("Start / Stop"), contentwidth, 20)) then
-						ffxivminion.DutyCurrentData = {}
-						ml_global_information.ToggleRun()
+					if _dataReady then
+						if (GUI:Button(GetString("Start / Stop"), contentwidth, 20)) then
+							ffxivminion.DutyCurrentData = {}
+							ml_global_information.ToggleRun()
+						end
+					else
+						GUI:PushStyleColor(GUI.Col_Button, 0.3, 0.3, 0.3, 1)
+						GUI:PushStyleColor(GUI.Col_ButtonHovered, 0.3, 0.3, 0.3, 1)
+						GUI:PushStyleColor(GUI.Col_ButtonActive, 0.3, 0.3, 0.3, 1)
+						GUI:PushStyleColor(GUI.Col_Text, 0.7, 0.7, 0.2, 1)
+						GUI:Button("Loading...", contentwidth, 20)
+						GUI:PopStyleColor(4)
 					end
 				end
 				GUI:End()
@@ -1968,11 +1982,12 @@ function ml_global_information.DrawSmall()
 				GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding, 10)
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 
+				local _dataReadyMin = not FFXIVData_IsReady or FFXIVData_IsReady()
 				GUI:BeginChild("##label-" .. gBotMode, 120, 40, true)
 				GUI:AlignFirstTextHeightToWidgets()
-				GUI:Text(GetString(gBotMode))
+				GUI:Text(_dataReadyMin and GetString(gBotMode) or "Loading...")
 				GUI:EndChild()
-				if (GUI:IsItemHovered()) then
+				if _dataReadyMin and (GUI:IsItemHovered()) then
 					if (GUI:IsMouseClicked(0)) then
 						ffxivminion.DutyCurrentData = {}
 						ml_global_information.ToggleRun()

@@ -105,7 +105,10 @@ end
 function FFXIVData_IsReady()
     if not FFXIVLib then return true end -- no FFXIVLib = no gate
     if not FFXIVLib.PreWarm then return true end
-    return FFXIVLib.PreWarm.IsPreWarmReady()
+    if not FFXIVLib.PreWarm.IsPreWarmReady() then return false end
+    -- Also wait for nav discovery to finish (the slow SQL phase).
+    if not ml_global_information._nav_discover_done then return false end
+    return true
 end
 
 ------------------------------------------------------------

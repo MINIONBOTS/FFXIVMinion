@@ -3455,16 +3455,7 @@ end
 function ffxiv_task_gather:UIInit()
 	ffxiv_gather.profiles, ffxiv_gather.profilesDisplay = GetPublicProfiles(ffxiv_gather.profilePath,".*lua")
 	
-	local uuid = GetUUID()
-	if (Settings.FFXIVMINION.gLastGatherProfiles == nil) then
-		Settings.FFXIVMINION.gLastGatherProfiles = {}
-	end
-	if (Settings.FFXIVMINION.gLastGatherProfiles[uuid] == nil) then
-		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = {}
-	end
-	
-	local savedGatherProfile = Settings.FFXIVMINION.gLastGatherProfiles[uuid]
-	_G["gGatherProfile"] = (type(savedGatherProfile) == "string" and string.valid(savedGatherProfile)) and savedGatherProfile or ffxiv_gather.profilesDisplay[1]
+	_G["gGatherProfile"] = ffxivminion.GetSetting("gGatherProfile", ffxiv_gather.profilesDisplay[1])
 	_G["gGatherProfileIndex"] = GetKeyByValue(gGatherProfile,ffxiv_gather.profilesDisplay) or 1
 	if (ffxiv_gather.profilesDisplay[gGatherProfileIndex] ~= gGatherProfile) then
 		_G["gGatherProfile"] = ffxiv_gather.profilesDisplay[gGatherProfileIndex]
@@ -3623,9 +3614,6 @@ function ffxiv_task_gather:Draw()
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
 		if (profileChanged) then
 			ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
-			local uuid = GetUUID()
-			Settings.FFXIVMINION.gLastGatherProfiles[uuid] = gGatherProfile
-			Settings.FFXIVMINION.gLastGatherProfiles = Settings.FFXIVMINION.gLastGatherProfiles
 			c_gathernexttask.subsetExpiration = 0
 		end
 		GUI:PopItemWidth()

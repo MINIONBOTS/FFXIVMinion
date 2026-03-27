@@ -2775,16 +2775,7 @@ end
 function ffxiv_task_fish:UIInit()
 	ffxiv_fish.profiles, ffxiv_fish.profilesDisplay = GetPublicProfiles(ffxiv_fish.profilePath,".*lua")
 	
-	local uuid = GetUUID()
-	if (Settings.FFXIVMINION.gLastFishProfiles == nil) then
-		Settings.FFXIVMINION.gLastFishProfiles = {}
-	end
-	if (Settings.FFXIVMINION.gLastFishProfiles[uuid] == nil) then
-		Settings.FFXIVMINION.gLastFishProfiles[uuid] = {}
-	end
-	
-	local savedFishProfile = Settings.FFXIVMINION.gLastFishProfiles[uuid]
-	_G["gFishProfile"] = (type(savedFishProfile) == "string" and string.valid(savedFishProfile)) and savedFishProfile or ffxiv_fish.profilesDisplay[1]
+	_G["gFishProfile"] = ffxivminion.GetSetting("gFishProfile", ffxiv_fish.profilesDisplay[1])
 	_G["gFishProfileIndex"] = GetKeyByValue(gFishProfile,ffxiv_fish.profilesDisplay) or 1
 	if (ffxiv_fish.profilesDisplay[gFishProfileIndex] ~= gFishProfile) then
 		_G["gFishProfile"] = ffxiv_fish.profilesDisplay[gFishProfileIndex]
@@ -2943,9 +2934,6 @@ function ffxiv_task_fish:Draw()
 		local profileChanged = GUI_Combo("##"..GetString("Profile"), "gFishProfileIndex", "gFishProfile", ffxiv_fish.profilesDisplay)
 		if (profileChanged) then
 			ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile]
-			local uuid = GetUUID()
-			Settings.FFXIVMINION.gLastFishProfiles[uuid] = gFishProfile
-			Settings.FFXIVMINION.gLastFishProfiles = Settings.FFXIVMINION.gLastFishProfiles
 		end
 		GUI:PopItemWidth()
 		if gGatherProfileIndex == 1 and (gFishProfileIndex == 1 or gFishProfile == GetString("None")) then

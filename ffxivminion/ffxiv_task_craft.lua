@@ -1190,17 +1190,7 @@ function ffxiv_task_craft:UIInit()
 	gCrafts = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
 	
-	local uuid = GetUUID()
-	if (Settings.FFXIVMINION.gLastCraftProfiles == nil) then
-		Settings.FFXIVMINION.gLastCraftProfiles = {}
-	end
-	if (Settings.FFXIVMINION.gLastCraftProfiles[uuid] == nil) then
-		Settings.FFXIVMINION.gLastCraftProfiles[uuid] = {}
-		Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
-	end
-	
-	local savedCraftProfile = Settings.FFXIVMINION.gLastCraftProfiles[uuid]
-	_G["gCraftProfile"] = (type(savedCraftProfile) == "string" and string.valid(savedCraftProfile)) and savedCraftProfile or ffxiv_craft.profilesDisplay[1]
+	_G["gCraftProfile"] = ffxivminion.GetSetting("gCraftProfile", ffxiv_craft.profilesDisplay[1])
 	_G["gCraftProfileIndex"] = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay) or 1
 	if (ffxiv_craft.profilesDisplay[gCraftProfileIndex] ~= gCraftProfile) then
 		_G["gCraftProfile"] = ffxiv_craft.profilesDisplay[gCraftProfileIndex]
@@ -1403,9 +1393,6 @@ function ffxiv_task_craft:Draw()
 		GUI:PopItemWidth()
 		if (profileChanged) then
 			ffxiv_craft.profileData = ffxiv_craft.profiles[gCraftProfile]
-			local uuid = GetUUID()
-			Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
-			Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
 			ffxiv_craft.orders = ffxiv_craft.profileData.orders
 			ffxiv_craft.ResetOrders()
 		end
@@ -1441,9 +1428,7 @@ function ffxiv_task_craft:Draw()
 						ffxiv_craft.CreateNewProfile()
 						gCraftProfile = gCraftNewProfileName
 						gCraftProfileIndex = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay)
-						local uuid = GetUUID()
-						Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
-						Settings.FFXIVMINION.gLastCraftProfiles = Settings.FFXIVMINION.gLastCraftProfiles
+						Settings.FFXIVMINION.gCraftProfile = gCraftProfile
 					end,
 				},
 				{

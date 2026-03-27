@@ -767,16 +767,7 @@ end
 function ffxiv_task_grind:UIInit()
 	ffxiv_grind.profiles, ffxiv_grind.profilesDisplay = GetPublicProfiles(ffxiv_grind.profilePath,".*lua")
 	
-	local uuid = GetUUID()
-	if (Settings.FFXIVMINION.gLastGrindProfiles == nil) then
-		Settings.FFXIVMINION.gLastGrindProfiles = {}
-	end
-	if (Settings.FFXIVMINION.gLastGrindProfiles[uuid] == nil) then
-		Settings.FFXIVMINION.gLastGrindProfiles[uuid] = {}
-	end
-	
-	local savedGrindProfile = Settings.FFXIVMINION.gLastGrindProfiles[uuid]
-	gGrindProfile = (type(savedGrindProfile) == "string" and string.valid(savedGrindProfile)) and savedGrindProfile or ffxiv_grind.profilesDisplay[1]
+	gGrindProfile = ffxivminion.GetSetting("gGrindProfile", ffxiv_grind.profilesDisplay[1])
 	gGrindProfileIndex = GetKeyByValue(gGrindProfile,ffxiv_grind.profilesDisplay) or 1
 	if (ffxiv_grind.profilesDisplay[gGrindProfileIndex] ~= gGrindProfile) then
 		gGrindProfile = ffxiv_grind.profilesDisplay[gGrindProfileIndex]

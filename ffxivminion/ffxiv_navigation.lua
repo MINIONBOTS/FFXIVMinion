@@ -1054,7 +1054,7 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local reachable = NavigationManager:IsReachable(pos2)
 	local _dt = os.clock() * 1000 - _t0
 	if (_dt > 1) then
-		--d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
+		d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
 	end
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
