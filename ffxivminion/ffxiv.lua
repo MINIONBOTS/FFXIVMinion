@@ -1481,7 +1481,7 @@ function ffxivminion.FillFoodOptions(availableonly)
 	local allFoods
 	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Items and FFXIVLib.API.Items.GetAllFoods then
 		allFoods = FFXIVLib.API.Items.GetAllFoods(availableonly)
-	elseif AceLib then
+	elseif AceLib and AceLib.API and AceLib.API.Items and AceLib.API.Items.GetAllFoods then
 		allFoods = AceLib.API.Items.GetAllFoods(availableonly)
 	else
 		allFoods = {}
@@ -2099,7 +2099,6 @@ function ml_global_information.DrawSettings()
 				if (tabindex == 2) then
 
 					GUI_Capture(GUI:Checkbox(GetString("Auto Start Bot"), gAutoStart), "gAutoStart");
-					GUI_Capture(GUI:Checkbox(GetString("Disable Auto Assign Gearsets"), gAutoAssign), "gAutoAssign");
 					if gUseSprint == nil then
 						gUseSprint = true
 					end
@@ -2131,10 +2130,6 @@ function ml_global_information.DrawSettings()
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
 					GUI:SameLine(275)
-					if (GUI:ImageButton("##main-mounts-refresh", ml_global_information.path .. "\\GUI\\UI_Textures\\change.png", 14, 14)) then
-						ffxivminion.FillMountOptions()
-					end
-					GUI:SameLine(0, 5)
 					GUI_Capture(GUI:Checkbox(GetString("Show Available Mounts Only"), gMountAvailableOnly), "gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
@@ -2148,11 +2143,7 @@ function ml_global_information.DrawSettings()
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods);
 					GUI:PopItemWidth()
 					GUI:SameLine(275)
-					if (GUI:ImageButton("##main-food-refresh", ml_global_information.path .. "\\GUI\\UI_Textures\\change.png", 14, 14)) then
-						ffxivminion.FillFoodOptions(gFoodAvailableOnly)
-					end
-					GUI:SameLine(0, 5)
-					GUI_Capture(GUI:Checkbox(GetString("Show Usable Only") .. "##food", gFoodAvailableOnly), "gFoodAvailableOnly");
+					GUI_Capture(GUI:Checkbox(GetString("Show Usable Only") .. "##food", gFoodAvailableOnly), "gFoodAvailableOnly", function() ffxivminion.FillFoodOptions(gFoodAvailableOnly) end);
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip("If this option is on, only available items will be shown.")
 					end
@@ -2180,7 +2171,8 @@ function ml_global_information.DrawSettings()
 				end
 
 				if (tabindex == 3) then
-					GUI:BeginChild("##main-header-autoequip", 0, GUI_GetFrameHeight(11), true)
+					local frameHeight = 14
+					GUI:BeginChild("##main-header-autoequip", 0, GUI_GetFrameHeight(frameHeight), true)
 
 					GUI_Capture(GUI:Checkbox(GetString("Auto Equip"), gAutoEquip), "gAutoEquip",
 							function()
@@ -2194,8 +2186,9 @@ function ml_global_information.DrawSettings()
 					GUI:Spacing();
 					GUI:Spacing()
 					GUI:Text(GetString("Gearsets"));
+					GUI_Capture(GUI:Checkbox(GetString("Disable Auto Assign Gearsets"), gAutoAssign), "gAutoAssign");
 
-					GUI:BeginChild("##main-header-autoequip-gearsets", 0, GUI_GetFrameHeight(8), true)
+					GUI:BeginChild("##main-header-autoequip-gearsets", 0, GUI_GetFrameHeight(frameHeight - 4), true)
 					local classlookup = {}
 					for _, jobid in pairs(FFXIV.JOBS) do
 						if type(jobid) == "number" and jobid > 0 then
@@ -2367,9 +2360,6 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("repair"), gRepair), "gRepair");
 					GUI:SameLine(0, 15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running") .. "##repair", gRepairRunningOnly), "gRepairRunningOnly")
-					GUI_Capture(GUI:Checkbox(GetString("disabledrawing"), gDisableDrawing), "gDisableDrawing", function()
-						Hacks:Disable3DRendering(gDisableDrawing)
-					end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"), gTeleportHack), "gTeleportHack",
 							function()
 								if (gBotMode == "dutyMode") then
