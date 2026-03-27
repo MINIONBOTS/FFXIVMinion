@@ -6872,16 +6872,6 @@ function GetLivingMemorySection(pos)
     end	
 	return sec
 end
--- Cosmic data now lives in FFXIVLib.API.CosmicExploration (data_cosmic.lua).
--- Local aliases kept so Transport1237/1291/1310 references still resolve.
-local centerPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1237)
-local portalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1237)
-
-local phaennaCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1291)
-local phaennaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1291)
-
-local oizysCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1310)
-local oizysPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1310)
 
 function GetCosmicMoon(pos, closest)
 	return FFXIVLib.API.CosmicExploration.GetSection(1237, pos, closest)
