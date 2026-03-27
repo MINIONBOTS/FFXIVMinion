@@ -69,8 +69,22 @@ end
 
 RegisterEventHandler("Module.Initalize",dev.Init,"dev.Init")
 
-RegisterEventHandler("Game.UIEvent", function(eventName, eventJson)
-	d(eventJson)
+RegisterEventHandler("Game.UIEvent", function(eventName, agentName, agentIdxStr, cmdStr, ...)
+	-- Receives flat string args encoded by UIAgentManager::OnFrame() via QueueEvent.
+	-- QueueEvent is processed before ImGui rendering begins, so this handler
+	-- is safe to touch any state.  Still avoid GUI calls here (no window context).
+	dev.uiEventLog = dev.uiEventLog or {}
+	local log = dev.uiEventLog
+	if #log >= 50 then table.remove(log, 1) end
+	local parts = {}
+	local argList = {...}
+	for i = 1, #argList, 2 do
+		local t = tonumber(argList[i]) or 0
+		local v = argList[i+1] or "0"
+		parts[#parts+1] = string.format("{t=%d,%s}", t, v)
+	end
+	log[#log+1] = string.format("%s[%s] cmd=%s  {%s}",
+		agentName or "?", agentIdxStr or "-1", cmdStr or "0", table.concat(parts, ","))
 end, "Game.UIEvent")
 
 function dev.ChatTest()
@@ -2696,7 +2710,9 @@ function dev.DrawCall(event, ticks )
 						rawAgentId = 0,   -- slot index used by the InputHandler section
 						-- tpIdx: 1-based (GUI:Combo returns 1 for first item)
 						-- 3 = "Int(3)" which is atkTypeStrings[3] / atkTypeValues[3]
-						args       = { {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0} },
+						args       = { {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0},
+						               {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0},
+						               {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0} },
 					},
 				}
 				local ua = dev.uiAgents
@@ -2713,7 +2729,7 @@ function dev.DrawCall(event, ticks )
 
 				-- ── Spy section ──────────────────────────────────────────────────────
 				if ( GUI:TreeNode("Spy / Monitor")) then
-					GUI:TextColored(1,1,0,1,"Hook ProcessEvent on agents - output to console via")
+					GUI:TextColored(1,1,0,1,"Hook ProcessEvent on agents  (captured events logged below)")
 					GUI:Separator()
 
 					if ua.useRawId then
@@ -2760,6 +2776,21 @@ function dev.DrawCall(event, ticks )
 						GUI:EndChild()
 					end
 
+					-- ── Captured event log (populated by Game.UIEvent handler) ────────────────
+					GUI:Separator()
+					dev.uiEventLog = dev.uiEventLog or {}
+					local elog = dev.uiEventLog
+					GUI:Text(string.format("Captured Events (%d):", #elog))
+					GUI:SameLine()
+					if GUI:SmallButton("Clear##spy_logclear") then
+						dev.uiEventLog = {}
+					end
+					GUI:BeginChild("##spy_log", 0, 140, true)
+					for i = #elog, 1, -1 do  -- newest first
+						GUI:Text(elog[i])
+					end
+					GUI:EndChild()
+
 					GUI:TreePop()
 				end -- Spy / Monitor
 
@@ -2798,7 +2829,7 @@ function dev.DrawCall(event, ticks )
 					if ih.eventId < 0 then ih.eventId = 0 end
 
 					-- Number of args
-					ih.numArgs = GUI:SliderInt("Num Args", ih.numArgs or 1, 1, 4)
+					ih.numArgs = GUI:SliderInt("Num Args", ih.numArgs or 1, 1, 10)
 					GUI:PopItemWidth()
 
 					GUI:Separator()
