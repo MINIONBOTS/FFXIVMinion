@@ -1183,7 +1183,13 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (table.valid(pos) and pos.b) then
 						local details = {}
-						details.contentid = pos.b
+						local cid = tostring(pos.b)
+						if pos.alts then
+							for _, alt in ipairs(pos.alts) do
+								cid = cid .. "," .. tostring(alt)
+							end
+						end
+						details.contentid = cid
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
