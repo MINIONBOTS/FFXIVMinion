@@ -1519,6 +1519,7 @@ e_teleportsamemap = inheritsFrom( ml_effect )
 e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
 e_teleportsamemap.MIN_ADVANTAGE = 80 -- teleport must save at least this many yalms
+e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
 
 function c_teleportsamemap:evaluate()
 	e_teleportsamemap.aeth = nil
@@ -1535,6 +1536,12 @@ function c_teleportsamemap:evaluate()
 	local task = ml_task_hub:ThisTask()
 	local destPos = task.pos
 	if (not table.valid(destPos) or not destPos.x) then
+		return false
+	end
+
+	-- One teleport per destination: if we already teleported for this dest, skip
+	local lastDest = e_teleportsamemap.lastTeleportDest
+	if (lastDest and PDistance3D(lastDest.x, lastDest.y, lastDest.z, destPos.x, destPos.y, destPos.z) < 10) then
 		return false
 	end
 
@@ -1680,6 +1687,12 @@ function e_teleportsamemap:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
 		return
+	end
+
+	-- Record the destination so we don't re-teleport for the same spot
+	local task = ml_task_hub:ThisTask()
+	if (task and table.valid(task.pos)) then
+		e_teleportsamemap.lastTeleportDest = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
 	end
 
 	if (e_teleportsamemap.useReturn) then
