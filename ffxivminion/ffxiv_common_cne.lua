@@ -3546,18 +3546,48 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 e_recommendequip.lastEquip = {}
+e_recommendequip.lastArmouryHash = 0
+
+function e_recommendequip:GetArmouryFingerprint()
+	local hash = 0
+	local armouryBags = {3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	for _,bagId in pairs(armouryBags) do
+		local bag = Inventory:Get(bagId)
+		if (bag) then
+			local list = bag:GetList()
+			if (table.valid(list)) then
+				for _,item in pairs(list) do
+					hash = hash + item.hqid
+				end
+			end
+		end
+	end
+	return hash
+end
+
+function e_recommendequip:CheckArmouryChanged()
+	local currentHash = self:GetArmouryFingerprint()
+	local changed = (self.lastArmouryHash ~= 0 and currentHash ~= self.lastArmouryHash)
+	if (changed) then
+		ml_global_information.lastEquip = 0
+		self.lastEquip[Player.job] = nil
+		d("[RecommendEquip]: Armoury inventory changed after quest reward, resetting equip check.")
+	end
+	self.lastArmouryHash = currentHash
+	return changed
+end
+
 function c_recommendequip:evaluate()
 	if (Busy() or Player.incombat or not IsNormalMap(Player.localmapid)) then
 		return false
 	end	
-	
+
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) and not gForceAutoEquip then
 		ml_debug("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
 		return false
 	end
 	
 	-- Don't equip if we've already done it for this level.
-	-- Questing will automatically reset this as necessary if we receive gear.
 	if (table.valid(e_recommendequip.lastEquip)) then
 		if (e_recommendequip.lastEquip[Player.job] and e_recommendequip.lastEquip[Player.job] >= Player.level) then
 			return false
@@ -3593,6 +3623,7 @@ function e_recommendequip:execute()
 						ActionList:Get(10,2):Cast()
 						ml_global_information.lastEquip = Now()
 						e_recommendequip.lastEquip = { [Player.job] = Player.level }
+						e_recommendequip.lastArmouryHash = e_recommendequip:GetArmouryFingerprint()
 					end
 				}
 				ml_debug("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
