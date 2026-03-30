@@ -184,6 +184,7 @@ function ffxiv_task_assist:UIInit()
 	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
 	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
+	gAssistPrioritizeAdds = ffxivminion.GetSetting("gAssistPrioritizeAdds",false)
 	--gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	gAssistSyncFate = ffxivminion.GetSetting("gAssistSyncFate",true)
 	
@@ -271,6 +272,11 @@ function ffxiv_task_assist:Draw()
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Prioritize Damage or Healing.")
 		end
+		GUI:AlignFirstTextHeightToWidgets() 
+		GUI:Text(GetString("Prioritize Adds"))
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("When enabled, non-boss targets (adds) are prioritized over boss targets.")
+		end
 	end
 
 	GUI:NextColumn()
@@ -289,6 +295,10 @@ function ffxiv_task_assist:Draw()
 		GUI_Combo("##"..GetString("Priority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)
 		if (GUI:IsItemHovered()) then
 			GUI:SetTooltip("Prioritize Damage or Healing.")
+		end
+		GUI_Capture(GUI:Checkbox("##"..GetString("Prioritize Adds"),gAssistPrioritizeAdds),"gAssistPrioritizeAdds")
+		if (GUI:IsItemHovered()) then
+			GUI:SetTooltip("When enabled, non-boss targets (adds) are prioritized over boss targets.")
 		end
 	end
 	
@@ -524,14 +534,37 @@ local function firstEntity(query)
 	return nil
 end
 
+-- Helper: from sorted entity list, pick first non-boss; boss as fallback
+local function firstNonBossEntity(query)
+	local el = MEntityList(query)
+	if not table.valid(el) then return nil end
+	local bossFallback = nil
+	for i, e in pairs(el) do
+		if not FFXIVLib.API.NPC.IsBoss(e.contentid) then
+			return e
+		elseif not bossFallback then
+			bossFallback = e
+		end
+	end
+	return bossFallback
+end
+
+-- Helper: pick entity from query; prefers non-boss when gAssistPrioritizeAdds
+local function pickEntity(query)
+	if not gAssistPrioritizeAdds then
+		return firstEntity(query)
+	end
+	return firstNonBossEntity(query)
+end
+
 -- Helper: find attack target using given sort order, with LOS→nearest fallback chain
 local function findAttackTarget(sortOrder, maxDistance)
 	local base = "alive,attackable,maxdistance2d="..tostring(maxDistance)
 	-- Try LOS + sort order first, then no-LOS + sort order
-	local e = firstEntity("los,"..sortOrder..","..base) or firstEntity(sortOrder..","..base)
+	local e = pickEntity("los,"..sortOrder..","..base) or pickEntity(sortOrder..","..base)
 	-- If target is at 100% HP (not yet pulled), prefer nearest instead
 	if (e and e.hp.percent == 100) then
-		e = firstEntity("los,nearest,"..base) or firstEntity("nearest,"..base) or e
+		e = pickEntity("los,nearest,"..base) or pickEntity("nearest,"..base) or e
 	end
 	return e
 end
@@ -544,8 +577,8 @@ function ffxiv_assist.GetAttackTarget()
     elseif ( FFXIV_Assist_Mode == GetString("highestHealth")) then	
         target = findAttackTarget("highesthealth", maxDistance)
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
-        target = firstEntity("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
-			or firstEntity("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+        target = pickEntity("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
+			or pickEntity("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then 
 		local tanks = {}
 		local party = EntityList("myparty")

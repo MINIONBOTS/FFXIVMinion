@@ -1183,7 +1183,13 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (table.valid(pos) and pos.b) then
 						local details = {}
-						details.contentid = pos.b
+						local cid = tostring(pos.b)
+						if pos.alts then
+							for _, alt in ipairs(pos.alts) do
+								cid = cid .. "," .. tostring(alt)
+							end
+						end
+						details.contentid = cid
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
@@ -1519,6 +1525,7 @@ e_teleportsamemap = inheritsFrom( ml_effect )
 e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
 e_teleportsamemap.MIN_ADVANTAGE = 80 -- teleport must save at least this many yalms
+e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
 
 function c_teleportsamemap:evaluate()
 	e_teleportsamemap.aeth = nil
@@ -1535,6 +1542,12 @@ function c_teleportsamemap:evaluate()
 	local task = ml_task_hub:ThisTask()
 	local destPos = task.pos
 	if (not table.valid(destPos) or not destPos.x) then
+		return false
+	end
+
+	-- One teleport per destination: if we already teleported for this dest, skip
+	local lastDest = e_teleportsamemap.lastTeleportDest
+	if (lastDest and PDistance3D(lastDest.x, lastDest.y, lastDest.z, destPos.x, destPos.y, destPos.z) < 10) then
 		return false
 	end
 
@@ -1680,6 +1693,12 @@ function e_teleportsamemap:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
 		return
+	end
+
+	-- Record the destination so we don't re-teleport for the same spot
+	local task = ml_task_hub:ThisTask()
+	if (task and table.valid(task.pos)) then
+		e_teleportsamemap.lastTeleportDest = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
 	end
 
 	if (e_teleportsamemap.useReturn) then
@@ -3527,18 +3546,48 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 e_recommendequip.lastEquip = {}
+e_recommendequip.lastArmouryHash = 0
+
+function e_recommendequip:GetArmouryFingerprint()
+	local hash = 0
+	local armouryBags = {3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	for _,bagId in pairs(armouryBags) do
+		local bag = Inventory:Get(bagId)
+		if (bag) then
+			local list = bag:GetList()
+			if (table.valid(list)) then
+				for _,item in pairs(list) do
+					hash = hash + item.hqid
+				end
+			end
+		end
+	end
+	return hash
+end
+
+function e_recommendequip:CheckArmouryChanged()
+	local currentHash = self:GetArmouryFingerprint()
+	local changed = (self.lastArmouryHash ~= 0 and currentHash ~= self.lastArmouryHash)
+	if (changed) then
+		ml_global_information.lastEquip = 0
+		self.lastEquip[Player.job] = nil
+		d("[RecommendEquip]: Armoury inventory changed after quest reward, resetting equip check.")
+	end
+	self.lastArmouryHash = currentHash
+	return changed
+end
+
 function c_recommendequip:evaluate()
 	if (Busy() or Player.incombat or not IsNormalMap(Player.localmapid)) then
 		return false
 	end	
-	
+
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) and not gForceAutoEquip then
 		ml_debug("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
 		return false
 	end
 	
 	-- Don't equip if we've already done it for this level.
-	-- Questing will automatically reset this as necessary if we receive gear.
 	if (table.valid(e_recommendequip.lastEquip)) then
 		if (e_recommendequip.lastEquip[Player.job] and e_recommendequip.lastEquip[Player.job] >= Player.level) then
 			return false
@@ -3574,6 +3623,7 @@ function e_recommendequip:execute()
 						ActionList:Get(10,2):Cast()
 						ml_global_information.lastEquip = Now()
 						e_recommendequip.lastEquip = { [Player.job] = Player.level }
+						e_recommendequip.lastArmouryHash = e_recommendequip:GetArmouryFingerprint()
 					end
 				}
 				ml_debug("[RecommendEquip]: Equipping recommended gear, setting last use timer.")

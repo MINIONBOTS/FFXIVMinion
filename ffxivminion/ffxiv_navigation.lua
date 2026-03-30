@@ -934,7 +934,7 @@ if (goaldist2d < 2 and goaldist < 6) then
 	elseif (Player.ismounted) then
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dmount"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dmount"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
-			if (isLast or lastdist == nil or lastdist >= lastgoal) then
+			if (isLast or lastdist == nil or lastdist >= lastgoal or goaldist <= 1.0) then
 				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then	
@@ -944,14 +944,13 @@ if (goaldist2d < 2 and goaldist < 6) then
 						self.omc_direction = ncdirectionFromA == true and 1 or 2
 					end
 				end
-				--d("close enough, mounted")
 				return true
 			end
 		end
 	else
 		--d("goaldist "..tostring(goaldist).. " < = "..tostring(ml_navigation.NavPointReachedDistances["3dwalk"]).." and " ..tostring(goaldist2d).." < = " ..tostring(ml_navigation.NavPointReachedDistances["2dwalk"]))
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
-			if (isLast or lastdist == nil or lastdist >= lastgoal) then
+			if (isLast or lastdist == nil or lastdist >= lastgoal or goaldist <= 1.0) then
 				--d("lastdist2d ["..tostring(lastdist2d).."] >= ["..tostring(lastgoal2d).."]")
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then	
@@ -961,7 +960,6 @@ if (goaldist2d < 2 and goaldist < 6) then
 						self.omc_direction = ncdirectionFromA == true and 1 or 2
 					end
 				end
-				--d("close enough, walking")
 				return true
 			end
 		end
@@ -1054,7 +1052,7 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	local reachable = NavigationManager:IsReachable(pos2)
 	local _dt = os.clock() * 1000 - _t0
 	if (_dt > 1) then
-		d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
+		--d("[QPerf] CheckPath->IsReachable: " .. string.format("%.2f", _dt) .. "ms result=" .. tostring(reachable))
 	end
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
@@ -1160,12 +1158,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
 	
 	--d("building path to ["..tostring(newGoal.x)..","..tostring(newGoal.y)..","..tostring(newGoal.z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
-	local _t0 = os.clock() * 1000
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
-	local _dt = os.clock() * 1000 - _t0
-	if (_dt > 1) then
-		--d("[QPerf] BuildPath->MoveTo: " .. string.format("%.2f", _dt) .. "ms ret=" .. tostring(ret))
-	end
+
 	ml_navigation.lastPathUpdate = Now()
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
@@ -1353,12 +1347,7 @@ function ml_navigation.Navigate(event, ticks )
 					ml_global_information.GetMovementInfo(true) -- force standard movement for nav
 					
 					if (not ml_navigation:IsUsingConnection()  and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
-						local _t0 = os.clock() * 1000
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
-						local _dt = os.clock() * 1000 - _t0
-						if (_dt > 1) then
-							--d("[QPerf] Navigate refresh BuildPath: " .. string.format("%.2f", _dt) .. "ms")
-						end
 						ml_navigation.lastPathUpdate = Now()
 						ml_navigation._refreshPrefetched = false
 						return -- needed here, or you can check again for navpath / index valid ...your choice
@@ -2069,7 +2058,6 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
 		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
-		
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.lastconnectiontimer = Now()
 		ml_navigation.pathindex = ml_navigation.pathindex + 1

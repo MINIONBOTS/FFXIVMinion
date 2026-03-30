@@ -9083,10 +9083,10 @@ function Transport612(pos1,pos2)
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
-		if QuestCompleted(2530) then 
+		if HasQuest(2530) or QuestCompleted(2530) then 
 			local gilCount = GilCount()
-	--d("Player Fringe sec = ["..tostring(GetFringeSection(Player.pos))"]")
-	--d("Endpoint Fringe sec = ["..tostring(GetFringeSection(pos2))"]")
+			--d("Player Fringe sec = ["..tostring(GetFringeSection(Player.pos)).."]")
+			--d("Endpoint Fringe sec = ["..tostring(GetFringeSection(pos2)).."]")
 			if (GetFringeSection(pos1) ~= GetFringeSection(pos2)) then
 				if (GetFringeSection(Player.pos) == 2) then
 					if (CanUseAetheryte(98) and not Player.incombat) and (gilCount > 100) then
@@ -9119,26 +9119,36 @@ function Transport612(pos1,pos2)
 							end
 						end
 					end
-				elseif QuestCompleted(2530) then
-					if (CanUseAetheryte(99) and not Player.incombat) and (gilCount > 100) then
-						return true, function () 
-							if (Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
-								return
-							end
-							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
-								if (Player:Teleport(99)) then	
-								--d("teleport 99")
-									local newTask = ffxiv_task_teleport.Create()
-									newTask.aetheryte = 99
-									newTask.mapID = 612
-									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+				else
+					if HasQuest(2530) or QuestCompleted(2530) then
+						if (CanUseAetheryte(99) and not Player.incombat) and (gilCount > 100) then
+							return true, function () 
+								if (Player:IsMoving()) then
+									Player:Stop()
+									ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+									return
+								end
+								if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
+									if (Player:Teleport(99)) then	
+									--d("teleport 99")
+										local newTask = ffxiv_task_teleport.Create()
+										newTask.aetheryte = 99
+										newTask.mapID = 612
+										ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+									end
 								end
 							end
-						end
-					else
-						if (gilCount > 0) then
+						elseif HasQuest(2530) then
+							return true, function ()
+								local newTask = ffxiv_nav_interact.Create()
+								newTask.pos = {x = -91, y = 50, z = 210}
+								newTask.contentid = 1020573
+								newTask.abort = function ()
+									return (GetFringeSection(Player.pos) == 2)
+								end
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+							end
+						else
 							return true, function ()
 								local newTask = ffxiv_nav_interact.Create()
 								newTask.pos = {x = -91, y = 50, z = 210}
