@@ -4390,28 +4390,6 @@ end
 function GetOffMapMarkerList(strMeshName, strMarkerType)
 	return nil
 end
-function IsCityMap(mapid)
-	local mapid = tonumber(mapid)
-	local cityMaps = {
-		[133] = true,
-		[132] = true,
-		[128] = true,
-		[129] = true,
-		[131] = true,
-		[130] = true,
-		[418] = true,
-		[419] = true,
-		[478] = true,
-		[628] = true,
-		[635] = true,			
-		[819] = true,			
-		[820] = true,		
-		[886] = true,		
-		[1185] = true,	
-		[1186] = true,
-	}
-	return cityMaps[mapid]
-end
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	local newMarkerPos = nil
 	
@@ -11922,13 +11900,35 @@ function GetRequiredPitch(pos,noadjustment)
 	return 0
 end
 function IsNormalMap(mapid)
-	return FFXIVLib.API.Map.IsFieldZone(mapid) or IsHousingMap(mapid) or IsInn(mapid) or false
+	return FFXIVLib.API.Map.IsFieldZone(mapid) or IsHousingMap(mapid) or IsInn(mapid) or IsCityMap(mapid)
 end
 function IsHousingMap(mapid)
-	return FFXIVLib.API.Map.IsHousingZone(mapid) or false
+	return FFXIVLib.API.Map.IsHousingZone(mapid)
+end
+function IsCityMap(mapid)
+	local mapid = tonumber(mapid)
+	local cityMaps = {
+		[133] = true,
+		[132] = true,
+		[128] = true,
+		[129] = true,
+		[131] = true,
+		[130] = true,
+		[418] = true,
+		[419] = true,
+		[478] = true,
+		[628] = true,
+		[635] = true,			
+		[819] = true,			
+		[820] = true,		
+		[886] = true,		
+		[1185] = true,	
+		[1186] = true,
+	}
+	return cityMaps[mapid]
 end
 function IsInn(mapid)
-	return FFXIVLib.API.Map.IsInn(mapid) or false
+	return FFXIVLib.API.Map.IsInn(mapid)
 end
 function ValidPosition(pos)
 	if (table.valid(pos)) then
