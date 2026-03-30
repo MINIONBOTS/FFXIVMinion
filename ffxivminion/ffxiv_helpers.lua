@@ -11922,10 +11922,13 @@ function GetRequiredPitch(pos,noadjustment)
 	return 0
 end
 function IsNormalMap(mapid)
-	return FFXIVLib.API.Map.IsFieldZone(mapid) or false
+	return FFXIVLib.API.Map.IsFieldZone(mapid) or IsHousingMap(mapid) or IsInn(mapid) or false
 end
 function IsHousingMap(mapid)
 	return FFXIVLib.API.Map.IsHousingZone(mapid) or false
+end
+function IsInn(mapid)
+	return FFXIVLib.API.Map.IsInn(mapid) or false
 end
 function ValidPosition(pos)
 	if (table.valid(pos)) then
