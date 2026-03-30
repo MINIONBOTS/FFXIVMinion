@@ -1481,8 +1481,6 @@ function ffxivminion.FillFoodOptions(availableonly)
 	local allFoods
 	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Items and FFXIVLib.API.Items.GetAllFoods then
 		allFoods = FFXIVLib.API.Items.GetAllFoods(availableonly)
-	elseif AceLib and AceLib.API and AceLib.API.Items and AceLib.API.Items.GetAllFoods then
-		allFoods = AceLib.API.Items.GetAllFoods(availableonly)
 	else
 		allFoods = {}
 	end
@@ -2535,8 +2533,8 @@ function ml_global_information.DrawLoginHandler()
 	local gamestate = MGetGameState()
 	if (In(gamestate,1,2) or ffxivminion.GUI.login.open) then
 
-		GUI:SetNextWindowSize(330, 210, GUI.SetCond_Appearing) --set the next window size, only on first ever
-		GUI:SetNextWindowCollapsed(false, GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(330, 210, GUI.SetCond_FirstUseEver)
+		GUI:SetNextWindowCollapsed(false, GUI.SetCond_FirstUseEver)
 
 		local winBG = GUI:GetStyle().colors[GUI.Col_WindowBg]
 		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
