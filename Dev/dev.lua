@@ -2805,6 +2805,8 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 		GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##dev1",tostring(c.id))
 		GUI:BulletText("Name") GUI:SameLine(200) GUI:InputText("##dev2",c.name)
 		GUI:BulletText("ContentID") GUI:SameLine(200) GUI:InputText("##dev4",tostring(c.contentid))
+		GUI:BulletText("Is Boss") GUI:SameLine(200) GUI:InputText("##dev4a",tostring(FFXIVLib.API.NPC.IsBoss(c.contentid)))
+		
 		GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##dev5",tostring(c.type))
 		GUI:BulletText("Status") GUI:SameLine(200) GUI:InputText("##dev5a",tostring(c.status))
 		if (ispet) then
