@@ -884,9 +884,9 @@ function dev.DrawCall(event, ticks )
 								end
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.usable)) 
+										if (not gDevFilterActions or (action.usable))
 											and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
-											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter) 
+											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter)
 										then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name.."##"..tostring(actionid).."-"..tostring(actiontype))) then --rather slow making 6000+ names :D
@@ -2699,6 +2699,7 @@ function dev.DrawCall(event, ticks )
 				-- ── state (persisted across frames in local upvalues) ───────────────
 				dev.uiAgents = dev.uiAgents or {
 					spyState   = {},
+					pasteEventText = nil,
 					-- shared toggle: when true both Spy and InputHandler use a numeric slot index
 					useRawId   = false,
 					rawSpyId   = 0,   -- slot index used by the Spy section
@@ -2787,7 +2788,11 @@ function dev.DrawCall(event, ticks )
 					end
 					GUI:BeginChild("##spy_log", 0, 140, true)
 					for i = #elog, 1, -1 do  -- newest first
-						GUI:Text(elog[i])
+						GUI:Selectable(elog[i].."##spy_evt_"..i, false)
+						if GUI:IsItemClicked(1) or (GUI:IsItemHovered() and GUI:IsMouseReleased(1)) then
+							ua.pasteEventText = elog[i]
+							GUI:SetClipboardText(elog[i])
+						end
 					end
 					GUI:EndChild()
 
@@ -2804,6 +2809,74 @@ function dev.DrawCall(event, ticks )
 					-- Type display/value lookup tables (index is 0-based, matching GUI:Combo)
 					local atkTypeStrings = {"None(0)","Bool(2)","Int(3)","Int64(4)","UInt(5)","UInt64(6)","Float(7)"}
 					local atkTypeValues  = {0, 2, 3, 4, 5, 6, 7}
+
+					local function ParseClipboardEvent(clipText)
+						local parsedRawId = tonumber((clipText or ""):match("%[([%+%-]?%d+)%]"))
+						local parsedCmdId = tonumber((clipText or ""):match("cmd%s*=%s*([%+%-]?%d+)"))
+						local argsBlob = (clipText or ""):match("%b{}")
+						if not (parsedRawId and parsedCmdId and argsBlob) then
+							return nil
+						end
+						local parsedArgs = {}
+						local inner = argsBlob
+						if inner:sub(1,1) == "{" and inner:sub(-1) == "}" then
+							inner = inner:sub(2, -2)
+						end
+						for tStr, vStr in inner:gmatch("%{%s*t%s*=%s*([%+%-]?%d+)%s*,%s*([%+%-]?[%d%.eE]+)%s*%}") do
+							local atype = tonumber(tStr) or 3
+							local aval = tonumber(vStr) or 0
+							local tpIdx = 3
+							for idx, tval in ipairs(atkTypeValues) do
+								if tval == atype then
+									tpIdx = idx
+									break
+								end
+							end
+							parsedArgs[#parsedArgs + 1] = {
+								tpIdx = tpIdx,
+								vi = math.floor(aval),
+								vf = aval
+							}
+						end
+						return {
+							rawAgentId = parsedRawId,
+							eventId = parsedCmdId,
+							args = parsedArgs
+						}
+					end
+
+					local pasteText = ua.pasteEventText
+					local clipEvent = ParseClipboardEvent(pasteText)
+					if clipEvent then
+						if GUI:SmallButton("Paste Event##ih_paste_event") then
+							ua.useRawId = true
+							ih.rawAgentId = math.max(0, clipEvent.rawAgentId)
+							ih.eventId = math.max(0, clipEvent.eventId)
+							ih.numArgs = math.min(#clipEvent.args, 10)
+							ih.args = ih.args or {}
+							for i = 1, ih.numArgs do
+								ih.args[i] = clipEvent.args[i]
+							end
+							if #clipEvent.args > ih.numArgs then
+								ih.pasteStatus = string.format("Pasted %d args; truncated to %d.", #clipEvent.args, ih.numArgs)
+							else
+								ih.pasteStatus = string.format("Pasted event: agent=%d cmd=%d args=%d", ih.rawAgentId, ih.eventId, ih.numArgs)
+							end
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Clear##ih_clear_paste_event") then
+							ua.pasteEventText = nil
+							ih.pasteStatus = nil
+						end
+						GUI:SameLine()
+						GUI:TextDisabled(pasteText)
+						if ih.pasteStatus and ih.pasteStatus ~= "" then
+							GUI:TextColored(0.6,1,0.6,1, ih.pasteStatus)
+						end
+						GUI:Separator()
+					else
+						ih.pasteStatus = nil
+					end
 
 					local ihAgentRef  -- string name OR integer id passed to UIEvent
 					if ua.useRawId then
@@ -2829,7 +2902,7 @@ function dev.DrawCall(event, ticks )
 					if ih.eventId < 0 then ih.eventId = 0 end
 
 					-- Number of args
-					ih.numArgs = GUI:SliderInt("Num Args", ih.numArgs or 1, 1, 10)
+					ih.numArgs = GUI:SliderInt("Num Args", ih.numArgs or 1, 0, 10)
 					GUI:PopItemWidth()
 
 					GUI:Separator()
@@ -2891,6 +2964,16 @@ function dev.DrawCall(event, ticks )
 								tblArgs[i] = { atype, atype == 7 and (arg.vf or 0.0) or (arg.vi or 0) }
 							end
 							UIEvent(ihAgentRef, ih.eventId, tblArgs)
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Clear Event##ih_clear_event") then
+							ih.eventId = 0
+							ih.numArgs = 0
+							ih.args = ih.args or {}
+							for i = 1, 10 do
+								ih.args[i] = {tpIdx=3, vi=0, vf=0.0}
+							end
+							ih.pasteStatus = "Cleared pending event payload."
 						end
 					end
 
