@@ -1104,6 +1104,11 @@ end
 
 -- Module Event Handler
 function ffxivminion.HandleInit()
+	-- Activate FFXIVLib (loads data tables, bulk caches, pre-warm).
+	if FFXIVLib and FFXIVLib.Initialize then
+		FFXIVLib.Initialize()
+	end
+
 	-- Build bottom menu for new GUI addons.
 	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings,Stuck!", true)
 	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ,Mesh Report", false)
