@@ -2851,6 +2851,7 @@ function dev.DrawCall(event, ticks )
 						if GUI:SmallButton("Paste Event##ih_paste_event") then
 							ua.useRawId = true
 							ih.rawAgentId = math.max(0, clipEvent.rawAgentId)
+							ua.rawSpyId = ih.rawAgentId
 							ih.eventId = math.max(0, clipEvent.eventId)
 							ih.numArgs = math.min(#clipEvent.args, 10)
 							ih.args = ih.args or {}
