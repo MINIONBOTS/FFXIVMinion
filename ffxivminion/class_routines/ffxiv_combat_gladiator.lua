@@ -1,6 +1,6 @@
 ffxiv_combat_gladiator = {}
 ffxiv_combat_gladiator.range = 2
-ffxiv_combat_gladiator.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_gladiator.info"
+ffxiv_combat_gladiator.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_gladiator.info"
 if (not FileExists(ffxiv_combat_gladiator.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

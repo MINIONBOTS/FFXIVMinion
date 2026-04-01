@@ -1,6 +1,6 @@
 ffxiv_crafting_blacksmith = {}
 ffxiv_crafting_blacksmith.range = 3
-ffxiv_crafting_blacksmith.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_blacksmith.info"
+ffxiv_crafting_blacksmith.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_blacksmith.info"
 if (not FileExists(ffxiv_crafting_blacksmith.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

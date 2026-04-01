@@ -1,6 +1,6 @@
 ffxiv_gather_fisher = {}
 ffxiv_gather_fisher.range = 3
-ffxiv_gather_fisher.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_gather_fisher.info"
+ffxiv_gather_fisher.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_gather_fisher.info"
 if (not FileExists(ffxiv_gather_fisher.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

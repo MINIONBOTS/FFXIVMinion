@@ -1247,11 +1247,11 @@ function ml_global_information.Init()
 	end
 	
 	-- Load class files here instead of the module.def
-	local classFiles = FolderList(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines")
+	local classFiles = FolderList(GetLuaModsPath().."ffxivminion\\class_routines")
 	if (classFiles) then
 		for i,file in pairs(classFiles) do
 			if ( string.ends(file,".lua") ) then
-				local file, e = persistence.load(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines\\"..file)
+				local file, e = persistence.load(GetLuaModsPath().."ffxivminion\\class_routines\\"..file)
 				if (e) then
 					d(e)
 				end
@@ -1450,7 +1450,7 @@ end
 
 function ml_global_information.LoadBehaviorFiles()
 	-- Load all our local "bot/addon" BTree files
-	local path = GetStartupPath()  .. "\\LuaMods\\ffxivminion\\Behavior"
+	local path = GetLuaModsPath()  .. "ffxivminion\\Behavior"
 	if (not FolderExists(path)) then
 		FolderCreate(path)
 	end

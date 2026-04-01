@@ -1,6 +1,6 @@
 ffxiv_combat_ninja = {}
 ffxiv_combat_ninja.range = 2
-ffxiv_combat_ninja.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_ninja.info"
+ffxiv_combat_ninja.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_ninja.info"
 if (not FileExists(ffxiv_combat_ninja.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,7 +1,7 @@
 ffxiv_grind = {}
 ffxiv_grind.lastTick = 0
 ffxiv_grind.timer = 0
-ffxiv_grind.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GrindProfiles\]]
+ffxiv_grind.profilePath = GetLuaModsPath()..[[ffxivminion\GrindProfiles\]]
 ffxiv_grind.profiles = {}
 ffxiv_grind.profilesDisplay = {}
 ffxiv_grind.profileData = {}

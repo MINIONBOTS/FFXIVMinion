@@ -1,6 +1,6 @@
 ffxiv_combat_samurai = {}
 ffxiv_combat_samurai.range = 2
-ffxiv_combat_samurai.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_samurai.info"
+ffxiv_combat_samurai.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_samurai.info"
 if (not FileExists(ffxiv_combat_samurai.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

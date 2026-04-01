@@ -1,6 +1,6 @@
 ffxiv_combat_monk = {}
 ffxiv_combat_monk.range = 2
-ffxiv_combat_monk.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_monk.info"
+ffxiv_combat_monk.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_monk.info"
 if (not FileExists(ffxiv_combat_monk.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,6 +1,6 @@
 ffxiv_crafting_alchemist = {}
 ffxiv_crafting_alchemist.range = 3
-ffxiv_crafting_alchemist.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_alchemist.info"
+ffxiv_crafting_alchemist.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_alchemist.info"
 if (not FileExists(ffxiv_crafting_alchemist.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,6 +1,6 @@
 ffxiv_combat_scholar = {}
 ffxiv_combat_scholar.range = 24
-ffxiv_combat_scholar.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_scholar.info"
+ffxiv_combat_scholar.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_scholar.info"
 if (not FileExists(ffxiv_combat_scholar.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

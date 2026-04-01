@@ -11,7 +11,7 @@ ffxiv_craft.crafts = {
 	["LTW"] = 12,	["WVR"] = 13,	["ALC"] = 14,	["CUL"] = 15,
 }
 ffxiv_craft.itemCounts = {}
-ffxiv_craft.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\CraftProfiles\]]
+ffxiv_craft.profilePath = GetLuaModsPath()..[[ffxivminion\CraftProfiles\]]
 ffxiv_craft.profiles = {}
 ffxiv_craft.profilesDisplay = {}
 ffxiv_craft.profileData = {}

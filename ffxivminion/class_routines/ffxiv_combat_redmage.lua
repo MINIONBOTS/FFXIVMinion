@@ -6,7 +6,7 @@ ffxiv_combat_redmage.range = function ()
 		return 2
 	end
 end
-ffxiv_combat_redmage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_redmage.info"
+ffxiv_combat_redmage.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_redmage.info"
 if (not FileExists(ffxiv_combat_redmage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

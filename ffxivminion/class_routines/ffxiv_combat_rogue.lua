@@ -1,6 +1,6 @@
 ffxiv_combat_rogue = {}
 ffxiv_combat_rogue.range = 2
-ffxiv_combat_rogue.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_rogue.info"
+ffxiv_combat_rogue.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_rogue.info"
 if (not FileExists(ffxiv_combat_rogue.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

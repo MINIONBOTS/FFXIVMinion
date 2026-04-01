@@ -1,6 +1,6 @@
 ffxiv_combat_pictomancer= {}
 ffxiv_combat_pictomancer.range = 24
-ffxiv_combat_pictomancer.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_pictomancer.info"
+ffxiv_combat_pictomancer.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_pictomancer.info"
 if (not FileExists(ffxiv_combat_pictomancer.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,6 +1,6 @@
 ffxiv_combat_whitemage = {}
 ffxiv_combat_whitemage.range = 24
-ffxiv_combat_whitemage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_whitemage.info"
+ffxiv_combat_whitemage.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_whitemage.info"
 if (not FileExists(ffxiv_combat_whitemage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

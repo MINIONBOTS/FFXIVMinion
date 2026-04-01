@@ -1,6 +1,6 @@
 ffxiv_combat_bluemage = {}
 ffxiv_combat_bluemage.range = 24
-ffxiv_combat_bluemage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_bluemage.info"
+ffxiv_combat_bluemage.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_bluemage.info"
 if (not FileExists(ffxiv_combat_bluemage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

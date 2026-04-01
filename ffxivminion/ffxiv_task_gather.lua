@@ -3,7 +3,7 @@ ffxiv_gather.lastTick = 0
 ffxiv_gather.timer = 0
 ffxiv_gather.lastItemAttempted = 0
 ffxiv_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
-ffxiv_gather.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GatherProfiles\]]
+ffxiv_gather.profilePath = GetLuaModsPath()..[[ffxivminion\GatherProfiles\]]
 ffxiv_gather.profiles = {}
 ffxiv_gather.profilesDisplay = {}
 ffxiv_gather.profileData = {}

@@ -1,6 +1,6 @@
 ffxiv_combat_blackmage = {}
 ffxiv_combat_blackmage.range = 24
-ffxiv_combat_blackmage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_blackmage.info"
+ffxiv_combat_blackmage.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_blackmage.info"
 if (not FileExists(ffxiv_combat_blackmage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

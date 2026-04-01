@@ -78,7 +78,7 @@ ffxiv_music = {
 	
 	fileNames = {},
 	files = {},
-	filePath = GetStartupPath() .. [[\LuaMods\ffxivminion\MMLFiles\]],
+	filePath = GetLuaModsPath() .. [[ffxivminion\MMLFiles\]],
 }
 
 function ffxiv_music.Reset()

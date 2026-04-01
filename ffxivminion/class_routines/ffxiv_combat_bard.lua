@@ -1,6 +1,6 @@
 ffxiv_combat_bard = {}
 ffxiv_combat_bard.range = 24
-ffxiv_combat_bard.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_bard.info"
+ffxiv_combat_bard.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_bard.info"
 if (not FileExists(ffxiv_combat_bard.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

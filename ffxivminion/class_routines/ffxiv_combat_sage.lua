@@ -1,6 +1,6 @@
 ffxiv_combat_sage = {}
 ffxiv_combat_sage.range = 24
-ffxiv_combat_sage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_sage.info"
+ffxiv_combat_sage.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_sage.info"
 if (not FileExists(ffxiv_combat_sage.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

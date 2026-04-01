@@ -1,6 +1,6 @@
 ffxiv_crafting_carpenter = {}
 ffxiv_crafting_carpenter.range = 3
-ffxiv_crafting_carpenter.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_carpenter.info"
+ffxiv_crafting_carpenter.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_carpenter.info"
 if (not FileExists(ffxiv_crafting_carpenter.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

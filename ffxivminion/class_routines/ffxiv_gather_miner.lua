@@ -1,6 +1,6 @@
 ffxiv_gather_miner = {}
 ffxiv_gather_miner.range = 3
-ffxiv_gather_miner.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_gather_miner.info"
+ffxiv_gather_miner.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_gather_miner.info"
 if (not FileExists(ffxiv_gather_miner.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

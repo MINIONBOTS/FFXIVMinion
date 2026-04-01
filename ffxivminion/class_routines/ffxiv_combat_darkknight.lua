@@ -1,6 +1,6 @@
 ffxiv_combat_darkknight = {}
 ffxiv_combat_darkknight.range = 2
-ffxiv_combat_darkknight.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_darkknight.info"
+ffxiv_combat_darkknight.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_darkknight.info"
 if (not FileExists(ffxiv_combat_darkknight.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,6 +1,6 @@
 ffxiv_combat_machinist = {}
 ffxiv_combat_machinist.range = 24
-ffxiv_combat_machinist.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_machinist.info"
+ffxiv_combat_machinist.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_machinist.info"
 if (not FileExists(ffxiv_combat_machinist.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

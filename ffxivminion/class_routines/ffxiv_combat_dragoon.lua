@@ -1,6 +1,6 @@
 ffxiv_combat_dragoon = {}
 ffxiv_combat_dragoon.range = 2
-ffxiv_combat_dragoon.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_dragoon.info"
+ffxiv_combat_dragoon.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_dragoon.info"
 if (not FileExists(ffxiv_combat_dragoon.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

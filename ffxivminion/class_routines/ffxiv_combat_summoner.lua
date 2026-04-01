@@ -1,6 +1,6 @@
 ffxiv_combat_summoner = {}
 ffxiv_combat_summoner.range = 24
-ffxiv_combat_summoner.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_summoner.info"
+ffxiv_combat_summoner.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_summoner.info"
 if (not FileExists(ffxiv_combat_summoner.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

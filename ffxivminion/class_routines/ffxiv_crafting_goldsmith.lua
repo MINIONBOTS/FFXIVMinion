@@ -1,6 +1,6 @@
 ffxiv_crafting_goldsmith = {}
 ffxiv_crafting_goldsmith.range = 3
-ffxiv_crafting_goldsmith.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_goldsmith.info"
+ffxiv_crafting_goldsmith.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_goldsmith.info"
 if (not FileExists(ffxiv_crafting_goldsmith.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

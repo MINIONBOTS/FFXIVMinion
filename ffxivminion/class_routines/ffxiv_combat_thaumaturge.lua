@@ -1,6 +1,6 @@
 ffxiv_combat_thaumaturge = {}
 ffxiv_combat_thaumaturge.range = 24
-ffxiv_combat_thaumaturge.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_thaumaturge.info"
+ffxiv_combat_thaumaturge.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_thaumaturge.info"
 if (not FileExists(ffxiv_combat_thaumaturge.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

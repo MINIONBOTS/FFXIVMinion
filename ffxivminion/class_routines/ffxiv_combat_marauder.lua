@@ -1,6 +1,6 @@
 ffxiv_combat_marauder = {}
 ffxiv_combat_marauder.range = 2
-ffxiv_combat_marauder.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_marauder.info"
+ffxiv_combat_marauder.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_marauder.info"
 if (not FileExists(ffxiv_combat_marauder.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

@@ -1,6 +1,6 @@
 ffxiv_combat_arcanist = {}
 ffxiv_combat_arcanist.range = 24
-ffxiv_combat_arcanist.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_arcanist.info"
+ffxiv_combat_arcanist.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_arcanist.info"
 if (not FileExists(ffxiv_combat_arcanist.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

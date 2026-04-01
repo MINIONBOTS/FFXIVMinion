@@ -1,6 +1,6 @@
 ffxiv_combat_archer = {}
 ffxiv_combat_archer.range = 24
-ffxiv_combat_archer.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_archer.info"
+ffxiv_combat_archer.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_archer.info"
 if (not FileExists(ffxiv_combat_archer.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

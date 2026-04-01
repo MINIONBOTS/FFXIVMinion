@@ -1,6 +1,6 @@
 ffxiv_combat_warrior = {}
 ffxiv_combat_warrior.range = 2
-ffxiv_combat_warrior.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_warrior.info"
+ffxiv_combat_warrior.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_warrior.info"
 if (not FileExists(ffxiv_combat_warrior.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

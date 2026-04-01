@@ -1,6 +1,6 @@
 ffxiv_crafting_leatherworker = {}
 ffxiv_crafting_leatherworker.range = 3
-ffxiv_crafting_leatherworker.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_leatherworker.info"
+ffxiv_crafting_leatherworker.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_leatherworker.info"
 if (not FileExists(ffxiv_crafting_leatherworker.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

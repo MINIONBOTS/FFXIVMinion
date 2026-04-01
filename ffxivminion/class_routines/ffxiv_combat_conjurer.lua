@@ -1,6 +1,6 @@
 ffxiv_combat_conjurer = {}
 ffxiv_combat_conjurer.range = 24
-ffxiv_combat_conjurer.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_conjurer.info"
+ffxiv_combat_conjurer.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_conjurer.info"
 if (not FileExists(ffxiv_combat_conjurer.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

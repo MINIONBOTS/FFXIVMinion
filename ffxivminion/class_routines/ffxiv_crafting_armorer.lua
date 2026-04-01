@@ -1,6 +1,6 @@
 ffxiv_crafting_armorer = {}
 ffxiv_crafting_armorer.range = 3
-ffxiv_crafting_armorer.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_crafting_armorer.info"
+ffxiv_crafting_armorer.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_crafting_armorer.info"
 if (not FileExists(ffxiv_crafting_armorer.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

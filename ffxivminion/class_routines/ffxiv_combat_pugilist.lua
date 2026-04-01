@@ -1,6 +1,6 @@
 ffxiv_combat_pugilist = {}
 ffxiv_combat_pugilist.range = 2
-ffxiv_combat_pugilist.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_pugilist.info"
+ffxiv_combat_pugilist.optionsPath = GetLuaModsPath()..[[ffxivminion\class_routines\]].."ffxiv_combat_pugilist.info"
 if (not FileExists(ffxiv_combat_pugilist.optionsPath)) then
 	local defaults = {}
 	defaults.settings = {

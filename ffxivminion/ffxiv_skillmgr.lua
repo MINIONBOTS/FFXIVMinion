@@ -1,7 +1,7 @@
 -- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.lastTick = 0
-SkillMgr.profilePath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]]
+SkillMgr.profilePath = GetLuaModsPath() .. [[ffxivminion\SkillManagerProfiles\]]
 SkillMgr.defaultProfilePath = SkillMgr.profilePath .. [[Defaults\]]
 SkillMgr.yield = {}
 SkillMgr.monitor = {}
