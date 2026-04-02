@@ -69,12 +69,22 @@ end
 
 RegisterEventHandler("Module.Initalize",dev.Init,"dev.Init")
 
-dev.logUiEvent = false
-
-RegisterEventHandler("Game.UIEvent", function(eventName, eventJson)
-	if dev.logUiEvent then
-		d(eventJson)
+RegisterEventHandler("Game.UIEvent", function(eventName, agentName, agentIdxStr, cmdStr, ...)
+	-- Receives flat string args encoded by UIAgentManager::OnFrame() via QueueEvent.
+	-- QueueEvent is processed before ImGui rendering begins, so this handler
+	-- is safe to touch any state.  Still avoid GUI calls here (no window context).
+	dev.uiEventLog = dev.uiEventLog or {}
+	local log = dev.uiEventLog
+	if #log >= 50 then table.remove(log, 1) end
+	local parts = {}
+	local argList = {...}
+	for i = 1, #argList, 2 do
+		local t = tonumber(argList[i]) or 0
+		local v = argList[i+1] or "0"
+		parts[#parts+1] = string.format("{t=%d,%s}", t, v)
 	end
+	log[#log+1] = string.format("%s[%s] cmd=%s  {%s}",
+		agentName or "?", agentIdxStr or "-1", cmdStr or "0", table.concat(parts, ","))
 end, "Game.UIEvent")
 
 function dev.ChatTest()
@@ -157,11 +167,6 @@ local mouseClickCounts =
 	}
 }
 
---local function ReplaceDoubleHashes(str,replacement)
---	local replacement = replacement or "@@"
---	return tostring(str):gsub("##",replacement)
---end
-
 local function GetMouseClickCount(mouseButton,itemId,isHovered)
 	local mouseClickCount=mouseClickCounts[mouseButton+1]
 	local clickCount = 0
@@ -169,7 +174,6 @@ local function GetMouseClickCount(mouseButton,itemId,isHovered)
 		if mouseClickCount.nextPressDeadline > 0 and Now() > mouseClickCount.nextPressDeadline then
 			if itemId == mouseClickCount.itemId then
 				clickCount = mouseClickCount.clickCount
-				--d("itemId: ".. ReplaceDoubleHashes(mouseClickCount.itemId)..", mouseButton: "..tostring(mouseButton)..", final clickCount: "..tostring(clickCount))
 				mouseClickCount.clickCount = 0
 				mouseClickCount.itemId = ""
 				mouseClickCount.nextPressDeadline = 0
@@ -177,27 +181,23 @@ local function GetMouseClickCount(mouseButton,itemId,isHovered)
 		end
 		if isHovered then
 			if GUI:IsMouseClicked(mouseButton) then
-				--d("itemId: ".. ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Mouse Press")
 				mouseClickCount.itemId = itemId
-				mouseClickCount.nextReleaseDeadline = Now() + 200
 				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE
 			end
 		end
 	elseif mouseClickCount.state == dev.MOUSE_CLICK_STATE_WAITING_FOR_RELEASE then
 		if itemId == mouseClickCount.itemId then
-			local isMouseReleased = GUI:IsMouseReleased(mouseButton)
-			local exceededReleaseDeadline = Now() > mouseClickCount.nextReleaseDeadline
-			if not isHovered or (not isMouseReleased and exceededReleaseDeadline) then
-				--d("itemId: "..ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Click Reset, isHovered: "..tostring(isHovered)..", isMouseReleased: "..tostring(isMouseReleased)..", exceededReleaseDeadline: "..tostring(exceededReleaseDeadline))
-				mouseClickCount.clickCount = 0
-				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
-				mouseClickCount.itemId = ""
-				mouseClickCount.nextPressDeadline = 0
-			elseif isHovered and isMouseReleased then
-				mouseClickCount.clickCount = mouseClickCount.clickCount + 1
-				--d("itemId: "..ReplaceDoubleHashes(itemId)..", mouseButton: "..tostring(mouseButton)..", Mouse Release, interim clickCount: "..tostring(mouseClickCount.clickCount))
-				mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
-				mouseClickCount.nextPressDeadline = Now() + 200
+			if GUI:IsMouseReleased(mouseButton) then
+				if isHovered then
+					mouseClickCount.clickCount = mouseClickCount.clickCount + 1
+					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+					mouseClickCount.nextPressDeadline = Now() + 200
+				else
+					mouseClickCount.clickCount = 0
+					mouseClickCount.state = dev.MOUSE_CLICK_STATE_WAITING_FOR_PRESS
+					mouseClickCount.itemId = ""
+					mouseClickCount.nextPressDeadline = 0
+				end
 			end
 		end
 	end
@@ -259,7 +259,8 @@ function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
 	end
 	cellInfo.col = cellInfo.col + 1
 	local itemId = cellInfo.prefix..".selectable-"..cellInfo.row.."-"..cellInfo.col
-	GUI:Selectable(itemId,false,GUI.SelectableFlags_SpanAllColumns|GUI.SelectableFlags_AllowOverlap)
+	GUI:Selectable(itemId,false,GUI.SelectableFlags_SpanAllColumns)
+	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(itemId,checkMouseActions)
 	GUI:SameLine()
 	GUI:Text(cellData)
 	if cellInfo.info:len() == 0 then
@@ -267,7 +268,6 @@ function dev.DisplaySelectableCell(cellInfo, cellData, checkMouseActions)
 	else
 		cellInfo.info = cellInfo.info..","..tostring(cellData)
 	end
-	cellInfo.mouseActions = cellInfo.mouseActions | dev.GetMouseActions(itemId,checkMouseActions)
 	GUI:NextColumn()
 end
 
@@ -283,10 +283,6 @@ function dev.DrawCall(event, ticks )
 			GUI:PushStyleVar(GUI.StyleVar_FramePadding, 4, 0)
 			GUI:PushStyleVar(GUI.StyleVar_ItemSpacing, 8, 2)
 
-			if ( GUI:TreeNode("UI Events")) then
-				dev.logUiEvent = GUI:Checkbox("Logs UI events", dev.logUiEvent)
-				GUI:TreePop()
-			end
 			-- cbk: Addon Controls
 
 			if ( GUI:TreeNode("AddonControls")) then
@@ -307,7 +303,6 @@ function dev.DrawCall(event, ticks )
 										GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 
 										GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
-										GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devcr"..tostring(id),tostring(e:IsReady()))
 										local x,y = e:GetXY()
 										GUI:BulletText("Position") GUI:SameLine(200) GUI:InputText("##devc1pos"..tostring(id),tostring(x).. ", "..tostring(y))
 										GUI:PushItemWidth(50)
@@ -392,7 +387,7 @@ function dev.DrawCall(event, ticks )
 													GUI:Text("Type"); GUI:NextColumn()
 													GUI:Text("Value"); GUI:NextColumn()
 													GUI:Separator()
-													local cellInfo={prefix="##RawDataDetails",row=0,col=0,info=""}
+													local cellInfo={prefix="##RawDataDetails",row=0,col=0,info="",clicked=false}
 													for index, data in table.pairsbykeys(datas) do
 														if (data.type ~= "0") then
 															cellInfo.row = cellInfo.row + 1
@@ -403,22 +398,22 @@ function dev.DrawCall(event, ticks )
 															dev.DisplaySelectableCell(cellInfo,tostring(data.type),dev.MOUSE_ACTION_LEFT_CLICKED)
 															GUI:PushItemWidth(500)
 															if
-															data.type == "int32" or
-																	data.type == "uint32" or
-																	data.type == "int" or
-																	data.type == "uint" or
-																	data.type == "bool" or
-																	data.type == "float" or
-																	data.type == "int64" or
-																	data.type == "uint64" or
-																	data.type == "vector" or
-																	data.type == "atkvalues"
+																data.type == "int32" or
+																data.type == "uint32" or
+																data.type == "int" or
+																data.type == "uint" or
+																data.type == "bool" or
+																data.type == "float" or
+																data.type == "int64" or
+																data.type == "uint64" or
+																data.type == "vector" or
+																data.type == "atkvalues"
 															then
 																dev.DisplaySelectableCell(cellInfo,tostring(data.value),dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif
-															data.type == "string" or
-																	data.type == "wstring" or
-																	data.type == "texture"
+																data.type == "string" or
+																data.type == "wstring" or
+																data.type == "texture"
 															then
 																dev.DisplaySelectableCell(cellInfo,data.value,dev.MOUSE_ACTION_LEFT_CLICKED)
 															elseif data.type == "4bytes" then
@@ -768,7 +763,7 @@ function dev.DrawCall(event, ticks )
 						GUI:Text("Animation"); GUI:NextColumn()
 						GUI:Text("Last Anim"); GUI:NextColumn()
 						GUI:Separator()
-						local cellInfo={prefix="##dev-scanner",row=0,col=0,info=""}
+						local cellInfo={prefix="##dev-scanner",row=0,col=0,info="",clicked=false}
 						for _, entity in ipairs(entities) do
 							cellInfo.row = cellInfo.row + 1
 							cellInfo.col = 0
@@ -890,8 +885,8 @@ function dev.DrawCall(event, ticks )
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
 										if (not gDevFilterActions or (action.usable))
-												and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
-												and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter)
+											and (gDevActionsNameFilter == "" or string.contains(action.name,gDevActionsNameFilter))
+											and (IsNull(gDevActionsIDFilter,0) == 0 or action.id == gDevActionsIDFilter)
 										then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name.."##"..tostring(actionid).."-"..tostring(actiontype))) then --rather slow making 6000+ names :D
@@ -1118,98 +1113,6 @@ function dev.DrawCall(event, ticks )
 			end
 			--  END CRAFTING
 
-
-			if (GUI:TreeNode("Director")) then
-				GUI:PushItemWidth(200)
-				
-				local director = Director:GetActiveDirector()
-				if (director ~= nil) then
-					GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##dirID", tostring(director.id))
-					GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##dirType", tostring(director.type))
-					GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dirName", tostring(director.name))
-					GUI:BulletText(".instancename") GUI:SameLine(200) GUI:InputText("##dirInstName", tostring(director.instancename))
-					GUI:BulletText(".sequence") GUI:SameLine(200) GUI:InputText("##dirSeq", tostring(director.sequence))
-					GUI:BulletText(".timeremaining") GUI:SameLine(200) GUI:InputText("##dirTime", tostring(director.timeremaining))
-					GUI:BulletText(".recommendedlevel") GUI:SameLine(200) GUI:InputText("##dirRecLvl", tostring(director.recommendedlevel))
-					GUI:BulletText(".eventitemid") GUI:SameLine(200) GUI:InputText("##dirEvtItem", tostring(director.eventitemid))
-					GUI:BulletText(".iconid") GUI:SameLine(200) GUI:InputText("##dirIconId", tostring(director.iconid))
-					GUI:BulletText(".text") GUI:SameLine(200) GUI:InputText("##dirText", tostring(director.text))
-					GUI:BulletText(".textstartindex") GUI:SameLine(200) GUI:InputText("##dirTxtStart", tostring(director.textstartindex))
-					GUI:BulletText(".textindex") GUI:SameLine(200) GUI:InputText("##dirTxtIdx", tostring(director.textindex))
-				else
-					GUI:BulletText("No active director")
-				end
-				
-				if (GUI:TreeNode("Company Leve Info")) then
-					if (director ~= nil) then
-						GUI:BulletText(".companyleve_a") GUI:SameLine(200) GUI:InputText("##dirCLA", tostring(director.companyleve_a))
-						GUI:BulletText(".companyleve_b") GUI:SameLine(200) GUI:InputText("##dirCLB", tostring(director.companyleve_b))
-						GUI:BulletText(".companyleve_c") GUI:SameLine(200) GUI:InputText("##dirCLC", tostring(director.companyleve_c))
-					else
-						GUI:BulletText("No data available")
-					end
-					GUI:TreePop()
-				end
-				
-				if (GUI:TreeNode("Objectives")) then
-					if (director ~= nil and table.valid(director.objectives)) then
-						for idx, obj in pairs(director.objectives) do
-							if (GUI:TreeNode(tostring(idx)..": "..tostring(obj.name))) then
-								GUI:BulletText(".name") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Name", tostring(obj.name))
-								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Type", tostring(obj.type))
-								GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Done", tostring(obj.completed))
-								if (table.valid(obj.values)) then
-									GUI:BulletText(".values[1] (current)") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Val1", tostring(obj.values[1]))
-									GUI:BulletText(".values[2] (max)") GUI:SameLine(200) GUI:InputText("##dirObj"..tostring(idx).."Val2", tostring(obj.values[2]))
-								end
-								GUI:TreePop()
-							end
-						end
-					else
-						GUI:BulletText("No objectives available")
-					end
-					GUI:TreePop()
-				end
-				
-				if (GUI:TreeNode("Bitfields")) then
-					if (director ~= nil) then
-						GUI:BulletText(".I8A") GUI:SameLine(200) GUI:InputText("##dirI8A", tostring(director.I8A))
-						GUI:BulletText(".I8B") GUI:SameLine(200) GUI:InputText("##dirI8B", tostring(director.I8B))
-						GUI:BulletText(".I8C") GUI:SameLine(200) GUI:InputText("##dirI8C", tostring(director.I8C))
-						GUI:BulletText(".I8D") GUI:SameLine(200) GUI:InputText("##dirI8D", tostring(director.I8D))
-						GUI:BulletText(".I8E") GUI:SameLine(200) GUI:InputText("##dirI8E", tostring(director.I8E))
-						GUI:BulletText(".I8F") GUI:SameLine(200) GUI:InputText("##dirI8F", tostring(director.I8F))
-						GUI:BulletText(".I8G") GUI:SameLine(200) GUI:InputText("##dirI8G", tostring(director.I8G))
-						GUI:BulletText(".I8H") GUI:SameLine(200) GUI:InputText("##dirI8H", tostring(director.I8H))
-						GUI:BulletText(".I8I") GUI:SameLine(200) GUI:InputText("##dirI8I", tostring(director.I8I))
-						GUI:BulletText(".I8J") GUI:SameLine(200) GUI:InputText("##dirI8J", tostring(director.I8J))
-						
-						if (GUI:TreeNode("High Nibbles")) then
-							for i = 0, 9 do
-								local letters = {"A","B","C","D","E","F","G","H","I","J"}
-								local field = "I8"..letters[i+1].."H"
-								GUI:BulletText("."..field) GUI:SameLine(200) GUI:InputText("##dir"..field, tostring(director[field]))
-							end
-							GUI:TreePop()
-						end
-						
-						if (GUI:TreeNode("Low Nibbles")) then
-							for i = 0, 9 do
-								local letters = {"A","B","C","D","E","F","G","H","I","J"}
-								local field = "I8"..letters[i+1].."L"
-								GUI:BulletText("."..field) GUI:SameLine(200) GUI:InputText("##dir"..field, tostring(director[field]))
-							end
-							GUI:TreePop()
-						end
-					else
-						GUI:BulletText("No data available")
-					end
-					GUI:TreePop()
-				end
-				
-				GUI:PopItemWidth()
-				GUI:TreePop()
-			end
 
 			if ( GUI:TreeNode("Duty Info")) then
 
@@ -2789,6 +2692,298 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 			-- 	END INSTALLED ADDONS
+
+			-- ─── UI Agents ────────────────────────────────────────────────────────
+			if ( GUI:TreeNode("UI Agents")) then
+
+				-- ── state (persisted across frames in local upvalues) ───────────────
+				dev.uiAgents = dev.uiAgents or {
+					spyState   = {},
+					pasteEventText = nil,
+					-- shared toggle: when true both Spy and InputHandler use a numeric slot index
+					useRawId   = false,
+					rawSpyId   = 0,   -- slot index used by the Spy section
+					ih = {
+						-- GUI:Combo is 1-based: 1 = placeholder, 2..N+1 = allAgentNames[1..N]
+						agentIdx   = 1,
+						eventId    = 0,
+						numArgs    = 1,
+						rawAgentId = 0,   -- slot index used by the InputHandler section
+						-- tpIdx: 1-based (GUI:Combo returns 1 for first item)
+						-- 3 = "Int(3)" which is atkTypeStrings[3] / atkTypeValues[3]
+						args       = { {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0},
+						               {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0},
+						               {tpIdx=3,vi=0,vf=0.0}, {tpIdx=3,vi=0,vf=0.0} },
+					},
+				}
+				local ua = dev.uiAgents
+
+				-- Agent name list sourced from C++ (sorted, no unknown_N entries)
+				if not ua.agentNames then
+					ua.agentNames = UIAgentGetNames() or {}
+				end
+				local allAgentNames = ua.agentNames
+
+				-- Shared mode toggle — applies to both Spy and InputHandler sub-sections
+				ua.useRawId = GUI:Checkbox("Use raw agent index##ua_useraw", ua.useRawId or false)
+				GUI:Separator()
+
+				-- ── Spy section ──────────────────────────────────────────────────────
+				if ( GUI:TreeNode("Spy / Monitor")) then
+					GUI:TextColored(1,1,0,1,"Hook ProcessEvent on agents  (captured events logged below)")
+					GUI:Separator()
+
+					if ua.useRawId then
+						-- Raw index mode: target a single agent slot directly
+						GUI:PushItemWidth(130)
+						ua.rawSpyId = (GUI:InputInt("Agent Index##spy_rawid", ua.rawSpyId or 0))
+						if ua.rawSpyId < 0 then ua.rawSpyId = 0 end
+						GUI:PopItemWidth()
+						GUI:SameLine()
+						if GUI:SmallButton("Spy On##spy_raw_on") then
+							UIEvent(ua.rawSpyId, "spy", true)
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Spy Off##spy_raw_off") then
+							UIEvent(ua.rawSpyId, "spy", false)
+						end
+					else
+						-- Name mode: Spy All / Spy None + per-agent checkbox list
+						if GUI:SmallButton("Spy All") then
+							for _, name in ipairs(allAgentNames) do
+								ua.spyState[name] = true
+								UIEvent(name, "spy", true)
+							end
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Spy None") then
+							for _, name in ipairs(allAgentNames) do
+								ua.spyState[name] = false
+								UIEvent(name, "spy", false)
+							end
+						end
+						GUI:Separator()
+
+						-- Scrollable checkbox list — avoids GUI:Columns which causes FocusScope mismatch
+						GUI:BeginChild("##spy_list", 0, 280, true)
+						for _, name in ipairs(allAgentNames) do
+							local spyOn = ua.spyState[name] or false
+							local newVal = GUI:Checkbox(name.."##spy_"..name, spyOn)
+							if newVal ~= spyOn then
+								ua.spyState[name] = newVal
+								UIEvent(name, "spy", newVal)
+							end
+						end
+						GUI:EndChild()
+					end
+
+					-- ── Captured event log (populated by Game.UIEvent handler) ────────────────
+					GUI:Separator()
+					dev.uiEventLog = dev.uiEventLog or {}
+					local elog = dev.uiEventLog
+					GUI:Text(string.format("Captured Events (%d):", #elog))
+					GUI:SameLine()
+					if GUI:SmallButton("Clear##spy_logclear") then
+						dev.uiEventLog = {}
+					end
+					GUI:BeginChild("##spy_log", 0, 140, true)
+					for i = #elog, 1, -1 do  -- newest first
+						GUI:Selectable(elog[i].."##spy_evt_"..i, false)
+						if GUI:IsItemClicked(1) or (GUI:IsItemHovered() and GUI:IsMouseReleased(1)) then
+							ua.pasteEventText = elog[i]
+							GUI:SetClipboardText(elog[i])
+						end
+					end
+					GUI:EndChild()
+
+					GUI:TreePop()
+				end -- Spy / Monitor
+
+				-- ── InputHandler / ProcessEvent caller ───────────────────────────────
+				if ( GUI:TreeNode("InputHandler")) then
+					GUI:TextColored(1,1,0,1,"Send a ProcessEvent call to any registered agent")
+					GUI:Separator()
+
+					local ih = ua.ih
+
+					-- Type display/value lookup tables (index is 0-based, matching GUI:Combo)
+					local atkTypeStrings = {"None(0)","Bool(2)","Int(3)","Int64(4)","UInt(5)","UInt64(6)","Float(7)"}
+					local atkTypeValues  = {0, 2, 3, 4, 5, 6, 7}
+
+					local function ParseClipboardEvent(clipText)
+						local parsedRawId = tonumber((clipText or ""):match("%[([%+%-]?%d+)%]"))
+						local parsedCmdId = tonumber((clipText or ""):match("cmd%s*=%s*([%+%-]?%d+)"))
+						local argsBlob = (clipText or ""):match("%b{}")
+						if not (parsedRawId and parsedCmdId and argsBlob) then
+							return nil
+						end
+						local parsedArgs = {}
+						local inner = argsBlob
+						if inner:sub(1,1) == "{" and inner:sub(-1) == "}" then
+							inner = inner:sub(2, -2)
+						end
+						for tStr, vStr in inner:gmatch("%{%s*t%s*=%s*([%+%-]?%d+)%s*,%s*([%+%-]?[%d%.eE]+)%s*%}") do
+							local atype = tonumber(tStr) or 3
+							local aval = tonumber(vStr) or 0
+							local tpIdx = 3
+							for idx, tval in ipairs(atkTypeValues) do
+								if tval == atype then
+									tpIdx = idx
+									break
+								end
+							end
+							parsedArgs[#parsedArgs + 1] = {
+								tpIdx = tpIdx,
+								vi = math.floor(aval),
+								vf = aval
+							}
+						end
+						return {
+							rawAgentId = parsedRawId,
+							eventId = parsedCmdId,
+							args = parsedArgs
+						}
+					end
+
+					local pasteText = ua.pasteEventText
+					local clipEvent = ParseClipboardEvent(pasteText)
+					if clipEvent then
+						if GUI:SmallButton("Paste Event##ih_paste_event") then
+							ua.useRawId = true
+							ih.rawAgentId = math.max(0, clipEvent.rawAgentId)
+							ua.rawSpyId = ih.rawAgentId
+							ih.eventId = math.max(0, clipEvent.eventId)
+							ih.numArgs = math.min(#clipEvent.args, 10)
+							ih.args = ih.args or {}
+							for i = 1, ih.numArgs do
+								ih.args[i] = clipEvent.args[i]
+							end
+							if #clipEvent.args > ih.numArgs then
+								ih.pasteStatus = string.format("Pasted %d args; truncated to %d.", #clipEvent.args, ih.numArgs)
+							else
+								ih.pasteStatus = string.format("Pasted event: agent=%d cmd=%d args=%d", ih.rawAgentId, ih.eventId, ih.numArgs)
+							end
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Clear##ih_clear_paste_event") then
+							ua.pasteEventText = nil
+							ih.pasteStatus = nil
+						end
+						GUI:SameLine()
+						GUI:TextDisabled(pasteText)
+						if ih.pasteStatus and ih.pasteStatus ~= "" then
+							GUI:TextColored(0.6,1,0.6,1, ih.pasteStatus)
+						end
+						GUI:Separator()
+					else
+						ih.pasteStatus = nil
+					end
+
+					local ihAgentRef  -- string name OR integer id passed to UIEvent
+					if ua.useRawId then
+						GUI:PushItemWidth(130)
+						ih.rawAgentId = (GUI:InputInt("Agent Index##ih_rawid", ih.rawAgentId or 0))
+						if ih.rawAgentId < 0 then ih.rawAgentId = 0 end
+						GUI:PopItemWidth()
+						ihAgentRef = ih.rawAgentId
+					else
+						-- Agent combo: entry 1 = placeholder, 2..N+1 = allAgentNames[1..N]
+						local agentComboList = {"-- select agent --"}
+						for _, n in ipairs(allAgentNames) do agentComboList[#agentComboList+1] = n end
+						GUI:PushItemWidth(230)
+						ih.agentIdx = GUI:Combo("Agent##ih_agent", ih.agentIdx or 1, agentComboList)
+						GUI:PopItemWidth()
+						-- GUI:Combo is 1-based; idx 1 = placeholder, 2+ = allAgentNames[idx-1]
+						ihAgentRef = (ih.agentIdx and ih.agentIdx > 1) and allAgentNames[ih.agentIdx - 1] or ""
+					end
+
+					-- EventId
+					GUI:PushItemWidth(130)
+					ih.eventId = (GUI:InputInt("EventId (cmd)", ih.eventId or 0))
+					if ih.eventId < 0 then ih.eventId = 0 end
+
+					-- Number of args
+					ih.numArgs = GUI:SliderInt("Num Args", ih.numArgs or 1, 0, 10)
+					GUI:PopItemWidth()
+
+					GUI:Separator()
+					GUI:Text("Args  {AtkValueType, value}:")
+					GUI:Separator()
+
+					for i = 1, ih.numArgs do
+						local arg = ih.args[i]
+						if not arg then ih.args[i] = {tpIdx=3, vi=0, vf=0.0} ; arg = ih.args[i] end
+						if arg.tpIdx == nil then arg.tpIdx = 3 ; arg.vf = arg.vf or 0.0 end
+
+						GUI:Text(string.format("  [%d]", i-1))
+						GUI:SameLine()
+
+						GUI:PushItemWidth(120)
+						arg.tpIdx = GUI:Combo("##ih_tp"..i, arg.tpIdx, atkTypeStrings)
+						GUI:PopItemWidth()
+						GUI:SameLine()
+
+						local actualType = atkTypeValues[arg.tpIdx] or 3
+						GUI:PushItemWidth(130)
+						if actualType == 7 then -- Float
+							arg.vf = arg.vf or 0.0
+							arg.vf = GUI:InputFloat("##ih_vf"..i, arg.vf, 0.1, 1.0)
+						else
+							arg.vi = (GUI:InputInt("##ih_vi"..i, arg.vi or 0))
+						end
+						GUI:PopItemWidth()
+					end
+
+					GUI:Separator()
+
+					-- Call preview
+					local previewParts = {}
+					for i = 1, ih.numArgs do
+						local arg = ih.args[i] or {tpIdx=3, vi=0, vf=0.0}
+						local atype = atkTypeValues[arg.tpIdx or 3] or 3
+						local vStr = (atype == 7) and string.format("%.4f", arg.vf or 0) or tostring(arg.vi or 0)
+						previewParts[#previewParts+1] = string.format("{%d,%s}", atype, vStr)
+					end
+					local agentDisplay = ua.useRawId and tostring(ih.rawAgentId or 0)
+						or (type(ihAgentRef) == "string" and ihAgentRef ~= "" and '"'..ihAgentRef..'"' or '"?"')
+					GUI:TextColored(0.7,0.9,1,1, string.format(
+						'UIEvent(%s,%d,{%s})',
+						agentDisplay, ih.eventId, table.concat(previewParts, ",")
+					))
+
+					GUI:Spacing()
+
+					local canFire = ua.useRawId or (type(ihAgentRef) == "string" and ihAgentRef ~= "")
+					if not canFire then
+						GUI:TextColored(1,0.4,0.4,1,"Select an agent above")
+					else
+						if GUI:Button("Fire Event##ih_fire") then
+							local tblArgs = {}
+							for i = 1, ih.numArgs do
+								local arg = ih.args[i] or {tpIdx=3, vi=0, vf=0.0}
+								local atype = atkTypeValues[arg.tpIdx or 3] or 3
+								tblArgs[i] = { atype, atype == 7 and (arg.vf or 0.0) or (arg.vi or 0) }
+							end
+							UIEvent(ihAgentRef, ih.eventId, tblArgs)
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Clear Event##ih_clear_event") then
+							ih.eventId = 0
+							ih.numArgs = 0
+							ih.args = ih.args or {}
+							for i = 1, 10 do
+								ih.args[i] = {tpIdx=3, vi=0, vf=0.0}
+							end
+							ih.pasteStatus = "Cleared pending event payload."
+						end
+					end
+
+					GUI:TreePop()
+				end -- InputHandler
+
+				GUI:TreePop()
+			end
+			-- END UI Agents
 
 
 			GUI:PopStyleVar(2)
