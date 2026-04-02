@@ -1539,6 +1539,16 @@ function c_teleportsamemap:evaluate()
 		return false
 	end
 
+	-- Don't teleport when transporting or when the task requires staying mounted;
+	-- teleporting dismounts the player and breaks these quest states.
+	if (IsTransporting()) then
+		return false
+	end
+
+	if (ml_task_hub:CurrentTask().remainMounted and Player.ismounted) then
+		return false
+	end
+
 	local task = ml_task_hub:ThisTask()
 	local destPos = task.pos
 	if (not table.valid(destPos) or not destPos.x) then
