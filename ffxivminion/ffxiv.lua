@@ -1035,9 +1035,9 @@ function ffxivminion.SetMainVars()
 
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE", false)
 	gFlightFollowCam = ffxivminion.GetSetting("gFlightFollowCam", true)
-	gFlightFollowCamRatio = ffxivminion.GetSetting("gFlightFollowCamRatio", 0.015)
-	gFlightFollowCamPitch = ffxivminion.GetSetting("gFlightFollowCamPitch", -0.50)
-	gFlightFollowCamPitchDownRatio = ffxivminion.GetSetting("gFlightFollowCamPitchDownRatio", 0.50)
+	gFlightFollowCamRatio = ffxivminion.GetSetting("gFlightFollowCamRatio", 0.150)
+	gFlightFollowCamPitch = ffxivminion.GetSetting("gFlightFollowCamPitch", -0.300)
+	gFlightFollowCamPitchDownRatio = ffxivminion.GetSetting("gFlightFollowCamPitchDownRatio", 0.45)
 	if (Player and Player.SetSmoothCamRatio and gFlightFollowCamRatio ~= nil) then
 		Player:SetSmoothCamRatio(gFlightFollowCamRatio)
 	end
@@ -1210,9 +1210,9 @@ function ffxivminion.SetModeOptions(mode)
 			Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gFlightFollowCam = IsNull(Settings.FFXIVMINION.gFlightFollowCam, true)
-			gFlightFollowCamRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamRatio, 0.015)
-			gFlightFollowCamPitch = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitch, -0.50)
-			gFlightFollowCamPitchDownRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitchDownRatio, 0.50)
+			gFlightFollowCamRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamRatio, 0.150)
+			gFlightFollowCamPitch = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitch, -0.300)
+			gFlightFollowCamPitchDownRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitchDownRatio, 0.45)
 			gUseAutoFollowPath = Settings.FFXIVMINION.gUseAutoFollowPath
 			if (ml_navigation) then
 				ml_navigation.flightFollowCam = gFlightFollowCam
