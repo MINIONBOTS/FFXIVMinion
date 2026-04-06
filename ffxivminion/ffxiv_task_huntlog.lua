@@ -36,6 +36,7 @@ function ffxiv_task_huntlog.Create()
 	
 	--Huntlog handles being called as a subtask via the adHoc property, which removes the task after a successful kill.
 	newinst.adHoc = false
+	newinst.toggleSource = nil
 	
     return newinst
 end
@@ -197,6 +198,7 @@ function e_grind_addhuntlogtask:execute()
 	local newTask = ffxiv_task_huntlog.Create()
 	newTask.huntParams = c_grind_addhuntlogtask.target
 	newTask.adHoc = true
+	newTask.toggleSource = "grind"
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -397,7 +399,24 @@ end
 c_huntlog_disabled = inheritsFrom( ml_cause )
 e_huntlog_disabled = inheritsFrom( ml_effect )
 function c_huntlog_disabled:evaluate()
-	return not gQuestDoHuntlog
+	local currentTask = ml_task_hub:CurrentTask()
+	if (table.valid(currentTask) and currentTask.toggleSource == "grind") then
+		return not gGrindDoHuntlog
+	end
+
+	if (table.valid(currentTask) and currentTask.toggleSource == "quest") then
+		return not gQuestDoHuntlog
+	end
+
+	-- Fallback for legacy callers that do not stamp a source.
+	if (gBotMode == "grindMode") then
+		return not gGrindDoHuntlog
+	end
+	if (gBotMode == "questMode") then
+		return not gQuestDoHuntlog
+	end
+
+	return not (gQuestDoHuntlog or gGrindDoHuntlog)
 end
 function e_huntlog_disabled:execute()
 	d("[Huntlog] Huntlog disabled, terminating task.")

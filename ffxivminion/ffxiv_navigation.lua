@@ -210,7 +210,9 @@ function ml_navigation.ParseInstructions(data)
 							if (table.valid(interacts)) then
 								local i,interactable = next(interacts)
 								if (table.valid(interactable) and interactable.interactable) then
-									Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+									if (not ml_navigation:UseAutoFollowPathing()) then
+										Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+									end
 									
 									local currentTarget = Player:GetTarget()
 									if (not currentTarget or currentTarget.id ~= interactable.id) then
@@ -256,6 +258,9 @@ function ml_navigation.ParseInstructions(data)
 					if (pos.y ~= nil and pos.z ~= nil) then
 						table.insert(ml_navigation.receivedInstructions, 
 							function () 
+								if (ml_navigation:UseAutoFollowPathing()) then
+									return true
+								end
 								local ppos = Player.pos
 								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = pos.x-ppos.x, y = 0, z = pos.z-ppos.z})
 								if (anglediff <= 1) then
@@ -269,6 +274,9 @@ function ml_navigation.ParseInstructions(data)
 					else
 						table.insert(ml_navigation.receivedInstructions, 
 							function () 
+								if (ml_navigation:UseAutoFollowPathing()) then
+									return true
+								end
 								if (math.abs(Player.pos.h - pos.x) < 0.01) then
 									return true
 								else
@@ -404,8 +412,12 @@ function ml_navigation.ParseInstructions(data)
 					table.insert(ml_navigation.receivedInstructions, 
 						function ()
 							local myPos = Player.pos
-							Player:SetFacing(pos.x,pos.y,pos.z)
-							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							if (ml_navigation:UseAutoFollowPathing()) then
+								ml_navigation:DispatchAutoFollowNode(pos, true)
+							else
+								Player:SetFacing(pos.x,pos.y,pos.z)
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
 							ml_global_information.AwaitDo(100, 120000, 
 								function ()
 									if (not Player:IsMoving()) then
@@ -415,7 +427,9 @@ function ml_navigation.ParseInstructions(data)
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
-									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not ml_navigation:UseAutoFollowPathing()) then
+										Player:SetFacing(pos.x,pos.y,pos.z)
+									end
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
 											for i,jump in pairs(jumps) do
@@ -455,8 +469,10 @@ function ml_navigation.ParseInstructions(data)
 					table.insert(ml_navigation.receivedInstructions, 
 						function ()
 							local myPos = Player.pos
-							Player:SetFacing(pos.x,pos.y,pos.z)
-							if (not Player:IsMoving()) then
+							if (ml_navigation:UseAutoFollowPathing()) then
+								ml_navigation:DispatchAutoFollowNode(pos, true)
+							elseif (not Player:IsMoving()) then
+								Player:SetFacing(pos.x,pos.y,pos.z)
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
 							end
 							ml_global_information.AwaitDo(100, 120000, 
@@ -468,7 +484,9 @@ function ml_navigation.ParseInstructions(data)
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
-									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not ml_navigation:UseAutoFollowPathing()) then
+										Player:SetFacing(pos.x,pos.y,pos.z)
+									end
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
 											for i,jump in pairs(jumps) do
@@ -492,8 +510,12 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions, 
 						function ()
-							Player:SetFacing(pos.x,pos.y,pos.z)
-							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							if (ml_navigation:UseAutoFollowPathing()) then
+								ml_navigation:DispatchAutoFollowNode(pos, true)
+							else
+								Player:SetFacing(pos.x,pos.y,pos.z)
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
 							ml_global_information.AwaitDo(100, 120000, 
 								function ()
 									if (not Player:IsMoving()) then
@@ -531,8 +553,12 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions, 
 						function ()
-							Player:SetFacing(pos.x,pos.y,pos.z)
-							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							if (ml_navigation:UseAutoFollowPathing()) then
+								ml_navigation:DispatchAutoFollowNode(pos, true)
+							else
+								Player:SetFacing(pos.x,pos.y,pos.z)
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
 							ml_global_information.AwaitDo(100, 120000, 
 								function ()
 									if (not Player:IsMoving()) then
@@ -628,6 +654,10 @@ ml_navigation.CanRun = function()
 end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 
 ml_navigation.canPath = false
+ml_navigation.useAutoFollowPath = false
+ml_navigation.autoFollowRefreshMs = 350
+ml_navigation.autoFollowNodeKey = nil
+ml_navigation.autoFollowLastSet = 0
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
 		self.canPath = true
@@ -652,21 +682,263 @@ end
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
 ml_navigation.avoidanceareasize = 2
-ml_navigation.smoothFacing = false
-ml_navigation.smoothFacingRatio = 0.30
+ml_navigation.flightFollowCam = true
+ml_navigation.flightFollowCamRatio = 0.015
+ml_navigation.flightFollowCamPitch = -0.50
+ml_navigation.flightFollowCamPitchDownRatio = 0.50
+ml_navigation.followCamPitchReleaseUntil = 0
+ml_navigation.followCamLastCameraPitch = nil
+ml_navigation.followCamLastTargetPitch = nil
+ml_navigation._lastCamApplyTime = 0
+ml_navigation.followCamLastPathIndex = nil
+ml_navigation.followCamNodeBlendStart = 0
+ml_navigation.followCamNodeBlendUntil = 0
+ml_navigation.followCamNodeBlendFromPitch = nil
+ml_navigation.followCamNodeBlendToPitch = nil
+
+function ml_navigation:UseAutoFollowPathing()
+	if (gUseAutoFollowPath ~= nil) then
+		return gUseAutoFollowPath
+	end
+	return self.useAutoFollowPath
+end
+
+function ml_navigation:UseFlightFollowCam()
+	local flightFollowCamEnabled = (gFlightFollowCam ~= nil and gFlightFollowCam) or self.flightFollowCam
+	return (flightFollowCamEnabled and IsFlying())
+end
+
+function ml_navigation:UseFollowCamPitch()
+	local followCamEnabled = (gFlightFollowCam ~= nil and gFlightFollowCam) or self.flightFollowCam
+	return followCamEnabled
+end
+
+function ml_navigation:ApplyFollowCamPitch(targetY)
+	if (not (Player and self:UseFollowCamPitch())) then
+		return false
+	end
+
+	local targetPitch = ml_navigation.flightFollowCamPitch or -0.50
+	local pitchDownRatio = ml_navigation.flightFollowCamPitchDownRatio or 0.0
+	if (pitchDownRatio ~= 0 and Player and Player.flying and Player.flying.pitch and Player.pos and Player.pos.y and targetY ~= nil and targetY < Player.pos.y) then
+		local downwardFlightPitch = math.abs(Player.flying.pitch)
+		targetPitch = targetPitch - (downwardFlightPitch * pitchDownRatio)
+	end
+	targetPitch = math.max(-1.5, math.min(0.20, targetPitch))
+
+	local isGround = (not IsFlying() and not IsDiving())
+	local cam = Player.camera
+	local now = Now()
+	if (isGround and table.valid(cam) and cam.pitch ~= nil) then
+		local pathIndex = self.pathindex
+		if (pathIndex ~= nil) then
+			if (self.followCamLastPathIndex == nil) then
+				self.followCamLastPathIndex = pathIndex
+			elseif (self.followCamLastPathIndex ~= pathIndex) then
+				self.followCamNodeBlendFromPitch = cam.pitch
+				self.followCamNodeBlendToPitch = targetPitch
+				self.followCamNodeBlendStart = now
+				self.followCamNodeBlendUntil = now + 220
+				self.followCamLastPathIndex = pathIndex
+			end
+		end
+
+		local activeTargetPitch = targetPitch
+		if (self.followCamNodeBlendUntil and now < self.followCamNodeBlendUntil and self.followCamNodeBlendFromPitch ~= nil and self.followCamNodeBlendToPitch ~= nil) then
+			local blendDuration = math.max(1, self.followCamNodeBlendUntil - self.followCamNodeBlendStart)
+			local t = (now - self.followCamNodeBlendStart) / blendDuration
+			t = math.max(0, math.min(1, t))
+			-- smoothstep easing removes visible target jumps at node boundaries
+			local eased = (t * t) * (3 - (2 * t))
+			activeTargetPitch = self.followCamNodeBlendFromPitch + ((self.followCamNodeBlendToPitch - self.followCamNodeBlendFromPitch) * eased)
+		else
+			self.followCamNodeBlendFromPitch = nil
+			self.followCamNodeBlendToPitch = nil
+			self.followCamNodeBlendStart = 0
+			self.followCamNodeBlendUntil = 0
+		end
+
+		-- deduplicate: Update and Draw both call this; skip if already applied this frame
+		if (self._lastCamApplyTime and (now - self._lastCamApplyTime) < 14) then
+			return true
+		end
+
+		local currentPitch = cam.pitch
+		local lastWrittenPitch = self.followCamLastCameraPitch
+		-- detect user manual pitch input: camera deviated from what we last wrote
+		if (lastWrittenPitch ~= nil and math.abs(currentPitch - lastWrittenPitch) > 0.015) then
+			self.followCamPitchReleaseUntil = now + 400
+		end
+
+		if (self.followCamPitchReleaseUntil > now) then
+			-- user is controlling camera: track position but don't override
+			self.followCamLastCameraPitch = currentPitch
+			self.followCamLastTargetPitch = activeTargetPitch
+			self._lastCamApplyTime = now
+			return true
+		end
+
+		-- lerp toward target each frame for smooth transition
+		-- (SetCamPitchSmooth does not drive grounded camera pitch)
+		local lerpedPitch = currentPitch + (activeTargetPitch - currentPitch) * 0.12
+		if (Player.SetCamPitch) then
+			Player:SetCamPitch(lerpedPitch)
+		end
+		self.followCamLastCameraPitch = lerpedPitch
+		self.followCamLastTargetPitch = activeTargetPitch
+		self._lastCamApplyTime = now
+		return true
+	end
+
+	-- flight / diving: smooth cam handles it natively
+	if (Player.SetCamPitchSmooth) then
+		Player:SetCamPitchSmooth(targetPitch)
+		return true
+	end
+	if (Player.SetCamPitch) then
+		Player:SetCamPitch(targetPitch)
+		return true
+	end
+	return true
+end
+
+function ml_navigation:ApplyFlightFollowCam(targetX, targetY, targetZ)
+	if (not (Player and Player.SetCamHSmooth)) then
+		return false
+	end
+	local cam = Player.camera
+	if (not table.valid(cam) or cam.x == nil or cam.z == nil or cam.h == nil) then
+		return false
+	end
+
+	local targetHeading = math.atan2((targetX - cam.x), (targetZ - cam.z))
+	if (targetHeading == nil) then
+		return false
+	end
+	targetHeading = ConvertHeading(targetHeading + math.pi) % (2 * math.pi)
+	Player:SetCamHSmooth(targetHeading)
+
+	if (Player.SetCamPitchSmooth and cam.y ~= nil) then
+		local dx = (targetX - cam.x)
+		local dz = (targetZ - cam.z)
+		local horizontal = math.sqrt((dx * dx) + (dz * dz))
+		if (horizontal > 0.001) then
+			self:ApplyFollowCamPitch(targetY)
+		end
+	end
+	return true
+end
+
+function ml_navigation:CancelFlightFollowCam()
+	self.followCamPitchReleaseUntil = 0
+	self.followCamLastCameraPitch = nil
+	self.followCamLastTargetPitch = nil
+	self._lastCamApplyTime = 0
+	self.followCamLastPathIndex = nil
+	self.followCamNodeBlendStart = 0
+	self.followCamNodeBlendUntil = 0
+	self.followCamNodeBlendFromPitch = nil
+	self.followCamNodeBlendToPitch = nil
+	if (not Player) then
+		return
+	end
+	if (Player.SetCamHSmooth) then
+		Player:SetCamHSmooth(false)
+	end
+	if (Player.SetCamPitchSmooth) then
+		Player:SetCamPitchSmooth(false)
+	end
+end
+
+function ml_navigation:ResetAutoFollowState()
+	self.autoFollowNodeKey = nil
+	self.autoFollowLastSet = 0
+end
+
+function ml_navigation:DisableAutoFollow(force)
+	if (not self:UseAutoFollowPathing()) then
+		self:ResetAutoFollowState()
+		return
+	end
+	if (Player and Player.SetAutoFollowOn) then
+		if (force or (Player.IsAutoFollowOn and Player:IsAutoFollowOn())) then
+			Player:SetAutoFollowOn(false)
+		end
+	end
+	self:ResetAutoFollowState()
+end
+
+function ml_navigation:DispatchAutoFollowNode(node, force)
+	if (not self:UseAutoFollowPathing()) then
+		return false
+	end
+	if (not node or not Player or not Player.SetAutoFollowPos or not Player.SetAutoFollowOn) then
+		return false
+	end
+
+	local now = Now()
+	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
+	if (force or key ~= self.autoFollowNodeKey or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
+		Player:SetAutoFollowPos(node.x, node.y, node.z)
+		self.autoFollowNodeKey = key
+		self.autoFollowLastSet = now
+	end
+
+	if (not IsFlying() and not IsDiving()) then
+		self:ApplyFollowCamPitch(node.y)
+	end
+
+	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
+		Player:SetAutoFollowOn(true)
+	end
+	return true
+end
 
 function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
+	if (ml_navigation:UseFlightFollowCam()) then
+		ml_navigation:ApplyFlightFollowCam(targetX, targetY, targetZ)
+		return
+	end
+	if (not IsFlying() and not IsDiving()) then
+		ml_navigation:ApplyFollowCamPitch(targetY)
+	end
+	if (ml_navigation:UseAutoFollowPathing()) then
+		return
+	end
 	Player:SetFacing(targetX, targetY, targetZ, true)
 end
 
-function ml_navigation.SyncSmoothFacingSettings()
-	if gSmoothFacing ~= nil then ml_navigation.smoothFacing = gSmoothFacing end
-	if gSmoothFacingRatio ~= nil then
-		ml_navigation.smoothFacingRatio = gSmoothFacingRatio
-		Player:SetSmoothFacingRatio(gSmoothFacingRatio)
+function ml_navigation:EnforceGroundFollowCamPitch()
+	if (not self:UseFollowCamPitch() or IsFlying() or IsDiving()) then
+		return
+	end
+	if (not self.canPath or self.debug or not table.valid(self.path)) then
+		return
+	end
+	local nextnode = self.path[self.pathindex]
+	if (nextnode and nextnode.y ~= nil) then
+		self:ApplyFollowCamPitch(nextnode.y)
 	end
 end
-RegisterEventHandler("Module.Initalize", ml_navigation.SyncSmoothFacingSettings, "ml_navigation.SyncSmoothFacingSettings")
+
+function ml_navigation.SyncFlightFollowCamSettings()
+	if gFlightFollowCam ~= nil then
+		ml_navigation.flightFollowCam = gFlightFollowCam
+	end
+	if gFlightFollowCamRatio ~= nil then
+		ml_navigation.flightFollowCamRatio = gFlightFollowCamRatio
+		if (Player and Player.SetSmoothCamRatio) then
+			Player:SetSmoothCamRatio(gFlightFollowCamRatio)
+		end
+	end
+	if gFlightFollowCamPitch ~= nil then
+		ml_navigation.flightFollowCamPitch = gFlightFollowCamPitch
+	end
+	if gFlightFollowCamPitchDownRatio ~= nil then
+		ml_navigation.flightFollowCamPitchDownRatio = gFlightFollowCamPitchDownRatio
+	end
+end
+RegisterEventHandler("Module.Initalize", ml_navigation.SyncFlightFollowCamSettings, "ml_navigation.SyncFlightFollowCamSettings")
 
 ml_navigation.GUI = {
 	pathHops = 0,
@@ -1198,6 +1470,8 @@ function Player:Stop(resetpath)
 	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
+	ml_navigation:DisableAutoFollow(true)
+	ml_navigation:CancelFlightFollowCam()
 	
 	ffnav.isascending = false
 	ffnav.isdescending = false	
@@ -1222,6 +1496,7 @@ function Player:PauseMovement(param1, param2, param3, param4, param5)
 	local param2 = IsNull(param2, function () return not Player:IsMoving() end)
 	
 	ml_navigation.canPath = false
+	ml_navigation:CancelFlightFollowCam()
 	Player:StopMovement()
 	
 	ffnav.Await(param1, param2, param3, param4, param5)
@@ -1324,6 +1599,10 @@ function ml_navigation.Navigate(event, ticks )
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
+		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
+			ml_navigation:DisableAutoFollow()
+			return
+		end
 				
 		if ( ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug) then	
 		
@@ -1486,7 +1765,7 @@ function ml_navigation.Navigate(event, ticks )
 										if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos, from_heading) ) then											
 											return
 										end
-									else
+									elseif (not ml_navigation:UseAutoFollowPathing()) then
 										local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = to_pos.x-ppos.x, y = 0, z = to_pos.z-ppos.z})
 										if ( anglediff > 0.3 ) then
 											Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
@@ -1496,7 +1775,9 @@ function ml_navigation.Navigate(event, ticks )
 									if ( ml_navigation.omc_starttimer == 0 ) then
 										ml_navigation.omc_starttimer = ticks	
 										if (not Player:IsMoving()) then
-											Player:Move(FFXIV.MOVEMENT.FORWARD)											
+											if (not ml_navigation:DispatchAutoFollowNode(to_pos, true)) then
+												Player:Move(FFXIV.MOVEMENT.FORWARD)
+											end
 											ffnav.Await(1000, function () return Player:IsMoving() end)
 										end
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then	
@@ -1521,21 +1802,23 @@ function ml_navigation.Navigate(event, ticks )
 											else
 												Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
 												ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
-												if (nextnextnode) then
+												if (nextnextnode and not ml_navigation:UseAutoFollowPathing()) then
 													Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 												end
 												ml_navigation.pathindex = ml_navigation.pathindex + 1
 												NavigationManager.NavPathNode = ml_navigation.pathindex
+												ml_navigation:ResetAutoFollowState()
 												ml_navigation:ResetOMCHandler()												
 												d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
 											end
 										else
 											Player:StopMovement()
-											if (nextnextnode) then
+											if (nextnextnode and not ml_navigation:UseAutoFollowPathing()) then
 												Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 											end
 											ml_navigation.pathindex = ml_navigation.pathindex + 1
 											NavigationManager.NavPathNode = ml_navigation.pathindex
+											ml_navigation:ResetAutoFollowState()
 											ml_navigation:ResetOMCHandler()	
 											d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
 										end
@@ -1552,11 +1835,12 @@ function ml_navigation.Navigate(event, ticks )
 												else
 													Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
 													ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
-													if (nextnextnode) then
+													if (nextnextnode and not ml_navigation:UseAutoFollowPathing()) then
 														Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 													end
 													ml_navigation.pathindex = ml_navigation.pathindex + 1
 													NavigationManager.NavPathNode = ml_navigation.pathindex
+													ml_navigation:ResetAutoFollowState()
 													ml_navigation:ResetOMCHandler()
 													d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
 												end
@@ -1568,8 +1852,12 @@ function ml_navigation.Navigate(event, ticks )
 											
 										else
 										
-											Player:Move(FFXIV.MOVEMENT.FORWARD)
-											Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+											if (not ml_navigation:DispatchAutoFollowNode(to_pos, true)) then
+												Player:Move(FFXIV.MOVEMENT.FORWARD)
+												if (not ml_navigation:UseAutoFollowPathing()) then
+													Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+												end
+											end
 										end
 									end
 								end
@@ -1591,13 +1879,15 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Teleport NavConnection"
 							if (Player:IsMoving() or Player:IsJumping() ) then
 								Player:StopMovement()
-								Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+								if (not ml_navigation:UseAutoFollowPathing()) then
+									Player:SetFacing(to_pos.x,to_pos.y,to_pos.z)
+								end
 								ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
 								return
 							else	
 								if gTeleportHack then
 									Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
-									if (nextnextnode) then
+									if (nextnextnode and not ml_navigation:UseAutoFollowPathing()) then
 										Player:SetFacing(nextnextnode.x,nextnextnode.y,nextnextnode.z)
 									end
 									ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
@@ -1682,7 +1972,9 @@ function ml_navigation.Navigate(event, ticks )
 									ffnav.Await(1500, function () return (Player:GetTarget() and Player:GetTarget().id == interactid) end)
 								elseif (target.interactable) then
 									local npcpos = interactnpc.pos
-									Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
+									if (not ml_navigation:UseAutoFollowPathing()) then
+										Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
+									end
 									Player:Interact(interactnpc.id)
 									d("Interacting with target : "..interactnpc.name)
 									ml_navigation.omc_traveltimer = ticks + 2000
@@ -1710,6 +2002,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (MIsLocked()) then
+						ml_navigation:DisableAutoFollow(true)
 						return
 					end
 					
@@ -1728,14 +2021,16 @@ function ml_navigation.Navigate(event, ticks )
 							local tpos = target.pos
 							local dist3D = math.distance3d(tpos,ppos)
 							
-							if (adjustedHeading ~= 0) then
-								Player:SetFacing(adjustedHeading)
-							else
-								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
-								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-									ml_navigation.SmoothFaceTarget(tpos.x,tpos.y,tpos.z)
+							if (not ml_navigation:UseAutoFollowPathing()) then
+								if (adjustedHeading ~= 0) then
+									Player:SetFacing(adjustedHeading)
 								else
-									Player:SetFacing(tpos.x,tpos.y,tpos.z)
+									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = tpos.x-ppos.x, y = 0, z = tpos.z-ppos.z})
+									if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+										ml_navigation.SmoothFaceTarget(tpos.x,tpos.y,tpos.z)
+									else
+										Player:SetFacing(tpos.x,tpos.y,tpos.z)
+									end
 								end
 							end
 							
@@ -1753,14 +2048,16 @@ function ml_navigation.Navigate(event, ticks )
 							Player:SetPitch(pitch)
 							
 							-- Move
-							if (not Player:IsMoving()) then
-								Player:Move(FFXIV.MOVEMENT.FORWARD)	
+							local autoFollow = ml_navigation:DispatchAutoFollowNode(modifiedNode, true)
+							if (not autoFollow and not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
 								ffnav.Await(150, function () return Player:IsMoving() end)
 							end
 						else
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 							-- Check if we left our path
 							if (not ml_navigation:IsStillOnPath(ppos,"3ddive")) then 
+								ml_navigation:DisableAutoFollow(true)
 								--d("we have left the path")
 								return 
 							end
@@ -1778,20 +2075,23 @@ function ml_navigation.Navigate(event, ticks )
 								ml_navigation.lastconnectiontimer = Now()
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								NavigationManager.NavPathNode = ml_navigation.pathindex
+								ml_navigation:ResetAutoFollowState()
 								
 								
 							else			
 								--d("[Navigation]: Moving to next node")
 								-- We have not yet reached our node
 								-- Face next node
-								if (adjustedHeading ~= 0) then
-									Player:SetFacing(adjustedHeading)
-								else
-									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
-									if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-										ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
+								if (not ml_navigation:UseAutoFollowPathing()) then
+									if (adjustedHeading ~= 0) then
+										Player:SetFacing(adjustedHeading)
 									else
-										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+										local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+										if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+											ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
+										else
+											Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+										end
 									end
 								end
 								
@@ -1809,8 +2109,9 @@ function ml_navigation.Navigate(event, ticks )
 								Player:SetPitch(pitch)
 								
 								-- Move
-								if (not Player:IsMoving()) then
-									Player:Move(FFXIV.MOVEMENT.FORWARD)	
+								local autoFollow = ml_navigation:DispatchAutoFollowNode(modifiedNode, true)
+								if (not autoFollow and not Player:IsMoving()) then
+									Player:Move(FFXIV.MOVEMENT.FORWARD)
 									ffnav.Await(150, function () return Player:IsMoving() end)
 								end
 							end
@@ -1823,7 +2124,10 @@ function ml_navigation.Navigate(event, ticks )
 						
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						-- Check if we left our path
-						if (not ml_navigation:IsStillOnPath(ppos,"3dfly")) then return end
+						if (not ml_navigation:IsStillOnPath(ppos,"3dfly")) then
+							ml_navigation:DisableAutoFollow(true)
+							return
+						end
 														
 						-- Check if the next node is reached:
 						local dist2D = math.distance2d(nextnode,ppos)
@@ -1836,15 +2140,19 @@ function ml_navigation.Navigate(event, ticks )
 						--ml_debug("[Navigation]: Moving to next node")
 						-- We have not yet reached our node
 						-- Face next node
-						if (adjustedHeading ~= 0) then
-							Player:SetFacing(adjustedHeading)
-						else
-							local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
-							if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
-								ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
+						if (not ml_navigation:UseAutoFollowPathing()) then
+							if (adjustedHeading ~= 0) then
+								Player:SetFacing(adjustedHeading)
 							else
-								Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+								if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+									ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
+								else
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+								end
 							end
+						elseif (ml_navigation:UseFlightFollowCam()) then
+							ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
 						end
 						
 						local targetnode = shallowcopy(nextnode)
@@ -1866,8 +2174,9 @@ function ml_navigation.Navigate(event, ticks )
 						Player:SetPitch(pitch)
 						
 						-- Move
-						if (not Player:IsMoving()) then
-							Player:Move(FFXIV.MOVEMENT.FORWARD)	
+						local autoFollow = ml_navigation:DispatchAutoFollowNode(targetnode, true)
+						if (not autoFollow and not Player:IsMoving()) then
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
@@ -1896,6 +2205,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.lastconnectiontimer = Now()
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
+							ml_navigation:ResetAutoFollowState()
 						end
 		-- Normal Navigation
 					end
@@ -2023,9 +2333,15 @@ end
 
 --need this wrapped to allow hooks for testing updates
 function ml_navigation.NavWrapper(event, ticks )	
+	ml_navigation:EnforceGroundFollowCamPitch()
 	ml_navigation.Navigate(event,ticks)
 end
 RegisterEventHandler("Gameloop.Draw", ml_navigation.NavWrapper, "ml_navigation.NavWrapper")
+
+function ml_navigation.GroundFollowCamWrapper(event, ticks)
+	ml_navigation:EnforceGroundFollowCamPitch()
+end
+RegisterEventHandler("Gameloop.Update", ml_navigation.GroundFollowCamWrapper, "ml_navigation.GroundFollowCamWrapper")
 
 function ml_navigation.DebugDraw(event, ticks )
 	if ( table.valid(ml_navigation.path) and false) then	
@@ -2047,11 +2363,17 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 	
 	-- Check if we left our path
 	if ( stillonpaththreshold ) then
-		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
+		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then
+			ml_navigation:DisableAutoFollow(true)
+			return
+		end	
 	else
 		-- One path may contain all thresholds, so the static path deviation setting is useless for FF.
 		local threshold2d, threshold3d = ml_navigation.GetDeviationThresholds()
-		if ( not ml_navigation:IsStillOnPath(ppos,threshold3d) ) then return end	
+		if ( not ml_navigation:IsStillOnPath(ppos,threshold3d) ) then
+			ml_navigation:DisableAutoFollow(true)
+			return
+		end	
 	end
 				
 	-- Check if the next node is reached
@@ -2062,11 +2384,24 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 		ml_navigation.lastconnectiontimer = Now()
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
 		NavigationManager.NavPathNode = ml_navigation.pathindex
+		ml_navigation:ResetAutoFollowState()
 		
 	else						
 		ml_navigation.GUI.lastAction = "Walk to Node"
+		if (ml_navigation:UseAutoFollowPathing()) then
+			ml_navigation:DispatchAutoFollowNode(nextnode, true)
+			if (IsDiving()) then
+				local minVector = math.normalize(math.vectorize(ppos,nextnode))
+				local pitch = math.asin(-1 * minVector.y)
+				Player:SetPitch(pitch)
+			end
+			return
+		end
 		
 		-- We have not yet reached our node
+		if (not IsFlying() and not IsDiving()) then
+			ml_navigation:ApplyFollowCamPitch(nextnode.y)
+		end
 		if (adjustedHeading ~= 0) then
 			Player:SetFacing(adjustedHeading)
 		else
@@ -2203,9 +2538,14 @@ function ml_navigation:SetEnsureStartPosition(nextnode, playerpos, navconnection
 	end
 	
 	self.ensureposition = {x = nearside.x, y = nearside.y, z = nearside.z}
-		
-	if(nearside.hx ~= 0 ) then
+
+	-- In auto-follow mode we keep the position correction, but skip heading enforcement to avoid camera pull.
+	if (self:UseAutoFollowPathing()) then
+		self.ensureheading = nil
+		self.ensureheadingtargetpos = nil
+	elseif(nearside.hx ~= 0 ) then
 		self.ensureheading = nearside
+		self.ensureheadingtargetpos = nil
 	else	
 		self.ensureheading = nil
 		self.ensureheadingtargetpos = {x = farside.x, y = farside.y, z = farside.z}
@@ -2232,6 +2572,10 @@ function ml_navigation:EnsurePosition(ppos)
 		
 		-- update pos after teleport
 		local ppos = Player.pos
+		if (self:UseAutoFollowPathing()) then
+			self.ensureheading = nil
+			self.ensureheadingtargetpos = nil
+		end
 		local anglediff = self.ensureheading and (ppos.h - self.ensureheading.hx)
 		local anglediff2= self.ensureheadingtargetpos and math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = self.ensureheadingtargetpos.x-ppos.x, y = 0, z = self.ensureheadingtargetpos.z-ppos.z})
 		

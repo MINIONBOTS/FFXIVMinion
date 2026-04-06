@@ -26,8 +26,11 @@
 		disabledrawing 					= "Disable Rendering",
 		killaggrononfateenemies 		= "Kill attacking None-Fate Enemies",
 		avoidAOE						 = "Avoid AOE",
-		smoothFacing					 = "Smooth Facing",
-		smoothFacingRatio				 = "Smooth Facing Ratio",
+		flightFollowCam				 = "Flight Follow Camera",
+		flightFollowCamGroup			 = "Flight Follow Camera",
+		flightFollowCamRatio			 = "Smoothness",
+		flightFollowCamPitch			 = "Pitch Down",
+		flightFollowCamPitchDownRatio = "Pitch Down Ratio",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",

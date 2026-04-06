@@ -2023,6 +2023,7 @@ function ffxiv_craft.AddToProfile()
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
 		local recipeDetails = FFXIVLib.API.Items.GetRecipeDetails(recipeid)
+		if not recipeDetails then return end
 		local thisOrder = { 	
 			id = recipeid, 
 			item = recipeDetails.id, 

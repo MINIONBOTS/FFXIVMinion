@@ -4,6 +4,151 @@ ffxiv_task_test.lastPathCheck = 0
 ffxiv_task_test.flightMesh = {}
 ffxiv_task_test.lastTaskSet = {}
 ffxiv_task_test.lastRect = {}
+ffxiv_task_test.lastMetricUpdate = 0
+ffxiv_task_test.metricDist2d = 0
+ffxiv_task_test.metricDist3d = 0
+ffxiv_task_test.metricReachableText = "pending"
+ffxiv_task_test.metricLastResolvedDist3d = nil
+ffxiv_task_test.metricLastResolvedReachable = nil
+ffxiv_task_test.metricAsyncQuery = {
+	pending = false,
+	from = nil,
+	to = nil,
+	startedAt = 0,
+	timeoutMs = 1500,
+}
+
+local function _PosEquals(a, b)
+	return (a and b and a.x == b.x and a.y == b.y and a.z == b.z)
+end
+
+local function _NavTestPathDistance(path)
+	if (not table.valid(path)) then return nil end
+	local keys = {}
+	for k,v in pairs(path) do
+		if (type(k) == "number" and type(v) == "table") then
+			table.insert(keys, k)
+		end
+	end
+	if (#keys < 2) then return nil end
+	table.sort(keys)
+	local dist = 0
+	for i = 2, #keys do
+		local a = path[keys[i - 1]]
+		local b = path[keys[i]]
+		if (a and b and a.x and a.y and a.z and b.x and b.y and b.z) then
+			dist = dist + Distance3D(a.x, a.y, a.z, b.x, b.y, b.z)
+		end
+	end
+	return (dist > 0) and dist or nil
+end
+
+local function _NavTestPathCacheID(pos1, pos2)
+	local mapId = (Player and Player.localmapid) and tostring(Player.localmapid) or "0"
+	local floorFlags = NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR) or 0
+	local cubeFlags = NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE) or 0
+	local key = string.format("%s|%d|%d|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f",
+		mapId, floorFlags, cubeFlags,
+		pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)
+	local hash = 5381
+	for i = 1, #key do
+		hash = ((hash * 33) + string.byte(key, i)) % 2147483647
+	end
+	if (hash <= 0) then hash = 1 end
+	return hash
+end
+
+local function _NavTestGetPathDistanceAsync(pos1, pos2)
+	local dist = math.distance3d(pos1, pos2)
+	local cacheID = _NavTestPathCacheID(pos1, pos2)
+	local result = NavigationManager:GetPathAsync(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, cacheID, true)
+	if (type(result) == "table" and table.valid(result)) then
+		local pathdist = _NavTestPathDistance(result)
+		if (pathdist ~= nil) then
+			return pathdist, true
+		end
+		local convertedDist = NavigationManager:GetPathDistance(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, cacheID)
+		if (type(convertedDist) == "number" and convertedDist > 0 and convertedDist < 1000000000) then
+			return convertedDist, true
+		end
+		return nil, true
+	elseif (type(result) == "number") then
+		if (result < 0) then
+			return nil, true
+		end
+		return dist, false
+	end
+	return dist, false
+end
+
+function ffxiv_task_test.UpdateNavMetrics()
+	local now = Now()
+	if (TimeSince(ffxiv_task_test.lastMetricUpdate) < 200) then
+		return
+	end
+	ffxiv_task_test.lastMetricUpdate = now
+
+	local ppos = Player.pos
+	local tx = IsNull(tonumber(gTestMapX), 0)
+	local ty = IsNull(tonumber(gTestMapY), 0)
+	local tz = IsNull(tonumber(gTestMapZ), 0)
+	local targetPos = { x = tx, y = ty, z = tz }
+
+	ffxiv_task_test.metricDist2d = Distance2D(ppos.x, ppos.z, tx, tz)
+	local euclideanDist3d = Distance3D(ppos.x, ppos.y, ppos.z, tx, ty, tz)
+
+	local query = ffxiv_task_test.metricAsyncQuery
+	if (query.pending) then
+		if (not _PosEquals(query.to, targetPos)) then
+			query.pending = false
+			query.from = nil
+			query.to = nil
+		end
+	end
+
+	local asyncDist, resolved = nil, false
+	if (query.pending and table.valid(query.from) and table.valid(query.to)) then
+		asyncDist, resolved = _NavTestGetPathDistanceAsync(query.from, query.to)
+		if (resolved == true) then
+			query.pending = false
+			query.from = nil
+			query.to = nil
+		elseif (TimeSince(query.startedAt) > query.timeoutMs) then
+			query.pending = false
+			query.from = nil
+			query.to = nil
+		end
+	else
+		query.from = { x = ppos.x, y = ppos.y, z = ppos.z }
+		query.to = targetPos
+		query.startedAt = now
+		asyncDist, resolved = _NavTestGetPathDistanceAsync(query.from, query.to)
+		if (resolved ~= true) then
+			query.pending = true
+		end
+	end
+
+	if (resolved == true) then
+		local resolvedReachable = (asyncDist ~= nil)
+		ffxiv_task_test.metricLastResolvedReachable = resolvedReachable
+		ffxiv_task_test.metricLastResolvedDist3d = resolvedReachable and asyncDist or euclideanDist3d
+		ffxiv_task_test.metricDist3d = ffxiv_task_test.metricLastResolvedDist3d
+		ffxiv_task_test.metricReachableText = resolvedReachable and "true" or "false"
+	else
+		-- Keep the last resolved values while async path query is still warming.
+		if (ffxiv_task_test.metricLastResolvedDist3d ~= nil) then
+			ffxiv_task_test.metricDist3d = ffxiv_task_test.metricLastResolvedDist3d
+			if (ffxiv_task_test.metricLastResolvedReachable ~= nil) then
+				ffxiv_task_test.metricReachableText = (ffxiv_task_test.metricLastResolvedReachable and "true" or "false") .. " (pending)"
+			else
+				ffxiv_task_test.metricReachableText = "pending"
+			end
+		else
+			ffxiv_task_test.metricDist3d = euclideanDist3d
+			ffxiv_task_test.metricReachableText = "pending"
+		end
+	end
+end
 
 function ffxiv_task_test.Create()
     local newinst = inheritsFrom(ffxiv_task_test)
@@ -189,6 +334,8 @@ ffxiv_task_test.GUI = {
 }
 
 function ffxiv_task_test:Draw()
+	ffxiv_task_test.UpdateNavMetrics()
+
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = GUI:GetStyle().windowpadding.y
 	local framePaddingY = GUI:GetStyle().framepadding.y
@@ -229,9 +376,9 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##X",gTestMapX),"gTestMapX");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Y",gTestMapY),"gTestMapY");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Z",gTestMapZ),"gTestMapZ");
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance2D(Player.pos.x,Player.pos.z,IsNull(tonumber(gTestMapX),0),IsNull(tonumber(gTestMapZ),0))))
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,IsNull(tonumber(gTestMapX),0),IsNull(tonumber(gTestMapY),0),IsNull(tonumber(gTestMapZ),0))))
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(NavigationManager:IsReachable({x = IsNull(tonumber(gTestMapX),0), y = IsNull(tonumber(gTestMapY),0), z = IsNull(tonumber(gTestMapZ),0)})))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(ffxiv_task_test.metricDist2d))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tonumber(ffxiv_task_test.metricDist3d))
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text(ffxiv_task_test.metricReachableText)
 	
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(GetMapSection(Player.localmapid, Player.pos)))
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(tostring(GetMapSection(Player.localmapid, {x = tonumber(gTestMapX), y = tonumber(gTestMapY), z = tonumber(gTestMapZ)})))

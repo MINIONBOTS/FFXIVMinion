@@ -2136,6 +2136,16 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("IsJumping") GUI:SameLine(200) GUI:InputText("##devmov8",tostring(Player:IsJumping()))
 					GUI:SameLine()
 					if (GUI:Button("Jump##"..tostring(id),50,15) ) then Player:Jump() end
+					GUI:Dummy(0,4)
+					local cam = Player.camera
+					if (cam) then
+						GUI:BulletText("Camera X") GUI:SameLine(200) GUI:InputText("##devmovcamx", tostring(cam.x))
+						GUI:BulletText("Camera Y") GUI:SameLine(200) GUI:InputText("##devmovcamy", tostring(cam.y))
+						GUI:BulletText("Camera Z") GUI:SameLine(200) GUI:InputText("##devmovcamz", tostring(cam.z))
+						GUI:BulletText("Camera H") GUI:SameLine(200) GUI:InputText("##devmovcamh", tostring(cam.h))
+						GUI:BulletText("Camera Pitch") GUI:SameLine(200) GUI:InputText("##devmovcampitch", tostring(cam.pitch))
+						GUI:Dummy(0,4)
+					end
 					GUI:BulletText("GetSpeed-Forward") GUI:SameLine(200) GUI:InputText("##devmov9",tostring(Player:GetSpeed()["Forward"]))
 					GUI:BulletText("GetSpeed-Backward") GUI:SameLine(200) GUI:InputText("##devmov9a",tostring(Player:GetSpeed()["Backward"]))
 					GUI:BulletText("GetSpeed-Strafe") GUI:SameLine(200) GUI:InputText("##devmov9b",tostring(Player:GetSpeed()["Strafe"]))
@@ -3037,6 +3047,9 @@ function dev.DrawGameObjectDetails(c,isplayer,ispet)
 	local p = c.pos
 	if ( GUI:TreeNode("Position Data") ) then
 		GUI:BulletText("Position") GUI:SameLine(200)  GUI:InputFloat4( "##dev14", p.x, p.y, p.z, p.h, 2, GUI.InputTextFlags_ReadOnly)
+		if (isplayer and c.flying and c.flying.isflying) then
+			GUI:BulletText("Pitch") GUI:SameLine(200) GUI:InputText("##dev14pitch", tostring(c.flying.pitch))
+		end
 		GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##dev15",tostring(c.hitradius))
 		GUI:BulletText("Distance") GUI:SameLine(200) GUI:InputFloat("##dev16", c.distance,0,0,2)
 		GUI:BulletText("Distance2D") GUI:SameLine(200) GUI:InputFloat("##dev17", c.distance2d,0,0,2)

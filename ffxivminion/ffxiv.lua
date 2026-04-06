@@ -1034,8 +1034,14 @@ function ffxivminion.SetMainVars()
 	gChocoItemString = gChocoItems[gChocoItem]
 
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE", false)
-	gSmoothFacing = ffxivminion.GetSetting("gSmoothFacing", false)
-	gSmoothFacingRatio = ffxivminion.GetSetting("gSmoothFacingRatio", 0.30)
+	gFlightFollowCam = ffxivminion.GetSetting("gFlightFollowCam", true)
+	gFlightFollowCamRatio = ffxivminion.GetSetting("gFlightFollowCamRatio", 0.015)
+	gFlightFollowCamPitch = ffxivminion.GetSetting("gFlightFollowCamPitch", -0.50)
+	gFlightFollowCamPitchDownRatio = ffxivminion.GetSetting("gFlightFollowCamPitchDownRatio", 0.50)
+	if (Player and Player.SetSmoothCamRatio and gFlightFollowCamRatio ~= nil) then
+		Player:SetSmoothCamRatio(gFlightFollowCamRatio)
+	end
+	gUseAutoFollowPath = ffxivminion.GetSetting("gUseAutoFollowPath", false)
 	gAvoidHP = ffxivminion.GetSetting("gAvoidHP", 100)
 	gRestHP = ffxivminion.GetSetting("gRestHP", 70)
 	gRestMP = ffxivminion.GetSetting("gRestMP", 0)
@@ -1203,9 +1209,20 @@ function ffxivminion.SetModeOptions(mode)
 			Hacks:SkipCutscene(gSkipCutscene)
 			Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			gSmoothFacing = Settings.FFXIVMINION.gSmoothFacing
-			gSmoothFacingRatio = Settings.FFXIVMINION.gSmoothFacingRatio
-			if gSmoothFacingRatio then Player:SetSmoothFacingRatio(gSmoothFacingRatio) end
+			gFlightFollowCam = IsNull(Settings.FFXIVMINION.gFlightFollowCam, true)
+			gFlightFollowCamRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamRatio, 0.015)
+			gFlightFollowCamPitch = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitch, -0.50)
+			gFlightFollowCamPitchDownRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitchDownRatio, 0.50)
+			gUseAutoFollowPath = Settings.FFXIVMINION.gUseAutoFollowPath
+			if (ml_navigation) then
+				ml_navigation.flightFollowCam = gFlightFollowCam
+				ml_navigation.flightFollowCamRatio = gFlightFollowCamRatio
+				ml_navigation.flightFollowCamPitch = gFlightFollowCamPitch
+				ml_navigation.flightFollowCamPitchDownRatio = gFlightFollowCamPitchDownRatio
+			end
+			if (Player and Player.SetSmoothCamRatio and gFlightFollowCamRatio ~= nil) then
+				Player:SetSmoothCamRatio(gFlightFollowCamRatio)
+			end
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 		end
 	end
@@ -1466,6 +1483,9 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
+	if (ml_navigation and ml_navigation.CancelFlightFollowCam) then
+		ml_navigation:CancelFlightFollowCam()
+	end
 	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= "assistMode" then
 		Player:Stop()
 	end
@@ -2157,19 +2177,27 @@ function ml_global_information.DrawSettings()
 					end
 
 					GUI_Capture(GUI:Checkbox(GetString("Avoid AOE"), gAvoidAOE), "gAvoidAOE");
-
-					GUI_Capture(GUI:Checkbox(GetString("Smooth Facing"), gSmoothFacing), "gSmoothFacing", function()
-						ml_navigation.smoothFacing = gSmoothFacing
-					end);
-					if (gSmoothFacing) then
-						GUI:SameLine(150)
-						GUI:PushItemWidth(100);
-						GUI_DrawFloatMinMax(GetString("Smooth Facing Ratio"), "gSmoothFacingRatio", 0.005, 0.05, 3, 0.005, 1.0, function()
-							ml_navigation.smoothFacingRatio = gSmoothFacingRatio
-							Player:SetSmoothFacingRatio(gSmoothFacingRatio)
+					GUI:Spacing();
+					GUI:Spacing();
+					GUI:BeginChild("##flight-follow-cam", 265, GUI_GetFrameHeight(5), true)
+						GUI_Capture(GUI:Checkbox(GetString("flightFollowCam"), gFlightFollowCam), "gFlightFollowCam", function()
+							ml_navigation.flightFollowCam = gFlightFollowCam
+						end);
+						GUI:PushItemWidth(120);
+						GUI_DrawFloatMinMax(GetString("flightFollowCamRatio"), "gFlightFollowCamRatio", 0.001, 0.005, 3, 0.001, 1.0, function()
+							ml_navigation.flightFollowCamRatio = gFlightFollowCamRatio
+							if (Player and Player.SetSmoothCamRatio) then
+								Player:SetSmoothCamRatio(gFlightFollowCamRatio)
+							end
+						end);
+						GUI_DrawFloatMinMax(GetString("flightFollowCamPitch"), "gFlightFollowCamPitch", 0.005, 0.05, 3, -1.5, 0.20, function()
+							ml_navigation.flightFollowCamPitch = gFlightFollowCamPitch
+						end);
+						GUI_DrawFloatMinMax(GetString("flightFollowCamPitchDownRatio"), "gFlightFollowCamPitchDownRatio", 0.05, 0.10, 2, 0.0, 1.5, function()
+							ml_navigation.flightFollowCamPitchDownRatio = gFlightFollowCamPitchDownRatio
 						end);
 						GUI:PopItemWidth()
-					end
+					GUI:EndChild()
 
 				end
 
