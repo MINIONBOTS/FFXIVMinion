@@ -4330,133 +4330,61 @@ function c_dointeract:evaluate()
 	end
 	
 	if (interactable) then
-		local ipos = interactable.pos
-		local ydiff = (ipos.y - ppos.y)
-		local radius = (interactable.hitradius >= 2 and interactable.hitradius) or 2
-		local defaults = {
-			[0] = 2.5,
-			[3] = 5.5,
-			[6] = 3.5,
-			[7] = 3.5,
-		}
-		
-		-- general rules so far:
-		-- aetherytes (radius 2): distance2d of slightly less than 8
-		-- npcs (radius 0.5) (type3): distance2d of 6
-		-- gatherables (radius 0.5) (all so far) distance2d of 2.5
-		-- npcs (radius 2) (type 7): distance2d of 2.1
-		-- npcs (radius 0.5) (type 7): distance2d of 3.5
-
-		--if (myTarget and myTarget.id == interactable.id and myTarget.interactable) then
+		-- Keep approaching the target until the game reports it as interactable.
 		if (myTarget and myTarget.id == interactable.id) then
-			if (table.valid(interactable) and ((not ml_task_hub:CurrentTask().interactRange3d) or (ml_task_hub:CurrentTask().interactRange3d and interactable.distance < ml_task_hub:CurrentTask().interactRange3d))) then	
-				if (interactable.type == 5) then
-					if ((IsAetheryte(interactable.contentid) and ydiff <= 4.7 and ydiff >= -1.3) and ((interactable.distance2d <= 4.5) or (interactable.interactable and interactable.distance2d <= 9 and interactable.distance <= 9))) or
-						(not IsAetheryte(interactable.contentid) and interactable.distance2d <= 4 and ydiff <= 3 and ydiff >= -1.2)
-					then
-						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
-							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
-								e_killaggrotarget:execute()
-								return false
-							end
+			if (table.valid(interactable)) then
+				if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
+					if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
+						e_killaggrotarget:execute()
+						return false
+					end
 
-							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-								return true
-							end
-							
-							local convoList = GetConversationList()
-							if (not table.valid(convoList) and not MIsLocked()) then
-								d("["..ml_task_hub:CurrentTask().name.."]: Interacting with aetheryte target.")
-								Player:Interact(interactable.id)
-							end
-							
-							if (TimeSince(c_dointeract.lastInteract) > 2000) then
-								ml_global_information.Await(1000)
-								return true
-							end
-							
-							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-								ml_task_hub:CurrentTask().interactAttempts = 1
-							else
-								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-							end
-							c_dointeract.lastInteract = Now()
-							return false
-						else
-							--Dismount()
-							Descend()
-							--ml_global_information.Queue(1000,Dismount)
+					-- Special handler for gathering. Need to wait on GP before interacting sometimes.
+					if not ml_task_hub:CurrentTask().touchOnly and (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
+						d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
+						Player:Stop()
+						return true
+					end
+
+					if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+						d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
+						return false
+					end
+
+					if (interactable.interactable) then
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 							return true
 						end
+
+						if IsControlOpen("_TextError") and FFXIVLib.API.Strings.Contains(GetControl("_TextError"):GetStrings()[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
+							return false
+						end
+
+						d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."].")
+						Player:Interact(interactable.id)
+						c_dointeract.lastInteract = Now()
+						if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+							ml_task_hub:CurrentTask().interactAttempts = 1
+						else
+							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+						end
+						return true
 					end
+
+					if (TimeSince(c_dointeract.lastInteract) > 2000 and not Player:IsMoving()) then
+						if (ml_task_hub:CurrentTask().interactAttempts == nil) then
+							ml_task_hub:CurrentTask().interactAttempts = 1
+						else
+							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
+						end
+						c_dointeract.lastInteract = Now()
+					end
+					return false
 				else
-					local range = ml_task_hub:CurrentTask().interactRange3d
-					if (not ml_task_hub:CurrentTask().interactRange3d or ml_task_hub:CurrentTask().interactRange3d == 8) then
-					
-						if defaults[interactable.type] then
-							ml_task_hub:CurrentTask().interactRange3d = defaults[interactable.type]
-							range = ml_task_hub:CurrentTask().interactRange3d
-						end
-					end
-					range = range or 3.5
-					
-					ml_debug("[DoInteract]: Required range :"..tostring(range)..", Actual range:"..tostring(interactable.distance)..", IsEntityReachable:"..tostring(IsEntityReachable(interactable,range)))
-					
-					if (interactable and (IsEntityReachable(interactable,range) or ml_task_hub:CurrentTask().inflight) and interactable.distance < range) then
-						if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
-							if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
-								e_killaggrotarget:execute()
-								return false
-							end
-				
-							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
-								Player:Stop()
-								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-								return true
-							end 
-							
-							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
-							if not ml_task_hub:CurrentTask().touchOnly and (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
-								d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
-								Player:Stop()
-								return true
-							end
-							
-							if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-								d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
-								return false
-							end
-							
-							d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target type ["..tostring(interactable.type).."].")
-							local tpos = interactable.pos
-							local gPos = ml_task_hub:CurrentTask().pos
-							local dist3d = math.distance3d(gPos,tpos)  
-							if (table.valid(tpos) and table.valid(gPos)) then
-								if IsControlOpen("_TextError") and FFXIVLib.API.Strings.Contains(GetControl("_TextError"):GetStrings()[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
-									return false
-								elseif interactable.interactable then
-									Player:Stop()
-									d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."] at a distance of : "..tostring(Distance3D(Player.pos.x,Player.pos.y,Player.pos.z, tpos.x, tpos.y, tpos.z)))
-									Player:Interact(interactable.id)
-									return true
-								end
-							end
-							if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-								ml_task_hub:CurrentTask().interactAttempts = 1
-							else
-								ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-							end
-							return false
-						
-						else
-							--Dismount()
-							Descend()
-							--ml_global_information.Queue(1000,Dismount)
-							return true
-						end
-					end
+					Descend()
+					return true
 				end
 			end
 		end

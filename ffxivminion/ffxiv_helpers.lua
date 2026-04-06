@@ -10471,9 +10471,13 @@ function GetInteractableEntity(contentids,types)
 			local ppos = Player.pos
 			local nearest, nearestDistance = nil, math.huge
 			for i,interact in pairs(validInteracts) do
-				local dist = interact.distance2d
-				if (not nearest or (nearest and dist < nearestDistance)) then
-					nearest, nearestDistance = interact, dist
+				local failedInteracts = ml_global_information and ml_global_information.failedInteracts
+				local failTime = (failedInteracts and failedInteracts[interact.id]) or 0
+				if (failTime == 0 or TimeSince(failTime) > 30000) then
+					local dist = interact.distance2d
+					if (not nearest or (nearest and dist < nearestDistance)) then
+						nearest, nearestDistance = interact, dist
+					end
 				end
 			end
 			

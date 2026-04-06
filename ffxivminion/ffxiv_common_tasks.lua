@@ -228,6 +228,13 @@ function ffxiv_task_movetopos:task_complete_eval()
 		
 		if (Player.onmesh or IsFlying()) then
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+				if (self.interact and self.interact ~= 0) then
+					local interactable = EntityList:Get(self.interact)
+					if (table.valid(interactable) and not interactable.interactable) then
+						return false
+					end
+				end
+
 				Player:Stop()
 				if (not self.remainMounted and Player.ismounted) then
 					Dismount()
