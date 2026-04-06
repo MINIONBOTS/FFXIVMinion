@@ -229,6 +229,9 @@ function c_killaggrotarget:evaluate()
     return false
 end
 function e_killaggrotarget:execute()
+	if (ml_navigation and ml_navigation.DisableAutoFollow) then
+		ml_navigation:DisableAutoFollow(true)
+	end
 	local newTask = ffxiv_task_grindCombat.Create()
 	Player:SetTarget(c_killaggrotarget.targetid)
     newTask.targetid = c_killaggrotarget.targetid
@@ -330,7 +333,7 @@ function e_assistleader:execute()
 					end
 				end
 				if (not EntityIsFrontTight(target)) then
-					Player:SetFacing(pos.x,pos.y,pos.z) 
+					TryFaceTarget(pos.x,pos.y,pos.z) 
 				end
 			end
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
@@ -363,7 +366,7 @@ function e_assistleader:execute()
 						local target = EntityList:Get(targetid)
 						if (target) then
 							local targetPos = target.pos
-							Player:SetFacing(targetPos.x,targetPos.y,targetPos.z)
+							TryFaceTarget(targetPos.x,targetPos.y,targetPos.z)
 						end
 					end,
 					function ()
@@ -375,7 +378,7 @@ function e_assistleader:execute()
 			end
 			if (InCombatRange(target.id) or dist <= 5) then
 				Player:SetTarget(target.id)
-				Player:SetFacing(pos.x,pos.y,pos.z) 
+				TryFaceTarget(pos.x,pos.y,pos.z) 
 				if (Player:IsMoving()) then
 					Player:Stop()
 				end
@@ -1159,8 +1162,6 @@ function e_interactgate:execute()
 	end
 	
 	local gate = EntityList:Get(e_interactgate.id)
-	local pos = gate.pos
-	SetFacing(pos.x,pos.y,pos.z)
 	Player:Interact(gate.id)
 	e_interactgate.timer = Now() + 1500
 end
@@ -1868,7 +1869,7 @@ function e_followleader:execute()
 		if (not Player:IsMoving()) then
 			local myPos = Player.pos
 			local leaderid = leader.id
-			Player:SetFacing(leaderPos.x,leaderPos.y,leaderPos.z)
+			TryFaceTarget(leaderPos.x,leaderPos.y,leaderPos.z)
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
 			ml_global_information.AwaitDo(500, 30000, 
 				function ()
@@ -1889,7 +1890,7 @@ function e_followleader:execute()
 					local leader = EntityList:Get(leaderid)
 					if (leader) then
 						local leaderPos = leader.pos
-						Player:SetFacing(leaderPos.x,leaderPos.y,leaderPos.z)
+						TryFaceTarget(leaderPos.x,leaderPos.y,leaderPos.z)
 					end
 				end,
 				function ()
@@ -4358,8 +4359,6 @@ function c_dointeract:evaluate()
 								e_killaggrotarget:execute()
 								return false
 							end
-				
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 
 							if (TimeSince(c_dointeract.lastInteract) > 2000 and Player:IsMoving()) then
 								Player:Stop()
@@ -4417,8 +4416,6 @@ function c_dointeract:evaluate()
 								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								return true
 							end 
-							
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							
 							-- Special handler for gathering.  Need to wait on GP before interacting sometimes.
 							if not ml_task_hub:CurrentTask().touchOnly and (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then

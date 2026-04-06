@@ -120,7 +120,7 @@ function ffxiv_task_assist:Process()
 								end
 							end
 							if (not EntityIsFrontTight(target)) then
-								Player:SetFacing(pos.x,pos.y,pos.z) 
+								TryFaceTarget(pos.x,pos.y,pos.z) 
 							end
 						end
 						if (InCombatRange(target.id) and target.attackable and target.alive) then
@@ -139,7 +139,7 @@ function ffxiv_task_assist:Process()
 							end
 						end
 						if (InCombatRange(target.id)) then
-							Player:SetFacing(pos.x,pos.y,pos.z) 
+							TryFaceTarget(pos.x,pos.y,pos.z) 
 							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
 								Player:Stop()
 							end

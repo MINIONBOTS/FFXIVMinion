@@ -13,6 +13,66 @@
 --that this movetopos task has up2date positions and is still valid.
 ---------------------------------------------------------------------------------------------
 
+local function TaskGetHeadingDeltaAbs(currentHeading, targetHeading)
+	if (currentHeading == nil or targetHeading == nil) then
+		return math.huge
+	end
+	local diff = targetHeading - currentHeading
+	while (diff > math.pi) do
+		diff = diff - (2 * math.pi)
+	end
+	while (diff < -math.pi) do
+		diff = diff + (2 * math.pi)
+	end
+	return math.abs(diff)
+end
+
+local function TaskIsFacingHeading(targetHeading, epsilon)
+	if (ml_navigation and ml_navigation.IsFacingHeading) then
+		return ml_navigation:IsFacingHeading(targetHeading, epsilon)
+	end
+	if (not Player or not Player.pos or targetHeading == nil) then
+		return false
+	end
+	return TaskGetHeadingDeltaAbs(Player.pos.h, targetHeading) <= (epsilon or 0.01)
+end
+
+local function TaskTryFaceHeading(targetHeading, epsilon)
+	if (TaskIsFacingHeading(targetHeading, epsilon)) then
+		return false
+	end
+	Player:SetFacing(targetHeading)
+	return true
+end
+
+local function TaskIsFacingTarget(targetX, targetY, targetZ, angleEpsilon)
+	if (ml_navigation and ml_navigation.IsFacingTarget) then
+		return ml_navigation:IsFacingTarget(targetX, targetY, targetZ, angleEpsilon)
+	end
+	if (not Player or not Player.pos) then
+		return false
+	end
+	local playerPos = Player.pos
+	local dx = targetX - playerPos.x
+	local dz = targetZ - playerPos.z
+	if (math.abs(dx) < 0.001 and math.abs(dz) < 0.001) then
+		return true
+	end
+	local angleDiff = math.angle({x = math.sin(playerPos.h), y = 0, z = math.cos(playerPos.h)}, {x = dx, y = 0, z = dz})
+	return angleDiff <= (angleEpsilon or 2)
+end
+
+local function TaskTryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
+	if (ml_navigation and ml_navigation.TryFaceTarget) then
+		return ml_navigation:TryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
+	end
+	if (TaskIsFacingTarget(targetX, targetY, targetZ, angleEpsilon)) then
+		return false
+	end
+	Player:SetFacing(targetX, targetY, targetZ)
+	return true
+end
+
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)
@@ -184,7 +244,7 @@ end
 function ffxiv_task_movetopos:task_complete_execute()
 	Player:Stop()
 	if (self.doFacing and gUseAutoFollowPath ~= true) then
-		Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
+		TaskTryFaceHeading(ml_task_hub:CurrentTask().pos.h)
     end
     self.completed = true
 	ml_debug("[MOVETOPOS]: Task completing.")
@@ -1107,7 +1167,7 @@ function ffxiv_task_avoid:task_complete_eval()
 		end
 		if (target ~= nil) then
 			local pos = target.pos
-			Player:SetFacing(pos.x,pos.y,pos.z)
+			TaskTryFaceTarget(pos.x,pos.y,pos.z)
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				SkillMgr.Cast( target )
 			end
@@ -1122,7 +1182,7 @@ function ffxiv_task_avoid:task_complete_execute()
 	local target = MGetTarget()
 	if (target ~= nil) then
 		local pos = target.pos
-		Player:SetFacing(pos.x,pos.y,pos.z)
+		TaskTryFaceTarget(pos.x,pos.y,pos.z)
 	end
 	self.completed = true
 end
@@ -1482,7 +1542,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 				--if (not EntityIsFrontTight(target)) then
 					--d("Need to face the enemy so we can cast.")
-					Player:SetFacing(pos.x,pos.y,pos.z) 
+					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
 				--end
 			end
 			
@@ -1543,7 +1603,7 @@ function ffxiv_task_grindCombat:Process()
 						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 					end
 				else
-					Player:SetFacing(pos.x,pos.y,pos.z) 
+					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
 					if (Player:IsMoving() and InCombatRange(target.id)) then
 						Player:Stop()
 					end
@@ -1715,7 +1775,6 @@ function ffxiv_mesh_interact:task_complete_eval()
 				end
 	
 				--if (interact and interact.distance < (radius * 4)) then
-					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
 					self.interactLatency = Now() + 1000
 				end

@@ -2057,6 +2057,20 @@ function SetFacing( posX, posY, posZ)
 	
 	Player:SetFacing(posX, posY, posZ)
 end
+function TryFaceHeading(targetHeading, epsilon)
+	if (ml_navigation and ml_navigation.TryFaceHeading) then
+		return ml_navigation:TryFaceHeading(targetHeading, epsilon)
+	end
+	Player:SetFacing(targetHeading)
+	return true
+end
+function TryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
+	if (ml_navigation and ml_navigation.TryFaceTarget) then
+		return ml_navigation:TryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
+	end
+	Player:SetFacing(targetX, targetY, targetZ)
+	return true
+end
 function HasContentID(entity, contentIDs) 	
 	local cID = entity.contentid
 	

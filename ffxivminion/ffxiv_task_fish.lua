@@ -2603,7 +2603,7 @@ function ffxiv_task_syncadjust:Init()
     self:AddTaskCheckCEs()
 end
 function ffxiv_task_syncadjust:task_complete_eval()
-	Player:SetFacing(self.heading)
+	TryFaceHeading(self.heading)
 	
 	if (not Player:IsMoving()) then
 		Player:Move(FFXIV.MOVEMENT.FORWARD)

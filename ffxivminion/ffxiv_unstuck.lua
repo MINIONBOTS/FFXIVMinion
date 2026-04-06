@@ -148,7 +148,7 @@ function c_stuck:evaluate()
 					if table.valid(attemptReturnPos) then
 						local ppos = Player.pos
 						if (Distance3D(ppos.x,ppos.y,ppos.z,attemptReturnPos.x,attemptReturnPos.y,attemptReturnPos.z) < 10) then
-							Player:SetFacing(attemptReturnPos.pos.x,attemptReturnPos.pos.y,attemptReturnPos.pos.z)
+							TryFaceTarget(attemptReturnPos.pos.x,attemptReturnPos.pos.y,attemptReturnPos.pos.z)
 							local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+2,ppos.z,ppos.x,ppos.y-10,ppos.z) 
 							if (not hit or (hit and (Distance2D(ppos.x,ppos.z,hitx,hitz) > 10))) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)	

@@ -355,7 +355,7 @@ function c_movetonode:evaluate()
 				if (Player.gp.current >= minimumGP or noGPitem ~= "" or touchOnly) then
 					gd("[MoveToNode]: We have enough GP or a nogpitem  set, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
-					Player:SetFacing(gpos.x,gpos.y,gpos.z)
+					TryFaceTarget(gpos.x,gpos.y,gpos.z)
 					
 					local myTarget = MGetTarget()
 					if (myTarget and myTarget.id == gatherable.id) then
