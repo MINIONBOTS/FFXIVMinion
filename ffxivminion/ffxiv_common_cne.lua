@@ -4354,7 +4354,7 @@ function c_dointeract:evaluate()
 					if (interactable.interactable) then
 						if (ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE") then
 							local interactRange3d = IsNull(ml_task_hub:CurrentTask().interactRange3d, 7.5)
-							if (interactable.distance3d > interactRange3d + 1.5) then
+							if (interactable.distance > interactRange3d + 1.5) then
 								if (TimeSince(IsNull(ml_task_hub:CurrentTask().lastFarInteractReset,0)) > 1500) then
 									ml_task_hub:CurrentTask().interact = 0
 									ml_task_hub:CurrentTask().pathChecked = false
