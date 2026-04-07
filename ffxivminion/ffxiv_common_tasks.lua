@@ -1381,6 +1381,7 @@ function ffxiv_task_grindCombat.Create()
 	newinst.pullPos1 = Player.pos
 	newinst.pullPos2 = Player.pos
 	newinst.betterTargetFunction = nil
+	newinst.lastNoCastLog = 0
 	ffxiv_unstuck.Reset()
 	
 	--d("[GrindCombat]: Beginning new task.")
@@ -1558,7 +1559,20 @@ function ffxiv_task_grindCombat:Process()
 				if (InCombatRange(target.id) and target.attackable and target.alive) then
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 						--d("FIRE AWAY")
-						SkillMgr.Cast( target )
+						local casted = SkillMgr.Cast( target )
+						if (not casted and TimeSince(self.lastNoCastLog) > 3000) then
+							local inPvP = IsPVPMap(Player.localmapid)
+							local acrEnabled = (inPvP and gACREnabledPVP) or (not inPvP and gACREnabled)
+							local acrProfile = nil
+							if (inPvP) then
+								acrProfile = table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job] or nil
+							else
+								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
+							end
+							local myTarget = MGetTarget()
+							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
+							self.lastNoCastLog = Now()
+						end
 						if (self.attackThrottle) then
 							if (Player.level > target.level) then
 								self.attackThrottleTimer = Now() + 2900
@@ -1616,7 +1630,21 @@ function ffxiv_task_grindCombat:Process()
 					end
 					-- Check for combat range before executing.
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
-						if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
+						local casted = SkillMgr.Cast( target )
+						if (not casted and TimeSince(self.lastNoCastLog) > 3000) then
+							local inPvP = IsPVPMap(Player.localmapid)
+							local acrEnabled = (inPvP and gACREnabledPVP) or (not inPvP and gACREnabled)
+							local acrProfile = nil
+							if (inPvP) then
+								acrProfile = table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job] or nil
+							else
+								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
+							end
+							local myTarget = MGetTarget()
+							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
+							self.lastNoCastLog = Now()
+						end
+						if (casted and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
 							--Player:Stop()
 							local pullPos = nil
 							local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)

@@ -230,7 +230,7 @@ function c_killaggrotarget:evaluate()
 end
 function e_killaggrotarget:execute()
 	if (ml_navigation and ml_navigation.DisableAutoFollow) then
-		ml_navigation:DisableAutoFollow(true)
+		ml_navigation:DisableAutoFollow(true, "killaggro")
 	end
 	local newTask = ffxiv_task_grindCombat.Create()
 	Player:SetTarget(c_killaggrotarget.targetid)
@@ -4352,6 +4352,19 @@ function c_dointeract:evaluate()
 					end
 
 					if (interactable.interactable) then
+						if (ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE") then
+							local interactRange3d = IsNull(ml_task_hub:CurrentTask().interactRange3d, 7.5)
+							if (interactable.distance3d > interactRange3d + 1.5) then
+								if (TimeSince(IsNull(ml_task_hub:CurrentTask().lastFarInteractReset,0)) > 1500) then
+									ml_task_hub:CurrentTask().interact = 0
+									ml_task_hub:CurrentTask().pathChecked = false
+									ml_task_hub:CurrentTask().lastInteractableSearch = 0
+									ml_task_hub:CurrentTask().lastFarInteractReset = Now()
+								end
+								return false
+							end
+						end
+
 						if (Player:IsMoving()) then
 							Player:Stop()
 							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
@@ -4383,6 +4396,10 @@ function c_dointeract:evaluate()
 					end
 					return false
 				else
+					-- Don't force descent while the navigation system is actively handling a flight path
+					if (table.valid(ml_navigation.path) and ml_navigation.canPath) then
+						return false
+					end
 					Descend()
 					return true
 				end

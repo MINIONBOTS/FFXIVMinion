@@ -686,11 +686,6 @@ ml_navigation.followCamPitchReleaseUntil = 0
 ml_navigation.followCamLastCameraPitch = nil
 ml_navigation.followCamLastTargetPitch = nil
 ml_navigation._lastCamApplyTime = 0
-ml_navigation.followCamLastPathIndex = nil
-ml_navigation.followCamNodeBlendStart = 0
-ml_navigation.followCamNodeBlendUntil = 0
-ml_navigation.followCamNodeBlendFromPitch = nil
-ml_navigation.followCamNodeBlendToPitch = nil
 
 function ml_navigation:UseAutoFollowPathing()
 	if (gUseAutoFollowPath ~= nil) then
@@ -714,45 +709,19 @@ function ml_navigation:ApplyFollowCamPitch(targetY)
 		return false
 	end
 
+	local isGround = (not IsFlying() and not IsDiving())
 	local targetPitch = ml_navigation.flightFollowCamPitch or -0.50
 	local pitchDownRatio = ml_navigation.flightFollowCamPitchDownRatio or 0.0
-	if (pitchDownRatio ~= 0 and Player and Player.flying and Player.flying.pitch and Player.pos and Player.pos.y and targetY ~= nil and targetY < Player.pos.y) then
+	if ((not isGround) and pitchDownRatio ~= 0 and Player and Player.flying and Player.flying.pitch and Player.pos and Player.pos.y and targetY ~= nil and targetY < Player.pos.y) then
 		local downwardFlightPitch = math.abs(Player.flying.pitch)
 		targetPitch = targetPitch - (downwardFlightPitch * pitchDownRatio)
 	end
 	targetPitch = math.max(-1.5, math.min(0.20, targetPitch))
 
-	local isGround = (not IsFlying() and not IsDiving())
 	local cam = Player.camera
 	local now = Now()
 	if (isGround and table.valid(cam) and cam.pitch ~= nil) then
-		local pathIndex = self.pathindex
-		if (pathIndex ~= nil) then
-			if (self.followCamLastPathIndex == nil) then
-				self.followCamLastPathIndex = pathIndex
-			elseif (self.followCamLastPathIndex ~= pathIndex) then
-				self.followCamNodeBlendFromPitch = cam.pitch
-				self.followCamNodeBlendToPitch = targetPitch
-				self.followCamNodeBlendStart = now
-				self.followCamNodeBlendUntil = now + 220
-				self.followCamLastPathIndex = pathIndex
-			end
-		end
-
 		local activeTargetPitch = targetPitch
-		if (self.followCamNodeBlendUntil and now < self.followCamNodeBlendUntil and self.followCamNodeBlendFromPitch ~= nil and self.followCamNodeBlendToPitch ~= nil) then
-			local blendDuration = math.max(1, self.followCamNodeBlendUntil - self.followCamNodeBlendStart)
-			local t = (now - self.followCamNodeBlendStart) / blendDuration
-			t = math.max(0, math.min(1, t))
-			-- smoothstep easing removes visible target jumps at node boundaries
-			local eased = (t * t) * (3 - (2 * t))
-			activeTargetPitch = self.followCamNodeBlendFromPitch + ((self.followCamNodeBlendToPitch - self.followCamNodeBlendFromPitch) * eased)
-		else
-			self.followCamNodeBlendFromPitch = nil
-			self.followCamNodeBlendToPitch = nil
-			self.followCamNodeBlendStart = 0
-			self.followCamNodeBlendUntil = 0
-		end
 
 		-- deduplicate: Update and Draw both call this; skip if already applied this frame
 		if (self._lastCamApplyTime and (now - self._lastCamApplyTime) < 14) then
@@ -830,11 +799,6 @@ function ml_navigation:CancelFlightFollowCam()
 	self.followCamLastCameraPitch = nil
 	self.followCamLastTargetPitch = nil
 	self._lastCamApplyTime = 0
-	self.followCamLastPathIndex = nil
-	self.followCamNodeBlendStart = 0
-	self.followCamNodeBlendUntil = 0
-	self.followCamNodeBlendFromPitch = nil
-	self.followCamNodeBlendToPitch = nil
 	if (not Player) then
 		return
 	end
@@ -855,7 +819,7 @@ function ml_navigation:IsAutoFollowActive()
 	return (self:UseAutoFollowPathing() and Player and Player.IsAutoFollowOn and Player:IsAutoFollowOn())
 end
 
-function ml_navigation:DisableAutoFollow(force)
+function ml_navigation:DisableAutoFollow(force, source)
 	if (not self:UseAutoFollowPathing()) then
 		self:ResetAutoFollowState()
 		return
@@ -879,13 +843,17 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
 	if (force or key ~= self.autoFollowNodeKey or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
-		Player:SetAutoFollowPos(node.x, node.y, node.z)
+		local autoFollowY = node.y
+		if (not IsFlying() and not IsDiving() and Player and Player.pos and Player.pos.y ~= nil) then
+			autoFollowY = Player.pos.y
+		end
+		Player:SetAutoFollowPos(node.x, autoFollowY, node.z)
 		self.autoFollowNodeKey = key
 		self.autoFollowLastSet = now
 	end
 
 	if (not IsFlying() and not IsDiving()) then
-		self:ApplyFollowCamPitch(node.y)
+		self:ApplyFollowCamPitch()
 	end
 
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
@@ -957,7 +925,7 @@ function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
 		return
 	end
 	if (not IsFlying() and not IsDiving()) then
-		ml_navigation:ApplyFollowCamPitch(targetY)
+		ml_navigation:ApplyFollowCamPitch()
 	end
 	if (ml_navigation:UseAutoFollowPathing()) then
 		return
@@ -977,7 +945,7 @@ function ml_navigation:EnforceGroundFollowCamPitch()
 	end
 	local nextnode = self.path[self.pathindex]
 	if (nextnode and nextnode.y ~= nil) then
-		self:ApplyFollowCamPitch(nextnode.y)
+		self:ApplyFollowCamPitch()
 	end
 end
 
@@ -1213,7 +1181,9 @@ if (goaldist2d < 2 and goaldist < 6) then
 				ncradius = nc.radius
 			end
 			
-			if (nc.type == 3 and Player.flying.isflying) then
+			if (nc.type == 3) then
+				-- Floor-cube connections: use height-gated radius to prevent premature 3D sphere trigger
+				-- Applies whether flying, mounted (about to fly), or on foot approaching flight transition
 				goaldist2d = goaldist2d - ncradius
 				if (math.abs(ppos.y-node.y) < 3) then -- some of the connection radius' are too big, don't want a full on sphere
 					goaldist = goaldist - ncradius
@@ -1338,6 +1308,10 @@ end
 
 -- Are we using a connection?
 function ml_navigation:IsUsingConnection()
+	-- Active OMC in progress (any type, including floor-cube type 3)
+	if (self.omc_id and self.omc_details) then
+		return true
+	end
 	local lastnode = self.path[self.pathindex - 1]
 	if (table.valid(lastnode)) then
 		local nc
@@ -1350,8 +1324,8 @@ function ml_navigation:IsUsingConnection()
 			else
 				nc = NavigationManager:GetNavConnection(lastnode.navconnectionid)
 			end
-				-- Type 1 is cube-cube, this is needed bcause there's a loading transition when going from diving->water or vice versa.
-			if ( nc and nc.type == 1 ) then
+				-- Type 1 is cube-cube (diving->water transitions), type 3 is floor-cube (flight transitions)
+			if ( nc and (nc.type == 1 or nc.type == 3) ) then
 				return true
 			end			
 		end
@@ -1530,14 +1504,20 @@ function Player:Stop(resetpath)
 	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
-	ml_navigation:DisableAutoFollow(true)
 	ml_navigation:CancelFlightFollowCam()
+	
+	-- StopMovement MUST run before DisableAutoFollow so C++ sees AutoFollow still active
+	-- and properly halts the player (including flight momentum). If AutoFollow is already
+	-- off when StopMovement runs, it only clears keystates and the player keeps gliding.
+	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
+	ml_navigation:DisableAutoFollow(true, "Stop")
 	
 	ffnav.isascending = false
 	ffnav.isdescending = false	
 	ffnav.descentAttempts = 0
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
+	ml_navigation:ResetFlightActionThrottle(true)
 	ml_navigation.lasttargetid = nil
 	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
@@ -1546,7 +1526,6 @@ function Player:Stop(resetpath)
 	ml_navigation.canPath = false
 	ffnav.yield = {}
 	ffnav.process = {}
-	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
 end
 
 -- This should be used instead of Stop() if the path and all of it's info should remain and we are only stopping to perform a task en-route (like mounting).
@@ -1647,6 +1626,88 @@ function ml_navigation.TagNode(node)
 	end
 end
 
+function ml_navigation:GetFlightTransitionKey(pathindex, nextnode, nextnextnode)
+	local n1 = nextnode or {}
+	local n2 = nextnextnode or {}
+	local n1tags = string.format("fc:%d,a:%d,g:%d,c:%d", n1.floorcube and 1 or 0, n1.air and 1 or 0, n1.ground and 1 or 0, n1.is_cube and 1 or 0)
+	local n2tags = string.format("fc:%d,a:%d,g:%d,c:%d", n2.floorcube and 1 or 0, n2.air and 1 or 0, n2.ground and 1 or 0, n2.is_cube and 1 or 0)
+	return tostring(pathindex) .. "|" .. tostring(n1.navconnectionid or 0) .. "|" .. tostring(n2.navconnectionid or 0) .. "|" .. n1tags .. "|" .. n2tags
+end
+
+function ml_navigation:IsUnstableFlightTransition(nextnode, nextnextnode)
+	if (not nextnode) then
+		return false
+	end
+
+	local nextAir = (nextnode.air == true)
+	local nextGround = (nextnode.ground == true)
+	local nextFloorCube = (nextnode.floorcube == true)
+
+	local n2Air = (nextnextnode and nextnextnode.air == true) or false
+	local n2Ground = (nextnextnode and nextnextnode.ground == true) or false
+	local n2FloorCube = (nextnextnode and nextnextnode.floorcube == true) or false
+
+	-- Avoid flight actions when the immediate window looks like an air->ground snap.
+	if (nextFloorCube and nextAir and nextGround) then
+		return true
+	end
+
+	if (nextFloorCube and nextAir and n2FloorCube and n2Ground and not n2Air) then
+		return true
+	end
+
+	return false
+end
+
+function ml_navigation:IsFlightActionThrottled(action, pathindex, nextnode, nextnextnode)
+	if (not ffnav.flightLoopGuard) then
+		ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
+	end
+
+	local guard = ffnav.flightLoopGuard
+	local now = Now()
+	if (now < (guard.lockUntil or 0)) then
+		return true
+	end
+
+	local key = self:GetFlightTransitionKey(pathindex, nextnode, nextnextnode)
+	if (guard.key == key and TimeSince(guard.lastTime or 0) < 3500) then
+		if (guard.lastAction ~= action or action == "mount_fail") then
+			guard.count = (guard.count or 0) + 1
+		end
+	else
+		guard.count = 0
+	end
+
+	guard.key = key
+	guard.lastAction = action
+	guard.lastTime = now
+
+	if ((guard.count or 0) >= 4) then
+		guard.lockUntil = now + 2500
+		guard.count = 0
+		d("[Navigation] - Flight transition loop detected, throttling actions for 2500ms.")
+		return true
+	end
+
+	return false
+end
+
+function ml_navigation:ResetFlightActionThrottle(clearLock)
+	if (not ffnav.flightLoopGuard) then
+		ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
+		return
+	end
+
+	ffnav.flightLoopGuard.key = nil
+	ffnav.flightLoopGuard.lastAction = nil
+	ffnav.flightLoopGuard.lastTime = 0
+	ffnav.flightLoopGuard.count = 0
+	if (clearLock) then
+		ffnav.flightLoopGuard.lockUntil = 0
+	end
+end
+
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
 ml_navigation.lastconnectionid = 0
@@ -1660,7 +1721,7 @@ function ml_navigation.Navigate(event, ticks )
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
-			ml_navigation:DisableAutoFollow()
+			ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
 			return
 		end
 				
@@ -1793,8 +1854,12 @@ function ml_navigation.Navigate(event, ticks )
 							end
 							
 							local timepassed = ticks - ml_navigation.omc_traveltimer
-							if ( timepassed < 3000) then 
-								local dist = math.distance3d(ppos,nextnode)
+							local dist = math.distance3d(ppos,nextnode)
+							-- Capture initial distance on first entry so progress detection works
+							if (ml_navigation.omc_traveldist == 0) then
+								ml_navigation.omc_traveldist = dist
+							end
+							if ( timepassed < 3000) then
 								if ( timepassed > 2000 and ml_navigation.omc_traveldist > dist) then
 									ml_navigation.omc_traveldist = dist
 									ml_navigation.omc_traveltimer = ticks
@@ -2058,7 +2123,7 @@ function ml_navigation.Navigate(event, ticks )
 					end
 					
 					if (MIsLocked()) then
-						ml_navigation:DisableAutoFollow(true)
+						ml_navigation:DisableAutoFollow(true, "MIsLocked")
 						return
 					end
 					
@@ -2113,7 +2178,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 							-- Check if we left our path
 							if (not ml_navigation:IsStillOnPath(ppos,"3ddive")) then 
-								ml_navigation:DisableAutoFollow(true)
+								ml_navigation:DisableAutoFollow(true, "dive-deviation")
 								--d("we have left the path")
 								return 
 							end
@@ -2181,7 +2246,7 @@ function ml_navigation.Navigate(event, ticks )
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						-- Check if we left our path
 						if (not ml_navigation:IsStillOnPath(ppos,"3dfly")) then
-							ml_navigation:DisableAutoFollow(true)
+							ml_navigation:DisableAutoFollow(true, "fly-deviation")
 							return
 						end
 														
@@ -2212,7 +2277,9 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						local targetnode = shallowcopy(nextnode)
-						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextnode.ground == true))
+						local nextnextGround = (nextnextnode and nextnextnode.ground == true) or false
+						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextGround))
+						local unstableTransition = ml_navigation:IsUnstableFlightTransition(nextnode, nextnextnode)
 
 						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
 							for i = 3,5,1 do
@@ -2246,7 +2313,10 @@ function ml_navigation.Navigate(event, ticks )
 							end
 
 							if (ffnav.descentAttempts < 3) then
-								if (canLand and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextnode.ground))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+								if (canLand and not unstableTransition and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextGround))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+									if (ml_navigation:IsFlightActionThrottled("descend", ml_navigation.pathindex, nextnode, nextnextnode)) then
+										return false
+									end
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
 									ml_navigation.lastconnectiontimer = Now()
 									d("Attempt descent.")
@@ -2261,6 +2331,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.lastconnectiontimer = Now()
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							NavigationManager.NavPathNode = ml_navigation.pathindex	
+							ml_navigation:ResetFlightActionThrottle(false)
 							ml_navigation:ResetAutoFollowState()
 						end
 		-- Normal Navigation
@@ -2273,7 +2344,9 @@ function ml_navigation.Navigate(event, ticks )
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
-						local isCubeCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
+						local isGoalCloseForCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
+						local isCubeCon = isGoalCloseForCon
+						
 						if (nextnode.type == GLOBAL.NODETYPE.CUBE or isCubeCon) then -- next node is a cube node OR is a navconnection floor/cube and we reached nextnode
 						
 							--d("isCubeCon:"..tostring(isCubeCon))
@@ -2317,6 +2390,9 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 
 									else
+										if (ml_navigation:IsFlightActionThrottled("mount", ml_navigation.pathindex, nextnode, nextnextnode)) then
+											return
+										end
 										if (Mount()) then
 											d("[Navigation] - Mount for flight.")
 											ffnav.AwaitSuccess(1000,
@@ -2329,6 +2405,7 @@ function ml_navigation.Navigate(event, ticks )
 											)
 											ml_global_information.Await(10000, function () return not ffnav.IsYielding() end)
 										else
+											ml_navigation:IsFlightActionThrottled("mount_fail", ml_navigation.pathindex, nextnode, nextnextnode)
 											d("[Navigation] - Mount for flight failed, retrying...")
 											d("[Navigation] - Is next node close? ["..tostring(ml_navigation:IsGoalClose(ppos,nextnode,lastnode)).."].")
 											d("[Navigation] - Cube? ["..tostring(nextnode.type == GLOBAL.NODETYPE.CUBE).."], Connection ["..tostring(navcon ~= nil and navcon.type == 3).."]")
@@ -2346,7 +2423,18 @@ function ml_navigation.Navigate(event, ticks )
 										return -- need to return here, else  NavigateToNode below continues to move it ;)
 										
 									else
-										local isFlightCon = (nextnode.floorcube == true and (nextnode.air == true or nextnextnode.air == true))
+										local nextnextAir = (nextnextnode and nextnextnode.air == true) or false
+										local isFlightCon = (nextnode.floorcube == true and (nextnode.air == true or nextnextAir) and not ml_navigation:IsUnstableFlightTransition(nextnode, nextnextnode))
+										-- Plain CUBE nodes (no navconnection) are unambiguously airborne targets — treat as flyable
+										-- but keep isFlightCon false so we don't advance the path index past the cube node
+										local shouldAscend = isFlightCon or (nextnode.is_cube and not nextnode.floorcube)
+										if (not shouldAscend) then
+											ml_navigation:NavigateToNode(ppos,nextnode,lastnode,nil,adjustedHeading)
+											return
+										end
+										if (ml_navigation:IsFlightActionThrottled("ascend", ml_navigation.pathindex, nextnode, nextnextnode)) then
+											return
+										end
 										local targetnode = shallowcopy({x = nextnode.x, y = nextnode.y + 1.5, z = nextnode.z})
 										local pitch = GetRequiredPitch(targetnode)
 
@@ -2357,9 +2445,19 @@ function ml_navigation.Navigate(event, ticks )
 											local ascended = Player:IsJumping() or IsFlying()
 											if (ffnav.isascending and ascended) then-- we are using a navconnection , therefore have to iterate the currentindex to the navconnection end-cube-node. If the next node is 'only' a cube instead, we don't iterate, we ascend and move towards it where then the index is iterated
 												ffnav.isascending = false
-												ml_navigation.pathindex = ml_navigation.pathindex + 1
-												NavigationManager.NavPathNode = ml_navigation.pathindex
-												d("[Navigation]: finished ascending, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
+												-- Only advance past the connection node if the player is
+												-- close to it (vertical ascent). If the node is far away
+												-- horizontally, let the flying branch navigate to it.
+												local ppos2 = Player.pos
+												local cnode = ml_navigation.path[ml_navigation.pathindex]
+												if (cnode and math.distance2d(ppos2, cnode) < 10) then
+													ml_navigation.pathindex = ml_navigation.pathindex + 1
+													NavigationManager.NavPathNode = ml_navigation.pathindex
+													ml_navigation:ResetFlightActionThrottle(false)
+													d("[Navigation]: finished ascending near connection, newpathindex ["..tostring(NavigationManager.NavPathNode).."]")
+												else
+													d("[Navigation]: finished ascending, flying toward connection node ["..tostring(ml_navigation.pathindex).."]")
+												end
 											end
 											return ascended
 										end, function () 
@@ -2378,7 +2476,6 @@ function ml_navigation.Navigate(event, ticks )
 						end
 					end
 				else
-					--d("[Navigation] - Path end reached.")
 					ml_navigation.StopMovement()
 					Player:Stop()							-- this literally makes no sense...both functions are the SAME but if I remove this one, the bot doesnt stop ..yeah right ...fuck you ffxiv 
 				end	
@@ -2420,14 +2517,14 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 	-- Check if we left our path
 	if ( stillonpaththreshold ) then
 		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then
-			ml_navigation:DisableAutoFollow(true)
+			ml_navigation:DisableAutoFollow(true, "NavToNode-threshold")
 			return
 		end	
 	else
 		-- One path may contain all thresholds, so the static path deviation setting is useless for FF.
 		local threshold2d, threshold3d = ml_navigation.GetDeviationThresholds()
 		if ( not ml_navigation:IsStillOnPath(ppos,threshold3d) ) then
-			ml_navigation:DisableAutoFollow(true)
+			ml_navigation:DisableAutoFollow(true, "NavToNode-deviation")
 			return
 		end	
 	end
@@ -2435,7 +2532,6 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 	if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
-		--d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 		ml_navigation.lastconnectionid = nextnode.navconnectionid		
 		ml_navigation.lastconnectiontimer = Now()
 		ml_navigation.pathindex = ml_navigation.pathindex + 1
@@ -2456,7 +2552,7 @@ function ml_navigation:NavigateToNode(ppos, nextnode, lastnode, stillonpaththres
 		
 		-- We have not yet reached our node
 		if (not IsFlying() and not IsDiving()) then
-			ml_navigation:ApplyFollowCamPitch(nextnode.y)
+			ml_navigation:ApplyFollowCamPitch()
 		end
 		if (adjustedHeading ~= 0) then
 			ml_navigation:TryFaceHeading(adjustedHeading)
@@ -2498,12 +2594,23 @@ function ml_navigation.IsPathInvalid()
 end
 
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
-	if ( ml_navigation.pathindex > 1 and not ml_navigation.omc_details) then -- disable the isstillonpath for navcons , it keeps resetting the path / movement sometimes .. ?
+	if ( ml_navigation.pathindex > 1) then
+		-- During active OMC: skip deviation checking for the first 2 seconds (grace period),
+		-- then use relaxed thresholds. This replaces the old blanket bypass that hid all drift.
+		if (ml_navigation.omc_details) then
+			if (ml_navigation.omc_starttimer and ml_navigation.omc_starttimer ~= 0 and (Now() - ml_navigation.omc_starttimer) < 2000) then
+				return true -- grace period: don't interrupt early OMC execution
+			end
+		end
 		local threshold = ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
 		if (type(deviationthreshold) == "number") then
 			threshold = deviationthreshold
 		elseif (type(deviationthreshold) == "string") then
 			threshold = ml_navigation.PathDeviationDistances[deviationthreshold]
+		end
+		-- Relax threshold during active OMC to avoid false resets while still catching real drift
+		if (ml_navigation.omc_details) then
+			threshold = threshold * 2
 		end
 		
 		local lastnode = ml_navigation.path[ml_navigation.pathindex - 1]
@@ -2685,7 +2792,7 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_traveltimer = nil
 	self.omc_starttimer = 0
 	self.omc_startheight = nil
-	self.omc_details = {}
+	self.omc_details = nil
 	self.omc_traveldist = 0
 	self.omc_traveltimer = nil
 	self.omc_direction = 0
@@ -2709,6 +2816,7 @@ ffnav.descentPos = {}
 ffnav.isascending = false
 ffnav.isdescending = false
 ffnav.descentAttempts = 0
+ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
 
 function ffnav.CompactPath()
 	local newPath = {}

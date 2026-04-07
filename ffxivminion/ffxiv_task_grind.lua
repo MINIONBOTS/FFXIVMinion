@@ -731,6 +731,27 @@ function ffxiv_task_grind:Process()
 	end
 end
 
+local function ResolveGrindHuntlogSetting(defaultValue)
+	local fallback = IsNull(defaultValue, true)
+	local canonical = Settings.FFXIVMINION.gGrindDoHuntlog
+	local legacy = Settings.FFXIVMINION.gGrindDoHuntLog
+
+	if (canonical == nil and legacy ~= nil) then
+		canonical = legacy
+	end
+	if (canonical == nil) then
+		canonical = fallback
+	end
+
+	if (legacy == false or canonical == false) then
+		canonical = false
+	end
+
+	Settings.FFXIVMINION.gGrindDoHuntlog = canonical
+	Settings.FFXIVMINION.gGrindDoHuntLog = canonical
+	return canonical
+end
+
 function ffxiv_task_grind.SetModeOptions()
 	ffxiv_grind.profileData = {}
 	if (table.valid(ffxiv_grind.profiles)) then
@@ -738,7 +759,7 @@ function ffxiv_task_grind.SetModeOptions()
 	end
 	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
-	gGrindDoHuntlog = Settings.FFXIVMINION.gGrindDoHuntlog
+	gGrindDoHuntlog = ResolveGrindHuntlogSetting(true)
 	gGrindDoFates = Settings.FFXIVMINION.gGrindDoFates
 	gGrindFatesOnly = Settings.FFXIVMINION.gGrindFatesOnly
 	gGrindFatesMinLevel = Settings.FFXIVMINION.gGrindFatesMinLevel
@@ -788,7 +809,7 @@ function ffxiv_task_grind:UIInit()
 	
 	gGrindAtmaMode = ffxivminion.GetSetting("gGrindAtmaMode",false)
 	gGrindLuminousMode = ffxivminion.GetSetting("gGrindLuminousMode",false)
-	gGrindDoHuntlog = ffxivminion.GetSetting("gGrindDoHuntlog",true)
+	gGrindDoHuntlog = ResolveGrindHuntlogSetting(true)
 	gGrindAutoLevel = ffxivminion.GetSetting("gGrindAutoLevel",true)
 	
 	gClaimFirst = ffxivminion.GetSetting("gClaimFirst",false)

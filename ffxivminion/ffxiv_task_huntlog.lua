@@ -168,31 +168,83 @@ end
 c_grind_addhuntlogtask = inheritsFrom( ml_cause )
 e_grind_addhuntlogtask = inheritsFrom( ml_effect )
 c_grind_addhuntlogtask.target = nil
+c_grind_addhuntlogtask.waiting = false
+c_grind_addhuntlogtask.warmupStart = nil
+c_grind_addhuntlogtask.didInitialWarmup = false
+
+local function IsGrindHuntlogEnabled()
+	if (not Settings or not Settings.FFXIVMINION) then
+		return false
+	end
+
+	local canonical = Settings.FFXIVMINION.gGrindDoHuntlog
+	local legacy = Settings.FFXIVMINION.gGrindDoHuntLog
+
+	if (canonical == false or legacy == false) then
+		return false
+	end
+
+	local settingsEnabled = (canonical == true or legacy == true)
+	if (not settingsEnabled) then
+		return false
+	end
+
+	return (gGrindDoHuntlog == true)
+end
+
 function c_grind_addhuntlogtask:evaluate()
-	if (not gGrindDoHuntlog) then
+	if (not IsGrindHuntlogEnabled()) then
+		c_grind_addhuntlogtask.waiting = false
+		c_grind_addhuntlogtask.warmupStart = nil
+		c_grind_addhuntlogtask.didInitialWarmup = false
 		return false
 	end
 	
 	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked()) then
+		c_grind_addhuntlogtask.waiting = false
+		c_grind_addhuntlogtask.warmupStart = nil
 		return false
 	end
 	
 	--Reset tempvar.
 	c_grind_addhuntlogtask.target = nil
+	c_grind_addhuntlogtask.waiting = false
 
 	local bestTarget = FFXIVLib.API.Huntlog.GetBestTarget()
 	if (table.valid(bestTarget)) then
+		c_grind_addhuntlogtask.warmupStart = nil
+		c_grind_addhuntlogtask.didInitialWarmup = true
 		local mapid = bestTarget.mapid
 		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
-			d("Adding huntlog target: ID ["..tostring(bestTarget.id).."], @ MAPID ["..tostring(bestTarget.mapid).."].")
+			d("[Huntlog][Source=grind] Adding huntlog target: ID ["..tostring(bestTarget.id).."], @ MAPID ["..tostring(bestTarget.mapid).."].")
 			c_grind_addhuntlogtask.target = bestTarget
 			return true
 		end
+	end
+
+	if (not c_grind_addhuntlogtask.didInitialWarmup) then
+		local now = Now()
+		if (not c_grind_addhuntlogtask.warmupStart) then
+			c_grind_addhuntlogtask.warmupStart = now
+		end
+
+		local elapsed = now - c_grind_addhuntlogtask.warmupStart
+		if (elapsed < 6000) then
+			c_grind_addhuntlogtask.waiting = true
+			return true
+		end
+
+		c_grind_addhuntlogtask.didInitialWarmup = true
+		c_grind_addhuntlogtask.warmupStart = nil
 	end
 	
 	return false
 end
 function e_grind_addhuntlogtask:execute()
+	if (c_grind_addhuntlogtask.waiting or not table.valid(c_grind_addhuntlogtask.target)) then
+		return
+	end
+
 	ml_task_hub:CurrentTask().doingHuntlog = true
 
 	local newTask = ffxiv_task_huntlog.Create()
@@ -379,18 +431,19 @@ function e_huntlogkill:execute()
 	local ke_clearAggressives = ml_element:create( "ClearAggressiveTargets", c_questclearaggressive, e_questclearaggressive, 3 )
 	newTask:add( ke_clearAggressives, newTask.process_elements)
 		
-	--If this is an adhoc task, meaning, this task is not the root task, make sure to kill the task after the kill has been completed.
-	if (ml_task_hub:CurrentTask().adHoc) then
-		newTask.task_complete_execute = function ()
-			Player:Stop()
-			ml_task_hub:CurrentTask().completed = true
-			ml_global_information.Await(2000)
-		end
-	else
-		newTask.task_complete_execute = function ()
-			Player:Stop()
-			ml_task_hub:CurrentTask().completed = true
-			ml_global_information.Await(2000)
+	-- If this is an ad-hoc quest huntlog, complete quickly and force fresh quest selection.
+	newTask.task_complete_execute = function ()
+		Player:Stop()
+		local huntTask = ml_task_hub:CurrentTask()
+		huntTask.completed = true
+
+		if (huntTask.adHoc and huntTask.toggleSource == "quest") then
+			if (questing and questing.InvalidateNearestQuestCache) then
+				questing.InvalidateNearestQuestCache()
+			end
+			ml_global_information.Await(250)
+		else
+			ml_global_information.Await(1000)
 		end
 	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -398,25 +451,44 @@ end
 
 c_huntlog_disabled = inheritsFrom( ml_cause )
 e_huntlog_disabled = inheritsFrom( ml_effect )
+
+local function GetOwningHuntlogTask(task)
+	local current = task
+	local maxDepth = 12
+	while (table.valid(current) and maxDepth > 0) do
+		if (current.name == "LT_HUNTLOG") then
+			return current
+		end
+		if (not current.ParentTask) then
+			break
+		end
+		current = current:ParentTask()
+		maxDepth = maxDepth - 1
+	end
+	return nil
+end
+
 function c_huntlog_disabled:evaluate()
 	local currentTask = ml_task_hub:CurrentTask()
-	if (table.valid(currentTask) and currentTask.toggleSource == "grind") then
-		return not gGrindDoHuntlog
+	local sourceTask = GetOwningHuntlogTask(currentTask) or currentTask
+
+	if (table.valid(sourceTask) and sourceTask.toggleSource == "grind") then
+		return not IsGrindHuntlogEnabled()
 	end
 
-	if (table.valid(currentTask) and currentTask.toggleSource == "quest") then
-		return not gQuestDoHuntlog
+	if (table.valid(sourceTask) and sourceTask.toggleSource == "quest") then
+		return not (gQuestDoHuntlog == true)
 	end
 
 	-- Fallback for legacy callers that do not stamp a source.
 	if (gBotMode == "grindMode") then
-		return not gGrindDoHuntlog
+		return not IsGrindHuntlogEnabled()
 	end
 	if (gBotMode == "questMode") then
-		return not gQuestDoHuntlog
+		return not (gQuestDoHuntlog == true)
 	end
 
-	return not (gQuestDoHuntlog or gGrindDoHuntlog)
+	return not ((gQuestDoHuntlog == true) or IsGrindHuntlogEnabled())
 end
 function e_huntlog_disabled:execute()
 	d("[Huntlog] Huntlog disabled, terminating task.")
