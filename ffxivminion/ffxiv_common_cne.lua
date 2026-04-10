@@ -2576,12 +2576,36 @@ function c_mount:evaluate()
 		end
 		
 		if (not needsMount) then
+			-- Block dismount during active flight transitions (ascending/descending/mounting)
+			if (ffnav.isascending or ffnav.isdescending or IsMounting()) then
+				if (not c_mount._lastTransitionLog or TimeSince(c_mount._lastTransitionLog) > 2000) then
+					d("[Mount] Dismount gated: flight transition active (asc=" .. tostring(ffnav.isascending) .. " desc=" .. tostring(ffnav.isdescending) .. " mounting=" .. tostring(IsMounting()) .. ")")
+					c_mount._lastTransitionLog = Now()
+				end
+				return false
+			end
+			
 			if (dismountDistance > 0 and dist2d <= dismountDistance and 
 				(dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10)))) 
 			then
 				local doDismount = false
 				if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
-					doDismount = true
+					-- Additional gate: verify the task's interactable entity is actually nearby,
+					-- not just that task.pos is close (which can be stale if entity moved/despawned)
+					local task = ml_task_hub:CurrentTask()
+					if (task.interact and task.interact ~= 0) then
+						local interactable = EntityList:Get(task.interact)
+						if (interactable and interactable.distance2d < (dismountDistance + 5)) then
+							doDismount = true
+						elseif (not interactable) then
+							-- Entity not found / despawned — still allow dismount based on position
+							doDismount = true
+						end
+						-- else: entity exists but is too far — don't dismount yet
+					else
+						-- No interactable assigned yet — allow distance-based dismount
+						doDismount = true
+					end
 				end
 				if (doDismount and not IsDismounting()) then
 					Dismount()
@@ -4250,13 +4274,34 @@ c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false
 c_dointeract.lastInteract = 0
+
+-- Interaction timing constants
+c_dointeract.INTERACT_DEBOUNCE_MS = 1500
+c_dointeract.WINDOW_TIMEOUT_MS   = 3000
+c_dointeract.RECOVER_COOLDOWN_MS = 2000
+
+-- Runtime state: tracks whether we're actively interacting/waiting
+c_dointeract._interacting    = false
+c_dointeract._interactTime   = 0
+c_dointeract._recoverUntil   = 0
+c_dointeract._lastTaskStart  = 0
+
 function c_dointeract:evaluate()
+	local task = ml_task_hub:CurrentTask()
 	local myTarget = MGetTarget()
 	local ppos = Player.pos
 	
+	-- Reset when task changes
+	if (task.started ~= self._lastTaskStart) then
+		self._lastTaskStart = task.started
+		self._interacting = false
+		self._recoverUntil = 0
+	end
+	
+	-- Housing handler (unchanged)
 	if (IsControlOpen("HousingSelectBlock")) then
 		UseControlAction("HousingSelectBlock","Travel",math.random(1,10))
-		ml_task_hub:CurrentTask().initiatedPos = Player.pos
+		task.initiatedPos = Player.pos
 		ml_global_information.Await(1000, 3000, 
 			function () 
 				return IsControlOpen("SelectYesno") 
@@ -4269,145 +4314,193 @@ function c_dointeract:evaluate()
 		return true
 	end
 	
-	-- Scan for our wanted contentid to get as much data as we can, for better decisions.
+	-------------------------------------------------------------------
+	-- Entity acquisition (unchanged)
+	-------------------------------------------------------------------
 	local interactable = nil
-	if (ml_task_hub:CurrentTask().lastInteractableSearch == nil) then
-		ml_task_hub:CurrentTask().lastInteractableSearch = 0
+	if (task.lastInteractableSearch == nil) then
+		task.lastInteractableSearch = 0
 	end
-	if (ml_task_hub:CurrentTask().interact == 0 and TimeSince(ml_task_hub:CurrentTask().lastInteractableSearch) > 500) then
-		navd("[DoInteract DBG] searching: task=" .. tostring(ml_task_hub:CurrentTask().name)
-			.. " contentid=" .. tostring(ml_task_hub:CurrentTask().contentid)
+	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
+		navd("[DoInteract DBG] searching: task=" .. tostring(task.name)
+			.. " contentid=" .. tostring(task.contentid)
 			.. " map=" .. tostring(Player.localmapid)
-			.. " pos=" .. tostring(ml_task_hub:CurrentTask().pos and ml_task_hub:CurrentTask().pos.x) .. "," .. tostring(ml_task_hub:CurrentTask().pos and ml_task_hub:CurrentTask().pos.z))
-		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= 0) then
-			ml_debug("[DoInteract]: Looking for contentid ["..tostring(ml_task_hub:CurrentTask().contentid).."]",3)
-			local interactTypes = ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
-			local nearestInteract = GetInteractableEntity(ml_task_hub:CurrentTask().contentid, interactTypes)
+			.. " pos=" .. tostring(task.pos and task.pos.x) .. "," .. tostring(task.pos and task.pos.z))
+		if (IsNull(task.contentid,0) ~= 0) then
+			ml_debug("[DoInteract]: Looking for contentid ["..tostring(task.contentid).."]",3)
+			local interactTypes = task.name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
+			local nearestInteract = GetInteractableEntity(task.contentid, interactTypes)
 			if (nearestInteract) then
-				ml_task_hub:CurrentTask().interact = nearestInteract.id
+				task.interact = nearestInteract.id
 			else
 				ml_debug("[DoInteract]: Didn't find any matching entities.",3)
 			end
-			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
+			task.lastInteractableSearch = Now()
 		end
 		
-		if (math.distance2d(Player.pos,ml_task_hub:CurrentTask().pos) < 3 and math.distance3d(Player.pos,ml_task_hub:CurrentTask().pos) < 4) then
+		if (math.distance2d(ppos, task.pos) < 3 and math.distance3d(ppos, task.pos) < 4) then
 			local nearestInteract = GetInteractableEntity()
 			if (nearestInteract) then
-				ml_task_hub:CurrentTask().interact = nearestInteract.id
+				task.interact = nearestInteract.id
 			end
-			ml_task_hub:CurrentTask().lastInteractableSearch = Now()
+			task.lastInteractableSearch = Now()
 		end
 	end
 	
-	-- Get the actual entity, to work with.
-	if (ml_task_hub:CurrentTask().interact ~= 0) then
-		interactable = EntityList:Get(ml_task_hub:CurrentTask().interact)
+	if (task.interact ~= 0) then
+		interactable = EntityList:Get(task.interact)
 	end
 	
-	-- Set our target, if we are within a reasonable range.
-	
+	-------------------------------------------------------------------
+	-- Position update from entity (unchanged)
+	-------------------------------------------------------------------
 	if (interactable) then
-		if (ml_task_hub:CurrentTask().useTargetPos) then
-			ml_task_hub:CurrentTask().pos = interactable.pos
-		elseif (not ml_task_hub:CurrentTask().useProfilePos) then
+		if (task.useTargetPos) then
+			task.pos = interactable.pos
+		elseif (not task.useProfilePos) then
 			if (interactable.meshpos and not IsFlying() and not IsDiving()) then
-				if (not ml_task_hub:CurrentTask().pathChecked) then
+				if (not task.pathChecked) then
 					local meshpos = interactable.meshpos
 					if (NavigationManager:IsReachable(meshpos)) then
-						ml_task_hub:CurrentTask().pos = interactable.meshpos
+						task.pos = interactable.meshpos
 					end
-					ml_task_hub:CurrentTask().pathChecked = true
+					task.pathChecked = true
 				end
 			end
 		end
 	end
 	
+	-- Target the interactable when within range
 	if (interactable and interactable.targetable and interactable.distance2d < 30) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end
 	end
 	
-	if (interactable) then
-		-- Keep approaching the target until the game reports it as interactable.
-		if (myTarget and myTarget.id == interactable.id) then
-			if (table.valid(interactable)) then
-				if (not IsFlying() or ml_task_hub:CurrentTask().inflight) then
-					if (not ml_task_hub:CurrentTask().ignoreAggro and c_killaggrotarget:evaluate()) then
-						e_killaggrotarget:execute()
-						return false
-					end
-
-					-- Special handler for gathering. Need to wait on GP before interacting sometimes.
-					if not ml_task_hub:CurrentTask().touchOnly and (IsNull(ml_task_hub:CurrentTask().minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
-						d("["..ml_task_hub:CurrentTask().name.."]: Waiting on GP before attempting node.")
-						Player:Stop()
-						return true
-					end
-
-					if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
-						d("["..ml_task_hub:CurrentTask().name.."]: Don't attempt a special node if we gained aggro.")
-						return false
-					end
-
-					if (interactable.interactable) then
-						if (ml_task_hub:CurrentTask().name == "QUEST_ATTUNEAETHERYTE") then
-							local interactRange3d = IsNull(ml_task_hub:CurrentTask().interactRange3d, 7.5)
-							if (interactable.distance > interactRange3d + 1.5) then
-								if (TimeSince(IsNull(ml_task_hub:CurrentTask().lastFarInteractReset,0)) > 1500) then
-									ml_task_hub:CurrentTask().interact = 0
-									ml_task_hub:CurrentTask().pathChecked = false
-									ml_task_hub:CurrentTask().lastInteractableSearch = 0
-									ml_task_hub:CurrentTask().lastFarInteractReset = Now()
-								end
-								return false
-							end
-						end
-
-						if (Player:IsMoving()) then
-							Player:Stop()
-							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
-							return true
-						end
-
-						if IsControlOpen("_TextError") and FFXIVLib.API.Strings.Contains(GetControl("_TextError"):GetStrings()[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
-							return false
-						end
-
-						d("["..ml_task_hub:CurrentTask().name.."]: Interacting with target ["..tostring(interactable.name).."].")
-						Player:Interact(interactable.id)
-						c_dointeract.lastInteract = Now()
-						if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-							ml_task_hub:CurrentTask().interactAttempts = 1
-						else
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-						end
-						return true
-					end
-
-					if (TimeSince(c_dointeract.lastInteract) > 2000 and not Player:IsMoving()) then
-						if (ml_task_hub:CurrentTask().interactAttempts == nil) then
-							ml_task_hub:CurrentTask().interactAttempts = 1
-						else
-							ml_task_hub:CurrentTask().interactAttempts = ml_task_hub:CurrentTask().interactAttempts + 1
-						end
-						c_dointeract.lastInteract = Now()
-					end
-					return false
-				else
-					-- Don't force descent while the navigation system is actively handling a flight path
-					if (table.valid(ml_navigation.path) and ml_navigation.canPath) then
-						return false
-					end
-					Descend()
-					return true
-				end
+	-------------------------------------------------------------------
+	-- Interaction logic: move until interactable, then stop + interact
+	-------------------------------------------------------------------
+	
+	-- If we already fired an interact and are waiting for a window, hold unconditionally.
+	-- This MUST run before entity validity checks — the entity can flicker nil for a frame
+	-- during interact animations, and clearing _interacting would cause nav to restart.
+	if (self._interacting) then
+		-- Window opened or game is busy — success, keep holding
+		if (HasInteractWindows() or Busy()) then
+			return true
+		end
+		
+		-- Still waiting for window after interact
+		if (TimeSince(self._interactTime) < self.WINDOW_TIMEOUT_MS) then
+			return true
+		end
+		
+		-- Timed out waiting for window — but if entity is still interactable,
+		-- don't release to nav (which causes walk-closer stutter). Just re-try.
+		d("[MOVETOINTERACT] Interact timed out, recovering.")
+		self._interacting = false
+		if (interactable and table.valid(interactable) and interactable.interactable) then
+			-- Entity still interactable — stay in control, will re-try next frame
+			return true
+		end
+		self._recoverUntil = Now() + self.RECOVER_COOLDOWN_MS
+		return false
+	end
+	
+	-- No valid entity yet — let nav drive
+	if (not interactable or not table.valid(interactable)) then
+		return false
+	end
+	
+	-- Flying and not inflight-capable: let navigation handle descent
+	if (IsFlying() and not task.inflight) then
+		return false
+	end
+	
+	-- Recovery cooldown: don't re-attempt too quickly after a failed interact
+	if (self._recoverUntil > 0 and Now() < self._recoverUntil) then
+		return false  -- let nav keep moving us closer during cooldown
+	end
+	
+	-- Aggro check
+	if (not task.ignoreAggro and c_killaggrotarget:evaluate()) then
+		e_killaggrotarget:execute()
+		return false
+	end
+	
+	-- GP wait for gatherers
+	if not task.touchOnly and (IsNull(task.minGP,0) > Player.gp.current and Player.gp.current < Player.gp.max) then
+		d("["..task.name.."]: Waiting on GP before attempting node.")
+		Player:Stop()
+		return true
+	end
+	
+	-- Aggro check for special gathering nodes
+	if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+		d("["..task.name.."]: Don't attempt a special node if we gained aggro.")
+		return false
+	end
+	
+	-- QUEST_ATTUNEAETHERYTE special: if entity has drifted too far in 3D, re-search
+	if (task.name == "QUEST_ATTUNEAETHERYTE") then
+		local range3d = IsNull(task.interactRange3d, 7.5)
+		if (interactable.distance > range3d + 1.5) then
+			if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
+				task.interact = 0
+				task.pathChecked = false
+				task.lastInteractableSearch = 0
+				task.lastFarInteractReset = Now()
+			end
+			return false
+		end
+	end
+	
+	-- Check for "too far away" error feedback from game
+	if IsControlOpen("_TextError") and FFXIVLib.API.Strings and FFXIVLib.API.Strings.Contains then
+		local errStrings = GetControl("_TextError"):GetStrings()
+		if (errStrings and errStrings[2] and FFXIVLib.API.Strings.TOO_FAR_AWAY) then
+			if FFXIVLib.API.Strings.Contains(errStrings[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
+				return false  -- too far, let nav keep moving us
 			end
 		end
 	end
 	
-	return false
+	-------------------------------------------------------------------
+	-- THE KEY CHECK: entity is interactable — stop, interact, hold
+	-------------------------------------------------------------------
+	if (not interactable.interactable) then
+		-- Not interactable yet — return false, let nav keep moving toward it
+		return false
+	end
+	
+	-- Entity IS interactable. Claim control from here on (return true).
+	-- Must be fully landed and not mid-animation before firing interact.
+	if (IsFlying() or IsDismounting() or Busy()) then
+		return true
+	end
+	
+	-- Stop movement
+	if (Player:IsMoving()) then
+		Player:Stop()
+		if (ml_navigation and ml_navigation.DisableAutoFollow) then
+			ml_navigation:DisableAutoFollow(true, "dointeract")
+		end
+		return true  -- wait one frame for stop to take effect
+	end
+	
+	-- Enforce interact debounce
+	if (TimeSince(self.lastInteract) < self.INTERACT_DEBOUNCE_MS) then
+		return true
+	end
+	
+	d("["..task.name.."]: Interacting with target ["..tostring(interactable.name).."].")
+	Player:Interact(interactable.id)
+	self.lastInteract = Now()
+	self._interactTime = Now()
+	self._interacting = true
+	task.interactAttempts = (task.interactAttempts or 0) + 1
+	
+	return true
 end
 function e_dointeract:execute()
 end

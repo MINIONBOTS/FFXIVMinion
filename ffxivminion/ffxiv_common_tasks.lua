@@ -513,6 +513,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.failTimer = 0
 	newinst.interactRange = nil
 	newinst.dismountDistance = 5
+	newinst.dismountHeightTolerance = 3.5
 	newinst.killParent = false
 	newinst.startMap = Player.localmapid
 	newinst.conversationstring = ""
@@ -523,6 +524,10 @@ function ffxiv_task_movetointeract.Create()
 	
 	newinst.interactAttempts = 0
 	newinst.maxAttempts = 0
+	newinst.meshFallbackTolerance = 3
+	newinst.meshFallbackSearchRadius = 10
+	newinst.meshFallbackCooldownMs = 2500
+	newinst.lastMeshFallback = 0
 	
 	newinst.skipTalkVal = gSkipTalk
 	gSkipTalk = true

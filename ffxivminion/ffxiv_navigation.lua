@@ -1443,6 +1443,23 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	end
 	
 	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
+	
+	-- Landing clearance: if a fallback is active, redirect the path goal.
+	-- The actual clearance probe runs in the nav loop at descent time.
+	if (ffnav.landingFallbackActive and ffnav.landingFallbackPos) then
+		if (ffnav.landingFallbackOrigin and math.distance3d(ffnav.landingFallbackOrigin, newGoal) < 3) then
+			newGoal = { x = ffnav.landingFallbackPos.x, y = ffnav.landingFallbackPos.y, z = ffnav.landingFallbackPos.z }
+			x, y, z = newGoal.x, newGoal.y, newGoal.z
+		elseif (math.distance3d(ffnav.landingFallbackPos, newGoal) < 1) then
+			-- Already targeting fallback
+		else
+			-- Destination changed, clear stale fallback
+			ffnav.landingFallbackActive = false
+			ffnav.landingFallbackPos = nil
+			ffnav.landingFallbackOrigin = nil
+		end
+	end
+	
 	-- Filter things for special tasks/circumstances
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted)) or IsTransporting())) or 
 		not CanFlyInZone()) 
@@ -1515,6 +1532,10 @@ function Player:Stop(resetpath)
 	ffnav.isascending = false
 	ffnav.isdescending = false	
 	ffnav.descentAttempts = 0
+	ffnav.landingProbeCache = {}
+	ffnav.landingFallbackActive = false
+	ffnav.landingFallbackPos = nil
+	ffnav.landingFallbackOrigin = nil
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(true)
@@ -2305,19 +2326,48 @@ function ml_navigation.Navigate(event, ticks )
 						
 						if ( ml_navigation:IsGoalClose(ppos,targetnode,lastnode) or ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
 							local canLand = ((dist2D < 2 or dist3D < 3) and height < 7 and height > 0)
-							if (canLand and not (nextnode.is_end and nextnode.ground)) then
-								local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+1,nextnode.z,nextnode.x,nextnode.y-.5,nextnode.z)
-								if (not hit) then
-									canLand = false
-								end	
+							local isFlyToWalk = (isDescentCon or (nextnode.is_end and nextnode.ground))
+							
+							-- If hovering directly above a ground goal but too high for normal
+							-- canLand, force descent so the bot doesn't sit in an AutoFollow loop.
+							if (not canLand and isFlyToWalk and dist2D < 2 and height > 0) then
+								canLand = true
 							end
 
 							if (ffnav.descentAttempts < 3) then
-								if (canLand and not unstableTransition and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextGround))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+								if (canLand and isFlyToWalk and not unstableTransition and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextGround))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
+									-- Landing clearance: check via C++ CheckLandingZone.
+									-- If blocked, find a nearby open spot and rebuild the path there.
+									if (not ffnav.landingFallbackActive) then
+										local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
+										local clear, fbX, fbY, fbZ = CheckLandingZone(nextnode.x, nextnode.y, nextnode.z, mountRadius)
+										if (not clear) then
+											if (fbX) then
+												d("[Navigation] Landing blocked, rerouting to ("
+													.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")")
+												ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
+												ffnav.landingFallbackOrigin = ml_navigation.targetposition and { x = ml_navigation.targetposition.x, y = ml_navigation.targetposition.y, z = ml_navigation.targetposition.z } or nil
+												ffnav.landingFallbackActive = true
+												Player:BuildPath(fbX, fbY, fbZ, 0, 0, 0)
+											else
+												d("[Navigation] Landing blocked, no open spot found, descending anyway")
+											end
+											return false
+										end
+									end
+									-- Descent cooldown: prevent rapid re-descent attempts
+									if (TimeSince(ffnav.lastDescentTime) < 2000) then
+										if (not ffnav._lastDescentCooldownLog or TimeSince(ffnav._lastDescentCooldownLog) > 2000) then
+											d("[Navigation] Descent gated: cooldown (" .. tostring(2000 - TimeSince(ffnav.lastDescentTime)) .. "ms remaining)")
+											ffnav._lastDescentCooldownLog = Now()
+										end
+										return false
+									end
 									if (ml_navigation:IsFlightActionThrottled("descend", ml_navigation.pathindex, nextnode, nextnextnode)) then
 										return false
 									end
 									ffnav.descentAttempts = ffnav.descentAttempts + 1
+									ffnav.lastDescentTime = Now()
 									ml_navigation.lastconnectiontimer = Now()
 									d("Attempt descent.")
 									Descend(true)
@@ -2341,6 +2391,9 @@ function ml_navigation.Navigate(event, ticks )
 						ffnav.isascending = false
 						ffnav.isdescending = false
 						ffnav.descentAttempts = 0
+						ffnav.landingFallbackActive = false
+						ffnav.landingFallbackPos = nil
+						ffnav.landingFallbackOrigin = nil
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
@@ -2645,9 +2698,27 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 			if ( not Player:IsJumping()) then
 				-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
 				if ((IsFlying() or IsDiving()) and nextnode.is_cube) then --if the node we goto is on the floor (underwater!) use 2D, it happens that recast just points to the next node which is pathing through U or A shaped terrain.
+					-- Relax threshold during final approach to a landing-eligible node.
+					-- Within 20y 2D of a fly-to-walk transition, altitude offsets during descent
+					-- alignment cause the 3D point-line distance to hover near the threshold
+					-- (e.g. 10.0-10.4 vs 10). Doubling the threshold in this zone prevents
+					-- the orbit loop from repeated path resets.
+					local finalApproach = false
+					if (IsFlying()) then
+						local d2d = math.distance2d(ppos, nextnode)
+						local isLandingNode = (nextnode.ground or (nextnode.floorcube and nextnode.ground) or nextnode.is_end)
+						if (d2d < 20 and isLandingNode) then
+							finalApproach = true
+						end
+					end
+					local effectiveThreshold = threshold
+					if (finalApproach) then
+						effectiveThreshold = threshold * 2
+					end
+					
 					local distline = math.distancepointline(lastnode,nextnode,ppos)
-					if (distline > threshold) then			
-						d("[Navigation] - Player not on path anymore (3D). - Distance to Path: "..tostring(distline).." > "..tostring(threshold))
+					if (distline > effectiveThreshold) then			
+						d("[Navigation] - Player not on path anymore (3D). - Distance to Path: "..tostring(distline).." > "..tostring(effectiveThreshold) .. (finalApproach and " (relaxed)" or ""))
 						d("[Navigation] - Last Node ["..tostring(ml_navigation.pathindex - 1).."]: x = "..tostring(lastnode.x)..",y = "..tostring(lastnode.y)..",z = "..tostring(lastnode.z))
 						d("[Navigation] - Next Node ["..tostring(ml_navigation.pathindex).."]: x = "..tostring(nextnode.x)..",y = "..tostring(nextnode.y)..",z = "..tostring(nextnode.z))
 						
@@ -2816,6 +2887,11 @@ ffnav.descentPos = {}
 ffnav.isascending = false
 ffnav.isdescending = false
 ffnav.descentAttempts = 0
+ffnav.lastDescentTime = 0
+ffnav.landingProbeCache = {}  -- keyed by pathindex for fly-to-walk transitions
+ffnav.landingFallbackActive = false  -- true while rerouted to a landing fallback
+ffnav.landingFallbackPos = nil       -- {x,y,z} of the fallback landing spot
+ffnav.landingFallbackOrigin = nil    -- {x,y,z} of the original destination (to detect target changes)
 ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
 
 function ffnav.CompactPath()

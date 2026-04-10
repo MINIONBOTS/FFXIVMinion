@@ -9903,8 +9903,10 @@ function Stop()
 	}
 	ml_navigation.ParseInstructions(instructions)
 end
+
 function Descend(incnode)
 	if (IsFlying()) then
+		ml_navigation:CancelFlightFollowCam()
 		local incnode = IsNull(incnode,false)
 		
 		local _trackDown, _dismount
