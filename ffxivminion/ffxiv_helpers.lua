@@ -4893,155 +4893,109 @@ end
 
 function ItemCount(hqid,inventoriesArg,includehqArg)
 	local hqid = tonumber(hqid) or 0
-	local inventories = {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	if (hqid == 0) then return 0 end
+
 	local includehq = false
-	
-	if (type(inventoriesArg) == "table") then
-		inventories = inventoriesArg
-	elseif (type(inventoriesArg) == "boolean") then
+	if (type(inventoriesArg) == "boolean") then
 		includehq = inventoriesArg
 	end
-	if (type(includehqArg) == "table") then
-		inventories = includehqArg
-	elseif (type(includehqArg) == "boolean") then
+	if (type(includehqArg) == "boolean") then
 		includehq = includehqArg
 	end
-	
-	if (memoize.itemcount == nil) then
-		memoize.itemcount = {}
-	end
-	
-	if (memoize.itemcount[hqid]) then
-		if (includehq and memoize.itemcount[hqid + 1000000]) then
-			--d("returning HQ memoized count for ["..tostring(hqid).."], ["..tostring((memoize.itemcount[hqid].count + memoize.itemcount[hqid].counthq)).."]")
-			return (memoize.itemcount[hqid].count + memoize.itemcount[hqid + 1000000].count)
-		else
-			--d("returning memoized count for ["..tostring(hqid).."], ["..tostring((memoize.itemcount[hqid].count + memoize.itemcount[hqid].counthq)).."]")
-			return (memoize.itemcount[hqid].count)
-		end
+
+	-- includehq=true: NQ+HQ combined (C++ GetItemCount matches by base ID, returns NQ+HQ)
+	if (includehq) then
+		return Inventory:GetItemCount(hqid)
 	end
 
-	local itemcount = 0
-	
-	if (hqid ~= 0) then
-		if (table.valid(inventories)) then
-			for invid = 1,#inventories do
-				local bag = Inventory:Get(inventories[invid])
-				if (table.isa(bag)) then
-					local bagSize = bag.size
-					for i = 0,bagSize-1 do
-						local item = bag:GetItem(i)
-						if (item) then
-							local ihqid = item.hqid -- maybe a bit overkill, but it does take away 1 call at least
-							if (ihqid == hqid) then
-								itemcount = itemcount + item.count
-								if (memoize.itemcount[hqid] == nil) then
-									memoize.itemcount[hqid] = { count = 0 }
-								end
-								memoize.itemcount[hqid].count = itemcount
-							elseif (includehq and (ihqid == hqid + 1000000)) then
-								itemcount = itemcount + item.count
-								if (memoize.itemcount[ihqid] == nil) then
-									memoize.itemcount[ihqid] = { count = 0 }
-								end
-								memoize.itemcount[ihqid].count = itemcount
-							end
-						end
-					end
-				end
-			end
-		end
+	-- HQ-offset ID (hqid >= 1000000): count only HQ items for that base ID
+	if (hqid >= 1000000) then
+		return Inventory:GetItemCountHQ(hqid - 1000000)
 	end
-	
-	return itemcount
+
+	-- Collectable-offset ID (hqid >= 500000): count collectable items via C++
+	if (hqid >= 500000) then
+		return Inventory:GetItemCountCollectable(hqid - 500000)
+	end
+
+	-- Default: NQ-only count by base ID via C++ (subtract HQ to match original hqid-based semantics)
+	local total = Inventory:GetItemCount(hqid)
+	local hqCount = Inventory:GetItemCountHQ(hqid)
+	return total - hqCount
 end
 
 function ItemCounts(hqids,inventoriesArg,includehqArg)
 	local hqids = IsNull(hqids,{})
-	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+
 	local includehq = false
-	
-	if (type(inventoriesArg) == "table") then
-		inventories = inventoriesArg
-	elseif (type(inventoriesArg) == "boolean") then
+	if (type(inventoriesArg) == "boolean") then
 		includehq = inventoriesArg
 	end
-	if (type(includehqArg) == "table") then
-		inventories = includehqArg
-	elseif (type(includehqArg) == "boolean") then
+	if (type(includehqArg) == "boolean") then
 		includehq = includehqArg
 	end
-	
-	if (memoize.itemcount == nil) then
-		memoize.itemcount = {}
-	end
-	
+
 	local returnables = {}
-	
-	if (table.isa(hqids)) then
-		local allhqids = {}
-		for i = 1,#hqids do 
-			local hqid = hqids[i]
-			
-			allhqids[hqid] = { count = 0 }
-			local hqcounterpart = 0
-			if (includehq and hqid < 500000) then
-				hqcounterpart = hqid + 1000000
-				allhqids[hqcounterpart] = { count = 0 }
-			end
+
+	if (not table.isa(hqids)) then
+		return returnables
+	end
+
+	-- Separate IDs by type for appropriate C++ dispatch
+	local baseIds = {}
+	local hqIds = {}
+	local collectableIds = {}
+
+	for i = 1,#hqids do
+		local hqid = hqids[i]
+		if (hqid >= 1000000) then
+			hqIds[#hqIds + 1] = hqid
+		elseif (hqid >= 500000) then
+			collectableIds[#collectableIds + 1] = hqid
+		else
+			baseIds[#baseIds + 1] = hqid
 		end
-		
-		for hqid,_ in pairs(allhqids) do
-			if (memoize.itemcount[hqid]) then
-				--d("removing entry for ["..tostring(hqid).."]")
-				returnables[hqid] = { id = hqid, count = IsNull(memoize.itemcount[hqid].count,0) }
+	end
+
+	-- Batch count base IDs via C++ (single pass through all bags)
+	if (#baseIds > 0) then
+		local idTable = {}
+		for i = 1,#baseIds do
+			idTable[baseIds[i]] = true
+		end
+		local counts = Inventory:GetItemCounts(idTable)
+		if (counts) then
+			for i = 1,#baseIds do
+				local id = baseIds[i]
+				local count = counts[id] or 0
 				if (includehq) then
-					if (memoize.itemcount[hqid + 1000000]) then
-						returnables[hqid].count = returnables[hqid].count + memoize.itemcount[hqid + 1000000].count
-					end
-				end
-				allhqids[hqid] = nil
-			else
-				--d("creating entry for ["..tostring(hqid).."]")
-				memoize.itemcount[hqid] = { count = 0 }
-				returnables[hqid] = { id = hqid, count = 0 }
-			end
-		end
-		
-		if (table.isa(inventories)) then
-			for _,invid in pairs(inventories) do
-				local bag = Inventory:Get(invid)
-				if (table.isa(bag)) then
-					local bagSize = bag.size
-					for i = 0,bagSize-1 do
-						local item = bag:GetItem(i)
-						if (item) then
-							local itemid = item.hqid
-							if (allhqids[itemid]) then
-								allhqids[itemid].count = allhqids[itemid].count + item.count
-								memoize.itemcount[itemid].count = allhqids[itemid].count
-								returnables[itemid] = { id = itemid, count = IsNull(memoize.itemcount[itemid].count,0) }
-							end
-						end
-					end
-				end
-			end
-		end
-		
-		if (table.valid(allhqids)) then
-			for hqid,info in pairs(allhqids) do
-				if (includehq and hqid >= 1000000) then
-					local nqid = (hqid - 1000000)
-					if (returnables[nqid]) then
-						returnables[nqid].count = (returnables[nqid].count + info.count)
-					else
-						returnables[nqid] = { id = nqid, count = info.count }
-					end
+					-- GetItemCounts returns NQ+HQ combined (by base ID), which is what includehq wants
+					returnables[id] = { id = id, count = count }
+				else
+					-- NQ only: subtract HQ count
+					local hqCount = Inventory:GetItemCountHQ(id)
+					returnables[id] = { id = id, count = count - hqCount }
 				end
 			end
 		end
 	end
-	
+
+	-- HQ offset IDs: use C++ GetItemCountHQ
+	for i = 1,#hqIds do
+		local hqid = hqIds[i]
+		local baseId = hqid - 1000000
+		local count = Inventory:GetItemCountHQ(baseId)
+		returnables[hqid] = { id = hqid, count = count }
+	end
+
+	-- Collectable offset IDs: use C++ GetItemCountCollectable
+	for i = 1,#collectableIds do
+		local hqid = collectableIds[i]
+		local baseId = hqid - 500000
+		local count = Inventory:GetItemCountCollectable(baseId)
+		returnables[hqid] = { id = hqid, count = count }
+	end
+
 	return returnables
 end	
 

@@ -877,7 +877,7 @@ function c_endfate:evaluate()
     if (table.valid(fate)) then
 		gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)
 		if (gatherable) then
-			redeemable = (ItemCount(gatherable.turninid,2004) >= 1)
+			redeemable = (ItemCount(gatherable.turninid,{2004}) >= 1)
 		end
 	end
 	
