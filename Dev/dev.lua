@@ -2088,7 +2088,15 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##mapobj1"..tostring(id),tostring(string.format( "%X",e.ptr)))
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##mapobj2"..tostring(id),tostring(e.id))
 								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##mapobj3"..tostring(id),tostring(e.type))
-								GUI:BulletText(".pos") GUI:SameLine(200) GUI:InputFloat3( "##mapobj4", e.pos.x, e.pos.y, e.pos.z, 2, GUI.InputTextFlags_ReadOnly)
+								local mapobjDist = 0
+								if (Player and Player.pos and e.pos) then
+									mapobjDist = math.distance3d(Player.pos, e.pos)
+								end
+								GUI:BulletText(".pos") GUI:SameLine(200)
+								GUI:PushItemWidth(360)
+								GUI:InputFloat3( "##mapobj4", e.pos.x, e.pos.y, e.pos.z, 2, GUI.InputTextFlags_ReadOnly)
+								GUI:PopItemWidth()
+								GUI:SameLine() GUI:Text("d="..tostring(string.format("%.2f", mapobjDist)))
 								if(e.entity)then
 									local player = e.entity
 									GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",player.ptr)))
