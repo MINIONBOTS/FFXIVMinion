@@ -2324,6 +2324,62 @@ function ml_navigation.Navigate(event, ticks )
 							ffnav.Await(2000, function () return Player:IsMoving() end)
 						end
 						
+						-- Early landing-zone lookahead: scan ahead for the first fly-to-walk
+						-- transition node and probe CheckLandingZone while still far out so that
+						-- any fallback reroute produces a smooth flight arc instead of a last-second jerk.
+						if (not ffnav.landingFallbackActive) then
+							local lookaheadIdx = nil
+							local lookaheadNode = nil
+							for li = ml_navigation.pathindex, ml_navigation.pathindex + 15 do
+								local ln = ml_navigation.path[li]
+								if (not ln) then break end
+								local lnNext = ml_navigation.path[li + 1]
+								local lnNextGround = (lnNext and lnNext.ground == true) or false
+								local lnIsFlyToWalk = (ln.floorcube == true and (ln.ground == true or lnNextGround))
+									or (ln.is_end and ln.ground)
+								if (lnIsFlyToWalk) then
+									lookaheadIdx = li
+									lookaheadNode = ln
+									break
+								end
+							end
+							if (lookaheadNode and not ffnav.landingProbeCache[lookaheadIdx]) then
+								local distToLanding = math.distance3d(lookaheadNode, ppos)
+								if (distToLanding <= ffnav.landingLookaheadDist and distToLanding > 5) then
+									local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
+									local clear, fbX, fbY, fbZ = CheckLandingZone(
+										lookaheadNode.x, lookaheadNode.y, lookaheadNode.z, mountRadius)
+									ffnav.landingProbeCache[lookaheadIdx] = true -- mark probed
+									if (not clear and fbX) then
+										d("[Navigation] Lookahead: landing blocked at node " .. lookaheadIdx
+											.. ", rerouting early to ("
+											.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")"
+											.. " dist=" .. string.format("%.0f", distToLanding))
+										-- Adjust the transition node in-place instead of rebuilding the
+										-- entire path (BuildPath from sky→ground produces wild cube routes).
+										lookaheadNode.x = fbX
+										lookaheadNode.y = fbY
+										lookaheadNode.z = fbZ
+										lookaheadNode.is_end = true
+										-- Remove all nodes after the adjusted landing node so the
+										-- flight path goes straight there without stale ground nodes.
+										for ri = lookaheadIdx + 1, lookaheadIdx + 50 do
+											if (ml_navigation.path[ri] == nil) then break end
+											ml_navigation.path[ri] = nil
+										end
+										-- Track fallback so BuildPath redirect keeps the adjusted
+										-- destination if the outer task re-requests a path.
+										ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
+										ffnav.landingFallbackOrigin = ml_navigation.targetposition and
+											{ x = ml_navigation.targetposition.x,
+											  y = ml_navigation.targetposition.y,
+											  z = ml_navigation.targetposition.z } or nil
+										ffnav.landingFallbackActive = true
+									end
+								end
+							end
+						end
+						
 						if ( ml_navigation:IsGoalClose(ppos,targetnode,lastnode) or ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then	
 							local canLand = ((dist2D < 2 or dist3D < 3) and height < 7 and height > 0)
 							local isFlyToWalk = (isDescentCon or (nextnode.is_end and nextnode.ground))
@@ -2394,6 +2450,7 @@ function ml_navigation.Navigate(event, ticks )
 						ffnav.landingFallbackActive = false
 						ffnav.landingFallbackPos = nil
 						ffnav.landingFallbackOrigin = nil
+						ffnav.landingProbeCache = {}
 						
 						--d("[Navigation]: Normal navigation..")
 						local navcon = ml_navigation:GetConnection(nextnode)
@@ -2892,6 +2949,7 @@ ffnav.landingProbeCache = {}  -- keyed by pathindex for fly-to-walk transitions
 ffnav.landingFallbackActive = false  -- true while rerouted to a landing fallback
 ffnav.landingFallbackPos = nil       -- {x,y,z} of the fallback landing spot
 ffnav.landingFallbackOrigin = nil    -- {x,y,z} of the original destination (to detect target changes)
+ffnav.landingLookaheadDist = 40      -- distance (units) at which to pre-probe the landing zone
 ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
 
 function ffnav.CompactPath()

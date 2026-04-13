@@ -74,6 +74,7 @@ local function TaskTryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
 end
 
 ffxiv_task_movetopos = inheritsFrom(ml_task)
+
 function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)
     
@@ -171,7 +172,6 @@ function ffxiv_task_movetopos:task_complete_eval()
 	end
 	
 	if (Busy() or self.startMap ~= Player.localmapid) then
-		navd("[MOVETOPOS TCE] completing: busy=" .. tostring(Busy()) .. " startMap=" .. tostring(self.startMap) .. " localmap=" .. tostring(Player.localmapid) .. " destMapID=" .. tostring(self.destMapID))
 		return true
 	end
 	
@@ -189,7 +189,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		if (dist3d < 40 and self.customSearch ~= "") then
 			local el = EntityList(self.customSearch)
 			if (ValidTable(el)) then
-				local id,entity = next(el)
+				local _,entity = next(el)
 				if (ValidTable(entity)) then
 					if (entity.alive) then
 						if (self.customSearchCompletes) then
@@ -217,10 +217,12 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Task Range: "..tostring(self.range))
         ml_debug("Current Distance: "..tostring(dist3d))
 		--ml_debug("Path Distance: "..tostring(pathdistance))
-        ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
+		local range = tonumber(self.range) or 1.5
+		local gatherRange = tonumber(self.gatherRange) or 0
+        ml_debug("Completion Distance: "..tostring(range + gatherRange))
 		
-		local requiredRange = (self.range + self.gatherRange)
-		local requiredRange3d = (IsNull(self.range3d,self.range + 2))
+		local requiredRange = (range + gatherRange)
+		local requiredRange3d = (IsNull(self.range3d, range + 2))
 		
 		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
@@ -373,7 +375,6 @@ function ffxiv_task_movetofate:task_complete_eval()
 			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .95)))) 
 		then
 			local newPos = nil
-			local skipRandomization = false
 			
 			if (dist < (fate.radius * .95)) then
 				local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
@@ -397,8 +398,6 @@ function ffxiv_task_movetofate:task_complete_eval()
 					end
 					
 					if (heading) then
-						local mobRight = ConvertHeading((heading - (math.pi * (math.random(11,20)/100))))%(2*math.pi)
-						local mobLeft = ConvertHeading((heading + (math.pi * (math.random(11,20)/100))))%(2*math.pi)
 						local mobFrontLeft = ConvertHeading((heading + (math.pi * (math.random(1,10)/100))))%(2*math.pi)
 						local mobFrontRight = ConvertHeading((heading - (math.pi * (math.random(1,10)/100))))%(2*math.pi)
 						
@@ -625,8 +624,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (self.startMap ~= Player.localmapid or Busy()) then
 		return true
 	end
-	
-	local myTarget = MGetTarget()
+
 	local ppos = Player.pos
 	
 	local interactable = nil
@@ -641,14 +639,21 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	--if (not IsFlying()) then
 		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
+		local completeRange3d = IsNull(self.interactRange3d, nil)
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
+				if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
+					return false
+				end
 				return true
 			end
 		else
 			if (dist2d <= 5 and dist3d <= 10) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
+					if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
+						return false
+					end
 					return true
 				end
 			end			
@@ -1944,9 +1949,6 @@ function ffxiv_nav_interact:Init()
 end
 
 function ffxiv_nav_interact:task_complete_eval()
-	local myTarget = MGetTarget()
-	local ppos = Player.pos
-	
 	if (self.abort and type(self.abort) == "function") then
 		if (self.abort() == true) then
 			return true

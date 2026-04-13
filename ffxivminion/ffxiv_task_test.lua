@@ -199,10 +199,8 @@ end
 c_gotopostest = inheritsFrom( ml_cause )
 e_gotopostest = inheritsFrom( ml_effect )
 c_gotopostest.pos = {}
-c_gotopostest.path = {}
 function c_gotopostest:evaluate()
 	c_gotopostest.pos = {}
-	c_gotopostest.path = {}
 
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID and tonumber(gTestNPCID) == 0) then
@@ -212,20 +210,27 @@ function c_gotopostest:evaluate()
 		pos.y = tonumber(gTestMapY)
 		pos.z = tonumber(gTestMapZ)
 		
+		local range = tonumber(gTestNavRange) or 4
 		local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
-		if (dist > 2) then
+		local triggerDist = (range + 2)
+		if (dist > triggerDist) then
+			c_gotopostest.reached = false
 			c_gotopostest.pos = pos
 			return true
+		else
+			if (not c_gotopostest.reached) then
+				c_gotopostest.reached = true
+				Player:Stop()
+			end
 		end
 	end
 	return false
 end
 function e_gotopostest:execute()
-	local pos = c_gotopostest.pos
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_gotopostest.pos 
 	newTask.cubefilters = gTestNoFly and 1 or 0
-	newTask.range = gTestNavRange
+	newTask.range = tonumber(gTestNavRange) or 4
 	newTask.remainMounted = gTestRemainMounted
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -322,7 +327,7 @@ function ffxiv_task_test:UIInit()
 	gTestMapY = ffxivminion.GetSetting("gTestMapY","")
 	gTestMapZ = ffxivminion.GetSetting("gTestMapZ","")
 	gTestNoFly = ffxivminion.GetSetting("gTestNoFly",false)
-	gTestNavRange = ffxivminion.GetSetting("gTestNavRange",1)
+	gTestNavRange = ffxivminion.GetSetting("gTestNavRange",4)
 	gTestRemainMounted = ffxivminion.GetSetting("gTestRemainMounted",true)
 end
 
@@ -407,11 +412,17 @@ end
 function ffxiv_task_test.GetCurrentPosition()
 	local mapid = Player.localmapid
 	local pos = Player.pos
+	local savePos = { x = pos.x, y = pos.y, z = pos.z }
+	local meshPos = FindClosestMesh(savePos, 4, true)
+	if (meshPos and meshPos.x ~= nil and meshPos.y ~= nil and meshPos.z ~= nil and meshPos.distance ~= nil and meshPos.distance < 2) then
+		savePos = { x = meshPos.x, y = meshPos.y, z = meshPos.z }
+	end
 	
-	gTestMapX = pos.x
-	gTestMapY = pos.y
-	gTestMapZ = pos.z
+	gTestMapX = savePos.x
+	gTestMapY = savePos.y
+	gTestMapZ = savePos.z
 	gTestMapID = mapid
+	c_gotopostest.reached = false
 	
 	GUI_Set("gTestMapID",gTestMapID)
 	GUI_Set("gTestNPCID",0)
@@ -431,6 +442,7 @@ function ffxiv_task_test.GetTargetPosition()
 		gTestMapY = pos.y
 		gTestMapZ = pos.z
 		gTestMapID = mapid
+		c_gotopostest.reached = false
 		
 		GUI_Set("gTestMapID",gTestMapID)
 		GUI_Set("gTestNPCID",gTestNPCID)
@@ -449,6 +461,7 @@ function ffxiv_task_test.GetRandomPosition()
 		gTestMapY = pos.y
 		gTestMapZ = pos.z
 		gTestMapID = mapid
+		c_gotopostest.reached = false
 		
 		GUI_Set("gTestMapID",gTestMapID)
 		GUI_Set("gTestMapX",gTestMapX)
