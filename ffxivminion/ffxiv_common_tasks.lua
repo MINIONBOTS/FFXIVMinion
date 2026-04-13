@@ -639,7 +639,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	--if (not IsFlying()) then
 		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
-		local completeRange3d = IsNull(self.interactRange3d, nil)
+		local completeRange3d = tonumber(self.interactRange3d)
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
 				if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then

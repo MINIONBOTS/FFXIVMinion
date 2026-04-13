@@ -4443,7 +4443,7 @@ function c_dointeract:evaluate()
 	
 	-- QUEST_ATTUNEAETHERYTE special: if entity has drifted too far in 3D, re-search
 	if (task.name == "QUEST_ATTUNEAETHERYTE") then
-		local range3d = IsNull(task.interactRange3d, 7.5)
+		local range3d = tonumber(task.interactRange3d) or 7.5
 		if (interactable.distance > range3d) then
 			if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
 				task.interact = 0
@@ -4467,7 +4467,7 @@ function c_dointeract:evaluate()
 
 	-- For profile-driven interact steps, honor explicit 3D range before attempting interact.
 	-- Keep the existing interactable gate below as the final readiness check.
-	local range3d = IsNull(task.interactRange3d, nil)
+	local range3d = tonumber(task.interactRange3d)
 	if (range3d and range3d > 0 and interactable.distance > range3d) then
 		return false
 	end
