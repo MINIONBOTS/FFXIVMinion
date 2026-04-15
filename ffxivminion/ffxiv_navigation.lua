@@ -74,7 +74,8 @@ ml_navigation_exact = {
 	active = false,
 	pending = false,
 	pendingGoal = nil,
-	threshold = 0.1,
+	pendingCacheId = nil,
+	threshold = 0.2,
 	omc_id = nil,
 	omc_details = nil,
 	omc_direction = 0,
@@ -88,10 +89,31 @@ ml_navigation_exact = {
 	autoFollowNodeKey = nil,
 	autoFollowLastSet = 0,
 	autoFollowRefreshMs = 200,
+	autoFollowEnableRetryMs = 250,
+	autoFollowLastEnableAttempt = 0,
+	autoFollowBrakeWaitLogged = false,
 	reachedLogged = false,
 	completed = false,
 	lastOptimize = 0,
+	requestSeq = 0,
+	lastRequestId = nil,
 }
+
+local function BuildMoveToExactCacheId(startPos, goalPos)
+	ml_navigation_exact.requestSeq = (ml_navigation_exact.requestSeq or 0) + 1
+	local mapId = (Player and Player.localmapid) and tostring(Player.localmapid) or "0"
+	local key = string.format("exact|%s|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%d",
+		mapId,
+		startPos.x, startPos.y, startPos.z,
+		goalPos.x, goalPos.y, goalPos.z,
+		ml_navigation_exact.requestSeq)
+	local hash = 5381
+	for i = 1, #key do
+		hash = ((hash * 33) + string.byte(key, i)) % 2147483647
+	end
+	if (hash <= 0) then hash = 1 end
+	return hash
+end
 
 ml_navigation.receivedInstructions = {}
 ml_navigation.instructionThrottle = 0
@@ -1552,7 +1574,12 @@ end
 function Player:MoveToExact(x, y, z, threshold)
 	if (not x or not y or not z) then return -1 end
 	
-	local thresh = threshold or 0.1
+	local thresh = threshold or 0.2
+	
+	-- Ensure no stale autofollow/brake state is carried into a restart.
+	if (ml_navigation and ml_navigation.DisableAutoFollow) then
+		ml_navigation:DisableAutoFollow(true, "MoveToExact start")
+	end
 	
 	-- Cancel any active normal navigation
 	if (ml_navigation.canPath) then
@@ -1564,6 +1591,8 @@ function Player:MoveToExact(x, y, z, threshold)
 	
 	local ppos = Player.pos
 	if (not ppos) then return -1 end
+	local goal = { x = x, y = y, z = z }
+	local cacheId = BuildMoveToExactCacheId(ppos, goal)
 	
 	-- Exclude AIR and WATER cubes — ground only
 	if (GLOBAL and GLOBAL.CUBE) then
@@ -1575,7 +1604,8 @@ function Player:MoveToExact(x, y, z, threshold)
 		end
 	end
 	
-	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z, 0, false, true)
+	d("[MoveToExact]: Requesting fresh path. cacheId=" .. tostring(cacheId))
+	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z, cacheId, false, true)
 	
 	if (type(result) == "table" and table.valid(result)) then
 		-- Cache hit — path available immediately
@@ -1583,8 +1613,10 @@ function Player:MoveToExact(x, y, z, threshold)
 		ml_navigation_exact.pathindex = 1
 		ml_navigation_exact.active = true
 		ml_navigation_exact.pending = false
+		ml_navigation_exact.pendingCacheId = nil
 		ml_navigation_exact.threshold = thresh
-		ml_navigation_exact.targetposition = { x = x, y = y, z = z }
+		ml_navigation_exact.targetposition = goal
+		ml_navigation_exact.lastRequestId = cacheId
 		for _, node in pairs(ml_navigation_exact.path) do
 			ml_navigation.TagNode(node)
 		end
@@ -1595,12 +1627,16 @@ function Player:MoveToExact(x, y, z, threshold)
 		-- Request enqueued — path will arrive on a subsequent tick
 		ml_navigation_exact.active = true
 		ml_navigation_exact.pending = true
-		ml_navigation_exact.pendingGoal = { x = x, y = y, z = z }
+		ml_navigation_exact.pendingGoal = goal
+		ml_navigation_exact.pendingCacheId = cacheId
 		ml_navigation_exact.threshold = thresh
-		ml_navigation_exact.targetposition = { x = x, y = y, z = z }
+		ml_navigation_exact.targetposition = goal
+		ml_navigation_exact.lastRequestId = cacheId
+		d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId))
 		return 0
 	else
 		-- Failure
+		d("[MoveToExact]: Path request failed. cacheId=" .. tostring(cacheId))
 		return -1
 	end
 end
@@ -1628,7 +1664,8 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.active = false
 	ml_navigation_exact.pending = false
 	ml_navigation_exact.pendingGoal = nil
-	ml_navigation_exact.threshold = 0.1
+	ml_navigation_exact.pendingCacheId = nil
+	ml_navigation_exact.threshold = 0.2
 	ml_navigation_exact.omc_id = nil
 	ml_navigation_exact.omc_details = nil
 	ml_navigation_exact.omc_direction = 0
@@ -1641,9 +1678,12 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.lastupdate = 0
 	ml_navigation_exact.autoFollowNodeKey = nil
 	ml_navigation_exact.autoFollowLastSet = 0
+	ml_navigation_exact.autoFollowLastEnableAttempt = 0
+	ml_navigation_exact.autoFollowBrakeWaitLogged = false
 	ml_navigation_exact.reachedLogged = false
 	ml_navigation_exact.completed = false
 	ml_navigation_exact.lastOptimize = 0
+	ml_navigation_exact.lastRequestId = nil
 end
 
 function ml_navigation_exact.ResetOMCState()
@@ -1699,9 +1739,28 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
 	end
-	-- Only turn autofollow on once; after that just update the position to avoid stutter
-	if (not Player:IsAutoFollowOn()) then
+	
+	local brakePending = (Player.IsAutoFollowBrakePending and Player:IsAutoFollowBrakePending())
+	if (brakePending) then
+		if (not ml_navigation_exact.autoFollowBrakeWaitLogged) then
+			d("[MoveToExact]: Waiting for AutoFollow brake to clear before enabling.")
+			ml_navigation_exact.autoFollowBrakeWaitLogged = true
+		end
+		return true
+	end
+	
+	if (ml_navigation_exact.autoFollowBrakeWaitLogged) then
+		ml_navigation_exact.autoFollowBrakeWaitLogged = false
+		d("[MoveToExact]: AutoFollow brake cleared.")
+	end
+	
+	-- Only turn autofollow on as needed, but throttle retries to avoid enable spam.
+	if ((not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) and TimeSince(ml_navigation_exact.autoFollowLastEnableAttempt) >= ml_navigation_exact.autoFollowEnableRetryMs) then
+		Player:SetAutoFollowPos(node.x, ppos.y, node.z)
+		ml_navigation_exact.autoFollowNodeKey = key
+		ml_navigation_exact.autoFollowLastSet = now
 		Player:SetAutoFollowOn(true)
+		ml_navigation_exact.autoFollowLastEnableAttempt = now
 	end
 	return true
 end
@@ -3144,25 +3203,33 @@ function ml_navigation_exact.Navigate(event, ticks)
 	-- Handle pending async path
 	if (ml_navigation_exact.pending) then
 		local goal = ml_navigation_exact.pendingGoal
+		local cacheId = ml_navigation_exact.pendingCacheId
 		if (not goal) then
 			Player:StopExact()
 			return
 		end
-		local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, goal.x, goal.y, goal.z, 0, false, true)
+		if (not cacheId or cacheId <= 0) then
+			cacheId = BuildMoveToExactCacheId(ppos, goal)
+			ml_navigation_exact.pendingCacheId = cacheId
+			d("[MoveToExact]: Missing pending cacheId, regenerated id=" .. tostring(cacheId))
+		end
+		local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, goal.x, goal.y, goal.z, cacheId, false, true)
 		if (type(result) == "table" and table.valid(result)) then
 			ml_navigation_exact.path = result
 			ml_navigation_exact.pathindex = 1
 			ml_navigation_exact.pending = false
 			ml_navigation_exact.pendingGoal = nil
+			ml_navigation_exact.pendingCacheId = nil
 			for _, node in pairs(ml_navigation_exact.path) do
 				ml_navigation.TagNode(node)
 			end
 			-- Optimize path: remove skippable intermediate nodes via raycast shortcuts
 			ml_navigation_exact.OptimizeCachedPath(ppos)
+			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
 		elseif (type(result) == "number" and result > 0) then
 			return -- still pending, wait another tick
 		else
-			d("[MoveToExact]: Path request failed.")
+			d("[MoveToExact]: Path request failed during pending poll. cacheId=" .. tostring(cacheId))
 			Player:StopExact()
 			return
 		end
@@ -3190,10 +3257,10 @@ function ml_navigation_exact.Navigate(event, ticks)
 	end
 	
 	-- Check if current node is reached
-	local dist3d = math.distance3d(ppos, nextnode)
 	local dist2d = math.distance2d(ppos, nextnode)
 	
-	if (dist2d <= self.threshold and dist3d <= (self.threshold * 4)) then
+	-- MoveToExact is ground-only; use 2D completion to avoid stalling on Y deltas.
+	if (dist2d <= self.threshold) then
 		-- Node reached — check for OMC setup
 		if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
 			local nc = NavigationManager:GetNavConnection(nextnode.navconnectionid)
@@ -3351,9 +3418,8 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		if (self.omc_starttimer == 0) then
 			self.omc_starttimer = ticks
 		end
-		local todist = math.distance3d(ppos, nextnode)
 		local todist2d = math.distance2d(ppos, nextnode)
-		if (todist2d <= self.threshold and todist <= (self.threshold * 4)) then
+		if (todist2d <= self.threshold) then
 			self.pathindex = self.pathindex + 1
 			ml_navigation_exact.ResetAutoFollowState()
 			ml_navigation_exact.ResetOMCState()
