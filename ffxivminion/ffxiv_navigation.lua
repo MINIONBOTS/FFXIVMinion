@@ -66,6 +66,30 @@ ml_navigation.PathDeviationDistances = {
 	["2dfly"] = 8,
 }
 
+-- MoveToExact: separate lightweight state machine for precise combat movement
+ml_navigation_exact = {
+	path = {},
+	pathindex = 0,
+	targetposition = nil,
+	active = false,
+	pending = false,
+	pendingGoal = nil,
+	threshold = 0.1,
+	omc_id = nil,
+	omc_details = nil,
+	omc_direction = 0,
+	omc_starttimer = 0,
+	omc_traveltimer = nil,
+	omc_traveldist = 0,
+	omc_startheight = nil,
+	ensureposition = nil,
+	ensurepositionstarttime = nil,
+	lastupdate = 0,
+	autoFollowNodeKey = nil,
+	autoFollowLastSet = 0,
+	autoFollowRefreshMs = 200,
+}
+
 ml_navigation.receivedInstructions = {}
 ml_navigation.instructionThrottle = 0
 function ml_navigation.ParseInstructions(data)
@@ -1381,6 +1405,11 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
 	
+	-- Cancel any active MoveToExact when normal MoveTo is called
+	if (ml_navigation_exact.active) then
+		Player:StopExact()
+	end
+	
 	if (MPlayerDriving()) then
 		d("[NAVIGATION]: Releasing control to Player..")
 		ml_navigation:ResetCurrentPath()
@@ -1514,6 +1543,131 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	ml_navigation.lastBuildCall = Now()
 	ml_navigation.lastpos = newGoal
 	return ret
+end
+
+-- MoveToExact: Precise combat-oriented movement. Ground-only, autofollow-only, tight threshold, no path rebuilding.
+-- Returns: positive number = path node count (immediate), 0 = path pending (async), -1 = failure
+function Player:MoveToExact(x, y, z, threshold)
+	if (not x or not y or not z) then return -1 end
+	
+	local thresh = threshold or 0.1
+	
+	-- Cancel any active normal navigation
+	if (ml_navigation.canPath) then
+		ml_navigation:DisablePathing()
+	end
+	
+	-- Reset any prior exact state
+	ml_navigation_exact.Reset()
+	
+	local ppos = Player.pos
+	if (not ppos) then return -1 end
+	
+	-- Exclude AIR and WATER cubes — ground only
+	if (GLOBAL and GLOBAL.CUBE) then
+		local cubeExclude = 0
+		if (GLOBAL.CUBE.AIR) then cubeExclude = bit.bor(cubeExclude, GLOBAL.CUBE.AIR) end
+		if (GLOBAL.CUBE.WATER) then cubeExclude = bit.bor(cubeExclude, GLOBAL.CUBE.WATER) end
+		if (cubeExclude ~= 0) then
+			NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubeExclude)
+		end
+	end
+	
+	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z)
+	
+	if (type(result) == "table" and table.valid(result)) then
+		-- Cache hit — path available immediately
+		ml_navigation_exact.path = result
+		ml_navigation_exact.pathindex = 1
+		ml_navigation_exact.active = true
+		ml_navigation_exact.pending = false
+		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.targetposition = { x = x, y = y, z = z }
+		for _, node in pairs(ml_navigation_exact.path) do
+			ml_navigation.TagNode(node)
+		end
+		return table.size(result)
+	elseif (type(result) == "number" and result > 0) then
+		-- Request enqueued — path will arrive on a subsequent tick
+		ml_navigation_exact.active = true
+		ml_navigation_exact.pending = true
+		ml_navigation_exact.pendingGoal = { x = x, y = y, z = z }
+		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.targetposition = { x = x, y = y, z = z }
+		return 0
+	else
+		-- Failure
+		return -1
+	end
+end
+
+function Player:StopExact()
+	if (ml_navigation_exact.active) then
+		Player:StopMovement()
+		ml_navigation:DisableAutoFollow(true, "StopExact")
+	end
+	ml_navigation_exact.Reset()
+end
+
+function Player:IsExactMoving()
+	return ml_navigation_exact.active
+end
+
+function ml_navigation_exact.Reset()
+	ml_navigation_exact.path = {}
+	ml_navigation_exact.pathindex = 0
+	ml_navigation_exact.targetposition = nil
+	ml_navigation_exact.active = false
+	ml_navigation_exact.pending = false
+	ml_navigation_exact.pendingGoal = nil
+	ml_navigation_exact.threshold = 0.1
+	ml_navigation_exact.omc_id = nil
+	ml_navigation_exact.omc_details = nil
+	ml_navigation_exact.omc_direction = 0
+	ml_navigation_exact.omc_starttimer = 0
+	ml_navigation_exact.omc_traveltimer = nil
+	ml_navigation_exact.omc_traveldist = 0
+	ml_navigation_exact.omc_startheight = nil
+	ml_navigation_exact.ensureposition = nil
+	ml_navigation_exact.ensurepositionstarttime = nil
+	ml_navigation_exact.lastupdate = 0
+	ml_navigation_exact.autoFollowNodeKey = nil
+	ml_navigation_exact.autoFollowLastSet = 0
+end
+
+function ml_navigation_exact.ResetOMCState()
+	ml_navigation_exact.omc_id = nil
+	ml_navigation_exact.omc_details = nil
+	ml_navigation_exact.omc_direction = 0
+	ml_navigation_exact.omc_starttimer = 0
+	ml_navigation_exact.omc_traveltimer = nil
+	ml_navigation_exact.omc_traveldist = 0
+	ml_navigation_exact.omc_startheight = nil
+	ml_navigation_exact.ensureposition = nil
+	ml_navigation_exact.ensurepositionstarttime = nil
+end
+
+function ml_navigation_exact.ResetAutoFollowState()
+	ml_navigation_exact.autoFollowNodeKey = nil
+	ml_navigation_exact.autoFollowLastSet = 0
+end
+
+-- Dispatch autofollow for MoveToExact — always uses ppos.y for ground movement
+function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
+	if (not node or not Player or not Player.SetAutoFollowPos or not Player.SetAutoFollowOn) then
+		return false
+	end
+	local now = Now()
+	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(ml_navigation_exact.pathindex)
+	if (force or key ~= ml_navigation_exact.autoFollowNodeKey or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
+		Player:SetAutoFollowPos(node.x, ppos.y, node.z)
+		ml_navigation_exact.autoFollowNodeKey = key
+		ml_navigation_exact.autoFollowLastSet = now
+	end
+	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
+		Player:SetAutoFollowOn(true)
+	end
+	return true
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
@@ -1738,6 +1892,12 @@ ml_navigation.path = {}
 ml_navigation.pathindex = 0
 ml_navigation.lastindexgoal = {}
 function ml_navigation.Navigate(event, ticks )	
+	-- MoveToExact priority guard — when exact movement is active, run its handler instead
+	if (ml_navigation_exact.active) then
+		ml_navigation_exact.Navigate(event, ticks)
+		return
+	end
+	
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
@@ -2925,6 +3085,313 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_traveltimer = nil
 	self.omc_direction = 0
 	self.lastupdate = 0
+end
+
+------------------------------------------------------------
+-- MoveToExact Navigation Tick Handler
+------------------------------------------------------------
+function ml_navigation_exact.Navigate(event, ticks)
+	if (not ml_navigation_exact.active) then return end
+	
+	-- 16ms tick throttle for faster combat response
+	if ((ticks - ml_navigation_exact.lastupdate) < 16) then return end
+	ml_navigation_exact.lastupdate = ticks
+	
+	local ppos = Player.pos
+	if (not ppos) then return end
+	
+	-- Handle pending async path
+	if (ml_navigation_exact.pending) then
+		local goal = ml_navigation_exact.pendingGoal
+		if (not goal) then
+			Player:StopExact()
+			return
+		end
+		local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, goal.x, goal.y, goal.z)
+		if (type(result) == "table" and table.valid(result)) then
+			ml_navigation_exact.path = result
+			ml_navigation_exact.pathindex = 1
+			ml_navigation_exact.pending = false
+			ml_navigation_exact.pendingGoal = nil
+			for _, node in pairs(ml_navigation_exact.path) do
+				ml_navigation.TagNode(node)
+			end
+		elseif (type(result) == "number" and result > 0) then
+			return -- still pending, wait another tick
+		else
+			d("[MoveToExact]: Path request failed.")
+			Player:StopExact()
+			return
+		end
+	end
+	
+	local self = ml_navigation_exact
+	local nextnode = self.path[self.pathindex]
+	
+	-- No more nodes — destination reached
+	if (not nextnode) then
+		d("[MoveToExact]: Destination reached.")
+		Player:StopExact()
+		return
+	end
+	
+	-- OMC handling
+	if (self.omc_id and self.omc_details) then
+		ml_navigation_exact.HandleOMC(ppos, ticks)
+		return
+	end
+	
+	-- Check if current node is reached
+	local dist3d = math.distance3d(ppos, nextnode)
+	local dist2d = math.distance2d(ppos, nextnode)
+	
+	if (dist2d <= self.threshold and dist3d <= (self.threshold * 4)) then
+		-- Node reached — check for OMC setup
+		if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
+			local nc = NavigationManager:GetNavConnection(nextnode.navconnectionid)
+			if (nc and nc.type ~= 5 and nc.details and In(nc.details.subtype, 1, 2, 3, 4)) then
+				self.omc_id = nc.id
+				self.omc_details = nc
+				-- Determine direction
+				if (nc.sideA ~= nil) then
+					if (nextnode.navconnectionsideA == true) then
+						self.omc_direction = 1
+					else
+						self.omc_direction = 2
+					end
+				else
+					if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to)) then
+						self.omc_direction = 1
+					else
+						self.omc_direction = 2
+					end
+				end
+			end
+		end
+		
+		self.pathindex = self.pathindex + 1
+		ml_navigation_exact.ResetAutoFollowState()
+		
+		-- Check if that was the last node
+		if (not self.path[self.pathindex]) then
+			d("[MoveToExact]: Destination reached.")
+			Player:StopExact()
+			return
+		end
+		return
+	end
+	
+	-- Not reached — dispatch autofollow toward next node
+	ml_navigation_exact.DispatchAutoFollow(nextnode, ppos, false)
+end
+
+------------------------------------------------------------
+-- MoveToExact OMC Handler
+------------------------------------------------------------
+function ml_navigation_exact.HandleOMC(ppos, ticks)
+	local self = ml_navigation_exact
+	local nc = self.omc_details
+	local nextnode = self.path[self.pathindex]
+	local nextnextnode = self.path[self.pathindex + 1]
+	
+	if (not nc or not nextnode) then
+		ml_navigation_exact.ResetOMCState()
+		return
+	end
+	
+	-- Resolve direction and positions
+	local from_pos, to_pos, ncradius, ncsubtype, from_heading
+	
+	if (nc.sideA ~= nil) then
+		if (self.omc_direction == 1) then
+			from_pos = nc.sideA
+			to_pos = nc.sideB
+			ncradius = nc.sideA.radius
+			from_heading = nc.details.headingA_x
+		else
+			from_pos = nc.sideB
+			to_pos = nc.sideA
+			ncradius = nc.sideB.radius
+			from_heading = nc.details.headingB_x
+		end
+		ncsubtype = nc.details.subtype
+	else
+		if (self.omc_direction == 1) then
+			from_pos = nc.from
+			to_pos = nc.to
+		else
+			from_pos = nc.to
+			to_pos = nc.from
+		end
+		ncradius = nc.radius
+		ncsubtype = nc.subtype
+	end
+	
+	-- Stuck detection: 3s progress check + 10s max timeout
+	if (not MIsLocked()) then
+		if (self.omc_traveltimer == nil) then
+			self.omc_traveltimer = ticks
+		end
+		local timepassed = ticks - self.omc_traveltimer
+		local dist = math.distance3d(ppos, nextnode)
+		if (self.omc_traveldist == 0) then
+			self.omc_traveldist = dist
+		end
+		if (timepassed < 3000) then
+			if (timepassed > 2000 and self.omc_traveldist > dist) then
+				self.omc_traveldist = dist
+				self.omc_traveltimer = ticks
+			end
+		else
+			d("[MoveToExact]: OMC stuck — not getting closer.")
+			Player:StopExact()
+			return
+		end
+	end
+	
+	if (self.omc_starttimer ~= 0 and ticks - self.omc_starttimer > 10000) then
+		d("[MoveToExact]: OMC timeout (10s).")
+		Player:StopExact()
+		return
+	end
+	
+	-- OMC Jump (subtype 1)
+	if (ncsubtype == 1) then
+		if (not self.omc_startheight) then
+			-- Face target before jumping
+			if (self.omc_starttimer == 0) then
+				self.omc_starttimer = ticks
+				if (not Player:IsMoving()) then
+					ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)
+				end
+			elseif (Player:IsMoving() and ticks - self.omc_starttimer > 100) then
+				self.omc_startheight = ppos.y
+				Player:Jump()
+				d("[MoveToExact]: OMC Jump started.")
+			end
+		else
+			local todist2d = math.distance2d(ppos, to_pos)
+			if (todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+				-- Reached jump target
+				self.pathindex = self.pathindex + 1
+				ml_navigation_exact.ResetAutoFollowState()
+				ml_navigation_exact.ResetOMCState()
+				d("[MoveToExact]: OMC Jump landed.")
+			else
+				-- Still in air / approaching
+				if (from_pos.y > (ppos.y + 1) and to_pos.y > (ppos.y + 1)) then
+					d("[MoveToExact]: OMC Jump failed — fell below both endpoints.")
+					Player:StopExact()
+					return
+				end
+				ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)
+			end
+		end
+		return
+	end
+	
+	-- OMC Walk (subtype 2)
+	if (ncsubtype == 2) then
+		if (self.omc_starttimer == 0) then
+			self.omc_starttimer = ticks
+		end
+		local todist = math.distance3d(ppos, nextnode)
+		local todist2d = math.distance2d(ppos, nextnode)
+		if (todist2d <= self.threshold and todist <= (self.threshold * 4)) then
+			self.pathindex = self.pathindex + 1
+			ml_navigation_exact.ResetAutoFollowState()
+			ml_navigation_exact.ResetOMCState()
+			d("[MoveToExact]: OMC Walk complete.")
+		else
+			ml_navigation_exact.DispatchAutoFollow(nextnode, ppos, true)
+		end
+		return
+	end
+	
+	-- OMC Teleport (subtype 3)
+	if (ncsubtype == 3) then
+		if (Player:IsMoving() or Player:IsJumping()) then
+			Player:StopMovement()
+			return
+		end
+		if (gTeleportHack) then
+			Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
+			d("[MoveToExact]: OMC Teleport.")
+		else
+			NavigationManager:DisableNavConnection(nc.id)
+		end
+		self.pathindex = self.pathindex + 1
+		ml_navigation_exact.ResetAutoFollowState()
+		ml_navigation_exact.ResetOMCState()
+		return
+	end
+	
+	-- OMC Interact (subtype 4)
+	if (ncsubtype == 4) then
+		if (Player:IsMoving()) then
+			Player:StopMovement()
+			return
+		end
+		
+		if (MIsLoading()) then
+			self.lastupdate = self.lastupdate + 1500
+			self.pathindex = self.pathindex + 1
+			ml_navigation_exact.ResetAutoFollowState()
+			ml_navigation_exact.ResetOMCState()
+			return
+		end
+		
+		if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
+			SelectConversationIndex(1)
+			self.lastupdate = self.lastupdate + 1000
+			return
+		end
+		
+		if (IsPositionLocked()) then
+			self.lastupdate = self.lastupdate + 500
+			return
+		end
+		
+		-- Check if we already arrived at the OMC end
+		local todist = math.distance3d(ppos, nextnode)
+		local todist2d = math.distance2d(ppos, nextnode)
+		if (todist <= ml_navigation.NavPointReachedDistances["3dwalk"] and todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+			self.pathindex = self.pathindex + 1
+			ml_navigation_exact.ResetAutoFollowState()
+			ml_navigation_exact.ResetOMCState()
+			d("[MoveToExact]: OMC Interact node reached.")
+			return
+		end
+		
+		-- Find a target to interact with
+		local interactnpc
+		local elist = MEntityList("nearest,targetable,type=7,chartype=0,maxdistance=5")
+		if (table.valid(elist)) then interactnpc = select(2, next(elist)) end
+		
+		if (not interactnpc) then
+			elist = MEntityList("nearest,targetable,type=3,chartype=0,maxdistance=5")
+			if (table.valid(elist)) then interactnpc = select(2, next(elist)) end
+		end
+		
+		if (not interactnpc) then
+			elist = MEntityList("nearest,targetable,maxdistance=7")
+			if (table.valid(elist)) then interactnpc = select(2, next(elist)) end
+		end
+		
+		if (interactnpc) then
+			if (not Player:IsInteracting()) then
+				Player:Interact(interactnpc.id)
+				self.lastupdate = self.lastupdate + 1000
+			end
+		end
+		return
+	end
+	
+	-- Unknown subtype — skip
+	d("[MoveToExact]: Unknown OMC subtype " .. tostring(ncsubtype) .. ", skipping.")
+	self.pathindex = self.pathindex + 1
+	ml_navigation_exact.ResetAutoFollowState()
+	ml_navigation_exact.ResetOMCState()
 end
 
 ffnav = {}
