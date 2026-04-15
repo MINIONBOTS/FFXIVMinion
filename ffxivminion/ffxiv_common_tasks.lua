@@ -116,6 +116,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
 	newinst.noFly = false
+	newinst.useExactMovement = false
+	newinst.exactMovementStarted = false
 	
 	NavigationManager:ResetPath()
 	--NavigationManager.NavPathNode = 0
@@ -229,6 +231,23 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
 		if (Player.onmesh or IsFlying()) then
+			-- Safety: disable exact movement if path is beyond macro mesh threshold
+			if (self.useExactMovement and not self.exactMovementStarted) then
+				local macroThresh = NavigationManager.MacroMeshDistanceThreshold or 650
+				if (dist3d > macroThresh) then
+					self.useExactMovement = false
+				end
+			end
+
+			-- Switch to MoveToExact for final approach when within 30y (ground only)
+			if (self.useExactMovement and not self.exactMovementStarted and dist3d < 30 and not IsFlying() and not IsDiving()) then
+				if (ml_navigation.canPath) then
+					ml_navigation:DisablePathing()
+				end
+				Player:MoveToExact(gotoPos.x, gotoPos.y, gotoPos.z)
+				self.exactMovementStarted = true
+			end
+
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 				if (self.interact and self.interact ~= 0) then
 					local interactable = EntityList:Get(self.interact)
@@ -237,7 +256,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 					end
 				end
 
-				Player:Stop()
+				if (self.useExactMovement) then
+					Player:StopExact()
+				else
+					Player:Stop()
+				end
 				if (not self.remainMounted and Player.ismounted) then
 					Dismount()
 					return false
@@ -251,7 +274,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
-	Player:Stop()
+	if (self.useExactMovement) then
+		Player:StopExact()
+	else
+		Player:Stop()
+	end
 	if (self.doFacing and gUseAutoFollowPath ~= true) then
 		TaskTryFaceHeading(ml_task_hub:CurrentTask().pos.h)
     end
@@ -268,7 +295,11 @@ function ffxiv_task_movetopos:task_fail_eval()
 end
 
 function ffxiv_task_movetopos:task_fail_execute()
-	Player:Stop()
+	if (self.useExactMovement) then
+		Player:StopExact()
+	else
+		Player:Stop()
+	end
     self.valid = false
 	ml_debug("[MOVETOPOS]: Failing.")
 end
@@ -1143,7 +1174,7 @@ function ffxiv_task_avoid.Create()
 end
 
 function ffxiv_task_avoid:Init()
-    Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
+    Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
     self:AddTaskCheckCEs()
 end
 
@@ -1172,10 +1203,10 @@ function ffxiv_task_avoid:task_complete_eval()
 	end
 	
 	if (dist > 1) then
-		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,0,1)
+		Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
 	end
 	
-	if (dist < 1.5 and not Player:IsMoving()) then
+	if (dist < 1.5 and not Player:IsMoving() and not Player:IsExactMoving()) then
 		local target;
 		if (self.attackTarget ~= 0) then
 			target = MGetEntity(self.attackTarget)
@@ -1194,7 +1225,7 @@ function ffxiv_task_avoid:task_complete_eval()
 end
 
 function ffxiv_task_avoid:task_complete_execute()
-    Player:Stop()
+    Player:StopExact()
     
 	local target = MGetTarget()
 	if (target ~= nil) then
