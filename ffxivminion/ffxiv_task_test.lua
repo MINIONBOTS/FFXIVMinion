@@ -215,17 +215,20 @@ function c_gotopostest:evaluate()
 			if (Player:IsExactMoving()) then
 				return false -- already moving, let Navigate handle it
 			end
+			-- Navigate finished — stop the bot
+			if (ml_navigation_exact.completed) then
+				ml_navigation_exact.completed = false
+				c_gotopostest.reached = true
+				ml_task_hub.shouldRun = false
+				FFXIV_Common_BotRunning = false
+				d("[NavTest] MoveToExact destination reached — bot stopped.")
+				return false
+			end
 			local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
 			local thresh = tonumber(gTestNavRange) or 0.1
 			if (dist > thresh) then
-				c_gotopostest.reached = false
 				c_gotopostest.pos = pos
 				return true
-			else
-				if (not c_gotopostest.reached) then
-					c_gotopostest.reached = true
-					Player:StopExact()
-				end
 			end
 			return false
 		end

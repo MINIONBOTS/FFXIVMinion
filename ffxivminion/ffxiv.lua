@@ -1486,6 +1486,9 @@ function ml_global_information.Stop()
 	if (ml_navigation and ml_navigation.CancelFlightFollowCam) then
 		ml_navigation:CancelFlightFollowCam()
 	end
+	if (ml_navigation_exact and ml_navigation_exact.active) then
+		Player:StopExact()
+	end
 	if (MIsMoving() or table.valid(ml_navigation.path)) and gBotMode ~= "assistMode" then
 		Player:Stop()
 	end

@@ -88,6 +88,8 @@ ml_navigation_exact = {
 	autoFollowNodeKey = nil,
 	autoFollowLastSet = 0,
 	autoFollowRefreshMs = 200,
+	reachedLogged = false,
+	completed = false,
 }
 
 ml_navigation.receivedInstructions = {}
@@ -1573,7 +1575,7 @@ function Player:MoveToExact(x, y, z, threshold)
 		end
 	end
 	
-	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z)
+	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z, 0, false, true)
 	
 	if (type(result) == "table" and table.valid(result)) then
 		-- Cache hit — path available immediately
@@ -1602,11 +1604,11 @@ function Player:MoveToExact(x, y, z, threshold)
 end
 
 function Player:StopExact()
-	if (ml_navigation_exact.active) then
-		Player:StopMovement()
-		ml_navigation:DisableAutoFollow(true, "StopExact")
-	end
+	local wasActive = ml_navigation_exact.active
 	ml_navigation_exact.Reset()
+	if (wasActive) then
+		Player:Stop()
+	end
 end
 
 function Player:IsExactMoving()
@@ -1633,6 +1635,8 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.lastupdate = 0
 	ml_navigation_exact.autoFollowNodeKey = nil
 	ml_navigation_exact.autoFollowLastSet = 0
+	ml_navigation_exact.reachedLogged = false
+	ml_navigation_exact.completed = false
 end
 
 function ml_navigation_exact.ResetOMCState()
@@ -1664,7 +1668,8 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
 	end
-	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
+	-- Only turn autofollow on once; after that just update the position to avoid stutter
+	if (not Player:IsAutoFollowOn()) then
 		Player:SetAutoFollowOn(true)
 	end
 	return true
@@ -3107,7 +3112,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 			Player:StopExact()
 			return
 		end
-		local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, goal.x, goal.y, goal.z)
+		local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, goal.x, goal.y, goal.z, 0, false, true)
 		if (type(result) == "table" and table.valid(result)) then
 			ml_navigation_exact.path = result
 			ml_navigation_exact.pathindex = 1
@@ -3130,8 +3135,13 @@ function ml_navigation_exact.Navigate(event, ticks)
 	
 	-- No more nodes — destination reached
 	if (not nextnode) then
-		d("[MoveToExact]: Destination reached.")
-		Player:StopExact()
+		if (not self.reachedLogged) then
+			d("[MoveToExact]: Destination reached.")
+			self.reachedLogged = true
+			self.active = false
+			self.completed = true
+			ml_navigation:DisableAutoFollow(true, "MoveToExact complete")
+		end
 		return
 	end
 	
@@ -3174,10 +3184,18 @@ function ml_navigation_exact.Navigate(event, ticks)
 		
 		-- Check if that was the last node
 		if (not self.path[self.pathindex]) then
-			d("[MoveToExact]: Destination reached.")
-			Player:StopExact()
+			if (not self.reachedLogged) then
+				d("[MoveToExact]: Destination reached.")
+				self.reachedLogged = true
+				self.active = false
+				self.completed = true
+				ml_navigation:DisableAutoFollow(true, "MoveToExact complete")
+			end
 			return
 		end
+		-- Immediately dispatch autofollow to the next node so C++ doesn't
+		-- turn autofollow off between ticks (it auto-disables on arrival).
+		ml_navigation_exact.DispatchAutoFollow(self.path[self.pathindex], ppos, true)
 		return
 	end
 	
@@ -3726,6 +3744,46 @@ function ml_navigation.DrawPath(event, ticks)
 	--end
 end
 --RegisterEventHandler("Gameloop.Draw", ml_navigation.DrawPath)
+
+-- MoveToExact path drawing (cyan nodes, yellow lines)
+function ml_navigation_exact.DrawPath(event, ticks)
+	if (not table.valid(ml_navigation_exact.path)) then return end
+	
+	local maxWidth, maxHeight = GUI:GetScreenSize()
+	GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
+	GUI:SetNextWindowSize(maxWidth, maxHeight, GUI.SetCond_Always)
+	local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+	GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
+	local flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+	GUI:Begin("Show Exact Nav Space", true, flags)
+	
+	-- Build screen positions keyed by path index
+	local screenNodes = {}
+	local sortedKeys = {}
+	local pathindex = ml_navigation_exact.pathindex or 1
+	for id, node in pairsByKeys(ml_navigation_exact.path) do
+		table.insert(sortedKeys, id)
+		local nodePos = RenderManager:WorldToScreen({ x = node.x, y = node.y + 0.15, z = node.z })
+		if (table.valid(nodePos)) then
+			screenNodes[id] = nodePos
+			local alpha = (id >= pathindex) and 1 or 0.3
+			GUI:AddCircleFilled(nodePos.x, nodePos.y, 7, GUI:ColorConvertFloat4ToU32(0, .9, .9, alpha))
+		end
+	end
+	
+	-- Draw lines between consecutive path nodes (only when both endpoints are on screen)
+	for i = 1, #sortedKeys - 1 do
+		local thisScreen = screenNodes[sortedKeys[i]]
+		local nextScreen = screenNodes[sortedKeys[i + 1]]
+		if (thisScreen and nextScreen) then
+			GUI:AddLine(thisScreen.x, thisScreen.y, nextScreen.x, nextScreen.y, GUI:ColorConvertFloat4ToU32(1, 1, .2, 1), 6)
+		end
+	end
+	
+	GUI:End()
+	GUI:PopStyleColor()
+end
+RegisterEventHandler("Gameloop.Draw", ml_navigation_exact.DrawPath, "ml_navigation_exact.DrawPath")
 
 
 
