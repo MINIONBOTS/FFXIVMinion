@@ -212,6 +212,9 @@ function c_gotopostest:evaluate()
 		
 		-- MoveToExact mode: use its own active state instead of task-based distance
 		if (gTestUseMoveToExact) then
+			if (not FFXIV_Common_BotRunning) then
+				return false -- bot is stopping, don't re-trigger
+			end
 			if (Player:IsExactMoving()) then
 				return false -- already moving, let Navigate handle it
 			end

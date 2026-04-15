@@ -90,6 +90,7 @@ ml_navigation_exact = {
 	autoFollowRefreshMs = 200,
 	reachedLogged = false,
 	completed = false,
+	lastOptimize = 0,
 }
 
 ml_navigation.receivedInstructions = {}
@@ -846,10 +847,9 @@ function ml_navigation:IsAutoFollowActive()
 end
 
 function ml_navigation:DisableAutoFollow(force, source)
-	if (not self:UseAutoFollowPathing()) then
-		self:ResetAutoFollowState()
-		return
-	end
+	-- Always disable autofollow if it's actually active, regardless of UseAutoFollowPathing.
+	-- The setting gates whether normal navigation *dispatches* autofollow, but cleanup
+	-- must always work — autofollow may have been enabled by MoveToExact or other code.
 	if (Player and Player.SetAutoFollowOn) then
 		if (force or (Player.IsAutoFollowOn and Player:IsAutoFollowOn())) then
 			Player:SetAutoFollowOn(false)
@@ -1588,7 +1588,9 @@ function Player:MoveToExact(x, y, z, threshold)
 		for _, node in pairs(ml_navigation_exact.path) do
 			ml_navigation.TagNode(node)
 		end
-		return table.size(result)
+		-- Optimize path: remove skippable intermediate nodes via raycast shortcuts
+		ml_navigation_exact.OptimizeCachedPath(ppos)
+		return table.size(ml_navigation_exact.path)
 	elseif (type(result) == "number" and result > 0) then
 		-- Request enqueued — path will arrive on a subsequent tick
 		ml_navigation_exact.active = true
@@ -1607,7 +1609,11 @@ function Player:StopExact()
 	local wasActive = ml_navigation_exact.active
 	ml_navigation_exact.Reset()
 	if (wasActive) then
-		Player:Stop()
+		Player:StopMovement()
+		local brakePending = (Player.IsAutoFollowBrakePending and Player:IsAutoFollowBrakePending())
+		if (not brakePending) then
+			ml_navigation:DisableAutoFollow(true, "StopExact")
+		end
 	end
 end
 
@@ -1637,6 +1643,7 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.autoFollowLastSet = 0
 	ml_navigation_exact.reachedLogged = false
 	ml_navigation_exact.completed = false
+	ml_navigation_exact.lastOptimize = 0
 end
 
 function ml_navigation_exact.ResetOMCState()
@@ -1654,6 +1661,30 @@ end
 function ml_navigation_exact.ResetAutoFollowState()
 	ml_navigation_exact.autoFollowNodeKey = nil
 	ml_navigation_exact.autoFollowLastSet = 0
+end
+
+-- Run C++ OptimizePath on the cached path and update our Lua path table.
+-- This removes skippable intermediate nodes via raycast shortcuts.
+-- Only safe to call on initial path receipt (pathindex <= 1) because the C++
+-- OptimizePath relies on m_Path_CurrentIndex which MoveToExact doesn't control.
+-- Returns true if the path was updated.
+function ml_navigation_exact.OptimizeCachedPath(ppos)
+	local self = ml_navigation_exact
+	local tp = self.targetposition
+	if (not tp or not ppos or not table.valid(self.path)) then return false end
+	
+	local optimized = NavigationManager:OptimizePath(ppos.x, ppos.y, ppos.z, tp.x, tp.y, tp.z)
+	if (type(optimized) ~= "table" or not table.valid(optimized)) then return false end
+	
+	-- Tag all nodes in the new path
+	for _, node in pairs(optimized) do
+		ml_navigation.TagNode(node)
+	end
+	
+	self.path = optimized
+	self.pathindex = 1
+	self.lastOptimize = Now()
+	return true
 end
 
 -- Dispatch autofollow for MoveToExact — always uses ppos.y for ground movement
@@ -1686,7 +1717,12 @@ function Player:Stop(resetpath)
 	-- and properly halts the player (including flight momentum). If AutoFollow is already
 	-- off when StopMovement runs, it only clears keystates and the player keeps gliding.
 	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
-	ml_navigation:DisableAutoFollow(true, "Stop")
+	local brakePending = (Player.IsAutoFollowBrakePending and Player:IsAutoFollowBrakePending())
+	if (brakePending) then
+		ml_navigation:ResetAutoFollowState()
+	else
+		ml_navigation:DisableAutoFollow(true, "Stop")
+	end
 	
 	ffnav.isascending = false
 	ffnav.isdescending = false	
@@ -3121,6 +3157,8 @@ function ml_navigation_exact.Navigate(event, ticks)
 			for _, node in pairs(ml_navigation_exact.path) do
 				ml_navigation.TagNode(node)
 			end
+			-- Optimize path: remove skippable intermediate nodes via raycast shortcuts
+			ml_navigation_exact.OptimizeCachedPath(ppos)
 		elseif (type(result) == "number" and result > 0) then
 			return -- still pending, wait another tick
 		else
