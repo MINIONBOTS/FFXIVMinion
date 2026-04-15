@@ -210,6 +210,26 @@ function c_gotopostest:evaluate()
 		pos.y = tonumber(gTestMapY)
 		pos.z = tonumber(gTestMapZ)
 		
+		-- MoveToExact mode: use its own active state instead of task-based distance
+		if (gTestUseMoveToExact) then
+			if (Player:IsExactMoving()) then
+				return false -- already moving, let Navigate handle it
+			end
+			local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
+			local thresh = tonumber(gTestNavRange) or 0.1
+			if (dist > thresh) then
+				c_gotopostest.reached = false
+				c_gotopostest.pos = pos
+				return true
+			else
+				if (not c_gotopostest.reached) then
+					c_gotopostest.reached = true
+					Player:StopExact()
+				end
+			end
+			return false
+		end
+		
 		local range = tonumber(gTestNavRange) or 4
 		local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
 		local triggerDist = (range + 2)
@@ -227,6 +247,17 @@ function c_gotopostest:evaluate()
 	return false
 end
 function e_gotopostest:execute()
+	-- MoveToExact mode: call directly instead of spawning a subtask
+	if (gTestUseMoveToExact) then
+		local pos = c_gotopostest.pos
+		local thresh = tonumber(gTestNavRange) or 0.1
+		local ret = Player:MoveToExact(pos.x, pos.y, pos.z, thresh)
+		if (ret == -1) then
+			d("[NavTest] MoveToExact failed — position unreachable.")
+		end
+		return
+	end
+	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = c_gotopostest.pos 
 	newTask.cubefilters = gTestNoFly and 1 or 0
@@ -329,6 +360,7 @@ function ffxiv_task_test:UIInit()
 	gTestNoFly = ffxivminion.GetSetting("gTestNoFly",false)
 	gTestNavRange = ffxivminion.GetSetting("gTestNavRange",4)
 	gTestRemainMounted = ffxivminion.GetSetting("gTestRemainMounted",true)
+	gTestUseMoveToExact = ffxivminion.GetSetting("gTestUseMoveToExact",false)
 end
 
 ffxiv_task_test.GUI = {
@@ -350,6 +382,7 @@ function ffxiv_task_test:Draw()
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use MoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Nav Range")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Map ID")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("NPC ID")
@@ -375,6 +408,7 @@ function ffxiv_task_test:Draw()
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Use MoveToExact",gTestUseMoveToExact),"gTestUseMoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##NPC ID",gTestNPCID),"gTestNPCID");
