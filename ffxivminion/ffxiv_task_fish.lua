@@ -2385,7 +2385,8 @@ function e_fishnextprofilepos:execute()
 	newTask.pos = taskPos
 	newTask.range = 1
 	newTask.doFacing = true
-	
+	newTask.useExactMovement = true
+
 	if (CanFlyInZone() and (c_fishnextprofilepos.distance or 0) > 40 and not gTeleportHack) then
 		local flightApproach, approachDist = FFXIVLib.API.Math.GetFlightApproach(taskPos)
 		if (flightApproach and approachDist ~= nil) and (approachDist < 30) then

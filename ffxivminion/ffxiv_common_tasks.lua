@@ -235,15 +235,19 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (self.useExactMovement and not self.exactMovementStarted) then
 				local macroThresh = NavigationManager.MacroMeshDistanceThreshold or 650
 				if (dist3d > macroThresh) then
+					d("[EXACT-DBG] MOVETOPOS:safety-disable dist3d="..string.format("%.1f",dist3d).." > thresh="..tostring(macroThresh))
 					self.useExactMovement = false
 				end
 			end
 
 			-- Switch to MoveToExact for final approach when within 30y (ground only)
 			if (self.useExactMovement and not self.exactMovementStarted and dist3d < 30 and not IsFlying() and not IsDiving()) then
+				d("[EXACT-DBG] MOVETOPOS:handoff MoveToExact dist3d="..string.format("%.1f",dist3d))
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
+				ml_global_information.monitorStuck = false
+				ffxiv_unstuck.Reset()
 				Player:MoveToExact(gotoPos.x, gotoPos.y, gotoPos.z)
 				self.exactMovementStarted = true
 			end
@@ -257,8 +261,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 				end
 
 				if (self.useExactMovement) then
+					d("[EXACT-DBG] MOVETOPOS:arrival StopExact dist2d="..string.format("%.2f",dist2d))
 					Player:StopExact()
+					ml_global_information.monitorStuck = true
 				else
+					d("[EXACT-DBG] MOVETOPOS:arrival Stop(normal) dist2d="..string.format("%.2f",dist2d))
 					Player:Stop()
 				end
 				if (not self.remainMounted and Player.ismounted) then
@@ -275,8 +282,11 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
 	if (self.useExactMovement) then
+		d("[EXACT-DBG] MOVETOPOS:complete StopExact")
 		Player:StopExact()
+		ml_global_information.monitorStuck = true
 	else
+		d("[EXACT-DBG] MOVETOPOS:complete Stop(normal)")
 		Player:Stop()
 	end
 	if (self.doFacing and gUseAutoFollowPath ~= true) then
@@ -296,8 +306,11 @@ end
 
 function ffxiv_task_movetopos:task_fail_execute()
 	if (self.useExactMovement) then
+		d("[EXACT-DBG] MOVETOPOS:fail StopExact")
 		Player:StopExact()
+		ml_global_information.monitorStuck = true
 	else
+		d("[EXACT-DBG] MOVETOPOS:fail Stop(normal)")
 		Player:Stop()
 	end
     self.valid = false
@@ -499,6 +512,7 @@ end
 
 function ffxiv_task_movetofate:task_complete_execute()
 	Player:Stop()
+	Player:StopExact()
 	self.completed = true
 	ml_global_information.monitorStuck = false
 end
@@ -513,6 +527,7 @@ function ffxiv_task_movetofate:task_fail_eval()
 end
 function ffxiv_task_movetofate:task_fail_execute()
 	Player:Stop()
+	Player:StopExact()
     self.valid = false
 	ml_global_information.monitorStuck = false
 end
@@ -696,6 +711,7 @@ end
 
 function ffxiv_task_movetointeract:task_complete_execute()
     Player:Stop()
+	Player:StopExact()
 	
 	if (self.killParent) then
 		d("Task is set to kill parent task ["..tostring(ml_task_hub:ThisTask():ParentTask().name).."].")
@@ -1174,6 +1190,7 @@ function ffxiv_task_avoid.Create()
 end
 
 function ffxiv_task_avoid:Init()
+    d("[EXACT-DBG] AVOID:Init MoveToExact")
     Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
     self:AddTaskCheckCEs()
 end
@@ -1202,7 +1219,8 @@ function ffxiv_task_avoid:task_complete_eval()
 		return true
 	end
 	
-	if (dist > 1) then
+	if (dist > 1 and not Player:IsExactMoving()) then
+		d("[EXACT-DBG] AVOID:re-issue MoveToExact dist="..string.format("%.1f",dist))
 		Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
 	end
 	
@@ -1225,6 +1243,7 @@ function ffxiv_task_avoid:task_complete_eval()
 end
 
 function ffxiv_task_avoid:task_complete_execute()
+    d("[EXACT-DBG] AVOID:complete StopExact")
     Player:StopExact()
     
 	local target = MGetTarget()
@@ -1380,6 +1399,7 @@ end
 
 function ffxiv_task_flee:task_complete_execute()
     Player:Stop()
+	Player:StopExact()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
 	ml_global_information.Await(2000)
@@ -1743,6 +1763,7 @@ function ffxiv_task_grindCombat:task_complete_execute()
 		end
 	end
     Player:Stop()
+	Player:StopExact()
 	ActionList:StopCasting()
 	self.completed = true
 end
@@ -1779,6 +1800,7 @@ end
 function ffxiv_task_grindCombat:task_fail_execute()
 	ActionList:StopCasting()
 	Player:Stop()
+	Player:StopExact()
 	self.valid = false
 end
 
