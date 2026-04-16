@@ -4905,22 +4905,27 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 
 	-- includehq=true: NQ+HQ combined (C++ GetItemCount matches by base ID, returns NQ+HQ)
 	if (includehq) then
+		d("ItemCount debug: counting NQ+HQ for base ID "..tostring(hqid))
 		return Inventory:GetItemCount(hqid)
 	end
 
-	-- HQ-offset ID (hqid >= 1000000): count only HQ items for that base ID
-	if (hqid >= 1000000) then
+	-- HQ-offset ID (1000000 <= hqid < 1500000): count only HQ items for that base ID
+	if (hqid >= 1000000 and hqid < 1500000) then
+		d("ItemCount debug: counting HQ for base ID "..tostring(hqid - 1000000))
 		return Inventory:GetItemCountHQ(hqid - 1000000)
 	end
 
-	-- Collectable-offset ID (hqid >= 500000): count collectable items via C++
-	if (hqid >= 500000) then
+	-- Collectable-offset ID (500000 <= hqid < 1000000): count collectable items via C++
+	if (hqid >= 500000 and hqid < 1000000) then
+		d("ItemCount debug: counting collectables for base ID "..tostring(hqid - 500000))
 		return Inventory:GetItemCountCollectable(hqid - 500000)
 	end
 
 	-- Default: NQ-only count by base ID via C++ (subtract HQ to match original hqid-based semantics)
 	local total = Inventory:GetItemCount(hqid)
 	local hqCount = Inventory:GetItemCountHQ(hqid)
+	d("ItemCount debug: total="..tostring(total)..", hqCount="..tostring(hqCount))
+
 	return total - hqCount
 end
 
@@ -4948,9 +4953,9 @@ function ItemCounts(hqids,inventoriesArg,includehqArg)
 
 	for i = 1,#hqids do
 		local hqid = hqids[i]
-		if (hqid >= 1000000) then
+		if (hqid >= 1000000 and hqid < 1500000) then
 			hqIds[#hqIds + 1] = hqid
-		elseif (hqid >= 500000) then
+		elseif (hqid >= 500000 and hqid < 1000000) then
 			collectableIds[#collectableIds + 1] = hqid
 		else
 			baseIds[#baseIds + 1] = hqid
