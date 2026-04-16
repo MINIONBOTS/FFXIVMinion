@@ -2,12 +2,9 @@ ffxiv_unstuck = {}
 ffxiv_unstuck.lastTick = 0
 ffxiv_unstuck.lastPos = nil
 ffxiv_unstuck.diffTotal = 0
-ffxiv_unstuck.count = 0
 ffxiv_unstuck.lastCorrection = 0
-ffxiv_unstuck.firstStuck = true
-ffxiv_unstuck.firstStalled = true
-ffxiv_unstuck.firstOffmesh = true
 ffxiv_unstuck.disabled = false
+ffxiv_unstuck.disabledMapId = nil
 ffxiv_unstuck.GUI = {
 	open = false,
 	visable = true,
@@ -26,6 +23,8 @@ ffxiv_unstuck.State = {
 	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, safeticks = 0, minsafeticks = 10, minticks = 50, maxticks = 50},
 }
 
+ffxiv_unstuck.SLOW_BUFFS = "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730,2738,2760"
+
 function ffxiv_unstuck.Reset()
 	for name,state in pairs(ffxiv_unstuck.State) do
 		state.ticks = 0
@@ -40,7 +39,6 @@ e_stuck.lastteleport = 0
 e_stuck.lastaeth = 0 
 e_stuck.lastfixmeshpos = {x = 0, y = 0, z = 0}
 e_stuck.lastfixmeshmap = nil
-e_stuck.stuckevacpos = {}
 e_stuck.blockOnly = false
 function c_stuck:evaluate()
 	
@@ -62,6 +60,14 @@ function c_stuck:evaluate()
 	e_stuck.state = {}
 	e_stuck.blockOnly = false
 	e_stuck.task = ""
+	
+	if (ffxiv_unstuck.disabledMapId) then
+		if (ffxiv_unstuck.disabledMapId ~= Player.localmapid) then
+			ffxiv_unstuck.disabledMapId = nil
+		else
+			return false
+		end
+	end
 	
 	if (Busy() or not ffxiv_unstuck.IsPathing() or Player:IsJumping() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
@@ -101,19 +107,19 @@ function c_stuck:evaluate()
 				d("name = "..tostring(state.name))
 				if (name ~= "OFFMESH") then
 					if (not IsFlying() and not IsDiving() and TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
-						if ffxiv_unstuck.State[state.name].stats >= 3 then	
-							local distToRemesh = IsNull(Distance2D(Player.pos.x,Player.pos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
+						if ffxiv_unstuck.State[state.name].stats >= 3 then
+							local ppos = Player.pos
+							local distToRemesh = IsNull(Distance2D(ppos.x,ppos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
 							local returnHome = ActionList:Get(1,6)
-							local aeth = GetAetheryteByMapID(Player.localmapid, Player.pos)
-							local evacPoint = GetNearestEvacPoint()
-							if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or (e_stuck.lastfixmeshmap and e_stuck.lastfixmeshmap == Player.localmapid))) then
+							local aeth = GetAetheryteByMapID(Player.localmapid, ppos)
+							if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or e_stuck.lastfixmeshmap == Player.localmapid)) then
 								e_stuck.task = "Remesh"
 								d("Attempt Remesh")
 								if (Player:IsMoving()) then
 									Player:PauseMovement()
 									ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 								end
-								e_stuck.lastfixmeshpos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
+								e_stuck.lastfixmeshpos = { x = ppos.x, y = ppos.y, z = ppos.z }
 								e_stuck.lastfixmeshmap = Player.localmapid
 								ffxiv_unstuck.remeshstate = 1
 
@@ -176,6 +182,7 @@ function c_stuck:evaluate()
 	end
 	
 	ffxiv_unstuck.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
+	return false
 end
 function e_stuck:execute()
 	local state = e_stuck.state
@@ -212,10 +219,13 @@ function e_stuck:execute()
 				newTask.aetheryte = aeth.id
 				newTask.mapID = aeth.territory
 				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-				e_stuck.lastteleport = Now() + 600000
 				
 				newTask.task_complete_eval = function ()
-					return MIsLoading()
+					if MIsLoading() then
+						e_stuck.lastteleport = Now() + 600000
+						return true
+					end
+					return false
 				end			
 			end
 		elseif task == "Return" then
@@ -264,7 +274,7 @@ function ffxiv_unstuck.AttemptMeshFix()
 		NavigationManager.UseMouseEditor = false
 		NavigationManager.AutoSaveMesh = false
 		ml_mesh_mgr.data.running = true
-		d("[AttemptMeshFix] = Deleteing area")
+		d("[AttemptMeshFix] = Deleting area")
 		ml_global_information.Await(10000)
 		ffxiv_unstuck.remeshstate = 2
 		return
@@ -298,7 +308,7 @@ end
 
 function ffxiv_unstuck.IsStalled()
 	local requiredDist = 10
-	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730")
+	local hasSlow = HasBuffs(Player, ffxiv_unstuck.SLOW_BUFFS)
 	if (hasSlow) then requiredDist = (requiredDist * .3) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
@@ -313,7 +323,7 @@ end
 
 function ffxiv_unstuck.IsStuck()
 	local requiredDist = .7
-	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730")
+	local hasSlow = HasBuffs(Player, ffxiv_unstuck.SLOW_BUFFS)
 	
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
@@ -411,99 +421,6 @@ function ffxiv_unstuck.GetObstacleAvoidance()
 	ffxiv_unstuck.lastObstacleCheck = Now()
 	
 	return 0, 0
-end
-
-function ffxiv_unstuck.OnUpdate( event, tickcount )
-	local gamestate = MGetGameState()
-	
-	if (gamestate == FFXIV.GAMESTATE.INGAME and TimeSince(ffxiv_unstuck.lastTick) >= 150) then
-		ffxiv_unstuck.lastTick = tickcount
-		
-		if (Busy() or not ffxiv_unstuck.IsPathing() or Player:IsJumping() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
-			--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
-			return false
-		end
-		
-		local currentPos = Player.pos
-		local lastPos = ffxiv_unstuck.lastPos
-		local coarse = ffxiv_unstuck.coarse
-		if (not table.valid(lastPos) or not table.valid(coarse.lastPos)) then
-			--d("[Unstuck]: Need to set up the original last pos.")
-			ffxiv_unstuck.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
-			coarse.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
-			return false
-		end	
-	
-		ffxiv_unstuck.diffTotal = math.distance3d(currentPos,lastPos)	
-		ffxiv_unstuck.UpdateState("STUCK",ffxiv_unstuck.IsStuck())
-		
-		if (TimeSince(coarse.lastMeasure) > 4000 or ffxiv_unstuck.State.STALLED.ticks == 0) then
-			coarse.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
-			coarse.lastMeasure = Now()
-		end
-		
-		coarse.lastDist = math.distance3d(currentPos,coarse.lastPos)
-		ffxiv_unstuck.UpdateState("STALLED",ffxiv_unstuck.IsStalled())
-		ffxiv_unstuck.UpdateState("OFFMESH",ffxiv_unstuck.IsOffMesh())
-	end
-end
-
-ffxiv_unstuck_teleport = inheritsFrom(ml_task)
-function ffxiv_unstuck_teleport.Create()
-    local newinst = inheritsFrom(ffxiv_unstuck_teleport)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    newinst.name = "LT_TELEPORT"
-	newinst.aetheryte = 0
-    newinst.mapID = 0
-	newinst.mesh = nil
-    newinst.started = Now()
-	newinst.lastActivity = Now()
-	newinst.conversationIndex = 0
-    
-    return newinst
-end
-
-
-function ffxiv_unstuck_teleport:task_complete_eval()
-	if (MIsCasting(true)) then
-		return true
-	end
-	if (MIsLoading()) then
-		return true
-	end		
-	
-	return true
-end
-function ffxiv_unstuck_teleport:task_complete_execute()  
-	self.completed = true
-end
-
-function ffxiv_unstuck_teleport:task_fail_eval()
-	if (Player.incombat or not Player.alive) then
-		return true
-	end
-	
-	if (Busy()) then
-		self.lastActivity = Now()
-		return false
-	end
-	
-	if (TimeSince(self.started) > 25000) then
-		return true
-	elseif (TimeSince(self.lastActivity) > 5000) then
-		return true
-	end
-end
-function ffxiv_unstuck_teleport:task_fail_execute()  
-	self.valid = false
 end
 
 function ml_global_information.DrawStuck()
