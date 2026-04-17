@@ -705,9 +705,12 @@ ml_navigation.useAutoFollowPath = false
 ml_navigation.autoFollowRefreshMs = 350
 ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0
+ml_navigation.lastEnablePathingTime = 0
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
 		self.canPath = true
+		self.lastEnablePathingTime = Now()
+		navDebug("[NAV_DEBUG] EnablePathing called. canPath=true")
 		return true
 	end
 	return false
@@ -716,6 +719,7 @@ end
 ml_navigation.DisablePathing = function (self)
 	if (self.canPath) then
 		self.canPath = false
+		navDebug("[NAV_DEBUG] DisablePathing called. canPath=false")
 		Player:Stop() -- how about we actually stop then :P else endless running happens...
 		return true
 	end
@@ -871,6 +875,7 @@ function ml_navigation:IsAutoFollowActive()
 end
 
 function ml_navigation:DisableAutoFollow(force, source)
+	navDebug("[NAV_DEBUG] DisableAutoFollow force=" .. tostring(force) .. " source=" .. tostring(source))
 	-- Always disable autofollow if it's actually active, regardless of UseAutoFollowPathing.
 	-- The setting gates whether normal navigation *dispatches* autofollow, but cleanup
 	-- must always work — autofollow may have been enabled by MoveToExact or other code.
@@ -1427,6 +1432,9 @@ end
 -- Ideally, BuildPath should be called before this but there maybe legacy situations/tasks not updated where we don't want to just break them.
 -- Added misc debug codes to more easily help identify debug messages.
 -- Added targetid since that is totally needed for any moving enemy, espeically in pvp. Else the bot likes to move backwards the path he came from, due to cached paths.
+ml_navigation.lastMoveToPos = nil
+ml_navigation.lastMoveToExactPos = nil
+
 function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)	
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
@@ -1441,6 +1449,13 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 		ml_navigation:ResetCurrentPath()
 		return -1337
 	end
+	
+	-- Spam guard: skip redundant path build if destination hasn't changed
+	local lastPos = ml_navigation.lastMoveToPos
+	if (lastPos and lastPos.x == x and lastPos.y == y and lastPos.z == z and ml_navigation:HasPath()) then
+		return table.size(ml_navigation.path)
+	end
+	ml_navigation.lastMoveToPos = { x = x, y = y, z = z }
 	
 	--d("moveto: path to ["..tostring(x)..","..tostring(y)..","..tostring(z)..",floor:"..tostring(floorfilters)..",cube:"..tostring(cubefilters)..",tid:"..tostring(targetid))
 	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)	
@@ -1656,8 +1671,10 @@ function Player:MoveToExact(x, y, z, threshold)
 end
 
 function Player:StopExact()
+	navDebug("[NAV_DEBUG] Player:StopExact called")
 	local wasActive = ml_navigation_exact.active
 	ml_navigation_exact.Reset()
+	ml_navigation.lastMoveToPos = nil
 	if (wasActive) then
 		Player:StopMovement()
 		local brakePending = (Player.IsAutoFollowBrakePending and Player:IsAutoFollowBrakePending())
@@ -1680,6 +1697,7 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.pendingGoal = nil
 	ml_navigation_exact.pendingCacheId = nil
 	ml_navigation_exact.threshold = 0.2
+	ml_navigation.lastMoveToExactPos = nil
 	ml_navigation_exact.omc_id = nil
 	ml_navigation_exact.omc_details = nil
 	ml_navigation_exact.omc_direction = 0
@@ -1794,6 +1812,12 @@ end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
 function Player:Stop(resetpath)
+	-- Protect freshly-enabled pathing from being immediately killed by external callers
+	if (ml_navigation.canPath and ml_navigation.lastEnablePathingTime > 0 and TimeSince(ml_navigation.lastEnablePathingTime) < 200) then
+		navDebug("[NAV_DEBUG] Player:Stop BLOCKED - path protection window (" .. tostring(TimeSince(ml_navigation.lastEnablePathingTime)) .. "ms since EnablePathing)")
+		return
+	end
+	navDebug("[NAV_DEBUG] Player:Stop called")
 	--local resetpath = IsNull(resetpath,true)
 	-- Resetting the path can cause some problems with macro nodes.
 	-- On occassion it will enter a circular loop if something in the path calls a stop (like mounting).
@@ -1825,6 +1849,7 @@ function Player:Stop(resetpath)
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
 	ml_navigation:ResetOMCHandler()
+	navDebug("[NAV_DEBUG] canPath=false via Player:Stop")
 	ml_navigation.canPath = false
 	ffnav.yield = {}
 	ffnav.process = {}
@@ -1836,6 +1861,7 @@ function Player:PauseMovement(param1, param2, param3, param4, param5)
 	local param1 = IsNull(param1, 1500)
 	local param2 = IsNull(param2, function () return not Player:IsMoving() end)
 	
+	navDebug("[NAV_DEBUG] canPath=false via Player:PauseMovement")
 	ml_navigation.canPath = false
 	ml_navigation:CancelFlightFollowCam()
 	Player:StopMovement()
@@ -2029,7 +2055,6 @@ function ml_navigation.Navigate(event, ticks )
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
-			ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
 			return
 		end
 				
@@ -2310,6 +2335,10 @@ function ml_navigation.Navigate(event, ticks )
 						-- OMC Teleport						
 						if ( ncsubtype == 3 ) then							
 							ml_navigation.GUI.lastAction = "Teleport NavConnection"
+							d("[EXACT-DBG] NAV:Teleport-OMC SetEnsureStartPosition")
+							if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos, from_heading) ) then
+								return
+							end
 							if (Player:IsMoving() or Player:IsJumping() ) then
 								Player:StopMovement()
 								if (not ml_navigation:UseAutoFollowPathing()) then
@@ -2417,6 +2446,10 @@ function ml_navigation.Navigate(event, ticks )
 						if ( ncsubtype == 5 ) then
 							
 							ml_navigation.GUI.lastAction = "Portal OMC"
+							d("[EXACT-DBG] NAV:Portal-OMC SetEnsureStartPosition")
+							if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos, from_heading) ) then
+								return
+							end
 							ml_navigation:NavigateToNode(ppos,nextnode,lastnode,2000)
 							return
 						end

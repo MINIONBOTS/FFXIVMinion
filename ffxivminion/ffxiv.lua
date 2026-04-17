@@ -1064,6 +1064,7 @@ function ffxivminion.SetMainVars()
 	gStuckTeleport = ffxivminion.GetSetting("gStuckTeleport", false)
 	gStuckDisable = ffxivminion.GetSetting("gStuckDisable", true)
 	gStuckRemesh = ffxivminion.GetSetting("gStuckRemesh", false)
+	gNavDebug = ffxivminion.GetSetting("gNavDebug", false)
 
 	for _, jobid in pairs(FFXIV.JOBS) do
 		if type(jobid) == "number" and jobid > 0 then
@@ -2086,6 +2087,9 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Return if available"), gStuckReturn), "gStuckReturn");
 					GUI_Capture(GUI:Checkbox(GetString("Teleport to local Aetheryte"), gStuckTeleport), "gStuckTeleport");
 					GUI_Capture(GUI:Checkbox(GetString("Disable Bot"), gStuckDisable), "gStuckDisable");
+
+					GUI:Separator()
+					GUI_Capture(GUI:Checkbox("Nav Debug Log", gNavDebug), "gNavDebug");
 
 					GUI:EndChild()
 				end
