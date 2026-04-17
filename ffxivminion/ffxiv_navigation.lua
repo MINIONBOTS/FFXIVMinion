@@ -91,6 +91,8 @@ ml_navigation_exact = {
 	autoFollowRefreshMs = 200,
 	autoFollowEnableRetryMs = 250,
 	autoFollowLastEnableAttempt = 0,
+	maxDispatchYDelta = 8,
+	verticalThreshold = 1.5,
 	autoFollowBrakeWaitLogged = false,
 	reachedLogged = false,
 	completed = false,
@@ -1576,6 +1578,18 @@ function Player:MoveToExact(x, y, z, threshold)
 	
 	local thresh = threshold or 0.2
 	
+	local ep = ml_navigation_exact
+	if (ep.active and ep.path ~= nil) then
+		local enddata = ep.path[#ep.path]
+		if (enddata~=nil) then
+			local endpos = {x=enddata.x,y=enddata.y,z=enddata.z}
+			if (math.distance3d(endpos,{x=x,y=y,z=z})<= thresh) then
+				d("path requested for same destination, ignore request and keep naving")
+				return
+			end
+		end
+	end
+
 	-- Ensure no stale autofollow/brake state is carried into a restart.
 	if (ml_navigation and ml_navigation.DisableAutoFollow) then
 		ml_navigation:DisableAutoFollow(true, "MoveToExact start")
@@ -1727,15 +1741,28 @@ function ml_navigation_exact.OptimizeCachedPath(ppos)
 	return true
 end
 
--- Dispatch autofollow for MoveToExact — always uses ppos.y for ground movement
+-- Dispatch autofollow for MoveToExact with guarded Y targeting.
+function ml_navigation_exact.GetDispatchTargetY(node, ppos)
+	if (not node) then
+		return (ppos and ppos.y) or nil
+	end
+	local targetY = node.y or (ppos and ppos.y)
+	if (targetY and ppos and ppos.y and math.abs(targetY - ppos.y) > (ml_navigation_exact.maxDispatchYDelta or 8)) then
+		targetY = ppos.y
+	end
+	return targetY
+end
+
+-- Dispatch autofollow for MoveToExact with guarded Y targeting.
 function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	if (not node or not Player or not Player.SetAutoFollowPos or not Player.SetAutoFollowOn) then
 		return false
 	end
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(ml_navigation_exact.pathindex)
+	local targetY = ml_navigation_exact.GetDispatchTargetY(node, ppos)
 	if (force or key ~= ml_navigation_exact.autoFollowNodeKey or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
-		Player:SetAutoFollowPos(node.x, ppos.y, node.z)
+		Player:SetAutoFollowPos(node.x, targetY, node.z)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
 	end
@@ -1756,7 +1783,7 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	
 	-- Only turn autofollow on as needed, but throttle retries to avoid enable spam.
 	if ((not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) and TimeSince(ml_navigation_exact.autoFollowLastEnableAttempt) >= ml_navigation_exact.autoFollowEnableRetryMs) then
-		Player:SetAutoFollowPos(node.x, ppos.y, node.z)
+		Player:SetAutoFollowPos(node.x, targetY, node.z)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
 		Player:SetAutoFollowOn(true)
@@ -3258,9 +3285,11 @@ function ml_navigation_exact.Navigate(event, ticks)
 	
 	-- Check if current node is reached
 	local dist2d = math.distance2d(ppos, nextnode)
+	local yDelta = (nextnode.y and ppos.y) and math.abs(ppos.y - nextnode.y) or 0
+	local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 1.5))
 	
-	-- MoveToExact is ground-only; use 2D completion to avoid stalling on Y deltas.
-	if (dist2d <= self.threshold) then
+	-- MoveToExact is ground-only; require both horizontal and vertical proximity when Y is known.
+	if (dist2d <= self.threshold and withinVertical) then
 		-- Node reached — check for OMC setup
 		if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
 			local nc = NavigationManager:GetNavConnection(nextnode.navconnectionid)
@@ -3852,6 +3881,7 @@ end
 -- MoveToExact path drawing (cyan nodes, yellow lines)
 function ml_navigation_exact.DrawPath(event, ticks)
 	if (not table.valid(ml_navigation_exact.path)) then return end
+	local ppos = Player.pos
 	
 	local maxWidth, maxHeight = GUI:GetScreenSize()
 	GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
@@ -3863,24 +3893,65 @@ function ml_navigation_exact.DrawPath(event, ticks)
 	
 	-- Build screen positions keyed by path index
 	local screenNodes = {}
-	local sortedKeys = {}
+	local drawKeys = {}
 	local pathindex = ml_navigation_exact.pathindex or 1
-	for id, node in pairsByKeys(ml_navigation_exact.path) do
-		table.insert(sortedKeys, id)
+	local orderedKeys = {}
+	for id in pairsByKeys(ml_navigation_exact.path) do
+		table.insert(orderedKeys, id)
+	end
+	for order, id in ipairs(orderedKeys) do
+		local node = ml_navigation_exact.path[id]
+		local shouldDraw = true
+		-- MoveToExact paths may include a synthetic start anchor at player feet.
+		-- Hide leading near-player anchor stubs so the overlay starts at the first travel node.
+		if (order <= 2 and ppos and node) then
+			local nearPlayer2D = math.distance2d(ppos, node) <= 0.35
+			local nearPlayerY = (not node.y or not ppos.y or math.abs(node.y - ppos.y) <= 1.5)
+			if ((node.is_start or nearPlayer2D) and nearPlayer2D and nearPlayerY) then
+				shouldDraw = false
+			end
+		end
 		local nodePos = RenderManager:WorldToScreen({ x = node.x, y = node.y + 0.15, z = node.z })
-		if (table.valid(nodePos)) then
+		if (shouldDraw and table.valid(nodePos)) then
 			screenNodes[id] = nodePos
+			table.insert(drawKeys, id)
 			local alpha = (id >= pathindex) and 1 or 0.3
 			GUI:AddCircleFilled(nodePos.x, nodePos.y, 7, GUI:ColorConvertFloat4ToU32(0, .9, .9, alpha))
 		end
 	end
+
+	-- Visualize the active dispatch target separately without altering raw path rendering.
+	local activeNode = ml_navigation_exact.path[pathindex]
+	if (activeNode and ppos) then
+		local dispatchY = ml_navigation_exact.GetDispatchTargetY(activeNode, ppos)
+		if (dispatchY) then
+			local dispatchPos = RenderManager:WorldToScreen({ x = activeNode.x, y = dispatchY + 0.2, z = activeNode.z })
+			if (table.valid(dispatchPos)) then
+				GUI:AddCircle(dispatchPos.x, dispatchPos.y, 9, GUI:ColorConvertFloat4ToU32(1, .5, 0, 1), 24, 2)
+			end
+		end
+	end
 	
 	-- Draw lines between consecutive path nodes (only when both endpoints are on screen)
-	for i = 1, #sortedKeys - 1 do
-		local thisScreen = screenNodes[sortedKeys[i]]
-		local nextScreen = screenNodes[sortedKeys[i + 1]]
-		if (thisScreen and nextScreen) then
-			GUI:AddLine(thisScreen.x, thisScreen.y, nextScreen.x, nextScreen.y, GUI:ColorConvertFloat4ToU32(1, 1, .2, 1), 6)
+	for i = 1, #drawKeys - 1 do
+		local thisId = drawKeys[i]
+		local nextId = drawKeys[i + 1]
+		local thisScreen = screenNodes[thisId]
+		local nextScreen = screenNodes[nextId]
+		local thisNode = ml_navigation_exact.path[thisId]
+		local nextNode = ml_navigation_exact.path[nextId]
+		local skipAnchorStub = false
+		if (thisNode and nextNode) then
+			local seg2d = math.distance2d(thisNode, nextNode)
+			local segY = (thisNode.y and nextNode.y) and math.abs(thisNode.y - nextNode.y) or 0
+			-- Path results can include tiny XZ anchor adjustments that render as a vertical spike.
+			-- Suppress only micro-segments; keep normal path edges intact.
+			if (seg2d <= 0.30 and segY <= 1.25) then
+				skipAnchorStub = true
+			end
+		end
+		if (thisScreen and nextScreen and not skipAnchorStub) then
+			GUI:AddLine(thisScreen.x, thisScreen.y, nextScreen.x, nextScreen.y, GUI:ColorConvertFloat4ToU32(1, 1, .2, 1), 3)
 		end
 	end
 	
