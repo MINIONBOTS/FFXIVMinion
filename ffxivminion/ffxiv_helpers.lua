@@ -3170,8 +3170,14 @@ function Mount(id)
 	
 	return false
 end
+Dismount_lastCall = 0
 function Dismount()
 	if (Player.ismounted) then
+		-- Throttle dismount calls to prevent spam during dismount animation
+		if (TimeSince(Dismount_lastCall) < 1000) then
+			return
+		end
+		Dismount_lastCall = Now()
 		local dismount = ActionList:Get(13,Player.mountid)
 		local dismountMain = ActionList:Get(5,23)
 		if (dismount and dismount:IsReady(Player.id)) then
@@ -3193,6 +3199,8 @@ function Dismount()
 				Descend()
 			end
 		end
+		ffxiv_unstuck.Reset()
+		ffxiv_unstuck.lastPos = nil
 	end
 
 end
@@ -9878,6 +9886,8 @@ function Descend(incnode)
 				_trackDown, 
 				function () 
 					d("[Descend]: End descent process.")
+					ffxiv_unstuck.Reset()
+					ffxiv_unstuck.lastPos = nil
 					if (incnode) then
 						ml_navigation.pathindex = ml_navigation.pathindex + 1
 						NavigationManager.NavPathNode = ml_navigation.pathindex
@@ -10649,31 +10659,6 @@ function FindClosestCity()
 	end
 	
 	return 0
-end
-function MoveDirectly3D(pos)
-	local ppos = Player.pos
-	if (pos ~= nil) then
-		local dist3D = math.distance3d(pos,ppos)
-		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = pos.x-ppos.x, y = 0, z = pos.z-ppos.z})
-		if ( anglediff < 35 and dist3D > (5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])) then
-			Player:SetFacing(pos.x,pos.y,pos.z, true) -- smooth facing
-		else
-			Player:SetFacing(pos.x,pos.y,pos.z)
-		end
-		
-		-- Set Pitch							
-		local currentPitch = math.round(Player.flying.pitch,3)
-		local minVector = math.normalize(math.vectorize(ppos,pos))
-		local pitch = math.asin(-1 * minVector.y)
-		Player:SetPitch(pitch)
-		
-		-- Move
-		if (not Player:IsMoving()) then
-			Player:Move(FFXIV.MOVEMENT.FORWARD)	
-			ml_global_information.Await(2000, function () return Player:IsMoving() end)
-		end
-		ml_navigation.path = {}
-	end
 end
 function GetHoverHeight()
 	local ppos = Player.pos

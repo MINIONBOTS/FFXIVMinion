@@ -1951,7 +1951,16 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	if TimeSince(c_getmovementpath.lastOptimalPath) < 2000 and not c_getmovementpath.asyncPrefetchPos then
-		return false
+		-- Only allow early rebuild if goal actually changed
+		if table.valid(c_getmovementpath.lastGoal) then
+			local curTask = ml_task_hub:CurrentTask()
+			local curGoal = curTask and (curTask.gatePos or curTask.pos)
+			if curGoal and math.distance3d(c_getmovementpath.lastGoal, curGoal) < 2 then
+				return false
+			end
+		else
+			return false
+		end
 	end
 	
 	if (table.valid(ml_task_hub:CurrentTask().pos) or table.valid(ml_task_hub:CurrentTask().gatePos)) then		
@@ -4476,7 +4485,15 @@ function c_dointeract:evaluate()
 	-- THE KEY CHECK: entity is interactable — stop, interact, hold
 	-------------------------------------------------------------------
 	if (not interactable.interactable) then
-		-- Not interactable yet — return false, let nav keep moving toward it
+		-- Not interactable yet — but if very close, walk directly toward it
+		-- instead of falling through to the full pathfinding system
+		if (not IsFlying() and not IsDiving() and not IsDismounting() and interactable.distance2d < 6) then
+			if (not Player:IsMoving()) then
+				local epos = interactable.pos
+				Player:MoveTo(epos.x, epos.y, epos.z)
+			end
+			return true  -- claim control, skip navmesh path building
+		end
 		return false
 	end
 	
