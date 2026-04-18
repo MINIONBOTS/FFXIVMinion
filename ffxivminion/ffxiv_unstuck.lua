@@ -73,6 +73,15 @@ function c_stuck:evaluate()
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
+
+	-- Don't flag stuck if we're already near the navigation target (waiting for interact/gather/etc.)
+	if (table.valid(ml_navigation.targetposition) and math.magnitude(ml_navigation.targetposition) > 0) then
+		local distToTarget = math.distance3d(Player.pos, ml_navigation.targetposition)
+		if (distToTarget < 6) then
+			ffxiv_unstuck.Reset()
+			return false
+		end
+	end
 	
 	local currentPos = Player.pos
 	local lastPos = ffxiv_unstuck.lastPos
