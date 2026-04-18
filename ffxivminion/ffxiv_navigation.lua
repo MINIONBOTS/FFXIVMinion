@@ -600,6 +600,8 @@ ml_navigation.useAutoFollowPath = true
 ml_navigation.autoFollowRefreshMs = 350
 ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0
+ml_navigation.navAutoFollowOwned = false
+ml_navigation.navAutoFollowOwner = nil
 
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
@@ -645,11 +647,13 @@ end
 function ml_navigation:ResetAutoFollowState()
 	self.autoFollowNodeKey = nil
 	self.autoFollowLastSet = 0
+	self.navAutoFollowOwned = false
+	self.navAutoFollowOwner = nil
 end
 
 function ml_navigation:DisableAutoFollow(force, source)
 	if (Player and Player.SetAutoFollowOn) then
-		if (force or self:IsAutoFollowActive()) then
+		if (force or self.navAutoFollowOwned) then
 			Player:SetAutoFollowOn(false)
 		end
 	end
@@ -667,6 +671,8 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 		Player:SetAutoFollowPos(node.x, node.y, node.z)
 		self.autoFollowNodeKey = key
 		self.autoFollowLastSet = now
+		self.navAutoFollowOwned = true
+		self.navAutoFollowOwner = "moveto"
 	end
 
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
@@ -1741,6 +1747,8 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 		Player:SetAutoFollowPos(node.x, targetY, node.z)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
+		ml_navigation.navAutoFollowOwned = true
+		ml_navigation.navAutoFollowOwner = "movetoexact"
 	end
 
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
