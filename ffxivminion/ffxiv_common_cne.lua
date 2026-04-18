@@ -4324,7 +4324,26 @@ function c_dointeract:evaluate()
 	end
 	
 	-------------------------------------------------------------------
-	-- Entity acquisition (unchanged)
+	-- If we already fired an interact and are waiting for a window,
+	-- hold unconditionally. This MUST run before anything else —
+	-- the entity can flicker nil during interact animations.
+	-------------------------------------------------------------------
+	if (self._interacting) then
+		if (HasInteractWindows() or Busy()) then
+			return true
+		end
+		if (TimeSince(self._interactTime) < self.WINDOW_TIMEOUT_MS) then
+			return true
+		end
+		d("[MOVETOINTERACT] Interact timed out, recovering.")
+		self._interacting = false
+		task.exactMovementDone = false
+		self._recoverUntil = Now() + self.RECOVER_COOLDOWN_MS
+		return false
+	end
+	
+	-------------------------------------------------------------------
+	-- Entity acquisition
 	-------------------------------------------------------------------
 	local interactable = nil
 	if (task.lastInteractableSearch == nil) then
@@ -4361,7 +4380,7 @@ function c_dointeract:evaluate()
 	end
 	
 	-------------------------------------------------------------------
-	-- Position update from entity (unchanged)
+	-- Position update from entity
 	-------------------------------------------------------------------
 	if (interactable) then
 		if (task.useTargetPos) then
@@ -4389,32 +4408,79 @@ function c_dointeract:evaluate()
 	-------------------------------------------------------------------
 	-- Interaction logic: move until interactable, then stop + interact
 	-------------------------------------------------------------------
-	
-	-- If we already fired an interact and are waiting for a window, hold unconditionally.
-	-- This MUST run before entity validity checks — the entity can flicker nil for a frame
-	-- during interact animations, and clearing _interacting would cause nav to restart.
-	if (self._interacting) then
-		-- Window opened or game is busy — success, keep holding
-		if (HasInteractWindows() or Busy()) then
+	if (task.useProfilePos and not IsFlying() and not IsDiving()) then
+		
+		-- Phase 1: MoveToExact handoff (fires once)
+		-- Skip if entity is already interactable
+		if (not task.exactMovementStarted and not task.exactMovementDone
+			and not (interactable and table.valid(interactable) and interactable.interactable)) then
+			local dist3d = math.distance3d(ppos, task.pos)
+			if (dist3d < 30) then
+				local exactTarget = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
+				local meshPos = NavigationManager:GetClosestPointOnMesh(task.pos)
+				if (meshPos) then
+					d("[TASK-DBG] MOVETOINTERACT:meshSnap from="..string.format("%.2f,%.2f,%.2f",task.pos.x,task.pos.y,task.pos.z).." to="..string.format("%.2f,%.2f,%.2f",meshPos.x,meshPos.y,meshPos.z))
+					exactTarget = { x = meshPos.x, y = meshPos.y, z = meshPos.z }
+				end
+				d("[TASK-DBG] MOVETOINTERACT:handoff MoveToExact dist3d="..string.format("%.1f",dist3d))
+				if (ml_navigation.canPath) then
+					ml_navigation:DisablePathing()
+				end
+				ml_global_information.monitorStuck = false
+				ffxiv_unstuck.Reset()
+				Player:MoveToExact(exactTarget.x, exactTarget.y, exactTarget.z)
+				task.exactMovementStarted = true
+			end
+		end
+		
+		-- While exact movement is active, hold control
+		if (task.exactMovementStarted) then
+			if (not Player:IsExactMoving()) then
+				-- Arrived at mesh-snapped position
+				d("[TASK-DBG] MOVETOINTERACT:exactMove completed")
+				task.exactMovementStarted = false
+				task.exactMovementDone = true
+				ml_global_information.monitorStuck = true
+				ml_navigation:EnablePathing()
+			else
+				return true  -- still moving, hold
+			end
+		end
+		
+		-- Phase 2: Stop nudge if entity became interactable (or aggro)
+		if (task.nudging) then
+			Player:Stop()
+			task.nudging = false
+			if (interactable and table.valid(interactable) and interactable.interactable) then
+				d("["..task.name.."]: Nudge done, interacting with ["..tostring(interactable.name).."].")
+				Player:Interact(interactable.id)
+				self.lastInteract = Now()
+				self._interactTime = Now()
+				self._interacting = true
+				task.interactAttempts = (task.interactAttempts or 0) + 1
+			end
 			return true
 		end
 		
-		-- Still waiting for window after interact
-		if (TimeSince(self._interactTime) < self.WINDOW_TIMEOUT_MS) then
-			return true
+		-- Phase 3: Nudge toward entity if close but not yet interactable
+		if (task.exactMovementDone and interactable and table.valid(interactable)) then
+			if (interactable.interactable) then
+				-- Entity is interactable — fall through to standard interact logic below
+			elseif (interactable.distance2d < 4 and table.size(EntityList.aggro) == 0) then
+				local epos = interactable.pos
+				Player:SetFacing(epos.x, epos.y, epos.z)
+				Player:Move(FFXIV.MOVEMENT.FORWARD)
+				task.nudging = true
+				d("[TASK-DBG] MOVETOINTERACT:nudge forward dist2d="..string.format("%.1f",interactable.distance2d))
+				return true
+			end
+			-- If > 4y and not interactable, fall through to standard logic
 		end
-		
-		-- Timed out waiting for window — but if entity is still interactable,
-		-- don't release to nav (which causes walk-closer stutter). Just re-try.
-		d("[MOVETOINTERACT] Interact timed out, recovering.")
-		self._interacting = false
-		if (interactable and table.valid(interactable) and interactable.interactable) then
-			-- Entity still interactable — stay in control, will re-try next frame
-			return true
-		end
-		self._recoverUntil = Now() + self.RECOVER_COOLDOWN_MS
-		return false
 	end
+	
+	-------------------------------------------------------------------
+	-- Standard interaction logic
+	-------------------------------------------------------------------
 	
 	-- No valid entity yet — let nav drive
 	if (not interactable or not table.valid(interactable)) then
@@ -4504,7 +4570,12 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Stop movement
-	if (Player:IsMoving()) then
+	if (Player:IsMoving() or Player:IsExactMoving()) then
+		if (task.exactMovementStarted) then
+			Player:StopExact()
+			ml_global_information.monitorStuck = true
+			task.exactMovementStarted = false
+		end
 		Player:Stop()
 		if (ml_navigation and ml_navigation.DisableAutoFollow) then
 			ml_navigation:DisableAutoFollow(true, "dointeract")
