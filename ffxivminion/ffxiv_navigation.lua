@@ -1557,10 +1557,11 @@ end
 ------------------------------------------------------------
 -- MoveToExact System
 ------------------------------------------------------------
-function Player:MoveToExact(x, y, z, threshold)
+function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	if (not x or not y or not z) then return -1 end
 
 	local thresh = threshold or 0.2
+	local noSmoothing = (disableSmoothing == true)
 
 	local ep = ml_navigation_exact
 	if (ep.active and ep.path ~= nil) then
@@ -1608,12 +1609,13 @@ function Player:MoveToExact(x, y, z, threshold)
 		ml_navigation_exact.pending = false
 		ml_navigation_exact.pendingCacheId = nil
 		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
 		for _, node in pairs(ml_navigation_exact.path) do
 			ml_navigation.TagNode(node)
 		end
-		ml_navigation_exact.OptimizeCachedPath(ppos)
+		ml_navigation_exact.OptimizeCachedPath(ppos, noSmoothing)
 		return table.size(ml_navigation_exact.path)
 	elseif (type(result) == "number" and result > 0) then
 		ml_navigation_exact.active = true
@@ -1621,6 +1623,7 @@ function Player:MoveToExact(x, y, z, threshold)
 		ml_navigation_exact.pendingGoal = goal
 		ml_navigation_exact.pendingCacheId = cacheId
 		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
 		d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId))
@@ -1669,6 +1672,7 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.completed = false
 	ml_navigation_exact.lastOptimize = 0
 	ml_navigation_exact.lastRequestId = nil
+	ml_navigation_exact.disableSmoothing = false
 end
 
 function ml_navigation_exact.ResetOMCState()
@@ -1689,7 +1693,7 @@ function ml_navigation_exact.ResetAutoFollowState()
 	ml_navigation_exact.autoFollowLastSet = 0
 end
 
-function ml_navigation_exact.OptimizeCachedPath(ppos)
+function ml_navigation_exact.OptimizeCachedPath(ppos, disableSmoothing)
 	local self = ml_navigation_exact
 	local tp = self.targetposition
 	if (not tp or not ppos or not table.valid(self.path)) then return false end
@@ -1707,7 +1711,7 @@ function ml_navigation_exact.OptimizeCachedPath(ppos)
 	end
 
 	-- Second pass: smoothing
-	if (cacheId ~= 0 and NavigationManager.SmoothPath) then
+	if (not disableSmoothing and cacheId ~= 0 and NavigationManager.SmoothPath) then
 		local smoothed = NavigationManager:SmoothPath(cacheId, ppos.x, ppos.y, ppos.z)
 		if (type(smoothed) == "table" and table.valid(smoothed)) then
 			local removed = smoothed[1] and smoothed[1].smoothed or 0
@@ -1720,6 +1724,8 @@ function ml_navigation_exact.OptimizeCachedPath(ppos)
 				d("[MoveToExact]: SmoothPath removed " .. tostring(removed) .. " nodes")
 			end
 		end
+	elseif (disableSmoothing) then
+		d("[MoveToExact]: SmoothPath skipped (disableSmoothing=true)")
 	end
 
 	return true
@@ -2634,7 +2640,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 			for _, node in pairs(ml_navigation_exact.path) do
 				ml_navigation.TagNode(node)
 			end
-			ml_navigation_exact.OptimizeCachedPath(ppos)
+			ml_navigation_exact.OptimizeCachedPath(ppos, ml_navigation_exact.disableSmoothing)
 			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
 		elseif (type(result) == "number" and result > 0) then
 			return
