@@ -2591,7 +2591,9 @@ function ml_navigation.DebugDraw(event, ticks)
 	if (ml_navigation.debug) then
 		if (table.valid(ml_navigation.path)) then
 			for i,node in pairs(ml_navigation.path) do
-				RenderManager:AddObject3D(node,1,1)
+				if RenderManager and RenderManager.AddObject3D then
+					RenderManager:AddObject3D(node,1,1)
+				end
 			end
 		end
 	end
