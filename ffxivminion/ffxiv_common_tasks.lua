@@ -570,6 +570,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.dismountDistance = 5
 	newinst.dismountHeightTolerance = 3.5
 	newinst.killParent = false
+	newinst.killParentDelay = 1000
 	newinst.startMap = Player.localmapid
 	newinst.conversationstring = ""
 	newinst.conversationstrings = ""
@@ -731,7 +732,9 @@ function ffxiv_task_movetointeract:task_complete_execute()
 	if (self.killParent) then
 		d("Task is set to kill parent task ["..tostring(ml_task_hub:ThisTask():ParentTask().name).."].")
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
-		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
+		local delay = IsNull(self.killParentDelay, 1000)
+		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + delay
+		d("[killParent]: stepCompletedTimer set, delay="..tostring(delay))
 	end
 	gSkipTalk = self.skipTalkVal
 	self.completed = true
