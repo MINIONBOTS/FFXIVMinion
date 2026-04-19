@@ -1327,6 +1327,7 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_traveltimer = nil
 	self.omc_direction = 0
 	self.omc_jumpretries = nil
+	self.omc_interact_pos = nil
 	self.lastupdate = 0
 end
 
@@ -1950,7 +1951,7 @@ function ml_navigation.Navigate(event, ticks)
 							ncsubtype = nc.subtype
 						end
 
-						if (not MIsLocked()) then
+						if (not MIsLocked() and ncsubtype ~= 4) then
 							if (ml_navigation.omc_traveltimer == nil) then
 								ml_navigation.omc_traveltimer = ticks
 							end
@@ -2157,6 +2158,17 @@ function ml_navigation.Navigate(event, ticks)
 								return
 							end
 
+							-- Detect position change after zone transition (interact caused a teleport/load)
+							if (ml_navigation.omc_interact_pos) then
+								local posdelta = math.distance3d(ppos, ml_navigation.omc_interact_pos)
+								if (posdelta > 2) then
+									ml_navigation.pathindex = ml_navigation.pathindex + 1
+									NavigationManager.NavPathNode = ml_navigation.pathindex
+									ml_navigation:ResetOMCHandler()
+									return
+								end
+							end
+
 							if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 								SelectConversationIndex(1)
 								ml_navigation.lastupdate = ml_navigation.lastupdate + 1000
@@ -2196,12 +2208,11 @@ function ml_navigation.Navigate(event, ticks)
 								if (not target or (target and target.id ~= interactid)) then
 									d("Setting target for interaction : "..interactnpc.name)
 									Player:SetTarget(interactid)
-									ml_navigation.omc_traveltimer = ticks + 1500
 									ffnav.Await(1500, function () return (Player:GetTarget() and Player:GetTarget().id == interactid) end)
 								elseif (target.interactable) then
+									ml_navigation.omc_interact_pos = { x = ppos.x, y = ppos.y, z = ppos.z }
 									Player:Interact(interactnpc.id)
 									d("Interacting with target : "..interactnpc.name)
-									ml_navigation.omc_traveltimer = ticks + 2000
 									ffnav.Await(2000, function () return (MIsLoading() or IsControlOpen("SelectYesno") or table.valid(GetConversationList())) end)
 								end
 							end

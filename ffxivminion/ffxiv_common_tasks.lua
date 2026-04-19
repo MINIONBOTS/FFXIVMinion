@@ -677,6 +677,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
+	-- Complete when a shop window is open (NPC stays targetable with shop open)
+	if (IsShopWindowOpen() or IsControlOpen("GrandCompanyExchange")) then
+		return true
+	end
+	
 	if (self.startMap ~= Player.localmapid or Busy()) then
 		return true
 	end
