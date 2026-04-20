@@ -4565,7 +4565,7 @@ function c_dointeract:evaluate()
 	
 	-- Entity IS interactable. Claim control from here on (return true).
 	-- Must be fully landed and not mid-animation before firing interact.
-	if (IsFlying() or IsDismounting() or Busy()) then
+	if ((IsFlying() and not task.inflight) or IsDismounting() or Busy()) then
 		return true
 	end
 	
