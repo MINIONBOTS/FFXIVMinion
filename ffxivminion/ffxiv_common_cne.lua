@@ -4546,14 +4546,19 @@ function c_dointeract:evaluate()
 	if (range3d and range3d > 0 and interactable.distance > range3d) then
 		return false
 	end
-	
+
+	-- Force-interact fallback: bypass the interactable flag when both forceinteract and
+	-- interactRange3d are set and the entity is within range. Handles faulty interactable flags.
+	local skipInteractableCheck = task.forceinteract and range3d and interactable.distance <= range3d
+
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable — stop, interact, hold
 	-------------------------------------------------------------------
-	if (not interactable.interactable) then
+	if (not skipInteractableCheck and not interactable.interactable) then
 		-- Not interactable yet — but if very close, walk directly toward it
 		-- instead of falling through to the full pathfinding system
-		if (not IsFlying() and not IsDiving() and not IsDismounting() and interactable.distance2d < 6) then
+		local closeWalkThreshold = (range3d and range3d > 0) and range3d or 6
+		if (not IsFlying() and not IsDiving() and not IsDismounting() and interactable.distance2d < closeWalkThreshold) then
 			if (not Player:IsMoving()) then
 				local epos = interactable.pos
 				Player:MoveTo(epos.x, epos.y, epos.z)
