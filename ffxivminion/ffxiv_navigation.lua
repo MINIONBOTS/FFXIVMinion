@@ -1698,12 +1698,16 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 		end
 	end
 
-	-- Clean slate
-	ml_navigation:DisableAutoFollow(true, "MoveToExact start")
+    if (not ml_navigation_exact.active) then
+        -- Clean slate
+        ml_navigation:DisableAutoFollow(true, "MoveToExact start")
 
-	if (ml_navigation.canPath) then
-		ml_navigation:DisablePathing()
-	end
+        if (ml_navigation.canPath) then
+            ml_navigation:DisablePathing()
+        end
+
+        ml_navigation_exact.Reset()
+    end
 
 	ml_navigation_exact.Reset()
 
