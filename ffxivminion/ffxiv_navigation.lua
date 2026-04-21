@@ -915,6 +915,71 @@ function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
 	end
 end
 
+function ml_navigation:IsDirectFlightCorridorClear(fromPos, toPos, maxDistance)
+	if (not table.valid(fromPos) or not table.valid(toPos)) then
+		return false
+	end
+
+	local maxRange = maxDistance or 100
+	local dist = math.distance3d(fromPos, toPos)
+	if (not dist or dist <= 0 or dist > maxRange) then
+		return false
+	end
+
+	local baseFromY = fromPos.y + 1.0
+	local baseToY = toPos.y + 1.0
+
+	-- Centerline clearance at body height.
+	if (RayCast(fromPos.x, baseFromY, fromPos.z, toPos.x, baseToY, toPos.z)) then
+		return false
+	end
+
+	-- Upper-body/head clearance.
+	if (RayCast(fromPos.x, baseFromY + 1.5, fromPos.z, toPos.x, baseToY + 1.5, toPos.z)) then
+		return false
+	end
+
+	-- Side clearance to reduce clipping on narrow diagonals.
+	local dx = toPos.x - fromPos.x
+	local dz = toPos.z - fromPos.z
+	local mag = math.sqrt((dx * dx) + (dz * dz))
+	if (mag and mag > 0.001) then
+		local ox = (-dz / mag) * 0.4
+		local oz = (dx / mag) * 0.4
+		if (RayCast(fromPos.x + ox, baseFromY, fromPos.z + oz, toPos.x + ox, baseToY, toPos.z + oz)) then
+			return false
+		end
+		if (RayCast(fromPos.x - ox, baseFromY, fromPos.z - oz, toPos.x - ox, baseToY, toPos.z - oz)) then
+			return false
+		end
+	end
+
+	return true
+end
+
+function ml_navigation:ApplyLandingFallbackToCurrentPath(fallbackX, fallbackY, fallbackZ)
+	if (not table.valid(self.path) or not self.pathindex) then
+		return false
+	end
+
+	local node = self.path[self.pathindex]
+	if (not node) then
+		return false
+	end
+
+	node.x = fallbackX
+	node.y = fallbackY
+	node.z = fallbackZ
+	ml_navigation.ScrubToGroundEndpoint(node)
+
+	for ri = self.pathindex + 1, self.pathindex + 50 do
+		if (self.path[ri] == nil) then break end
+		self.path[ri] = nil
+	end
+
+	return true
+end
+
 ------------------------------------------------------------
 -- GUI state
 ------------------------------------------------------------
@@ -1177,6 +1242,34 @@ function ml_navigation.TagNode(node)
 
 		node.is_tagged = true
 	end
+end
+
+-- Turn a node into a plain ground-floor endpoint. Used after an in-place
+-- landing-fallback rewrite so ground navigation treats the rewritten node as
+-- a regular arrival point (no nav-connection, no cube/floorcube/air/water
+-- flags, no remount-for-flight trigger, no engine-owned raycast-down fixups).
+function ml_navigation.ScrubToGroundEndpoint(node)
+	if (not node) then return end
+	node.navconnectionid = 0
+	node.type = GLOBAL.NODETYPE.FLOOR
+	node.type2 = 2 -- is_end bit only
+	node.flags = 0
+	node.is_start = false
+	node.is_end = true
+	node.is_omc = false
+	node.is_floor = true
+	node.is_cube = false
+	node.ground = true
+	node.ground_water = false
+	node.ground_border = false
+	node.ground_avoid = false
+	node.air = false
+	node.water = false
+	node.air_avoid = false
+	node.cubecube = false
+	node.floorfloor = false
+	node.floorcube = false
+	node.is_tagged = true
 end
 
 ------------------------------------------------------------
@@ -1477,7 +1570,21 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 			ffnav.landingFallbackActive = false
 			ffnav.landingFallbackPos = nil
 			ffnav.landingFallbackOrigin = nil
+			ffnav.landingFallbackSmoothed = false
 		end
+	end
+
+	-- If the current path was already smoothed in-place toward the fallback
+	-- landing spot and the incoming goal resolves to that same fallback,
+	-- keep the existing path instead of rebuilding. A rebuild here would
+	-- create temp floor-cube NavConnections at the flying player's position
+	-- and route the approach up through a cube detour (the "up into the air
+	-- then down again" behaviour), and would also dirty NavConnectionMgr.
+	if (not force and ffnav.landingFallbackActive and ffnav.landingFallbackSmoothed
+		and ffnav.landingFallbackPos and hasCurrentPath
+		and math.distance3d(ffnav.landingFallbackPos, newGoal) < 2) then
+		d("[NAVIGATION]: Landing fallback is smoothed in-place, skipping rebuild.")
+		return currentPathSize
 	end
 
 	-- Filter things for special tasks/circumstances
@@ -1509,9 +1616,8 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		local goalInCubes = NavigationManager:GetClosestPointInCubes(newGoal)
 		local goalInAir = goalInCubes and goalInCubes.distance and goalInCubes.distance < 5
 
-		-- Player on floor, goal in air/water → need "up" connection at player
+		-- Player on floor, goal in air/water → landing side may still need a temporary "down" connection near the goal.
 		if playerOnFloor and goalInAir and not goalOnFloor then
-			ml_navigation:CreateTempFloorCubeConnection(ppos, "up")
 			ml_navigation:CreateTempFloorCubeConnection(newGoal, "down")
 		end
 		-- Player in air/water, goal on floor → need "down" connection near goal
@@ -1547,6 +1653,22 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	if (ret > 0 and hasCurrentPath) then
 		for _,node in pairs(ml_navigation.path) do
 			ml_navigation.TagNode(node)
+		end
+	end
+
+	-- Straighten takeoff path: realign the floor approach node (before the first cube node)
+	-- to the player's current ground position, removing the lateral detour that temp
+	-- floor-cube navcon anchors introduce.
+	if (ret > 0 and canUseCubes and not IsFlying() and not IsDiving()) then
+		local cacheId = ml_navigation.path[1] and ml_navigation.path[1].id or 0
+		if cacheId ~= 0 then
+			local straightPath = NavigationManager:StraightenTakeoffPath(cacheId, ppos.x, ppos.y, ppos.z)
+			if table.valid(straightPath) then
+				ml_navigation.path = straightPath
+				for _,node in pairs(ml_navigation.path) do
+					ml_navigation.TagNode(node)
+				end
+			end
 		end
 	end
 
@@ -1785,6 +1907,7 @@ function Player:Stop(resetpath)
 	ffnav.landingFallbackActive = false
 	ffnav.landingFallbackPos = nil
 	ffnav.landingFallbackOrigin = nil
+	ffnav.landingFallbackSmoothed = false
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(true)
@@ -1857,13 +1980,19 @@ function ml_navigation.Navigate(event, ticks)
 
 					ml_global_information.GetMovementInfo(true)
 
-					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
+					-- Skip the periodic path rebuild while a smoothed landing fallback is in flight.
+					-- Rebuilding here would re-create temp floor-cube NavConnections at the player's
+					-- current air position and route the path up through a cube detour, undoing the
+					-- in-place smoothing and dirtying NavConnectionMgr state ("modified" indicator).
+					local fallbackSmoothed = (ffnav.landingFallbackActive and ffnav.landingFallbackSmoothed) == true
+
+					if (not fallbackSmoothed and not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
 						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
 						ml_navigation.lastPathUpdate = Now()
 						ml_navigation._refreshPrefetched = false
 						return
 					end
-					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 1000 and not ml_navigation._refreshPrefetched) then
+					if (not fallbackSmoothed and not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 1000 and not ml_navigation._refreshPrefetched) then
 						ml_navigation._refreshPrefetched = true
 						local tp = ml_navigation.targetposition
 						if (tp) then
@@ -2355,24 +2484,43 @@ function ml_navigation.Navigate(event, ticks)
 										lookaheadNode.x, lookaheadNode.y, lookaheadNode.z, mountRadius)
 									ffnav.landingProbeCache[lookaheadIdx] = true
 									if (not clear and fbX) then
+										local fallbackPos = { x = fbX, y = fbY, z = fbZ }
+										-- The engine-produced path already approves flight up to
+										-- lookaheadNode. When the fallback is a tiny horizontal shift
+										-- off that same node, the existing approach is inherently valid
+										-- and we can safely smooth in place. A player-origin raycast
+										-- is too strict here (side-probes graze cliff walls around
+										-- the landing) and causes needless BuildPath rebuilds that
+										-- route up through a cube detour.
+										local shiftDist = math.distance3d(lookaheadNode, fallbackPos)
+										local smallShift = (shiftDist <= 8)
+										local canFlyDirect = smallShift
+											or ml_navigation:IsDirectFlightCorridorClear(ppos, fallbackPos, 100)
 										d("[Navigation] Lookahead: landing blocked at node " .. lookaheadIdx
 											.. ", rerouting early to ("
 											.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")"
-											.. " dist=" .. string.format("%.0f", distToLanding))
+											.. " dist=" .. string.format("%.0f", distToLanding)
+											.. " shift=" .. string.format("%.1f", shiftDist)
+											.. " directClear=" .. tostring(canFlyDirect))
 										lookaheadNode.x = fbX
 										lookaheadNode.y = fbY
 										lookaheadNode.z = fbZ
-										lookaheadNode.is_end = true
+										ml_navigation.ScrubToGroundEndpoint(lookaheadNode)
 										for ri = lookaheadIdx + 1, lookaheadIdx + 50 do
 											if (ml_navigation.path[ri] == nil) then break end
 											ml_navigation.path[ri] = nil
 										end
-										ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
+										ffnav.landingFallbackPos = fallbackPos
 										ffnav.landingFallbackOrigin = ml_navigation.targetposition and
 											{ x = ml_navigation.targetposition.x,
 											  y = ml_navigation.targetposition.y,
 											  z = ml_navigation.targetposition.z } or nil
 										ffnav.landingFallbackActive = true
+										-- In-place rewrite preserved the current path; when the shift
+										-- is small or the direct corridor is clear, freeze the
+										-- periodic refresh so BuildPath does not rebuild the approach
+										-- through a cube detour.
+										ffnav.landingFallbackSmoothed = canFlyDirect
 									end
 								end
 							end
@@ -2398,7 +2546,32 @@ function ml_navigation.Navigate(event, ticks)
 												ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
 												ffnav.landingFallbackOrigin = ml_navigation.targetposition and { x = ml_navigation.targetposition.x, y = ml_navigation.targetposition.y, z = ml_navigation.targetposition.z } or nil
 												ffnav.landingFallbackActive = true
-												Player:BuildPath(fbX, fbY, fbZ, 0, 0, 0)
+
+												local fallbackPos = { x = fbX, y = fbY, z = fbZ }
+												-- The engine-produced path already approves flight up to
+												-- nextnode (we are IsGoalClose). When the fallback is a
+												-- small horizontal shift from nextnode, in-place smoothing
+												-- is inherently valid and side-probe corridor raycasts
+												-- (which graze the landing-spot cliff walls) would wrongly
+												-- force a BuildPath rebuild up through a cube detour.
+												local shiftDist = math.distance3d(nextnode, fallbackPos)
+												local smallShift = (shiftDist <= 8)
+												local canFlyDirect = smallShift
+													or ml_navigation:IsDirectFlightCorridorClear(ppos, fallbackPos, 100)
+												if (canFlyDirect and ml_navigation:ApplyLandingFallbackToCurrentPath(fbX, fbY, fbZ)) then
+													d("[Navigation] Landing fallback smoothing current approach"
+														.. " shift=" .. string.format("%.1f", shiftDist)
+														.. " smallShift=" .. tostring(smallShift))
+													-- Freeze the periodic refresh: the current path has been
+													-- rewritten to land at the fallback directly, and a rebuild
+													-- would route us up through a cube detour instead.
+													ffnav.landingFallbackSmoothed = true
+												else
+													d("[Navigation] Landing fallback direct path blocked/out of range, rebuilding path"
+														.. " shift=" .. string.format("%.1f", shiftDist))
+													ffnav.landingFallbackSmoothed = false
+													Player:BuildPath(fbX, fbY, fbZ, 0, 0, 0)
+												end
 											else
 												d("[Navigation] Landing blocked, no open spot found, descending anyway")
 											end
@@ -2444,6 +2617,7 @@ function ml_navigation.Navigate(event, ticks)
 						ffnav.landingFallbackActive = false
 						ffnav.landingFallbackPos = nil
 						ffnav.landingFallbackOrigin = nil
+						ffnav.landingFallbackSmoothed = false
 						ffnav.landingProbeCache = {}
 
 						local navcon = ml_navigation:GetConnection(nextnode)
@@ -2586,6 +2760,16 @@ function ml_navigation.Navigate(event, ticks)
 						end
 					end
 				else
+					-- Path exhausted. If we were running a smoothed landing fallback,
+					-- clear its flags so subsequent BuildPath calls are not suppressed
+					-- by the in-place-smoothing gate (we've already arrived / dismounted).
+					if (ffnav.landingFallbackActive or ffnav.landingFallbackSmoothed) then
+						ffnav.landingFallbackActive = false
+						ffnav.landingFallbackPos = nil
+						ffnav.landingFallbackOrigin = nil
+						ffnav.landingFallbackSmoothed = false
+						ffnav.landingProbeCache = {}
+					end
 					ml_navigation.StopMovement()
 				end
 			end
@@ -2980,6 +3164,7 @@ ffnav.landingProbeCache = {}
 ffnav.landingFallbackActive = false
 ffnav.landingFallbackPos = nil
 ffnav.landingFallbackOrigin = nil
+ffnav.landingFallbackSmoothed = false
 ffnav.landingLookaheadDist = 40
 ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
 
