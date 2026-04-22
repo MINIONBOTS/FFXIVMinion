@@ -855,6 +855,15 @@ function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
 	end
 end
 
+-- Flight-context raycast wrapper.
+
+-- Only the first return value (hit bool) is used here; Raycast2 also returns
+-- hit pos, triangle, raw flags, and distance if needed.
+function ml_navigation.FlyRayCast(sx, sy, sz, ex, ey, ez)
+	local hit = Raycast2(sx, sy, sz, ex, ey, ez, 0x4000, 0x4000)
+	return hit
+end
+
 function ml_navigation:IsDirectFlightCorridorClear(fromPos, toPos, maxDistance)
 	if (not table.valid(fromPos) or not table.valid(toPos)) then
 		return false
@@ -870,12 +879,12 @@ function ml_navigation:IsDirectFlightCorridorClear(fromPos, toPos, maxDistance)
 	local baseToY = toPos.y + 1.0
 
 	-- Centerline clearance at body height.
-	if (RayCast(fromPos.x, baseFromY, fromPos.z, toPos.x, baseToY, toPos.z)) then
+	if (ml_navigation.FlyRayCast(fromPos.x, baseFromY, fromPos.z, toPos.x, baseToY, toPos.z)) then
 		return false
 	end
 
 	-- Upper-body/head clearance.
-	if (RayCast(fromPos.x, baseFromY + 1.5, fromPos.z, toPos.x, baseToY + 1.5, toPos.z)) then
+	if (ml_navigation.FlyRayCast(fromPos.x, baseFromY + 1.5, fromPos.z, toPos.x, baseToY + 1.5, toPos.z)) then
 		return false
 	end
 
@@ -886,10 +895,10 @@ function ml_navigation:IsDirectFlightCorridorClear(fromPos, toPos, maxDistance)
 	if (mag and mag > 0.001) then
 		local ox = (-dz / mag) * 0.4
 		local oz = (dx / mag) * 0.4
-		if (RayCast(fromPos.x + ox, baseFromY, fromPos.z + oz, toPos.x + ox, baseToY, toPos.z + oz)) then
+		if (ml_navigation.FlyRayCast(fromPos.x + ox, baseFromY, fromPos.z + oz, toPos.x + ox, baseToY, toPos.z + oz)) then
 			return false
 		end
-		if (RayCast(fromPos.x - ox, baseFromY, fromPos.z - oz, toPos.x - ox, baseToY, toPos.z - oz)) then
+		if (ml_navigation.FlyRayCast(fromPos.x - ox, baseFromY, fromPos.z - oz, toPos.x - ox, baseToY, toPos.z - oz)) then
 			return false
 		end
 	end
@@ -1847,11 +1856,20 @@ function Player:Stop(resetpath)
 	ffnav.isascending = false
 	ffnav.isdescending = false
 	ffnav.descentAttempts = 0
-	ffnav.landingProbeCache = {}
-	ffnav.landingFallbackActive = false
-	ffnav.landingFallbackPos = nil
-	ffnav.landingFallbackOrigin = nil
-	ffnav.landingFallbackSmoothed = false
+	-- Preserve landing fallback state across mid-air Stop() calls. The
+	-- parent movetopos task completes when autofollow reaches the
+	-- rewritten fallback endpoint; Stop() fires while the player is still
+	-- airborne above the fallback spot, and the subtask then builds a
+	-- fresh path. Clearing state here forces a full re-probe (lookahead +
+	-- BuildPath) before the dismount can trigger, adding ~0.5-1.5s of
+	-- hover. The ground-nav branch clears these once the player lands.
+	if (not IsFlying()) then
+		ffnav.landingProbeCache = {}
+		ffnav.landingFallbackActive = false
+		ffnav.landingFallbackPos = nil
+		ffnav.landingFallbackOrigin = nil
+		ffnav.landingFallbackSmoothed = false
+	end
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(true)
@@ -2392,7 +2410,7 @@ function ml_navigation.Navigate(event, ticks)
 
 						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
 							for i = 3,5,1 do
-								local hit = RayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-2,targetnode.z)
+								local hit = ml_navigation.FlyRayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-2,targetnode.z)
 								if (not hit) then
 									targetnode.y = (targetnode.y + i)
 									break

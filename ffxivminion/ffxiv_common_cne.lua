@@ -2597,25 +2597,34 @@ function c_mount:evaluate()
 			needsMount = false
 		end
 
-		-- Stutter mitigation for lookahead-rewritten landings: when the
-		-- navigation path has been fully consumed (autofollow turned off at
-		-- the rewritten endpoint) but the player is still airborne (autofollow
-		-- doesn't drop Y to the ground node's Y on its own), the parent
-		-- movetopos task completes and we briefly have no active path. The
-		-- next subtask's c_getmovementpath is throttled for up to 2s, leaving
-		-- the player hovering. When this happens after a landingFallback
-		-- rewrite (the endpoint was a verified CheckLandingZone-clear spot),
-		-- trigger the dismount immediately from here instead of waiting.
+		-- Stutter mitigation for lookahead-rewritten landings. Autofollow
+		-- doesn't drop Y to the ground endpoint on its own, so once the
+		-- flight path reaches the rewritten fallback spot the player is
+		-- still hovering. Two window types produce a hover stall here:
+		--   1. Path fully consumed mid-transition between subtasks
+		--      (before the next BuildPath runs).
+		--   2. A fresh subtask path re-establishes landingFallbackActive
+		--      but waits for autofollow/lookahead ticks before the normal
+		--      dist2d dismount block catches up.
+		-- Covered by checking proximity to the known landingFallbackPos
+		-- (a CheckLandingZone-verified spot) directly. Player:Stop() now
+		-- preserves this pos while airborne so it survives subtask churn.
 		if (IsFlying() and Player.ismounted
 			and ffnav.landingFallbackActive
-			and not table.valid(ml_navigation.path)
+			and table.valid(ffnav.landingFallbackPos)
 			and not ml_task_hub:CurrentTask().remainMounted
 			and not (ffnav.isascending or ffnav.isdescending or IsMounting())
 			and not IsDismounting()) then
-			d("[Mount] Flying dismount: path consumed after landing fallback.")
-			Dismount()
-			c_mount.blockOnly = true
-			return true
+			local fb = ffnav.landingFallbackPos
+			local fbDist2d = math.distance2d(myPos, fb)
+			local fbRange = math.max(dismountDistance, 5)
+			if (fbDist2d <= fbRange) then
+				d("[Mount] Flying dismount: within " .. string.format("%.1f", fbDist2d)
+					.. "u of landing fallback.")
+				Dismount()
+				c_mount.blockOnly = true
+				return true
+			end
 		end
 
 		if (not needsMount) then
