@@ -1614,11 +1614,7 @@ function ffxiv_task_grindCombat:Process()
 			
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
-					if (IsFlying()) then
-						Descend()
-					else
-						Dismount()
-					end
+					Dismount()
 				end				
 				if (Player:IsMoving() and not IsFlying()) then
 					Player:Stop()

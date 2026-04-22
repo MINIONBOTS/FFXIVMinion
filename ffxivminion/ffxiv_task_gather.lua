@@ -349,7 +349,7 @@ function c_movetonode:evaluate()
 					
 				return true
 			elseif (gatherable.interactable and IsFlying()) then
-				Descend()
+				Dismount()
 				return true
 			else	
 				if (Player.gp.current >= minimumGP or noGPitem ~= "" or touchOnly) then
@@ -398,49 +398,31 @@ function e_movetonode:execute()
 			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
 			
 			local newTask = ffxiv_task_movetointeract.Create()
-			
+
+			-- Navigation layer (lookahead in ffxiv_navigation.lua) now handles
+			-- flight-to-ground projection. We just need a reachable walkable
+			-- mesh position near the gatherable for c_movetointeract's final
+			-- approach path. FindClosestMesh with a wider radius (20u) covers
+			-- nodes placed on raised props where the old 3u radius missed.
 			local foundPos = false
-			if (IsFlying()) then
-				local approachPosition = FFXIVLib.API.Math.GetFlightApproach(pos)
-				if (approachPosition) then
-					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
-					if (nearestMesh) then
-						local dist3d = math.distance3d(ppos,nearestMesh)
-						if (dist3d > 4 and NavigationManager:IsReachable(nearestMesh)) then
-							d("used estimated position 2")
-							pos = shallowcopy(nearestMesh)
-							foundPos = true
-						end
-					end
-				end
-			end
-			
-			if (not foundPos) then
-				local approachPosition = FFXIVLib.API.Math.GetSafestApproach(pos)
-				if (approachPosition) then
-					local nearestMesh = FindClosestMesh(approachPosition,3,false,false)
-					if (nearestMesh) then
-						local dist3d = math.distance3d(ppos,nearestMesh)
-						if (dist3d > 3 and NavigationManager:IsReachable(nearestMesh)) then
-							d("used estimated position 2")
-							pos = shallowcopy(nearestMesh)
-							foundPos = true
-						end
-					end
-				end
-			end
-			
-			if (not foundPos) then
+			local nearestMesh = FindClosestMesh(pos, 20, false, false)
+			if (nearestMesh and NavigationManager:IsReachable(nearestMesh)) then
+				d("[MoveToNode]: using mesh projection of gatherable pos (meshdist "
+					.. tostring(nearestMesh.meshdistance) .. ")")
+				pos = shallowcopy(nearestMesh)
+				foundPos = true
+			else
 				local meshpos = gatherable.meshpos
-				if (table.valid(meshpos) and NavigationManager:IsReachable(meshpos) and meshpos.meshdistance < 4) then
-					d("used estimated position 3, meshdistance is ["..tostring(meshpos.meshdistance).."]")
+				if (table.valid(meshpos) and NavigationManager:IsReachable(meshpos) and meshpos.meshdistance < 8) then
+					d("[MoveToNode]: using gatherable.meshpos (meshdist "
+						.. tostring(meshpos.meshdistance) .. ")")
 					pos = shallowcopy(meshpos)
 					foundPos = true
 				end
 			end
-			
+
 			if (not foundPos) then
-				d("found no estimated position")
+				d("[MoveToNode]: no mesh projection found, using raw gatherable pos")
 			end
 			
 			newTask.pos = pos

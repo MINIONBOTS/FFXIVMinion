@@ -95,67 +95,7 @@ function ml_navigation.ParseInstructions(data)
 		local itype,iparams = nil,nil
 		for i,instruction in pairsByKeys(data) do
 			itype,iparams = instruction[1],instruction[2]
-			if (itype == "Ascend") then
-				table.insert(ml_navigation.receivedInstructions,
-					function ()
-						if (IsFlying()) then
-							if (Player:IsMoving(FFXIV.MOVEMENT.UP)) then
-								return true
-							else
-								Player:Move(128)
-								ml_global_information.Await(math.random(300,500))
-								return false
-							end
-						else
-							Player:Jump()
-							ml_global_information.Await(math.random(50,150))
-							return false
-						end
-					end
-				)
-			elseif (itype == "QuickAscend") then
-				table.insert(ml_navigation.receivedInstructions,
-					function ()
-						if (IsFlying()) then
-							return true
-						else
-							Player:Jump()
-							ml_global_information.Await(math.random(50,150))
-							return false
-						end
-					end
-				)
-			elseif (itype == "Descend") then
-				table.insert(ml_navigation.receivedInstructions,
-					function ()
-						if (IsFlying()) then
-							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
-								Player:Move(FFXIV.MOVEMENT.DOWN)
-								ml_global_information.Await(1000, function () return Player:IsMoving(FFXIV.MOVEMENT.DOWN) end)
-							end
-							ml_global_information.Await(500, function () return not IsFlying() end)
-							return false
-						else
-							return true
-						end
-					end
-				)
-			elseif (itype == "StraightDescend") then
-				table.insert(ml_navigation.receivedInstructions,
-					function ()
-						if (IsFlying()) then
-							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
-								Player:Move(FFXIV.MOVEMENT.DOWN)
-								ml_global_information.Await(1000, function () return Player:IsMoving(FFXIV.MOVEMENT.DOWN) end)
-							end
-							ml_global_information.Await(500, function () return not IsFlying() end)
-							return false
-						else
-							return true
-						end
-					end
-				)
-			elseif (itype == "Stop") then
+			if (itype == "Stop") then
 				table.insert(ml_navigation.receivedInstructions,
 					function ()
 						if (Player:IsMoving()) then
@@ -2464,6 +2404,19 @@ function ml_navigation.Navigate(event, ticks)
 						ml_navigation:DispatchAutoFollowNode(targetnode, true)
 
 						-- Landing zone lookahead
+						--
+						-- Fires when a candidate landing node (floorcube transition, or
+						-- a path-end node, even one lacking the ground flag — gather nodes
+						-- on raised props often do) is within raycast range (~landingLookaheadDist).
+						--
+						-- Two outcomes rewrite the endpoint:
+						--   1. Clear  -> project endpoint down to real ground via FindClosestMesh,
+						--                so autofollow flies to ground (no mid-path descent needed).
+						--   2. Blocked+fallback -> reroute to the fallback spot (existing behaviour).
+						--
+						-- landingProbeCache[idx] is set only when a rewrite is actually applied
+						-- (or the node is already on ground). If we probe too early and the result
+						-- is inconclusive, we re-probe next tick as we get closer.
 						if (not ffnav.landingFallbackActive) then
 							local lookaheadIdx = nil
 							local lookaheadNode = nil
@@ -2474,7 +2427,11 @@ function ml_navigation.Navigate(event, ticks)
 								local lnNextGround = (lnNext and lnNext.ground == true) or false
 								local lnIsFlyToWalk = (ln.floorcube == true and (ln.ground == true or lnNextGround))
 									or (ln.is_end and ln.ground)
-								if (lnIsFlyToWalk) then
+								-- Accept any path-end as a landing candidate (elevated gather
+								-- nodes may not carry the ground flag; we still want to land
+								-- near them by projecting to ground below).
+								local lnIsEndCandidate = (ln.is_end == true) and not ln.is_cube
+								if (lnIsFlyToWalk or lnIsEndCandidate) then
 									lookaheadIdx = li
 									lookaheadNode = ln
 									break
@@ -2486,8 +2443,51 @@ function ml_navigation.Navigate(event, ticks)
 									local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
 									local clear, fbX, fbY, fbZ = CheckLandingZone(
 										lookaheadNode.x, lookaheadNode.y, lookaheadNode.z, mountRadius)
-									ffnav.landingProbeCache[lookaheadIdx] = true
-									if (not clear and fbX) then
+									if (clear) then
+										-- Project endpoint down to real ground. CheckLandingZone
+										-- only confirmed the spot is landable from above; the
+										-- node Y itself may be on top of a prop/node geometry
+										-- that rays pass through. FindClosestMesh gives us the
+										-- actual walkable mesh position below.
+										local probe = {
+											x = lookaheadNode.x,
+											y = lookaheadNode.y,
+											z = lookaheadNode.z,
+										}
+										local ground = FindClosestMesh(probe, 20, false, false)
+										if (ground and math.abs(ground.y - lookaheadNode.y) > 0.25) then
+											local drop = lookaheadNode.y - ground.y
+											d("[Navigation] Lookahead: projecting endpoint to ground at node "
+												.. lookaheadIdx
+												.. " dist=" .. string.format("%.0f", distToLanding)
+												.. " drop=" .. string.format("%.2f", drop)
+												.. " (" .. string.format("%.1f, %.1f, %.1f",
+													ground.x, ground.y, ground.z) .. ")")
+											lookaheadNode.x = ground.x
+											lookaheadNode.y = ground.y
+											lookaheadNode.z = ground.z
+											ml_navigation.ScrubToGroundEndpoint(lookaheadNode)
+											for ri = lookaheadIdx + 1, lookaheadIdx + 50 do
+												if (ml_navigation.path[ri] == nil) then break end
+												ml_navigation.path[ri] = nil
+											end
+											-- Freeze periodic refresh so BuildPath does not
+											-- undo the ground projection.
+											ffnav.landingFallbackPos = { x = ground.x, y = ground.y, z = ground.z }
+											ffnav.landingFallbackOrigin = ml_navigation.targetposition and
+												{ x = ml_navigation.targetposition.x,
+												  y = ml_navigation.targetposition.y,
+												  z = ml_navigation.targetposition.z } or nil
+											ffnav.landingFallbackActive = true
+											ffnav.landingFallbackSmoothed = true
+											ffnav.landingProbeCache[lookaheadIdx] = true
+										elseif (ground) then
+											-- Already essentially on ground, nothing to rewrite.
+											ffnav.landingProbeCache[lookaheadIdx] = true
+										end
+										-- If no ground found yet (out of mesh range), leave
+										-- cache unset so we retry once closer.
+									elseif (fbX) then
 										local fallbackPos = { x = fbX, y = fbY, z = fbZ }
 										-- The engine-produced path already approves flight up to
 										-- lookaheadNode. When the fallback is a tiny horizontal shift
@@ -2525,84 +2525,25 @@ function ml_navigation.Navigate(event, ticks)
 										-- periodic refresh so BuildPath does not rebuild the approach
 										-- through a cube detour.
 										ffnav.landingFallbackSmoothed = canFlyDirect
+										ffnav.landingProbeCache[lookaheadIdx] = true
 									end
+									-- No fallback available and not clear: leave cache unset and
+									-- re-probe next tick; the engine will have a better answer
+									-- as we close distance.
 								end
 							end
 						end
 
 						if ( ml_navigation:IsGoalClose(ppos,targetnode,lastnode) or ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
-							local canLand = ((dist2D < 2 or dist3D < 3) and height < 7 and height > 0)
-							local isFlyToWalk = (isDescentCon or (nextnode.is_end and nextnode.ground))
-
-							if (not canLand and isFlyToWalk and dist2D < 2 and height > 0) then
-								canLand = true
-							end
-
-							if (ffnav.descentAttempts < 3) then
-								if (canLand and isFlyToWalk and not unstableTransition and (not nextnode.is_cube or nextnode.ground or (nextnode.floorcube and (nextnode.is_end or nextnextGround))) and (nextnode.is_end or not ml_navigation:CanContinueFlying())) then
-									if (not ffnav.landingFallbackActive) then
-										local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
-										local clear, fbX, fbY, fbZ = CheckLandingZone(nextnode.x, nextnode.y, nextnode.z, mountRadius)
-										if (not clear) then
-											if (fbX) then
-												d("[Navigation] Landing blocked, rerouting to ("
-													.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")")
-												ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
-												ffnav.landingFallbackOrigin = ml_navigation.targetposition and { x = ml_navigation.targetposition.x, y = ml_navigation.targetposition.y, z = ml_navigation.targetposition.z } or nil
-												ffnav.landingFallbackActive = true
-
-												local fallbackPos = { x = fbX, y = fbY, z = fbZ }
-												-- The engine-produced path already approves flight up to
-												-- nextnode (we are IsGoalClose). When the fallback is a
-												-- small horizontal shift from nextnode, in-place smoothing
-												-- is inherently valid and side-probe corridor raycasts
-												-- (which graze the landing-spot cliff walls) would wrongly
-												-- force a BuildPath rebuild up through a cube detour.
-												local shiftDist = math.distance3d(nextnode, fallbackPos)
-												local smallShift = (shiftDist <= 8)
-												local canFlyDirect = smallShift
-													or ml_navigation:IsDirectFlightCorridorClear(ppos, fallbackPos, 100)
-												if (canFlyDirect and ml_navigation:ApplyLandingFallbackToCurrentPath(fbX, fbY, fbZ)) then
-													d("[Navigation] Landing fallback smoothing current approach"
-														.. " shift=" .. string.format("%.1f", shiftDist)
-														.. " smallShift=" .. tostring(smallShift))
-													-- Freeze the periodic refresh: the current path has been
-													-- rewritten to land at the fallback directly, and a rebuild
-													-- would route us up through a cube detour instead.
-													ffnav.landingFallbackSmoothed = true
-												else
-													d("[Navigation] Landing fallback direct path blocked/out of range, rebuilding path"
-														.. " shift=" .. string.format("%.1f", shiftDist))
-													ffnav.landingFallbackSmoothed = false
-													Player:BuildPath(fbX, fbY, fbZ, 0, 0, 0)
-												end
-											else
-												d("[Navigation] Landing blocked, no open spot found, descending anyway")
-											end
-											return false
-										end
-									end
-									if (TimeSince(ffnav.lastDescentTime) < 2000) then
-										if (not ffnav._lastDescentCooldownLog or TimeSince(ffnav._lastDescentCooldownLog) > 2000) then
-											d("[Navigation] Descent gated: cooldown (" .. tostring(2000 - TimeSince(ffnav.lastDescentTime)) .. "ms remaining)")
-											ffnav._lastDescentCooldownLog = Now()
-										end
-										return false
-									end
-									if (ml_navigation:IsFlightActionThrottled("descend", ml_navigation.pathindex, nextnode, nextnextnode)) then
-										return false
-									end
-									ffnav.descentAttempts = ffnav.descentAttempts + 1
-									ffnav.lastDescentTime = Now()
-									ml_navigation.lastconnectiontimer = Now()
-									d("Attempt descent.")
-									Descend(true)
-									return false
-								end
-							end
+							-- Legacy Descend() trigger removed. Landing is now handled by:
+							--   1. Lookahead block above (rewrites endpoint to ground Y,
+							--      or reroutes to fallback on blocked spots).
+							--   2. Autofollow flies the bot to that rewritten ground endpoint.
+							--   3. c_mount's flying dismount gate (dist3d <= dismountDistance+10)
+							--      fires the dismount cast, landing the player.
+							-- No mid-path manual descent is needed.
 
 							-- Node reached, advance path
-							ffnav.descentAttempts = 0
 							ml_navigation.lastconnectionid = nextnode.navconnectionid
 							ml_navigation.lastconnectiontimer = Now()
 							ml_navigation.pathindex = ml_navigation.pathindex + 1

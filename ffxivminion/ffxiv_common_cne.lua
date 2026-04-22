@@ -2556,8 +2556,12 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 c_mount.blockOnly = true
 function c_mount:evaluate()
+	-- NOTE: IsFlying() intentionally NOT in this bail-out list. The dismount
+	-- block below needs to run while flying so we can trigger Dismount()
+	-- once 2D distance to the goal is satisfied (the navigation lookahead
+	-- has already projected the endpoint to a CheckLandingZone-cleared spot).
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsFlying() or IsTransporting() or IsSwimming())
+		or IsShopWindowOpen() or IsTransporting() or IsSwimming())
 	then
 		return false
 	end
@@ -2583,7 +2587,37 @@ function c_mount:evaluate()
 				end
 			end		
 		end
-		
+
+		-- When already flying within 2D dismount range, the path's air nodes
+		-- ARE the descent (player is currently mid-air, so a fresh BuildPath
+		-- to the ground goal naturally starts in the air). Suppress needsMount
+		-- in that case so the dismount block below fires.
+		if (needsMount and IsFlying() and dismountDistance > 0
+			and dist2d <= dismountDistance) then
+			needsMount = false
+		end
+
+		-- Stutter mitigation for lookahead-rewritten landings: when the
+		-- navigation path has been fully consumed (autofollow turned off at
+		-- the rewritten endpoint) but the player is still airborne (autofollow
+		-- doesn't drop Y to the ground node's Y on its own), the parent
+		-- movetopos task completes and we briefly have no active path. The
+		-- next subtask's c_getmovementpath is throttled for up to 2s, leaving
+		-- the player hovering. When this happens after a landingFallback
+		-- rewrite (the endpoint was a verified CheckLandingZone-clear spot),
+		-- trigger the dismount immediately from here instead of waiting.
+		if (IsFlying() and Player.ismounted
+			and ffnav.landingFallbackActive
+			and not table.valid(ml_navigation.path)
+			and not ml_task_hub:CurrentTask().remainMounted
+			and not (ffnav.isascending or ffnav.isdescending or IsMounting())
+			and not IsDismounting()) then
+			d("[Mount] Flying dismount: path consumed after landing fallback.")
+			Dismount()
+			c_mount.blockOnly = true
+			return true
+		end
+
 		if (not needsMount) then
 			-- Block dismount during active flight transitions (ascending/descending/mounting)
 			if (ffnav.isascending or ffnav.isdescending or IsMounting()) then
@@ -2594,9 +2628,21 @@ function c_mount:evaluate()
 				return false
 			end
 			
-			if (dismountDistance > 0 and dist2d <= dismountDistance and 
-				(dist3d <= (dismountDistance + 3) or (IsFlying() and dist3d <= (dismountDistance + 10)))) 
-			then
+			-- Flying dismount: once 2D distance is within range we dismount
+			-- regardless of vertical distance. The navigation lookahead has already
+			-- projected the path endpoint to a CheckLandingZone-cleared ground spot,
+			-- so any remaining altitude is just autofollow not finishing the
+			-- descent — there's no benefit to waiting for the bot to inch closer
+			-- in Y, and Dismount() drops the player straight down anyway.
+			local within = false
+			if (dismountDistance > 0 and dist2d <= dismountDistance) then
+				if (IsFlying()) then
+					within = true
+				elseif (dist3d <= (dismountDistance + 3)) then
+					within = true
+				end
+			end
+			if (within) then
 				local doDismount = false
 				if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
 					-- Additional gate: verify the task's interactable entity is actually nearby,
