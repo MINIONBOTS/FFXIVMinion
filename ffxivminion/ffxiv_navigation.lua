@@ -2078,6 +2078,13 @@ function ml_navigation.Navigate(event, ticks)
 									d("[OMC-DBG] MoveTo:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " tElapsed=" .. tostring(ticks - ml_navigation.omc_starttimer))
 									Player:Jump()
 									d("[Navigation]: Starting to Jump for NavConnection.")
+								elseif ( not Player:IsMoving() ) then
+									-- Player stopped after timer-start (e.g. reached AF target) before the
+									-- jump window. Re-dispatch to_pos to restart lateral movement so the
+									-- next tick can enter the jump branch.
+									d("[OMC-DBG] MoveTo:redispatch-stopped af=" .. tostring(Player:IsAutoFollowOn()) .. " tElapsed=" .. tostring(ticks - ml_navigation.omc_starttimer))
+									ml_navigation:DispatchAutoFollowNode(to_pos, true)
+									ffnav.Await(1000, function () return Player:IsMoving() end)
 								end
 
 							else
@@ -2993,6 +3000,10 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 				d("[OMC-DBG] Exact:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " tElapsed=" .. tostring(ticks - self.omc_starttimer))
 				Player:Jump()
 				d("[MoveToExact]: OMC Jump started.")
+			elseif (not Player:IsMoving()) then
+				-- Player stopped after timer-start before the jump window. Re-dispatch to restart movement.
+				d("[OMC-DBG] Exact:redispatch-stopped af=" .. tostring(Player:IsAutoFollowOn()) .. " tElapsed=" .. tostring(ticks - self.omc_starttimer))
+				ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)
 			end
 		else
 			local todist2d = math.distance2d(ppos, to_pos)
