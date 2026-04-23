@@ -56,6 +56,7 @@ ml_navigation_exact = {
 	lastupdate = 0,
 	autoFollowNodeKey = nil,
 	autoFollowLastSet = 0,
+	autoFollowOnLastSet = 0,
 	autoFollowRefreshMs = 200,
 	maxDispatchYDelta = 8,
 	verticalThreshold = 1.5,
@@ -540,6 +541,7 @@ ml_navigation.useAutoFollowPath = true
 ml_navigation.autoFollowRefreshMs = 350
 ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0
+ml_navigation.autoFollowOnLastSet = 0
 ml_navigation.navAutoFollowOwned = false
 ml_navigation.navAutoFollowOwner = nil
 
@@ -587,6 +589,7 @@ end
 function ml_navigation:ResetAutoFollowState()
 	self.autoFollowNodeKey = nil
 	self.autoFollowLastSet = 0
+	self.autoFollowOnLastSet = 0
 	self.navAutoFollowOwned = false
 	self.navAutoFollowOwner = nil
 end
@@ -607,7 +610,8 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
-	if (force or key ~= self.autoFollowNodeKey or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
+	local keyChanged = (key ~= self.autoFollowNodeKey)
+	if (force or keyChanged or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
 		Player:SetAutoFollowPos(node.x, node.y, node.z)
 		self.autoFollowNodeKey = key
 		self.autoFollowLastSet = now
@@ -615,8 +619,16 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 		self.navAutoFollowOwner = "moveto"
 	end
 
+	-- Re-enable throttle: the game can flip movStatus back to 0 on its own
+	-- (e.g. underwater tick, teleport/fade, partial path rejection). Without a
+	-- throttle we'd call SetAutoFollowOn(true) every frame and spam the
+	-- [AutoFollow] log. Only re-enable when the node changed or enough time
+	-- has passed since our last enable attempt.
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
-		Player:SetAutoFollowOn(true)
+		if (keyChanged or TimeSince(self.autoFollowOnLastSet) >= self.autoFollowRefreshMs) then
+			Player:SetAutoFollowOn(true)
+			self.autoFollowOnLastSet = now
+		end
 	end
 	return true
 end
@@ -1442,34 +1454,6 @@ ml_navigation.pathchanged = false
 ml_navigation.lastBuildCall = 0
 ml_navigation.lastpos = {x=0, y=0, z=0}
 
--- Temporary floor-cube connections created on-demand for transitions
-ml_navigation.tempFloorCubeConnections = {}
-
-function ml_navigation:CleanupTempConnections()
-	for _, connId in ipairs(self.tempFloorCubeConnections) do
-		NavigationManager:RemoveNavConnection(connId)
-	end
-	self.tempFloorCubeConnections = {}
-end
-
-function ml_navigation:CreateTempFloorCubeConnection(pos, direction)
-	local result = NavigationManager:FindFloorCubeConnectionPoint(pos.x, pos.y, pos.z, direction)
-	if result then
-		local connId = NavigationManager:CreateNavConnection({
-			type = 3, -- NC_POLY_TO_CUBE
-			radius = result.radius or 3,
-			bidirectional = true,
-			from = result.floor,
-			to = result.cube,
-		})
-		if connId then
-			table.insert(self.tempFloorCubeConnections, connId)
-			return connId
-		end
-	end
-	return nil
-end
-
 function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	ml_navigation.debug = nil
 	local floorfilters = IsNull(floorfilters,0,true)
@@ -1525,10 +1509,10 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 
 	-- If the current path was already smoothed in-place toward the fallback
 	-- landing spot and the incoming goal resolves to that same fallback,
-	-- keep the existing path instead of rebuilding. A rebuild here would
-	-- create temp floor-cube NavConnections at the flying player's position
-	-- and route the approach up through a cube detour (the "up into the air
-	-- then down again" behaviour), and would also dirty NavConnectionMgr.
+	-- keep the existing path instead of rebuilding. Rebuilding here would
+	-- discard the in-place smoothed approach and re-route through the cube
+	-- network ("up into the air then down again" behaviour), and would also
+	-- dirty NavConnectionMgr.
 	if (not force and ffnav.landingFallbackActive and ffnav.landingFallbackSmoothed
 		and ffnav.landingFallbackPos and hasCurrentPath
 		and math.distance3d(ffnav.landingFallbackPos, newGoal) < 2) then
@@ -1555,26 +1539,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
-
-	-- Create temporary floor-cube connections on-demand if transitioning between floor and cube
-	ml_navigation:CleanupTempConnections()
-	local canUseCubes = (bit.band(cubefilters, GLOBAL.CUBE.AIR) == 0) or (bit.band(cubefilters, GLOBAL.CUBE.WATER) == 0)
-	if canUseCubes then
-		local playerOnFloor = not IsFlying() and not IsDiving()
-		local goalOnFloor = NavigationManager:IsOnMesh(newGoal.x, newGoal.y, newGoal.z)
-		local goalInCubes = NavigationManager:GetClosestPointInCubes(newGoal)
-		local goalInAir = goalInCubes and goalInCubes.distance and goalInCubes.distance < 5
-
-		-- Player on floor, goal in air/water → landing side may still need a temporary "down" connection near the goal.
-		if playerOnFloor and goalInAir and not goalOnFloor then
-			ml_navigation:CreateTempFloorCubeConnection(newGoal, "down")
-		end
-		-- Player in air/water, goal on floor → need "down" connection near goal
-		if not playerOnFloor and goalOnFloor and not goalInAir then
-			ml_navigation:CreateTempFloorCubeConnection(newGoal, "down")
-			ml_navigation:CreateTempFloorCubeConnection(ppos, "down")
-		end
-	end
 
 	local ret = ml_navigation:MoveTo(newGoal.x,newGoal.y,newGoal.z, targetid)
 
@@ -1606,9 +1570,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	end
 
 	-- Straighten takeoff path: realign the floor approach node (before the first cube node)
-	-- to the player's current ground position, removing the lateral detour that temp
-	-- floor-cube navcon anchors introduce.
-	if (ret > 0 and canUseCubes and not IsFlying() and not IsDiving()) then
+	-- to the player's current ground position, removing the lateral detour that static
+	-- floor-cube navcon anchors introduce at takeoff.
+	if (ret > 0 and not IsFlying() and not IsDiving()) then
 		local cacheId = ml_navigation.path[1] and ml_navigation.path[1].id or 0
 		if cacheId ~= 0 then
 			local straightPath = NavigationManager:StraightenTakeoffPath(cacheId, ppos.x, ppos.y, ppos.z)
@@ -1620,6 +1584,11 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 			end
 		end
 	end
+
+	-- Flight-corridor smoothing has been moved entirely to C++
+	-- (PathHandler::SmoothCubePath). The Lua-side raycast smoother used to
+	-- live here; it was removed so the C++ smoother is the single source
+	-- of truth and zigzag diagnostics aren't muddled by a second pass.
 
 	ml_navigation.lastBuildCall = Now()
 	ml_navigation.lastpos = newGoal
@@ -1824,8 +1793,9 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	end
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(ml_navigation_exact.pathindex)
+	local keyChanged = (key ~= ml_navigation_exact.autoFollowNodeKey)
 	local targetY = ml_navigation_exact.GetDispatchTargetY(node, ppos)
-	if (force or key ~= ml_navigation_exact.autoFollowNodeKey or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
+	if (force or keyChanged or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
 		Player:SetAutoFollowPos(node.x, targetY, node.z)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
@@ -1833,11 +1803,15 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 		ml_navigation.navAutoFollowOwner = "movetoexact"
 	end
 
+	-- Re-enable throttle: see ml_navigation:DispatchAutoFollowNode for rationale.
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
-		Player:SetAutoFollowPos(node.x, targetY, node.z)
-		ml_navigation_exact.autoFollowNodeKey = key
-		ml_navigation_exact.autoFollowLastSet = now
-		Player:SetAutoFollowOn(true)
+		if (keyChanged or TimeSince(ml_navigation_exact.autoFollowOnLastSet or 0) >= ml_navigation_exact.autoFollowRefreshMs) then
+			Player:SetAutoFollowPos(node.x, targetY, node.z)
+			ml_navigation_exact.autoFollowNodeKey = key
+			ml_navigation_exact.autoFollowLastSet = now
+			ml_navigation_exact.autoFollowOnLastSet = now
+			Player:SetAutoFollowOn(true)
+		end
 	end
 	return true
 end
@@ -1865,6 +1839,7 @@ function Player:Stop(resetpath)
 	-- hover. The ground-nav branch clears these once the player lands.
 	if (not IsFlying()) then
 		ffnav.landingProbeCache = {}
+		ffnav.landingProbeState = nil
 		ffnav.landingFallbackActive = false
 		ffnav.landingFallbackPos = nil
 		ffnav.landingFallbackOrigin = nil
@@ -2435,7 +2410,20 @@ function ml_navigation.Navigate(event, ticks)
 						-- landingProbeCache[idx] is set only when a rewrite is actually applied
 						-- (or the node is already on ground). If we probe too early and the result
 						-- is inconclusive, we re-probe next tick as we get closer.
-						if (not ffnav.landingFallbackActive) then
+						--
+						-- Gating (zigzag hardening):
+						--   * Suppressed entirely while ffnav.isascending is truthy — the takeoff
+						--     transition (jump -> mount -> TakeOff) is brief but unstable, and
+						--     rewriting the endpoint mid-takeoff produces the characteristic
+						--     launch zigzag users reported.
+						--   * Per-index probe cadence throttled to kProbeIntervalMs so we don't
+						--     fire CheckLandingZone every frame on the same lookahead target.
+						--   * Blocked-with-fallback rewrites require two consecutive agreeing
+						--     probes (fallback positions within ~1u) before committing, so a
+						--     single transient BlockLanding hit can't yank the path.
+						local kProbeIntervalMs = 250
+						local kFallbackAgreeDist = 1.0
+						if (not ffnav.landingFallbackActive and not ffnav.isascending) then
 							local lookaheadIdx = nil
 							local lookaheadNode = nil
 							for li = ml_navigation.pathindex, ml_navigation.pathindex + 15 do
@@ -2457,7 +2445,23 @@ function ml_navigation.Navigate(event, ticks)
 							end
 							if (lookaheadNode and not ffnav.landingProbeCache[lookaheadIdx]) then
 								local distToLanding = math.distance3d(lookaheadNode, ppos)
-								if (distToLanding <= ffnav.landingLookaheadDist and distToLanding > 5) then
+								-- Per-index probe throttle: avoid hammering CheckLandingZone
+								-- (up to 50+ raycasts per call) every frame on the same target.
+								local probeState = ffnav.landingProbeState
+								if (not probeState) then
+									probeState = { idx = nil, lastProbe = 0, lastFallback = nil, agreeCount = 0 }
+									ffnav.landingProbeState = probeState
+								end
+								if (probeState.idx ~= lookaheadIdx) then
+									probeState.idx = lookaheadIdx
+									probeState.lastProbe = 0
+									probeState.lastFallback = nil
+									probeState.agreeCount = 0
+								end
+								local probeDue = (probeState.lastProbe == 0)
+									or (TimeSince(probeState.lastProbe) >= kProbeIntervalMs)
+								if (probeDue and distToLanding <= ffnav.landingLookaheadDist and distToLanding > 5) then
+									probeState.lastProbe = Now()
 									local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
 									local clear, fbX, fbY, fbZ = CheckLandingZone(
 										lookaheadNode.x, lookaheadNode.y, lookaheadNode.z, mountRadius)
@@ -2507,6 +2511,29 @@ function ml_navigation.Navigate(event, ticks)
 										-- cache unset so we retry once closer.
 									elseif (fbX) then
 										local fallbackPos = { x = fbX, y = fbY, z = fbZ }
+										-- Stability gate: require two consecutive probes to
+										-- report the same fallback spot (within ~1u) before
+										-- committing a rewrite. Single frames of BlockLanding
+										-- hits in grazing terrain otherwise cause visible
+										-- mid-flight yanks toward transient fallback points.
+										local lastFb = probeState.lastFallback
+										local agree = false
+										if (lastFb) then
+											local fbDelta = math.distance3d(lastFb, fallbackPos)
+											if (fbDelta <= kFallbackAgreeDist) then
+												probeState.agreeCount = (probeState.agreeCount or 0) + 1
+												agree = probeState.agreeCount >= 1 -- second probe agreeing = commit
+											else
+												probeState.agreeCount = 0
+											end
+										end
+										probeState.lastFallback = fallbackPos
+										if (not agree) then
+											-- Wait for the next probe tick to confirm.
+											d("[Navigation] Lookahead: blocked at node " .. lookaheadIdx
+												.. ", awaiting confirm ("
+												.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")")
+										else
 										-- The engine-produced path already approves flight up to
 										-- lookaheadNode. When the fallback is a tiny horizontal shift
 										-- off that same node, the existing approach is inherently valid
@@ -2544,6 +2571,7 @@ function ml_navigation.Navigate(event, ticks)
 										-- through a cube detour.
 										ffnav.landingFallbackSmoothed = canFlyDirect
 										ffnav.landingProbeCache[lookaheadIdx] = true
+										end
 									end
 									-- No fallback available and not clear: leave cache unset and
 									-- re-probe next tick; the engine will have a better answer
@@ -2582,6 +2610,7 @@ function ml_navigation.Navigate(event, ticks)
 						ffnav.landingFallbackOrigin = nil
 						ffnav.landingFallbackSmoothed = false
 						ffnav.landingProbeCache = {}
+						ffnav.landingProbeState = nil
 
 						local navcon = ml_navigation:GetConnection(nextnode)
 						local isGoalCloseForCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
@@ -2732,6 +2761,7 @@ function ml_navigation.Navigate(event, ticks)
 						ffnav.landingFallbackOrigin = nil
 						ffnav.landingFallbackSmoothed = false
 						ffnav.landingProbeCache = {}
+						ffnav.landingProbeState = nil
 					end
 					ml_navigation.StopMovement()
 				end
@@ -3124,6 +3154,7 @@ ffnav.isdescending = false
 ffnav.descentAttempts = 0
 ffnav.lastDescentTime = 0
 ffnav.landingProbeCache = {}
+ffnav.landingProbeState = nil
 ffnav.landingFallbackActive = false
 ffnav.landingFallbackPos = nil
 ffnav.landingFallbackOrigin = nil
