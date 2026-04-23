@@ -4341,8 +4341,8 @@ c_dointeract.lastInteract = 0
 
 -- Interaction timing constants
 c_dointeract.INTERACT_DEBOUNCE_MS = 1500
-c_dointeract.WINDOW_TIMEOUT_MS   = 3000
-c_dointeract.RECOVER_COOLDOWN_MS = 2000
+c_dointeract.WINDOW_TIMEOUT_MS   = 1000
+c_dointeract.RECOVER_COOLDOWN_MS = 500
 
 -- Runtime state: tracks whether we're actively interacting/waiting
 c_dointeract._interacting    = false
