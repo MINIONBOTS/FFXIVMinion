@@ -620,7 +620,12 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		e_skipcutscene:execute()
 	end
 
-	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
+	-- Do NOT return here. Legacy gate blocked the entire InGameOnUpdate (including
+	-- ml_task_hub:Update) while instruction queue or main-path OMC was active, so
+	-- quest/QUEST_NAVIGATE could never add MOVETOPOS or use MoveToExact while
+	-- ParseInstructions OMC was pending. Instructions are processed after task hub
+	-- in the same tick (see below) so they still advance each frame.
+	if (ml_navigation.IsHandlingOMC(tickcount)) then
 		return false
 	end
 
@@ -784,6 +789,10 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			end
 		end
 	end
+
+	-- OMC / profile steps after task hub: quest can add MOVETOPOS / MoveToExact first, then
+	-- this advances ParseInstructions without requiring normal canPath.
+	ml_navigation.IsHandlingInstructions(tickcount)
 end
 
 function ml_global_information.GetMovementInfo(afk)

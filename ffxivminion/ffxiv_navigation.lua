@@ -340,15 +340,13 @@ function ml_navigation.ParseInstructions(data)
 							ml_navigation:DispatchAutoFollowNode(pos, true)
 							ml_global_information.AwaitDo(100, 120000,
 								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
 									local myPos = Player.pos
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
+											local myPos = Player.pos
 											for i,jump in pairs(jumps) do
 												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.55) then
 													Player:Jump()
@@ -388,15 +386,13 @@ function ml_navigation.ParseInstructions(data)
 							ml_navigation:DispatchAutoFollowNode(pos, true)
 							ml_global_information.AwaitDo(100, 120000,
 								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
 									local myPos = Player.pos
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
 								function ()
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
+											local myPos = Player.pos
 											for i,jump in pairs(jumps) do
 												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
 													Player:Jump()
@@ -421,9 +417,6 @@ function ml_navigation.ParseInstructions(data)
 							ml_navigation:DispatchAutoFollowNode(pos, true)
 							ml_global_information.AwaitDo(100, 120000,
 								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
 									local myPos = Player.pos
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
@@ -452,9 +445,6 @@ function ml_navigation.ParseInstructions(data)
 							ml_navigation:DispatchAutoFollowNode(pos, true)
 							ml_global_information.AwaitDo(100, 120000,
 								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
 									local myPos = Player.pos
 									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 								end,
@@ -1644,7 +1634,6 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 		end
 	end
 
-	d("[MoveToExact]: Requesting fresh path. cacheId=" .. tostring(cacheId))
 	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z, cacheId, false, true)
 
 	if (type(result) == "table" and table.valid(result)) then
@@ -1671,10 +1660,8 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
-		d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId))
 		return 0
 	else
-		d("[MoveToExact]: Path request failed. cacheId=" .. tostring(cacheId))
 		return -1
 	end
 end
@@ -1759,18 +1746,12 @@ function ml_navigation_exact.OptimizeCachedPath(ppos, disableSmoothing)
 	if (not disableSmoothing and cacheId ~= 0 and NavigationManager.SmoothPath) then
 		local smoothed = NavigationManager:SmoothPath(cacheId, ppos.x, ppos.y, ppos.z)
 		if (type(smoothed) == "table" and table.valid(smoothed)) then
-			local removed = smoothed[1] and smoothed[1].smoothed or 0
 			for _, node in pairs(smoothed) do
 				ml_navigation.TagNode(node)
 			end
 			self.path = smoothed
 			self.pathindex = 1
-			if (removed > 0) then
-				d("[MoveToExact]: SmoothPath removed " .. tostring(removed) .. " nodes")
-			end
 		end
-	elseif (disableSmoothing) then
-		d("[MoveToExact]: SmoothPath skipped (disableSmoothing=true)")
 	end
 
 	return true
@@ -1893,7 +1874,12 @@ function ml_navigation.Navigate(event, ticks)
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then
 		ml_navigation.lastupdate = ticks
 		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
-			ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
+			-- Do not yank auto-follow when OMC/parse-instruction queue is driving movement; that
+			-- path intentionally does not set canPath (or uses MoveToExact, handled above).
+			local haveInstr = ValidTable(ml_navigation.receivedInstructions)
+			if not haveInstr then
+				ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
+			end
 			return
 		end
 
@@ -2836,11 +2822,9 @@ function ml_navigation_exact.Navigate(event, ticks)
 				ml_navigation.TagNode(node)
 			end
 			ml_navigation_exact.OptimizeCachedPath(ppos, ml_navigation_exact.disableSmoothing)
-			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
 		elseif (type(result) == "number" and result > 0) then
 			return
 		else
-			d("[MoveToExact]: Path request failed during pending poll. cacheId=" .. tostring(cacheId))
 			Player:StopExact()
 			return
 		end
@@ -2973,14 +2957,12 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 				self.omc_traveltimer = ticks
 			end
 		else
-			d("[MoveToExact]: OMC stuck — not getting closer.")
 			Player:StopExact()
 			return
 		end
 	end
 
 	if (self.omc_starttimer ~= 0 and ticks - self.omc_starttimer > 10000) then
-		d("[MoveToExact]: OMC timeout (10s).")
 		Player:StopExact()
 		return
 	end

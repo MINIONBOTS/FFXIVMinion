@@ -4519,14 +4519,19 @@ function c_dointeract:evaluate()
 		
 		-- Phase 3: Nudge toward entity if close but not yet interactable
 		if (task.exactMovementDone and interactable and table.valid(interactable)) then
+			local nudgeMax2d = 4
+			if (interactable.type == 5 and ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(interactable.contentid)) then
+				nudgeMax2d = (tonumber(task.interactRange) and tonumber(task.interactRange) > 0) and tonumber(task.interactRange) or 4.5
+			elseif (interactable.type == 5) then
+				nudgeMax2d = tonumber(task.interactRange) or 4
+			end
 			if (interactable.interactable) then
 				-- Entity is interactable — fall through to standard interact logic below
-			elseif (interactable.distance2d < 4 and table.size(EntityList.aggro) == 0) then
+			elseif (interactable.distance2d < nudgeMax2d and table.size(EntityList.aggro) == 0) then
 				local epos = interactable.pos
 				Player:SetFacing(epos.x, epos.y, epos.z)
 				Player:Move(FFXIV.MOVEMENT.FORWARD)
 				task.nudging = true
-				d("[TASK-DBG] MOVETOINTERACT:nudge forward dist2d="..string.format("%.1f",interactable.distance2d))
 				return true
 			end
 			-- If > 4y and not interactable, fall through to standard logic
@@ -4571,10 +4576,22 @@ function c_dointeract:evaluate()
 		return false
 	end
 	
+	-- Aetheryte attune: 3D cap must cover wide crystals (large radius + vertical offset). Small
+	-- task.interactRange3d alone caused re-search loops when still interactable (e.g. Mare Lamentorum).
+	local function attuneMaxInteract3d(t, e)
+		local r = tonumber(e.radius) or 5
+		local cfg = tonumber(t.interactRange3d)
+		local floor = math.max(r + 5, 12)
+		if (cfg and cfg > 0) then
+			return math.max(cfg, floor)
+		end
+		return floor
+	end
+	
 	-- QUEST_ATTUNEAETHERYTE special: if entity has drifted too far in 3D, re-search
 	if (task.name == "QUEST_ATTUNEAETHERYTE") then
-		local range3d = tonumber(task.interactRange3d) or 7.5
-		if (interactable.distance > range3d) then
+		local max3d = attuneMaxInteract3d(task, interactable)
+		if (interactable.distance > max3d) then
 			if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
 				task.interact = 0
 				task.pathChecked = false
@@ -4598,6 +4615,9 @@ function c_dointeract:evaluate()
 	-- For profile-driven interact steps, honor explicit 3D range before attempting interact.
 	-- Keep the existing interactable gate below as the final readiness check.
 	local range3d = tonumber(task.interactRange3d)
+	if (task.name == "QUEST_ATTUNEAETHERYTE") then
+		range3d = attuneMaxInteract3d(task, interactable)
+	end
 	if (range3d and range3d > 0 and interactable.distance > range3d) then
 		return false
 	end
