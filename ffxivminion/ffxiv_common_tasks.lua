@@ -683,28 +683,18 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return true
 	end
 
-	-- Map change (e.g. transfer after interaction) is a reliable completion signal.
+	-- Map change (e.g. transfer after interaction). task_complete_execute uses 0ms parent wait.
 	if (self.startMap ~= Player.localmapid) then
-		return true
-	end
-	-- Busy() includes MIsLocked(), which is true while mounting/dismounting and in many
-	-- animations. Treating it as "interact done" would complete this task (and with
-	-- killParent, the quest step) before any interaction. Only allow Busy to complete
-	-- after at least one interact was fired (e.g. Talk/SelectString open).
-	if (Busy()) then
-		if (IsNull(self.interactAttempts, 0) == 0) then
-			return false
-		end
 		return true
 	end
 
 	local ppos = Player.pos
-	
+
 	local interactable = nil
 	if (self.interact ~= 0) then
 		interactable = EntityList:Get(self.interact)
 	end
-	
+
 	--if (interactable and interactable.meshpos) then
 		--d("[NAVIGATION]: Task Pos ["..tostring(ml_task_hub:CurrentTask().pos.x)..","..tostring(ml_task_hub:CurrentTask().pos.y)..","..tostring(ml_task_hub:CurrentTask().pos.z).."]")
 		--d("[NAVIGATION]: Interactable Pos ["..tostring(interactable.pos.x)..","..tostring(interactable.pos.y)..","..tostring(interactable.pos.z).."]")
@@ -732,7 +722,17 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			end			
 		end
 	--end
-	
+
+	-- Run after in-range / missing-entity checks so mount lock (Busy/MIsLocked) does not
+	-- block "fail forward" when the object is gone or not targetable. Only then allow
+	-- Busy to complete the task (post-interact UI, etc.) once interactAttempts > 0.
+	if (Busy()) then
+		if (IsNull(self.interactAttempts, 0) == 0) then
+			return false
+		end
+		return true
+	end
+
 	return false
 end
 
@@ -741,11 +741,19 @@ function ffxiv_task_movetointeract:task_complete_execute()
 	Player:StopExact()
 	
 	if (self.killParent) then
-		d("Task is set to kill parent task ["..tostring(ml_task_hub:ThisTask():ParentTask().name).."].")
-		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
-		local delay = IsNull(self.killParentDelay, 1000)
-		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + delay
-		d("[killParent]: stepCompletedTimer set, delay="..tostring(delay))
+		local parent = ml_task_hub:ThisTask():ParentTask()
+		d("Task is set to kill parent task ["..tostring(parent and parent.name).."].")
+		if (parent) then
+			parent.stepCompleted = true
+			if (self.startMap ~= Player.localmapid) then
+				parent.stepCompletedTimer = 0
+				d("[killParent]: map change, instant parent step handoff (stepCompletedTimer=0).")
+			else
+				local delay = IsNull(self.killParentDelay, 3000)
+				parent.stepCompletedTimer = Now() + delay
+				d("[killParent]: stepCompletedTimer set, delay="..tostring(delay))
+			end
+		end
 	end
 	gSkipTalk = self.skipTalkVal
 	self.completed = true
