@@ -682,8 +682,19 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (IsShopWindowOpen() or IsControlOpen("GrandCompanyExchange")) then
 		return true
 	end
-	
-	if (self.startMap ~= Player.localmapid or Busy()) then
+
+	-- Map change (e.g. transfer after interaction) is a reliable completion signal.
+	if (self.startMap ~= Player.localmapid) then
+		return true
+	end
+	-- Busy() includes MIsLocked(), which is true while mounting/dismounting and in many
+	-- animations. Treating it as "interact done" would complete this task (and with
+	-- killParent, the quest step) before any interaction. Only allow Busy to complete
+	-- after at least one interact was fired (e.g. Talk/SelectString open).
+	if (Busy()) then
+		if (IsNull(self.interactAttempts, 0) == 0) then
+			return false
+		end
 		return true
 	end
 
