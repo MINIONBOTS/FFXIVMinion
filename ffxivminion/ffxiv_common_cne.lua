@@ -1525,7 +1525,7 @@ c_teleportsamemap = inheritsFrom( ml_cause )
 e_teleportsamemap = inheritsFrom( ml_effect )
 e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
-e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- teleport must save at least this fraction of current distance-to-dest (yalms)
+e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- fraction of distToDest; savings must be >= max(100 yalms, ratio * distToDest)
 e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
 
 function c_teleportsamemap:evaluate()
@@ -1571,7 +1571,7 @@ function c_teleportsamemap:evaluate()
 		return false
 	end
 
-	local minAdvantage = distToDest * e_teleportsamemap.ADVANTAGE_RATIO
+	local minAdvantage = math.max(100, distToDest * e_teleportsamemap.ADVANTAGE_RATIO)
 
 	-- ----------------------------------------------------------------
 	-- 1) Check Return first (free, no gil cost)
