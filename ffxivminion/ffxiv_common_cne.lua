@@ -1525,7 +1525,7 @@ c_teleportsamemap = inheritsFrom( ml_cause )
 e_teleportsamemap = inheritsFrom( ml_effect )
 e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
-e_teleportsamemap.MIN_ADVANTAGE = 80 -- teleport must save at least this many yalms
+e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- teleport must save at least this fraction of current distance-to-dest (yalms)
 e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
 
 function c_teleportsamemap:evaluate()
@@ -1571,6 +1571,8 @@ function c_teleportsamemap:evaluate()
 		return false
 	end
 
+	local minAdvantage = distToDest * e_teleportsamemap.ADVANTAGE_RATIO
+
 	-- ----------------------------------------------------------------
 	-- 1) Check Return first (free, no gil cost)
 	-- ----------------------------------------------------------------
@@ -1583,7 +1585,7 @@ function c_teleportsamemap:evaluate()
 					local aethPos = GetAetheryteLocation(aetheryte.id)
 					if (aethPos) then
 						local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-						if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+						if ((distToDest - aethToDest) > minAdvantage) then
 							e_teleportsamemap.aeth = aetheryte
 							e_teleportsamemap.useReturn = true
 							return true
@@ -1633,7 +1635,7 @@ function c_teleportsamemap:evaluate()
 								local aethPos = GetAetheryteLocation(c.id)
 								if (aethPos) then
 									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-									if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+									if ((distToDest - aethToDest) > minAdvantage) then
 										e_teleportsamemap.aeth = c
 										return true
 									end
@@ -1648,7 +1650,7 @@ function c_teleportsamemap:evaluate()
 								local aethPos = GetAetheryteLocation(c.id)
 								if (aethPos) then
 									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-									if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+									if ((distToDest - aethToDest) > minAdvantage) then
 										e_teleportsamemap.aeth = c
 										return true
 									end
@@ -1669,7 +1671,7 @@ function c_teleportsamemap:evaluate()
 				local aethPos = GetAetheryteLocation(c.id)
 				if (aethPos) then
 					local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-					if ((distToDest - aethToDest) > e_teleportsamemap.MIN_ADVANTAGE) then
+					if ((distToDest - aethToDest) > minAdvantage) then
 						e_teleportsamemap.aeth = c
 						return true
 					end
@@ -1692,7 +1694,7 @@ function c_teleportsamemap:evaluate()
 		end
 	end
 
-	if (best and (distToDest - bestDist) > e_teleportsamemap.MIN_ADVANTAGE) then
+	if (best and (distToDest - bestDist) > minAdvantage) then
 		e_teleportsamemap.aeth = best
 		return true
 	end
