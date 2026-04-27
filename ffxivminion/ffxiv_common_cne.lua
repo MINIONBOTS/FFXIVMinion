@@ -4339,14 +4339,6 @@ end
 -- interactable=false until pinged, so we need a slightly larger envelope and a
 -- micro-walk "nudge" to wake them up.
 
--- True for tasks that should use an adaptive (radius-based) 3D envelope.
-local function c_dointeract_isAdaptiveTarget(task, entity)
-	if not entity then return false end
-	if task.name == "QUEST_ATTUNEAETHERYTE" then return true end
-	if task.name == "MOVEAETHERNET" and entity.type == 5 then return true end
-	return false
-end
-
 -- True for any type-5 entity that the navigation layer recognizes as a
 -- known aetheryte / aethernet, or the explicit MOVEAETHERNET target.
 local function c_dointeract_isNetworkCrystal(task, entity)
@@ -4358,25 +4350,27 @@ local function c_dointeract_isNetworkCrystal(task, entity)
 	return task.name == "MOVEAETHERNET" and tonumber(task.contentid) == tonumber(id)
 end
 
--- 3D interact envelope. Adaptive targets compute a floor from entity.radius;
--- everything else honors task.interactRange3d when set (else nil = no cap).
+-- 3D interact envelope. Aetherytes use a fixed 12-yalm cap; aethernet shards
+-- use 4 (close-approach only); everything else honors task.interactRange3d.
 local function c_dointeract_cap3d(task, entity)
-	if c_dointeract_isAdaptiveTarget(task, entity) then
-		local floor = math.max((tonumber(entity.radius) or 5) + 5, 12)
-		local cfg = tonumber(task.interactRange3d)
-		local cap = (cfg and cfg > 0) and math.max(cfg, floor) or floor
-		if task.name == "MOVEAETHERNET" then cap = cap + 2 end
-		return cap
+	if task.name == "QUEST_ATTUNEAETHERYTE" then
+		return 12
+	end
+	if task.name == "MOVEAETHERNET" and entity and entity.type == 5 then
+		return 4
 	end
 	return tonumber(task.interactRange3d)
 end
 
--- 2D nudge cap: how close (planar) we'll micro-walk to wake an
--- interactable=false crystal before firing Interact().
+-- 2D nudge cap: how close (planar) we'll micro-walk before firing Interact().
+-- Aetherytes nudge to 8; aethernet shards nudge to 4; normal uses task range.
 local function c_dointeract_nudge2d(task, entity)
+	if task.name == "QUEST_ATTUNEAETHERYTE" then
+		return 8
+	end
 	if c_dointeract_isNetworkCrystal(task, entity) then
 		local c = tonumber(task.interactRange)
-		return (c and c > 0) and c or 4.5
+		return (c and c > 0) and c or 4
 	end
 	return tonumber(task.interactRange) or 4
 end
@@ -4642,8 +4636,9 @@ function c_dointeract:evaluate()
 	-- Bypass game interactable=false (common on crystals until Interact()).
 	-- Triggered by task.forceinteract or by adaptive type-5 targets within cap.
 	local withinCap = maxInteractDistance3d and interactable.distance <= maxInteractDistance3d
+	local isNetworkCrystalTask = (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET")
 	local bypassInteractableGate = withinCap and
-		(task.forceinteract or c_dointeract_isAdaptiveTarget(task, interactable))
+		(task.forceinteract or isNetworkCrystalTask)
 
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold
