@@ -2454,7 +2454,6 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
-			--d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernetLocked.id))
 			if (nearestDistanceLocked < 15 or nearestDistanceLocked < Distance3DT(Player.pos,gotoPos)) then
 				e_unlockaethernet.nearest = nearestAethernetLocked
 				return true
@@ -2467,7 +2466,6 @@ end
 function e_unlockaethernet:execute()
 	if (table.valid(e_unlockaethernet.nearest)) then
 		NormalizeAethernetRow(e_unlockaethernet.nearest)
-		--d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
 		local newTask = ffxiv_task_moveaethernet.Create()
 		newTask.contentid = e_unlockaethernet.nearest.id
 		newTask.pos = e_unlockaethernet.nearest.pos
