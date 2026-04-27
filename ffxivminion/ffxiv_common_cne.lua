@@ -4357,6 +4357,9 @@ local function c_dointeract_cap3d(task, entity)
 		return 12
 	end
 	if task.name == "MOVEAETHERNET" and entity and entity.type == 5 then
+		if ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(entity.contentid) then
+			return 8
+		end
 		return 4
 	end
 	return tonumber(task.interactRange3d)
@@ -4448,7 +4451,7 @@ function c_dointeract:evaluate()
 	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
 		if (IsNull(task.contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(task.contentid).."]",3)
-			local interactTypes = task.name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
+			local interactTypes = (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET") and {5} or nil
 			local nearestInteract = GetInteractableEntity(task.contentid, interactTypes)
 			if (nearestInteract) then
 				task.interact = nearestInteract.id
