@@ -338,7 +338,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 					WindowSizex, WindowSizey = WindowSizex-100, WindowSizey-100
 					local CenterX = WindowPosx+(WindowSizex/2)
 					local CenterY = WindowPosy+(WindowSizey/2)
-					local angle = ConvertHeading(PlayerPOS.h)+1.5708 -- Weird compass rotation (90° Clockwise fix) o.O
+					local angle = ConvertHeading(PlayerPOS.h)+1.5708 -- Weird compass rotation (90 deg clockwise fix) o.O
 					local headingx = (math.cos(angle)*-1) -- More weird compass shit (Anticlockwise fix)...
 					local headingy = (math.sin(angle)) -- More weird compass shit...
 					-- Radar Render.

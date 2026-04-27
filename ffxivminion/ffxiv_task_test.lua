@@ -218,7 +218,7 @@ function c_gotopostest:evaluate()
 			if (Player:IsExactMoving()) then
 				return false -- already moving, let Navigate handle it
 			end
-			-- Navigate finished — stop the bot
+			-- Navigate finished - stop the bot
 			if (ml_navigation_exact.completed) then
 				ml_navigation_exact.completed = false
 				c_gotopostest.reached = true

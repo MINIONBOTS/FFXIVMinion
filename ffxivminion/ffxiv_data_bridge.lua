@@ -112,9 +112,9 @@ end
 -- Nav Data Discovery, Enrichment & Resolution
 --
 -- Driven from the game loop:
---   1. DiscoverConnections — bulk SQL to find NPC/EObj warps
---   2. Enrichment — populate conversation strings
---   3. Resolution — tag entries with pos/dest source info
+--   1. DiscoverConnections - bulk SQL to find NPC/EObj warps
+--   2. Enrichment - populate conversation strings
+--   3. Resolution - tag entries with pos/dest source info
 ------------------------------------------------------------
 ml_global_information._nav_discover_done = false
 ml_global_information._nav_enrich_done = false

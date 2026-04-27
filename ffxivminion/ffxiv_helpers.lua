@@ -2810,7 +2810,7 @@ function GetPathDistanceAsync(pos1,pos2,threshold)
 	if (dist < threshold) then
 		local result = NavigationManager:GetPathAsync(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (type(result) == "table" and table.valid(result)) then
-			-- Path table returned from cache — extract distance from first node
+			-- Path table returned from cache - extract distance from first node
 			if (result[1] and result[1].pathdistance) then
 				return result[1].pathdistance, true
 			end
@@ -2822,7 +2822,7 @@ function GetPathDistanceAsync(pos1,pos2,threshold)
 			-- Cached path failure (unreachable): resolved but no valid path
 			return nil, true
 		end
-		-- result is positive integer (cacheID, request enqueued) or nil — return Euclidean estimate
+		-- result is positive integer (cacheID, request enqueued) or nil - return Euclidean estimate
 		return dist, false
 	end
 	
@@ -4290,7 +4290,7 @@ function GetAetheryteByMapID(mapid, p)
 	end
 
 
-	-- Section-aware aetheryte overrides: (mapId → section → preferred aethid)
+	-- Section-aware aetheryte overrides: (mapId -> section -> preferred aethid)
 	-- For zones where terrain makes straight-line distance misleading.
 	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[mapid]
 
@@ -5384,8 +5384,8 @@ local pvpMaps = {
     
     [1273] = true, -- secure frontline
 
-	[1293] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
-    [1294] = true, -- ???, ウルヴズジェイル, The Bayside Battleground
+	[1293] = true, -- ???, Wolves' Den Pier, The Bayside Battleground
+	[1294] = true, -- ???, Wolves' Den Pier, The Bayside Battleground
 
 	[1313] = true, -- worqor chirteh (triumph)
 }

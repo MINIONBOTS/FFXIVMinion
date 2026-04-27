@@ -269,7 +269,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 					Player:Stop()
 				end
 				if (not self.remainMounted and Player.ismounted) then
-					-- Don't dismount in the air — destination is above ground
+					-- Don't dismount in the air - destination is above ground
 					if (IsFlying() or IsDiving()) then
 						return true
 					end
@@ -1598,7 +1598,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (range > 5) then
-			-- No LOS while in distance range — move closer before trying to cast.
+			-- No LOS while in distance range - move closer before trying to cast.
 			if (not IsFlying() and target.distance2d <= range and not target.los and not target.los2) then
 				local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
 				if (pathLength <= 0) then
@@ -1711,7 +1711,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			if ((InCombatRange(target.id) or target.distance2d <= 15) and not IsFlying()) then
-				-- Close range but no LOS — move directly to target.
+				-- Close range but no LOS - move directly to target.
 				if (target.distance2d <= 15 and not target.los and not target.los2 and not InCombatRange(target.id)) then
 					local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
 					if (pathLength <= 0) then

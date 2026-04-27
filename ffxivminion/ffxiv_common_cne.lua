@@ -598,7 +598,7 @@ function c_avoid:evaluate()
 	
 	local function check_entity(e)
 		if not e then return end
-		-- Skip friendly/allied entities — we only dodge hostile casters.
+		-- Skip friendly/allied entities - we only dodge hostile casters.
 		-- Enemies are attackable or have aggro. Allied NPCs (Scion Thaumaturge,
 		-- Scion Conjurer, etc.) are neither attackable nor aggro.
 		if not e.attackable and not e.aggro then return end
@@ -609,7 +609,7 @@ function c_avoid:evaluate()
 		local chanTime = ci and (ci.channeltime or 0) or 0
 		-- Skip entities not casting/channeling, or instant abilities (< 1.3s)
 		if (castId == 0 and chanId == 0) or castTime < 1.3 then
-			--[[ Clear heading match and tracking if entity is no longer casting —
+			--[[ Clear heading match and tracking if entity is no longer casting -
 			-- prevents stale heading from previous Landslide carrying into the next one.
 			if FFXIVLib._headingMatch and FFXIVLib._headingMatch[e.id] then
 				FFXIVLib._headingMatch[e.id] = nil
@@ -628,11 +628,11 @@ function c_avoid:evaluate()
 		--[[ Pulse diagnostic: when casting Landslide (650), log caster heading vs
 		-- heading-to-each-nearby-entity every tick so we can see which entity
 		-- Titan is actually facing.  pos.h is in the SAME coordinate system
-		-- as atan2(dx, dz) — no + π offset needed.
+		-- as atan2(dx, dz) - no + pi offset needed.
 		local activeSpell = castId ~= 0 and castId or chanId
 		if activeSpell == 650 and e.pos then
 			local cH = e.pos.h or 0
-			-- Normalize pos.h to [0, 2π) for comparison with atan2 values
+			-- Normalize pos.h to [0, 2*pi) for comparison with atan2 values
 			if cH < 0 then cH = cH + 2 * math.pi end
 
 			-- Track heading stability: Titan rotates from its previous
@@ -729,7 +729,7 @@ function c_avoid:evaluate()
 				d("[PULSE] LOCKED heading="..string.format("%.4f", existing.heading)
 				  .." target="..tostring(existing.name).." (stable lock)")
 			elseif track.stableCount >= 2 then
-				-- Heading has stabilized — lock pos.h directly.
+				-- Heading has stabilized - lock pos.h directly.
 				-- Find best matching entity for diagnostic logging.
 				local matchName = "unknown"
 				local matchId = 0
@@ -763,7 +763,7 @@ function c_avoid:evaluate()
 				FFXIVLib._broadScanDone[scanKey] = true
 				d("[SCAN] === ALL ENTITIES r=100 for spell="..tostring(activeSpell)
 				  .." caster="..tostring(e.id).." ("..tostring(e.name)..") ===")
-				-- Use broadest possible filter — no alive/attackable/aggro restriction
+				-- Use broadest possible filter - no alive/attackable/aggro restriction
 				local allEnts = EntityList("maxdistance=100")
 				local count = 0
 				if table.valid(allEnts) then
@@ -2641,7 +2641,7 @@ function c_mount:evaluate()
 			-- regardless of vertical distance. The navigation lookahead has already
 			-- projected the path endpoint to a CheckLandingZone-cleared ground spot,
 			-- so any remaining altitude is just autofollow not finishing the
-			-- descent — there's no benefit to waiting for the bot to inch closer
+			-- descent - there's no benefit to waiting for the bot to inch closer
 			-- in Y, and Dismount() drops the player straight down anyway.
 			local within = false
 			if (dismountDistance > 0 and dist2d <= dismountDistance) then
@@ -2662,12 +2662,12 @@ function c_mount:evaluate()
 						if (interactable and interactable.distance2d < (dismountDistance + 5)) then
 							doDismount = true
 						elseif (not interactable) then
-							-- Entity not found / despawned — still allow dismount based on position
+							-- Entity not found / despawned - still allow dismount based on position
 							doDismount = true
 						end
-						-- else: entity exists but is too far — don't dismount yet
+						-- else: entity exists but is too far - don't dismount yet
 					else
-						-- No interactable assigned yet — allow distance-based dismount
+						-- No interactable assigned yet - allow distance-based dismount
 						doDismount = true
 					end
 				end

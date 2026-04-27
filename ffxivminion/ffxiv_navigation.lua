@@ -1,5 +1,5 @@
 ------------------------------------------------------------
--- FFXIV Navigation — AutoFollow-Only
+-- FFXIV Navigation - AutoFollow-Only
 -- All movement dispatched via SetAutoFollowPos + SetAutoFollowOn.
 -- 
 ------------------------------------------------------------
@@ -524,7 +524,7 @@ function ml_navigation.GetMovementThresholds()
 end
 
 ------------------------------------------------------------
--- AutoFollow Dispatch — The Single Movement Mechanism
+-- AutoFollow Dispatch - The Single Movement Mechanism
 ------------------------------------------------------------
 ml_navigation.canPath = false
 ml_navigation.useAutoFollowPath = true
@@ -1624,7 +1624,7 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	local goal = { x = x, y = y, z = z }
 	local cacheId = BuildMoveToExactCacheId(ppos, goal)
 
-	-- Exclude AIR and WATER cubes — ground only
+	-- Exclude AIR and WATER cubes - ground only
 	if (GLOBAL and GLOBAL.CUBE) then
 		local cubeExclude = 0
 		if (GLOBAL.CUBE.AIR) then cubeExclude = bit.bor(cubeExclude, GLOBAL.CUBE.AIR) end
@@ -1861,7 +1861,7 @@ ml_navigation.pathindex = 0
 ml_navigation.lastindexgoal = {}
 
 ------------------------------------------------------------
--- Main Navigate() Loop — AutoFollow Only
+-- Main Navigate() Loop - AutoFollow Only
 ------------------------------------------------------------
 function ml_navigation.Navigate(event, ticks)
 	-- MoveToExact priority guard
@@ -2392,7 +2392,7 @@ function ml_navigation.Navigate(event, ticks)
 						-- Landing zone lookahead
 						--
 						-- Fires when a candidate landing node (floorcube transition, or
-						-- a path-end node, even one lacking the ground flag — gather nodes
+						-- a path-end node, even one lacking the ground flag - gather nodes
 						-- on raised props often do) is within raycast range (~landingLookaheadDist).
 						--
 						-- Two outcomes rewrite the endpoint:
@@ -2405,7 +2405,7 @@ function ml_navigation.Navigate(event, ticks)
 						-- is inconclusive, we re-probe next tick as we get closer.
 						--
 						-- Gating (zigzag hardening):
-						--   * Suppressed entirely while ffnav.isascending is truthy — the takeoff
+						--   * Suppressed entirely while ffnav.isascending is truthy - the takeoff
 						--     transition (jump -> mount -> TakeOff) is brief but unstable, and
 						--     rewriting the endpoint mid-takeoff produces the characteristic
 						--     launch zigzag users reported.
@@ -2833,7 +2833,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 	local self = ml_navigation_exact
 	local nextnode = self.path[self.pathindex]
 
-	-- No more nodes — destination reached
+	-- No more nodes - destination reached
 	if (not nextnode) then
 		if (not self.reachedLogged) then
 			d("[MoveToExact]: Destination reached.")
@@ -2857,7 +2857,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 	local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 1.5))
 
 	if (dist2d <= self.threshold and withinVertical) then
-		-- Node reached — check for OMC setup
+		-- Node reached - check for OMC setup
 		if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
 			local nc = NavigationManager:GetNavConnection(nextnode.navconnectionid)
 			if (nc and nc.type ~= 5 and nc.details and In(nc.details.subtype, 1, 2, 3, 4)) then
@@ -2896,7 +2896,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 		return
 	end
 
-	-- Not reached — dispatch autofollow toward next node
+	-- Not reached - dispatch autofollow toward next node
 	ml_navigation_exact.DispatchAutoFollow(nextnode, ppos, false)
 end
 
@@ -3118,7 +3118,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		return
 	end
 
-	-- Unknown subtype — skip
+	-- Unknown subtype - skip
 	d("[MoveToExact]: Unknown OMC subtype " .. tostring(ncsubtype) .. ", skipping.")
 	self.pathindex = self.pathindex + 1
 	ml_navigation_exact.ResetAutoFollowState()
@@ -3126,7 +3126,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 end
 
 ------------------------------------------------------------
--- ffnav — Async State Machine for Flight Transitions
+-- ffnav - Async State Machine for Flight Transitions
 ------------------------------------------------------------
 ffnav = {}
 ffnav.yield = {}

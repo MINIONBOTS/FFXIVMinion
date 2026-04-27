@@ -557,7 +557,7 @@ local function pickEntity(query)
 	return firstNonBossEntity(query)
 end
 
--- Helper: find attack target using given sort order, with LOS→nearest fallback chain
+-- Helper: find attack target using given sort order, with LOS->nearest fallback chain
 local function findAttackTarget(sortOrder, maxDistance)
 	local base = "alive,attackable,maxdistance2d="..tostring(maxDistance)
 	-- Try LOS + sort order first, then no-LOS + sort order
