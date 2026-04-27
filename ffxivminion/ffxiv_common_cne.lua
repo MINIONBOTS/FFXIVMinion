@@ -4334,6 +4334,53 @@ function e_skipcutscene:execute()
 	SetThisTaskProperty("overwatchContinues",true)
 end
 
+-- c_dointeract helpers: adaptive 3D envelope and 2D nudge for type-5 network crystals
+-- (aetherytes, aethernet shards, aethershards). The game flags some crystals
+-- interactable=false until pinged, so we need a slightly larger envelope and a
+-- micro-walk "nudge" to wake them up.
+
+-- True for tasks that should use an adaptive (radius-based) 3D envelope.
+local function c_dointeract_isAdaptiveTarget(task, entity)
+	if not entity then return false end
+	if task.name == "QUEST_ATTUNEAETHERYTE" then return true end
+	if task.name == "MOVEAETHERNET" and entity.type == 5 then return true end
+	return false
+end
+
+-- True for any type-5 entity that the navigation layer recognizes as a
+-- known aetheryte / aethernet, or the explicit MOVEAETHERNET target.
+local function c_dointeract_isNetworkCrystal(task, entity)
+	if not entity or entity.type ~= 5 or not entity.contentid then return false end
+	if not ffxiv_map_nav then return false end
+	local id = entity.contentid
+	if ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(id) then return true end
+	if ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(id) then return true end
+	return task.name == "MOVEAETHERNET" and tonumber(task.contentid) == tonumber(id)
+end
+
+-- 3D interact envelope. Adaptive targets compute a floor from entity.radius;
+-- everything else honors task.interactRange3d when set (else nil = no cap).
+local function c_dointeract_cap3d(task, entity)
+	if c_dointeract_isAdaptiveTarget(task, entity) then
+		local floor = math.max((tonumber(entity.radius) or 5) + 5, 12)
+		local cfg = tonumber(task.interactRange3d)
+		local cap = (cfg and cfg > 0) and math.max(cfg, floor) or floor
+		if task.name == "MOVEAETHERNET" then cap = cap + 2 end
+		return cap
+	end
+	return tonumber(task.interactRange3d)
+end
+
+-- 2D nudge cap: how close (planar) we'll micro-walk to wake an
+-- interactable=false crystal before firing Interact().
+local function c_dointeract_nudge2d(task, entity)
+	if c_dointeract_isNetworkCrystal(task, entity) then
+		local c = tonumber(task.interactRange)
+		return (c and c > 0) and c or 4.5
+	end
+	return tonumber(task.interactRange) or 4
+end
+
 c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false
@@ -4380,7 +4427,7 @@ function c_dointeract:evaluate()
 	
 	-------------------------------------------------------------------
 	-- If we already fired an interact and are waiting for a window,
-	-- hold unconditionally. This MUST run before anything else —
+	-- hold unconditionally. This MUST run before anything else;
 	-- the entity can flicker nil during interact animations.
 	-------------------------------------------------------------------
 	if (self._interacting) then
@@ -4405,10 +4452,6 @@ function c_dointeract:evaluate()
 		task.lastInteractableSearch = 0
 	end
 	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
-		navd("[DoInteract DBG] searching: task=" .. tostring(task.name)
-			.. " contentid=" .. tostring(task.contentid)
-			.. " map=" .. tostring(Player.localmapid)
-			.. " pos=" .. tostring(task.pos and task.pos.x) .. "," .. tostring(task.pos and task.pos.z))
 		if (IsNull(task.contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(task.contentid).."]",3)
 			local interactTypes = task.name == "QUEST_ATTUNEAETHERYTE" and {5} or nil
@@ -4474,10 +4517,8 @@ function c_dointeract:evaluate()
 				local exactTarget = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
 				local meshPos = NavigationManager:GetClosestPointOnMesh(task.pos)
 				if (meshPos) then
-					d("[TASK-DBG] MOVETOINTERACT:meshSnap from="..string.format("%.2f,%.2f,%.2f",task.pos.x,task.pos.y,task.pos.z).." to="..string.format("%.2f,%.2f,%.2f",meshPos.x,meshPos.y,meshPos.z))
 					exactTarget = { x = meshPos.x, y = meshPos.y, z = meshPos.z }
 				end
-				d("[TASK-DBG] MOVETOINTERACT:handoff MoveToExact dist3d="..string.format("%.1f",dist3d))
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
@@ -4492,7 +4533,6 @@ function c_dointeract:evaluate()
 		if (task.exactMovementStarted) then
 			if (not Player:IsExactMoving()) then
 				-- Arrived at mesh-snapped position
-				d("[TASK-DBG] MOVETOINTERACT:exactMove completed")
 				task.exactMovementStarted = false
 				task.exactMovementDone = true
 				ml_global_information.monitorStuck = true
@@ -4519,14 +4559,9 @@ function c_dointeract:evaluate()
 		
 		-- Phase 3: Nudge toward entity if close but not yet interactable
 		if (task.exactMovementDone and interactable and table.valid(interactable)) then
-			local nudgeMax2d = 4
-			if (interactable.type == 5 and ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(interactable.contentid)) then
-				nudgeMax2d = (tonumber(task.interactRange) and tonumber(task.interactRange) > 0) and tonumber(task.interactRange) or 4.5
-			elseif (interactable.type == 5) then
-				nudgeMax2d = tonumber(task.interactRange) or 4
-			end
+			local nudgeMax2d = c_dointeract_nudge2d(task, interactable)
 			if (interactable.interactable) then
-				-- Entity is interactable — fall through to standard interact logic below
+				-- Entity is interactable, fall through to standard interact logic below
 			elseif (interactable.distance2d < nudgeMax2d and table.size(EntityList.aggro) == 0) then
 				local epos = interactable.pos
 				Player:SetFacing(epos.x, epos.y, epos.z)
@@ -4534,7 +4569,7 @@ function c_dointeract:evaluate()
 				task.nudging = true
 				return true
 			end
-			-- If > 4y and not interactable, fall through to standard logic
+			-- Beyond nudge cap: fall through
 		end
 	end
 	
@@ -4542,7 +4577,7 @@ function c_dointeract:evaluate()
 	-- Standard interaction logic
 	-------------------------------------------------------------------
 	
-	-- No valid entity yet — let nav drive
+	-- No valid entity yet, let nav drive
 	if (not interactable or not table.valid(interactable)) then
 		return false
 	end
@@ -4576,32 +4611,20 @@ function c_dointeract:evaluate()
 		return false
 	end
 	
-	-- Aetheryte attune: 3D cap must cover wide crystals (large radius + vertical offset). Small
-	-- task.interactRange3d alone caused re-search loops when still interactable (e.g. Mare Lamentorum).
-	local function attuneMaxInteract3d(t, e)
-		local r = tonumber(e.radius) or 5
-		local cfg = tonumber(t.interactRange3d)
-		local floor = math.max(r + 5, 12)
-		if (cfg and cfg > 0) then
-			return math.max(cfg, floor)
+	local maxInteractDistance3d = c_dointeract_cap3d(task, interactable)
+
+	-- QUEST_ATTUNEAETHERYTE: if entity has drifted beyond attune envelope in 3D, re-search
+	if (task.name == "QUEST_ATTUNEAETHERYTE" and maxInteractDistance3d
+		and interactable.distance > maxInteractDistance3d) then
+		if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
+			task.interact = 0
+			task.pathChecked = false
+			task.lastInteractableSearch = 0
+			task.lastFarInteractReset = Now()
 		end
-		return floor
+		return false
 	end
-	
-	-- QUEST_ATTUNEAETHERYTE special: if entity has drifted too far in 3D, re-search
-	if (task.name == "QUEST_ATTUNEAETHERYTE") then
-		local max3d = attuneMaxInteract3d(task, interactable)
-		if (interactable.distance > max3d) then
-			if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
-				task.interact = 0
-				task.pathChecked = false
-				task.lastInteractableSearch = 0
-				task.lastFarInteractReset = Now()
-			end
-			return false
-		end
-	end
-	
+
 	-- Check for "too far away" error feedback from game
 	if IsControlOpen("_TextError") and FFXIVLib.API.Strings and FFXIVLib.API.Strings.Contains then
 		local errStrings = GetControl("_TextError"):GetStrings()
@@ -4612,38 +4635,39 @@ function c_dointeract:evaluate()
 		end
 	end
 
-	-- For profile-driven interact steps, honor explicit 3D range before attempting interact.
-	-- Keep the existing interactable gate below as the final readiness check.
-	local range3d = tonumber(task.interactRange3d)
-	if (task.name == "QUEST_ATTUNEAETHERYTE") then
-		range3d = attuneMaxInteract3d(task, interactable)
-	end
-	if (range3d and range3d > 0 and interactable.distance > range3d) then
+	if (maxInteractDistance3d and maxInteractDistance3d > 0 and interactable.distance > maxInteractDistance3d) then
 		return false
 	end
 
-	-- Force-interact fallback: bypass the interactable flag when both forceinteract and
-	-- interactRange3d are set and the entity is within range. Handles faulty interactable flags.
-	local skipInteractableCheck = task.forceinteract and range3d and interactable.distance <= range3d
+	-- Bypass game interactable=false (common on crystals until Interact()).
+	-- Triggered by task.forceinteract or by adaptive type-5 targets within cap.
+	local withinCap = maxInteractDistance3d and interactable.distance <= maxInteractDistance3d
+	local bypassInteractableGate = withinCap and
+		(task.forceinteract or c_dointeract_isAdaptiveTarget(task, interactable))
 
 	-------------------------------------------------------------------
-	-- THE KEY CHECK: entity is interactable — stop, interact, hold
+	-- THE KEY CHECK: entity is interactable, stop, interact, hold
 	-------------------------------------------------------------------
-	if (not skipInteractableCheck and not interactable.interactable) then
-		-- Not interactable yet — but if very close, walk directly toward it
-		-- instead of falling through to the full pathfinding system
-		local closeWalkThreshold = (range3d and range3d > 0) and range3d or 6
-		if (not IsFlying() and not IsDiving() and not IsDismounting() and interactable.distance2d < closeWalkThreshold) then
+	if (not bypassInteractableGate and not interactable.interactable) then
+		-- Not interactable yet: walk toward entity when planar or 3D distance is within cap.
+		-- (abs planar: distance2d can be negative for some field objects.)
+		local closeWalkCapY = (maxInteractDistance3d and maxInteractDistance3d > 0) and maxInteractDistance3d or 6
+		local distance3d = tonumber(interactable.distance) or 1e9
+		local planarRaw = tonumber(interactable.distance2d)
+		local planarAbs = (planarRaw ~= nil) and math.abs(planarRaw) or 1e9
+		local withinPlanar = planarAbs < closeWalkCapY
+		local within3d = distance3d < closeWalkCapY
+		if (not IsFlying() and not IsDiving() and not IsDismounting() and (withinPlanar or within3d)) then
 			if (not Player:IsMoving()) then
 				local epos = interactable.pos
 				Player:MoveTo(epos.x, epos.y, epos.z)
 			end
-			return true  -- claim control, skip navmesh path building
+			return true
 		end
 		return false
 	end
 	
-	-- Entity IS interactable. Claim control from here on (return true).
+	-- Interactable or bypass: claim control from here on (return true).
 	-- Must be fully landed and not mid-animation before firing interact.
 	if ((IsFlying() and not task.inflight) or IsDismounting() or Busy()) then
 		return true
