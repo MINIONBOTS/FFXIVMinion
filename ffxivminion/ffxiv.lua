@@ -17,10 +17,10 @@ ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.maxlevel = 100
 ffxivminion.patchLevel = {
-	[1] = 7.41,-- NA/EU
-	[2] = 7.41, -- CN
-	[3] = 7.4, -- KR
-	[4] = 7.0 -- TC
+	[1] = 7.5,-- NA/EU
+	[2] = 7.5, -- CN
+	[3] = 7.5, -- KR
+	[4] = 7.1 -- TC
 }
 ffxivminion.loginvars = {
 	reset = true,
