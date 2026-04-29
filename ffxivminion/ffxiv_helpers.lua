@@ -7,7 +7,9 @@ ff.lastaetherCurrent = {}
 ff.aetherCurrent = {}
 
 -- Nav debug logger (no-op by default, set navd = d to enable debug output)
-function navd() end
+if (not navd) then
+	navd = function() end
+end
 
 -- QuestCompleted fallback: C++ registers this global, but if missing provide a Lua shim
 if (not QuestCompleted) then
@@ -5512,27 +5514,34 @@ local function _CanAccessMapImpl(mapid)
 			local srcMap = Player.localmapid
 
 			local pos = ml_nav_manager.GetNextPathPos(	ppos,
-														srcMap,
-														mapid	)
+													srcMap,
+													mapid	)
+			navd("[CanAccessMap] GetNextPathPos(" .. tostring(srcMap) .. "->" .. tostring(mapid) .. ")=" .. tostring(pos and table.valid(pos)))
 			if (table.valid(pos)) then
-				if _canTraverseNavPath(srcMap, mapid) then
+				local traversable = _canTraverseNavPath(srcMap, mapid)
+				navd("[CanAccessMap] _canTraverseNavPath(pos valid)=" .. tostring(traversable))
+				if traversable then
 					return true
 				end
 			else
 				-- GetNextPathPos failed but BFS may still find a traversable path
-				if _canTraverseNavPath(srcMap, mapid) then
-					return true
+				local traversable = _canTraverseNavPath(srcMap, mapid)
+				navd("[CanAccessMap] _canTraverseNavPath(pos nil)=" .. tostring(traversable))
+				if traversable then
 				end
 			end
 			
 			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
+			navd("[CanAccessMap] attunedAetherytes count=" .. tostring(attunedAetherytes and #attunedAetherytes or 0))
 			for _, aetheryte in pairs(attunedAetherytes) do
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
+					navd("[CanAccessMap] direct aetheryte match id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory))
 					return true
 				end
 			end
 			
 			local nearestAetheryte = GetAetheryteByMapID(mapid)
+			navd("[CanAccessMap] nearestAetheryte=" .. tostring(nearestAetheryte and nearestAetheryte.id) .. " price=" .. tostring(nearestAetheryte and nearestAetheryte.price) .. " gil=" .. tostring(GilCount()))
 			if (nearestAetheryte) then
 				if (GilCount() >= nearestAetheryte.price) then
 					return true
@@ -5545,7 +5554,7 @@ local function _CanAccessMapImpl(mapid)
 					local aethPos = {x = 0, y = 82, z = 0}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,mapid)
 					if (table.valid(backupPos)) and _canTraverseNavPath(820, mapid) then
-						d("Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
+						navd("Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -5623,10 +5632,11 @@ local function _CanAccessMapImpl(mapid)
 				end
 			end
 		else
+			navd("[CanAccessMap] mapid=" .. tostring(mapid) .. " == localmapid, returning true")
 			return true
 		end
 	end
-	
+	navd("[CanAccessMap] all paths exhausted, returning false for mapid=" .. tostring(mapid))
 	return false
 end
 
