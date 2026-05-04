@@ -1661,22 +1661,9 @@ function ffxiv_task_craft:Draw()
 				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				
-				local acrEnabled = false					
-				if (IsGatherer(Player.job)) then
-					if (gACREnabledGather) then
-						acrEnabled = true
-					end
-				elseif (IsCrafter(Player.job)) then
-					if (gACREnabledCraft) then
-						acrEnabled = true
-					end
-				elseif (IsFighter(Player.job)) then
-					if (gACREnabled) then
-						acrEnabled = true
-					end
-				end
+				local acrEnabled = gACREnabled == true
 				local uiAlert = IsNull(order["uialert"],nil)
-				local acrValid = (acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+				local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 				if uiAlert == "skip" then
 					local child_color = { r = 1, g = .90, b = .33, a = .0 }
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
@@ -2615,21 +2602,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end					
 				end
 				if (gCraftOrderAddRecipeID ~= 0) then
-					local gACREnabledCraft = false					
-					if (IsGatherer(Player.job)) then
-						if (ggACREnabledCraftGather) then
-							gACREnabledCraft = true
-						end
-					elseif (IsCrafter(Player.job)) then
-						if (ggACREnabledCraftCraft) then
-							gACREnabledCraft = true
-						end
-					elseif (IsFighter(Player.job)) then
-						if (ggACREnabledCraft) then
-							gACREnabledCraft = true
-						end
-					end
-					local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					
 					GUI:Separator()
 				
@@ -2807,7 +2780,7 @@ function ffxiv_craft.Draw( event, ticks )
 					if (In(ffxivminion.gameRegion,2,3)) then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect"));  
 					end
-					local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
 					if (not gCraftOrderEditQuick) and not acrValid then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
 					end  
