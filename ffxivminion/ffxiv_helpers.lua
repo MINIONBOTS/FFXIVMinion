@@ -6,6 +6,10 @@ ff.lastFail = 0
 ff.lastaetherCurrent = {}
 ff.aetherCurrent = {}
 
+-- helpers can be loaded before ffxiv.lua initializes this table
+ffxivminion = ffxivminion or {}
+ffxivminion.patchLevel = ffxivminion.patchLevel or {}
+
 -- Nav debug logger (no-op by default, set navd = d to enable debug output)
 if (not navd) then
 	navd = function() end
@@ -110,7 +114,7 @@ function GetPatchLevel()
 		gr = GetGameRegion()
 		ffxivminion.gameRegion = gr
 	end
-	return ffxivminion.patchLevel[gr]
+	return tonumber(ffxivminion.patchLevel[gr]) or 0
 end
 function GetBestMesh(baseName, version, suffix)
 	if not tonumber(version) then
@@ -2591,12 +2595,7 @@ end
 -- GetClosestFate is now a global alias set in lib_fate.lua
 
 function IsOnMap(mapid)
-	local mapid = tonumber(mapid)
-	if (Player.localmapid == mapid) then
-		return true
-	end
-	
-	return false
+	return (Player.localmapid == tonumber(mapid))
 end
 function FilterEntityListByIcon(elist,whitelist,blacklist)
 	local returnables = {}
@@ -9853,6 +9852,11 @@ function GetDiveHeight()
 	return false
 end
 
+function IsDiveDepth(y)
+	local height = GetDiveHeight()
+	return (type(height) == "number" and height > -99990 and type(y) == "number" and y <= height)
+end
+
 function CannotMove()
 	return (IsControlOpen("FadeMiddle") or (MIsLocked() and not IsFlying() and not IsDiving() and not IsSwimming()))
 end
@@ -9879,6 +9883,15 @@ end
 
 function Dive()
 	local _waitDown, _dive
+	local attempts = 0
+	local maxAttempts = 3
+	local attemptPos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
+	local _abortDive = function (reason)
+		d("[Dive]: Abort dive process, " .. tostring(reason) .. ".")
+		if (ffnav.isdescending) then
+			ffnav.isdescending = false
+		end
+	end
 	_waitDown = function ()
 		local startHeight = Player.pos.y
 		
@@ -9898,18 +9911,39 @@ function Dive()
 	end
 	
 	_dive = function ()
+		attempts = attempts + 1
+		if (attempts > maxAttempts) then
+			_abortDive("retry limit reached")
+			return
+		end
+		if (not IsSwimming()) then
+			_abortDive("not swimming")
+			return
+		end
+		if (Player.CanDiveAt and not Player:CanDiveAt(Player.pos)) then
+			_abortDive("CanDiveAt=false")
+			return
+		end
+		if (table.valid(attemptPos) and math.distance2d and math.distance2d(Player.pos, attemptPos) > 8) then
+			attempts = 1
+			attemptPos = { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
+		end
 		local startHeight = Player.pos.y
 		
-		d("[Dive]: Start dive.")
-		Player:Dive()
+		d("[Dive]: Start dive attempt " .. tostring(attempts) .. ".")
+		local sent = Player:Dive()
+		if (not sent) then
+			_abortDive("Player:Dive returned false")
+			return
+		end
 		ffnav.AwaitSuccessFail(250, 1000, 
 			function () return (Player.pos.y < startHeight or MIsLoading() or IsDiving()) end, nil,
 			_waitDown, 
 			function () 
-				if (not IsFlying() and not IsDiving()) then
+				if (not IsFlying() and not IsDiving() and attempts < maxAttempts and (not Player.CanDiveAt or Player:CanDiveAt(Player.pos))) then
 					_dive()
 				else
-					d("[Dive]: Stop attempting to dive, flying or already diving.")
+					_abortDive("no success after attempt " .. tostring(attempts))
 				end
 			end
 		)
