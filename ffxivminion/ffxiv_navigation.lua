@@ -56,6 +56,7 @@ ml_navigation_exact = {
 	lastupdate = 0,
 	autoFollowNodeKey = nil,
 	autoFollowLastSet = 0,
+	autoFollowOnLastSet = 0,
 	autoFollowRefreshMs = 200,
 	maxDispatchYDelta = 8,
 	verticalThreshold = 1.5,
@@ -540,6 +541,9 @@ ml_navigation.useAutoFollowPath = true
 ml_navigation.autoFollowRefreshMs = 350
 ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0
+ml_navigation.autoFollowOnLastSet = 0
+ml_navigation.navAutoFollowOwned = false
+ml_navigation.navAutoFollowOwner = nil
 
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
@@ -603,14 +607,26 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
-	if (force or key ~= self.autoFollowNodeKey or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
+	local keyChanged = (key ~= self.autoFollowNodeKey)
+	if (force or keyChanged or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
 		Player:SetAutoFollowPos(node.x, node.y, node.z)
 		self.autoFollowNodeKey = key
 		self.autoFollowLastSet = now
+		self.navAutoFollowOwned = true
+		self.navAutoFollowOwner = "moveto"
 	end
 
+	-- Re-enable throttle: the game can flip AutoFollow back to 0 on its own
+	-- (e.g. underwater tick, teleport/fade, partial path rejection). Without a
+	-- re-arm here the player silently stops moving mid-path.
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
-		Player:SetAutoFollowOn(true)
+		if (keyChanged or TimeSince(self.autoFollowOnLastSet or 0) >= self.autoFollowRefreshMs) then
+			Player:SetAutoFollowPos(node.x, node.y, node.z)
+			self.autoFollowNodeKey = key
+			self.autoFollowLastSet = now
+			self.autoFollowOnLastSet = now
+			Player:SetAutoFollowOn(true)
+		end
 	end
 	return true
 end
@@ -847,6 +863,76 @@ function ml_navigation.SmoothFaceTarget(targetX, targetY, targetZ)
 	if (not IsFlying() and not IsDiving()) then
 		ml_navigation:ApplyFollowCamPitch()
 	end
+end
+
+function ml_navigation.FlyRayCast(sx, sy, sz, ex, ey, ez)
+	local hit = Raycast2(sx, sy, sz, ex, ey, ez, 0x4000, 0x4000)
+	return hit
+end
+
+function ml_navigation:IsDirectFlightCorridorClear(fromPos, toPos, maxDistance)
+	if (not table.valid(fromPos) or not table.valid(toPos)) then
+		return false
+	end
+
+	local maxRange = maxDistance or 100
+	local dist = math.distance3d(fromPos, toPos)
+	if (not dist or dist <= 0 or dist > maxRange) then
+		return false
+	end
+
+	local baseFromY = fromPos.y + 1.0
+	local baseToY = toPos.y + 1.0
+
+	-- Centerline clearance at body height.
+	if (ml_navigation.FlyRayCast(fromPos.x, baseFromY, fromPos.z, toPos.x, baseToY, toPos.z)) then
+		return false
+	end
+
+	-- Upper-body/head clearance.
+	if (ml_navigation.FlyRayCast(fromPos.x, baseFromY + 1.5, fromPos.z, toPos.x, baseToY + 1.5, toPos.z)) then
+		return false
+	end
+
+	-- Side clearance to reduce clipping on narrow diagonals.
+	local dx = toPos.x - fromPos.x
+	local dz = toPos.z - fromPos.z
+	local mag = math.sqrt((dx * dx) + (dz * dz))
+	if (mag and mag > 0.001) then
+		local ox = (-dz / mag) * 0.4
+		local oz = (dx / mag) * 0.4
+		if (ml_navigation.FlyRayCast(fromPos.x + ox, baseFromY, fromPos.z + oz, toPos.x + ox, baseToY, toPos.z + oz)) then
+			return false
+		end
+		if (ml_navigation.FlyRayCast(fromPos.x - ox, baseFromY, fromPos.z - oz, toPos.x - ox, baseToY, toPos.z - oz)) then
+			return false
+		end
+	end
+
+	return true
+end
+
+function ml_navigation:ApplyLandingFallbackToCurrentPath(fallbackX, fallbackY, fallbackZ)
+	if (not table.valid(self.path) or not self.pathindex) then
+		return false
+	end
+
+	local node = self.path[self.pathindex]
+	if (not node) then
+		return false
+	end
+
+	node.x = fallbackX
+	node.y = fallbackY
+	node.z = fallbackZ
+	ml_navigation.ScrubToGroundEndpoint(node)
+
+	for ri = self.pathindex + 1, self.pathindex + 50 do
+		if (self.path[ri] == nil) then break end
+		self.path[ri] = nil
+	end
+
+	return true
 end
 
 ------------------------------------------------------------
@@ -1114,6 +1200,30 @@ function ml_navigation.TagNode(node)
 
 		node.is_tagged = true
 	end
+end
+
+function ml_navigation.ScrubToGroundEndpoint(node)
+	if (not node) then return end
+	node.navconnectionid = 0
+	node.type = GLOBAL.NODETYPE.FLOOR
+	node.type2 = 2 -- is_end bit only
+	node.flags = 0
+	node.is_start = false
+	node.is_end = true
+	node.is_omc = false
+	node.is_floor = true
+	node.is_cube = false
+	node.ground = true
+	node.ground_water = false
+	node.ground_border = false
+	node.ground_avoid = false
+	node.air = false
+	node.water = false
+	node.air_avoid = false
+	node.cubecube = false
+	node.floorfloor = false
+	node.floorcube = false
+	node.is_tagged = true
 end
 
 ------------------------------------------------------------
@@ -1444,10 +1554,11 @@ end
 ------------------------------------------------------------
 -- MoveToExact System
 ------------------------------------------------------------
-function Player:MoveToExact(x, y, z, threshold)
+function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	if (not x or not y or not z) then return -1 end
 
 	local thresh = threshold or 0.2
+	local noSmoothing = (disableSmoothing == true)
 
 	local ep = ml_navigation_exact
 	if (ep.active and ep.path ~= nil) then
@@ -1495,12 +1606,13 @@ function Player:MoveToExact(x, y, z, threshold)
 		ml_navigation_exact.pending = false
 		ml_navigation_exact.pendingCacheId = nil
 		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
 		for _, node in pairs(ml_navigation_exact.path) do
 			ml_navigation.TagNode(node)
 		end
-		ml_navigation_exact.OptimizeCachedPath(ppos)
+		ml_navigation_exact.OptimizeCachedPath(ppos, noSmoothing)
 		return table.size(ml_navigation_exact.path)
 	elseif (type(result) == "number" and result > 0) then
 		ml_navigation_exact.active = true
@@ -1508,6 +1620,7 @@ function Player:MoveToExact(x, y, z, threshold)
 		ml_navigation_exact.pendingGoal = goal
 		ml_navigation_exact.pendingCacheId = cacheId
 		ml_navigation_exact.threshold = thresh
+		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
 		d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId))
@@ -1556,6 +1669,7 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.completed = false
 	ml_navigation_exact.lastOptimize = 0
 	ml_navigation_exact.lastRequestId = nil
+	ml_navigation_exact.disableSmoothing = false
 end
 
 function ml_navigation_exact.ResetOMCState()
@@ -1576,21 +1690,35 @@ function ml_navigation_exact.ResetAutoFollowState()
 	ml_navigation_exact.autoFollowLastSet = 0
 end
 
-function ml_navigation_exact.OptimizeCachedPath(ppos)
+function ml_navigation_exact.OptimizeCachedPath(ppos, disableSmoothing)
 	local self = ml_navigation_exact
 	local tp = self.targetposition
 	if (not tp or not ppos or not table.valid(self.path)) then return false end
 
-	local optimized = NavigationManager:OptimizePath(ppos.x, ppos.y, ppos.z, tp.x, tp.y, tp.z)
-	if (type(optimized) ~= "table" or not table.valid(optimized)) then return false end
-
-	for _, node in pairs(optimized) do
-		ml_navigation.TagNode(node)
+	-- Pass the cache ID so OptimizePath can find the MoveToExact path cache.
+	local cacheId = self.lastRequestId or 0
+	local optimized = NavigationManager:OptimizePath(ppos.x, ppos.y, ppos.z, tp.x, tp.y, tp.z, cacheId)
+	if (type(optimized) == "table" and table.valid(optimized)) then
+		for _, node in pairs(optimized) do
+			ml_navigation.TagNode(node)
+		end
+		self.path = optimized
+		self.pathindex = 1
+		self.lastOptimize = Now()
 	end
 
-	self.path = optimized
-	self.pathindex = 1
-	self.lastOptimize = Now()
+	-- Second pass: smoothing
+	if (not disableSmoothing and cacheId ~= 0 and NavigationManager.SmoothPath) then
+		local smoothed = NavigationManager:SmoothPath(cacheId, ppos.x, ppos.y, ppos.z)
+		if (type(smoothed) == "table" and table.valid(smoothed)) then
+			for _, node in pairs(smoothed) do
+				ml_navigation.TagNode(node)
+			end
+			self.path = smoothed
+			self.pathindex = 1
+		end
+	end
+
 	return true
 end
 
@@ -1611,18 +1739,24 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	end
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(ml_navigation_exact.pathindex)
+	local keyChanged = (key ~= ml_navigation_exact.autoFollowNodeKey)
 	local targetY = ml_navigation_exact.GetDispatchTargetY(node, ppos)
-	if (force or key ~= ml_navigation_exact.autoFollowNodeKey or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
+	if (force or keyChanged or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
 		Player:SetAutoFollowPos(node.x, targetY, node.z)
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
+		ml_navigation.navAutoFollowOwned = true
+		ml_navigation.navAutoFollowOwner = "movetoexact"
 	end
 
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
-		Player:SetAutoFollowPos(node.x, targetY, node.z)
-		ml_navigation_exact.autoFollowNodeKey = key
-		ml_navigation_exact.autoFollowLastSet = now
-		Player:SetAutoFollowOn(true)
+		if (keyChanged or TimeSince(ml_navigation_exact.autoFollowOnLastSet or 0) >= ml_navigation_exact.autoFollowRefreshMs) then
+			Player:SetAutoFollowPos(node.x, targetY, node.z)
+			ml_navigation_exact.autoFollowNodeKey = key
+			ml_navigation_exact.autoFollowLastSet = now
+			ml_navigation_exact.autoFollowOnLastSet = now
+			Player:SetAutoFollowOn(true)
+		end
 	end
 	return true
 end
