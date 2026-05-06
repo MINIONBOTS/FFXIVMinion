@@ -1810,7 +1810,8 @@ function ml_navigation.Navigate(event, ticks)
 							ncsubtype = nc.subtype
 						end
 
-						if (not MIsLocked()) then
+						local isInteractOMC = (ncsubtype == 4)
+						if (not MIsLocked() and not isInteractOMC) then
 							if (ml_navigation.omc_traveltimer == nil) then
 								ml_navigation.omc_traveltimer = ticks
 							end
@@ -1826,6 +1827,7 @@ function ml_navigation.Navigate(event, ticks)
 								end
 							else
 								d("[Navigation] - Not getting closer to NavConnection END node. We are most likely stuck.")
+								ml_navigation:ResetOMCHandler()
 								ml_navigation.StopMovement()
 								return
 							end
@@ -1833,6 +1835,7 @@ function ml_navigation.Navigate(event, ticks)
 
 						if ( ml_navigation.omc_starttimer ~= 0 and ticks - ml_navigation.omc_starttimer > 10000 ) then
 							d("[Navigation] - Could not reach NavConnection END in ~10 seconds, something went wrong..")
+							ml_navigation:ResetOMCHandler()
 							ml_navigation.StopMovement()
 							return
 						end
@@ -1980,6 +1983,15 @@ function ml_navigation.Navigate(event, ticks)
 						-- OMC Interact (subtype 4)
 						if ( ncsubtype == 4 ) then
 							ml_navigation.GUI.lastAction = "Interact NavConnection"
+							if (ml_navigation.omc_starttimer == 0) then
+								ml_navigation.omc_starttimer = ticks
+							elseif (ticks - ml_navigation.omc_starttimer > 15000) then
+								d("[Navigation] - Interact NavConnection timed out, resetting OMC state.")
+								ml_navigation:ResetOMCHandler()
+								ml_navigation.StopMovement()
+								return
+							end
+
 							if (Player:IsMoving()) then
 								Player:StopMovement()
 								ffnav.Await(1000, function () return not Player:IsMoving() end)
