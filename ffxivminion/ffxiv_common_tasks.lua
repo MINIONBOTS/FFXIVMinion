@@ -2075,6 +2075,37 @@ function ffxiv_nav_interact:task_fail_eval()
 	return false
 end
 
+local function get_shopping_task_itemid(task)
+	if not task then
+		return nil
+	end
+
+	local itemtable = task.itemid
+	if (table.valid(itemtable)) then
+		return itemtable[Player.job] or itemtable[-1]
+	end
+
+	local itemid = tonumber(itemtable)
+	if itemid then
+		return itemid
+	end
+
+	return nil
+end
+
+local function get_shopping_task_count(task, itemid)
+	if not itemid then
+		return 0
+	end
+
+	if task and type(task.countCallback) == "function" then
+		local totalCount = task.countCallback(task, itemid)
+		return tonumber(totalCount) or 0
+	end
+
+	return tonumber(ItemCount(itemid)) or 0
+end
+
 
 ffxiv_misc_shopping = inheritsFrom(ml_task)
 function ffxiv_misc_shopping.Create()
@@ -2097,6 +2128,8 @@ function ffxiv_misc_shopping.Create()
 	newinst.mapid = 0
 	newinst.pos = {}
 	newinst.checked = {}
+	newinst.buyThrottleMs = 1500
+	newinst.maxFailedPurchaseAttempts = 0
 	
     return newinst
 end
@@ -2108,23 +2141,17 @@ function ffxiv_misc_shopping:task_complete_eval()
 		return false
 	end
 	
-	local itemid;
-	local itemtable = self.itemid
-	if (table.valid(itemtable)) then
-		itemid = itemtable[Player.job] or itemtable[-1]
-	elseif (tonumber(itemtable)) then
-		itemid = tonumber(itemtable)
-	end
+	local itemid = get_shopping_task_itemid(self)
 	
 	if (not self.setup) then
-		self.startingCount = ItemCount(itemid)
+		self.startingCount = get_shopping_task_count(self, itemid)
 		self.setup = true
 	end
 	
 	if (itemid) then
 		local amount = tonumber(self.buyamount) or 0
 
-		local itemcount = ItemCount(itemid)
+		local itemcount = get_shopping_task_count(self, itemid)
 		if (itemcount > 0) then			
 			local buycomplete = false
 			if (amount > 0) then
@@ -2167,6 +2194,12 @@ function ffxiv_misc_shopping:task_complete_execute()
 		ml_global_information.Await(2000) 
 		return false
 	end
+	local shop = GetControl("ShopExchangeItemDialog")
+	if (shop and shop:IsOpen()) then
+		shop:Close()	
+		ml_global_information.Await(2000) 
+		return false
+	end
 	
 	local shopSelect = GetControl("SelectString")
 	if (shopSelect and shopSelect:IsOpen()) then
@@ -2185,6 +2218,16 @@ function ffxiv_misc_shopping:task_complete_execute()
 	if (inclusionShop and inclusionShop:IsOpen()) then
 		inclusionShop:Close()	
 		ml_global_information.Await(2000) 
+		return false
+	end
+	if IsControlOpen("SelectYesno") then
+		UseControlAction("SelectYesno", "No")
+		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesno") end)
+		return false
+	end
+	if IsControlOpen("GrandCompanyExchange") then
+		UseControlAction("GrandCompanyExchange", "Close")
+		ml_global_information.Await(1500, function () return not IsControlOpen("GrandCompanyExchange") end)
 		return false
 	end
 	
@@ -2208,8 +2251,8 @@ function ffxiv_misc_shopping:Init()
     self:add( ke_interact, self.process_elements)
 	
 	--Overwatch
-	--local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 25 )
-    --self:add( ke_flee, self.overwatch_elements)
+	local ke_confirm = ml_element:create( "Confirm", c_confirmbuy, e_confirmbuy, 200 )
+	self:add( ke_confirm, self.overwatch_elements)
 
 	self:AddTaskCheckCEs()
 end
@@ -2673,7 +2716,7 @@ function ffxiv_misc_scripexchange:Init()
 	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
     self:add( ke_moveToMap, self.process_elements)
 	
-	local ke_scripExchange = ml_element:create( "ScripExchange", c_scripexchange, e_scripexchange, 100 )
+	local ke_scripExchange = ml_element:create( "ScripExchange", c_scripexchange_na, e_scripexchange_na, 100 )
 	self:add( ke_scripExchange, self.process_elements)
 	
 	local ke_selectConvIndex = ml_element:create( "SelectConvIndex", c_selectconvindex, e_selectconvindex, 90 )

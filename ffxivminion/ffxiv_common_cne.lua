@@ -4012,11 +4012,152 @@ end
 c_buy = inheritsFrom( ml_cause )
 e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
+c_buy.purchases = {}
+
+local function get_shopping_task_itemid(task)
+	if not task then
+		return nil
+	end
+
+	local itemtable = task.itemid
+	if (ValidTable(itemtable)) then
+		return itemtable[Player.job] or itemtable[-1]
+	end
+
+	local itemid = tonumber(itemtable)
+	if itemid then
+		return itemid
+	end
+
+	return nil
+end
+
+local function get_shopping_task_count(task, itemid)
+	if not itemid then
+		return 0
+	end
+
+	if task and type(task.countCallback) == "function" then
+		local totalCount = task.countCallback(task, itemid)
+		return tonumber(totalCount) or 0
+	end
+
+	return tonumber(ItemCount(itemid)) or 0
+end
+
+local function get_shopping_task_throttle(task)
+	local throttle = task and tonumber(task.buyThrottleMs)
+	if throttle and throttle > 0 then
+		return throttle
+	end
+
+	return 1500
+end
+
+local function has_recent_purchase_attempt(task, itemid)
+	if not itemid then
+		return false
+	end
+
+	local lastAttempt = c_buy.purchases[itemid]
+	if not lastAttempt then
+		return false
+	end
+
+	return TimeSince(lastAttempt) < get_shopping_task_throttle(task)
+end
+
+local function mark_purchase_attempt(itemid)
+	if itemid then
+		c_buy.purchases[itemid] = Now()
+	end
+end
+
+local function mark_purchase_settled(task, itemid, refreshSpecialCurrencies)
+	mark_purchase_attempt(itemid)
+	if task and type(task.purchaseSettledCallback) == "function" then
+		task.purchaseSettledCallback(task, refreshSpecialCurrencies)
+	end
+end
+
+local function has_completed_purchase(task, itemid)
+	if not task or not task.setup or not itemid then
+		return false
+	end
+
+	local itemcount = get_shopping_task_count(task, itemid)
+	local needed = (task.startingCount or 0) + (tonumber(task.buyamount) or 1)
+	return itemcount >= needed
+end
+
+local function handle_buy_failure(task, itemid)
+	if not task or not task.maxFailedPurchaseAttempts or task.maxFailedPurchaseAttempts <= 0 then
+		return
+	end
+
+	task.failedpurchaseattempts = (task.failedpurchaseattempts or 0) + 1
+	if task.failedpurchaseattempts > task.maxFailedPurchaseAttempts then
+		if task.onBuyFailure then
+			task.onBuyFailure(task, itemid)
+		end
+		task.failedpurchaseattempts = nil
+	end
+end
+
+c_confirmbuy = inheritsFrom( ml_cause )
+e_confirmbuy = inheritsFrom( ml_effect )
+function c_confirmbuy:evaluate()
+	local currentTask = ml_task_hub:CurrentTask()
+	local itemid = get_shopping_task_itemid(currentTask)
+	if itemid and currentTask.lastBuyItemID ~= itemid then
+		currentTask.lastBuyItemID = itemid
+	end
+
+	if IsControlOpen("SelectYesno") then
+		UseControlAction("SelectYesno","CheckAccept")
+		UseControlAction("SelectYesno","Yes")
+		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
+		currentTask.failedpurchaseattempts = 0
+		mark_purchase_settled(currentTask, itemid, false)
+		return true
+	end
+
+	if IsControlOpen("ShopExchangeItemDialog") then
+		UseControlAction("ShopExchangeItemDialog","Exchange")
+		ml_global_information.Await(1500, function () return not IsControlOpen("ShopExchangeItemDialog") end)
+		currentTask.failedpurchaseattempts = 0
+		mark_purchase_settled(currentTask, itemid, true)
+		return true
+	end
+
+	if IsControlOpen("SelectYesnoCount") then
+		UseControlAction("SelectYesnoCount","CheckAccept")
+		UseControlAction("SelectYesnoCount","Yes")
+		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesnoCount") end)
+		currentTask.failedpurchaseattempts = 0
+		mark_purchase_settled(currentTask, itemid, false)
+		return true
+	end
+
+	return false
+end
+function e_confirmbuy:execute()
+	-- nothing required; confirmation is handled in the cause
+end
+
 function c_buy:evaluate()
+	local currentTask = ml_task_hub:CurrentTask()
+	local itemid = get_shopping_task_itemid(currentTask)
+	if itemid and currentTask.lastBuyItemID ~= itemid then
+		currentTask.lastBuyItemID = itemid
+		currentTask.failedpurchaseattempts = 0
+	end
+
 	if (IsControlOpen("SelectYesno")) then
 		UseControlAction("SelectYesno","CheckAccept")
 		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
+		mark_purchase_settled(currentTask, itemid, false)
 		return true
 	end
 	
@@ -4024,32 +4165,127 @@ function c_buy:evaluate()
 		UseControlAction("SelectYesnoCount","CheckAccept")
 		UseControlAction("SelectYesnoCount","Yes")
 		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesnoCount") end)
+		mark_purchase_settled(currentTask, itemid, false)
 		return true
+	end
+
+	if IsControlOpen("ShopExchangeItemDialog") then
+		UseControlAction("ShopExchangeItemDialog","Exchange")
+		ml_global_information.Await(1500, function () return not IsControlOpen("ShopExchangeItemDialog") end)
+		mark_purchase_settled(currentTask, itemid, true)
+		return true
+	end
+
+	if IsControlOpen("GrandCompanyExchange") then
+		if not itemid then
+			return false
+		end
+
+		if has_completed_purchase(currentTask, itemid) then
+			return false
+		end
+
+		if has_recent_purchase_attempt(currentTask, itemid) then
+			return false
+		end
+
+		local gcData = GetControlData("GrandCompanyExchange", "items")
+		if not gcData then
+			return false
+		end
+
+		local wantTab = currentTask.gcTabIndex or 0
+		local wantRank = currentTask.gcRankIndex or 0
+		local key = table.findval(gcData, "itemid", itemid)
+		if key then
+			UseControlAction("GrandCompanyExchange", "SelectItem", key - 1)
+			ml_global_information.Await(1500)
+			return true
+		end
+
+		if not currentTask.gcTabSet then
+			UseControlAction("GrandCompanyExchange", "SetTabIndex", wantTab)
+			currentTask.gcTabSet = true
+			ml_global_information.Await(500)
+			return true
+		end
+
+		if gcData.rankindex ~= wantRank then
+			UseControlAction("GrandCompanyExchange", "SetRankIndex", wantRank)
+			ml_global_information.Await(500)
+			return true
+		end
+
+		return false
 	end
 	
 	if (not IsShopWindowOpen()) then
 		return false
 	end
-	
-	local itemid;
-	local itemtable = ml_task_hub:CurrentTask().itemid
-	if (ValidTable(itemtable)) then
-		itemid = itemtable[Player.job] or itemtable[-1]
-	elseif (tonumber(itemtable)) then
-		itemid = tonumber(itemtable)
+
+	if has_recent_purchase_attempt(currentTask, itemid) then
+		return false
 	end
+
+	if has_completed_purchase(currentTask, itemid) then
+		return false
+	end
+
 	if IsControlOpen("InclusionShop") then
-		if ml_task_hub:CurrentTask().category and not ml_task_hub:CurrentTask().categoryset then
-			UseControlAction("InclusionShop","SelectCategory",ml_task_hub:CurrentTask().category)
-			ml_task_hub:CurrentTask().categoryset = true
+		local shopItems = GetControlData("InclusionShop", "InclusionShop")
+		local wantCategory = tonumber(currentTask.category)
+		local wantSubcategory = tonumber(currentTask.subcategory)
+		local liveCategory = shopItems and tonumber(shopItems.selectedcategory) or nil
+		local liveSubcategory = shopItems and tonumber(shopItems.selectedsubcategory) or nil
+		if wantCategory ~= nil then
+			currentTask.categoryset = (liveCategory == wantCategory)
+		else
+			currentTask.categoryset = true
+		end
+		if wantSubcategory ~= nil then
+			currentTask.subcategoryset = currentTask.categoryset and (liveSubcategory == wantSubcategory)
+		else
+			currentTask.subcategoryset = true
+		end
+		if not shopItems then
+			currentTask.itemindex = nil
+			ml_global_information.Await(250)
+			return true
+		end
+		if wantCategory ~= nil and not currentTask.categoryset then
+			currentTask.itemindex = nil
+			currentTask.subcategoryset = (wantSubcategory == nil)
+			UseControlAction("InclusionShop","SelectCategory",currentTask.category)
 			ml_global_information.Await(500)
 			return true
 		end
-		if ml_task_hub:CurrentTask().subcategory and not ml_task_hub:CurrentTask().subcategoryset then
-			UseControlAction("InclusionShop","SelectSubCategory",ml_task_hub:CurrentTask().subcategory)
-			ml_task_hub:CurrentTask().subcategoryset = true
+		if wantSubcategory ~= nil and not currentTask.subcategoryset then
+			currentTask.itemindex = nil
+			UseControlAction("InclusionShop","SelectSubCategory",currentTask.subcategory)
 			ml_global_information.Await(500)
 			return true
+		end
+		if itemid then
+			local liveItemIndex = nil
+			if shopItems then
+				for _, entry in pairs(shopItems) do
+					if type(entry) == "table"
+						and tonumber(entry.itemid) == tonumber(itemid)
+						and (wantCategory == nil or tonumber(entry.category) == wantCategory)
+						and (wantSubcategory == nil or tonumber(entry.subcategory) == wantSubcategory)
+					then
+						liveItemIndex = tonumber(entry.itemindex)
+						break
+					end
+				end
+			end
+			currentTask.itemindex = liveItemIndex
+			if liveItemIndex == nil then
+				currentTask.categoryset = not currentTask.category
+				currentTask.subcategoryset = not currentTask.subcategory
+				ml_global_information.Await(500)
+				return true
+			end
 		end
 	end
 	if (itemid) then
@@ -4058,29 +4294,44 @@ function c_buy:evaluate()
 			buyamount = 99
 		end
 		
-		d("Buying item ID ["..tostring(itemid).."].")
-		local itemCount = ItemCount(itemid)
-		
-		if IsControlOpen("InclusionShop") and ml_task_hub:CurrentTask().itemindex then
-			UseControlAction("InclusionShop", "BuyShopItem", {[1] = ml_task_hub:CurrentTask().itemindex, [2] = buyamount})
+		if IsControlOpen("InclusionShop") and currentTask.itemindex then
+			UseControlAction("InclusionShop", "BuyShopItem", {[1] = currentTask.itemindex, [2] = buyamount})
+			mark_purchase_attempt(itemid)
+			local confirmedExchange = false
 			ml_global_information.AwaitSuccess(2000, 
 				function () 
 					if (IsControlOpen("ShopExchangeItemDialog")) then
 						UseControlAction("ShopExchangeItemDialog","Exchange")
+						confirmedExchange = true
 						return true		
 					end
 				end
 			)
+			currentTask.failedpurchaseattempts = 0
+			if confirmedExchange then
+				mark_purchase_settled(currentTask, itemid, true)
+			end
 		else
-			Inventory:BuyShopItem(itemid,buyamount)
-			ml_global_information.AwaitSuccess(2000, 
-				function () 
-					if (IsControlOpen("SelectYesno")) then
-						PressYesNo(true)
-						return true		
+			local result = Inventory:BuyShopItem(itemid,buyamount)
+			if result then
+				mark_purchase_attempt(itemid)
+				currentTask.failedpurchaseattempts = 0
+				local confirmedPurchase = false
+				ml_global_information.AwaitSuccess(2000, 
+					function () 
+						if (IsControlOpen("SelectYesno")) then
+							PressYesNo(true)
+							confirmedPurchase = true
+							return true		
+						end
 					end
+				)
+				if confirmedPurchase then
+					mark_purchase_settled(currentTask, itemid, false)
 				end
-			)
+			else
+				handle_buy_failure(currentTask, itemid)
+			end
 		end
 	end
 	
@@ -4358,7 +4609,7 @@ local function c_dointeract_cap3d(task, entity)
 	end
 	if task.name == "MOVEAETHERNET" and entity and entity.type == 5 then
 		if ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(entity.contentid) then
-			return 8
+			return 9
 		end
 		return 4
 	end
@@ -4385,7 +4636,7 @@ c_dointeract.lastInteract = 0
 
 -- Interaction timing constants
 c_dointeract.INTERACT_DEBOUNCE_MS = 1500
-c_dointeract.WINDOW_TIMEOUT_MS   = 1000
+c_dointeract.WINDOW_TIMEOUT_MS   = 3000
 c_dointeract.RECOVER_COOLDOWN_MS = 500
 
 -- Runtime state: tracks whether we're actively interacting/waiting
@@ -4964,36 +5215,31 @@ function c_scripexchange_na:evaluate()
 		c_scripexchange_na.lastSwitchAttempts = 0
 		if (table.valid(items)) then
 			for itemid,_ in pairs(items) do
+				local taskItemId = itemid
 				
 				--31013 FFXIVLib.API.Items.IsRewardCapped(31013)
-				if (FFXIVLib.API.Items.IsRewardCapped(itemid)) then
-					ml_task_hub:CurrentTask().items[itemid] = nil
+				if (FFXIVLib.API.Items.IsRewardCapped(taskItemId)) then
+					ml_task_hub:CurrentTask().items[taskItemId] = nil
 					return true
 				end
 
-				local exDetails = FFXIVLib.API.Items.ItemExchangeDetails(itemid)
-				if (exDetails and exDetails.class == (currentCategory + 8)) then
-					if (itemid < 500000) then
-						itemid = itemid + 500000
-					end
-					d("[ScripExchange]: Checking item ["..tostring(itemid).."]")
-					local index = FindCSIndex(itemid)
-					if (index ~= nil) then
-						d("[ScripExchange]: Checking index ["..tostring(index).."]")
-						if (GetCSAvailable(itemid)) then
-							if (c_scripexchange_na.lastItem == itemid) then
-								d("[ScripExchange]: Attempting trade.")
-								UseControlAction(addonName,"Trade",0,0,1000)
-								return true
-							else
-								c_scripexchange_na.lastItem = itemid
-								UseControlAction(addonName,"SelectIndex",index,0,1000)
-								return true
-							end
+				d("[ScripExchange]: Checking item ["..tostring(taskItemId).."]")
+				local index = FindCSIndex(taskItemId)
+				if (index ~= nil) then
+					d("[ScripExchange]: Checking index ["..tostring(index).."]")
+					if (GetCSAvailable(taskItemId)) then
+						if (c_scripexchange_na.lastItem == taskItemId) then
+							d("[ScripExchange]: Attempting trade.")
+							UseControlAction(addonName,"Trade",0,0,1000)
+							return true
 						else
-							ml_task_hub:CurrentTask().items[itemid] = nil
+							c_scripexchange_na.lastItem = taskItemId
+							UseControlAction(addonName,"SelectIndex",index,0,1000)
 							return true
 						end
+					else
+						ml_task_hub:CurrentTask().items[taskItemId] = nil
+						return true
 					end
 				end
 			end
@@ -5136,8 +5382,10 @@ end
 
 if (GetPatchLevel() >= 5.3) then
 	c_scripexchange = c_scripexchange_na
+	e_scripexchange = e_scripexchange_na
 else
 	c_scripexchange = c_scripexchange_cnkr
+	e_scripexchange = e_scripexchange_cnkr
 end
 
 c_exchange = inheritsFrom( ml_cause )

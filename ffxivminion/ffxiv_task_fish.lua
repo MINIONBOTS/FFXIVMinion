@@ -1423,6 +1423,13 @@ function e_buybait:execute()
 					newTask["conversationIndex"] = nearestPurchase.index
 					newTask["conversationstrings"] = nearestPurchase.indexstrings
 					newTask["buyamount"] = buyamount
+					newTask["itemindex"] = nearestPurchase.itemindex
+					newTask["category"] = nearestPurchase.category
+					newTask["subcategory"] = nearestPurchase.subcategory
+					newTask["shopId"] = nearestPurchase.shopId
+					newTask["gcVendor"] = nearestPurchase.gcVendor or false
+					newTask["gcTabIndex"] = nearestPurchase.gcTabIndex
+					newTask["gcRankIndex"] = nearestPurchase.gcRankIndex
 					
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 					d("Setting up buy task for ["..tostring(itemid).."] @ ["..tostring(npcId).."]")
