@@ -2886,28 +2886,41 @@ end
 function e_battleitem:execute()
 	--Do nothing, just block execution of other stuff.
 end
+function timerhandler()
+    if (LastMountTime == nil) then 
+        LastMountTime = Now() 
+    end
+    if (Player.ismounted) then
+        LastMountTime = Now()
+    end
+end
+
+RegisterEventHandler("Gameloop.Update",timerhandler,"Handler for times") 
 
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
     if (ffxiv_task_quest.noCompanion == true or gBotMode == "pvpMode" or InInstance() or Player.ismounted or IsMounting() or IsDismounting() or
-		IsCompanionSummoned() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
-	then
+        IsCompanionSummoned() or (Player.castinginfo.lastcastid == 851 and Player.castinginfo.timesincecast < 10000)) 
+    then
         return false
     end
-	if not QuestCompleted(1162) then
-		return false
-	end
-    if ((gChocoGrind and (gBotMode == "grindMode" or gBotMode == "partyMode" or ml_task_hub:CurrentTask().name == "GRIND_COMBAT")) or
-		(gChocoAssist and gBotMode == "assistMode") or
-		(gChocoQuest and gBotMode == "questMode")) 
-	then	
-		local green = GetItem(4868)
-		if (green and green:IsReady()) then
-			return true
-		end
+    if not QuestCompleted(1162) then
+        return false
     end
-	
+    if (TimeSince(LastMountTime)<2000) then
+        return false
+    end
+    if ((gChocoGrind and (gBotMode == "grindMode" or gBotMode == "partyMode" or ml_task_hub:CurrentTask().name == "GRIND_COMBAT")) or
+        (gChocoAssist and gBotMode == "assistMode") or
+        (gChocoQuest and gBotMode == "questMode")) 
+    then    
+        local green = GetItem(4868)
+        if (green and green:IsReady()) then
+            return true
+        end
+    end
+    
     return false
 end
 function e_companion:execute()
