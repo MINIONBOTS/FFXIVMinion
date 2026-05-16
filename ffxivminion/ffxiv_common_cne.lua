@@ -2307,6 +2307,40 @@ function c_useaethernet:evaluate(mapid, pos)
 	if (destMapID == 0) then
 		destMapID = Player.localmapid
 	end
+	if (currentTask and destMapID ~= Player.localmapid and c_teleporttomap:evaluate()) then
+		local teleportMapID = e_teleporttomap.aeth and e_teleporttomap.aeth.territory
+		local currentGroup = nil
+		local teleportGroup = nil
+		local sameCityTeleport = false
+		local currentAeths = teleportMapID and FFXIVLib.API.Map.GetAetherytesByMapId(Player.localmapid)
+		local teleportAeths = teleportMapID and FFXIVLib.API.Map.GetAetherytesByMapId(teleportMapID)
+		if (teleportMapID) then
+			sameCityTeleport = (teleportMapID == Player.localmapid)
+				or (IsLimsa(Player.localmapid) and IsLimsa(teleportMapID))
+				or (IsUldah(Player.localmapid) and IsUldah(teleportMapID))
+				or (IsGridania(Player.localmapid) and IsGridania(teleportMapID))
+				or (IsFoundation(Player.localmapid) and IsFoundation(teleportMapID))
+		end
+		if (table.valid(currentAeths)) then
+			for _, row in pairs(currentAeths) do
+				if (row.AethernetGroup and row.AethernetGroup > 0) then
+					currentGroup = row.AethernetGroup
+					break
+				end
+			end
+		end
+		if (table.valid(teleportAeths)) then
+			for _, row in pairs(teleportAeths) do
+				if (row.AethernetGroup and row.AethernetGroup > 0) then
+					teleportGroup = row.AethernetGroup
+					break
+				end
+			end
+		end
+		if (not sameCityTeleport and (not currentGroup or not teleportGroup or currentGroup ~= teleportGroup)) then
+			return false
+		end
+	end
 
 	e_useaethernet.nearest = nil
 	e_useaethernet.destination = nil
@@ -2324,6 +2358,11 @@ function c_useaethernet:evaluate(mapid, pos)
 	local nearestAethernet,nearestDistance = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = FFXIVLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	local aethernetDetour = math.huge
+	local sameMapRule = false
+	local crossMapRule = false
+	local sameCityInnTravel = (destMapID == 177 and In(Player.localmapid,128,129))
+		or (destMapID == 178 and In(Player.localmapid,130,131))
+		or (destMapID == 179 and In(Player.localmapid,132,133))
 	if (nearestAethernet and bestAethernet) then
 		local compareBestDistance = IsNull(bestDistance, math.huge)
 		if (destMapID ~= Player.localmapid and bestAethernet.Invisible and bestAethernet.territory == destMapID) then
@@ -2361,11 +2400,43 @@ function c_useaethernet:evaluate(mapid, pos)
 				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
 				gatedist = Distance3DT(gatepos,Player.pos)
 			end
+			if (sameCityInnTravel) then
+				local currNode = ml_nav_manager.GetNode(Player.localmapid)
+				local destNode = ml_nav_manager.GetNode(destMapID)
+				if (table.valid(currNode) and table.valid(destNode)) then
+					local routePath = ml_nav_manager.GetPath(currNode, destNode)
+					if (table.valid(routePath)) then
+						local routeOrigin = Player.pos
+						local routeWalkDist = 0
+						local routeValid = true
+						for index, node in ipairs(routePath) do
+							local nextNode = routePath[index + 1]
+							if (not table.valid(nextNode)) then
+								break
+							end
+							local routeGate = node:GetClosestNeighborPos(routeOrigin, nextNode.id)
+							if (not table.valid(routeGate)) then
+								routeValid = false
+								break
+							end
+							routeWalkDist = routeWalkDist + Distance3DT(routeOrigin, routeGate)
+							routeOrigin = { x = routeGate.x, y = routeGate.y, z = routeGate.z }
+						end
+						if (routeValid and routeWalkDist > gatedist) then
+							gatedist = routeWalkDist
+						end
+					end
+				end
+			end
+		end
+		if (nearestAethernet and bestAethernet) then
+			sameMapRule = ((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid)
+			crossMapRule = (aethernetDetour < gatedist and destMapID ~= Player.localmapid)
 		end
 		
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and 
-			(((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or 
-			(aethernetDetour < gatedist and destMapID ~= Player.localmapid)
+			((sameMapRule) or 
+			(crossMapRule)
 			)) then
 			if (IsNull(currentTask.contentid,0) ~= nearestAethernet.id) then 
 				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
