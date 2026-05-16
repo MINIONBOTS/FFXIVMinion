@@ -7,7 +7,7 @@
 --*** Distance to the next node in the path at which ml_navigation.pathindex is iterated
 ml_navigation.NavPointReachedDistances = {
 	["3dwalk"] = 2,
-	["2dwalk"] = .5,
+	["2dwalk"] = 1.0,
 	["3dmount"] = 5,
 	["2dmount"] = 1,
 	["3dswim"] = 5,

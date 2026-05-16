@@ -364,6 +364,7 @@ function ffxiv_task_test:UIInit()
 	gTestMapY = ffxivminion.GetSetting("gTestMapY","")
 	gTestMapZ = ffxivminion.GetSetting("gTestMapZ","")
 	gTestNoFly = ffxivminion.GetSetting("gTestNoFly",false)
+	gTestNoMount = ffxivminion.GetSetting("gTestNoMount",false)
 	gTestNavRange = ffxivminion.GetSetting("gTestNavRange",4)
 	gTestRemainMounted = ffxivminion.GetSetting("gTestRemainMounted",true)
 	gTestUseMoveToExact = ffxivminion.GetSetting("gTestUseMoveToExact",false)
@@ -384,9 +385,10 @@ function ffxiv_task_test:Draw()
 	local framePaddingY = GUI:GetStyle().framepadding.y
 	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	
-	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(15),true)
+	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(19),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Fly")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("No Mount")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use MoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Nav Range")
@@ -413,6 +415,7 @@ function ffxiv_task_test:Draw()
 		gTestMapZ = 0
 	end
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##No Fly",gTestNoFly),"gTestNoFly")
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##No Mount",gTestNoMount),"gTestNoMount")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Use MoveToExact",gTestUseMoveToExact),"gTestUseMoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");

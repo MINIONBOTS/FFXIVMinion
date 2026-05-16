@@ -2254,13 +2254,15 @@ e_useaethernet.destination = nil
 e_useaethernet.isresidential = nil
 c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
+	local currentTask = ml_task_hub:CurrentTask()
+
 	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
 		return false
 	end
 	if (not IsCityMap(Player.localmapid)) then
 		return false
 	end
-	if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().useAethernet == false) then
+	if (currentTask and currentTask.useAethernet == false) then
 		return false
 	end
 	if Player.localmapid == 478 then
@@ -2271,10 +2273,10 @@ function c_useaethernet:evaluate(mapid, pos)
 	end
 		
 	
-	local gotoPos = pos or ml_task_hub:CurrentTask().pos
+	local gotoPos = pos or currentTask.pos
 	local destMapID = 0
-	if ml_task_hub:CurrentTask() then
-		destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+	if currentTask then
+		destMapID = IsNull(currentTask.destMapID,0)
 	end
 	if (destMapID == 0) then
 		destMapID = Player.localmapid
@@ -2296,11 +2298,6 @@ function c_useaethernet:evaluate(mapid, pos)
 	local nearestAethernet,nearestDistance = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = FFXIVLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	
-	--[[d("CLOSEST = ")
-	d(nearestAethernet)
-	d("BEST = ")
-	d(bestAethernet)]]
-	
 	local gatedist = 10000	
 	
 	if (Player.localmapid == 129 and destMapID == 339 and QuestCompleted(1214)) then
@@ -2321,24 +2318,6 @@ function c_useaethernet:evaluate(mapid, pos)
 		}
 		e_useaethernet.isresidential = true
 		return true
-	elseif (Player.localmapid == 628 and destMapID == 629) then
-		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(116) -- Bokairo Inn
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
-			return true
-		end
-	elseif (In(Player.localmapid,130,131) and destMapID == 178) then
-		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(33) -- Adventurers' Guild
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
-			return true
-		end
-	elseif (In(Player.localmapid,128,129) and destMapID == 177) then
-		e_useaethernet.nearest = nearestAethernet
-		e_useaethernet.destination = FFXIVLib.API.Map.GetAetheryteById(41) -- The Aftcastle
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or (nearestDistance < gatedist and destMapID ~= Player.localmapid))) then
-			return true
-		end
 	else
 		if (destMapID ~= Player.localmapid) then
 			local gate = ml_nav_manager.GetNextPathPos(	Player.pos,
@@ -2349,28 +2328,14 @@ function c_useaethernet:evaluate(mapid, pos)
 				gatedist = Distance3DT(gatepos,Player.pos)
 			end
 		end
-		local closestDist = GetLowestValue(gatedist,gotoDist)
-		--[[
-		if nearestAethernet and bestAethernet then
-			d("nearest aethernet is ["..tostring(nearestAethernet.id).."] at distance ["..tostring(nearestDistance).."]")
-			d("best aethernet is ["..tostring(bestAethernet.id).."] at distance ["..tostring(bestDistance).."]")
-			d("check must a = "..tostring(nearestAethernet and bestAethernet))
-			d("check must b = "..tostring(nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id)))
-			d("check 1a = "..tostring(bestDistance and nearestDistance and gotoDist and ((bestDistance + nearestDistance) < gotoDist)))
-			d("check 1b = "..tostring(destMapID == Player.localmapid))
-			d("")
-			d("check 2a = "..tostring((nearestDistance < gatedist)))
-			d("check 2b = "..tostring((destMapID ~= Player.localmapid)))
-		end]]
-		
 		
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and 
 			(((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid) or 
 			(nearestDistance < gatedist and destMapID ~= Player.localmapid)
 			)) then
-			if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
+			if (IsNull(currentTask.contentid,0) ~= nearestAethernet.id) then 
 				d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id).."]")
-				d("current AetheryteId:"..tostring(ml_task_hub:CurrentTask().contentid)..", new AetheryteId:"..tostring(nearestAethernet.id))
+				d("current AetheryteId:"..tostring(currentTask.contentid)..", new AetheryteId:"..tostring(nearestAethernet.id))
 				e_useaethernet.nearest = nearestAethernet
 				e_useaethernet.destination = bestAethernet
 				return true
@@ -2566,6 +2531,10 @@ function c_mount:evaluate()
 		return false
 	end
 	
+	if (gBotMode == GetString("NavTest") and gTestNoMount) and not IsFlying() then
+		return false
+	end
+
 	c_mount.blockOnly = false
 	local patchLevel = GetPatchLevel()
 	
