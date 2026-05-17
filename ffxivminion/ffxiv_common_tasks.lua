@@ -1449,6 +1449,9 @@ end
 --=======================GRIND COMBAT TASK=========================-
 
 ffxiv_task_grindCombat = inheritsFrom(ml_task)
+ffxiv_task_grindCombat.ignoreLOSContentIDs = {
+	[4140] = true,
+}
 function ffxiv_task_grindCombat.Create()
     local newinst = inheritsFrom(ffxiv_task_grindCombat)
     
@@ -1485,6 +1488,20 @@ function ffxiv_task_grindCombat.Create()
 	--d("[GrindCombat]: Beginning new task.")
 	
     return newinst
+end
+
+function ffxiv_task_grindCombat:ShouldIgnoreLOS(target)
+	if (not table.valid(target)) then
+		return false
+	end
+
+	local contentid = tonumber(target.contentid) or 0
+	if (contentid == 0) then
+		return false
+	end
+
+	local ignoreLOSContentIDs = self.ignoreLOSContentIDs or ffxiv_task_grindCombat.ignoreLOSContentIDs
+	return (ignoreLOSContentIDs and ignoreLOSContentIDs[contentid] == true) or false
 end
 
 function ffxiv_task_grindCombat:Init()
@@ -1597,9 +1614,10 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		local ignoreLOS = self:ShouldIgnoreLOS(target)
 		if (range > 5) then
 			-- No LOS while in distance range - move closer before trying to cast.
-			if (not IsFlying() and target.distance2d <= range and not target.los and not target.los2) then
+			if (not IsFlying() and target.distance2d <= range and not ignoreLOS and not target.los and not target.los2) then
 				local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
 				if (pathLength <= 0) then
 					Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
@@ -1664,7 +1682,7 @@ function ffxiv_task_grindCombat:Process()
 								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
 							end
 							local myTarget = MGetTarget()
-							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
+							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." ignoreLOS="..tostring(ignoreLOS).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
 							self.lastNoCastLog = Now()
 						end
 						if (self.attackThrottle) then
@@ -1712,7 +1730,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if ((InCombatRange(target.id) or target.distance2d <= 15) and not IsFlying()) then
 				-- Close range but no LOS - move directly to target.
-				if (target.distance2d <= 15 and not target.los and not target.los2 and not InCombatRange(target.id)) then
+				if (target.distance2d <= 15 and not ignoreLOS and not target.los and not target.los2 and not InCombatRange(target.id)) then
 					local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
 					if (pathLength <= 0) then
 						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
@@ -1735,7 +1753,7 @@ function ffxiv_task_grindCombat:Process()
 								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
 							end
 							local myTarget = MGetTarget()
-							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
+							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." ignoreLOS="..tostring(ignoreLOS).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
 							self.lastNoCastLog = Now()
 						end
 						if (casted and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
