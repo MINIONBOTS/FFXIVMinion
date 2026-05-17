@@ -1939,6 +1939,12 @@ end
 
 -- Part 1 of the split-logic nav.
 -- This part will build the path, and walktopos will only need to check if one exists and enable pathing.
+local GetNetworkCrystalApproachCap
+local GetNetworkCrystalInteractCap
+local GetNetworkCrystalAttemptCap
+local GetMeshDistanceValue
+local GetNetworkCrystalCheckDistance
+
 c_getmovementpath = inheritsFrom( ml_cause )
 e_getmovementpath = inheritsFrom( ml_effect )
 c_getmovementpath.lastFallback = 0
@@ -1966,15 +1972,9 @@ function c_getmovementpath:evaluate()
 			end
 		end
 		if (interactable and table.valid(interactable)) then
-			local maxInteractDistance3d = 4
-			if (currentTask.name == "QUEST_ATTUNEAETHERYTE") then
-				maxInteractDistance3d = 12
-			elseif (ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(interactable.contentid)) then
-				maxInteractDistance3d = 9
-			end
-			local interactionRadius = math.max(tonumber(interactable.hitradius) or 0, tonumber(interactable.radius) or 0)
-			local effectiveDistance3d = math.max(0, (tonumber(interactable.distance) or math.huge) - interactionRadius)
-			if (effectiveDistance3d <= maxInteractDistance3d) then
+			local maxInteractDistance3d = GetNetworkCrystalInteractCap(currentTask, interactable) or 4
+			local checkDistance3d = GetNetworkCrystalCheckDistance(interactable)
+			if (checkDistance3d <= maxInteractDistance3d) then
 				return false
 			end
 		end
@@ -2452,6 +2452,91 @@ function c_useaethernet:evaluate(mapid, pos)
 end
 -- Normalizes an aethernet row from the API into the format task code expects.
 -- API rows have WorldX/WorldZ/AethernetName; task code expects .pos and .conversationstrings
+function GetMeshDistanceValue(meshPoint)
+	if (not table.valid(meshPoint)) then
+		return nil
+	end
+
+	local meshDistance = tonumber(meshPoint.meshdistance)
+	if (meshDistance ~= nil) then
+		return meshDistance
+	end
+
+	return tonumber(meshPoint.distance)
+end
+
+function GetNetworkCrystalApproachCap(rawPos, isAetheryte)
+	local meshDistance = nil
+	if (table.valid(rawPos) and NavigationManager and NavigationManager.GetClosestPointOnMesh) then
+		local closestMesh = NavigationManager:GetClosestPointOnMesh(rawPos)
+		meshDistance = GetMeshDistanceValue(closestMesh)
+		if (meshDistance == nil) then
+			closestMesh = FindClosestMesh(rawPos, 20, true)
+			meshDistance = GetMeshDistanceValue(closestMesh)
+		end
+	end
+
+	if (not isAetheryte) then
+		if (meshDistance) then
+			local normalizedMeshDistance = math.floor((meshDistance * 100) + 0.5) / 100
+			return math.max(4, math.ceil(normalizedMeshDistance * 2) / 2)
+		end
+		return 4
+	end
+
+	local chosenCap = 12
+	if (meshDistance) then
+		local normalizedMeshDistance = math.floor((meshDistance * 100) + 0.5) / 100
+		if (normalizedMeshDistance <= 6) then
+			chosenCap = 8
+		elseif (normalizedMeshDistance <= 8) then
+			chosenCap = 10
+		else
+			chosenCap = 12
+		end
+	end
+
+	return chosenCap
+end
+
+function GetNetworkCrystalCheckDistance(entity)
+	return math.abs(tonumber(entity and entity.distance) or math.huge)
+end
+
+function GetNetworkCrystalInteractCap(task, entity)
+	if (not task or not entity or entity.type ~= 5) then
+		return tonumber(task and task.interactRange3d)
+	end
+
+	if (task.name == "QUEST_ATTUNEAETHERYTE") then
+		return GetNetworkCrystalApproachCap(entity.pos, true)
+	end
+
+	if (task.name == "MOVEAETHERNET") then
+		local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+			and ffxiv_map_nav.IsAetheryte(entity.contentid)
+		return GetNetworkCrystalApproachCap(entity.pos, isAetheryte)
+	end
+
+	return tonumber(task.interactRange3d)
+end
+
+function GetNetworkCrystalAttemptCap(task, entity)
+	if (not task or not entity or entity.type ~= 5) then
+		return tonumber(task and task.interactRange) or 4
+	end
+
+	if (task.name == "QUEST_ATTUNEAETHERYTE") then
+		return GetNetworkCrystalInteractCap(task, entity)
+	end
+
+	if (task.name == "MOVEAETHERNET") then
+		return GetNetworkCrystalInteractCap(task, entity)
+	end
+
+	return tonumber(task.interactRange) or 4
+end
+
 local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDistance)
 	if (not table.valid(rawPos)) then
 		return fallbackPos
@@ -2544,7 +2629,7 @@ local function NormalizeAethernetRow(row)
 	if not row then return row end
 	if not row.pos and row.WorldX then
 		local rawPos = {x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ}
-		local approachCap = (row.IsAetheryte == true) and 9 or 4
+		local approachCap = GetNetworkCrystalApproachCap(rawPos, row.IsAetheryte == true)
 		row.pos = PickNetworkCrystalApproachPos(rawPos, nil, approachCap)
 	end
 	if not row.conversationstrings and row.AethernetName then
@@ -2817,7 +2902,12 @@ function c_mount:evaluate()
 					local task = ml_task_hub:CurrentTask()
 					if (task.interact and task.interact ~= 0) then
 						local interactable = EntityList:Get(task.interact)
-						if (interactable and interactable.distance2d < (dismountDistance + 5)) then
+						local interactDistance = math.abs(tonumber(interactable and interactable.distance2d) or math.huge)
+						if (interactable and interactable.type == 5
+							and In(task.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")) then
+							interactDistance = GetNetworkCrystalCheckDistance(interactable)
+						end
+						if (interactable and interactDistance < (dismountDistance + 5)) then
 							doDismount = true
 						elseif (not interactable) then
 							-- Entity not found / despawned - still allow dismount based on position
@@ -4775,39 +4865,30 @@ end
 -- 3D interact envelope. Aetherytes use a fixed 12-yalm cap; aethernet shards
 -- use 4 (close-approach only); everything else honors task.interactRange3d.
 local function c_dointeract_cap3d(task, entity)
-	if task.name == "QUEST_ATTUNEAETHERYTE" then
-		return 12
-	end
-	if task.name == "MOVEAETHERNET" and entity and entity.type == 5 then
-		if ffxiv_map_nav and ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(entity.contentid) then
-			return 9
-		end
-		return 4
+	if (entity and entity.type == 5 and c_dointeract_isNetworkCrystal(task, entity)) then
+		return GetNetworkCrystalInteractCap(task, entity)
 	end
 	return tonumber(task.interactRange3d)
 end
 
--- 2D nudge cap: how close (planar) we'll micro-walk before firing Interact().
--- Aetherytes nudge to 8; aethernet shards nudge to 4; normal uses task range.
+-- Attempt cap: normal tasks use planar nudge; network crystals use full .distance.
 local function c_dointeract_nudge2d(task, entity)
-	if task.name == "QUEST_ATTUNEAETHERYTE" then
-		return 8
-	end
-	if c_dointeract_isNetworkCrystal(task, entity) then
-		local c = tonumber(task.interactRange)
-		return (c and c > 0) and c or 4
+	if (entity and entity.type == 5 and c_dointeract_isNetworkCrystal(task, entity)) then
+		return GetNetworkCrystalAttemptCap(task, entity)
 	end
 	return tonumber(task.interactRange) or 4
+end
+
+local function c_dointeract_attemptDistance(task, entity)
+	if (c_dointeract_isNetworkCrystal(task, entity)) then
+		return GetNetworkCrystalCheckDistance(entity)
+	end
+	return math.abs(tonumber(entity and entity.distance2d) or math.huge)
 end
 
 local function c_dointeract_effectiveDistances(task, entity)
 	local distance3d = tonumber(entity and entity.distance) or math.huge
 	local planarAbs = math.abs(tonumber(entity and entity.distance2d) or math.huge)
-	if (c_dointeract_isNetworkCrystal(task, entity)) then
-		local interactionRadius = math.max(tonumber(entity.hitradius) or 0, tonumber(entity.radius) or 0)
-		distance3d = math.max(0, distance3d - interactionRadius)
-		planarAbs = math.max(0, planarAbs - interactionRadius)
-	end
 	return distance3d, planarAbs
 end
 
@@ -4918,11 +4999,9 @@ function c_dointeract:evaluate()
 				if (not task.pathChecked) then
 					local meshpos = interactable.meshpos
 					if (c_dointeract_isNetworkCrystal(task, interactable)) then
-						local approachCap = 4
-						if (ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
-							and ffxiv_map_nav.IsAetheryte(interactable.contentid)) then
-							approachCap = 9
-						end
+						local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+							and ffxiv_map_nav.IsAetheryte(interactable.contentid)
+						local approachCap = GetNetworkCrystalApproachCap(interactable.pos, isAetheryte)
 						task.pos = PickNetworkCrystalApproachPos(interactable.pos, meshpos, approachCap)
 					elseif (NavigationManager:IsReachable(meshpos)) then
 						task.pos = interactable.meshpos
@@ -4934,7 +5013,11 @@ function c_dointeract:evaluate()
 	end
 	
 	-- Target the interactable when within range
-	if (interactable and interactable.targetable and interactable.distance2d < 30) then
+	local targetDistance = math.abs(tonumber(interactable and interactable.distance2d) or math.huge)
+	if (c_dointeract_isNetworkCrystal(task, interactable)) then
+		targetDistance = GetNetworkCrystalCheckDistance(interactable)
+	end
+	if (interactable and interactable.targetable and targetDistance < 30) then
 		if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 			Player:SetTarget(interactable.id)
 		end
@@ -4944,6 +5027,21 @@ function c_dointeract:evaluate()
 	-- Interaction logic: move until interactable, then stop + interact
 	-------------------------------------------------------------------
 	if (task.useProfilePos and not IsFlying() and not IsDiving()) then
+		local useStandardMovementOnIce = false
+		if (ml_navigation and ml_navigation.GetIceMovementState) then
+			useStandardMovementOnIce = select(1, ml_navigation:GetIceMovementState())
+		end
+
+		if (useStandardMovementOnIce) then
+			if (Player.IsExactMoving and Player:IsExactMoving()) then
+				Player:StopExact()
+				d("["..task.name.."]: Ice detected, bypassing MoveToExact and returning to standard navigation.")
+			end
+			task.exactMovementStarted = false
+			task.exactMovementDone = false
+			ml_global_information.monitorStuck = true
+			ml_navigation:EnablePathing()
+		else
 		
 		-- Phase 1: MoveToExact handoff (fires once)
 		-- Skip if entity is already interactable
@@ -4951,17 +5049,12 @@ function c_dointeract:evaluate()
 			and not (interactable and table.valid(interactable) and interactable.interactable)) then
 			local dist3d = math.distance3d(ppos, task.pos)
 			if (dist3d < 30) then
-				local exactTarget = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
-				local meshPos = NavigationManager:GetClosestPointOnMesh(task.pos)
-				if (meshPos) then
-					exactTarget = { x = meshPos.x, y = meshPos.y, z = meshPos.z }
-				end
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
 				ml_global_information.monitorStuck = false
 				ffxiv_unstuck.Reset()
-				Player:MoveToExact(exactTarget.x, exactTarget.y, exactTarget.z)
+				Player:MoveToExact(task.pos.x, task.pos.y, task.pos.z)
 				task.exactMovementStarted = true
 			end
 		end
@@ -4969,7 +5062,7 @@ function c_dointeract:evaluate()
 		-- While exact movement is active, hold control
 		if (task.exactMovementStarted) then
 			if (not Player:IsExactMoving()) then
-				-- Arrived at mesh-snapped position
+				-- Arrived at requested position
 				task.exactMovementStarted = false
 				task.exactMovementDone = true
 				ml_global_information.monitorStuck = true
@@ -4997,9 +5090,10 @@ function c_dointeract:evaluate()
 		-- Phase 3: Nudge toward entity if close but not yet interactable
 		if (task.exactMovementDone and interactable and table.valid(interactable)) then
 			local nudgeMax2d = c_dointeract_nudge2d(task, interactable)
+			local nudgeDistance = c_dointeract_attemptDistance(task, interactable)
 			if (interactable.interactable) then
 				-- Entity is interactable, fall through to standard interact logic below
-			elseif (interactable.distance2d < nudgeMax2d and table.size(EntityList.aggro) == 0) then
+			elseif (nudgeDistance < nudgeMax2d and table.size(EntityList.aggro) == 0) then
 				local epos = interactable.pos
 				Player:SetFacing(epos.x, epos.y, epos.z)
 				Player:Move(FFXIV.MOVEMENT.FORWARD)
@@ -5007,6 +5101,7 @@ function c_dointeract:evaluate()
 				return true
 			end
 			-- Beyond nudge cap: fall through
+		end
 		end
 	end
 	
@@ -5078,20 +5173,24 @@ function c_dointeract:evaluate()
 	end
 
 	-- Bypass game interactable=false (common on crystals until Interact()).
-	-- Triggered by task.forceinteract or by adaptive type-5 targets within cap.
+	-- Triggered by task.forceinteract or by adaptive type-5 targets that are
+	-- both within the broad cap and already inside the tighter attempt envelope.
 	local withinCap = maxInteractDistance3d and effectiveDistance3d <= maxInteractDistance3d
 	local isNetworkCrystalTask = (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET")
+	local bypassDistanceCap = c_dointeract_nudge2d(task, interactable)
+	local bypassDistance = c_dointeract_attemptDistance(task, interactable)
+	local withinBypassDistance = bypassDistance <= bypassDistanceCap
 	local bypassInteractableGate = withinCap and
-		(task.forceinteract or isNetworkCrystalTask)
+		(task.forceinteract or (isNetworkCrystalTask and withinBypassDistance))
 
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold
 	-------------------------------------------------------------------
 	if (not bypassInteractableGate and not interactable.interactable) then
-		-- Not interactable yet: walk toward entity when planar or 3D distance is within cap.
+		-- Not interactable yet: walk toward entity when the relevant distance check is within cap.
 		-- (abs planar: distance2d can be negative for some field objects.)
 		local closeWalkCapY = (maxInteractDistance3d and maxInteractDistance3d > 0) and maxInteractDistance3d or 6
-		local withinPlanar = effectivePlanarAbs < closeWalkCapY
+		local withinPlanar = (not c_dointeract_isNetworkCrystal(task, interactable)) and effectivePlanarAbs < closeWalkCapY
 		local within3d = effectiveDistance3d < closeWalkCapY
 		if (not IsFlying() and not IsDiving() and not IsDismounting() and (withinPlanar or within3d)) then
 			if (not Player:IsMoving()) then

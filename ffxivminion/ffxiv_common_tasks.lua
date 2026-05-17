@@ -2455,19 +2455,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		if (IsControlOpen("TelepotTown")) then
 			local aethernets = GetControlData("TelepotTown","aethernet")
 			if (table.valid(aethernets)) then
-				d("[MoveAethernet] TelepotTown open. conversationstring=["..tostring(self.conversationstring).."] conversationstrings type=["..type(self.conversationstrings).."] conversationindex=["..tostring(self.conversationindex).."]")
-				if (table.valid(self.conversationstrings)) then
-					d("[MoveAethernet] conversationstrings contents:")
-					for k,v in pairs(self.conversationstrings) do
-						d("  ["..tostring(k).."] = ["..tostring(v).."]")
-					end
-				end
-				d("[MoveAethernet] Available aethernets:")
-				for _,ae in pairs(aethernets) do
-					d("  index=["..tostring(ae.index).."] string=["..tostring(ae.string).."]")
-				end
 				if (string.valid(self.conversationstring)) then
-					d("Checking task conversation string.")
 					for _,aethernet in pairs(aethernets) do
 						local cleanedline = CleanConvoLine(aethernet.string)
 						local cleanedv = CleanConvoLine(self.conversationstring)
@@ -2480,8 +2468,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						end
 					end
 				elseif (table.valid(self.conversationstrings)) then
-					d("Checking task conversation strings.")
-					
 					for _,aethernet in pairs(aethernets) do
 						local cleanedline = CleanConvoLine(aethernet.string)
 						for k,v in pairs(self.conversationstrings) do
@@ -2496,7 +2482,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						end
 					end
 				elseif (self.conversationindex > 0) then
-					d("Checking task conversation index.")
 					--SelectConversationIndex(self.conversationindex)
 					UseControlAction("TelepotTown","Teleport",self.conversationindex)
 					self.initiatedPos = Player.pos
@@ -2509,16 +2494,10 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		else
 			local convoList = GetConversationList()
 			if (table.valid(convoList)) then
-				d("[MoveAethernet] ConvoList open. useAethernet=["..tostring(self.useAethernet).."] isResidential=["..tostring(self.isResidential).."]")
-				for ci,cv in pairs(convoList) do
-					d("[MoveAethernet] ConvoLine ["..tostring(ci).."] = ["..tostring(cv).."]")
-				end
 				if (self.useAethernet and not self.isResidential) then
 					local aethStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_AETHERNET)
 					local resStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_RESIDENTIAL_AETHERNET)
-					d("[MoveAethernet] aethStr=["..tostring(aethStr).."] resStr=["..tostring(resStr).."]")
 					if not aethStr then
-						d("[MoveAethernet] aethStr not yet loaded, waiting for async query.")
 						return false
 					end
 					for selectindex,convo in pairs(convoList) do
@@ -2526,7 +2505,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedastring = CleanConvoLine(aethStr):gsub("^%s+",""):gsub("%s+$","")
 						local containsAeth = string.contains(cleanedline,cleanedastring)
 						local containsRes = resStr and string.contains(cleanedline,CleanConvoLine(resStr):gsub("^%s+",""):gsub("%s+$",""))
-						d("[MoveAethernet] Check ["..tostring(selectindex).."]: cleaned=["..tostring(cleanedline).."] vs aeth=["..tostring(cleanedastring).."] match=["..tostring(containsAeth).."] resMatch=["..tostring(containsRes).."]")
 						if (containsAeth and (not resStr or not containsRes)) then
 							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
 							SelectConversationLine(selectindex)
@@ -2534,11 +2512,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							return false
 						end
 					end
-					d("Checked if we need to open aetheryte menu.")
 				elseif (self.useAethernet and self.isResidential) then
 					local resStr = FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.MENU_RESIDENTIAL_AETHERNET)
 					if not resStr then
-						d("[MoveAethernet] resStr not yet loaded, waiting for async query.")
 						return false
 					end
 					for selectindex,convo in pairs(convoList) do
@@ -2551,7 +2527,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							return false
 						end
 					end
-					d("Checked if we need to open residential aetheryte menu.")
 				end
 				
 				if (self.isResidential) then
@@ -2577,7 +2552,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				end
 				
 				if (string.valid(self.conversationstring)) then
-					d("Checking task conversation string.")
 					for selectindex,convo in pairs(convoList) do
 						local cleanedline = CleanConvoLine(convo)
 						local cleanedv = CleanConvoLine(self.conversationstring)
@@ -2590,16 +2564,10 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						end
 					end
 				elseif (table.valid(self.conversationstrings)) then
-					d("Checking task conversation strings.")
-					d("[MoveAethernet] conversationstrings contents:")
-					for ck,cv in pairs(self.conversationstrings) do
-						d("[MoveAethernet]   ["..tostring(ck).."] = ["..tostring(cv).."]")
-					end
 					for selectindex,convo in pairs(convoList) do
 						local cleanedline = CleanConvoLine(convo)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
-							d("[MoveAethernet] Compare convo["..tostring(selectindex).."] cleaned=["..tostring(cleanedline).."] vs str["..tostring(k).."] cleaned=["..tostring(cleanedv).."] contains=["..tostring(string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))).." exact=["..tostring(v == convo).."]")
 							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
 								d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 								SelectConversationLine(selectindex)
@@ -2610,7 +2578,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						end
 					end
 				elseif (self.conversationindex > 0) then
-					d("Checking task conversation index.")
 					SelectConversationIndex(self.conversationindex)
 					self.initiatedPos = Player.pos
 					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
