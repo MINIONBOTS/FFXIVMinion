@@ -2500,7 +2500,18 @@ function GetNetworkCrystalApproachCap(rawPos, isAetheryte)
 end
 
 function GetNetworkCrystalCheckDistance(entity)
-	return math.abs(tonumber(entity and entity.distance) or math.huge)
+	local rawDistance = math.abs(tonumber(entity and entity.distance) or math.huge)
+	if (not entity) then
+		return rawDistance
+	end
+	local edgeRadius = math.max(
+		tonumber(entity.hitradius) or 0,
+		tonumber(entity.radius) or 0
+	)
+	if (edgeRadius > 0 and rawDistance < math.huge) then
+		return math.max(0, rawDistance - edgeRadius)
+	end
+	return rawDistance
 end
 
 function GetNetworkCrystalInteractCap(task, entity)
@@ -4919,6 +4930,9 @@ end
 
 local function c_dointeract_effectiveDistances(task, entity)
 	local distance3d = tonumber(entity and entity.distance) or math.huge
+	if (c_dointeract_isNetworkCrystal(task, entity)) then
+		distance3d = GetNetworkCrystalCheckDistance(entity)
+	end
 	local planarAbs = math.abs(tonumber(entity and entity.distance2d) or math.huge)
 	return distance3d, planarAbs
 end
