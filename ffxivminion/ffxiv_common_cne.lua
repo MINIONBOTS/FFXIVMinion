@@ -2452,10 +2452,13 @@ function c_useaethernet:evaluate(mapid, pos)
 end
 -- Normalizes an aethernet row from the API into the format task code expects.
 -- API rows have WorldX/WorldZ/AethernetName; task code expects .pos and .conversationstrings
-local function PickNetworkCrystalApproachPos(rawPos, fallbackPos)
+local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDistance)
 	if (not table.valid(rawPos)) then
 		return fallbackPos
 	end
+
+	local crystalDistanceCap = tonumber(maxCrystalDistance)
+	local maxCandidateCrystalDistance = crystalDistanceCap and (crystalDistanceCap + 0.75) or nil
 
 	local candidates = {}
 	local function addCandidate(probePos, snapDistance)
@@ -2464,6 +2467,9 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos)
 		end
 		local meshPt = FindClosestMesh(probePos, snapDistance or 12, true)
 		if (not meshPt) then
+			return
+		end
+		if (maxCandidateCrystalDistance and math.distance3d(meshPt, rawPos) > maxCandidateCrystalDistance) then
 			return
 		end
 		for _, existing in ipairs(candidates) do
@@ -2482,6 +2488,9 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos)
 		local angleToPlayer = math.atan2(myPos.x - rawPos.x, myPos.z - rawPos.z)
 		local angleOffsets = { 0, math.rad(45), math.rad(-45) }
 		local radii = { 3, 6 }
+		if (crystalDistanceCap and crystalDistanceCap <= 4.5) then
+			radii = { 2, 3.5 }
+		end
 		for _, radius in ipairs(radii) do
 			for _, angleOffset in ipairs(angleOffsets) do
 				local angle = angleToPlayer + angleOffset
@@ -2495,6 +2504,9 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos)
 	end
 
 	if (not table.valid(myPos)) then
+		if (crystalDistanceCap) then
+			return candidates[1] or rawPos or fallbackPos
+		end
 		return candidates[1] or fallbackPos or rawPos
 	end
 
@@ -2522,6 +2534,9 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos)
 		end
 	end
 
+	if (crystalDistanceCap) then
+		return bestAcceptable or bestFallback or rawPos or fallbackPos
+	end
 	return bestAcceptable or bestFallback or fallbackPos or rawPos
 end
 
@@ -2529,7 +2544,8 @@ local function NormalizeAethernetRow(row)
 	if not row then return row end
 	if not row.pos and row.WorldX then
 		local rawPos = {x = row.WorldX, y = row.WorldY or 0, z = row.WorldZ}
-		row.pos = PickNetworkCrystalApproachPos(rawPos)
+		local approachCap = (row.IsAetheryte == true) and 9 or 4
+		row.pos = PickNetworkCrystalApproachPos(rawPos, nil, approachCap)
 	end
 	if not row.conversationstrings and row.AethernetName then
 		row.conversationstrings = row.AethernetName
@@ -4902,7 +4918,12 @@ function c_dointeract:evaluate()
 				if (not task.pathChecked) then
 					local meshpos = interactable.meshpos
 					if (c_dointeract_isNetworkCrystal(task, interactable)) then
-						task.pos = PickNetworkCrystalApproachPos(interactable.pos, meshpos)
+						local approachCap = 4
+						if (ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+							and ffxiv_map_nav.IsAetheryte(interactable.contentid)) then
+							approachCap = 9
+						end
+						task.pos = PickNetworkCrystalApproachPos(interactable.pos, meshpos, approachCap)
 					elseif (NavigationManager:IsReachable(meshpos)) then
 						task.pos = interactable.meshpos
 					end
