@@ -2428,6 +2428,9 @@ function ffxiv_task_moveaethernet:Init()
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 100 )
     self:add( ke_useNavInteraction, self.process_elements)
+
+	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 98 )
+	self:add( ke_interact, self.process_elements)
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 95 )
     self:add( ke_getMovementPath, self.process_elements)
@@ -2440,9 +2443,6 @@ function ffxiv_task_moveaethernet:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
-	
-	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
-    self:add( ke_interact, self.process_elements)
 	
 	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
     self:add( ke_walkToPos, self.process_elements)

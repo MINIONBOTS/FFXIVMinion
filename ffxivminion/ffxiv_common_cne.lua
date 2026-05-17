@@ -2508,13 +2508,19 @@ function GetNetworkCrystalInteractCap(task, entity)
 		return tonumber(task and task.interactRange3d)
 	end
 
+	local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+		and ffxiv_map_nav.IsAetheryte(entity.contentid)
+	local isAethernet = ffxiv_map_nav and ffxiv_map_nav.IsAethernet
+		and ffxiv_map_nav.IsAethernet(entity.contentid)
+	if (isAetheryte or isAethernet) then
+		return GetNetworkCrystalApproachCap(entity.pos, isAetheryte)
+	end
+
 	if (task.name == "QUEST_ATTUNEAETHERYTE") then
 		return GetNetworkCrystalApproachCap(entity.pos, true)
 	end
 
 	if (task.name == "MOVEAETHERNET") then
-		local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
-			and ffxiv_map_nav.IsAetheryte(entity.contentid)
 		return GetNetworkCrystalApproachCap(entity.pos, isAetheryte)
 	end
 
@@ -2524,6 +2530,14 @@ end
 function GetNetworkCrystalAttemptCap(task, entity)
 	if (not task or not entity or entity.type ~= 5) then
 		return tonumber(task and task.interactRange) or 4
+	end
+
+	local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+		and ffxiv_map_nav.IsAetheryte(entity.contentid)
+	local isAethernet = ffxiv_map_nav and ffxiv_map_nav.IsAethernet
+		and ffxiv_map_nav.IsAethernet(entity.contentid)
+	if (isAetheryte or isAethernet) then
+		return GetNetworkCrystalInteractCap(task, entity)
 	end
 
 	if (task.name == "QUEST_ATTUNEAETHERYTE") then
@@ -4862,6 +4876,23 @@ local function c_dointeract_isNetworkCrystal(task, entity)
 	return task.name == "MOVEAETHERNET" and tonumber(task.contentid) == tonumber(id)
 end
 
+local function c_dointeract_expectedTypes(task)
+	if (not task) then
+		return nil
+	end
+	local contentid = tonumber(task.contentid)
+	if (contentid and contentid ~= 0 and ffxiv_map_nav) then
+		if ((ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(contentid))
+			or (ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(contentid))) then
+			return {5}
+		end
+	end
+	if (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET") then
+		return {5}
+	end
+	return nil
+end
+
 -- 3D interact envelope. Aetherytes use a fixed 12-yalm cap; aethernet shards
 -- use 4 (close-approach only); everything else honors task.interactRange3d.
 local function c_dointeract_cap3d(task, entity)
@@ -4959,16 +4990,26 @@ function c_dointeract:evaluate()
 	-- Entity acquisition
 	-------------------------------------------------------------------
 	local interactable = nil
+	local expectedInteractTypes = c_dointeract_expectedTypes(task)
 	if (task.lastInteractableSearch == nil) then
 		task.lastInteractableSearch = 0
+	end
+	if (task.interact ~= 0) then
+		interactable = EntityList:Get(task.interact)
+		if (not interactable
+			or (IsNull(task.contentid, 0) ~= 0
+				and tonumber(interactable.contentid) ~= tonumber(task.contentid))) then
+			interactable = nil
+			task.interact = 0
+		end
 	end
 	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
 		if (IsNull(task.contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(task.contentid).."]",3)
-			local interactTypes = (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET") and {5} or nil
-			local nearestInteract = GetInteractableEntity(task.contentid, interactTypes)
+			local nearestInteract = GetInteractableEntity(task.contentid, expectedInteractTypes)
 			if (nearestInteract) then
 				task.interact = nearestInteract.id
+				interactable = nearestInteract
 			else
 				ml_debug("[DoInteract]: Didn't find any matching entities.",3)
 			end
@@ -4976,16 +5017,18 @@ function c_dointeract:evaluate()
 		end
 		
 		if (math.distance2d(ppos, task.pos) < 3 and math.distance3d(ppos, task.pos) < 4) then
-			local nearestInteract = GetInteractableEntity()
+			local nearestInteract = nil
+			if (IsNull(task.contentid, 0) ~= 0) then
+				nearestInteract = GetInteractableEntity(task.contentid, expectedInteractTypes)
+			else
+				nearestInteract = GetInteractableEntity()
+			end
 			if (nearestInteract) then
 				task.interact = nearestInteract.id
+				interactable = nearestInteract
 			end
 			task.lastInteractableSearch = Now()
 		end
-	end
-	
-	if (task.interact ~= 0) then
-		interactable = EntityList:Get(task.interact)
 	end
 	
 	-------------------------------------------------------------------
@@ -5176,12 +5219,12 @@ function c_dointeract:evaluate()
 	-- Triggered by task.forceinteract or by adaptive type-5 targets that are
 	-- both within the broad cap and already inside the tighter attempt envelope.
 	local withinCap = maxInteractDistance3d and effectiveDistance3d <= maxInteractDistance3d
-	local isNetworkCrystalTask = (task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "MOVEAETHERNET")
+	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
 	local bypassDistanceCap = c_dointeract_nudge2d(task, interactable)
 	local bypassDistance = c_dointeract_attemptDistance(task, interactable)
 	local withinBypassDistance = bypassDistance <= bypassDistanceCap
 	local bypassInteractableGate = withinCap and
-		(task.forceinteract or (isNetworkCrystalTask and withinBypassDistance))
+		(task.forceinteract or (isNetworkCrystalTarget and withinBypassDistance))
 
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold
