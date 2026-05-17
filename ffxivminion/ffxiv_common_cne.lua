@@ -2504,6 +2504,11 @@ function GetNetworkCrystalCheckDistance(entity)
 	if (not entity) then
 		return rawDistance
 	end
+	local isAetheryte = ffxiv_map_nav and ffxiv_map_nav.IsAetheryte
+		and ffxiv_map_nav.IsAetheryte(entity.contentid)
+	if (isAetheryte) then
+		return rawDistance
+	end
 	local edgeRadius = math.max(
 		tonumber(entity.hitradius) or 0,
 		tonumber(entity.radius) or 0
