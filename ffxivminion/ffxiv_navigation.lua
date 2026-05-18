@@ -66,6 +66,79 @@ ml_navigation_exact = {
 	requestSeq = 0,
 	lastRequestId = nil,
 }
+local function GetIceData(data)
+	d("[IceSQL] Query callback success=" .. tostring(data and data.success)
+		.. " rows=" .. tostring(data and data.rows and #data.rows or 0)
+		.. " error=" .. tostring(data and data.error))
+    if (data~=nil and data.success and data.rows~=nil) then
+        ml_navigation.icecache = {}
+		d("Created ml_navigation.icecache onsuccess get ice floor buff ids")
+		for i, row in pairs(data.rows) do
+            ml_navigation.icecache[tonumber(row.RowId)] = true
+        end        
+    end    
+    d("Loaded ice floor buffids: " .. json.encode(ml_navigation.icecache))
+end
+
+local function isOnIce(node,key,now)
+	if (ml_navigation.icecache == nil) then
+		local loaded = Data:IsTableLoaded("Status")    
+		if (ml_navigation.iceLastStatusLoaded ~= loaded) then
+			ml_navigation.iceLastStatusLoaded = loaded
+			d("[IceSQL] Status loaded=" .. tostring(loaded)
+				.. " cacheNil=" .. tostring(ml_navigation.icecache == nil))
+		end
+		if (not loaded) then
+			if (not ml_navigation.iceStatusLoadRequested) then
+				ml_navigation.iceStatusLoadRequested = true
+				d("[IceSQL] Requesting Status load")
+			end
+			Data:LoadTableAsync("Status", function(loadResult)
+				d("[IceSQL] Load callback success=" .. tostring(loadResult and loadResult.success)
+					.. " loadedNow=" .. tostring(Data and Data.IsTableLoaded and Data:IsTableLoaded("Status"))
+					.. " result=" .. tostring(loadResult))
+			end)
+			return false
+		end
+		if (loaded) then
+			if (not ml_navigation.iceStatusQueryRequested) then
+				ml_navigation.iceStatusQueryRequested = true
+				d("[IceSQL] Querying Status for ice rows sql=SELECT RowId FROM Status WHERE Unknown0 = 76 key=''")
+			end
+			Data:QueryAsync("","SELECT RowId FROM Status WHERE Unknown0 = 76",GetIceData)
+			return false
+		end		
+	end
+    local onice = false
+    for _,e in pairs (Player.buffs) do
+        if (ml_navigation.icecache[e.id]~=nil) then
+            onice = true
+        end
+    end
+    if (onice) then
+        if (Player.action == 3788) then
+            ml_navigation:DisableAutoFollow(true, "MoveTo on Ice")
+			ml_navigation_exact.ResetAutoFollowState()
+			ml_navigation_exact.path = {}
+			ml_navigation.path = {}
+            --currently sliding on ice. We do not want to move to a node that may be behind us
+            return true
+        end
+        Player:SetAutoFollowOn(false)
+        Player:SetFacing(node.x, node.y, node.z)
+		if (Player.settings.movemode~=0) then
+			local heading = DegreesToHeading(AngleFromPos(node,Player.pos))
+			Player:SetCamH(heading)        
+			--for legacy movement, set facing as FFXIV.MOVEMENT.FORWARD == /automove which moves in the direction of the camera
+		end
+        Player:Move(FFXIV.MOVEMENT.FORWARD)
+        d("On ice, set facing, FORWARD")
+		ml_navigation.autoFollowNodeKey = key
+		ml_navigation.autoFollowLastSet = now        
+        return true
+    end	
+	return onice
+end
 
 local function BuildMoveToExactCacheId(startPos, goalPos)
 	ml_navigation_exact.requestSeq = (ml_navigation_exact.requestSeq or 0) + 1
@@ -655,6 +728,9 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 	local now = Now()
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
 	local keyChanged = (key ~= self.autoFollowNodeKey)
+	if (isOnIce(node,key,now)) then
+		return false
+	end	
 	if (force or keyChanged or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
 		self:BeginAutoFollowDispatch()
 		Player:SetAutoFollowPos(node.x, node.y, node.z)
@@ -1553,13 +1629,12 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	end
 
 	-- Clean slate
-	ml_navigation:DisableAutoFollow(true, "MoveToExact start")
-
 	if (ml_navigation.canPath) then
+		ml_navigation:DisableAutoFollow(true, "MoveToExact start")
 		ml_navigation:DisablePathing()
+		ml_navigation:ResetCurrentPath()
 	end
 
-	ml_navigation_exact.Reset()
 
 	local ppos = Player.pos
 	if (not ppos) then return -1 end
@@ -1593,6 +1668,7 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 			ml_navigation.TagNode(node)
 		end
 		ml_navigation_exact.OptimizeCachedPath(ppos, noSmoothing)
+		ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
 		return table.size(ml_navigation_exact.path)
 	elseif (type(result) == "number" and result > 0) then
 		ml_navigation_exact.active = true
@@ -1702,6 +1778,35 @@ function ml_navigation_exact.OptimizeCachedPath(ppos, disableSmoothing)
 	return true
 end
 
+function ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
+	local self = ml_navigation_exact
+	if (not ppos or not table.valid(self.path)) then
+		return false
+	end
+
+	local skipped = false
+	local anchorThreshold = math.max(self.threshold or 0.2, 0.35)
+	while (self.path[self.pathindex] ~= nil and self.path[self.pathindex + 1] ~= nil) do
+		local nextnode = self.path[self.pathindex]
+		if (nextnode.navconnectionid and nextnode.navconnectionid ~= 0) then
+			break
+		end
+		local dist2d = math.distance2d(ppos, nextnode)
+		local yDelta = (nextnode.y and ppos.y) and math.abs(ppos.y - nextnode.y) or 0
+		local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 1.5))
+		if (dist2d > anchorThreshold or not withinVertical) then
+			break
+		end
+		self.pathindex = self.pathindex + 1
+		skipped = true
+	end
+
+	if (skipped) then
+		ml_navigation_exact.ResetAutoFollowState()
+	end
+	return skipped
+end
+
 function ml_navigation_exact.GetDispatchTargetY(node, ppos)
 	if (not node) then
 		return (ppos and ppos.y) or nil
@@ -1721,6 +1826,9 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(ml_navigation_exact.pathindex)
 	local keyChanged = (key ~= ml_navigation_exact.autoFollowNodeKey)
 	local targetY = ml_navigation_exact.GetDispatchTargetY(node, ppos)
+	if (isOnIce(node,key,now)) then
+		return false
+	end
 	if (force or keyChanged or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
 		ml_navigation:BeginAutoFollowDispatch()
 		Player:SetAutoFollowPos(node.x, targetY, node.z)
@@ -2589,6 +2697,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 				ml_navigation.TagNode(node)
 			end
 			ml_navigation_exact.OptimizeCachedPath(ppos)
+			ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
 			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
 		elseif (type(result) == "number" and result > 0) then
 			return
