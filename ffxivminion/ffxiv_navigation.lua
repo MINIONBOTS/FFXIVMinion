@@ -2986,7 +2986,8 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		end
 
 		if (interactnpc) then
-			if (not Player:IsInteracting()) then
+			local channelingid = IsNull(Player.castinginfo and Player.castinginfo.channelingid, 0)
+			if (channelingid == 0) then
 				Player:Interact(interactnpc.id)
 				self.lastupdate = self.lastupdate + 1000
 			end
