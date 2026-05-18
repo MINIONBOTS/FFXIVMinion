@@ -2696,7 +2696,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 			for _, node in pairs(ml_navigation_exact.path) do
 				ml_navigation.TagNode(node)
 			end
-			ml_navigation_exact.OptimizeCachedPath(ppos)
+			ml_navigation_exact.OptimizeCachedPath(ppos, ml_navigation_exact.disableSmoothing)
 			ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
 			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
 		elseif (type(result) == "number" and result > 0) then
