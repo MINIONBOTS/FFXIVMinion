@@ -543,7 +543,10 @@ ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0
 ml_navigation.autoFollowOnLastSet = 0
 ml_navigation.navAutoFollowOwned = false
-ml_navigation.navAutoFollowOwner = nil
+ml_navigation.autoFollowDispatchDepth = 0
+ml_navigation.autoFollowHookInstalled = false
+ml_navigation.lastExternalAutoFollowActivity = 0
+ml_navigation.externalAutoFollowGraceMs = 500
 
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
@@ -591,6 +594,49 @@ function ml_navigation:ResetAutoFollowState()
 	self.autoFollowLastSet = 0
 end
 
+function ml_navigation:BeginAutoFollowDispatch()
+	self.autoFollowDispatchDepth = (self.autoFollowDispatchDepth or 0) + 1
+	self.navAutoFollowOwned = true
+end
+
+function ml_navigation:EndAutoFollowDispatch()
+	self.autoFollowDispatchDepth = math.max((self.autoFollowDispatchDepth or 1) - 1, 0)
+end
+
+function ml_navigation:IsNavAutoFollowDispatchActive()
+	return ((self.autoFollowDispatchDepth or 0) > 0)
+end
+
+function ml_navigation:InstallAutoFollowHooks()
+	if (self.autoFollowHookInstalled) then
+		return true
+	end
+	if (not Player or not Player.SetAutoFollowOn or not Player.SetAutoFollowPos) then
+		return false
+	end
+
+	local originalSetAutoFollowOn = Player.SetAutoFollowOn
+	Player.SetAutoFollowOn = function(playerSelf, enabled, ...)
+		if (enabled and not ml_navigation:IsNavAutoFollowDispatchActive()) then
+			ml_navigation.lastExternalAutoFollowActivity = Now()
+			ml_navigation.navAutoFollowOwned = false
+		end
+		return originalSetAutoFollowOn(playerSelf, enabled, ...)
+	end
+
+	local originalSetAutoFollowPos = Player.SetAutoFollowPos
+	Player.SetAutoFollowPos = function(playerSelf, x, y, z, ...)
+		if (not ml_navigation:IsNavAutoFollowDispatchActive()) then
+			ml_navigation.lastExternalAutoFollowActivity = Now()
+			ml_navigation.navAutoFollowOwned = false
+		end
+		return originalSetAutoFollowPos(playerSelf, x, y, z, ...)
+	end
+
+	self.autoFollowHookInstalled = true
+	return true
+end
+
 function ml_navigation:DisableAutoFollow(force, source)
 	if (Player and Player.SetAutoFollowOn) then
 		if (force or self:IsAutoFollowActive()) then
@@ -598,6 +644,7 @@ function ml_navigation:DisableAutoFollow(force, source)
 		end
 	end
 	self:ResetAutoFollowState()
+	self.navAutoFollowOwned = false
 end
 
 function ml_navigation:DispatchAutoFollowNode(node, force)
@@ -609,11 +656,12 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 	local key = tostring(math.round(node.x, 2)) .. ":" .. tostring(math.round(node.y, 2)) .. ":" .. tostring(math.round(node.z, 2)) .. ":" .. tostring(self.pathindex)
 	local keyChanged = (key ~= self.autoFollowNodeKey)
 	if (force or keyChanged or TimeSince(self.autoFollowLastSet) >= self.autoFollowRefreshMs) then
+		self:BeginAutoFollowDispatch()
 		Player:SetAutoFollowPos(node.x, node.y, node.z)
+		self:EndAutoFollowDispatch()
 		self.autoFollowNodeKey = key
 		self.autoFollowLastSet = now
 		self.navAutoFollowOwned = true
-		self.navAutoFollowOwner = "moveto"
 	end
 
 	-- Re-enable throttle: the game can flip AutoFollow back to 0 on its own
@@ -621,11 +669,13 @@ function ml_navigation:DispatchAutoFollowNode(node, force)
 	-- re-arm here the player silently stops moving mid-path.
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
 		if (keyChanged or TimeSince(self.autoFollowOnLastSet or 0) >= self.autoFollowRefreshMs) then
+			self:BeginAutoFollowDispatch()
 			Player:SetAutoFollowPos(node.x, node.y, node.z)
 			self.autoFollowNodeKey = key
 			self.autoFollowLastSet = now
 			self.autoFollowOnLastSet = now
 			Player:SetAutoFollowOn(true)
+			self:EndAutoFollowDispatch()
 		end
 	end
 	return true
@@ -1672,20 +1722,23 @@ function ml_navigation_exact.DispatchAutoFollow(node, ppos, force)
 	local keyChanged = (key ~= ml_navigation_exact.autoFollowNodeKey)
 	local targetY = ml_navigation_exact.GetDispatchTargetY(node, ppos)
 	if (force or keyChanged or TimeSince(ml_navigation_exact.autoFollowLastSet) >= ml_navigation_exact.autoFollowRefreshMs) then
+		ml_navigation:BeginAutoFollowDispatch()
 		Player:SetAutoFollowPos(node.x, targetY, node.z)
+		ml_navigation:EndAutoFollowDispatch()
 		ml_navigation_exact.autoFollowNodeKey = key
 		ml_navigation_exact.autoFollowLastSet = now
 		ml_navigation.navAutoFollowOwned = true
-		ml_navigation.navAutoFollowOwner = "movetoexact"
 	end
 
 	if (not Player.IsAutoFollowOn or not Player:IsAutoFollowOn()) then
 		if (keyChanged or TimeSince(ml_navigation_exact.autoFollowOnLastSet or 0) >= ml_navigation_exact.autoFollowRefreshMs) then
+			ml_navigation:BeginAutoFollowDispatch()
 			Player:SetAutoFollowPos(node.x, targetY, node.z)
 			ml_navigation_exact.autoFollowNodeKey = key
 			ml_navigation_exact.autoFollowLastSet = now
 			ml_navigation_exact.autoFollowOnLastSet = now
 			Player:SetAutoFollowOn(true)
+			ml_navigation:EndAutoFollowDispatch()
 		end
 	end
 	return true
@@ -1746,6 +1799,8 @@ ml_navigation.lastindexgoal = {}
 -- Main Navigate() Loop — AutoFollow Only
 ------------------------------------------------------------
 function ml_navigation.Navigate(event, ticks)
+	ml_navigation:InstallAutoFollowHooks()
+
 	-- MoveToExact priority guard
 	if (ml_navigation_exact.active) then
 		ml_navigation_exact.Navigate(event, ticks)
@@ -1756,6 +1811,16 @@ function ml_navigation.Navigate(event, ticks)
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then
 		ml_navigation.lastupdate = ticks
 		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
+			local externalAutoFollowRecent = ((ml_navigation.lastExternalAutoFollowActivity or 0) ~= 0)
+				and (TimeSince(ml_navigation.lastExternalAutoFollowActivity) <= (ml_navigation.externalAutoFollowGraceMs or 500))
+			local allowExternalAutoFollow = (ml_navigation.CanRun()
+				and not ml_navigation.canPath
+				and not ml_navigation.debug
+				and not ml_navigation.navAutoFollowOwned
+				and (externalAutoFollowRecent or ml_navigation:IsAutoFollowActive()))
+			if (allowExternalAutoFollow) then
+				return
+			end
 			ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
 			return
 		end

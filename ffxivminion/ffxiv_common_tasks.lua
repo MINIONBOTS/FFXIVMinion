@@ -1653,13 +1653,6 @@ function ffxiv_task_grindCombat:Process()
 				if (Player.ismounted) then
 					Dismount()
 				end				
-				if (Player:IsMoving() and not IsFlying()) then
-					Player:Stop()
-					--d("Need to stop so we can cast.")
-					if (IsCaster(Player.job)) then
-						return
-					end
-				end
 				--if (not EntityIsFrontTight(target)) then
 					--d("Need to face the enemy so we can cast.")
 					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
@@ -1737,9 +1730,6 @@ function ffxiv_task_grindCombat:Process()
 					end
 				else
 					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
-					if (Player:IsMoving() and InCombatRange(target.id)) then
-						Player:Stop()
-					end
 					-- Check for combat range before executing.
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 						local casted = SkillMgr.Cast( target )
