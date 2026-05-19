@@ -66,78 +66,66 @@ ml_navigation_exact = {
 	requestSeq = 0,
 	lastRequestId = nil,
 }
-local function GetIceData(data)
-	d("[IceSQL] Query callback success=" .. tostring(data and data.success)
-		.. " rows=" .. tostring(data and data.rows and #data.rows or 0)
-		.. " error=" .. tostring(data and data.error))
-    if (data~=nil and data.success and data.rows~=nil) then
-        ml_navigation.icecache = {}
-		d("Created ml_navigation.icecache onsuccess get ice floor buff ids")
-		for i, row in pairs(data.rows) do
-            ml_navigation.icecache[tonumber(row.RowId)] = true
-        end        
-    end    
-    d("Loaded ice floor buffids: " .. json.encode(ml_navigation.icecache))
-end
-
 local function isOnIce(node,key,now)
 	if (ml_navigation.icecache == nil) then
-		local loaded = Data:IsTableLoaded("Status")    
-		if (ml_navigation.iceLastStatusLoaded ~= loaded) then
-			ml_navigation.iceLastStatusLoaded = loaded
-			d("[IceSQL] Status loaded=" .. tostring(loaded)
-				.. " cacheNil=" .. tostring(ml_navigation.icecache == nil))
-		end
-		if (not loaded) then
-			if (not ml_navigation.iceStatusLoadRequested) then
-				ml_navigation.iceStatusLoadRequested = true
-				d("[IceSQL] Requesting Status load")
+		local statusApi = FFXIVLib and FFXIVLib.API and FFXIVLib.API.Status
+		if (not statusApi or not statusApi.GetStatusesByUnknown0) then
+			if (not ml_navigation.iceMissingApiLogged) then
+				ml_navigation.iceMissingApiLogged = true
+				d("[IceSQL] FFXIVLib status API unavailable for ice lookup")
 			end
-			Data:LoadTableAsync("Status", function(loadResult)
-				d("[IceSQL] Load callback success=" .. tostring(loadResult and loadResult.success)
-					.. " loadedNow=" .. tostring(Data and Data.IsTableLoaded and Data:IsTableLoaded("Status"))
-					.. " result=" .. tostring(loadResult))
-			end)
 			return false
 		end
-		if (loaded) then
+
+		local iceStatusGroupId = 76
+		local cacheKey = tostring(iceStatusGroupId)
+		local statusCache = statusApi._byUnknown0
+		local statusRows = statusApi.GetStatusesByUnknown0(iceStatusGroupId)
+		if (not statusRows) then
 			if (not ml_navigation.iceStatusQueryRequested) then
 				ml_navigation.iceStatusQueryRequested = true
-				d("[IceSQL] Querying Status for ice rows sql=SELECT RowId FROM Status WHERE Unknown0 = 76 key=''")
+				local isPending = statusCache and statusCache:IsPending(cacheKey)
+				local queryState = isPending and "Awaiting" or "Querying"
+				d("[IceSQL] " .. queryState .. " FFXIVLib status cache for ice rows Unknown0=" .. cacheKey)
 			end
-			Data:QueryAsync("","SELECT RowId FROM Status WHERE Unknown0 = 76",GetIceData)
 			return false
-		end		
-	end
-    local onice = false
-    for _,e in pairs (Player.buffs) do
-        if (ml_navigation.icecache[e.id]~=nil) then
-            onice = true
-        end
-    end
-    if (onice) then
-        if (Player.action == 3788) then
-            ml_navigation:DisableAutoFollow(true, "MoveTo on Ice")
-			ml_navigation_exact.ResetAutoFollowState()
-			ml_navigation_exact.path = {}
-			ml_navigation.path = {}
-            --currently sliding on ice. We do not want to move to a node that may be behind us
-            return true
-        end
-        Player:SetAutoFollowOn(false)
-        Player:SetFacing(node.x, node.y, node.z)
-		if (Player.settings.movemode~=0) then
-			local heading = DegreesToHeading(AngleFromPos(node,Player.pos))
-			Player:SetCamH(heading)        
-			--for legacy movement, set facing as FFXIV.MOVEMENT.FORWARD == /automove which moves in the direction of the camera
 		end
-        Player:Move(FFXIV.MOVEMENT.FORWARD)
-        d("On ice, set facing, FORWARD")
-		ml_navigation.autoFollowNodeKey = key
-		ml_navigation.autoFollowLastSet = now        
-        return true
-    end	
-	return onice
+
+		local iceStatusIds = {}
+		for _, statusRow in pairs(statusRows) do
+			local statusId = tonumber(statusRow.id or statusRow.RowId)
+			if (statusId ~= nil) then
+				iceStatusIds[statusId] = true
+			end
+		end
+		ml_navigation.icecache = iceStatusIds
+		d("[IceSQL] Loaded ice floor buffids from FFXIVLib: " .. json.encode(ml_navigation.icecache))
+	end
+	for _, buff in pairs(Player.buffs) do
+		if (ml_navigation.icecache[buff.id] ~= nil) then
+			if (Player.action == 3788) then
+				ml_navigation:DisableAutoFollow(true, "MoveTo on Ice")
+				ml_navigation_exact.ResetAutoFollowState()
+				ml_navigation_exact.path = {}
+				ml_navigation.path = {}
+				--currently sliding on ice. We do not want to move to a node that may be behind us
+				return true
+			end
+			Player:SetAutoFollowOn(false)
+			Player:SetFacing(node.x, node.y, node.z)
+			if (Player.settings.movemode~=0) then
+				local heading = DegreesToHeading(AngleFromPos(node,Player.pos))
+				Player:SetCamH(heading)        
+				--for legacy movement, set facing as FFXIV.MOVEMENT.FORWARD == /automove which moves in the direction of the camera
+			end
+			Player:Move(FFXIV.MOVEMENT.FORWARD)
+			d("On ice, set facing, FORWARD")
+			ml_navigation.autoFollowNodeKey = key
+			ml_navigation.autoFollowLastSet = now        
+			return true
+		end
+	end
+	return false
 end
 
 local function BuildMoveToExactCacheId(startPos, goalPos)

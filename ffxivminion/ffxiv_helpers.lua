@@ -3886,21 +3886,72 @@ function GetAetheryteList(force, attunementFlag)
 	local result = {}
 	local list = ml_global_information.Player_Aetherytes
 	if (table.valid(list)) then
-		for _, aetheryte in pairs(list) do
+		for key, aetheryte in pairs(list) do
 			if (attunementFlag == 1 and aetheryte.isattuned)
 				or (attunementFlag == 2 and not aetheryte.isattuned) then
-				table.insert(result, aetheryte)
+				result[aetheryte.id or key] = aetheryte
 			end
 		end
 	end
 	return result
 end
+local function MergeAetheryteData(aetheryte, row)
+	if (type(aetheryte) ~= "table") then
+		return aetheryte
+	end
+
+	local shardId = aetheryte.id
+	if (type(row) == "table") then
+		local territoryId = row.TerritoryId or row.territory
+		local worldY = row.WorldY
+		if (worldY == nil) then
+			worldY = aetheryte.y or 0
+		end
+
+		shardId = shardId or row.AetheryteId or row.id
+		aetheryte.id = shardId
+		aetheryte.aethid = row.AetheryteId or row.id or aetheryte.aethid or shardId
+		aetheryte.AetheryteId = row.AetheryteId or row.id or shardId
+		aetheryte.territory = territoryId or aetheryte.territory
+		aetheryte.TerritoryId = territoryId or aetheryte.TerritoryId or aetheryte.territory
+		aetheryte.AethernetGroup = row.AethernetGroup
+		aetheryte.AethernetName = row.AethernetName or aetheryte.AethernetName
+		aetheryte.conversationstrings = aetheryte.conversationstrings or row.AethernetName
+		aetheryte.IsAetheryte = row.IsAetheryte
+		aetheryte.Invisible = row.Invisible
+		aetheryte.RequiredQuest = row.RequiredQuest
+		if (row.WorldX ~= nil and row.WorldZ ~= nil) then
+			aetheryte.WorldX = row.WorldX
+			aetheryte.WorldY = worldY
+			aetheryte.WorldZ = row.WorldZ
+			aetheryte.x = row.WorldX
+			aetheryte.y = worldY
+			aetheryte.z = row.WorldZ
+			aetheryte.pos = { x = row.WorldX, y = worldY, z = row.WorldZ }
+		end
+	end
+
+	shardId = shardId or aetheryte.aethid or aetheryte.AetheryteId
+	if (shardId) then
+		aetheryte.aethid = aetheryte.aethid or shardId
+		aetheryte.AetheryteId = aetheryte.AetheryteId or shardId
+	end
+	if (aetheryte.territory ~= nil) then
+		aetheryte.TerritoryId = aetheryte.TerritoryId or aetheryte.territory
+	end
+	if (not aetheryte.pos and aetheryte.x ~= nil and aetheryte.z ~= nil) then
+		aetheryte.pos = { x = aetheryte.x, y = aetheryte.y or 0, z = aetheryte.z }
+	end
+
+	return aetheryte
+end
 function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
 	if (table.valid(apiList)) then
 		local aethData = {}
+		local dict = FFXIVLib.API.Map.GetAethernetDictionary()
 		for i,aetheryte in pairs(apiList) do
-			aethData[i] = {
+			local entry = {
 				ptr = aetheryte.ptr,
 				id = aetheryte.id,
 				name = aetheryte.name,
@@ -3912,6 +3963,7 @@ function CopyAetheryteData()
 				price = aetheryte.price,
 				isattuned = aetheryte.isattuned,
 			}
+			aethData[aetheryte.id or i] = MergeAetheryteData(entry, dict and dict[aetheryte.id])
 		end
 		return aethData
 	end
@@ -3930,8 +3982,7 @@ function GetLocalAetheryte()
     return nil
 end
 function GetAttunedAetheryteList(force)
-	if force then GetAetheryteList(true) end
-	return FFXIVLib.API.Map.GetAetherytes(1)
+	return GetAetheryteList(force, 1)
 end
 function GetUnattunedAetheryteList()
 	local aethList = {}
@@ -3939,7 +3990,7 @@ function GetUnattunedAetheryteList()
 	if not dict then return aethList end
 
 	for aethId, row in pairs(dict) do
-		if row.IsAetheryte == true and FFXIVLib.API.Map.CanAttuneAetheryte(row) then
+		if type(row) == "table" and row.IsAetheryte == true and FFXIVLib.API.Map.CanAttuneAetheryte(row) then
 			-- Remap new field names to old-compatible shape
 			aethList[aethId] = {
 				aethid = aethId,
@@ -4097,11 +4148,11 @@ end
 function GetHomepoint()
 	local homepoint = 0
 	
-	local list = FFXIVLib.API.Map.GetAetherytes(1)
+	local list = GetAttunedAetheryteList()
 	if (table.valid(list)) then
 		for _, aetheryte in pairs(list) do
 			if (aetheryte.ishomepoint) then
-				homepoint = aetheryte.territory
+				homepoint = aetheryte.TerritoryId or aetheryte.territory
 			end
 		end
 	end
@@ -4113,9 +4164,13 @@ function GetAetheryteByID(id,force)
 	
 	local list = GetAetheryteList(force)
 	if (table.valid(list)) then
-		for index,aetheryte in pairs(list) do
-			if (aetheryte.id == aethid) then
-				return aetheryte
+		local aetheryte = list[aethid]
+		if (type(aetheryte) == "table") then
+			return MergeAetheryteData(aetheryte, FFXIVLib.API.Map.GetAetheryteById(aethid))
+		end
+		for _, entry in pairs(list) do
+			if (entry.id == aethid) then
+				return MergeAetheryteData(entry, FFXIVLib.API.Map.GetAetheryteById(aethid))
 			end
 		end
 	end
@@ -4295,13 +4350,15 @@ function GetAetheryteByMapID(mapid, p)
 	-- For zones where terrain makes straight-line distance misleading.
 	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[mapid]
 
-	local list = FFXIVLib.API.Map.GetAetherytes(1)
+	local list = GetAttunedAetheryteList()
 	if (table.valid(list)) then
+		local aethData = FFXIVLib.API.Map.GetAetherytesByMapId(mapid)
 		-- Build list of affordable, unlocked aetherytes on this map
 		local candidates = {}
 		for _, aetheryte in pairs(list) do
 			if aetheryte.territory == mapid and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id) then
-				candidates[#candidates+1] = aetheryte
+				local row = aethData and aethData[aetheryte.id] or FFXIVLib.API.Map.GetAetheryteById(aetheryte.id)
+				candidates[#candidates+1] = MergeAetheryteData(aetheryte, row)
 			end
 		end
 
@@ -4354,9 +4411,8 @@ function GetAetheryteByMapID(mapid, p)
 		-- Distance-based fallback: pick closest aetheryte to destination
 		local best = nil
 		local bestDist = math.huge
-		local aethData = FFXIVLib.API.Map.GetAetherytesByMapId(mapid)
 		for _, c in ipairs(candidates) do
-			local row = aethData and aethData[c.id]
+			local row = aethData and aethData[c.id] or FFXIVLib.API.Map.GetAetheryteById(c.id)
 			local dist
 			if row and row.WorldX and row.WorldZ then
 				dist = Distance2D(pos.x, pos.z, row.WorldX, row.WorldZ)
@@ -4380,6 +4436,10 @@ end
 function GetAetheryteLocation(id)
 	local aethid = tonumber(id) or 0
 	if aethid == 0 then return nil end
+	local aetheryte = GetAetheryteByID(aethid)
+	if (aetheryte and aetheryte.x ~= nil and aetheryte.z ~= nil) then
+		return {x = aetheryte.x, y = aetheryte.y, z = aetheryte.z}
+	end
 	local row = FFXIVLib.API.Map.GetAetheryteById(aethid)
 	if not row then return nil end
 	return {x = row.WorldX, y = row.WorldY, z = row.WorldZ}
@@ -4387,15 +4447,9 @@ end
 function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
-		local list = FFXIVLib.API.Map.GetAetherytes(1)
-		if (table.valid(list)) then
-			for _, aetheryte in pairs(list) do
-				if (aetheryte.id == aethid) then
-					if (GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
-						return true
-					end
-				end
-			end
+		local aetheryte = GetAetheryteByID(aethid)
+		if (aetheryte and GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
+			return true
 		end
 	end
 	
@@ -4905,26 +4959,22 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 
 	-- includehq=true: NQ+HQ combined (C++ GetItemCount matches by base ID, returns NQ+HQ)
 	if (includehq) then
-		d("ItemCount debug: counting NQ+HQ for base ID "..tostring(hqid))
 		return Inventory:GetItemCount(hqid)
 	end
 
 	-- HQ-offset ID (1000000 <= hqid < 1500000): count only HQ items for that base ID
 	if (hqid >= 1000000 and hqid < 1500000) then
-		d("ItemCount debug: counting HQ for base ID "..tostring(hqid - 1000000))
 		return Inventory:GetItemCountHQ(hqid - 1000000)
 	end
 
 	-- Collectable-offset ID (500000 <= hqid < 1000000): count collectable items via C++
 	if (hqid >= 500000 and hqid < 1000000) then
-		d("ItemCount debug: counting collectables for base ID "..tostring(hqid - 500000))
 		return Inventory:GetItemCountCollectable(hqid - 500000)
 	end
 
 	-- Default: NQ-only count by base ID via C++ (subtract HQ to match original hqid-based semantics)
 	local total = Inventory:GetItemCount(hqid)
 	local hqCount = Inventory:GetItemCountHQ(hqid)
-	d("ItemCount debug: total="..tostring(total)..", hqCount="..tostring(hqCount))
 
 	return total - hqCount
 end
