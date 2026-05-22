@@ -4145,10 +4145,10 @@ function GetUnattunedCurrents()
 	return currentList
 end
 
-function GetHomepoint()
+function GetHomepoint(force)
 	local homepoint = 0
 	
-	local list = GetAttunedAetheryteList()
+	local list = GetAttunedAetheryteList(force)
 	if (table.valid(list)) then
 		for _, aetheryte in pairs(list) do
 			if (aetheryte.ishomepoint) then

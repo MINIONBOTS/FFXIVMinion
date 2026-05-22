@@ -979,7 +979,7 @@ function c_sethomepoint:evaluate()
 		return false
 	end
 	
-	local homepoint = GetHomepoint()
+	local homepoint = GetHomepoint(true)
 	if (homepoint ~= 0) then
 		d("homepoint is ["..tostring(homepoint).."] and current mapid is ["..tostring(ml_task_hub:CurrentTask().mapID).."]")
 		if (homepoint ~= ml_task_hub:CurrentTask().mapID) then
@@ -1041,7 +1041,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	
 	if (IsControlOpen("SelectYesno")) then
 		PressYesNo(true)
-		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
+		ml_global_information.Await(1500, function () return GetHomepoint(true) == Player.localmapid end)
 		return
 	end
 	
@@ -1051,7 +1051,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
-		local homepoint = GetHomepoint()
+		local homepoint = GetHomepoint(true)
 		if (homepoint ~= self.mapID) then
 			--d("homepoint doesn't match the mapid")
 			return false
