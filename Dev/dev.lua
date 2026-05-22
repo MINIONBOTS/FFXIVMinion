@@ -2765,6 +2765,24 @@ function dev.DrawCall(event, ticks )
 						if GUI:SmallButton("Spy Off##spy_raw_off") then
 							UIEvent(ua.rawSpyId, "spy", false)
 						end
+						GUI:Separator()
+						-- Spy ALL indices (0..NumAgents-1) — useful to discover which agent
+						-- handles a UI element without knowing its index in advance.
+						GUI:TextColored(1,0.8,0,1,"Spy every slot (0-508):")
+						GUI:SameLine()
+						if GUI:SmallButton("Spy All (idx)##spy_all_idx") then
+							ua.spyAllActive = true
+							UIAgentSpyAll(true)
+						end
+						GUI:SameLine()
+						if GUI:SmallButton("Spy None (idx)##spy_none_idx") then
+							ua.spyAllActive = false
+							UIAgentSpyAll(false)
+						end
+						if ua.spyAllActive then
+							GUI:SameLine()
+							GUI:TextColored(0,1,0,1," [ALL ACTIVE]")
+						end
 					else
 						-- Name mode: Spy All / Spy None + per-agent checkbox list
 						if GUI:SmallButton("Spy All") then
@@ -2795,6 +2813,24 @@ function dev.DrawCall(event, ticks )
 						GUI:EndChild()
 					end
 
+					-- ── Live pipeline stats (updated every frame) ──────────────────────────────
+					GUI:Separator()
+					if UIAgentGetSpyStats then
+						do
+							local spied, hooked, fired = UIAgentGetSpyStats()
+							GUI:TextColored(0.5,1,1,1, string.format(
+								"[Debug] Spied-set: %d  |  VMT-hooks: %d  |  Hook-fires: %d",
+								spied or 0, hooked or 0, fired or 0))
+							if (fired or 0) > 0 and (hooked or 0) == 0 then
+								GUI:TextColored(1,0,0,1,"  !! Hook fired but no VMT hooks active?")
+							end
+							if (spied or 0) > 0 and (hooked or 0) == 0 then
+								GUI:TextColored(1,1,0,1,"  (waiting for agents to become alive)")
+							end
+						end
+					else
+						GUI:TextColored(1,0.5,0,1,"[Debug] UIAgentGetSpyStats not available (rebuild needed)")
+					end
 					-- ── Captured event log (populated by Game.UIEvent handler) ────────────────
 					GUI:Separator()
 					dev.uiEventLog = dev.uiEventLog or {}

@@ -2390,6 +2390,9 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("repair"), gRepair), "gRepair");
 					GUI:SameLine(0, 15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running") .. "##repair", gRepairRunningOnly), "gRepairRunningOnly")
+					GUI_Capture(GUI:Checkbox(GetString("disabledrawing"), gDisableDrawing), "gDisableDrawing", function()
+						Hacks:Disable3DRendering(gDisableDrawing)
+					end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"), gTeleportHack), "gTeleportHack",
 							function()
 								if (gBotMode == "dutyMode") then
