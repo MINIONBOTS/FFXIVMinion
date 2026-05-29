@@ -59,7 +59,7 @@ ml_navigation_exact = {
 	autoFollowOnLastSet = 0,
 	autoFollowRefreshMs = 200,
 	maxDispatchYDelta = 8,
-	verticalThreshold = 1.5,
+	verticalThreshold = 3,
 	reachedLogged = false,
 	completed = false,
 	lastOptimize = 0,
@@ -995,7 +995,8 @@ ml_navigation.GUI = {
 function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
 	local dist = math.distance3d(ppos,nodepos)
 	local dist2d = math.distance2d(ppos,nodepos)
-	if ( not IsFlying() ) then
+	local isDiveMove = (IsDiving() or (Player.diving and Player.diving.isdiving))
+	if ( not IsFlying() and not isDiveMove ) then
 		if ( dist2d < 5 ) then
 			local hit, hitx, hity, hitz = RayCast(nodepos.x,nodepos.y+2,nodepos.z,nodepos.x,nodepos.y-3,nodepos.z)
 			if ( hit ) then
@@ -1781,7 +1782,7 @@ function ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
 		end
 		local dist2d = math.distance2d(ppos, nextnode)
 		local yDelta = (nextnode.y and ppos.y) and math.abs(ppos.y - nextnode.y) or 0
-		local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 1.5))
+		local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 3))
 		if (dist2d > anchorThreshold or not withinVertical) then
 			break
 		end
@@ -2341,7 +2342,6 @@ function ml_navigation.Navigate(event, ticks)
 							if (hit) then
 								modifiedNode = { x = tpos.x, y = tpos.y, z = tpos.z }
 							end
-
 							ml_navigation:DispatchAutoFollowNode(modifiedNode, true)
 						else
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
@@ -2720,7 +2720,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 	-- Check if current node is reached
 	local dist2d = math.distance2d(ppos, nextnode)
 	local yDelta = (nextnode.y and ppos.y) and math.abs(ppos.y - nextnode.y) or 0
-	local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 1.5))
+	local withinVertical = (nextnode.y == nil or ppos.y == nil or yDelta <= (self.verticalThreshold or 3))
 
 	if (dist2d <= self.threshold and withinVertical) then
 		-- Node reached — check for OMC setup
