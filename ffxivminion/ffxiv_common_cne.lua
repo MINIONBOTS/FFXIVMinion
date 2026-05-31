@@ -1153,6 +1153,11 @@ function e_interactgate:execute()
 					end
 				end
 			end
+			if (e_interactgate.selector > 0) then
+				SelectConversationIndex(e_interactgate.selector)
+				e_interactgate.timer = Now() + 1500
+				return
+			end
 		else
 			local selector = e_interactgate.selector
 			SelectConversationIndex(selector)
@@ -2360,9 +2365,11 @@ function c_useaethernet:evaluate(mapid, pos)
 	local aethernetDetour = math.huge
 	local sameMapRule = false
 	local crossMapRule = false
-	local sameCityInnTravel = (destMapID == 177 and In(Player.localmapid,128,129))
-		or (destMapID == 178 and In(Player.localmapid,130,131))
-		or (destMapID == 179 and In(Player.localmapid,132,133))
+	local sameCityTravel = (destMapID ~= Player.localmapid)
+		and ((IsLimsa(Player.localmapid) and IsLimsa(destMapID))
+		or (IsUldah(Player.localmapid) and IsUldah(destMapID))
+		or (IsGridania(Player.localmapid) and IsGridania(destMapID))
+		or (IsFoundation(Player.localmapid) and IsFoundation(destMapID)))
 	if (nearestAethernet and bestAethernet) then
 		local compareBestDistance = IsNull(bestDistance, math.huge)
 		if (destMapID ~= Player.localmapid and bestAethernet.Invisible and bestAethernet.territory == destMapID) then
@@ -2400,7 +2407,7 @@ function c_useaethernet:evaluate(mapid, pos)
 				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
 				gatedist = Distance3DT(gatepos,Player.pos)
 			end
-			if (sameCityInnTravel) then
+			if (sameCityTravel) then
 				local currNode = ml_nav_manager.GetNode(Player.localmapid)
 				local destNode = ml_nav_manager.GetNode(destMapID)
 				if (table.valid(currNode) and table.valid(destNode)) then
@@ -2421,6 +2428,15 @@ function c_useaethernet:evaluate(mapid, pos)
 							end
 							routeWalkDist = routeWalkDist + Distance3DT(routeOrigin, routeGate)
 							routeOrigin = { x = routeGate.x, y = routeGate.y, z = routeGate.z }
+						end
+						if (routeValid and TableSize(routePath) >= 2 and table.valid(gotoPos)) then
+							local prevNode = routePath[TableSize(routePath) - 1]
+							if (table.valid(prevNode)) then
+								local lastGate = destNode:GetClosestNeighborPos(gotoPos, prevNode.id)
+								if (table.valid(lastGate)) then
+									routeWalkDist = routeWalkDist + Distance3DT(gotoPos, lastGate)
+								end
+							end
 						end
 						if (routeValid and routeWalkDist > gatedist) then
 							gatedist = routeWalkDist
@@ -2832,6 +2848,25 @@ function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
 		or IsShopWindowOpen() or IsTransporting() or IsSwimming())
 	then
+		local task = ml_task_hub:CurrentTask()
+		local gotoPos = task and task.pos
+		if (task and table.valid(gotoPos) and (Player.ismounted or IsMounting() or IsDismounting())) then
+			local dist2d = math.distance2d(Player.pos, gotoPos)
+			local dismountDistance = IsNull(task.dismountDistance,5)
+			if (dist2d <= math.max(dismountDistance + 1, 5)) then
+				d("[Mount-DBG] early gate dist2d="..string.format("%.2f",dist2d)
+					.." dismount="..tostring(dismountDistance)
+					.." ismounted="..tostring(Player.ismounted)
+					.." mounting="..tostring(IsMounting())
+					.." dismounting="..tostring(IsDismounting())
+					.." locked="..tostring(MIsLocked())
+					.." loading="..tostring(MIsLoading())
+					.." select="..tostring(IsControlOpen("SelectString") or IsControlOpen("SelectIconString"))
+					.." shop="..tostring(IsShopWindowOpen())
+					.." transporting="..tostring(IsTransporting())
+					.." swimming="..tostring(IsSwimming()))
+			end
+		end
 		return false
 	end
 	
