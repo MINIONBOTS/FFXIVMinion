@@ -18,17 +18,20 @@ function GetPatchLevel()
 	end
 	return ffxivminion.patchLevel[gr]
 end
-function GetBestMoonMesh(version)
+
+function GetBestMesh(baseName, version, suffix)
 	if not tonumber(version) then
-		return "Sinus Ardorum"
+		return baseName
 	end
+	suffix = suffix or "_V"
 	
 	local bestMesh = ""
 	local pathName = GetStartupPath()..[[\Navigation\]]
 	for i = 1, 20, 1 do
 		if i <= tonumber(version) then
-			if FolderExists(pathName.."Sinus Ardorum_V"..tostring(i)) then
-				bestMesh = "Sinus Ardorum_V"..tostring(i)
+			local candidate = baseName..suffix..tostring(i)
+			if FolderExists(pathName..candidate) then
+				bestMesh = candidate
 			end
 		end
 	end 
@@ -36,56 +39,20 @@ function GetBestMoonMesh(version)
 	if bestMesh ~= "" then
 		return bestMesh
 	else
-		return "Sinus Ardorum"
+		return baseName
 	end
+end
+function GetBestMoonMesh(version)
+	return GetBestMesh("Sinus Ardorum", version, "_V")
 end
 function GetBestPhaennaMesh(version)
-	if not tonumber(version) then
-		return "Phaenna"
-	end
-	
-	local bestMesh = ""
-	local pathName = GetStartupPath()..[[\Navigation\]]
-	for i = 1, 20, 1 do
-		if i <= tonumber(version) then
-			if FolderExists(pathName.."Phaenna_v"..tostring(i)) then
-				d("folder exists Phaenna_v"..tostring(i))
-				bestMesh = "Phaenna_v"..tostring(i)
-			end
-		end
-	end 
-	
-	if bestMesh ~= "" then
-		d("return bestMesh mesh")
-		return bestMesh
-	else
-		d("return fallback mesh")
-		return "Phaenna"
-	end
+	return GetBestMesh("Phaenna", version, "_v")
 end
 function GetBestOizysMesh(version)
-	if not tonumber(version) then
-		return "Oizys"
-	end
-	
-	local bestMesh = ""
-	local pathName = GetStartupPath()..[[\Navigation\]]
-	for i = 1, 20, 1 do
-		if i <= tonumber(version) then
-			if FolderExists(pathName.."Oizys_v"..tostring(i)) then
-				d("folder exists Oizys_v"..tostring(i))
-				bestMesh = "Oizys_v"..tostring(i)
-			end
-		end
-	end 
-	
-	if bestMesh ~= "" then
-		d("return bestMesh mesh")
-		return bestMesh
-	else
-		d("return fallback mesh")
-		return "Oizys"
-	end
+	return GetBestMesh("Oizys", version, "_v")
+end
+function GetBestAuxesiaMesh(version)
+	return GetBestMesh("Auxesia", version, "_v")
 end
 
 function FilterByProximity(entities,center,radius,sortfield)

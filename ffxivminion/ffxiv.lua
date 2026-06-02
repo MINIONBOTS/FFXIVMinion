@@ -21,11 +21,12 @@ ffxivminion.AetherCurrentCompleted = false
 ffxivminion.MoonMapVersion = 0
 ffxivminion.PhaennaMapVersion = 0
 ffxivminion.OizysMapVersion = 0
+ffxivminion.AuxesiaMapVersion = 0
 ffxivminion.DutyCurrentData = {}
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.maxlevel = 100
 ffxivminion.patchLevel = {
-	[1] = 7.5,-- NA/EU
+	[1] = 7.51,-- NA/EU
 	[2] = 7.5, -- CN
 	[3] = 7.5, -- KR
 	[4] = 7.1 -- TC
@@ -631,7 +632,7 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 				e_getDutyComplete:execute()
 			end
 		end
-		if In(Player.localmapid,1237,1291,1310) then
+		if In(Player.localmapid,1237,1291,1310,1319) then
 			if c_get_mapversion:evaluate() then
 				e_get_mapversion:execute()
 			end
