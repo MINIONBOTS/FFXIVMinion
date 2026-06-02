@@ -148,6 +148,9 @@ end
 function GetBestOizysMesh(version)
 	return GetBestMesh("Oizys", version, "_v")
 end
+function GetBestAuxesiaMesh(version)
+	return GetBestMesh("Auxesia", version, "_v")
+end
 
 function FilterByProximity(entities,center,radius,sortfield)
 	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
