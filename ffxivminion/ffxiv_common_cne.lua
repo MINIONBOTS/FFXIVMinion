@@ -2513,12 +2513,11 @@ function GetNetworkCrystalApproachCap(rawPos, isAetheryte)
 	local chosenCap = 12
 	if (meshDistance) then
 		local normalizedMeshDistance = math.floor((meshDistance * 100) + 0.5) / 100
-		if (normalizedMeshDistance <= 6) then
-			chosenCap = 8
-		elseif (normalizedMeshDistance <= 8) then
-			chosenCap = 10
-		else
-			chosenCap = 12
+		for _, tier in ipairs({4, 6, 8, 10, 12}) do
+			if (normalizedMeshDistance <= tier) then
+				chosenCap = tier
+				break
+			end
 		end
 	end
 
@@ -5255,7 +5254,7 @@ function c_dointeract:evaluate()
 	-- QUEST_ATTUNEAETHERYTE: if entity has drifted beyond attune envelope in 3D, re-search
 	local effectiveDistance3d, effectivePlanarAbs = c_dointeract_effectiveDistances(task, interactable)
 	if (task.name == "QUEST_ATTUNEAETHERYTE" and maxInteractDistance3d
-		and effectiveDistance3d > maxInteractDistance3d) then
+		and effectiveDistance3d > maxInteractDistance3d and not interactable.interactable) then
 		if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
 			task.interact = 0
 			task.pathChecked = false
@@ -5275,7 +5274,8 @@ function c_dointeract:evaluate()
 		end
 	end
 
-	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d) then
+	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d
+		and not (task.name == "QUEST_ATTUNEAETHERYTE" and interactable.interactable)) then
 		return false
 	end
 
