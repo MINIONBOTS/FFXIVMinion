@@ -7542,8 +7542,8 @@ end
 function Transport137(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
-	if (GetMapSection(961, pos1) ~= GetMapSection(961, pos2)) then
-		if (GetMapSection(961, Player.pos) ~= 3) and (GetMapSection(961, pos2) == 3) then
+	if (GetMapSection(137, pos1) ~= GetMapSection(137, pos2)) then
+		if (GetMapSection(137, Player.pos) ~= 3) and (GetMapSection(137, pos2) == 3) then
 			if (GilCount() > 0) then
 				return true, function ()
 					local newTask = ffxiv_nav_interact.Create()
@@ -7559,12 +7559,12 @@ function Transport137(pos1,pos2)
 						kr = "'대형 원양어선'으로 이동",
 					}
 					newTask.abort = function ()
-						return (GetMapSection(961, Player.pos) == 3)
+						return (GetMapSection(137, Player.pos) == 3)
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
-		elseif (GetMapSection(961, Player.pos) == 3) and (GetMapSection(961, pos2) == 1) then
+		elseif (GetMapSection(137, Player.pos) == 3) and (GetMapSection(137, pos2) == 1) then
 			if (GilCount() > 0) then
 				return true, function ()
 					-- Need to leave the boat, talk to the captain.
@@ -7572,13 +7572,13 @@ function Transport137(pos1,pos2)
 					newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
 					newTask.contentid = 1005414
 					newTask.abort = function ()
-						return (GetMapSection(961, Player.pos) == 1)
+						return (GetMapSection(137, Player.pos) == 1)
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
 		end
-		if (GetMapSection(961, Player.pos) ~= 2) and (GetMapSection(961, pos2) == 2) then
+		if (GetMapSection(137, Player.pos) ~= 2) and (GetMapSection(137, pos2) == 2) then
 			if (GilCount() > 100) then
 				if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
 					--d("Need to move from Costa area to Wineport.")
@@ -7598,18 +7598,19 @@ function Transport137(pos1,pos2)
 								end
 							end
 						else
+							d("use teleport 12")
 							local newTask = ffxiv_nav_interact.Create()
 							newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
 							newTask.contentid = 1003588
 							newTask.abort = function () 
-								return (GetMapSection(961, Player.pos) == 2) or (CanUseAetheryte(12) and not Player.incombat) 
+								return (GetMapSection(137, Player.pos) == 2) or (CanUseAetheryte(12) and not Player.incombat) 
 							end
 							ml_task_hub:CurrentTask():AddSubTask(newTask)
 						end
 					end
 				end
 			end
-		elseif (GetMapSection(961, Player.pos) == 2) and (GetMapSection(961, pos2) ~= 2) then
+		elseif (GetMapSection(137, Player.pos) == 2) and (GetMapSection(137, pos2) ~= 2) then
 			--d("Need to move from Wineport to Costa area.")
 			return true, function()
 				if (CanUseAetheryte(11) and not Player.incombat) then
@@ -7631,7 +7632,7 @@ function Transport137(pos1,pos2)
 					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
 					newTask.contentid = 1003589
 					newTask.abort = function () 
-						return (GetMapSection(961, Player.pos) ~= 2) or (CanUseAetheryte(11) and not Player.incombat) 
+						return (GetMapSection(137, Player.pos) ~= 2) or (CanUseAetheryte(11) and not Player.incombat) 
 					end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
@@ -8488,8 +8489,8 @@ function Transport818(pos1,pos2)
 	if (not CanFlyInZone()) then
 		if QuestCompleted(3652) then 
 			local gilCount = GilCount()
-			if (GetMapSection(957, pos1) ~= GetMapSection(957, pos2)) then
-				if (GetMapSection(957, Player.pos) == 1) then
+			if (GetMapSection(818, pos1) ~= GetMapSection(818, pos2)) then
+				if (GetMapSection(818, Player.pos) == 1) then
 					if (CanUseAetheryte(148) and not Player.incombat) and (gilCount > 100) then
 						return true, function () 
 							if (Player:IsMoving()) then
@@ -8513,14 +8514,14 @@ function Transport818(pos1,pos2)
 								newTask.pos = {x = -610.40, y = 45.48, z = 94.93}
 								newTask.contentid = 2010145
 								newTask.abort = function ()
-									return (GetMapSection(957, Player.pos) ~= 1)
+									return (GetMapSection(818, Player.pos) ~= 1)
 								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
 						end
 					end
 				end
-				if (GetMapSection(957, Player.pos) == 2) then
+				if (GetMapSection(818, Player.pos) == 2) then
 					if (CanUseAetheryte(147) and not Player.incombat) and (gilCount > 100) then
 						return true, function () 
 							if (Player:IsMoving()) then
@@ -8544,7 +8545,7 @@ function Transport818(pos1,pos2)
 								newTask.pos = {x = -602.82, y = -282.73, z = 113.49}
 								newTask.contentid = 2010146
 								newTask.abort = function ()
-									return (GetMapSection(957, Player.pos) ~= 2)
+									return (GetMapSection(818, Player.pos) ~= 2)
 								end
 								ml_task_hub:CurrentTask():AddSubTask(newTask)
 							end
@@ -8639,7 +8640,7 @@ function Transport957(pos1,pos2)
 	
 	if (not CanFlyInZone()) then
 		local gilCount = GilCount()
-		if GetMapSection(963, pos1) == 1 and GetMapSection(963, pos2) == 2 then
+		if GetMapSection(957, pos1) == 1 and GetMapSection(957, pos2) == 2 then
 			if (CanUseAetheryte(171) and not Player.incombat) and (gilCount > 100) then
 				return true, function () 
 					if (Player:IsMoving()) then
