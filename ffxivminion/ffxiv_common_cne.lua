@@ -367,7 +367,7 @@ function e_assistleader:execute()
 						else
 							local targetPos = target.pos
 							local myPos = Player.pos
-							local dist3d = Distance3DT(targetPos,myPos)
+							local dist3d = math.distance3d(targetPos,myPos)
 							return ((InCombatRange(target.id) and target.los) or dist3d < target.hitradius or dist3d < 3)
 						end
 						return false
@@ -1801,7 +1801,7 @@ function c_followleader:evaluate()
 				local i, passage = next(passages)
 				if (passage) then
 					local passagePos = passage.pos
-					if (Distance3DT(passagePos,leaderPos) < 5) then
+					if (math.distance3d(passagePos,leaderPos) < 5) then
 						c_followleader.passageNearLeader = true
 					end
 				end
@@ -1899,7 +1899,7 @@ function e_followleader:execute()
 					else
 						local leaderPos = leader.pos
 						local myPos = Player.pos
-						return (Distance3DT(leaderPos,myPos) < 5)
+						return (math.distance3d(leaderPos,myPos) < 5)
 					end
 					return false
 				end,
@@ -1974,11 +1974,20 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	local currentTask = ml_task_hub:CurrentTask()
-	if (currentTask and In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
-		and IsNull(currentTask.contentid, 0) ~= 0) then
+	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
+		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET", "MOVETOINTERACT")
+			or (ffxiv_map_nav and currentTask.contentid and (
+				(ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(currentTask.contentid))
+				or (ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(currentTask.contentid)))))
+	if (currentTaskTargetsCrystal) then
 		local interactable = nil
 		if (currentTask.interact ~= 0) then
 			interactable = EntityList:Get(currentTask.interact)
+			-- Crystals are always type 5; reject a cached id that resolved to
+			-- something else (e.g. a mob sharing the aetheryte's contentid).
+			if (interactable and interactable.type ~= 5) then
+				interactable = nil
+			end
 		end
 		if (not interactable or not table.valid(interactable)) then
 			interactable = GetInteractableEntity(currentTask.contentid, {5})
@@ -2365,11 +2374,11 @@ function c_useaethernet:evaluate(mapid, pos)
 		return false
 	elseif (not table.valid(gotoPos)) then
 		return false
-	elseif (table.valid(gotoPos) and Distance3DT(gotoPos,Player.pos) < 30 and destMapID == Player.localmapid) then
+	elseif (table.valid(gotoPos) and math.distance3d(gotoPos,Player.pos) < 30 and destMapID == Player.localmapid) then
 		return false
 	end	
 	
-	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	local gotoDist = math.distance3d(gotoPos,Player.pos)
 	local nearestAethernet,nearestDistance = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = FFXIVLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	local aethernetDetour = math.huge
@@ -2415,7 +2424,7 @@ function c_useaethernet:evaluate(mapid, pos)
 														destMapID	)
 			if (table.valid(gate)) then
 				local gatepos = { x = gate.x, y = gate.y, z = gate.z}
-				gatedist = Distance3DT(gatepos,Player.pos)
+				gatedist = math.distance3d(gatepos,Player.pos)
 			end
 			if (sameCityTravel) then
 				local currNode = ml_nav_manager.GetNode(Player.localmapid)
@@ -2436,7 +2445,7 @@ function c_useaethernet:evaluate(mapid, pos)
 								routeValid = false
 								break
 							end
-							routeWalkDist = routeWalkDist + Distance3DT(routeOrigin, routeGate)
+							routeWalkDist = routeWalkDist + math.distance3d(routeOrigin, routeGate)
 							routeOrigin = { x = routeGate.x, y = routeGate.y, z = routeGate.z }
 						end
 						if (routeValid and TableSize(routePath) >= 2 and table.valid(gotoPos)) then
@@ -2444,7 +2453,7 @@ function c_useaethernet:evaluate(mapid, pos)
 							if (table.valid(prevNode)) then
 								local lastGate = destNode:GetClosestNeighborPos(gotoPos, prevNode.id)
 								if (table.valid(lastGate)) then
-									routeWalkDist = routeWalkDist + Distance3DT(gotoPos, lastGate)
+									routeWalkDist = routeWalkDist + math.distance3d(gotoPos, lastGate)
 								end
 							end
 						end
@@ -2494,11 +2503,14 @@ end
 function GetNetworkCrystalApproachCap(rawPos, isAetheryte)
 	local meshDistance = nil
 	if (table.valid(rawPos) and NavigationManager and NavigationManager.GetClosestPointOnMesh) then
-		local closestMesh = NavigationManager:GetClosestPointOnMesh(rawPos)
-		meshDistance = GetMeshDistanceValue(closestMesh)
+		-- GetClosestPointOnMesh returns (point, snapDistance); snapDistance is the
+		-- gap from rawPos to the mesh. Use only that authoritative value here so a
+		-- nil result falls through to the FindClosestMesh vertical scan below
+		-- (needed when the crystal sits off the same-plane mesh).
+		local _, snapDistance = NavigationManager:GetClosestPointOnMesh(rawPos)
+		meshDistance = tonumber(snapDistance)
 		if (meshDistance == nil) then
-			closestMesh = FindClosestMesh(rawPos, 20, true)
-			meshDistance = GetMeshDistanceValue(closestMesh)
+			meshDistance = GetMeshDistanceValue(FindClosestMesh(rawPos, 20, true))
 		end
 	end
 
@@ -2662,7 +2674,8 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDist
 		local pathDistance = GetPathDistance(myPos, candidate, pathThreshold)
 		if (pathDistance) then
 			local crystalDistance = math.distance3d(candidate, rawPos)
-			local score = pathDistance + (crystalDistance * 0.35)
+			local crystalWeight = (crystalDistanceCap and crystalDistanceCap <= 6) and 1.5 or 0.35
+			local score = pathDistance + (crystalDistance * crystalWeight)
 			if (pathDistance <= maxReasonablePath and score < bestAcceptableScore) then
 				bestAcceptable = candidate
 				bestAcceptableScore = score
@@ -2740,15 +2753,13 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	
 	if (not table.valid(gotoPos)) then
 		return false
-	end	
-	
-	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	end
 	
 	local nearestAethernetUnlocked,nearestDistanceUnlocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)		
 	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
-			if (nearestDistanceLocked < 15 or nearestDistanceLocked < Distance3DT(Player.pos,gotoPos)) then
+			if (nearestDistanceLocked < 15 or nearestDistanceLocked < math.distance3d(Player.pos, gotoPos)) then
 				e_unlockaethernet.nearest = nearestAethernetLocked
 				return true
 			end
@@ -5059,7 +5070,12 @@ function c_dointeract:evaluate()
 	end
 	if (task.interact ~= 0) then
 		interactable = EntityList:Get(task.interact)
-		if (not interactable
+		-- Drop a cached target whose type no longer matches what the task expects.
+		-- A mob can share a contentid with an aetheryte, so contentid alone is not
+		-- enough; without this an aetheryte task can stay locked onto a type-2 mob.
+		local typeMismatch = interactable and expectedInteractTypes
+			and not table.contains(expectedInteractTypes, interactable.type)
+		if (not interactable or typeMismatch
 			or (IsNull(task.contentid, 0) ~= 0
 				and tonumber(interactable.contentid) ~= tonumber(task.contentid))) then
 			interactable = nil
@@ -5250,16 +5266,25 @@ function c_dointeract:evaluate()
 	end
 	
 	local maxInteractDistance3d = c_dointeract_cap3d(task, interactable)
-
-	-- QUEST_ATTUNEAETHERYTE: if entity has drifted beyond attune envelope in 3D, re-search
 	local effectiveDistance3d, effectivePlanarAbs = c_dointeract_effectiveDistances(task, interactable)
-	if (task.name == "QUEST_ATTUNEAETHERYTE" and maxInteractDistance3d
+	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
+
+	-- Network crystals: mesh approach may finish before the entity is inside the interact cap.
+	if (isNetworkCrystalTarget and maxInteractDistance3d
 		and effectiveDistance3d > maxInteractDistance3d and not interactable.interactable) then
 		if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
 			task.interact = 0
 			task.pathChecked = false
 			task.lastInteractableSearch = 0
 			task.lastFarInteractReset = Now()
+		end
+		local reachedApproachGoal = table.valid(task.pos) and math.distance3d(ppos, task.pos) < 2.5
+		if (reachedApproachGoal and not IsFlying() and not IsDiving() and not IsDismounting()) then
+			local epos = interactable.pos
+			if (not Player:IsMoving()) then
+				Player:MoveTo(epos.x, epos.y, epos.z)
+			end
+			return true
 		end
 		return false
 	end
@@ -5283,7 +5308,6 @@ function c_dointeract:evaluate()
 	-- Triggered by task.forceinteract or by adaptive type-5 targets that are
 	-- both within the broad cap and already inside the tighter attempt envelope.
 	local withinCap = maxInteractDistance3d and effectiveDistance3d <= maxInteractDistance3d
-	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
 	local bypassDistanceCap = c_dointeract_nudge2d(task, interactable)
 	local bypassDistance = c_dointeract_attemptDistance(task, interactable)
 	local withinBypassDistance = bypassDistance <= bypassDistanceCap
