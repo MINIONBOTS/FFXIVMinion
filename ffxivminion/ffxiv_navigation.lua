@@ -69,7 +69,7 @@ ml_navigation_exact = {
 local function isOnIce(node,key,now)
 	if (ml_navigation.icecache == nil) then
 		local statusApi = FFXIVLib and FFXIVLib.API and FFXIVLib.API.Status
-		if (not statusApi or not statusApi.GetStatusesByUnknown0) then
+		if (not statusApi or not statusApi.GetStatusesByExclusionGroup) then
 			if (not ml_navigation.iceMissingApiLogged) then
 				ml_navigation.iceMissingApiLogged = true
 				d("[IceSQL] FFXIVLib status API unavailable for ice lookup")
@@ -79,14 +79,14 @@ local function isOnIce(node,key,now)
 
 		local iceStatusGroupId = 76
 		local cacheKey = tostring(iceStatusGroupId)
-		local statusCache = statusApi._byUnknown0
-		local statusRows = statusApi.GetStatusesByUnknown0(iceStatusGroupId)
+		local statusCache = statusApi._byExclusionGroup
+		local statusRows = statusApi.GetStatusesByExclusionGroup(iceStatusGroupId)
 		if (not statusRows) then
 			if (not ml_navigation.iceStatusQueryRequested) then
 				ml_navigation.iceStatusQueryRequested = true
 				local isPending = statusCache and statusCache:IsPending(cacheKey)
 				local queryState = isPending and "Awaiting" or "Querying"
-				d("[IceSQL] " .. queryState .. " FFXIVLib status cache for ice rows Unknown0=" .. cacheKey)
+				d("[IceSQL] " .. queryState .. " FFXIVLib status cache for ice rows ExclusionGroup=" .. cacheKey)
 			end
 			return false
 		end

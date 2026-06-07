@@ -1995,10 +1995,12 @@ function c_getmovementpath:evaluate()
 				currentTask.interact = interactable.id
 			end
 		end
+		-- Stop refreshing the path only once we are standing at the mesh approach spot
+		-- (~2 yalms from the crystal). c_dointeract gates the interact on the same
+		-- arrival, so bailing earlier (e.g. just inside the cap) would strand us short.
 		if (interactable and table.valid(interactable)) then
-			local maxInteractDistance3d = GetNetworkCrystalInteractCap(currentTask, interactable) or 4
-			local checkDistance3d = GetNetworkCrystalCheckDistance(interactable)
-			if (checkDistance3d <= maxInteractDistance3d) then
+			local approachPos = currentTask.gatePos or currentTask.pos
+			if (table.valid(approachPos) and math.distance3d(Player.pos, approachPos) < 2.5) then
 				return false
 			end
 		end
@@ -5269,22 +5271,35 @@ function c_dointeract:evaluate()
 	local effectiveDistance3d, effectivePlanarAbs = c_dointeract_effectiveDistances(task, interactable)
 	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
 
-	-- Network crystals: mesh approach may finish before the entity is inside the interact cap.
-	if (isNetworkCrystalTarget and maxInteractDistance3d
-		and effectiveDistance3d > maxInteractDistance3d and not interactable.interactable) then
-		if (TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
+	-- Network crystals (aetherytes / aethernet shards): the game's `interactable`
+	-- flag is not a reliable gate. It can read true while the player stands too high
+	-- above the crystal ("Target is too far below you"), and the crystal center floats
+	-- above its mesh base so the entity-center distance overstates how close we are.
+	-- Gate on the honest ground measure instead: distance from the player to the
+	-- crystal's mesh position, against the mesh-derived interact cap. Falls back to the
+	-- precomputed approach position when the entity mesh position is unavailable.
+	local reachedCrystalApproach = false
+	if (isNetworkCrystalTarget) then
+		local distToCrystalMesh = table.valid(interactable.meshpos)
+			and math.distance3d(ppos, interactable.meshpos) or nil
+		if (distToCrystalMesh and maxInteractDistance3d and distToCrystalMesh <= maxInteractDistance3d) then
+			reachedCrystalApproach = true
+		elseif (table.valid(task.pos) and math.distance3d(ppos, task.pos) < 2.5) then
+			reachedCrystalApproach = true
+		end
+	end
+	if (isNetworkCrystalTarget and not reachedCrystalApproach) then
+		-- Not standing at the approach spot yet: keep navigating and never interact -
+		-- not on the cap and not on the game's `interactable` flag. For aethernet
+		-- shards the hit-radius makes the center distance fall inside the cap, and the
+		-- shard flags interactable, both well before the ~2-yalm approach point.
+		if (maxInteractDistance3d and effectiveDistance3d > maxInteractDistance3d
+			and TimeSince(IsNull(task.lastFarInteractReset,0)) > 1500) then
+			-- Far out: drop any stale interact id and recompute the approach pos.
 			task.interact = 0
 			task.pathChecked = false
 			task.lastInteractableSearch = 0
 			task.lastFarInteractReset = Now()
-		end
-		local reachedApproachGoal = table.valid(task.pos) and math.distance3d(ppos, task.pos) < 2.5
-		if (reachedApproachGoal and not IsFlying() and not IsDiving() and not IsDismounting()) then
-			local epos = interactable.pos
-			if (not Player:IsMoving()) then
-				Player:MoveTo(epos.x, epos.y, epos.z)
-			end
-			return true
 		end
 		return false
 	end
@@ -5299,20 +5314,18 @@ function c_dointeract:evaluate()
 		end
 	end
 
+	-- Network crystals are gated on approach arrival above, not on center distance
+	-- or the unreliable `interactable` flag.
 	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d
-		and not (task.name == "QUEST_ATTUNEAETHERYTE" and interactable.interactable)) then
+		and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
 		return false
 	end
 
-	-- Bypass game interactable=false (common on crystals until Interact()).
-	-- Triggered by task.forceinteract or by adaptive type-5 targets that are
-	-- both within the broad cap and already inside the tighter attempt envelope.
+	-- Bypass game interactable=false. Network crystals bypass once at the approach
+	-- spot (handled above); other tasks bypass only via task.forceinteract within cap.
 	local withinCap = maxInteractDistance3d and effectiveDistance3d <= maxInteractDistance3d
-	local bypassDistanceCap = c_dointeract_nudge2d(task, interactable)
-	local bypassDistance = c_dointeract_attemptDistance(task, interactable)
-	local withinBypassDistance = bypassDistance <= bypassDistanceCap
-	local bypassInteractableGate = withinCap and
-		(task.forceinteract or (isNetworkCrystalTarget and withinBypassDistance))
+	local bypassInteractableGate = (isNetworkCrystalTarget and reachedCrystalApproach)
+		or (withinCap and task.forceinteract)
 
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold

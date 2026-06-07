@@ -665,6 +665,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						end
 					end
 				end
+				if (self.conversationindex > 0) then
+					SelectConversationIndex(self.conversationindex)
+					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+					return false
+				end
 			elseif (self.conversationindex > 0) then
 				SelectConversationIndex(self.conversationindex)
 				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
