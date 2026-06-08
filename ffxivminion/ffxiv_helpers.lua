@@ -7482,6 +7482,80 @@ local oizysPortalPositions = {
 	};
 }
 
+-- Center points table for Auxesia map (map ID 1319)
+local auxesiaCenterPoints = {
+	[1] = {x = 567.05139160156, y = 184.28057861328, z = 744.19116210938},
+	[2] = {x = 632.63055419922, y = 245.24969482422, z = 498.51089477539},
+	[3] = {x = 653.31793212891, y = 183.66429138184, z = 69.619705200195},
+	[4] = {x = 294.70932006836, y = 205.78991699219, z = 377.21060180664},
+	[5] = {x = -53.99963760376, y = 166.37913513184, z = 658.23883056641},
+	[6] = {x = -342.86349487305, y = 165.10000610352, z = 240.50291442871},
+	[7] = {x = -66.830665588379, y = 183.95492553711, z = 306.32977294922},
+	[8] = {x = -11.523481369019, y = 184.55000305176, z = 1.0504605770111},
+	[9] = {x = -641.24499511719, y = 183.94586181641, z = 264.60668945312},
+	[10] = {x = -654.28552246094, y = 183.82525634766, z = -50.744533538818},
+	[11] = {x = -312.6178894043, y = 164.52864074707, z = -185.74461364746},
+	[12] = {x = -228.51416015625, y = 145.82327270508, z = -473.41003417969},
+}
+
+-- Portal positions table for Transport1319 function (Auxesia map)
+local auxesiaPortalPositions = {
+	[1] = {
+		["1-2"] = {pos = {x = 531.50177001953, y = 187.19561767578, z = 779.32171630859}, facing = 1.5669519901276},
+		["1-4"] = {pos = {x = 504.63046264648, y = 187.12734985352, z = 760.63452148438}, facing = -2.2847442626953},
+	},
+	[2] = {
+		["2-1"] = {pos = {x = 671.08941650391, y = 247.20497131348, z = 507.23767089844}, facing = 0.53118658065796},
+		["2-3"] = {pos = {x = 674.51678466797, y = 247.22625732422, z = 474.19613647461}, facing = 2.9481163024902},
+	},
+	[3] = {
+		["3-2"] = {pos = {x = 623.76611328125, y = 189.7054901123, z = 149.16229248047}, facing = 0.76563358306885},
+		["3-4"] = {pos = {x = 595.87451171875, y = 189.70252990723, z = 142.78514099121}, facing = -0.77793455123901},
+		["3-8"] = {pos = {x = 602.27825927734, y = 189.69169616699, z = 114.87621307373}, facing = -2.3675808906555},
+	},
+	[4] = {
+		["4-1"] = {pos = {x = 323.67965698242, y = 208.00337219238, z = 415.07659912109}, facing = 0.70698261260986},
+		["4-3"] = {pos = {x = 330.04437255859, y = 208.02226257324, z = 343.17462158203}, facing = 2.3364219665527},
+		["4-5"] = {pos = {x = 251.89360046387, y = 208.01211547852, z = 408.70236206055}, facing = -0.78289651870728},
+		["4-8"] = {pos = {x = 258.44836425781, y = 207.96914672852, z = 337.00112915039}, facing = -2.3801558017731},
+	},
+	[5] = {
+		["5-4"] = {pos = {x = 19.982269287109, y = 169.64283752441, z = 702.43041992188}, facing = 2.3297784328461},
+		["5-6"] = {pos = {x = -13.926434516907, y = 169.62426757812, z = 723.51379394531}, facing = -0.79818868637085},
+		["5-7"] = {pos = {x = -7.7305459976196, y = 169.69068908691, z = 695.89111328125}, facing = -2.3763265609741},
+	},
+	[6] = {
+		["6-11"] = {pos = {x = -227.91090393066, y = 169.68687438965, z = 295.82403564453}, facing = 2.4597687721252},
+		["6-5"] = {pos = {x = -231.75210571289, y = 169.70860290527, z = 324.14706420898}, facing = 0.83870577812195},
+		["6-9"] = {pos = {x = -256.04879760742, y = 169.65919494629, z = 291.94229125977}, facing = -2.3027167320251},
+	},
+	[7] = {
+		["7-11"] = {pos = {x = -47.166652679443, y = 187.16157531738, z = 219.33013916016}, facing = -1.7724347114563},
+		["7-5"] = {pos = {x = -23.762239456177, y = 187.2275390625, z = 242.67623901367}, facing = 0.62774276733398},
+	},
+	[8] = {
+		["8-11"] = {pos = {x = -30.950248718262, y = 186.17781066895, z = -2.7956156730652}, facing = -1.5253520011902},
+		["8-12"] = {pos = {x = -8.2700471878052, y = 186.11863708496, z = -19.692056655884}, facing = -3.0917816162109},
+		["8-3"] = {pos = {x = 8.812216758728, y = 186.14453125, z = 2.8406839370728}, facing = 1.6645900011063},
+		["8-4"] = {pos = {x = -13.830057144165, y = 186.10095214844, z = 19.625396728516}, facing = 0.056753396987915},
+	},
+	[9] = {
+		["9-10"] = {pos = {x = -681.28607177734, y = 187.20922851562, z = 322.82894897461}, facing = -2.4396097660065},
+		["9-6"] = {pos = {x = -655.58325195312, y = 187.08616638184, z = 343.16552734375}, facing = 1.5271739959717},
+	},
+	[10] = {
+		["10-9"] = {pos = {x = -753.73413085938, y = 187.03633117676, z = 17.613193511963}, facing = 0.86524319648743},
+	},
+	[11] = {
+		["11-6"] = {pos = {x = -408.24624633789, y = 169.73986816406, z = -159.45875549316}, facing = -1.2480297088623},
+		["11-7"] = {pos = {x = -385.49450683594, y = 169.68707275391, z = -141.97946166992}, facing = 0.32421445846558},
+		["11-8"] = {pos = {x = -368.23291015625, y = 169.62232971191, z = -164.39729309082}, facing = 1.8803496360779},
+	},
+	[12] = {
+		["12-8"] = {pos = {x = -212.10987854004, y = 147.08508300781, z = -541.92547607422}, facing = 1.1628067493439},
+	},
+}
+
 function GetCosmicMoon(pos,closest)
 	local closestIndex = 0
 	local closestDistance = math.huge
@@ -7757,6 +7831,142 @@ function CalcOizysTransport(pos1, pos2, pos1Section, pos2Section)
 
 	return false
 end
+
+-- Auxesia map functions (map ID 1319)
+function GetAuxesia(pos, closest)
+	local closestIndex = 0
+	local closestDistance = math.huge
+	
+	for index, centerPos in pairs(auxesiaCenterPoints) do
+		if not centerPos.markeronly then
+			local distance = math.distance2d(pos, centerPos)
+			if distance < closestDistance then
+				closestDistance = distance
+				closestIndex = index
+			end
+		end
+	end
+	
+	if closestDistance < 150 then
+		return closestIndex
+	end
+	
+	if closest then
+		return closestIndex
+	end
+	
+	return 0
+end
+
+if not ff.auxesiaPathingData then
+	ff.auxesiaPathingData = {}
+end
+if not ff.lastAuxesiaTransportCheck then
+	ff.lastAuxesiaTransportCheck = {
+		pos1 = nil,
+		pos2 = nil,
+		result = nil
+	}
+end
+
+function CalcAuxesiaTransport(pos1, pos2, pos1Section, pos2Section)
+	local last = ff.lastAuxesiaTransportCheck
+	if last.pos1 and last.pos2 then
+		if math.distance2d(pos1, last.pos1) < 100 and math.distance2d(pos2, last.pos2) < 100 then
+			return last.result
+		end
+	end
+
+	if ff.auxesiaPathingData[pos1Section] and ff.auxesiaPathingData[pos1Section][pos2.x] and ff.auxesiaPathingData[pos1Section][pos2.x][pos2.z] ~= nil then
+		local cached = ff.auxesiaPathingData[pos1Section][pos2.x][pos2.z]
+		ff.lastAuxesiaTransportCheck = { pos1 = pos1, pos2 = pos2, result = cached }
+		return cached
+	end
+
+	if pos1 and pos2 and auxesiaCenterPoints[pos1Section] and auxesiaCenterPoints[pos2Section] then
+		local distance = GetPathDistance(pos1, pos2)
+		if distance < 150 then
+			return false
+		end
+		local distance1 = GetPathDistance(pos1, pos2) * 1.5
+		local distance2 =
+			GetPathDistance(pos1, auxesiaCenterPoints[pos1Section]) +
+			GetPathDistance(auxesiaCenterPoints[pos2Section], pos2)
+
+		ff.auxesiaPathingData[pos1Section] = ff.auxesiaPathingData[pos1Section] or {}
+		ff.auxesiaPathingData[pos1Section][pos2.x] = ff.auxesiaPathingData[pos1Section][pos2.x] or {}
+
+		local result = distance1 > distance2
+		ff.auxesiaPathingData[pos1Section][pos2.x][pos2.z] = result
+		ff.lastAuxesiaTransportCheck = { pos1 = pos1, pos2 = pos2, result = result }
+		return result
+	end
+
+	return false
+end
+
+local function GetAuxesiaPortalDest(portalName)
+	if not portalName then
+		return nil
+	end
+	local dest = portalName:match("%-(%d+)$")
+	return dest and tonumber(dest)
+end
+
+local function AuxesiaPortalMeetsVersion(portalData)
+	if not portalData then
+		return false
+	end
+	local requiredVersion = portalData.requires or 3
+	return ffxivminion.AuxesiaMapVersion and ffxivminion.AuxesiaMapVersion >= requiredVersion
+end
+
+function GetAuxesiaPortalHop(fromSection, toSection)
+	if not fromSection or not toSection or fromSection == toSection then
+		return nil
+	end
+	
+	local fromPortals = auxesiaPortalPositions[fromSection]
+	if not fromPortals then
+		return nil
+	end
+	
+	local directName = tostring(fromSection).."-"..tostring(toSection)
+	if fromPortals[directName] and AuxesiaPortalMeetsVersion(fromPortals[directName]) then
+		return fromPortals[directName]
+	end
+	
+	local visited = {[fromSection] = true}
+	local queue = {{section = fromSection, firstHop = nil}}
+	local head, tail = 1, 1
+	
+	while head <= tail do
+		local node = queue[head]
+		head = head + 1
+		local portals = auxesiaPortalPositions[node.section]
+		if portals then
+			for name, data in pairs(portals) do
+				if AuxesiaPortalMeetsVersion(data) then
+					local dest = GetAuxesiaPortalDest(name)
+					if dest and not visited[dest] then
+						visited[dest] = true
+						local firstHop = node.firstHop
+						if node.section == fromSection then
+							firstHop = data
+						end
+						if dest == toSection then
+							return firstHop
+						end
+						tail = tail + 1
+						queue[tail] = {section = dest, firstHop = firstHop}
+					end
+				end
+			end
+		end
+	end
+	return nil
+end
+
 function Transport1237(pos1,pos2)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
@@ -9402,6 +9612,54 @@ function Transport1310(pos1, pos2)
 	end
 	
 	-- Move to portal or enter it
+	local portalPos = portalData.pos
+	local distance = math.distance2d(pos1, portalPos)
+	
+	if distance > 2 then
+		return true, function()
+			local newTask = ffxiv_task_movetopos.Create()
+			newTask.pos = portalPos
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	else
+		return true, function()
+			Player:SetFacing(portalData.facing)
+			Player:Move(FFXIV.MOVEMENT.FORWARD)
+		end
+	end
+end
+
+function Transport1319(pos1, pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	local pos1Section = GetAuxesia(pos1)
+	local pos2Section = GetAuxesia(pos2, true)
+	
+	if Player.localmapid ~= 1319 then
+		return false
+	end
+	
+	if not ffxivminion.AuxesiaMapVersion or ffxivminion.AuxesiaMapVersion < 3 then
+		return false
+	end
+	
+	if not pos1Section or pos1Section == 0 or not pos2Section or pos2Section == 0 then
+		return false
+	end
+	
+	if pos1Section == pos2Section then
+		return false
+	end
+	
+	if not CalcAuxesiaTransport(pos1, pos2, pos1Section, pos2Section) then
+		return false
+	end
+	
+	local portalData = GetAuxesiaPortalHop(pos1Section, pos2Section)
+	if not portalData or not portalData.pos then
+		return false
+	end
+	
 	local portalPos = portalData.pos
 	local distance = math.distance2d(pos1, portalPos)
 	
@@ -13053,9 +13311,11 @@ function CheckDirectorTextIndex(...)
 end
 
 -- Returns center points and portal positions for the given map
--- mapid: 1237 = Moon, 1291 = Phaenna, 1310 = Oizys
+-- mapid: 1237 = Moon, 1291 = Phaenna, 1310 = Oizys, 1319 = Auxesia
 function GetCosmicCenterPoints(mapid)
-	if mapid == 1310 then
+	if mapid == 1319 then
+		return auxesiaCenterPoints
+	elseif mapid == 1310 then
 		return oizysCenterPoints
 	elseif mapid == 1291 then
 		return phaennaCenterPoints
@@ -13065,7 +13325,9 @@ function GetCosmicCenterPoints(mapid)
 end
 
 function GetCosmicPortalPositions(mapid)
-	if mapid == 1310 then
+	if mapid == 1319 then
+		return auxesiaPortalPositions
+	elseif mapid == 1310 then
 		return oizysPortalPositions
 	elseif mapid == 1291 then
 		return phaennaPortalPositions
