@@ -101,21 +101,21 @@ function FindRadarMarker(id,flag,both,reqdist,distancepos)
 				if (reqdist == 0 or dist2d <= reqdist) then
 					if (both and id ~= 0 and flag ~= 0) then
 						if (id ~= 0 and marker.id == id and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
-							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."] and flag ["..tostring(flag).."].")
+							--d("[FindRadarMarker] Found a marker with id ["..tostring(id).."] and flag ["..tostring(flag).."].")
 							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 							return viable
 						end
 					else
 						if (id ~= 0 and marker.id == id and flag ~= 0 and (bit.band(marker.flags,flag) ~= 0 or marker.flags == flag)) then
-							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+							--d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
 							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 							return viable
 						elseif (flag ~= 0 and bit.band(marker.flags,flag) ~= 0) then
-							d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
+							--d("[FindRadarMarker] Found a marker with flag ["..tostring(flag).."].")
 							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 							return viable
 						elseif (id ~= 0 and marker.id == id) then
-							d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
+							--d("[FindRadarMarker] Found a marker with id ["..tostring(id).."].")
 							viable = {id = marker.id, flags = marker.flags, x = marker.x, z = marker.y}
 							return viable
 						end
@@ -7496,6 +7496,7 @@ local auxesiaCenterPoints = {
 	[10] = {x = -654.28552246094, y = 183.82525634766, z = -50.744533538818},
 	[11] = {x = -312.6178894043, y = 164.52864074707, z = -185.74461364746},
 	[12] = {x = -228.51416015625, y = 145.82327270508, z = -473.41003417969},
+	[102] = {x = 467, y = 264, z = 495},
 }
 
 -- Portal positions table for Transport1319 function (Auxesia map)
@@ -7836,6 +7837,11 @@ end
 function GetAuxesia(pos, closest)
 	local closestIndex = 0
 	local closestDistance = math.huge
+	
+	local distance = math.distance2d(pos,auxesiaCenterPoints[102])
+	if distance < 60 then
+		return 2
+	end
 	
 	for index, centerPos in pairs(auxesiaCenterPoints) do
 		if not centerPos.markeronly then
@@ -12655,8 +12661,6 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 			if (p.distance <= minDist) then
 				closest = p
 				closestDistance = p.distance
-				d("closest 1 = ")
-				d(p)
 			end
 		end
 	end
@@ -12667,15 +12671,12 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 			if (p.distance <= minDist) then
 				if (p.distance < closestDistance) then
 					closest = p
-					d("closest 2 = ")
-					d(p)
 				end
 			end
 		end
 	end
 	
 	if (closest) then
-	d("return 1")
 		return closest
 	end
 	
@@ -12687,8 +12688,6 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 		local p = NavigationManager:GetClosestPointOnMesh(trypos)
 		if (table.valid(p)) then
 			if (p.distance <= minDist) then	
-				d("closest 3 = ")
-				d(p)
 				return p
 			end
 		end
@@ -12699,13 +12698,10 @@ function FindClosestMesh(pos,distance,checkcubes,cubesonly)
 		local p = NavigationManager:GetClosestPointOnMesh(trypos)
 		if (table.valid(p) and p.distance <= minDist) then	
 			if (p.distance <= minDist) then	
-				d("closest 4 = ")
-				d(p)
 				return p
 			end
 		end
 	end
-	d("failed 1")
 	return nil
 end
 function IsEntityReachable(entityid,range)
