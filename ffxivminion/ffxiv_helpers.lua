@@ -7344,6 +7344,22 @@ local oizysCenterPoints = {
 		["y"] = 218.80000305176;
 		["z"] = -102.77082061768;
 	};
+	[19] = {
+		["x"] = -123;
+		["y"] = -193;
+		["z"] = -789;
+	};
+	[20] = {
+		["x"] = -290;
+		["y"] = -193;
+		["z"] = -936;
+	};
+	[21] = {
+		["x"] = 69;
+		["y"] = -193;
+		["z"] = -790;
+	};
+	
 }
 
 -- Portal positions table for Transport1310 function (Oizys map)
@@ -7418,6 +7434,7 @@ local oizysPortalPositions = {
 	[11] = {
 		["11-9"] = {pos = {x = 327.99136352539, y = -152.20829772949, z = -621.45568847656}, facing = 1.5643068552017},
 		["11-10"] = {pos = {x = 305.57891845703, y = -152.2045135498, z = -607.994140625}, facing = -0.031622409820557},
+		["11-20"] = {pos = {x = 290.29, y = -152.8, z = -630.5}, facing = -1.61},
 	},
 	[12] = {
 		["12-1"] = {pos = {x = -154.40957641602, y = -21.216987609863, z = -219.04716491699}, facing = 0.00052022933959961},
@@ -7477,6 +7494,16 @@ local oizysPortalPositions = {
 				["x"] = 728.43121337891;
 				["y"] = 220.09199523926;
 				["z"] = -119.20355224609;
+			};
+		};
+	};
+	[20] = {
+		["20-11"] = {
+			["facing"] = 1.11;
+			["pos"] = {
+				["x"] = 86.14;
+				["y"] = -190.7;
+				["z"] = -774;
 			};
 		};
 	};
@@ -7751,6 +7778,19 @@ end
 function GetOizys(pos, closest)
 	local closestIndex = 0
 	local closestDistance = math.huge
+	
+	local distance = math.distance2d(pos,oizysCenterPoints[19])
+	if distance < 150 and pos.y < -170 then
+		return 20
+	end
+	local distance = math.distance2d(pos,oizysCenterPoints[20])
+	if distance < 150 and pos.y < -170 then
+		return 20
+	end
+	local distance = math.distance2d(pos,oizysCenterPoints[21])
+	if distance < 150 and pos.y < -170 then
+		return 20
+	end
 	
 	for index, centerPos in pairs(oizysCenterPoints) do
 		local distance = math.distance2d(pos, centerPos)
