@@ -1657,7 +1657,14 @@ function ffxiv_task_grindCombat:Process()
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
 					Dismount()
-				end				
+				end			
+				if (Player:IsMoving() and not IsFlying()) then
+					Player:Stop()
+					--d("Need to stop so we can cast.")
+					if (IsCaster(Player.job)) then
+						return
+					end
+				end			
 				--if (not EntityIsFrontTight(target)) then
 					--d("Need to face the enemy so we can cast.")
 					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
@@ -1735,6 +1742,9 @@ function ffxiv_task_grindCombat:Process()
 					end
 				else
 					TaskTryFaceTarget(pos.x,pos.y,pos.z) 
+					if (Player:IsMoving() and InCombatRange(target.id)) then
+						Player:Stop()
+					end
 					-- Check for combat range before executing.
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 						local casted = SkillMgr.Cast( target )
@@ -2423,9 +2433,6 @@ function ffxiv_task_moveaethernet:Init()
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 100 )
     self:add( ke_useNavInteraction, self.process_elements)
-
-	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 98 )
-	self:add( ke_interact, self.process_elements)
 	
 	local ke_getMovementPath = ml_element:create( "GetMovementPath", c_getmovementpath, e_getmovementpath, 95 )
     self:add( ke_getMovementPath, self.process_elements)
@@ -2438,6 +2445,9 @@ function ffxiv_task_moveaethernet:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
+	
+	local ke_interact = ml_element:create( "Interact", c_dointeract, e_dointeract, 20 )
+    self:add( ke_interact, self.process_elements)
 	
 	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
     self:add( ke_walkToPos, self.process_elements)
