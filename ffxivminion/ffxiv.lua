@@ -799,13 +799,12 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 end
 
 function ml_global_information.GetMovementInfo(afk)
-	local afk = IsNull(afk, false)
+    local afk = IsNull(afk, false)
 
-	local settings = Player.settings
-	if (afk or (ml_navigation:HasPath() and ml_navigation.CanRun())) then
-		Player:SetMoveMode(0)
-		return Player.settings.autoface, 0
-	else
+    local settings = Player.settings
+    if (afk or (ml_navigation:HasPath() and ml_navigation.CanRun())) then
+        return Player.settings.autoface, settings.movemode
+    else
 		if (gAssistUseAutoFace and not settings.autoface) then
 			Player:SetAutoFace(true)
 		elseif (not gAssistUseAutoFace and settings.autoface) then
