@@ -1521,10 +1521,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
 		return currentPathSize
 	end
-	if not force and (((newGoal.x == ml_navigation.lastpos.x and newGoal.z == ml_navigation.lastpos.z) or ((IsFlying() or IsDiving()) and targetid ~= nil and targetid == ml_navigation.lasttargetid))
-		 and (hasPreviousPath and (TimeSince(ml_navigation.lastBuildCall) < 2000))) then
-		return currentPathSize
-	end
 
 	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
 
@@ -1583,6 +1579,11 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		ml_navigation.startposition = { x=ppos.x, y=ppos.y, z=ppos.z }
 		ml_navigation.targetposition = newGoal
 		ml_navigation.lasttargetid = targetid
+		if (c_getmovementpath) then
+			c_getmovementpath.lastOptimalPath = Now()
+			c_getmovementpath.lastGoal = { x = newGoal.x, y = newGoal.y, z = newGoal.z }
+			c_getmovementpath.asyncPrefetchPos = nil
+		end
 	end
 
 	if (ret > 0 and hasCurrentPath) then
