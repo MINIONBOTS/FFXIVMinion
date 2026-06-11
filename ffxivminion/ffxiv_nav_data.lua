@@ -55,7 +55,7 @@ function ffxiv_map_nav.SetupNavNodes()
 			end
 		end
 	end
-	d("[Nav] SetupNavNodes: nodes=" .. nodeCount .. " edges=" .. edgeCount .. " emptySkipped=" .. emptyEdge .. " stubs=" .. stubCount)
+	navd("[Nav] SetupNavNodes: nodes=" .. nodeCount .. " edges=" .. edgeCount .. " emptySkipped=" .. emptyEdge .. " stubs=" .. stubCount)
 end
 
 ffxiv_map_nav.SetupNavNodes()

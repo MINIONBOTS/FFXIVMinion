@@ -1,10 +1,29 @@
 -- This file holds global helper functions
-ff = {}
-ff.lastPos = {}
-ff.lastPath = 0
-ff.lastFail = 0
-ff.lastaetherCurrent = {}
-ff.aetherCurrent = {}
+ff = ff or {}
+ff.lastPos = ff.lastPos or {}
+ff.lastPath = ff.lastPath or 0
+ff.lastFail = ff.lastFail or 0
+ff.lastaetherCurrent = ff.lastaetherCurrent or {}
+ff.aetherCurrent = ff.aetherCurrent or {}
+
+function ff.debugLog(var, level, debugFlag, debugLevel, questAware)
+	local level = tonumber(level) or 3
+	local requiredLevel = debugLevel
+	if (questAware and gBotMode == "questMode" and gQuestDebug) then
+		requiredLevel = gQuestDebugLevel
+	end
+	if (debugFlag or (questAware and gQuestDebug and gBotMode == "questMode")) then
+		if (level <= tonumber(requiredLevel)) then
+			if (type(var) == "string") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
+			elseif (type(var) == "number" or type(var) == "boolean") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
+			elseif (type(var) == "table") then
+				outputTable(var)
+			end
+		end
+	end
+end
 
 -- helpers can be loaded before ffxiv.lua initializes this table
 ffxivminion = ffxivminion or {}
@@ -87,26 +106,6 @@ ff.trust_dps = {
 	[11269]=true, [11270]=true, [11271]=true, [11282]=true, [11328]=true, [11331]=true, [11332]=true, [11335]=true, [11336]=true, [11418]=true, [11433]=true,
 	[12053]=true, [12237]=true, [12466]=true, [12467]=true, [12470]=true, [12487]=true, [12488]=true, [12489]=true, [12635]=true, [12739]=true, [12740]=true, [13522]=true,
 }
-
-function ff.debugLog(var, level, debugFlag, debugLevel, questAware)
-	local level = tonumber(level) or 3
-	local requiredLevel = debugLevel
-	if (questAware and gBotMode == "questMode" and gQuestDebug) then
-		requiredLevel = gQuestDebugLevel
-	end
-	if (debugFlag or (questAware and gQuestDebug and gBotMode == "questMode")) then
-		if (level <= tonumber(requiredLevel)) then
-			if (type(var) == "string") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
-			elseif (type(var) == "number" or type(var) == "boolean") then
-				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
-			elseif (type(var) == "table") then
-				outputTable(var)
-			end
-		end
-	end
-end
-
 
 function GetPatchLevel()
 	local gr = ffxivminion.gameRegion
@@ -5706,9 +5705,9 @@ function CanAccessMap(mapid)
 	end
 	
 	local ok, result = xpcall(function() return _CanAccessMapImpl(mapid) end, function(err)
-		d("[Nav] _CanAccessMapImpl ERROR mapid=" .. tostring(mapid) .. ": " .. tostring(err))
+		navd("[Nav] _CanAccessMapImpl ERROR mapid=" .. tostring(mapid) .. ": " .. tostring(err))
 		local tb = debug and debug.traceback and debug.traceback("", 2) or "no traceback"
-		d("[Nav] traceback: " .. tostring(tb))
+		navd("[Nav] traceback: " .. tostring(tb))
 	end)
 	if not ok then result = false end
 	navd("[Nav] CanAccessMap(" .. tostring(mapid) .. ") = " .. tostring(result) .. " ok=" .. tostring(ok))

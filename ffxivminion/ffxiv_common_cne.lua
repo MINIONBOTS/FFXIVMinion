@@ -2026,6 +2026,29 @@ function c_getmovementpath:evaluate()
 			gotoPos = ml_task_hub:CurrentTask().pos
 			ml_debug("[c_getmovementpath]: Position left as original position.", "gLogCNE", 3)
 		end
+
+		if (currentTaskTargetsCrystal and table.valid(gotoPos) and not IsFlying() and not IsDiving()
+			and type(PickNetworkCrystalApproachPos) == "function" and type(GetNetworkCrystalApproachCap) == "function") then
+			local crystalPos = gotoPos
+			local meshFallback = nil
+			local isAetheryte = true
+			if (IsNull(currentTask.interact, 0) ~= 0) then
+				local entity = EntityList:Get(currentTask.interact)
+				if (entity and entity.type == 5 and table.valid(entity.pos)) then
+					crystalPos = entity.pos
+					meshFallback = entity.meshpos
+					if (ffxiv_map_nav and ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(entity.contentid)
+						and not (ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(entity.contentid))) then
+						isAetheryte = false
+					end
+				end
+			end
+			local resolved = PickNetworkCrystalApproachPos(crystalPos, meshFallback, GetNetworkCrystalApproachCap(crystalPos, isAetheryte))
+			if (table.valid(resolved)) then
+				gotoPos = resolved
+				currentTask.pos = resolved
+			end
+		end
 		
 		if (table.valid(gotoPos)) then
 			-- Prefetch path asynchronously so the sync BuildPath call below hits a warm cache
@@ -2061,6 +2084,9 @@ function c_getmovementpath:evaluate()
 
 			local pathLength = 0
 			local navid = IsNull(ml_task_hub:CurrentTask().navid,0)
+			if (navid == 0 and currentTaskTargetsCrystal and IsNull(currentTask.interact, 0) ~= 0) then
+				navid = currentTask.interact
+			end
 
 			local dist = math.distance2d(gotoPos,Player.pos)
 			local cubeFilter = IsNull(ml_task_hub:CurrentTask().cubefilters,0)
@@ -2619,7 +2645,7 @@ function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDistance)
 		if (not table.valid(probePos)) then
 			return
 		end
-		local meshPt = FindClosestMesh(probePos, snapDistance or 12, false, false)
+		local meshPt = FindClosestMesh(probePos, snapDistance or 15, false, false)
 		if (not meshPt) then
 			return
 		end

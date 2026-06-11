@@ -144,7 +144,7 @@ function FFXIVData_NavEnrichTick()
     local done = FFXIVLib.API.Nav.EnrichAll()
     if done then
         ml_global_information._nav_enrich_done = true
-        d("[Nav] Enrichment complete — all conversation strings populated.")
+        navd("[Nav] Enrichment complete — all conversation strings populated.")
     end
     return done
 end
@@ -160,7 +160,7 @@ function FFXIVData_NavResolveTick()
     local done = FFXIVLib.API.Nav.ResolveAll()
     if done then
         ml_global_information._nav_resolve_done = true
-        d("[Nav] Resolution complete — all entries tagged with source.")
+        navd("[Nav] Resolution complete — all entries tagged with source.")
     end
     return done
 end
