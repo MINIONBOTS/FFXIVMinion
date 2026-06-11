@@ -574,8 +574,6 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 	if FFXIVData_NavDiscoverTick then FFXIVData_NavDiscoverTick() end
 	if FFXIVData_NavEnrichTick then FFXIVData_NavEnrichTick() end
 	if FFXIVData_NavResolveTick then FFXIVData_NavResolveTick() end
-	-- Drive nav diagnostics independently of discover-done flag.
-	if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Nav and FFXIVLib.API.Nav.DiscoverConnections then FFXIVLib.API.Nav.DiscoverConnections() end
 
 	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()

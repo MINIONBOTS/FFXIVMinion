@@ -116,21 +116,20 @@ end
 --   2. Enrichment - populate conversation strings
 --   3. Resolution - tag entries with pos/dest source info
 ------------------------------------------------------------
-ml_global_information._nav_discover_done = false
 ml_global_information._nav_enrich_done = false
 ml_global_information._nav_resolve_done = false
+
+local function FFXIVData_NavDiscoveryDone()
+    return FFXIVLib and FFXIVLib.API.Nav and FFXIVLib.API.Nav._discoveryDone
+end
 
 --- Tick nav discovery (bulk SQL warp scanning).
 -- Call once per frame until it returns true.
 -- @return (boolean) true when discovery is complete.
 function FFXIVData_NavDiscoverTick()
-    if ml_global_information._nav_discover_done then return true end
+    if FFXIVData_NavDiscoveryDone() then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav or not FFXIVLib.API.Nav.DiscoverConnections then return false end
-    local done = FFXIVLib.API.Nav.DiscoverConnections()
-    if done then
-        ml_global_information._nav_discover_done = true
-    end
-    return done
+    return FFXIVLib.API.Nav.DiscoverConnections()
 end
 
 --- Tick nav enrichment (conversation strings from Warp SQL).
@@ -140,11 +139,11 @@ function FFXIVData_NavEnrichTick()
     if ml_global_information._nav_enrich_done then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before enriching
-    if not ml_global_information._nav_discover_done then return false end
+    if not FFXIVData_NavDiscoveryDone() then return false end
     local done = FFXIVLib.API.Nav.EnrichAll()
     if done then
         ml_global_information._nav_enrich_done = true
-        navd("[Nav] Enrichment complete — all conversation strings populated.")
+        navd("[Nav] Enrichment complete - all conversation strings populated.")
     end
     return done
 end
@@ -156,11 +155,11 @@ function FFXIVData_NavResolveTick()
     if ml_global_information._nav_resolve_done then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before resolving
-    if not ml_global_information._nav_discover_done then return false end
+    if not FFXIVData_NavDiscoveryDone() then return false end
     local done = FFXIVLib.API.Nav.ResolveAll()
     if done then
         ml_global_information._nav_resolve_done = true
-        navd("[Nav] Resolution complete — all entries tagged with source.")
+        navd("[Nav] Resolution complete - all entries tagged with source.")
     end
     return done
 end
