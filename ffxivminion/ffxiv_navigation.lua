@@ -1387,8 +1387,8 @@ function ml_navigation:EnsurePosition(ppos)
 			if ( Player:IsJumping() ) then
 				return true
 			else
-				Hacks:TeleportToXYZ(self.ensureposition.x,self.ensureposition.y,self.ensureposition.z)
-				d("[Navigation:EnsurePosition]: TP to correct Start Position.")
+				self:DispatchAutoFollowNode(self.ensureposition, true)
+				d("[Navigation:EnsurePosition]: Moving to correct Start Position.")
 			end
 		end
 	else
@@ -2114,7 +2114,7 @@ function ml_navigation.Navigate(event, ticks)
 								end
 
 							else
-								local todist,todist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,to_pos)
+								local todist,todist2d = math.distance3d(ppos,to_pos), math.distance2d(ppos,to_pos)
 								d("[OMC-DBG] MoveTo:in-air todist=" .. tostring(todist) .. " todist2d=" .. tostring(todist2d) .. " y=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " af=" .. tostring(Player:IsAutoFollowOn()))
 
 								-- Stall detection: if player hasn't descended from start height after 1500ms, jump failed
@@ -2132,52 +2132,18 @@ function ml_navigation.Navigate(event, ticks)
 									return
 								end
 
-								if ( todist2d <= ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()]) then
-									if ( ncradius <= 0.5 ) then
-										if (Player:IsMoving() or Player:IsJumping() ) then
-											Player:StopMovement()
-											ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
-											return
-										else
-											d("[OMC-DBG] MoveTo:LANDED (teleport) todist2d=" .. tostring(todist2d))
-											Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
-											ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
-											ml_navigation.pathindex = ml_navigation.pathindex + 1
-											NavigationManager.NavPathNode = ml_navigation.pathindex
-											ml_navigation:ResetAutoFollowState()
-											ml_navigation:ResetOMCHandler()
-											d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
-										end
-									else
-										d("[OMC-DBG] MoveTo:LANDED todist2d=" .. tostring(todist2d))
-										ml_navigation.pathindex = ml_navigation.pathindex + 1
-										NavigationManager.NavPathNode = ml_navigation.pathindex
-										ml_navigation:ResetAutoFollowState()
-										ml_navigation:ResetOMCHandler()
-										d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
-									end
+								if ( todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+									d("[OMC-DBG] MoveTo:LANDED todist2d=" .. tostring(todist2d))
+									ml_navigation.pathindex = ml_navigation.pathindex + 1
+									NavigationManager.NavPathNode = ml_navigation.pathindex
+									ml_navigation:ResetAutoFollowState()
+									ml_navigation:ResetOMCHandler()
+									d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
 								else
 									if ( from_pos.y > (ppos.y + 1) and to_pos.y > (ppos.y + 1) ) then
-										if ( ncradius <= 0.5 ) then
-											if (Player:IsMoving() or Player:IsJumping() ) then
-												Player:StopMovement()
-												ffnav.Await(1000, function () return not Player:IsMoving() and not Player:IsJumping() end)
-												return
-											else
-												d("[OMC-DBG] MoveTo:LANDED-below (teleport) todist2d=" .. tostring(todist2d))
-												Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
-												ml_navigation.lastupdate = ml_navigation.lastupdate + math.random(500,1500)
-												ml_navigation.pathindex = ml_navigation.pathindex + 1
-												NavigationManager.NavPathNode = ml_navigation.pathindex
-												ml_navigation:ResetAutoFollowState()
-												ml_navigation:ResetOMCHandler()
-												d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
-											end
-										else
-											d("[OMC-DBG] MoveTo:FAIL-below from_y=" .. tostring(from_pos.y) .. " to_y=" .. tostring(to_pos.y) .. " ppos_y=" .. tostring(ppos.y))
-											d("[Navigation]: [Jumping] - Failed to Reach End of Navconnection.")
-											Player:Stop()
-										end
+										d("[OMC-DBG] MoveTo:FAIL-below from_y=" .. tostring(from_pos.y) .. " to_y=" .. tostring(to_pos.y) .. " ppos_y=" .. tostring(ppos.y))
+										d("[Navigation]: [Jumping] - Failed to Reach End of Navconnection.")
+										Player:Stop()
 									else
 										ml_navigation:DispatchAutoFollowNode(to_pos, true)
 									end
