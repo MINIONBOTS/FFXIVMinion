@@ -2606,7 +2606,7 @@ function GetNetworkCrystalAttemptCap(task, entity)
 	return tonumber(task.interactRange) or 4
 end
 
-local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDistance)
+function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDistance)
 	if (not table.valid(rawPos)) then
 		return fallbackPos
 	end
@@ -2619,7 +2619,7 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDist
 		if (not table.valid(probePos)) then
 			return
 		end
-		local meshPt = FindClosestMesh(probePos, snapDistance or 12, true)
+		local meshPt = FindClosestMesh(probePos, snapDistance or 12, false, false)
 		if (not meshPt) then
 			return
 		end
@@ -2690,9 +2690,9 @@ local function PickNetworkCrystalApproachPos(rawPos, fallbackPos, maxCrystalDist
 	end
 
 	if (crystalDistanceCap) then
-		return bestAcceptable or bestFallback or rawPos or fallbackPos
+		return bestAcceptable or bestFallback or candidates[1] or fallbackPos or rawPos
 	end
-	return bestAcceptable or bestFallback or fallbackPos or rawPos
+	return bestAcceptable or bestFallback or candidates[1] or fallbackPos or rawPos
 end
 
 local function NormalizeAethernetRow(row)
@@ -5542,16 +5542,110 @@ function GetCSAvailable(itemid)
 	return false
 end
 
+c_scripclosewindows = inheritsFrom( ml_cause )
+e_scripclosewindows = inheritsFrom( ml_effect )
+function c_scripclosewindows:evaluate()
+	if (MIsLoading() or MIsLocked()) then
+		return false
+	end
+	if (Player:GetFishingState() ~= 0) then
+		return true
+	end
+	if (IsControlOpen("SynthesisSimple")) then
+		return true
+	end
+	if (IsControlOpen("RecipeNote") or IsControlOpen("SynthesisSimpleDialog")
+		or IsControlOpen("WKSRecipeNotebook")) then
+		return true
+	end
+	return false
+end
+function e_scripclosewindows:execute()
+	if (Player:GetFishingState() ~= 0) then
+		if (ffxiv_fish and ffxiv_fish.StopFishing) then
+			ffxiv_fish.StopFishing()
+		end
+		return
+	end
+	if (IsControlOpen("SynthesisSimple")) then
+		if (UseControlAction("SynthesisSimple","Quit")) then
+			ml_global_information.Await(1000, 3000, function () return not IsControlOpen("SynthesisSimple") end)
+		end
+		return
+	end
+	if (IsControlOpen("WKSRecipeNotebook")) then
+		if (UseControlAction("WKSRecipeNotebook","Close")) then
+			ml_global_information.Await(1000, 3000, function () return (not IsControlOpen("WKSRecipeNotebook") and not MIsLocked()) end)
+		end
+		return
+	end
+	if (IsControlOpen("RecipeNote") or IsControlOpen("SynthesisSimpleDialog")) then
+		if (ffxiv_craft and ffxiv_craft.ToggleCraftingLog) then
+			ffxiv_craft.ToggleCraftingLog()
+		elseif (UseControlAction("RecipeNote","Close",0,1000)) then
+			ml_global_information.Await(1000, 3000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
+		end
+	end
+end
+
 -- new NA version
 c_scripexchange_na = inheritsFrom( ml_cause )
 e_scripexchange_na = inheritsFrom( ml_effect )
 c_scripexchange_na.lastItem = 0
 c_scripexchange_na.lastSwitch = 0
 c_scripexchange_na.lastSwitchAttempts = 0
+local function scripexchange_has_tradeable_items(items)
+	if not table.valid(items) or not FFXIVLib or not FFXIVLib.API or not FFXIVLib.API.Items then
+		return false
+	end
+	for itemid,_ in pairs(items) do
+		if not FFXIVLib.API.Items.IsCollectableRewardCapped(itemid) then
+			return true
+		end
+	end
+	return false
+end
+
+local function scripexchange_finish_capped(task)
+	if not table.valid(task) then
+		return
+	end
+	d("[ScripExchange]: Reward scrip capped, stopping turn-ins.")
+	if table.valid(task.items) then
+		for itemid,_ in pairs(task.items) do
+			task.items[itemid] = nil
+		end
+	end
+	for i = 0,10 do
+		task.categories[i] = true
+	end
+	c_scripexchange_na.lastItem = 0
+	if IsControlOpen("CollectablesShop") then
+		local supply = GetControl("CollectablesShop")
+		if supply and supply.Close then
+			supply:Close()
+		elseif UseControlAction("CollectablesShop","Close",0,1000) then
+		end
+	end
+end
+
 function c_scripexchange_na:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes")
+			local task = ml_task_hub:CurrentTask()
+			local tradeItemId = c_scripexchange_na.lastItem
+			if tradeItemId and tradeItemId > 0 and FFXIVLib.API.Items.IsCollectableRewardCapped(tradeItemId, nil, true) then
+				UseControlAction("SelectYesno","No")
+				if table.valid(task) and table.valid(task.items) then
+					task.items[tradeItemId] = nil
+				end
+				c_scripexchange_na.lastItem = 0
+			elseif not scripexchange_has_tradeable_items(task and task.items) then
+				UseControlAction("SelectYesno","No")
+				scripexchange_finish_capped(task)
+			else
+				UseControlAction("SelectYesno","Yes")
+			end
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return false
 		end
@@ -5573,11 +5667,17 @@ function c_scripexchange_na:evaluate()
 		end
 	end
 	
-	local items = ml_task_hub:CurrentTask().items
+	local task = ml_task_hub:CurrentTask()
+	local items = task.items
 	if (not table.valid(items)) then
 		for i = 0,10 do
-			ml_task_hub:CurrentTask().categories[i] = true
+			task.categories[i] = true
 		end
+		return false
+	end
+
+	if not scripexchange_has_tradeable_items(items) then
+		scripexchange_finish_capped(task)
 		return false
 	end
 	
@@ -5647,8 +5747,7 @@ function c_scripexchange_na:evaluate()
 			for itemid,_ in pairs(items) do
 				local taskItemId = itemid
 				
-				--31013 FFXIVLib.API.Items.IsRewardCapped(31013)
-				if (FFXIVLib.API.Items.IsRewardCapped(taskItemId)) then
+				if (FFXIVLib.API.Items.IsCollectableRewardCapped(taskItemId)) then
 					ml_task_hub:CurrentTask().items[taskItemId] = nil
 					return true
 				end
@@ -5659,6 +5758,12 @@ function c_scripexchange_na:evaluate()
 					d("[ScripExchange]: Checking index ["..tostring(index).."]")
 					if (GetCSAvailable(taskItemId)) then
 						if (c_scripexchange_na.lastItem == taskItemId) then
+							if FFXIVLib.API.Items.IsCollectableRewardCapped(taskItemId, nil, true) then
+								d("[ScripExchange]: Trade would exceed scrip cap, skipping item.")
+								ml_task_hub:CurrentTask().items[taskItemId] = nil
+								c_scripexchange_na.lastItem = 0
+								return true
+							end
 							d("[ScripExchange]: Attempting trade.")
 							UseControlAction(addonName,"Trade",0,0,1000)
 							return true

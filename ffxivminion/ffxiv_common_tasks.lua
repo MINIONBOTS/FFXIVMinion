@@ -2703,6 +2703,9 @@ function ffxiv_misc_scripexchange:task_complete_execute()
 end
 
 function ffxiv_misc_scripexchange:Init()
+	local ke_closeWindows = ml_element:create( "CloseCraftWindows", c_scripclosewindows, e_scripclosewindows, 160 )
+	self:add( ke_closeWindows, self.process_elements)
+
 	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
     self:add( ke_moveToMap, self.process_elements)
 	
@@ -2772,6 +2775,9 @@ function ffxiv_misc_exchange:task_complete_execute()
 end
 
 function ffxiv_misc_exchange:Init()
+	local ke_closeWindows = ml_element:create( "CloseCraftWindows", c_scripclosewindows, e_scripclosewindows, 160 )
+	self:add( ke_closeWindows, self.process_elements)
+
 	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
     self:add( ke_moveToMap, self.process_elements)
 	
