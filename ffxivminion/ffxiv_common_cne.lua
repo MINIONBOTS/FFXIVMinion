@@ -1557,7 +1557,7 @@ function c_teleportsamemap:evaluate()
 
 	-- Don't teleport when transporting or when the task requires staying mounted;
 	-- teleporting dismounts the player and breaks these quest states.
-	if (IsTransporting()) then
+	if (IsTransporting() or IsCosmolinerActive()) then
 		return false
 	end
 
@@ -1973,6 +1973,9 @@ function c_getmovementpath:evaluate()
 	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing()) then
 		return false
 	end
+	if (IsCosmolinerActive()) then
+		return false
+	end
 	local currentTask = ml_task_hub:CurrentTask()
 	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
 		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
@@ -2170,6 +2173,11 @@ function c_walktopos:evaluate()
 	if (Busy() or Player:IsJumping() or IsMounting()) then
 		return false
 	end
+
+	if (IsCosmolinerActive()) then
+		ml_navigation:DisablePathing()
+		return false
+	end
 	
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
@@ -2334,7 +2342,7 @@ c_useaethernet.used = false
 function c_useaethernet:evaluate(mapid, pos)
 	local currentTask = ml_task_hub:CurrentTask()
 
-	if (IsTransporting()) then-- disable temporarily, 6.0 interface rebuild
+	if (IsTransporting() or IsCosmolinerActive()) then-- disable temporarily, 6.0 interface rebuild
 		return false
 	end
 	if (not IsCityMap(Player.localmapid)) then
@@ -2843,7 +2851,9 @@ function e_usenavinteraction:execute()
 		return false
 	end
 	
-	e_usenavinteraction.task()
+	if (e_usenavinteraction.task) then
+		e_usenavinteraction.task()
+	end
 	e_usenavinteraction.timer = Now() + 2000
 end
 
@@ -2894,27 +2904,8 @@ function c_mount:evaluate()
 	-- once 2D distance to the goal is satisfied (the navigation lookahead
 	-- has already projected the endpoint to a CheckLandingZone-cleared spot).
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
-		or IsShopWindowOpen() or IsTransporting() or IsSwimming())
+		or IsShopWindowOpen() or IsTransporting() or IsCosmolinerActive() or IsSwimming())
 	then
-		local task = ml_task_hub:CurrentTask()
-		local gotoPos = task and task.pos
-		if (task and table.valid(gotoPos) and (Player.ismounted or IsMounting() or IsDismounting())) then
-			local dist2d = math.distance2d(Player.pos, gotoPos)
-			local dismountDistance = IsNull(task.dismountDistance,5)
-			if (dist2d <= math.max(dismountDistance + 1, 5)) then
-				d("[Mount-DBG] early gate dist2d="..string.format("%.2f",dist2d)
-					.." dismount="..tostring(dismountDistance)
-					.." ismounted="..tostring(Player.ismounted)
-					.." mounting="..tostring(IsMounting())
-					.." dismounting="..tostring(IsDismounting())
-					.." locked="..tostring(MIsLocked())
-					.." loading="..tostring(MIsLoading())
-					.." select="..tostring(IsControlOpen("SelectString") or IsControlOpen("SelectIconString"))
-					.." shop="..tostring(IsShopWindowOpen())
-					.." transporting="..tostring(IsTransporting())
-					.." swimming="..tostring(IsSwimming()))
-			end
-		end
 		return false
 	end
 	

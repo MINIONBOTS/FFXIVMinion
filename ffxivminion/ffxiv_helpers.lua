@@ -44,7 +44,6 @@ end
 ff.mapsections = {
 	[399] = 0,
 }
-
 -- Trust member role tables (by contentid)
 -- Derived from AST card targeting: Bole/Ewer = tanks, Balance/Spear = DPS, remainder = healers
 ff.trust_tanks = {
@@ -5748,7 +5747,7 @@ function GetYakTelSection(pos) return GetMapSection(1189, pos) end
 
 function GetLivingMemorySection(pos) return GetMapSection(1192, pos) end
 -- Cosmic data now lives in FFXIVLib.API.CosmicExploration (data_cosmic.lua).
--- Local aliases kept so Transport1237/1291/1310 references still resolve.
+-- Local aliases kept so Transport1237/1291/1310/1319 references still resolve.
 local centerPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1237)
 local portalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1237)
 
@@ -5757,6 +5756,8 @@ local phaennaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions
 
 local oizysCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1310)
 local oizysPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1310)
+
+local auxesiaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1319)
 
 function GetCosmicMoon(pos, closest)
 	return FFXIVLib.API.CosmicExploration.GetSection(1237, pos, closest)
@@ -5777,10 +5778,15 @@ function GetOizys(pos, closest)
 	return FFXIVLib.API.CosmicExploration.GetSection(1310, pos, closest)
 end
 
+function GetAuxesia(pos, closest)
+	return FFXIVLib.API.CosmicExploration.GetSection(1319, pos, closest)
+end
+
 local _sectionFunctions = {
 	[1237] = function(pos) return GetCosmicMoon(pos, true) end,
 	[1291] = function(pos) return GetPhaenna(pos, true) end,
 	[1310] = function(pos) return GetOizys(pos, true) end,
+	[1319] = function(pos) return GetAuxesia(pos, true) end,
 }
 
 function GetMapSection(mapId, pos)
@@ -5791,6 +5797,32 @@ end
 
 function CalcOizysTransport(pos1, pos2, pos1Section, pos2Section)
 	return FFXIVLib.API.CosmicExploration.ShouldTransport(1310, pos1, pos2, pos1Section, pos2Section)
+end
+
+function CalcAuxesiaTransport(pos1, pos2, pos1Section, pos2Section)
+	return FFXIVLib.API.CosmicExploration.ShouldTransport(1319, pos1, pos2, pos1Section, pos2Section)
+end
+
+local COSMIC_PORTAL_WALK_THROUGH = 8
+
+local function GetCosmicPortalWalkthroughPos(portalData, portalPos)
+	local facing = portalData.facing
+	return {
+		x = portalPos.x + math.sin(facing) * COSMIC_PORTAL_WALK_THROUGH,
+		y = portalPos.y,
+		z = portalPos.z + math.cos(facing) * COSMIC_PORTAL_WALK_THROUGH,
+	}
+end
+
+local function WalkThroughCosmicPortal(portalData, portalPos)
+	if ml_navigation.canPath then
+		ml_navigation:DisablePathing()
+		ml_navigation:ResetCurrentPath()
+	end
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = GetCosmicPortalWalkthroughPos(portalData, portalPos)
+	newTask.range = 2
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 function Transport1237(pos1,pos2)
 	local pos1 = pos1 or Player.pos
@@ -7451,6 +7483,141 @@ function Transport1310(pos1, pos2)
 			Player:SetFacing(portalData.facing)
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
 		end
+	end
+end
+
+function Transport1319(pos1, pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	local pos1Section = GetAuxesia(pos1)
+	local pos2Section = GetAuxesia(pos2, true)
+
+	if Player.localmapid ~= 1319 then
+		return false
+	end
+
+	-- Cosmoliner Heartwood Flume (central city circuit)
+	if not ffxivminion.AuxesiaMapVersion or ffxivminion.AuxesiaMapVersion < 3 then
+		return false
+	end
+
+	if not pos1Section or pos1Section == 0 or not pos2Section or pos2Section == 0 then
+		return false
+	end
+
+	if pos1Section == pos2Section then
+		return false
+	end
+
+	if not CalcAuxesiaTransport(pos1, pos2, pos1Section, pos2Section) then
+		return false
+	end
+
+	-- Portal selection based on sections
+	-- Portal naming: "X-Y" means portal in section X going to section Y
+	local portalData = nil
+
+	if In(pos1Section, 1) then
+		if In(pos2Section, 2, 3) then
+			portalData = auxesiaPortalPositions[1] and auxesiaPortalPositions[1]["1-2"]
+		elseif In(pos2Section, 4, 5, 6, 7, 8, 9, 10, 11, 12) then
+			portalData = auxesiaPortalPositions[1] and auxesiaPortalPositions[1]["1-4"]
+		end
+	elseif In(pos1Section, 2) then
+		if In(pos2Section, 1) then
+			portalData = auxesiaPortalPositions[2] and auxesiaPortalPositions[2]["2-1"]
+		elseif In(pos2Section, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) then
+			portalData = auxesiaPortalPositions[2] and auxesiaPortalPositions[2]["2-3"]
+		end
+	elseif In(pos1Section, 3) then
+		if In(pos2Section, 1, 2) then
+			portalData = auxesiaPortalPositions[3] and auxesiaPortalPositions[3]["3-2"]
+		elseif In(pos2Section, 4, 5) then
+			portalData = auxesiaPortalPositions[3] and auxesiaPortalPositions[3]["3-4"]
+		elseif In(pos2Section, 6, 7, 8, 9, 10, 11, 12) then
+			portalData = auxesiaPortalPositions[3] and auxesiaPortalPositions[3]["3-8"]
+		end
+	elseif In(pos1Section, 4) then
+		if In(pos2Section, 1, 2) then
+			portalData = auxesiaPortalPositions[4] and auxesiaPortalPositions[4]["4-1"]
+		elseif In(pos2Section, 3) then
+			portalData = auxesiaPortalPositions[4] and auxesiaPortalPositions[4]["4-3"]
+		elseif In(pos2Section, 5, 6, 7) then
+			portalData = auxesiaPortalPositions[4] and auxesiaPortalPositions[4]["4-5"]
+		elseif In(pos2Section, 8, 9, 10, 11, 12) then
+			portalData = auxesiaPortalPositions[4] and auxesiaPortalPositions[4]["4-8"]
+		end
+	elseif In(pos1Section, 5) then
+		if In(pos2Section, 1, 2, 3, 4, 8) then
+			portalData = auxesiaPortalPositions[5] and auxesiaPortalPositions[5]["5-4"]
+		elseif In(pos2Section, 7) then
+			portalData = auxesiaPortalPositions[5] and auxesiaPortalPositions[5]["5-7"]
+		elseif In(pos2Section, 6, 9, 10, 11, 12) then
+			portalData = auxesiaPortalPositions[5] and auxesiaPortalPositions[5]["5-6"]
+		end
+	elseif In(pos1Section, 6) then
+		if In(pos2Section, 1, 2, 3, 4, 5, 7) then
+			portalData = auxesiaPortalPositions[6] and auxesiaPortalPositions[6]["6-5"]
+		elseif In(pos2Section, 9, 10) then
+			portalData = auxesiaPortalPositions[6] and auxesiaPortalPositions[6]["6-9"]
+		elseif In(pos2Section, 8, 11, 12) then
+			portalData = auxesiaPortalPositions[6] and auxesiaPortalPositions[6]["6-11"]
+		end
+	elseif In(pos1Section, 7) then
+		if In(pos2Section, 1, 2, 3, 4, 5, 6, 9, 10) then
+			portalData = auxesiaPortalPositions[7] and auxesiaPortalPositions[7]["7-5"]
+		elseif In(pos2Section, 8, 11, 12) then
+			portalData = auxesiaPortalPositions[7] and auxesiaPortalPositions[7]["7-11"]
+		end
+	elseif In(pos1Section, 8) then
+		if In(pos2Section, 1, 2, 3, 4, 5, 6, 7) then
+			portalData = auxesiaPortalPositions[8] and auxesiaPortalPositions[8]["8-4"]
+		elseif In(pos2Section, 9, 10, 11) then
+			portalData = auxesiaPortalPositions[8] and auxesiaPortalPositions[8]["8-11"]
+		elseif In(pos2Section, 12) then
+			portalData = auxesiaPortalPositions[8] and auxesiaPortalPositions[8]["8-12"]
+		end
+	elseif In(pos1Section, 9) then
+		if In(pos2Section, 10) then
+			portalData = auxesiaPortalPositions[9] and auxesiaPortalPositions[9]["9-10"]
+		elseif In(pos2Section, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12) then
+			portalData = auxesiaPortalPositions[9] and auxesiaPortalPositions[9]["9-6"]
+		end
+	elseif In(pos1Section, 10) then
+		if In(pos2Section, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12) then
+			portalData = auxesiaPortalPositions[10] and auxesiaPortalPositions[10]["10-9"]
+		end
+	elseif In(pos1Section, 11) then
+		if In(pos2Section, 6, 9, 10) then
+			portalData = auxesiaPortalPositions[11] and auxesiaPortalPositions[11]["11-6"]
+		elseif In(pos2Section, 5, 7) then
+			portalData = auxesiaPortalPositions[11] and auxesiaPortalPositions[11]["11-7"]
+		elseif In(pos2Section, 1, 2, 3, 4, 8, 12) then
+			portalData = auxesiaPortalPositions[11] and auxesiaPortalPositions[11]["11-8"]
+		end
+	elseif In(pos1Section, 12) then
+		if In(pos2Section, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11) then
+			portalData = auxesiaPortalPositions[12] and auxesiaPortalPositions[12]["12-8"]
+		end
+	end
+
+	if not portalData then
+		return false
+	end
+
+	local portalPos = portalData.pos
+	local distance = math.distance2d(pos1, portalPos)
+
+	if distance > 2 then
+		return true, function()
+			local newTask = ffxiv_task_movetopos.Create()
+			newTask.pos = portalPos
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return true, function()
+		WalkThroughCosmicPortal(portalData, portalPos)
 	end
 end
 
@@ -10013,6 +10180,10 @@ end
 
 function IsTransporting()
 	return HasBuff(Player.id,404)
+end
+
+function IsCosmolinerActive()
+	return Player.action == 6703
 end
 
 function TestConditions(conditions)

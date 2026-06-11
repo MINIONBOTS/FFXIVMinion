@@ -1469,7 +1469,7 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 		Player:StopExact()
 	end
 
-	if (MPlayerDriving()) then
+	if (MPlayerDriving() or IsCosmolinerActive()) then
 		d("[NAVIGATION]: Releasing control to Player..")
 		ml_navigation:ResetCurrentPath()
 		return -1337
@@ -1499,7 +1499,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		targetid = nil
 	end
 
-	if (MPlayerDriving()) then
+	if (MPlayerDriving() or IsCosmolinerActive()) then
 		d("[NAVIGATION]: Releasing control to Player..")
 		ml_navigation:ResetCurrentPath()
 		return -1337
@@ -1602,6 +1602,13 @@ end
 ------------------------------------------------------------
 function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	if (not x or not y or not z) then return -1 end
+
+	if (IsCosmolinerActive()) then
+		if (ml_navigation_exact.active) then
+			Player:StopExact()
+		end
+		return -1337
+	end
 
 	local thresh = threshold or 0.2
 	local noSmoothing = (disableSmoothing == true)
@@ -1898,6 +1905,18 @@ ml_navigation.lastindexgoal = {}
 ------------------------------------------------------------
 function ml_navigation.Navigate(event, ticks)
 	ml_navigation:InstallAutoFollowHooks()
+
+	if (IsCosmolinerActive()) then
+		if (ml_navigation.canPath) then
+			ml_navigation:DisablePathing()
+			ml_navigation:ResetCurrentPath()
+			ml_navigation:StopMovement()
+		end
+		if (ml_navigation_exact.active) then
+			Player:StopExact()
+		end
+		return
+	end
 
 	-- MoveToExact priority guard
 	if (ml_navigation_exact.active) then

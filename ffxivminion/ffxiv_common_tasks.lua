@@ -235,14 +235,12 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (self.useExactMovement and not self.exactMovementStarted) then
 				local macroThresh = NavigationManager.MacroMeshDistanceThreshold or 650
 				if (dist3d > macroThresh) then
-					d("[TASK-DBG] MOVETOPOS:safety-disable dist3d="..string.format("%.1f",dist3d).." > thresh="..tostring(macroThresh))
 					self.useExactMovement = false
 				end
 			end
 
 			-- Switch to MoveToExact for final approach when within 30y (ground only)
 			if (self.useExactMovement and not self.exactMovementStarted and dist3d < 30 and not IsFlying() and not IsDiving()) then
-				d("[TASK-DBG] MOVETOPOS:handoff MoveToExact dist3d="..string.format("%.1f",dist3d))
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
@@ -261,11 +259,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 				end
 
 				if (self.useExactMovement) then
-					d("[TASK-DBG] MOVETOPOS:arrival StopExact dist2d="..string.format("%.2f",dist2d))
 					Player:StopExact()
 					ml_global_information.monitorStuck = true
 				else
-					d("[TASK-DBG] MOVETOPOS:arrival Stop(normal) dist2d="..string.format("%.2f",dist2d))
 					Player:Stop()
 				end
 				if (not self.remainMounted and Player.ismounted) then
@@ -286,11 +282,9 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
 	if (self.useExactMovement) then
-		d("[TASK-DBG] MOVETOPOS:complete StopExact")
 		Player:StopExact()
 		ml_global_information.monitorStuck = true
 	else
-		d("[TASK-DBG] MOVETOPOS:complete Stop(normal)")
 		Player:Stop()
 	end
 	if (self.doFacing and gUseAutoFollowPath ~= true) then
@@ -316,11 +310,9 @@ end
 
 function ffxiv_task_movetopos:task_fail_execute()
 	if (self.useExactMovement) then
-		d("[TASK-DBG] MOVETOPOS:fail StopExact")
 		Player:StopExact()
 		ml_global_information.monitorStuck = true
 	else
-		d("[TASK-DBG] MOVETOPOS:fail Stop(normal)")
 		Player:Stop()
 	end
     self.valid = false
@@ -1232,7 +1224,6 @@ function ffxiv_task_avoid.Create()
 end
 
 function ffxiv_task_avoid:Init()
-    d("[TASK-DBG] AVOID:Init MoveToExact")
     Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
     self:AddTaskCheckCEs()
 end
@@ -1262,7 +1253,6 @@ function ffxiv_task_avoid:task_complete_eval()
 	end
 	
 	if (dist > 1 and not Player:IsExactMoving()) then
-		d("[TASK-DBG] AVOID:re-issue MoveToExact dist="..string.format("%.1f",dist))
 		Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
 	end
 	
@@ -1285,7 +1275,6 @@ function ffxiv_task_avoid:task_complete_eval()
 end
 
 function ffxiv_task_avoid:task_complete_execute()
-    d("[TASK-DBG] AVOID:complete StopExact")
     Player:StopExact()
     
 	local target = MGetTarget()
