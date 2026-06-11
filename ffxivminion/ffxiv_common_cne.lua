@@ -1975,7 +1975,7 @@ function c_getmovementpath:evaluate()
 	end
 	local currentTask = ml_task_hub:CurrentTask()
 	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
-		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET", "MOVETOINTERACT")
+		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
 			or (ffxiv_map_nav and currentTask.contentid and (
 				(ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(currentTask.contentid))
 				or (ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(currentTask.contentid)))))
