@@ -2333,6 +2333,61 @@ function e_avoidaggressives:execute()
 	--Do nothing, abusing the cne system a bit here.
 end
 
+local function PathDistanceOr3d(from, to, fallback3d)
+	if (table.valid(to) and ml_navigation:CheckPath(to)) then
+		return GetPathDistance(from, to) or fallback3d
+	end
+	return fallback3d
+end
+
+local function AethernetApproachPos(row)
+	if (not row) then
+		return nil
+	end
+	if (table.valid(row.pos)) then
+		return row.pos
+	end
+	if (not row.WorldX) then
+		return nil
+	end
+	local rawPos = { x = row.WorldX, y = row.WorldY or Player.pos.y, z = row.WorldZ }
+	if (type(PickNetworkCrystalApproachPos) == "function" and type(GetNetworkCrystalApproachCap) == "function") then
+		return PickNetworkCrystalApproachPos(rawPos, nil, GetNetworkCrystalApproachCap(rawPos, true)) or rawPos
+	end
+	return rawPos
+end
+
+local function PathAethernetWalkCost(fromPos, entryRow, entryDist3d, exitRow, exitDist3d, gotoPos)
+	local entryPos = AethernetApproachPos(entryRow)
+	local exitPos = AethernetApproachPos(exitRow)
+	local leg1 = PathDistanceOr3d(fromPos, entryPos, entryDist3d or math.huge)
+	local leg2 = PathDistanceOr3d(exitPos, gotoPos, exitDist3d or math.huge)
+	return leg1 + leg2
+end
+
+-- Unlock only when walk via shard is shorter than walking straight to goal.
+local function ShardUnlockSavesPath(gotoPos, shardRow)
+	if (not table.valid(gotoPos) or not shardRow) then
+		return false
+	end
+	local shardPos = AethernetApproachPos(shardRow)
+	if (not table.valid(shardPos)) then
+		return false
+	end
+	if (not ml_navigation:CheckPath(gotoPos) or not ml_navigation:CheckPath(shardPos)) then
+		return false
+	end
+
+	local gotoDist = GetPathDistance(Player.pos, gotoPos)
+	local shardDist = GetPathDistance(Player.pos, shardPos)
+	local shardToGoal = GetPathDistance(shardPos, gotoPos)
+	if (not gotoDist or not shardDist or not shardToGoal) then
+		return false
+	end
+
+	return (shardDist + shardToGoal) < gotoDist
+end
+
 c_useaethernet = inheritsFrom( ml_cause )
 e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
@@ -2501,7 +2556,9 @@ function c_useaethernet:evaluate(mapid, pos)
 			end
 		end
 		if (nearestAethernet and bestAethernet) then
-			sameMapRule = ((bestDistance + nearestDistance) < gotoDist and destMapID == Player.localmapid)
+			local gotoWalkDist = PathDistanceOr3d(Player.pos, gotoPos, gotoDist)
+			local aethernetWalkDist = PathAethernetWalkCost(Player.pos, nearestAethernet, nearestDistance, bestAethernet, bestDistance, gotoPos)
+			sameMapRule = (aethernetWalkDist < gotoWalkDist and destMapID == Player.localmapid)
 			crossMapRule = (aethernetDetour < gatedist and destMapID ~= Player.localmapid)
 		end
 		
@@ -2770,6 +2827,43 @@ function e_useaethernet:execute()
 	end
 end
 
+c_pathattune = inheritsFrom(ml_cause)
+c_pathattune.nextAttuneScanAt = nil
+e_pathattune = inheritsFrom(ml_effect)
+e_pathattune.pending = nil
+
+function c_pathattune:evaluate()
+	if (IsTransporting() or MIsLoading()) then
+		return false
+	end
+
+	e_pathattune.pending = nil
+	local task = ml_task_hub:CurrentTask()
+	if (not task or not table.valid(task.pos)) then
+		return false
+	end
+	if (not FFXIVLib.QuestHelpers or not FFXIVLib.QuestHelpers.TryAttuneAlongPath) then
+		return false
+	end
+
+	local best, apos, startDist = FFXIVLib.QuestHelpers.TryAttuneAlongPath(task.pos, c_pathattune)
+	if (best and apos) then
+		navd("[AttuneDbg] src=path.process start="..tostring(startDist).." goal="..tostring(task.pos.x), "path_attune", 2000)
+		e_pathattune.pending = { apos = apos, aethid = best.aethid }
+		return true
+	end
+	return false
+end
+
+function e_pathattune:execute()
+	local pending = e_pathattune.pending
+	if (not pending or not ffxiv_quest_attunetoaetheryte) then
+		return
+	end
+	FFXIVLib.QuestHelpers.HandoffAttuneToParent(ffxiv_quest_attunetoaetheryte, pending.apos, pending.aethid)
+	e_pathattune.pending = nil
+end
+
 c_unlockaethernet = inheritsFrom( ml_cause )
 e_unlockaethernet = inheritsFrom( ml_effect )
 e_unlockaethernet.nearest = nil
@@ -2778,40 +2872,56 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	if (IsTransporting()) then
 		return false
 	end
-	
-	local gotoPos = pos or ml_task_hub:CurrentTask().pos
-	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+
+	local currentTask = ml_task_hub:CurrentTask()
+	local gotoPos = pos or (currentTask and currentTask.pos)
+	local destMapID = IsNull(currentTask and currentTask.destMapID, 0)
 	if (destMapID == 0) then
 		destMapID = Player.localmapid
 	end
-	
+
 	e_unlockaethernet.nearest = nil
-	
+
 	if (not table.valid(gotoPos)) then
 		return false
 	end
-	
-	local nearestAethernetUnlocked,nearestDistanceUnlocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)		
-	local nearestAethernetLocked,nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
-	if (nearestAethernetLocked and (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked)) then
-		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernetLocked.id) then 
-			if (nearestDistanceLocked < 15 or nearestDistanceLocked < math.distance3d(Player.pos, gotoPos)) then
-				e_unlockaethernet.nearest = nearestAethernetLocked
-				return true
-			end
+
+	local nearestAethernetUnlocked, nearestDistanceUnlocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid, Player.pos, 1)
+	local nearestAethernetLocked, nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid, Player.pos, 2)
+	if (nearestAethernetLocked and IsNull(currentTask and currentTask.contentid, 0) ~= nearestAethernetLocked.id) then
+		local shouldUnlock
+		if (destMapID ~= Player.localmapid) then
+			-- Off-map destination treated as far (~2000): attune the nearest on-map locked shard
+			-- on the way out, even if a closer unlocked aetheryte exists.
+			shouldUnlock = (nearestDistanceLocked < 2000)
+		elseif (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked) then
+			shouldUnlock = ShardUnlockSavesPath(gotoPos, nearestAethernetLocked)
+		end
+		if (shouldUnlock) then
+			e_unlockaethernet.nearest = nearestAethernetLocked
+			return true
 		end
 	end
-	
+
 	return false
 end
 function e_unlockaethernet:execute()
-	if (table.valid(e_unlockaethernet.nearest)) then
-		NormalizeAethernetRow(e_unlockaethernet.nearest)
-		local newTask = ffxiv_task_moveaethernet.Create()
-		newTask.contentid = e_unlockaethernet.nearest.id
-		newTask.pos = e_unlockaethernet.nearest.pos
-		newTask.unlockAethernet = true
-		
+	if (not table.valid(e_unlockaethernet.nearest)) then
+		return
+	end
+
+	NormalizeAethernetRow(e_unlockaethernet.nearest)
+	local newTask = ffxiv_task_moveaethernet.Create()
+	newTask.contentid = e_unlockaethernet.nearest.id
+	newTask.pos = e_unlockaethernet.nearest.pos
+	newTask.unlockAethernet = true
+
+	-- Stay under the quest step parent instead of hub REACTIVE preempt.
+	local parent = ml_task_hub:ThisTask():ParentTask()
+	if (parent) then
+		parent:DeleteSubTasks()
+		parent:AddSubTask(newTask)
+	else
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 	end
 end

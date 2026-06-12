@@ -131,6 +131,9 @@ function ffxiv_task_movetopos:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 160 )
     self:add( ke_stuck, self.overwatch_elements)
 	
+	local ke_pathAttune = ml_element:create( "PathAttune", c_pathattune, e_pathattune, 155 )
+	self:add( ke_pathAttune, self.process_elements)
+
 	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 150 )
     self:add( ke_unlockAethernet, self.process_elements)
 	
@@ -592,6 +595,9 @@ function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
+	local ke_pathAttune = ml_element:create( "PathAttune", c_pathattune, e_pathattune, 145 )
+	self:add( ke_pathAttune, self.process_elements)
+
 	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 140 )
     self:add( ke_unlockAethernet, self.process_elements)
 	
