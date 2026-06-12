@@ -1801,6 +1801,20 @@ function ffxiv_task_grindCombat:task_complete_eval()
 		--d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
+
+	-- Self-defense only: end after the mob was on us and disengages (targetid == 0).
+	-- Do not use for quest kills / path clears where targetid == 0 before the pull.
+	if (self.endOnDisengage) then
+		local targetTargetId = target.targetid or 0
+		local playerId = Player.id
+		local petId = (ValidTable(Player.pet) and Player.pet.id) or 0
+		if (targetTargetId == playerId or (petId ~= 0 and targetTargetId == petId)) then
+			self.hadAggro = true
+		end
+		if (self.hadAggro and targetTargetId == 0) then
+			return true
+		end
+	end
    
 	return false
 end
