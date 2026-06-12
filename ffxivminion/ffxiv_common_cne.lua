@@ -243,6 +243,7 @@ function e_killaggrotarget:execute()
 		ml_navigation:DisableAutoFollow(true, "killaggro")
 	end
 	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.endOnDisengage = true
 	Player:SetTarget(c_killaggrotarget.targetid)
     newTask.targetid = c_killaggrotarget.targetid
     ml_task_hub:CurrentTask():AddSubTask(newTask)

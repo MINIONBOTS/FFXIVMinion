@@ -1476,6 +1476,8 @@ function ffxiv_task_grindCombat.Create()
 	newinst.attackThrottleTimer = 0
 	newinst.noFlee = false
 	newinst.fleeHandled = false
+	newinst.endOnDisengage = false
+	newinst.hadAggro = false
 	
 	newinst.attemptPull = false
 	newinst.pullTimer = 0
