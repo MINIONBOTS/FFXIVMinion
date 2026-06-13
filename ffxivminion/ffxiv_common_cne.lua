@@ -1288,21 +1288,24 @@ function e_movetogate:execute()
 	if (mapid == 399 and Player.localmapid == 478) then
 		local destPos = ml_task_hub:CurrentTask().pos
 		local section = IsNull(ff.mapsections[mapid],0)
+		local questGate = {x = 73.259323120117, y = 205, z = 143.04707336426, h = -0.52216768264771}
+		local defaultGate = {x = 147.0463, y = 207, z = 115.8594, h = 0.9793}
+		local useQuestGate = QuestCompleted(1658)
 		if section ~= 0 then
 			if section == 1 then
 				ml_global_information.ShowInformation(GetString("Destination is hinterlands section 1."), 5000)
-				pos = {x = 73.259323120117, y = 205, z = 143.04707336426, h = -0.52216768264771}
+				pos = useQuestGate and questGate
 			else
 				ml_global_information.ShowInformation(GetString("Destination is hinterlands section 2."), 5000)
-				pos = {x = 147.0463, y = 207, z = 115.8594, h = 0.9793}
+				pos = defaultGate
 			end
 		elseif table.valid(destPos) then
 			if (GetHinterlandsSection(destPos) == 1) then
 				d("Destination is hinterlands section 1.")
-				pos = {x = 73.259323120117, y = 205, z = 143.04707336426, h = -0.52216768264771}
+				pos = useQuestGate and questGate
 			else
 				d("Destination is hinterlands section 2.")
-				pos = {x = 147.0463, y = 207, z = 115.8594, h = 0.9793}
+				pos = defaultGate
 			end
 		end
 	end
