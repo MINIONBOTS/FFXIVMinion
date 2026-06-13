@@ -2789,7 +2789,7 @@ function GetPathDistance(pos1,pos2,threshold)
 		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		local _dt = os.clock() * 1000 - _t0
 		if (_dt > 1) then
-			d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
+			--d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
 		end
 		if (table.valid(path)) then
 			local pathdist = PathDistance(path)
@@ -4021,6 +4021,9 @@ end
 -- Quest unlock overrides for aether currents gated behind content
 -- that the data tables don't reflect. Key = EObjId, Value = QuestId.
 local AetherCurrentQuestOverrides = {
+	-- Drav Hinterlands (399)
+	[2006210] = 1658,
+	[2006214] = 1658,
 	-- Coerthas Western Highlands (401)
 	[2006228] = 1643,
 	[2006229] = 1643,
@@ -5519,27 +5522,16 @@ local function _canTraverseNavPath(fromMap, toMap)
 					local anyValid = false
 					local blockReason = nil
 					for ei, entry in ipairs(entries) do
-						if not entry.requires then
+						if ml_global_information.NavEntryRequirementsMet(entry) then
 							anyValid = true
-							navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " NO requires (pass)")
-							break
-						end
-						local allPass = true
-						local failedReq = nil
-						for req, val in pairs(entry.requires) do
-							local ok, ret = LoadString("return " .. req)
-							if ok and ret ~= nil and ret ~= val then
-								allPass = false
-								failedReq = req .. "=" .. tostring(ret) .. " want=" .. tostring(val)
-								break
+							if entry.requires then
+								navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " requires MET")
+							else
+								navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " NO requires (pass)")
 							end
-						end
-						if allPass then
-							anyValid = true
-							navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " requires MET")
-							break
 						else
-							blockReason = failedReq
+							blockReason = "entry#" .. ei .. " requires failed"
+							navd("[BFS]   " .. current .. " -> " .. nid .. " entry#" .. ei .. " BLOCKED (requires)")
 						end
 					end
 					if anyValid then
@@ -10183,7 +10175,7 @@ function IsTransporting()
 end
 
 function IsCosmolinerActive()
-	return Player.action == 6703
+	return Player.mountid == 370
 end
 
 function TestConditions(conditions)

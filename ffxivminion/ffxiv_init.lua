@@ -111,35 +111,33 @@ function ml_global_information.GetMainIcon()
 	end
 end
 
+function ml_global_information.NavEntryRequirementsMet(entry)
+	if not entry or not entry.requires then
+		return true
+	end
+	for requirement, value in pairs(entry.requires) do
+		local ok, ret = LoadString("return " .. requirement)
+		if not ok or ret ~= value then
+			return false
+		end
+	end
+	return true
+end
+
 function ml_global_information.NodeNeighbors(self)
 	if (table.valid(self.neighbors)) then
 		local validNeighbors = deepcopy(self.neighbors)
 		
 		for id,entries in pairs(validNeighbors) do
 			for i,entrydata in pairs(entries) do
-				if (entrydata.requires) then
-					local add = true
-					local requirements = shallowcopy(entrydata.requires)
-					for requirement,value in pairs(requirements) do
-						local ok, ret = LoadString("return " .. requirement)
-						if (ok and ret ~= nil) then
-							if (ret ~= value) then
-								add = false
-							end
-						end
-						if (not add) then
-							break
-						end
-					end
-					if (not add) then
-						if (TableSize(validNeighbors[id]) > 1) then
-							validNeighbors[id][i] = nil
-						elseif (TableSize(validNeighbors[id]) == 1) then	
-							validNeighbors[id] = nil
-						end
+				if not ml_global_information.NavEntryRequirementsMet(entrydata) then
+					if (TableSize(validNeighbors[id]) > 1) then
+						validNeighbors[id][i] = nil
+					elseif (TableSize(validNeighbors[id]) == 1) then
+						validNeighbors[id] = nil
 					end
 				end
-			end			
+			end
 		end
 		
 		return validNeighbors
@@ -159,24 +157,8 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 			local bestDist = math.huge
 			local skippedReq = 0
 			local skippedNil = 0
-			for id, posTable in pairs(neighbor) do
-				local valid = true
-				if (posTable.requires) then
-					local requirements = shallowcopy(posTable.requires)
-					for requirement,value in pairs(requirements) do
-						local ok, ret = LoadString("return " .. requirement)
-						if (ok and ret ~= nil) then
-							if (ret ~= value) then
-								valid = false
-							end
-						end
-						if (not valid) then
-							break
-						end
-					end
-				end
-				
-				if not valid then
+			for ei, posTable in pairs(neighbor) do
+				if not ml_global_information.NavEntryRequirementsMet(posTable) then
 					skippedReq = skippedReq + 1
 				elseif not posTable.x or not posTable.y or not posTable.z then
 					skippedNil = skippedNil + 1
@@ -212,17 +194,10 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 		elseif (nsize == 1) then
 			local i,best = next(neighbor)
 			if (i and best) then
-				-- Check requires for single-entry edges too
-				if (best.requires) then
-					local requirements = shallowcopy(best.requires)
-					for requirement,value in pairs(requirements) do
-						local ok, ret = LoadString("return " .. requirement)
-						if (ok and ret ~= nil and ret ~= value) then
-							navd("[Nav] NodeClosestNeighbor: single entry for dest=" .. tostring(id)
-								.. " failed requirement: " .. tostring(requirement))
-							return nil
-						end
-					end
+				if not ml_global_information.NavEntryRequirementsMet(best) then
+					navd("[Nav] NodeClosestNeighbor: single entry for dest=" .. tostring(id)
+						.. " failed requirements")
+					return nil
 				end
 				local ref = best.b or best.g or best.a or "walk"
 				local posFrom  = best._pos_source  or "static"
