@@ -2264,11 +2264,12 @@ function ml_navigation.Navigate(event, ticks)
 							end
 
 							local todist,todist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-							if ( todist <= ml_navigation.NavPointReachedDistances["3dwalk"] and todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+							if ( todist <= ml_navigation.NavPointReachedDistances["3dwalk"] and todist2d <= 2) then
 								d("[Navigation] - OMC_END - Interact Node reached")
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								NavigationManager.NavPathNode = ml_navigation.pathindex
 								ml_navigation:ResetOMCHandler()
+								return
 							end
 
 							local interactnpc

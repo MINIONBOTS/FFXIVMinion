@@ -2070,7 +2070,8 @@ end
 
 function ffxiv_nav_interact:task_complete_eval()
 	if (self.abort and type(self.abort) == "function") then
-		if (self.abort() == true) then
+		local abortResult = self.abort()
+		if (abortResult == true) then
 			return true
 		end
 	end

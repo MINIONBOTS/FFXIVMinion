@@ -2094,6 +2094,11 @@ function c_getmovementpath:evaluate()
 			if (navid == 0 and currentTaskTargetsCrystal and IsNull(currentTask.interact, 0) ~= 0) then
 				navid = currentTask.interact
 			end
+			-- Path to task.pos only; entity targetID steers macro-node routing (e.g. ferry
+			-- NavConnections) and is not needed until WalkToEntity / interact.
+			if (currentTask and currentTask.name == "MOVETOINTERACT") then
+				navid = 0
+			end
 
 			local dist = math.distance2d(gotoPos,Player.pos)
 			local cubeFilter = IsNull(ml_task_hub:CurrentTask().cubefilters,0)
@@ -2951,7 +2956,7 @@ function c_usenavinteraction:evaluate(pos)
 	
 	local transportFunction = _G["Transport"..tostring(Player.localmapid)]
 	if (transportFunction ~= nil and type(transportFunction) == "function") then
-		local retval,task = transportFunction(Player.pos,gotoPos)
+		local retval, task = transportFunction(Player.pos,gotoPos)
 		if (retval == true) then
 			e_usenavinteraction.task = task
 			return true
