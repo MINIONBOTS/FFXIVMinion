@@ -411,6 +411,10 @@ function c_add_fate:evaluate()
     if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		return false
     end
+
+	if (gBotMode == "questMode" and FFXIVLib and FFXIVLib.QuestHelpers and FFXIVLib.QuestHelpers.ApplyGrindSettings) then
+		FFXIVLib.QuestHelpers.ApplyGrindSettings()
+	end
 	
 	c_add_fate.fate = {}
     

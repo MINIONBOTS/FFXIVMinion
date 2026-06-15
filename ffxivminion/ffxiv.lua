@@ -3051,46 +3051,78 @@ invalid name or haven't chosen one.")
 						end
 					end
 
-					if (gBotMode == "questMode" and _G["gQuestStepType"] == "grind") or gBotMode == "grindMode" then
-						if gEnableAdvancedGrindSettings then
+					local stepType = tostring(_G["gQuestStepType"] or "")
+					local isQuestGrindStep = (stepType == "grind" or string.sub(stepType, 1, 5) == "grind")
+					if (gBotMode == "questMode" and isQuestGrindStep) or gBotMode == "grindMode" then
+						local isQuestGrind = (gBotMode == "questMode" and isQuestGrindStep)
+						local doFates = false
+						local minFateLevel = 15
+						local maxFateLevel = 2
+						local noMin = false
+						local noMax = false
+						local cfg = (Settings and Settings.FFXIVMINION) or {}
 
-							local minFateLevel = IsNull(tonumber(gGrindFatesMinLevel), 0)
-							local maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel), 0)
-							GUI:Text("Yes I was silly and altered deault fate settings!");
-							if gGrindDoFates then
-								GUI:Text(table.size(FFXIVLib.API.Fate.GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
-								if SetNoMinFateLevel then
-									GUI:Text("No Min fate level");
+						if isQuestGrind then
+							if FFXIVLib and FFXIVLib.QuestHelpers and FFXIVLib.QuestHelpers.ApplyGrindSettings then
+								FFXIVLib.QuestHelpers.ApplyGrindSettings()
+							end
+							local hasFFXIVLibQuest = (FFXIVLib and FFXIVLib.Questing)
+							if hasFFXIVLibQuest or _G["gQuestGrindDoFates"] ~= nil or cfg.gQuestGrindDoFates ~= nil then
+								doFates = (IsNull(_G["gQuestGrindDoFates"], IsNull(cfg.gQuestGrindDoFates, IsNull(cfg.gGrindDoFates, true))) == true)
+								if (IsNull(_G["gQuestGrindEnableAdvanced"], IsNull(cfg.gQuestGrindEnableAdvanced, false)) == true) then
+									minFateLevel = IsNull(tonumber(IsNull(_G["gQuestGrindFatesMinLevel"], IsNull(cfg.gQuestGrindFatesMinLevel, IsNull(cfg.gGrindFatesMinLevel, 15)))), 15)
+									maxFateLevel = IsNull(tonumber(IsNull(_G["gQuestGrindFatesMaxLevel"], IsNull(cfg.gQuestGrindFatesMaxLevel, IsNull(cfg.gGrindFatesMaxLevel, 2)))), 2)
+									noMin = (IsNull(_G["gQuestGrindFatesNoMinLevel"], IsNull(cfg.gQuestGrindFatesNoMinLevel, IsNull(cfg.gGrindFatesNoMinLevel, false))) == true)
+									noMax = (IsNull(_G["gQuestGrindFatesNoMaxLevel"], IsNull(cfg.gQuestGrindFatesNoMaxLevel, IsNull(cfg.gGrindFatesNoMaxLevel, false))) == true)
+									GUI:Text("Quest Grind Fallback - custom fate settings");
 								else
-									GUI:Text("Min fate level is " .. math.max((Player.level - minFateLevel), 0));
-								end
-								if SetNoMaxFateLevel then
-									GUI:Text("No Max fate level");
-								else
-									GUI:Text("Max fate level is " .. (Player.level + gGrindFatesMaxLevel));
+									GUI:Text("Quest Grind Fallback - default fate settings");
 								end
 							else
-								GUI:Text("Do Fates is disabled");
+								doFates = (gGrindDoFates == true)
+								GUI:Text("Quest Grind Fallback settings");
+							end
+						elseif gBotMode == "grindMode" then
+							doFates = (gGrindDoFates == true)
+							if gEnableAdvancedGrindSettings then
+								minFateLevel = IsNull(tonumber(gGrindFatesMinLevel), 0)
+								maxFateLevel = IsNull(tonumber(gGrindFatesMaxLevel), 0)
+								noMin = (gGrindFatesNoMinLevel == true)
+								noMax = (gGrindFatesNoMaxLevel == true)
+								GUI:Text("Custom grind fate settings");
+							else
+								minFateLevel = 70
+								maxFateLevel = 2
+								GUI:Text("Using Default Grind settings");
+							end
+						end
+
+						if doFates then
+							if FFXIVLib and FFXIVLib.API and FFXIVLib.API.Fate and FFXIVLib.API.Fate.GetApprovedFates then
+								GUI:Text(table.size(FFXIVLib.API.Fate.GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
+								if FFXIVLib.API.Fate.GetClosestFate then
+									local closestFate = FFXIVLib.API.Fate.GetClosestFate(Player.pos, true)
+									if closestFate then
+										GUI:Text("Closest active/pathable fate ready");
+									else
+										GUI:Text("No active/pathable fate right now");
+									end
+								end
+							else
+								GUI:Text("Do Fates is enabled (FFXIVLib data not ready)");
+							end
+							if noMin then
+								GUI:Text("No Min fate level");
+							else
+								GUI:Text("Min fate level is " .. math.max((Player.level - minFateLevel), 0));
+							end
+							if noMax then
+								GUI:Text("No Max fate level");
+							else
+								GUI:Text("Max fate level is " .. (Player.level + maxFateLevel));
 							end
 						else
-							local minFateLevel = 70
-							local maxFateLevel = 2
-							GUI:Text("Using Default Grind settings");
-							if gGrindDoFates then
-								GUI:Text(table.size(FFXIVLib.API.Fate.GetApprovedFates()) .. " Fates available in my area and for my lvl settings");
-								if SetNoMinFateLevel then
-									GUI:Text("No Min fate level");
-								else
-									GUI:Text("Min fate level is " .. math.max((Player.level - minFateLevel), 0));
-								end
-								if SetNoMaxFateLevel then
-									GUI:Text("No Max fate level");
-								else
-									GUI:Text("Max fate level is " .. (Player.level + maxFateLevel));
-								end
-							else
-								GUI:Text("Do Fates is disabled");
-							end
+							GUI:Text("Do Fates is disabled");
 						end
 					end
 				end
