@@ -609,6 +609,94 @@ ml_navigation.autoFollowHookInstalled = false
 ml_navigation.lastExternalAutoFollowActivity = 0
 ml_navigation.externalAutoFollowGraceMs = 500
 
+function ml_navigation.GetInteractStopDistance3d(task)
+	local cap = tonumber(task and task.interactRange3d)
+	if cap and cap > 0 then
+		return cap
+	end
+	return 6
+end
+function ml_navigation.IsInteractCloseApproachTask(task)
+	if not task then return false end
+	if IsDiving() then return true end
+	if IsFlying() and task.inflight then return true end
+	return false
+end
+function ml_navigation.GetInteractCloseFollowMax2d(task)
+	if IsFlying() and task and task.inflight then
+		return 30
+	end
+	return 15
+end
+function ml_navigation.GetInteractFollowPos(ppos, tpos, target)
+	local followPos = { x = tpos.x, y = tpos.y, z = tpos.z }
+	if not (ppos and table.valid(tpos)) then return followPos end
+	if IsDiving() then
+		local planarDist = ml_navigation.GetInteractPlanarSeparation(ppos, tpos, target)
+		local verticalSep = ml_navigation.GetInteractVerticalSeparation(ppos, tpos, target)
+		-- Directly above/below: swim down to inferred entity height.
+		if (planarDist < 2 and verticalSep > 1) then
+			followPos.y = (ppos.y or tpos.y) - verticalSep
+			return followPos
+		end
+		followPos.y = (tpos.y - 2)
+		local hit = RayCast(ppos.x, ppos.y, ppos.z, followPos.x, followPos.y, followPos.z)
+		if (hit) then
+			followPos = { x = tpos.x, y = tpos.y, z = tpos.z }
+		end
+	end
+	return followPos
+end
+function ml_navigation.GetInteractVerticalSeparation(ppos, tpos, target)
+	if target then
+		local planarDist = math.abs(tonumber(target.distance2d) or math.huge)
+		local dist3d = tonumber(target.distance)
+		if dist3d and dist3d > 0 and planarDist < dist3d then
+			return math.sqrt((dist3d * dist3d) - (planarDist * planarDist))
+		end
+	end
+	if not (ppos and table.valid(tpos)) then return 0 end
+	return math.abs((ppos.y or 0) - (tpos.y or 0))
+end
+function ml_navigation.GetInteractPlanarSeparation(ppos, tpos, target)
+	if target then
+		return math.abs(tonumber(target.distance2d) or math.huge)
+	end
+	if not (ppos and table.valid(tpos)) then return math.huge end
+	return math.distance2d(ppos, tpos)
+end
+function ml_navigation.CanStopInteractCloseApproach(ppos, tpos, target, stopDist)
+	if not target then return false end
+	local dist3d = tonumber(target.distance)
+	stopDist = tonumber(stopDist)
+	if not dist3d or not stopDist or dist3d > stopDist then return false end
+	local planarDist = ml_navigation.GetInteractPlanarSeparation(ppos, tpos, target)
+	local verticalSep = ml_navigation.GetInteractVerticalSeparation(ppos, tpos, target)
+	return not ((planarDist < 2 and verticalSep > 1) or planarDist > 1)
+end
+function ml_navigation.NeedsInteractCloseApproach(task)
+	if not ml_navigation.IsInteractCloseApproachTask(task) then return false end
+	local target = Player and Player.GetTarget and Player:GetTarget()
+	if not (target and target.los) then return false end
+	local ppos = Player.pos
+	local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(task)
+	if (ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) >= maxFollow2d) then return false end
+	local stopDist = ml_navigation.GetInteractStopDistance3d(task)
+	if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, stopDist) then
+		return false
+	end
+	return true
+end
+function ml_navigation.TryInteractAutoFollow(task)
+	if not ml_navigation.NeedsInteractCloseApproach(task) then return false end
+	local target = Player:GetTarget()
+	local ppos = Player.pos
+	if not (target and ppos and table.valid(target.pos)) then return false end
+	local followPos = ml_navigation.GetInteractFollowPos(ppos, target.pos, target)
+	ml_navigation:DispatchAutoFollowNode(followPos, true)
+	return true
+end
+
 ml_navigation.EnablePathing = function (self)
 	if (not self.canPath) then
 		self.canPath = true
@@ -1941,6 +2029,17 @@ function ml_navigation.Navigate(event, ticks)
 			if (allowExternalAutoFollow) then
 				return
 			end
+			if ml_navigation.CanRun() and not ml_navigation.debug then
+				local ct = ml_task_hub and ml_task_hub:CurrentTask()
+				if ct and (ct.name == "MOVETOINTERACT" or (ct.interact and ct.interact ~= 0)) then
+					if ml_navigation.TryInteractAutoFollow(ct) then
+						return
+					end
+					if ml_navigation.NeedsInteractCloseApproach(ct) then
+						return
+					end
+				end
+			end
 			ml_navigation:DisableAutoFollow(nil, "NavGuard:CanRun="..tostring(ml_navigation.CanRun()).." canPath="..tostring(ml_navigation.canPath))
 			return
 		end
@@ -2345,19 +2444,16 @@ function ml_navigation.Navigate(event, ticks)
 					----------------------------------------------------
 					if (IsDiving()) then
 						local target = Player:GetTarget()
-						if (target and target.los and target.distance2d < 15) then
-							if (target.interactable) and (target.distance < 2.5) then
+						local interactTask = ml_task_hub and ml_task_hub:CurrentTask()
+						local interactStopDist = ml_navigation.GetInteractStopDistance3d(interactTask)
+						local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(interactTask)
+						if (target and target.los and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) < maxFollow2d) then
+							if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
 								Player:Stop()
 								return false
 							end
-							-- Close-range target: dispatch autofollow directly to target
-							local tpos = target.pos
-							local modifiedNode = { x = tpos.x, y = (tpos.y - 2), z = tpos.z }
-							local hit = RayCast(ppos.x,ppos.y,ppos.z,modifiedNode.x,modifiedNode.y,modifiedNode.z)
-							if (hit) then
-								modifiedNode = { x = tpos.x, y = tpos.y, z = tpos.z }
-							end
-							ml_navigation:DispatchAutoFollowNode(modifiedNode, true)
+							ml_navigation.TryInteractAutoFollow(interactTask)
+							return
 						else
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 
@@ -2382,6 +2478,22 @@ function ml_navigation.Navigate(event, ticks)
 					-- Flying Navigation
 					----------------------------------------------------
 					if (IsFlying()) then
+						local interactTask = ml_task_hub and ml_task_hub:CurrentTask()
+						if (interactTask and interactTask.inflight) then
+							local target = Player:GetTarget()
+							local interactStopDist = ml_navigation.GetInteractStopDistance3d(interactTask)
+							local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(interactTask)
+							if (target and target.los and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) < maxFollow2d) then
+								if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
+									Player:Stop()
+									return false
+								end
+								if (ml_navigation.TryInteractAutoFollow(interactTask)) then
+									return
+								end
+							end
+						end
+
 						ml_navigation.GUI.lastAction = "Flying to Node"
 
 						-- Camera follow

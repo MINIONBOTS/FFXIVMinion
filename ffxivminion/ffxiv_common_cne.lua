@@ -5483,6 +5483,11 @@ function c_dointeract:evaluate()
 			end
 			return true
 		end
+		if (ml_navigation and ml_navigation.TryInteractAutoFollow and ml_navigation.IsInteractCloseApproachTask(task)) then
+			if (ml_navigation.TryInteractAutoFollow(task)) then
+				return true
+			end
+		end
 		return false
 	end
 	
