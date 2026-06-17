@@ -4452,7 +4452,7 @@ function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
 		local aetheryte = GetAetheryteByID(aethid)
-		if (aetheryte and GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
+		if (aetheryte and aetheryte.isattuned and GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
 			return true
 		end
 	end
