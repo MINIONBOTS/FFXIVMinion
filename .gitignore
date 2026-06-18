@@ -25,3 +25,7 @@
 
 # Runtime logs
 log.txt
+
+# Runtime/local docs
+Docs/
+**/Docs/
