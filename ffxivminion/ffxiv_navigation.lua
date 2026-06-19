@@ -2191,13 +2191,35 @@ function ml_navigation.Navigate(event, ticks)
 						-- OMC Jump (subtype 1)
 						if ( ncsubtype == 1 ) then
 							ml_navigation.GUI.lastAction = "Jump NavConnection"
+							local mounted = (Player.ismounted == true)
+							local landing2d = mounted and 1.25 or ml_navigation.NavPointReachedDistances["2dwalk"]
+							local aircut2d = mounted and 0.6 or 0.4
+							local landHeightTolerance = mounted and 2.25 or 1.5
+							local stallElapsedMs = mounted and 2200 or 1500
+							local stallDrop = mounted and 0.35 or 1.0
+							local carryWindowMs = mounted and 450 or 350
+							local carryActive = (ml_navigation.omc_lastlandedtick and (ticks - ml_navigation.omc_lastlandedtick) <= carryWindowMs)
 
 							if ( not ml_navigation.omc_startheight ) then
-								if ( ncradius <= 0.5 ) then
-									d("[OMC-DBG] MoveTo:ensure-start pidx=" .. tostring(ml_navigation.pathindex) .. " radius=" .. tostring(ncradius) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z))
-									if ( ml_navigation:SetEnsureStartPosition(from_pos, ppos, nc, from_pos, to_pos, from_heading) ) then
+								-- Ensure-start: for tight connections, anchor at from_pos before
+								-- arming the jump timer. After a recent OMC landing, allow a
+								-- slightly wider anchor so chained jumps do not bounce.
+								if ( ncradius <= 0.5 and ml_navigation.omc_starttimer == 0 ) then
+									local startdist2d = math.distance2d(ppos, from_pos)
+									if ( not ml_navigation.ensurepositionstarttime ) then
+										ml_navigation.ensurepositionstarttime = ticks
+									end
+									local ensureElapsed = ticks - ml_navigation.ensurepositionstarttime
+									local anchorRadius = carryActive and 0.65 or 0.5
+									local anchored = (startdist2d <= anchorRadius and (not Player:IsMoving() or ensureElapsed >= 250 or carryActive))
+									if ( ensureElapsed < 1000 and not anchored ) then
+										d("[OMC-DBG] MoveTo:ensure-start dist2d=" .. tostring(startdist2d) .. " anchor=" .. tostring(anchorRadius) .. " elapsed=" .. tostring(ensureElapsed) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " pidx=" .. tostring(ml_navigation.pathindex) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z))
+										if ( not Player:IsJumping() ) then
+											ml_navigation:DispatchAutoFollowNode(from_pos, true)
+										end
 										return
 									end
+									ml_navigation.ensurepositionstarttime = nil
 								end
 
 								if ( ml_navigation.omc_starttimer == 0 ) then
@@ -2205,39 +2227,54 @@ function ml_navigation.Navigate(event, ticks)
 									d("[OMC-DBG] MoveTo:timer-start moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " jumping=" .. tostring(Player:IsJumping()) .. " NavPathNode=" .. tostring(NavigationManager.NavPathNode))
 								end
 
-								-- Always steer toward the landing point so we keep lateral
-								-- momentum toward to_pos. This also recovers if the player
-								-- stopped exactly on the takeoff edge (would otherwise deadlock
-								-- because the jump branch needs IsMoving()).
-								ml_navigation:DispatchAutoFollowNode(to_pos, true)
-
-								-- Position-anchored takeoff: jump from the takeoff edge for a
-								-- consistent launch point (and thus arc) regardless of movement
-								-- speed (walk 6.0 vs sprint 7.8). Time fallback prevents a hang.
-								local fromdist2d = math.distance2d(ppos, from_pos)
-								local takeoffRadius = math.max(ncradius or 0.5, 0.5) + 0.35
+								-- Geometry-aware takeoff gates prevent early/diagonal launches.
+								local relX = ppos.x - from_pos.x
+								local relZ = ppos.z - from_pos.z
+								local spanX = to_pos.x - from_pos.x
+								local spanZ = to_pos.z - from_pos.z
+								local spanLen = math.sqrt((spanX * spanX) + (spanZ * spanZ))
+								local approachDot = 0
+								local sideOffset = 0
+								if ( spanLen > 0.0001 ) then
+									approachDot = ((relX * spanX) + (relZ * spanZ)) / spanLen
+									sideOffset = math.abs((relX * spanZ) - (relZ * spanX)) / spanLen
+								end
+								local fromdist2d = math.sqrt((relX * relX) + (relZ * relZ))
 								local elapsed = ticks - ml_navigation.omc_starttimer
-								-- Jump when moving and within the takeoff radius (consistent
-								-- launch point), OR on the time fallback regardless of
-								-- IsMoving(): at a gap edge the player stalls (IsMoving=false)
-								-- while autofollow still holds forward toward to_pos, so the
-								-- jump launches us across the gap.
-								if ( elapsed > 100 and ((Player:IsMoving() and fromdist2d <= takeoffRadius) or elapsed > 500) ) then
+								local takeoffCap = mounted and 0.7 or 0.55
+								local sideLimit = carryActive and 0.75 or (mounted and 0.7 or 0.55)
+								local fbTakeoff = carryActive and (mounted and 1.35 or 1.2) or (mounted and 1.2 or 1.05)
+								local behindStart = (approachDot < -0.15)
+								local takeoffHeightReady = (ppos.y >= (from_pos.y - (mounted and 0.45 or 0.35)))
+								local takeoffSideReady = (sideOffset <= sideLimit)
+								local fbReady = (elapsed > 650 and fromdist2d <= fbTakeoff and takeoffHeightReady and not behindStart)
+								if ( elapsed > 100 and (((Player:IsMoving() and fromdist2d <= takeoffCap and takeoffHeightReady and takeoffSideReady and not behindStart)) or fbReady) ) then
+									-- PREJUMP recovery may have aimed at from_pos on prior ticks;
+									-- force landing-side aim right before Jump so momentum is
+									-- always carried across the gap.
+									ml_navigation:DispatchAutoFollowNode(to_pos, true)
 									ml_navigation.omc_startheight = ppos.y
-									d("[OMC-DBG] MoveTo:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " fromdist2d=" .. tostring(fromdist2d) .. " tElapsed=" .. tostring(elapsed))
+									d("[OMC-DBG] MoveTo:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " fromdist2d=" .. tostring(fromdist2d) .. " tElapsed=" .. tostring(elapsed) .. " ismounted=" .. tostring(mounted) .. " fbReady=" .. tostring(fbReady) .. " hReady=" .. tostring(takeoffHeightReady) .. " sReady=" .. tostring(takeoffSideReady) .. " side=" .. tostring(sideOffset) .. " takeoffCap=" .. tostring(takeoffCap) .. " behind=" .. tostring(behindStart) .. " adot=" .. tostring(approachDot) .. " from_y=" .. tostring(from_pos.y) .. " to_y=" .. tostring(to_pos.y))
 									Player:Jump()
 									d("[Navigation]: Starting to Jump for NavConnection.")
+								elseif ( elapsed > 500 and (not takeoffHeightReady or not takeoffSideReady or behindStart or fromdist2d > takeoffCap) ) then
+									d("[OMC-DBG] MoveTo:PREJUMP-RECOVER fromdist2d=" .. tostring(fromdist2d) .. " fbTakeoff=" .. tostring(fbTakeoff) .. " y=" .. tostring(ppos.y) .. " from_y=" .. tostring(from_pos.y) .. " hReady=" .. tostring(takeoffHeightReady) .. " sReady=" .. tostring(takeoffSideReady) .. " side=" .. tostring(sideOffset) .. " behind=" .. tostring(behindStart) .. " adot=" .. tostring(approachDot) .. " elapsed=" .. tostring(elapsed) .. " ismounted=" .. tostring(mounted))
+									ml_navigation:DispatchAutoFollowNode(from_pos, true)
+								else
+									ml_navigation:DispatchAutoFollowNode(to_pos, true)
 								end
 
 							else
 								local todist,todist2d = math.distance3d(ppos,to_pos), math.distance2d(ppos,to_pos)
-								d("[OMC-DBG] MoveTo:in-air todist=" .. tostring(todist) .. " todist2d=" .. tostring(todist2d) .. " y=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " af=" .. tostring(Player:IsAutoFollowOn()))
+								d("[OMC-DBG] MoveTo:in-air todist=" .. tostring(todist) .. " todist2d=" .. tostring(todist2d) .. " y=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " ismounted=" .. tostring(mounted) .. " to_y=" .. tostring(to_pos.y))
+								local atLandHeight = math.abs(ppos.y - to_pos.y) <= landHeightTolerance
+								local nearLanding = (todist2d <= (landing2d + 0.35) and math.abs(ppos.y - to_pos.y) <= (landHeightTolerance + 0.5))
 
-								-- Stall detection: if player hasn't descended from start height after 1500ms, jump failed
-								-- (re-arm gave no lateral momentum; player is stuck at ledge edge)
-								if ( ticks - ml_navigation.omc_starttimer > 1500 and ppos.y > ml_navigation.omc_startheight - 1.0 ) then
+								-- Stall detection: avoid false retries when we are already near
+								-- the landing criteria and still descending.
+								if ( ticks - ml_navigation.omc_starttimer > stallElapsedMs and ppos.y > ml_navigation.omc_startheight - stallDrop and not nearLanding ) then
 									ml_navigation.omc_jumpretries = (ml_navigation.omc_jumpretries or 0) + 1
-									d("[OMC-DBG] MoveTo:STALL-RETRY #" .. tostring(ml_navigation.omc_jumpretries) .. " ppos_y=" .. tostring(ppos.y) .. " startheight=" .. tostring(ml_navigation.omc_startheight) .. " elapsed=" .. tostring(ticks - ml_navigation.omc_starttimer))
+									d("[OMC-DBG] MoveTo:STALL-RETRY #" .. tostring(ml_navigation.omc_jumpretries) .. " ppos_y=" .. tostring(ppos.y) .. " startheight=" .. tostring(ml_navigation.omc_startheight) .. " elapsed=" .. tostring(ticks - ml_navigation.omc_starttimer) .. " ismounted=" .. tostring(mounted) .. " stall_ms=" .. tostring(stallElapsedMs) .. " stall_drop=" .. tostring(stallDrop))
 									if ( ml_navigation.omc_jumpretries > 3 ) then
 										d("[Navigation]: OMC jump stalled after 3 retries, giving up.")
 										Player:Stop()
@@ -2249,18 +2286,16 @@ function ml_navigation.Navigate(event, ticks)
 									return
 								end
 
-								-- Landing requires horizontal proximity AND being at the landing
-								-- height, so a fast (sprinting) fly-over while still high in the
-								-- air is not mistaken for a landing.
-								local atLandHeight = math.abs(ppos.y - to_pos.y) <= 1.5
-								if ( todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"] and atLandHeight ) then
+								-- Landing requires horizontal proximity AND landing height.
+								if ( todist2d <= landing2d and atLandHeight ) then
 									d("[OMC-DBG] MoveTo:LANDED todist2d=" .. tostring(todist2d))
 									ml_navigation.pathindex = ml_navigation.pathindex + 1
+									ml_navigation.omc_lastlandedtick = ticks
 									NavigationManager.NavPathNode = ml_navigation.pathindex
 									ml_navigation:ResetAutoFollowState()
 									ml_navigation:ResetOMCHandler()
 									d("[Navigation]: [Jumping] - Landed at End of Navconnection.")
-								elseif ( ml_navigation.omc_aircut or (todist2d <= 0.4 and ppos.y >= to_pos.y - 0.25) ) then
+								elseif ( ml_navigation.omc_aircut or (todist2d <= aircut2d and ppos.y >= to_pos.y - 0.25) ) then
 									-- Sprint overshoot guard: we are over the landing point but
 									-- still airborne; kill horizontal drift so we drop straight
 									-- down onto the point instead of sailing past it.
@@ -2964,6 +2999,12 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 
 	-- OMC Jump (subtype 1)
 	if (ncsubtype == 1) then
+		local mounted = (Player.ismounted == true)
+		local landing2d = mounted and 1.25 or ml_navigation.NavPointReachedDistances["2dwalk"]
+		local aircut2d = mounted and 0.6 or 0.4
+		local landHeightTolerance = mounted and 2.25 or 1.5
+		local stallElapsedMs = mounted and 2200 or 1500
+		local stallDrop = mounted and 0.35 or 1.0
 		if (not self.omc_startheight) then
 			-- Ensure-start: for tight connections, anchor the player AT from_pos
 			-- (the takeoff edge) and wait for it to settle to a near-stop BEFORE
@@ -3016,18 +3057,19 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			-- forward toward to_pos, so the jump launches us across the gap.
 			if (elapsed > 100 and ((Player:IsMoving() and fromdist2d <= takeoffRadius) or elapsed > 500)) then
 				self.omc_startheight = ppos.y
-				d("[OMC-DBG] Exact:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " fromdist2d=" .. tostring(fromdist2d) .. " tElapsed=" .. tostring(elapsed))
+				d("[OMC-DBG] Exact:JUMP startheight=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " fromdist2d=" .. tostring(fromdist2d) .. " tElapsed=" .. tostring(elapsed) .. " ismounted=" .. tostring(mounted) .. " to_y=" .. tostring(to_pos.y))
 				Player:Jump()
 				d("[MoveToExact]: OMC Jump started.")
 			end
 		else
 			local todist2d = math.distance2d(ppos, to_pos)
-			d("[OMC-DBG] Exact:in-air todist2d=" .. tostring(todist2d) .. " y=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " af=" .. tostring(Player:IsAutoFollowOn()))
+			d("[OMC-DBG] Exact:in-air todist2d=" .. tostring(todist2d) .. " y=" .. tostring(ppos.y) .. " moving=" .. tostring(Player:IsMoving()) .. " jumping=" .. tostring(Player:IsJumping()) .. " af=" .. tostring(Player:IsAutoFollowOn()) .. " ismounted=" .. tostring(mounted) .. " to_y=" .. tostring(to_pos.y))
 
-			-- Stall detection: player hasn't descended after 1500ms, retry jump
-			if (ticks - self.omc_starttimer > 1500 and ppos.y > self.omc_startheight - 1.0) then
+			-- Stall detection: player hasn't descended after the mode-specific
+			-- threshold window, retry jump.
+			if (ticks - self.omc_starttimer > stallElapsedMs and ppos.y > self.omc_startheight - stallDrop) then
 				self.omc_jumpretries = (self.omc_jumpretries or 0) + 1
-				d("[OMC-DBG] Exact:STALL-RETRY #" .. tostring(self.omc_jumpretries) .. " ppos_y=" .. tostring(ppos.y) .. " startheight=" .. tostring(self.omc_startheight) .. " elapsed=" .. tostring(ticks - self.omc_starttimer))
+				d("[OMC-DBG] Exact:STALL-RETRY #" .. tostring(self.omc_jumpretries) .. " ppos_y=" .. tostring(ppos.y) .. " startheight=" .. tostring(self.omc_startheight) .. " elapsed=" .. tostring(ticks - self.omc_starttimer) .. " ismounted=" .. tostring(mounted) .. " stall_ms=" .. tostring(stallElapsedMs) .. " stall_drop=" .. tostring(stallDrop))
 				if (self.omc_jumpretries > 3) then
 					d("[MoveToExact]: OMC jump stalled after 3 retries, giving up.")
 					Player:StopExact()
@@ -3042,14 +3084,14 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			-- Landing requires horizontal proximity AND being at the landing
 			-- height, so a fast (sprinting) fly-over at altitude is not mistaken
 			-- for a landing.
-			local atLandHeight = math.abs(ppos.y - to_pos.y) <= 1.5
-			if (todist2d <= ml_navigation.NavPointReachedDistances["2dwalk"] and atLandHeight) then
+			local atLandHeight = math.abs(ppos.y - to_pos.y) <= landHeightTolerance
+			if (todist2d <= landing2d and atLandHeight) then
 				d("[OMC-DBG] Exact:LANDED todist2d=" .. tostring(todist2d))
 				self.pathindex = self.pathindex + 1
 				ml_navigation_exact.ResetAutoFollowState()
 				ml_navigation_exact.ResetOMCState()
 				d("[MoveToExact]: OMC Jump landed.")
-			elseif (self.omc_aircut or (todist2d <= 0.4 and ppos.y >= to_pos.y - 0.25)) then
+			elseif (self.omc_aircut or (todist2d <= aircut2d and ppos.y >= to_pos.y - 0.25)) then
 				-- Sprint overshoot guard: we are over the landing point but still
 				-- airborne; kill horizontal drift so we drop straight down onto
 				-- the point instead of sailing past it.

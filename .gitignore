@@ -17,6 +17,10 @@
 !/ffxivminion/**/*.md
 
 !/translations/
+
+# Runtime/profile data not tracked from active folder
+/ffxivminion/SkillManagerProfiles/
+/ffxivminion/class_routines/**/*.info
 !/translations/**/
 !/translations/**/*.lua
 !/translations/**/*.def
