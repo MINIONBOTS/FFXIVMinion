@@ -620,7 +620,7 @@ function ml_navigation.GetInteractStopDistance3d(task)
 	return 6
 end
 function ml_navigation.IsFlyingInteractLandingTask(task)
-	return IsFlying() and task and (task.inflight or (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0))
+	return IsFlying() and task and (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0)
 end
 function ml_navigation.IsInteractCloseApproachTask(task)
 	if not task then return false end
@@ -842,12 +842,7 @@ function ml_navigation.NeedsInteractCloseApproach(task)
 	return true
 end
 function ml_navigation.TryInteractAutoFollow(task, resolvedTarget)
-	if (IsFlying() and task and task.name == "MOVETOINTERACT" and not task.inflight
-		and (not ffnav.interactLandingNoInflightLog or TimeSince(ffnav.interactLandingNoInflightLog) > 2000)) then
-		d("[Navigation] MOVETOINTERACT is flying with task.inflight unset; treating it as a flying interact close approach.")
-		ffnav.interactLandingNoInflightLog = Now()
-	end
-	if (IsFlying() and task and (task.inflight or (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0))
+	if (ml_navigation.IsFlyingInteractLandingTask(task)
 		and ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
 		if (not ffnav.interactLandingFallbackFollowLog or TimeSince(ffnav.interactLandingFallbackFollowLog) > 2000) then
 			d("[Navigation] Flying interact close approach: steering to landing fallback ("

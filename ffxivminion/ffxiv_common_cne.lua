@@ -3184,7 +3184,6 @@ function c_mount:evaluate()
 					if (IsFlying() and Player.ismounted
 						and (not ffnav.interactLandingCandidateLog or TimeSince(ffnav.interactLandingCandidateLog) > 2000)) then
 						d("[Mount] Flying dismount candidate: task=" .. tostring(task and task.name)
-							.. " inflight=" .. tostring(task and task.inflight)
 							.. " interact=" .. tostring(task and task.interact)
 							.. " checkLanding=" .. tostring(type(CheckLandingZone))
 							.. " posValid=" .. tostring(myPos and table.valid(myPos))
@@ -3193,7 +3192,7 @@ function c_mount:evaluate()
 						ffnav.interactLandingCandidateLog = Now()
 					end
 					if (IsFlying() and Player.ismounted and task
-						and (task.inflight or (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0))
+						and (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0)
 						and type(CheckLandingZone) == "function"
 						and myPos and table.valid(myPos)) then
 						local probe = ffnav.interactLandingProbe
@@ -5566,8 +5565,8 @@ function c_dointeract:evaluate()
 		return false
 	end
 	
-	-- Flying and not inflight-capable: let navigation handle descent
-	if (IsFlying() and not task.inflight) then
+	-- Flying: let navigation handle descent
+	if (IsFlying()) then
 		return false
 	end
 	
@@ -5681,7 +5680,7 @@ function c_dointeract:evaluate()
 	
 	-- Interactable or bypass: claim control from here on (return true).
 	-- Must be fully landed and not mid-animation before firing interact.
-	if ((IsFlying() and not task.inflight) or IsDismounting() or Busy()) then
+	if (IsFlying() or IsDismounting() or Busy()) then
 		return true
 	end
 	
