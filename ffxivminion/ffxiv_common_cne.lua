@@ -1985,6 +1985,9 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	local currentTask = ml_task_hub:CurrentTask()
+	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
+		return false
+	end
 	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
 		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
 			or (ffxiv_map_nav and currentTask.contentid and (
@@ -2184,6 +2187,11 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 function c_walktopos:evaluate()
 	if (Busy() or Player:IsJumping() or IsMounting()) then
+		return false
+	end
+
+	local currentTask = ml_task_hub:CurrentTask()
+	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
 		return false
 	end
 

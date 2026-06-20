@@ -118,6 +118,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.noFly = false
 	newinst.useExactMovement = false
 	newinst.exactMovementStarted = false
+	newinst.exactMovementDone = false
 	
 	NavigationManager:ResetPath()
 	--NavigationManager.NavPathNode = 0
@@ -243,14 +244,22 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 
 			-- Switch to MoveToExact for final approach when within 30y (ground only)
-			if (self.useExactMovement and not self.exactMovementStarted and dist3d < 30 and not IsFlying() and not IsDiving()) then
+			if (self.useExactMovement and not self.exactMovementStarted and not self.exactMovementDone and dist3d < 30 and not IsFlying() and not IsDiving()) then
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
+				ml_navigation:ResetCurrentPath()
 				ml_global_information.monitorStuck = false
 				ffxiv_unstuck.Reset()
 				Player:MoveToExact(gotoPos.x, gotoPos.y, gotoPos.z)
 				self.exactMovementStarted = true
+			end
+
+			if (self.exactMovementStarted and not Player:IsExactMoving()) then
+				self.exactMovementStarted = false
+				self.exactMovementDone = true
+				ml_global_information.monitorStuck = true
+				ml_navigation:EnablePathing()
 			end
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
