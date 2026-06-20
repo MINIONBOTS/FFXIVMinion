@@ -1495,6 +1495,13 @@ function ffxiv_task_grindCombat.Create()
 	newinst.betterTargetFunction = nil
 	newinst.lastNoCastLog = 0
 	ffxiv_unstuck.Reset()
+
+	-- Combat is taking over (aggro/kill/assist). Release any in-flight
+	-- MoveToExact so the fight isn't fought while exact movement keeps
+	-- dragging the player toward the previous MoveTo goal.
+	if (Player.StopExact) then
+		Player:StopExact()
+	end
 	
 	--d("[GrindCombat]: Beginning new task.")
 	
