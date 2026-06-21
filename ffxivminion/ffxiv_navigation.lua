@@ -619,158 +619,11 @@ function ml_navigation.GetInteractStopDistance3d(task)
 	end
 	return 6
 end
-function ml_navigation.IsFlyingInteractLandingTask(task)
-	return IsFlying() and task and (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0)
-end
 function ml_navigation.IsInteractCloseApproachTask(task)
-	if not task then return false end
-	if IsDiving() then return true end
-	if ml_navigation.IsFlyingInteractLandingTask(task) then return true end
-	return false
+	return task ~= nil and IsDiving()
 end
 function ml_navigation.GetInteractCloseFollowMax2d(task)
-	if ml_navigation.IsFlyingInteractLandingTask(task) then
-		return 45
-	end
 	return 15
-end
-function ml_navigation.TryPrepareFlyingInteractLanding(task, ppos, target)
-	if not (ml_navigation.IsFlyingInteractLandingTask(task)
-		and target and table.valid(target.pos)
-		and ppos and table.valid(ppos)
-		and type(CheckLandingZone) == "function") then
-		return false
-	end
-	if (ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-		return true
-	end
-
-	local planarDist = ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target)
-	if (planarDist < 6 or planarDist > ml_navigation.GetInteractCloseFollowMax2d(task)) then
-		return false
-	end
-
-	local targetId = task.interact or target.id or 0
-	local probe = ffnav.interactPreLandingProbe
-	if (probe and probe.targetid == targetId and probe.pos and TimeSince(probe.time or 0) < 1500) then
-		if (probe.clear and table.valid(probe.landingPos)) then
-			ffnav.landingFallbackPos = { x = probe.landingPos.x, y = probe.landingPos.y, z = probe.landingPos.z }
-			ffnav.landingFallbackOrigin = { x = target.pos.x, y = target.pos.y, z = target.pos.z }
-			ffnav.landingFallbackActive = true
-			return true
-		elseif (probe.fbX and probe.fbY and probe.fbZ) then
-			ffnav.landingFallbackPos = { x = probe.fbX, y = probe.fbY, z = probe.fbZ }
-			ffnav.landingFallbackOrigin = { x = target.pos.x, y = target.pos.y, z = target.pos.z }
-			ffnav.landingFallbackActive = true
-			return true
-		end
-		return false
-	end
-
-	local cap = nil
-	if (type(GetNetworkCrystalInteractCap) == "function") then
-		cap = GetNetworkCrystalInteractCap(task, target)
-	end
-	cap = tonumber(cap) or tonumber(task.interactRange3d) or ml_navigation.GetInteractStopDistance3d(task)
-	if (not cap or cap <= 3) then
-		return false
-	end
-
-	local landingPos = nil
-	if (type(PickNetworkCrystalApproachPos) == "function") then
-		landingPos = PickNetworkCrystalApproachPos(target.pos, target.meshpos, cap)
-	end
-	if (not table.valid(landingPos) or math.distance3d(landingPos, target.pos) < 1.5) then
-		local dx = (ppos.x or 0) - (target.pos.x or 0)
-		local dz = (ppos.z or 0) - (target.pos.z or 0)
-		local len = math.sqrt((dx * dx) + (dz * dz))
-		if (len < 0.1) then
-			dx, dz, len = 1, 0, 1
-		end
-		local radius = math.min(cap - 0.75, 10)
-		radius = math.max(radius, math.min(cap - 0.75, 4))
-		landingPos = {
-			x = target.pos.x + ((dx / len) * radius),
-			y = target.pos.y,
-			z = target.pos.z + ((dz / len) * radius),
-		}
-	end
-	local minPlanarTargetDist = math.min(cap - 0.5, math.max(3.75, math.min(cap - 0.75, 4.5)))
-	local landingPlanarDist = math.distance2d(landingPos, target.pos)
-	if (landingPlanarDist < minPlanarTargetDist) then
-		local dx = (landingPos.x or 0) - (target.pos.x or 0)
-		local dz = (landingPos.z or 0) - (target.pos.z or 0)
-		local len = math.sqrt((dx * dx) + (dz * dz))
-		if (len < 0.1) then
-			dx = (ppos.x or 0) - (target.pos.x or 0)
-			dz = (ppos.z or 0) - (target.pos.z or 0)
-			len = math.sqrt((dx * dx) + (dz * dz))
-		end
-		if (len < 0.1) then
-			dx, dz, len = 1, 0, 1
-		end
-		local pushedPos = {
-			x = target.pos.x + ((dx / len) * minPlanarTargetDist),
-			y = landingPos.y or target.pos.y,
-			z = target.pos.z + ((dz / len) * minPlanarTargetDist),
-		}
-		local snappedPos = nil
-		if (type(FindClosestMesh) == "function") then
-			snappedPos = FindClosestMesh(pushedPos, 8, false, false)
-		end
-		if (table.valid(snappedPos)
-			and math.distance2d(snappedPos, target.pos) >= (minPlanarTargetDist - 0.25)
-			and math.distance3d(snappedPos, target.pos) <= (cap + 0.75)) then
-			landingPos = snappedPos
-		else
-			landingPos = pushedPos
-		end
-		landingPlanarDist = math.distance2d(landingPos, target.pos)
-		if (not ffnav.interactPreLandingPushLog or TimeSince(ffnav.interactPreLandingPushLog) > 1000) then
-			d("[Navigation] Flying interact prelanding pushed away from target: planar="
-				.. string.format("%.1f", landingPlanarDist)
-				.. " min=" .. string.format("%.1f", minPlanarTargetDist) .. ".")
-			ffnav.interactPreLandingPushLog = Now()
-		end
-	end
-	local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3.5)
-	local clear, fbX, fbY, fbZ = CheckLandingZone(landingPos.x, landingPos.y, landingPos.z, mountRadius)
-	ffnav.interactPreLandingProbe = {
-		targetid = targetId,
-		time = Now(),
-		pos = { x = landingPos.x, y = landingPos.y, z = landingPos.z },
-		landingPos = { x = landingPos.x, y = landingPos.y, z = landingPos.z },
-		clear = clear,
-		fbX = fbX,
-		fbY = fbY,
-		fbZ = fbZ,
-	}
-
-	if (not ffnav.interactPreLandingLog or TimeSince(ffnav.interactPreLandingLog) > 1000) then
-		d("[Navigation] Flying interact prelanding probe at ("
-			.. string.format("%.1f, %.1f, %.1f", landingPos.x, landingPos.y, landingPos.z)
-			.. ") targetDist=" .. string.format("%.1f", math.distance3d(landingPos, target.pos))
-			.. " planar=" .. string.format("%.1f", landingPlanarDist)
-			.. " cap=" .. tostring(cap)
-			.. " clear=" .. tostring(clear)
-			.. " fallback=" .. tostring(fbX and string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) or nil)
-			.. ".")
-		ffnav.interactPreLandingLog = Now()
-	end
-
-	if (clear) then
-		ffnav.landingFallbackPos = { x = landingPos.x, y = landingPos.y, z = landingPos.z }
-		ffnav.landingFallbackOrigin = { x = target.pos.x, y = target.pos.y, z = target.pos.z }
-		ffnav.landingFallbackActive = true
-		return true
-	elseif (fbX and fbY and fbZ and math.distance3d({ x = fbX, y = fbY, z = fbZ }, target.pos) <= (cap + 1)) then
-		ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
-		ffnav.landingFallbackOrigin = { x = target.pos.x, y = target.pos.y, z = target.pos.z }
-		ffnav.landingFallbackActive = true
-		return true
-	end
-
-	return false
 end
 function ml_navigation.GetInteractFollowPos(ppos, tpos, target)
 	local followPos = { x = tpos.x, y = tpos.y, z = tpos.z }
@@ -813,13 +666,6 @@ function ml_navigation.GetInteractPlanarSeparation(ppos, tpos, target)
 	return math.distance2d(ppos, tpos)
 end
 function ml_navigation.CanStopInteractCloseApproach(ppos, tpos, target, stopDist)
-	if (IsFlying() and ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-		if (not ffnav.interactLandingStopSuppressedLog or TimeSince(ffnav.interactLandingStopSuppressedLog) > 2000) then
-			d("[Navigation] Flying interact close approach: stop suppressed while landing fallback is active.")
-			ffnav.interactLandingStopSuppressedLog = Now()
-		end
-		return false
-	end
 	if not target then return false end
 	local dist3d = tonumber(target.distance)
 	stopDist = tonumber(stopDist)
@@ -842,44 +688,249 @@ function ml_navigation.NeedsInteractCloseApproach(task)
 	return true
 end
 function ml_navigation.TryInteractAutoFollow(task, resolvedTarget)
-	if (ml_navigation.IsFlyingInteractLandingTask(task)
-		and ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-		if (not ffnav.interactLandingFallbackFollowLog or TimeSince(ffnav.interactLandingFallbackFollowLog) > 2000) then
-			d("[Navigation] Flying interact close approach: steering to landing fallback ("
-				.. string.format("%.1f, %.1f, %.1f", ffnav.landingFallbackPos.x, ffnav.landingFallbackPos.y, ffnav.landingFallbackPos.z) .. ").")
-			ffnav.interactLandingFallbackFollowLog = Now()
-		end
-		ml_navigation:DispatchAutoFollowNode(ffnav.landingFallbackPos, true)
-		return true
-	end
+	if IsFlying() then return false end
 	local target = resolvedTarget or Player:GetTarget()
 	local ppos = Player.pos
 	if not (target and ppos and table.valid(target.pos)) then return false end
-	if (IsFlying() and ml_navigation.TryPrepareFlyingInteractLanding(task, ppos, target)) then
-		if (ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-			if (not ffnav.interactPreLandingFollowLog or TimeSince(ffnav.interactPreLandingFollowLog) > 1000) then
-				d("[Navigation] Flying interact close approach: steering to prelanding spot ("
-					.. string.format("%.1f, %.1f, %.1f", ffnav.landingFallbackPos.x, ffnav.landingFallbackPos.y, ffnav.landingFallbackPos.z) .. ").")
-				ffnav.interactPreLandingFollowLog = Now()
-			end
-			ml_navigation:DispatchAutoFollowNode(ffnav.landingFallbackPos, true)
-			return true
-		end
-	end
 	if not ml_navigation.NeedsInteractCloseApproach(task) then return false end
-	if (ml_navigation.TryPrepareFlyingInteractLanding(task, ppos, target)) then
-		if (ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-			if (not ffnav.interactPreLandingFollowLog or TimeSince(ffnav.interactPreLandingFollowLog) > 1000) then
-				d("[Navigation] Flying interact close approach: steering to prelanding spot ("
-					.. string.format("%.1f, %.1f, %.1f", ffnav.landingFallbackPos.x, ffnav.landingFallbackPos.y, ffnav.landingFallbackPos.z) .. ").")
-				ffnav.interactPreLandingFollowLog = Now()
-			end
-			ml_navigation:DispatchAutoFollowNode(ffnav.landingFallbackPos, true)
-			return true
-		end
-	end
 	local followPos = ml_navigation.GetInteractFollowPos(ppos, target.pos, target)
 	ml_navigation:DispatchAutoFollowNode(followPos, true)
+	return true
+end
+
+function ml_navigation:GetLandingRequest(task)
+	if not (task and table.valid(task.pos or task.gatePos)) then return nil end
+	if task.remainMounted or tonumber(task.dismountDistance) == 0 then return nil end
+	if task.disableFlyingLandingAfterInteract or task.interactActionCommitted then return nil end
+	local goal = task.gatePos or task.pos
+	local anchor = { x = goal.x, y = goal.y, z = goal.z }
+	if task.interact and task.interact ~= 0 then
+		local entity = EntityList:Get(task.interact)
+		if entity and table.valid(entity.pos) then
+			anchor = { x = entity.pos.x, y = entity.pos.y, z = entity.pos.z }
+		end
+	end
+	local actionRange = tonumber(task.interactRange3d) or tonumber(task.range3d)
+	if not actionRange then
+		if task.interact and task.interact ~= 0 then
+			actionRange = (tonumber(task.interactRange) or 4) + 3
+		else
+			actionRange = (tonumber(task.range) or 1.5) + 2
+		end
+	end
+	actionRange = math.max(actionRange, 2.5)
+	return {
+		key = tostring(task.started or task.name) .. ':' .. tostring(task.interact or 0),
+		anchor = anchor,
+		maxDistance3d = actionRange,
+		maxSearchRadius = math.min(25, math.max(2, actionRange)),
+		activateDistance = math.max(20, (tonumber(task.dismountDistance) or 5) + 8),
+		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.0),
+	}
+end
+
+function ml_navigation:ResolveLandingSite(request)
+	if not (request and type(CheckLandingZone) == 'function') then return nil end
+	local original, lx, ly, lz, quality = CheckLandingZone(
+		request.anchor.x, request.anchor.y, request.anchor.z,
+		request.footprintRadius, request.maxSearchRadius, request.maxDistance3d)
+	if lx and ly and lz then
+		return { x = lx, y = ly, z = lz }, tonumber(quality) or 1, original == true
+	end
+	if original then
+		return { x = request.anchor.x, y = request.anchor.y, z = request.anchor.z }, 1, true
+	end
+	return nil
+end
+
+function ml_navigation:IsLandingSegmentClear(fromPos, toPos, radius)
+	if not (table.valid(fromPos) and table.valid(toPos)) then return false end
+	local dx, dz = toPos.x - fromPos.x, toPos.z - fromPos.z
+	local len = math.sqrt((dx * dx) + (dz * dz))
+	local sideX, sideZ = 0, 0
+	if len > 0.01 then sideX, sideZ = -dz / len, dx / len end
+	local side = math.max(0.75, (radius or 3) * 0.65)
+	local offsets = {
+		{ 0, 0, 0 }, { sideX * side, 0, sideZ * side },
+		{ -sideX * side, 0, -sideZ * side }, { 0, 1.5, 0 },
+		{ sideX * side, 1.25, sideZ * side },
+		{ -sideX * side, 1.25, -sideZ * side }, { 0, 2.75, 0 },
+	}
+	for _, offset in ipairs(offsets) do
+		local target = { x = toPos.x + offset[1], y = toPos.y + offset[2], z = toPos.z + offset[3] }
+		local hit, hx, hy, hz = RayCast(
+			fromPos.x + offset[1], fromPos.y + offset[2], fromPos.z + offset[3],
+			target.x, target.y, target.z)
+		if hit and not (hx and hy and hz
+			and math.distance3d({ x = hx, y = hy, z = hz }, target) < 1.25) then
+			return false
+		end
+	end
+	return true
+end
+
+function ml_navigation:BuildLandingRoute(fromPos, landingPos, radius, quality)
+	local hover = { x = landingPos.x, y = landingPos.y + 2.25, z = landingPos.z }
+	if self:IsLandingSegmentClear(fromPos, hover, radius) then return { hover } end
+
+	local dx, dz = landingPos.x - fromPos.x, landingPos.z - fromPos.z
+	local len = math.sqrt((dx * dx) + (dz * dz))
+	local sideX, sideZ = 0, 0
+	if len > 0.01 then sideX, sideZ = -dz / len, dx / len end
+	local lateral = math.max(4, radius * 1.5)
+	local lateralOffsets = { 0, lateral, -lateral }
+	local heightBase = math.max(fromPos.y, hover.y) + ((quality or 1) == 1 and 5 or 3)
+	local heightSteps = { 0, 3, 6, 10, 15 }
+
+	for _, heightStep in ipairs(heightSteps) do
+		local routeY = heightBase + heightStep
+		for _, lateralOffset in ipairs(lateralOffsets) do
+			local p1 = {
+				x = fromPos.x + (dx * 0.30) + (sideX * lateralOffset),
+				y = routeY,
+				z = fromPos.z + (dz * 0.30) + (sideZ * lateralOffset),
+			}
+			local p2 = {
+				x = fromPos.x + (dx * 0.72) + (sideX * lateralOffset * 0.35),
+				y = routeY,
+				z = fromPos.z + (dz * 0.72) + (sideZ * lateralOffset * 0.35),
+			}
+			if self:IsLandingSegmentClear(fromPos, p1, radius)
+				and self:IsLandingSegmentClear(p1, p2, radius)
+				and self:IsLandingSegmentClear(p2, hover, radius) then
+				return { p1, p2, hover }
+			end
+		end
+	end
+	return nil
+end
+
+function ml_navigation:PlanFlyingLanding(controller, request, ppos)
+	local landing, quality, original = self:ResolveLandingSite(request)
+	local route = landing and self:BuildLandingRoute(ppos, landing, request.footprintRadius, quality) or nil
+	controller.active = true
+	controller.key = request.key
+	controller.anchor = request.anchor
+	controller.request = request
+	controller.landing = landing
+	controller.quality = quality
+	controller.original = original
+	controller.lastPlan = Now()
+	controller.waypoint = 1
+	controller.route = route
+	if not route then
+		controller.phase = 'blocked'
+		controller.retries = (controller.retries or 0) + 1
+		Player:StopMovement()
+		return false
+	end
+	controller.phase = 'approach'
+	d('[Landing] route=' .. tostring(#route) .. ' quality=' .. tostring(quality)
+		.. ' target=(' .. string.format('%.1f, %.1f, %.1f', landing.x, landing.y, landing.z) .. ')')
+	return true
+end
+
+function ml_navigation:DismountForLanding(controller)
+	Player:StopMovement()
+	ffnav.interactSuppressRemountUntil = Now() + 7000
+	controller.phase = 'dismount'
+	controller.dismountTime = Now()
+	d('[Landing] validated final hover; dismounting.')
+	Dismount()
+	return true
+end
+
+function ml_navigation:FinishFlyingLanding(controller, request)
+	local _, lx, ly, lz = CheckLandingZone(controller.landing.x, controller.landing.y,
+		controller.landing.z, request.footprintRadius, 0, 0)
+	if not (lx and ly and lz) then
+		controller.phase = 'blocked'
+		controller.lastPlan = 0
+		return true
+	end
+	return self:DismountForLanding(controller)
+end
+
+function ml_navigation:DriveFlyingLanding(controller, request, ppos)
+	if controller.phase == 'blocked' then return true end
+	if controller.phase == 'dismount' then
+		if IsDismounting() or TimeSince(controller.dismountTime or 0) < 2000 then return true end
+		controller.phase = 'blocked'
+		controller.lastPlan = 0
+		return true
+	end
+	local waypoint = controller.route and controller.route[controller.waypoint]
+	if waypoint and math.distance2d(ppos, waypoint) <= 2.0
+		and math.distance3d(ppos, waypoint) <= 3.5 then
+		controller.waypoint = controller.waypoint + 1
+		waypoint = controller.route[controller.waypoint]
+	end
+	if waypoint then
+		self:DispatchAutoFollowNode(waypoint, true)
+		return true
+	end
+	return self:FinishFlyingLanding(controller, request)
+end
+
+function ml_navigation:PrepareLandingController(controller, request, ppos)
+	local needsPlan = not controller.active
+	if controller.phase == 'blocked' and TimeSince(controller.lastPlan or 0) > 1500 then
+		needsPlan = true
+	end
+	if not needsPlan then return true end
+	return self:PlanFlyingLanding(controller, request, ppos)
+end
+
+function ml_navigation:ContinueFlyingLanding(controller, request, ppos)
+	if controller.active and (controller.key ~= request.key
+		or not controller.anchor or math.distance3d(controller.anchor, request.anchor) > 2) then
+		self:ResetLandingController()
+		controller = ffnav.landingController
+	end
+	if not self:PrepareLandingController(controller, request, ppos) then return true end
+	return self:DriveFlyingLanding(controller, request, ppos)
+end
+
+function ml_navigation:ManageFlyingLanding(request, ppos)
+	local controller = ffnav.landingController or { active = false, phase = 'idle', retries = 0 }
+	ffnav.landingController = controller
+	if not controller.active and math.distance2d(ppos, request.anchor) > request.activateDistance then
+		return false
+	end
+	return self:ContinueFlyingLanding(controller, request, ppos)
+end
+
+function ml_navigation:LandForAction(anchor, maxDistance3d, source)
+	if not (IsFlying() and table.valid(anchor)) then return false end
+	local actionRange = math.max(tonumber(maxDistance3d) or 5, 2.5)
+	local request = {
+		key = 'action:' .. tostring(source or 'unknown'),
+		anchor = { x = anchor.x, y = anchor.y, z = anchor.z },
+		maxDistance3d = actionRange,
+		maxSearchRadius = math.min(25, actionRange),
+		activateDistance = math.huge,
+		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.0),
+	}
+	return self:ManageFlyingLanding(request, Player.pos)
+end
+
+function ml_navigation:UpdateFlyingLanding(task, ppos)
+	if not IsFlying() then return false end
+	local request = self:GetLandingRequest(task)
+	if not request then return false end
+	return self:ManageFlyingLanding(request, ppos)
+end
+
+function ml_navigation:ResetLandingController()
+	ffnav.landingController = { active = false, phase = 'idle', retries = 0 }
+end
+
+function ml_navigation:MarkInteractActionHandoff(task, source)
+	if not task then return false end
+	task.interactActionCommitted = true
+	task.interactActionAt = Now()
+	task.interactActionSource = source or "interact"
+	task.disableFlyingLandingAfterInteract = true
 	return true
 end
 
@@ -900,11 +951,18 @@ ml_navigation.DisablePathing = function (self)
 	return false
 end
 
-function ml_navigation:BeginInteractActionHandoff(duration, source)
+function ml_navigation:BeginInteractActionHandoff(duration, source, commitInteract)
 	ffnav.interactSuppressRemountUntil = Now() + (duration or 5000)
 	ml_global_information.monitorStuck = false
 	if (ffxiv_unstuck and ffxiv_unstuck.Reset) then
 		ffxiv_unstuck.Reset()
+	end
+	self:ResetLandingController()
+	if (commitInteract and ml_task_hub) then
+		local task = ml_task_hub:CurrentTask()
+		if task then
+			self:MarkInteractActionHandoff(task, source)
+		end
 	end
 	self:DisableAutoFollow(true, source or "InteractActionHandoff")
 	if (NavigationManager and NavigationManager.ResetPath) then
@@ -1768,46 +1826,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 
 	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
 
-	-- Landing clearance: if a fallback is active, redirect the path goal.
-	if (ffnav.landingFallbackActive and ffnav.landingFallbackPos) then
-		if (ffnav.landingFallbackOrigin and math.distance3d(ffnav.landingFallbackOrigin, newGoal) < 3) then
-			newGoal = { x = ffnav.landingFallbackPos.x, y = ffnav.landingFallbackPos.y, z = ffnav.landingFallbackPos.z }
-			x, y, z = newGoal.x, newGoal.y, newGoal.z
-		elseif (math.distance3d(ffnav.landingFallbackPos, newGoal) < 1) then
-			-- Already targeting fallback
-		else
-			ffnav.landingFallbackActive = false
-			ffnav.landingFallbackPos = nil
-			ffnav.landingFallbackOrigin = nil
-			ffnav.interactLandingProbe = nil
-			ffnav.interactPreLandingProbe = nil
-		end
-	end
-	if (IsFlying()) then
-		local interactTask = ml_task_hub and ml_task_hub:CurrentTask()
-		if (interactTask and ml_navigation.IsFlyingInteractLandingTask(interactTask)) then
-			local target = nil
-			if (interactTask.interact and interactTask.interact ~= 0) then
-				target = EntityList:Get(interactTask.interact)
-			end
-			if (not target) then
-				target = Player:GetTarget()
-			end
-			if (target and table.valid(target.pos)
-				and math.distance3d(target.pos, newGoal) < 6
-				and ml_navigation.TryPrepareFlyingInteractLanding(interactTask, ppos, target)
-				and ffnav.landingFallbackActive and table.valid(ffnav.landingFallbackPos)) then
-				newGoal = { x = ffnav.landingFallbackPos.x, y = ffnav.landingFallbackPos.y, z = ffnav.landingFallbackPos.z }
-				x, y, z = newGoal.x, newGoal.y, newGoal.z
-				if (not ffnav.interactPreLandingPathLog or TimeSince(ffnav.interactPreLandingPathLog) > 1000) then
-					d("[Navigation] Flying interact path request redirected to prelanding spot ("
-						.. string.format("%.1f, %.1f, %.1f", x, y, z) .. ").")
-					ffnav.interactPreLandingPathLog = Now()
-				end
-			end
-		end
-	end
-
 	-- Filter things for special tasks/circumstances
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted)) or IsTransporting())) or
 		not CanFlyInZone())
@@ -2145,12 +2163,7 @@ function Player:Stop(resetpath)
 
 	ffnav.isascending = false
 	ffnav.isdescending = false
-	ffnav.landingProbeCache = {}
-	ffnav.landingFallbackActive = false
-	ffnav.landingFallbackPos = nil
-	ffnav.landingFallbackOrigin = nil
-	ffnav.interactLandingProbe = nil
-	ffnav.interactPreLandingProbe = nil
+	ml_navigation:ResetLandingController()
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(true)
@@ -2225,11 +2238,15 @@ function ml_navigation.Navigate(event, ticks)
 			end
 			if ml_navigation.CanRun() and not ml_navigation.debug then
 				local ct = ml_task_hub and ml_task_hub:CurrentTask()
+				local landing = ffnav and ffnav.landingController
+				if IsFlying() and landing and landing.active
+					and ct and not (ct.disableFlyingLandingAfterInteract or ct.interactActionCommitted)
+					and ml_navigation:UpdateFlyingLanding(ct, Player.pos) then return end
 				if ct and (ct.name == "MOVETOINTERACT" or (ct.interact and ct.interact ~= 0)) then
 					if ml_navigation.TryInteractAutoFollow(ct) then
 						return
 					end
-					if ml_navigation.NeedsInteractCloseApproach(ct) then
+					if not IsFlying() and ml_navigation.NeedsInteractCloseApproach(ct) then
 						return
 					end
 				end
@@ -2241,6 +2258,8 @@ function ml_navigation.Navigate(event, ticks)
 		if ( ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug) then
 
 			local ppos = Player.pos
+			local currentTask = ml_task_hub and ml_task_hub:CurrentTask()
+			if IsFlying() and ml_navigation:UpdateFlyingLanding(currentTask, ppos) then return end
 
 			ml_navigation.GUI = {
 				pathHops = 0,
@@ -2674,25 +2693,6 @@ function ml_navigation.Navigate(event, ticks)
 					-- Flying Navigation
 					----------------------------------------------------
 					if (IsFlying()) then
-						local interactTask = ml_task_hub and ml_task_hub:CurrentTask()
-						if (interactTask and ml_navigation.IsFlyingInteractLandingTask(interactTask)) then
-							local target = Player:GetTarget()
-							if (not target and interactTask.interact and interactTask.interact ~= 0) then
-								target = EntityList:Get(interactTask.interact)
-							end
-							local interactStopDist = ml_navigation.GetInteractStopDistance3d(interactTask)
-							local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(interactTask)
-							if (target and table.valid(target.pos) and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) < maxFollow2d) then
-								if (ml_navigation.TryInteractAutoFollow(interactTask, target)) then
-									return
-								end
-								if target.los and ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
-									Player:Stop()
-									return false
-								end
-							end
-						end
-
 						ml_navigation.GUI.lastAction = "Flying to Node"
 
 						-- Camera follow
@@ -2725,62 +2725,7 @@ function ml_navigation.Navigate(event, ticks)
 						-- Dispatch autofollow to fly toward target node
 						ml_navigation:DispatchAutoFollowNode(targetnode, true)
 
-						-- Landing zone lookahead
-						if (not ffnav.landingFallbackActive) then
-							local lookaheadIdx = nil
-							local lookaheadNode = nil
-							for li = ml_navigation.pathindex, ml_navigation.pathindex + 15 do
-								local ln = ml_navigation.path[li]
-								if (not ln) then break end
-								local lnNext = ml_navigation.path[li + 1]
-								local lnNextGround = (lnNext and lnNext.ground == true) or false
-								local lnIsFlyToWalk = (ln.floorcube == true and (ln.ground == true or lnNextGround))
-									or (ln.is_end and ln.ground)
-								if (lnIsFlyToWalk) then
-									lookaheadIdx = li
-									lookaheadNode = ln
-									break
-								end
-							end
-							if (lookaheadNode and not ffnav.landingProbeCache[lookaheadIdx]) then
-								local distToLanding = math.distance3d(lookaheadNode, ppos)
-								if (distToLanding <= ffnav.landingLookaheadDist and distToLanding > 5) then
-									local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
-									local clear, fbX, fbY, fbZ = CheckLandingZone(
-										lookaheadNode.x, lookaheadNode.y, lookaheadNode.z, mountRadius)
-									ffnav.landingProbeCache[lookaheadIdx] = true
-									if (not clear and fbX) then
-										d("[Navigation] Lookahead: landing blocked at node " .. lookaheadIdx
-											.. ", rerouting early to ("
-											.. string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) .. ")"
-											.. " dist=" .. string.format("%.0f", distToLanding))
-										lookaheadNode.x = fbX
-										lookaheadNode.y = fbY
-										lookaheadNode.z = fbZ
-										lookaheadNode.is_end = true
-										for ri = lookaheadIdx + 1, lookaheadIdx + 50 do
-											if (ml_navigation.path[ri] == nil) then break end
-											ml_navigation.path[ri] = nil
-										end
-										ffnav.landingFallbackPos = { x = fbX, y = fbY, z = fbZ }
-										ffnav.landingFallbackOrigin = ml_navigation.targetposition and
-											{ x = ml_navigation.targetposition.x,
-											  y = ml_navigation.targetposition.y,
-											  z = ml_navigation.targetposition.z } or nil
-										ffnav.landingFallbackActive = true
-									end
-								end
-							end
-						end
-
 						if ( ml_navigation:IsGoalClose(ppos,targetnode,lastnode) or ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
-							-- Legacy Descend() trigger removed. Landing is now handled by:
-							--   1. Lookahead block above (rewrites endpoint to ground Y,
-							--      or reroutes to fallback on blocked spots).
-							--   2. Autofollow flies the bot to that rewritten ground endpoint.
-							--   3. c_mount's flying dismount gate fires the normal dismount cast.
-							-- No mid-path manual descent is needed.
-
 							-- Node reached, advance path
 							ml_navigation.lastconnectionid = nextnode.navconnectionid
 							ml_navigation.lastconnectiontimer = Now()
@@ -2796,13 +2741,6 @@ function ml_navigation.Navigate(event, ticks)
 					elseif (not IsFlying() and not IsDiving()) then
 						ffnav.isascending = false
 						ffnav.isdescending = false
-						ffnav.landingFallbackActive = false
-						ffnav.landingFallbackPos = nil
-						ffnav.landingFallbackOrigin = nil
-						ffnav.interactLandingProbe = nil
-						ffnav.interactPreLandingProbe = nil
-						ffnav.landingProbeCache = {}
-
 						local navcon = ml_navigation:GetConnection(nextnode)
 						local isGoalCloseForCon = (navcon ~= nil and navcon.type == 3 and ml_navigation:IsGoalClose(ppos,nextnode,lastnode))
 						local isCubeCon = isGoalCloseForCon
@@ -3379,13 +3317,7 @@ ffnav.forceDescent = 0
 ffnav.descentPos = {}
 ffnav.isascending = false
 ffnav.isdescending = false
-ffnav.landingProbeCache = {}
-ffnav.landingFallbackActive = false
-ffnav.landingFallbackPos = nil
-ffnav.landingFallbackOrigin = nil
-ffnav.interactLandingProbe = nil
-ffnav.interactPreLandingProbe = nil
-ffnav.landingLookaheadDist = 40
+ffnav.landingController = { active = false, phase = 'idle', retries = 0 }
 ffnav.flightLoopGuard = { key = nil, lastAction = nil, lastTime = 0, count = 0, lockUntil = 0 }
 
 function ffnav.CompactPath()

@@ -3030,10 +3030,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 c_mount.blockOnly = true
 function c_mount:evaluate()
-	-- NOTE: IsFlying() intentionally NOT in this bail-out list. The dismount
-	-- block below needs to run while flying so we can trigger Dismount()
-	-- once 2D distance to the goal is satisfied (the navigation lookahead
-	-- has already projected the endpoint to a CheckLandingZone-cleared spot).
+	-- Airborne landing is handled by ml_navigation after the general lock checks.
 	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") 
 		or IsShopWindowOpen() or IsTransporting() or IsCosmolinerActive() or IsSwimming())
 	then
@@ -3045,15 +3042,12 @@ function c_mount:evaluate()
 	end
 
 	c_mount.blockOnly = false
-	if (not IsFlying() and ffnav.interactSuppressRemountUntil and Now() < ffnav.interactSuppressRemountUntil) then
-		local holdTask = ml_task_hub:CurrentTask()
-		if (holdTask and holdTask.name == "MOVETOINTERACT") then
-			if (not ffnav.interactSuppressRemountLog or TimeSince(ffnav.interactSuppressRemountLog) > 1000) then
-				d("[Mount] MOVETOINTERACT remount suppressed during landing/interact handoff.")
-				ffnav.interactSuppressRemountLog = Now()
-			end
-			return false
-		end
+	if IsFlying() then
+		c_mount.blockOnly = true
+		return false
+	end
+	if ffnav.interactSuppressRemountUntil and Now() < ffnav.interactSuppressRemountUntil then
+		return false
 	end
 	local patchLevel = GetPatchLevel()
 	
@@ -3076,277 +3070,32 @@ function c_mount:evaluate()
 			end		
 		end
 
-		-- When already flying within 2D dismount range, the path's air nodes
-		-- ARE the descent (player is currently mid-air, so a fresh BuildPath
-		-- to the ground goal naturally starts in the air). Suppress needsMount
-		-- in that case so the dismount block below fires.
-		if (needsMount and IsFlying() and dismountDistance > 0
-			and dist2d <= dismountDistance) then
-			needsMount = false
-		end
-
-		-- Stutter mitigation for lookahead-rewritten landings. Autofollow
-		-- doesn't drop Y to the ground endpoint on its own, so once the
-		-- flight path reaches the rewritten fallback spot the player is
-		-- still hovering. Two window types produce a hover stall here:
-		--   1. Path fully consumed mid-transition between subtasks
-		--      (before the next BuildPath runs).
-		--   2. A fresh subtask path re-establishes landingFallbackActive
-		--      but waits for autofollow/lookahead ticks before the normal
-		--      dist2d dismount block catches up.
-		-- Covered by checking proximity to the known landingFallbackPos
-		-- (a CheckLandingZone-verified spot) directly, then suppressing
-		-- remount while the ground approach/interact phase takes over.
-		if (IsFlying() and Player.ismounted
-			and ffnav.landingFallbackActive
-			and table.valid(ffnav.landingFallbackPos)
-			and not ml_task_hub:CurrentTask().remainMounted
-			and not (ffnav.isascending or ffnav.isdescending or IsMounting())
-			and not IsDismounting()) then
-			local fb = ffnav.landingFallbackPos
-			local fbDist2d = math.distance2d(myPos, fb)
-			local fbRange = math.max(dismountDistance, 5)
-			if (fbDist2d <= fbRange) then
-				if (ffnav.interactFallbackDismountUntil and Now() < ffnav.interactFallbackDismountUntil) then
-					c_mount.blockOnly = true
-					return true
-				end
-				d("[Mount] Flying dismount: within " .. string.format("%.1f", fbDist2d)
-					.. "u of landing fallback.")
-				ffnav.interactFallbackDismountUntil = Now() + 1200
-				ffnav.interactSuppressRemountUntil = Now() + 7000
-				Dismount()
-				c_mount.blockOnly = true
-				return true
-			end
-		end
-
-		if (not needsMount) then
-			-- Block dismount during active flight transitions (ascending/descending/mounting)
-			if (ffnav.isascending or ffnav.isdescending or IsMounting()) then
-				if (not c_mount._lastTransitionLog or TimeSince(c_mount._lastTransitionLog) > 2000) then
-					d("[Mount] Dismount gated: flight transition active (asc=" .. tostring(ffnav.isascending) .. " desc=" .. tostring(ffnav.isdescending) .. " mounting=" .. tostring(IsMounting()) .. ")")
-					c_mount._lastTransitionLog = Now()
-				end
-				return false
-			end
-			
-			-- Flying dismount: once 2D distance is within range we dismount
-			-- regardless of vertical distance. The navigation lookahead has already
-			-- projected the path endpoint to a CheckLandingZone-cleared ground spot,
-			-- so any remaining altitude is just autofollow not finishing the
-			-- descent - there's no benefit to waiting for the bot to inch closer
-			-- in Y, and Dismount() drops the player straight down anyway.
-			local within = false
-			if (dismountDistance > 0 and dist2d <= dismountDistance) then
-				if (IsFlying()) then
-					within = true
-				elseif (dist3d <= (dismountDistance + 3)) then
-					within = true
-				end
-			end
-			if (within) then
+		if (not needsMount and not (ffnav.isascending or ffnav.isdescending or IsMounting())) then
+			local within = dismountDistance > 0 and dist2d <= dismountDistance
+				and dist3d <= (dismountDistance + 3)
+			if (within and Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
+				local task = ml_task_hub:CurrentTask()
 				local doDismount = false
-				local task = nil
-				if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
-					-- Additional gate: verify the task's interactable entity is actually nearby,
-					-- not just that task.pos is close (which can be stale if entity moved/despawned)
-					task = ml_task_hub:CurrentTask()
-					if (task.interact and task.interact ~= 0) then
-						local interactable = EntityList:Get(task.interact)
-						local interactDistance = math.abs(tonumber(interactable and interactable.distance2d) or math.huge)
-						if (interactable and interactable.type == 5
-							and In(task.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")) then
-							interactDistance = GetNetworkCrystalCheckDistance(interactable)
-						end
-						if (interactable and interactDistance < (dismountDistance + 5)) then
-							doDismount = true
-						elseif (not interactable) then
-							-- Entity not found / despawned - still allow dismount based on position
-							doDismount = true
-						end
-						-- else: entity exists but is too far - don't dismount yet
-					else
-						-- No interactable assigned yet - allow distance-based dismount
-						doDismount = true
+				if (task.interact and task.interact ~= 0) then
+					local interactable = EntityList:Get(task.interact)
+					local interactDistance = math.abs(tonumber(interactable and interactable.distance2d) or math.huge)
+					if (interactable and interactable.type == 5
+						and In(task.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")) then
+						interactDistance = GetNetworkCrystalCheckDistance(interactable)
 					end
+					doDismount = not interactable or interactDistance < (dismountDistance + 5)
+				else
+					doDismount = true
 				end
 				if (doDismount and not IsDismounting()) then
-					if (IsFlying() and Player.ismounted
-						and ffnav.interactLandingDismountUntil and Now() < ffnav.interactLandingDismountUntil) then
-						if (not ffnav.interactLandingDismountWaitLog or TimeSince(ffnav.interactLandingDismountWaitLog) > 1000) then
-							d("[Mount] Flying interact landing: waiting for validated dismount to resolve.")
-							ffnav.interactLandingDismountWaitLog = Now()
-						end
-						c_mount.blockOnly = true
-						return true
-					end
-					if (IsFlying() and Player.ismounted
-						and (not ffnav.interactLandingCandidateLog or TimeSince(ffnav.interactLandingCandidateLog) > 2000)) then
-						d("[Mount] Flying dismount candidate: task=" .. tostring(task and task.name)
-							.. " interact=" .. tostring(task and task.interact)
-							.. " checkLanding=" .. tostring(type(CheckLandingZone))
-							.. " posValid=" .. tostring(myPos and table.valid(myPos))
-							.. " dist2d=" .. string.format("%.1f", dist2d)
-							.. " dismountDistance=" .. tostring(dismountDistance) .. ".")
-						ffnav.interactLandingCandidateLog = Now()
-					end
-					if (IsFlying() and Player.ismounted and task
-						and (task.name == "MOVETOINTERACT" and task.interact and task.interact ~= 0)
-						and type(CheckLandingZone) == "function"
-						and myPos and table.valid(myPos)) then
-						local probe = ffnav.interactLandingProbe
-						local probeNow = Now()
-						local probeTargetId = task.interact or 0
-						local shouldProbe = true
-						if (probe and probe.pos and probe.targetid == probeTargetId) then
-							local moved = math.distance3d(myPos, probe.pos)
-							shouldProbe = (moved > 3 or (probeNow - (probe.time or 0)) > 1500)
-							if (not shouldProbe and (not ffnav.interactLandingProbeCacheLog or TimeSince(ffnav.interactLandingProbeCacheLog) > 2000)) then
-								d("[Mount] Flying interact landing: using cached probe clear=" .. tostring(probe.clear)
-									.. " moved=" .. string.format("%.1f", moved)
-									.. " age=" .. tostring(probeNow - (probe.time or 0)) .. "ms.")
-								ffnav.interactLandingProbeCacheLog = Now()
-							end
-						end
-
-						if (shouldProbe) then
-							local mountRadius = math.max((Player and Player.hitradius) or 0.5, 3)
-							local clear, fbX, fbY, fbZ = CheckLandingZone(myPos.x, myPos.y, myPos.z, mountRadius)
-							local anchorPos = nil
-							if (clear and task and task.interact and task.interact ~= 0) then
-								local anchorTarget = EntityList:Get(task.interact)
-								if (anchorTarget and table.valid(anchorTarget.pos)) then
-									anchorPos = anchorTarget.pos
-								elseif (table.valid(task.pos)) then
-									anchorPos = task.pos
-								end
-							end
-							if (clear and anchorPos and math.distance2d(myPos, anchorPos) <= 6) then
-								local anchorClear, anchorFbX, anchorFbY, anchorFbZ = CheckLandingZone(anchorPos.x, anchorPos.y, anchorPos.z, mountRadius)
-								if (not ffnav.interactLandingAnchorProbeLog or TimeSince(ffnav.interactLandingAnchorProbeLog) > 1000) then
-									d("[Mount] Flying interact anchor probe at ("
-										.. string.format("%.1f, %.1f, %.1f", anchorPos.x, anchorPos.y, anchorPos.z)
-										.. ") clear=" .. tostring(anchorClear)
-										.. " fallback=" .. tostring(anchorFbX and string.format("%.1f, %.1f, %.1f", anchorFbX, anchorFbY, anchorFbZ) or nil)
-										.. ".")
-									ffnav.interactLandingAnchorProbeLog = Now()
-								end
-								if (not anchorClear) then
-									clear = false
-									fbX, fbY, fbZ = anchorFbX, anchorFbY, anchorFbZ
-								end
-							end
-							if (not ffnav.interactLandingProbeLog or TimeSince(ffnav.interactLandingProbeLog) > 1000) then
-								d("[Mount] Flying interact landing probe at ("
-									.. string.format("%.1f, %.1f, %.1f", myPos.x, myPos.y, myPos.z)
-									.. ") r=" .. string.format("%.1f", mountRadius)
-									.. " clear=" .. tostring(clear)
-									.. " fallback=" .. tostring(fbX and string.format("%.1f, %.1f, %.1f", fbX, fbY, fbZ) or nil)
-									.. ".")
-								ffnav.interactLandingProbeLog = Now()
-							end
-							probe = {
-								pos = { x = myPos.x, y = myPos.y, z = myPos.z },
-								time = probeNow,
-								targetid = probeTargetId,
-								clear = clear,
-								fbX = fbX,
-								fbY = fbY,
-								fbZ = fbZ,
-								noFallbackCount = (probe and probe.noFallbackCount) or 0,
-							}
-							if (not clear and not fbX) then
-								probe.noFallbackCount = probe.noFallbackCount + 1
-							else
-								probe.noFallbackCount = 0
-							end
-							ffnav.interactLandingProbe = probe
-						end
-
-						if (probe and probe.clear == false) then
-							if (probe.fbX and probe.fbY and probe.fbZ) then
-								local fallbackPos = { x = probe.fbX, y = probe.fbY, z = probe.fbZ }
-								local fallbackInRange = true
-								local fallbackDist = nil
-								local fallbackCap = nil
-								if (task.interact and task.interact ~= 0) then
-									fallbackInRange = false
-									local fallbackTarget = EntityList:Get(task.interact)
-									if (fallbackTarget and table.valid(fallbackTarget.pos)) then
-										if (type(GetNetworkCrystalInteractCap) == "function") then
-											fallbackCap = GetNetworkCrystalInteractCap(task, fallbackTarget)
-										end
-										fallbackCap = tonumber(fallbackCap) or tonumber(task.interactRange3d) or dismountDistance
-										fallbackDist = math.distance3d(fallbackPos, fallbackTarget.pos)
-										fallbackInRange = (fallbackDist <= (fallbackCap + 1))
-									end
-								end
-
-								if (fallbackInRange) then
-									ffnav.landingFallbackPos = fallbackPos
-									ffnav.landingFallbackOrigin = { x = myPos.x, y = myPos.y, z = myPos.z }
-									ffnav.landingFallbackActive = true
-									if (not ffnav.interactLandingFallbackLog or TimeSince(ffnav.interactLandingFallbackLog) > 2000) then
-										d("[Mount] Flying interact landing blocked; rerouting to fallback ("
-											.. string.format("%.1f, %.1f, %.1f", fallbackPos.x, fallbackPos.y, fallbackPos.z) .. ")"
-											.. " targetDist=" .. tostring(fallbackDist and string.format("%.1f", fallbackDist) or "unknown")
-											.. " cap=" .. tostring(fallbackCap or "unknown") .. ".")
-										ffnav.interactLandingFallbackLog = Now()
-									end
-									return false
-								elseif (not ffnav.interactLandingFallbackRangeLog or TimeSince(ffnav.interactLandingFallbackRangeLog) > 2000) then
-									d("[Mount] Flying interact landing fallback rejected: outside interact range"
-										.. " targetDist=" .. tostring(fallbackDist and string.format("%.1f", fallbackDist) or "unknown")
-										.. " cap=" .. tostring(fallbackCap or "unknown") .. ".")
-									ffnav.interactLandingFallbackRangeLog = Now()
-								end
-							elseif ((probe.noFallbackCount or 0) < 3) then
-								if (not ffnav.interactLandingBlockedLog or TimeSince(ffnav.interactLandingBlockedLog) > 2000) then
-									d("[Mount] Flying interact landing blocked; waiting for fallback probe retry.")
-									ffnav.interactLandingBlockedLog = Now()
-								end
-								return false
-							elseif (not ffnav.interactLandingBackupLog or TimeSince(ffnav.interactLandingBackupLog) > 2000) then
-								d("[Mount] Flying interact landing blocked with no fallback; trying backup dismount.")
-								ffnav.interactLandingBackupLog = Now()
-								local dismountMain = ActionList:Get(5,23)
-								if (dismountMain and dismountMain:IsReady(Player.id)) then
-									dismountMain:Cast(Player.id)
-								else
-									SendTextCommand("/mount")
-								end
-								c_mount.blockOnly = true
-								return true
-							else
-								return false
-							end
-						elseif (probe and probe.clear == true
-							and (not ffnav.interactLandingClearLog or TimeSince(ffnav.interactLandingClearLog) > 2000)) then
-							d("[Mount] Flying interact landing clear; dismounting at current hover spot.")
-							ffnav.interactLandingClearLog = Now()
-						end
-						if (probe and probe.clear == true) then
-							ffnav.interactLandingDismountUntil = Now() + 1500
-							ffnav.interactSuppressRemountUntil = Now() + 7000
-							if (Player.Stop) then
-								Player:Stop()
-							end
-						end
-					end
 					Dismount()
 					c_mount.blockOnly = true
 					return true
 				end
-				return false
-			else
-				--d("remain mounted ["..tostring(ml_task_hub:CurrentTask().remainMounted).."], not within dismount distance ["..tostring(dismountDistance).."], dist2d ["..tostring(dist2d).."], dist3d ["..tostring(dist3d).."]")
 			end
-		else
-			--d("[Mount]: Cannot dismount, needs to fly still.")
 		end
 	end
-	
+
 	if (Player.ismounted or Player.incombat or ml_task_hub:CurrentTask().nomount) then
 		return false
 	end
@@ -5529,6 +5278,16 @@ function c_dointeract:evaluate()
 			task.nudging = false
 			if (interactable and table.valid(interactable) and interactable.interactable) then
 				d("["..task.name.."]: Nudge done, interacting with ["..tostring(interactable.name).."].")
+				if (task.name == "MOVETOINTERACT") then
+					if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
+						ml_navigation:BeginInteractActionHandoff(7000, "DoInteractNudge", true)
+					else
+						ffnav.interactSuppressRemountUntil = Now() + 7000
+						task.interactActionCommitted = true
+						task.interactActionAt = Now()
+						task.disableFlyingLandingAfterInteract = true
+					end
+				end
 				Player:Interact(interactable.id)
 				self.lastInteract = Now()
 				self._interactTime = Now()
@@ -5713,9 +5472,12 @@ function c_dointeract:evaluate()
 	d("["..task.name.."]: Interacting with target ["..tostring(interactable.name).."].")
 	if (task.name == "MOVETOINTERACT") then
 		if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
-			ml_navigation:BeginInteractActionHandoff(7000, "DoInteract")
+			ml_navigation:BeginInteractActionHandoff(7000, "DoInteract", true)
 		else
 			ffnav.interactSuppressRemountUntil = Now() + 7000
+			task.interactActionCommitted = true
+			task.interactActionAt = Now()
+			task.disableFlyingLandingAfterInteract = true
 		end
 	end
 	Player:Interact(interactable.id)

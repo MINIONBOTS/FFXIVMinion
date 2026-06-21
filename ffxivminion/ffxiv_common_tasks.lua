@@ -263,6 +263,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+				if not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
+					return false
+				end
 				if (self.interact and self.interact ~= 0) then
 					local interactable = EntityList:Get(self.interact)
 					if (table.valid(interactable) and not interactable.interactable) then
@@ -277,9 +280,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 					Player:Stop()
 				end
 				if (not self.remainMounted and Player.ismounted) then
-					-- Don't dismount in the air - destination is above ground
+					-- The landing controller owns airborne arrival and dismount.
 					if (IsFlying() or IsDiving()) then
-						return true
+						return false
 					end
 					Dismount()
 					return false
@@ -698,6 +701,16 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	-- Map change (e.g. transfer after interaction). task_complete_execute uses 0ms parent wait.
 	if (self.startMap ~= Player.localmapid) then
 		return true
+	end
+
+	-- Some accepted NPC/object interactions do not expose Busy/window state long
+	-- enough for the old completion checks. Once c_dointeract has actually fired
+	-- Player:Interact, retire this task after a short grace period so a stale
+	-- MOVETOINTERACT cannot restart flying landing if the user remounts manually.
+	if (self.interactActionCommitted and IsNull(self.interactAttempts, 0) > 0) then
+		if (TimeSince(IsNull(self.interactActionAt, 0)) > 1500) then
+			return true
+		end
 	end
 
 	local ppos = Player.pos
