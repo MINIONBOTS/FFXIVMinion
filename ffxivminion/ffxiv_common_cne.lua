@@ -3052,7 +3052,8 @@ function c_mount:evaluate()
 	local patchLevel = GetPatchLevel()
 	
 	local myPos = Player.pos
-	local gotoPos = ml_task_hub:CurrentTask().pos
+	local task = ml_task_hub:CurrentTask()
+	local gotoPos = task.pos
 	if (table.valid(gotoPos)) then
 		local dist2d = math.distance2d(myPos, gotoPos)
 		local dist3d = math.distance3d(myPos, gotoPos)
@@ -3129,8 +3130,15 @@ function c_mount:evaluate()
 		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		local forcemount = false
 		if (CanFlyInZone()) then
-			if (ml_task_hub:CurrentTask().alwaysMount) then
+			if (task.alwaysMount) then
 				forcemount = true
+			end
+			if (not forcemount and ml_navigation and ml_navigation.GetLandingRequest and ml_navigation.NeedsLandingApproachFlight) then
+				local request = ml_navigation:GetLandingRequest(task)
+				if (ml_navigation:NeedsLandingApproachFlight(task, request, myPos)) then
+					forcemount = true
+					d("[Landing] unmounted ground approach needs flight; mounting for landing controller.")
+				end
 			end
 		end
 		

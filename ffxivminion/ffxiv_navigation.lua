@@ -833,6 +833,12 @@ end
 function ml_navigation:DismountForLanding(controller)
 	Player:StopMovement()
 	ffnav.interactSuppressRemountUntil = Now() + 7000
+	ffnav.landingDismountLockUntil = Now() + 2500
+	ffnav.isascending = false
+	ffnav.isdescending = false
+	ml_navigation.lastconnectionid = 0
+	ml_navigation.lastconnectiontimer = 0
+	ml_navigation:ResetFlightActionThrottle(false)
 	controller.phase = 'dismount'
 	controller.dismountTime = Now()
 	d('[Landing] validated final hover; dismounting.')
@@ -898,6 +904,61 @@ function ml_navigation:ManageFlyingLanding(request, ppos)
 		return false
 	end
 	return self:ContinueFlyingLanding(controller, request, ppos)
+end
+
+function ml_navigation:NeedsLandingApproachFlight(task, request, ppos)
+	if not (task and request and ppos and table.valid(request.anchor)) then return false end
+	if IsFlying() or IsDiving() or not CanFlyInZone() then return false end
+	if (ffnav.landingDismountLockUntil and Now() < ffnav.landingDismountLockUntil) then return false end
+
+	local dist2d = math.distance2d(ppos, request.anchor)
+	if (dist2d > request.activateDistance) then return false end
+
+	local vertical = math.abs((ppos.y or 0) - (request.anchor.y or 0))
+	local verticalLimit = tonumber(task.dismountHeightTolerance) or 3.5
+	if (vertical > verticalLimit) then return true end
+	if (vertical < 1.5) then return false end
+
+	local fromY = (ppos.y or 0) + 1.25
+	local toY = (request.anchor.y or 0) + 1.25
+	local hit = RayCast(ppos.x, fromY, ppos.z, request.anchor.x, toY, request.anchor.z)
+	return hit == true
+end
+
+function ml_navigation:NeedsMountedLandingTakeoff(task, request, ppos)
+	if not Player.ismounted then return false end
+	if (Player.mountcanfly == false) then return false end
+	return self:NeedsLandingApproachFlight(task, request, ppos)
+end
+
+function ml_navigation:PrepareLandingTakeoff(task, ppos)
+	if not (task and ppos) then return false end
+	local request = self:GetLandingRequest(task)
+	if not self:NeedsMountedLandingTakeoff(task, request, ppos) then return false end
+	if (ffnav.landingTakeoffUntil and Now() < ffnav.landingTakeoffUntil and ffnav.landingTakeoffKey == request.key) then
+		return true
+	end
+
+	if (Player:IsMoving()) then
+		Player:StopMovement()
+		ffnav.AwaitDo(2000, function () return not Player:IsMoving() end, function () Player:StopMovement() end)
+		return true
+	end
+
+	if (ml_navigation:IsFlightActionThrottled("landing_takeoff", ml_navigation.pathindex, ml_navigation.path and ml_navigation.path[ml_navigation.pathindex], ml_navigation.path and ml_navigation.path[ml_navigation.pathindex + 1])) then
+		return true
+	end
+
+	ffnav.landingTakeoffUntil = Now() + 2500
+	ffnav.landingTakeoffKey = request.key
+	d('[Landing] mounted ground approach needs flight; taking off for landing controller.')
+	Player:Jump()
+	ffnav.AwaitSuccess(500, 2000, function ()
+		return Player:IsJumping() or IsFlying()
+	end, function ()
+		Player:TakeOff()
+	end)
+	return true
 end
 
 function ml_navigation:LandForAction(anchor, maxDistance3d, source)
@@ -2260,6 +2321,7 @@ function ml_navigation.Navigate(event, ticks)
 			local ppos = Player.pos
 			local currentTask = ml_task_hub and ml_task_hub:CurrentTask()
 			if IsFlying() and ml_navigation:UpdateFlyingLanding(currentTask, ppos) then return end
+			if (not IsFlying()) and ml_navigation:PrepareLandingTakeoff(currentTask, ppos) then return end
 
 			ml_navigation.GUI = {
 				pathHops = 0,
@@ -2840,6 +2902,9 @@ function ml_navigation.Navigate(event, ticks)
 											return
 										end
 										if (ml_navigation:IsFlightActionThrottled("ascend", ml_navigation.pathindex, nextnode, nextnextnode)) then
+											return
+										end
+										if (ffnav.landingDismountLockUntil and Now() < ffnav.landingDismountLockUntil) then
 											return
 										end
 
