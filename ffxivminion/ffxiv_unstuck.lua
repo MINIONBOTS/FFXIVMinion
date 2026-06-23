@@ -31,6 +31,37 @@ function ffxiv_unstuck.Reset()
 	end
 end
 
+function ffxiv_unstuck.ResetProgress()
+	ffxiv_unstuck.Reset()
+	for name,state in pairs(ffxiv_unstuck.State) do
+		state.stats = 0
+		state.safeticks = 0
+	end
+	if (Player and Player.pos) then
+		local currentPos = Player.pos
+		ffxiv_unstuck.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
+		ffxiv_unstuck.coarse.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
+		ffxiv_unstuck.coarse.lastMeasure = Now()
+		ffxiv_unstuck.coarse.lastDist = 0
+	end
+end
+
+function ffxiv_unstuck.IsSuppressed()
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		return true
+	end
+	if (ml_global_information and ml_global_information.monitorStuck == false) then
+		if (Player and Player.IsExactMoving and Player:IsExactMoving()) then
+			return true
+		end
+		if (ml_navigation_exact and ml_navigation_exact.active) then
+			return true
+		end
+	end
+	return false
+end
+
 c_stuck = inheritsFrom( ml_cause )
 e_stuck = inheritsFrom( ml_effect )
 e_stuck.state = {}
@@ -67,6 +98,10 @@ function c_stuck:evaluate()
 		else
 			return false
 		end
+	end
+	if (ffxiv_unstuck.IsSuppressed()) then
+		ffxiv_unstuck.ResetProgress()
+		return false
 	end
 	
 	if (Busy() or not ffxiv_unstuck.IsPathing() or Player:IsJumping() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
@@ -308,6 +343,9 @@ function ffxiv_unstuck.AttemptMeshFix()
 	end
 end
 function ffxiv_unstuck.IsPathing()
+	if (ffxiv_unstuck.IsSuppressed()) then
+		return false
+	end
 	if (ml_navigation:HasPath() and ml_navigation.CanRun() and ml_navigation.canPath and not ffnav.IsProcessing()) then	
 		--d("[Unstuck]: Navigation is pathing.")
 		return true

@@ -3049,6 +3049,11 @@ function c_mount:evaluate()
 	if ffnav.interactSuppressRemountUntil and Now() < ffnav.interactSuppressRemountUntil then
 		return false
 	end
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		c_mount.blockOnly = true
+		return false
+	end
 	local patchLevel = GetPatchLevel()
 	
 	local myPos = Player.pos
@@ -3188,6 +3193,11 @@ function c_mount:evaluate()
 end
 function e_mount:execute()
 	if (c_mount.blockOnly) or not Player.onmesh then
+		return false
+	end
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		c_mount.blockOnly = true
 		return false
 	end
 	
@@ -5083,6 +5093,28 @@ local function c_dointeract_effectiveDistances(task, entity)
 	return distance3d, planarAbs
 end
 
+local function c_dointeract_shouldHandoff(task)
+	if (ml_navigation and ml_navigation.IsInteractActionTask) then
+		return ml_navigation:IsInteractActionTask(task)
+	end
+	return task and (task.name == "MOVETOINTERACT" or task.name == "MOVEAETHERNET"
+		or task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "QUEST_ATTUNECURRENT"
+		or (task.interact and task.interact ~= 0))
+end
+
+local function c_dointeract_beginHandoff(task, duration, source, commitInteract)
+	if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
+		ml_navigation:BeginInteractActionHandoff(duration, source, commitInteract)
+		return
+	end
+	ffnav.interactSuppressRemountUntil = Now() + (duration or 7000)
+	if (commitInteract and task) then
+		task.interactActionCommitted = true
+		task.interactActionAt = Now()
+		task.disableFlyingLandingAfterInteract = true
+	end
+end
+
 c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false
@@ -5286,15 +5318,8 @@ function c_dointeract:evaluate()
 			task.nudging = false
 			if (interactable and table.valid(interactable) and interactable.interactable) then
 				d("["..task.name.."]: Nudge done, interacting with ["..tostring(interactable.name).."].")
-				if (task.name == "MOVETOINTERACT") then
-					if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
-						ml_navigation:BeginInteractActionHandoff(7000, "DoInteractNudge", true)
-					else
-						ffnav.interactSuppressRemountUntil = Now() + 7000
-						task.interactActionCommitted = true
-						task.interactActionAt = Now()
-						task.disableFlyingLandingAfterInteract = true
-					end
+				if (c_dointeract_shouldHandoff(task)) then
+					c_dointeract_beginHandoff(task, 7000, "DoInteractNudge", true)
 				end
 				Player:Interact(interactable.id)
 				self.lastInteract = Now()
@@ -5412,6 +5437,16 @@ function c_dointeract:evaluate()
 	-- or the unreliable `interactable` flag.
 	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d
 		and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
+		local landingHandoff = (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+			and ml_navigation:IsLandingOrActionHandoffActive())
+		if (landingHandoff and not IsFlying() and not IsDiving() and not IsDismounting()
+			and effectiveDistance3d < (maxInteractDistance3d + 4)) then
+			if (not Player:IsMoving()) then
+				local epos = interactable.pos
+				Player:MoveTo(epos.x, epos.y, epos.z)
+			end
+			return true
+		end
 		return false
 	end
 
@@ -5462,12 +5497,8 @@ function c_dointeract:evaluate()
 		if (ml_navigation and ml_navigation.DisableAutoFollow) then
 			ml_navigation:DisableAutoFollow(true, "dointeract")
 		end
-		if (task.name == "MOVETOINTERACT") then
-			if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
-				ml_navigation:BeginInteractActionHandoff(7000, "DoInteractStop")
-			else
-				ffnav.interactSuppressRemountUntil = Now() + 7000
-			end
+		if (c_dointeract_shouldHandoff(task)) then
+			c_dointeract_beginHandoff(task, 7000, "DoInteractStop")
 		end
 		return true  -- wait one frame for stop to take effect
 	end
@@ -5478,15 +5509,8 @@ function c_dointeract:evaluate()
 	end
 	
 	d("["..task.name.."]: Interacting with target ["..tostring(interactable.name).."].")
-	if (task.name == "MOVETOINTERACT") then
-		if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
-			ml_navigation:BeginInteractActionHandoff(7000, "DoInteract", true)
-		else
-			ffnav.interactSuppressRemountUntil = Now() + 7000
-			task.interactActionCommitted = true
-			task.interactActionAt = Now()
-			task.disableFlyingLandingAfterInteract = true
-		end
+	if (c_dointeract_shouldHandoff(task)) then
+		c_dointeract_beginHandoff(task, 7000, "DoInteract", true)
 	end
 	Player:Interact(interactable.id)
 	self.lastInteract = Now()
