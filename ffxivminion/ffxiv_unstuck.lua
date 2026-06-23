@@ -62,6 +62,24 @@ function ffxiv_unstuck.IsSuppressed()
 	return false
 end
 
+function ffxiv_unstuck.TryGroundPathAirborneRecovery(state)
+	if not (state and ml_navigation and ml_navigation.RecoverGroundPathAirborne) then return false end
+	if not (IsFlying() and ml_navigation.HasFlightPathAhead and not ml_navigation:HasFlightPathAhead()) then return false end
+	if (ffxiv_unstuck.groundPathAirborneRecoveryAt and TimeSince(ffxiv_unstuck.groundPathAirborneRecoveryAt) < 1000) then
+		e_stuck.blockOnly = true
+		e_stuck.task = "GroundPathAirborne"
+		return true
+	end
+	if ml_navigation:RecoverGroundPathAirborne() then
+		ffxiv_unstuck.groundPathAirborneRecoveryAt = Now()
+		ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
+		e_stuck.blockOnly = true
+		e_stuck.task = "GroundPathAirborne"
+		return true
+	end
+	return false
+end
+
 c_stuck = inheritsFrom( ml_cause )
 e_stuck = inheritsFrom( ml_effect )
 e_stuck.state = {}
@@ -149,6 +167,7 @@ function c_stuck:evaluate()
 			elseif state.ticks >= state.minticks then
 				e_stuck.state = state
 				d("name = "..tostring(state.name))
+				if ffxiv_unstuck.TryGroundPathAirborneRecovery(state) then return true end
 				if (name ~= "OFFMESH") then
 					if (not IsFlying() and not IsDiving() and TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
 						if ffxiv_unstuck.State[state.name].stats >= 3 then

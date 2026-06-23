@@ -725,7 +725,7 @@ function ml_navigation:GetLandingRequest(task)
 		maxDistance3d = actionRange,
 		maxSearchRadius = math.min(25, math.max(2, actionRange)),
 		activateDistance = math.max(20, (tonumber(task.dismountDistance) or 5) + 8),
-		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.0),
+		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.5),
 	}
 end
 
@@ -893,6 +893,10 @@ function ml_navigation:GetFlightDispatchNode(ppos, targetNode, radius)
 
 	if self:IsFlightSegmentClear(ppos, targetNode, radius) then
 		ffnav.flightBypass = nil
+		ffnav.flightBlockedRecoveryKey = nil
+		ffnav.flightBlockedRecoveryAt = 0
+		ffnav.flightBlockedRecoveryCount = 0
+		ffnav.forceGroundPathAirborneUntil = 0
 		if ffnav.flightBypassFailedKey == key then
 			ffnav.flightBypassFailedKey = nil
 			ffnav.flightBypassFailedAt = 0
@@ -907,6 +911,10 @@ function ml_navigation:GetFlightDispatchNode(ppos, targetNode, radius)
 	if route then
 		ffnav.flightBypassFailedKey = nil
 		ffnav.flightBypassFailedAt = 0
+		ffnav.flightBlockedRecoveryKey = nil
+		ffnav.flightBlockedRecoveryAt = 0
+		ffnav.flightBlockedRecoveryCount = 0
+		ffnav.forceGroundPathAirborneUntil = 0
 		ffnav.flightBypass = { key = key, route = route, waypoint = 1, startedAt = Now() }
 		if (not ffnav.flightBypassLog or TimeSince(ffnav.flightBypassLog) > 1000) then
 			local hit = ffnav.lastFlightSegmentHit
@@ -929,8 +937,19 @@ function ml_navigation:GetFlightDispatchNode(ppos, targetNode, radius)
 		end
 		ffnav.flightBlockedLog = Now()
 	end
+	local now = Now()
+	if (ffnav.flightBlockedRecoveryKey == key and TimeSince(ffnav.flightBlockedRecoveryAt or 0) < 5000) then
+		ffnav.flightBlockedRecoveryCount = (ffnav.flightBlockedRecoveryCount or 0) + 1
+	else
+		ffnav.flightBlockedRecoveryCount = 1
+	end
+	ffnav.flightBlockedRecoveryKey = key
+	ffnav.flightBlockedRecoveryAt = now
+	if (ffnav.flightBlockedRecoveryCount >= 2) then
+		ffnav.forceGroundPathAirborneUntil = now + 5000
+	end
 	ffnav.flightBypassFailedKey = key
-	ffnav.flightBypassFailedAt = Now()
+	ffnav.flightBypassFailedAt = now
 	return nil, true
 end
 
@@ -963,11 +982,17 @@ function ml_navigation:PlanFlyingLanding(controller, request, ppos)
 end
 
 function ml_navigation:DismountForLanding(controller)
-	Player:StopMovement()
-	local holdUntil = Now() + 7000
+	local now = Now()
+	controller.phase = 'dismount'
+	controller.dismountTime = now
+	controller.dismountStartedAt = now
+	controller.dismountAttempts = 1
+	local holdUntil = now + 7000
 	ffnav.interactSuppressRemountUntil = holdUntil
 	ffnav.actionHandoffUntil = holdUntil
-	ffnav.landingDismountLockUntil = Now() + 4500
+	ffnav.landingDismountLockUntil = now + 4500
+	d('[Landing] validated final hover; dismounting.')
+	Player:StopMovement()
 	self:SuppressUnstuck(4500, "LandingDismount")
 	self:DisableAutoFollow(true, "LandingDismount")
 	ffnav.isascending = false
@@ -975,9 +1000,6 @@ function ml_navigation:DismountForLanding(controller)
 	ml_navigation.lastconnectionid = 0
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(false)
-	controller.phase = 'dismount'
-	controller.dismountTime = Now()
-	d('[Landing] validated final hover; dismounting.')
 	Dismount()
 	return true
 end
@@ -1002,7 +1024,16 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 	end
 	if controller.phase == 'dismount' then
 		self:SuppressUnstuck(3000, "LandingDismountWait")
-		if IsDismounting() or TimeSince(controller.dismountTime or 0) < 2000 then return true end
+		self:DisableAutoFollow(true, "LandingDismountWait")
+		if IsDismounting() or TimeSince(controller.dismountTime or 0) < 750 then return true end
+		if Player.ismounted and TimeSince(controller.dismountStartedAt or controller.dismountTime or 0) < 7000 then
+			controller.dismountTime = Now()
+			controller.dismountAttempts = (controller.dismountAttempts or 1) + 1
+			d('[Landing] retrying dismount attempt ' .. tostring(controller.dismountAttempts) .. '.')
+			Dismount()
+			return true
+		end
+		if TimeSince(controller.dismountTime or 0) < 2000 then return true end
 		controller.phase = 'blocked'
 		controller.lastPlan = 0
 		controller.blockedAt = Now()
@@ -1086,6 +1117,135 @@ function ml_navigation:IsLandingOrActionHandoffActive()
 	return false
 end
 
+function ml_navigation:HasFlightPathAhead()
+	if not table.valid(self.path) then return false end
+	local currentIndex = self.pathindex or NavigationManager.NavPathNode or 1
+	for index,node in pairsByKeys(self.path) do
+		if (index >= currentIndex and table.valid(node)) then
+			ml_navigation.TagNode(node)
+			local nextnode = self.path[index + 1]
+			ml_navigation.TagNode(nextnode)
+			local nextAir = (nextnode and nextnode.air == true) or false
+			local isFlightCon = (node.floorcube == true and (node.air == true or nextAir)
+				and not ml_navigation:IsUnstableFlightTransition(node, nextnode))
+			if (isFlightCon or (node.is_cube and node.air == true and not node.floorcube)) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function ml_navigation:GetGroundPathAirborneTarget(allowNoPath)
+	local ppos = Player.pos
+	if not table.valid(ppos) then return nil end
+
+	local node = nil
+	local nodeIndex = nil
+	local aheadNode = nil
+	if self:HasPath() then
+		local startIndex = self.pathindex or NavigationManager.NavPathNode or 1
+		for index = startIndex, startIndex + 3 do
+			local candidate = self.path[index]
+			if table.valid(candidate) then
+				ml_navigation.TagNode(candidate)
+				if (candidate.ground == true or (candidate.is_floor == true and candidate.air ~= true)) then
+					node = candidate
+					nodeIndex = index
+					break
+				end
+			end
+		end
+		if nodeIndex then
+			for index = nodeIndex + 1, nodeIndex + 5 do
+				local candidate = self.path[index]
+				if table.valid(candidate) then
+					ml_navigation.TagNode(candidate)
+					if (candidate.ground == true or (candidate.is_floor == true and candidate.air ~= true)) then
+						aheadNode = candidate
+						break
+					end
+				end
+			end
+		end
+	end
+
+	if not (node or allowNoPath) then return nil end
+
+	local target = node and { x = node.x, y = node.y, z = node.z } or shallowcopy(ppos)
+	if node and table.valid(aheadNode) then
+		local dx = (aheadNode.x or node.x) - (node.x or 0)
+		local dz = (aheadNode.z or node.z) - (node.z or 0)
+		local dist = math.sqrt((dx * dx) + (dz * dz))
+		if (dist > 0.1) then
+			local step = math.min(4, dist)
+			local t = step / dist
+			target.x = (node.x or 0) + (dx * t)
+			target.z = (node.z or 0) + (dz * t)
+			target.y = (node.y or 0) + (((aheadNode.y or node.y or 0) - (node.y or 0)) * t)
+		end
+	elseif (not node and ppos.h) then
+		local ahead = GetPosFromDistanceHeading(ppos, 4, ppos.h)
+		if table.valid(ahead) then
+			target.x = ahead.x
+			target.z = ahead.z
+		end
+	end
+
+	if node then
+		local fromY = (target.y or ppos.y or 0) + 3
+		local toY = (target.y or ppos.y or 0) - 8
+		local hit, hx, hy, hz = RayCast(target.x, fromY, target.z, target.x, toY, target.z)
+		if hit and hy then
+			target.y = hy + 0.25
+		else
+			target.y = (target.y or ppos.y or 0) + 0.25
+		end
+		return target
+	end
+
+	local meshPos = FindClosestMesh(target,80,false)
+	if table.valid(meshPos) then
+		target.x = meshPos.x
+		target.y = meshPos.y + 0.25
+		target.z = meshPos.z
+		return target
+	end
+
+	local fromY = (ppos.y or 0) + 8
+	local toY = (ppos.y or 0) - 80
+	local hit, hx, hy, hz = RayCast(target.x, fromY, target.z, target.x, toY, target.z)
+	if hit and hy then
+		target.y = hy + 0.25
+	else
+		target.y = (target.y or ppos.y or 0) + 0.25
+	end
+	return target
+end
+
+function ml_navigation:RecoverGroundPathAirborne(allowNoPath, force)
+	if not IsFlying() then return false end
+	if (not force) and self:HasPath() and self:HasFlightPathAhead() then return false end
+	if not (allowNoPath or self:HasPath()) then return false end
+
+	local target = self:GetGroundPathAirborneTarget(allowNoPath)
+	if not table.valid(target) then return false end
+
+	ffnav.flightBypass = nil
+	ffnav.flightBypassFailedKey = nil
+	ffnav.flightBypassFailedAt = 0
+	ffnav.isascending = false
+	ffnav.isdescending = false
+	self:ResetLandingController()
+	self:ResetFlightActionThrottle(false)
+
+	if (not ffnav.groundPathAirborneLog or TimeSince(ffnav.groundPathAirborneLog) > 1000) then
+		d('[Unstuck]: Airborne on ground path; following ground path to land.')
+		ffnav.groundPathAirborneLog = Now()
+	end
+	return self:DispatchAutoFollowNode(target, true)
+end
+
 function ml_navigation:NeedsLandingApproachFlight(task, request, ppos)
 	if not (task and request and ppos and table.valid(request.anchor)) then return false end
 	if IsFlying() or IsDiving() or not CanFlyInZone() then return false end
@@ -1108,6 +1268,7 @@ end
 function ml_navigation:NeedsMountedLandingTakeoff(task, request, ppos)
 	if not Player.ismounted then return false end
 	if (Player.mountcanfly == false) then return false end
+	if not self:HasFlightPathAhead() then return false end
 	return self:NeedsLandingApproachFlight(task, request, ppos)
 end
 
@@ -1149,17 +1310,22 @@ function ml_navigation:LandForAction(anchor, maxDistance3d, source)
 	local actionRange = math.max(tonumber(maxDistance3d) or 5, 2.5)
 	local request = {
 		key = 'action:' .. tostring(source or 'unknown'),
+		source = tostring(source or 'action'),
 		anchor = { x = anchor.x, y = anchor.y, z = anchor.z },
 		maxDistance3d = actionRange,
 		maxSearchRadius = math.min(25, actionRange),
 		activateDistance = math.huge,
-		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.0),
+		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.5),
 	}
 	return self:ManageFlyingLanding(request, Player.pos)
 end
 
 function ml_navigation:UpdateFlyingLanding(task, ppos)
 	if not IsFlying() then return false end
+	local controller = ffnav.landingController
+	if (controller and controller.active and controller.request and controller.request.source == "GroundPathAirborne") then
+		return self:ManageFlyingLanding(controller.request, ppos)
+	end
 	local request = self:GetLandingRequest(task)
 	if not request then return false end
 	return self:ManageFlyingLanding(request, ppos)
@@ -2497,6 +2663,8 @@ function ml_navigation.Navigate(event, ticks)
 			if ml_navigation.CanRun() and not ml_navigation.debug then
 				local ct = ml_task_hub and ml_task_hub:CurrentTask()
 				local landing = ffnav and ffnav.landingController
+				local forceGroundPathAirborne = (ffnav.forceGroundPathAirborneUntil and Now() < ffnav.forceGroundPathAirborneUntil)
+				if IsFlying() and ml_navigation:RecoverGroundPathAirborne(false, forceGroundPathAirborne) then return end
 				if IsFlying() and landing and landing.active
 					and ct and not (ct.disableFlyingLandingAfterInteract or ct.interactActionCommitted)
 					and ml_navigation:UpdateFlyingLanding(ct, Player.pos) then return end
@@ -2517,6 +2685,8 @@ function ml_navigation.Navigate(event, ticks)
 
 			local ppos = Player.pos
 			local currentTask = ml_task_hub and ml_task_hub:CurrentTask()
+			local forceGroundPathAirborne = (ffnav.forceGroundPathAirborneUntil and Now() < ffnav.forceGroundPathAirborneUntil)
+			if IsFlying() and ml_navigation:RecoverGroundPathAirborne(false, forceGroundPathAirborne) then return end
 			if IsFlying() and ml_navigation:UpdateFlyingLanding(currentTask, ppos) then return end
 			if (not IsFlying()) and ml_navigation:PrepareLandingTakeoff(currentTask, ppos) then return end
 

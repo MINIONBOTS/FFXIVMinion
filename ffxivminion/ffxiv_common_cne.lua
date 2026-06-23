@@ -2158,6 +2158,10 @@ function c_getmovementpath:evaluate()
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
 			end
+			if (IsFlying() and ml_navigation and ml_navigation.RecoverGroundPathAirborne
+				and ml_navigation:RecoverGroundPathAirborne(true)) then
+				return false
+			end
 		else
 			d("[GetMovementPath]: Invalid gotopos in current Task")
 		end
