@@ -1975,8 +1975,14 @@ c_getmovementpath.lastGoal = {}
 c_getmovementpath.lastOptimalPath = 0
 c_getmovementpath.asyncPrefetchPos = nil
 function c_getmovementpath:evaluate()
-	if not Player.onmesh then
+	if not Player.onmesh and not IsFlying() and not IsDiving() then
 		return false
+	end
+	if not Player.onmesh and (IsFlying() or IsDiving()) then
+		if (ml_navigation and ml_navigation.DebugLog) then
+			ml_navigation:DebugLog("getpath-airborne-offmesh", "GetMovementPath allowing airborne off-mesh path build task="
+				.. tostring(ml_task_hub and ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask().name), 1000)
+		end
 	end
 	if (MIsLoading() or MIsLocked() or ffnav.IsProcessing()) then
 		return false
@@ -1986,6 +1992,20 @@ function c_getmovementpath:evaluate()
 	end
 	local currentTask = ml_task_hub:CurrentTask()
 	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
+		return false
+	end
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		if (ml_navigation.DebugLog and ml_navigation.GetLandingHandoffDebugState) then
+			local realHandoff = (ml_navigation.IsRealLandingOrActionHandoffActive
+				and ml_navigation:IsRealLandingOrActionHandoffActive()) or false
+			local logKey = realHandoff and "getpath-handoff" or "getpath-unstuck-suppressed"
+			local logPrefix = realHandoff
+				and "GetMovementPath suppressed by landing/action handoff task="
+				or "GetMovementPath delayed by navigation handoff task="
+			ml_navigation:DebugLog(logKey, logPrefix
+				.. tostring(currentTask and currentTask.name) .. " " .. ml_navigation:GetLandingHandoffDebugState(), 1000)
+		end
 		return false
 	end
 	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
@@ -2158,8 +2178,10 @@ function c_getmovementpath:evaluate()
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
 			end
-			if (IsFlying() and ml_navigation and ml_navigation.RecoverGroundPathAirborne
-				and ml_navigation:RecoverGroundPathAirborne(true)) then
+			if (IsFlying() and ml_navigation and ml_navigation.StartAirborneGroundAcquire
+				and ml_navigation.IsAirborneGroundAcquireTaskActive
+				and ml_navigation:IsAirborneGroundAcquireTaskActive(currentTask, Player.pos)
+				and ml_navigation:StartAirborneGroundAcquire("NoPath", nil)) then
 				return false
 			end
 		else
@@ -2196,6 +2218,20 @@ function c_walktopos:evaluate()
 
 	local currentTask = ml_task_hub:CurrentTask()
 	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
+		return false
+	end
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		if (ml_navigation.DebugLog and ml_navigation.GetLandingHandoffDebugState) then
+			local realHandoff = (ml_navigation.IsRealLandingOrActionHandoffActive
+				and ml_navigation:IsRealLandingOrActionHandoffActive()) or false
+			local logKey = realHandoff and "walktopos-handoff" or "walktopos-unstuck-suppressed"
+			local logPrefix = realHandoff
+				and "WalkToPos suppressed by landing/action handoff task="
+				or "WalkToPos delayed by navigation handoff task="
+			ml_navigation:DebugLog(logKey, logPrefix
+				.. tostring(currentTask and currentTask.name) .. " " .. ml_navigation:GetLandingHandoffDebugState(), 1000)
+		end
 		return false
 	end
 

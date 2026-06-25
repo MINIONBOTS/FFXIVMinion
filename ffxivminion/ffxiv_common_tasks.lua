@@ -73,6 +73,14 @@ local function TaskTryFaceTarget(targetX, targetY, targetZ, angleEpsilon)
 	return true
 end
 
+local function TaskIsPlainMoveTo(task)
+	if not task then return false end
+	if (task.interact and task.interact ~= 0) then return false end
+	if (IsNull(task.contentid, 0) ~= 0) then return false end
+	if (IsNull(task.customSearch, "") ~= "") then return false end
+	return true
+end
+
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 
 function ffxiv_task_movetopos.Create()
@@ -229,6 +237,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		
 		local requiredRange = (range + gatherRange)
 		local requiredRange3d = (IsNull(self.range3d, range + 2))
+		local plainMoveTo = TaskIsPlainMoveTo(self)
 		
 		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
@@ -263,7 +272,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
-				if not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
+				if not plainMoveTo and not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
 					return false
 				end
 				if (self.interact and self.interact ~= 0) then
@@ -279,8 +288,8 @@ function ffxiv_task_movetopos:task_complete_eval()
 				else
 					Player:Stop()
 				end
-				if (not self.remainMounted and Player.ismounted) then
-					-- The landing controller owns airborne arrival and dismount.
+				if (not plainMoveTo and not self.remainMounted and Player.ismounted) then
+					-- Interaction-style MoveTo tasks still need to be grounded before dismounting.
 					if (IsFlying() or IsDiving()) then
 						return false
 					end
@@ -707,11 +716,19 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	-- enough for the old completion checks. Once c_dointeract has actually fired
 	-- Player:Interact, retire this task after a short grace period so a stale
 	-- MOVETOINTERACT cannot restart flying landing if the user remounts manually.
-	if (self.interactActionCommitted and IsNull(self.interactAttempts, 0) > 0) then
+	local interactAttempted = IsNull(self.interactAttempts, 0) > 0
+	if (self.interactActionCommitted and interactAttempted) then
 		if (TimeSince(IsNull(self.interactActionAt, 0)) > 1500) then
+			if (not self.interactCompleteDebugLog or TimeSince(self.interactCompleteDebugLog) > 1000) then
+				d("[MoveToInteractDebug] completing after committed interact attempts=" .. tostring(self.interactAttempts))
+				self.interactCompleteDebugLog = Now()
+			end
 			return true
 		end
 	end
+	local postLandingInteractRequired = (not interactAttempted)
+		and IsNull(self.postLandingInteractRequiredAt, 0) > 0
+		and TimeSince(self.postLandingInteractRequiredAt) < 8000
 
 	local ppos = Player.pos
 
@@ -730,6 +747,14 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local completeRange3d = tonumber(self.interactRange3d)
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
+				if (postLandingInteractRequired) then
+					if (not self.postLandingInteractCompleteLog or TimeSince(self.postLandingInteractCompleteLog) > 1000) then
+						d("[MoveToInteractDebug] holding completion after landing: target not ready interact=" .. tostring(self.interact)
+							.. " hasEntity=" .. tostring(interactable ~= nil) .. " targetable=" .. tostring(interactable and interactable.targetable))
+						self.postLandingInteractCompleteLog = Now()
+					end
+					return false
+				end
 				if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
 					return false
 				end
@@ -739,6 +764,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			if (dist2d <= 5 and dist3d <= 10) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
+					if (postLandingInteractRequired) then
+						if (not self.postLandingInteractCompleteLog or TimeSince(self.postLandingInteractCompleteLog) > 1000) then
+							d("[MoveToInteractDebug] holding completion after landing: no nearby contentid target contentid=" .. tostring(self.contentid))
+							self.postLandingInteractCompleteLog = Now()
+						end
+						return false
+					end
 					if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
 						return false
 					end
