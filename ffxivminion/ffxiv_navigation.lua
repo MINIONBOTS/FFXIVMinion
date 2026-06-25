@@ -743,6 +743,7 @@ function ml_navigation:GetLandingRequest(task)
 	local activateDistance = math.min(45, math.max(30, landingMaxDistance + 8, (tonumber(task.dismountDistance) or 5) + 20))
 	return {
 		key = tostring(task.started or task.name) .. ':' .. tostring(task.interact or 0),
+		taskKey = self:GetAirborneGroundAcquireTaskKey(task),
 		anchor = anchor,
 		maxDistance3d = landingMaxDistance,
 		maxSearchRadius = landingSearchRadius,
@@ -996,6 +997,7 @@ function ml_navigation:DismountForLanding(controller)
 	local holdUntil = now + 7000
 	ffnav.interactSuppressRemountUntil = holdUntil
 	ffnav.actionHandoffUntil = holdUntil
+	ffnav.actionHandoffTaskKey = controller.request and controller.request.taskKey or nil
 	ffnav.landingDismountLockUntil = now + 4500
 	d('[Landing] validated final hover; dismounting.')
 	Player:StopMovement()
@@ -1110,8 +1112,37 @@ function ml_navigation:SuppressUnstuck(duration, reason)
 	return true
 end
 
+function ml_navigation:ClearInteractActionHandoff()
+	ffnav.actionHandoffUntil = 0
+	ffnav.interactSuppressRemountUntil = 0
+	ffnav.landingDismountLockUntil = 0
+	ffnav.actionHandoffTaskKey = nil
+end
+
+function ml_navigation:ClearLandingTakeoffHandoff()
+	ffnav.landingTakeoffUntil = 0
+	ffnav.landingTakeoffKey = nil
+	ffnav.landingTakeoffTaskKey = nil
+end
+
+function ml_navigation:ReleaseStaleTaskHandoffs(task)
+	local taskKey = self:GetAirborneGroundAcquireTaskKey(task)
+	if ffnav.actionHandoffTaskKey then
+		if taskKey ~= ffnav.actionHandoffTaskKey or not task or task.completed or task.valid == false then
+			self:ClearInteractActionHandoff()
+		end
+	end
+	if ffnav.landingTakeoffTaskKey then
+		if taskKey ~= ffnav.landingTakeoffTaskKey or not task or task.completed or task.valid == false then
+			self:ClearLandingTakeoffHandoff()
+		end
+	end
+end
+
 function ml_navigation:IsLandingOrActionHandoffActive()
 	local now = Now()
+	local currentTask = ml_task_hub and ml_task_hub:CurrentTask()
+	self:ReleaseStaleTaskHandoffs(currentTask)
 	if (ffnav.airborneGroundAcquire and ffnav.airborneGroundAcquire.active) then
 		local task = ml_task_hub and ml_task_hub:CurrentTask()
 		local ppos = Player and Player.pos
@@ -1142,6 +1173,7 @@ end
 
 function ml_navigation:IsRealLandingOrActionHandoffActive()
 	local now = Now()
+	self:ReleaseStaleTaskHandoffs(ml_task_hub and ml_task_hub:CurrentTask())
 	if (ffnav.actionHandoffUntil and now < ffnav.actionHandoffUntil) then return true end
 	if (ffnav.interactSuppressRemountUntil and now < ffnav.interactSuppressRemountUntil) then return true end
 	if (ffnav.landingDismountLockUntil and now < ffnav.landingDismountLockUntil) then return true end
@@ -1157,6 +1189,7 @@ end
 
 function ml_navigation:IsLandingDismountOrActionHandoffActive()
 	local now = Now()
+	self:ReleaseStaleTaskHandoffs(ml_task_hub and ml_task_hub:CurrentTask())
 	if (ffnav.actionHandoffUntil and now < ffnav.actionHandoffUntil) then return true end
 	if (ffnav.interactSuppressRemountUntil and now < ffnav.interactSuppressRemountUntil) then return true end
 	if (ffnav.landingDismountLockUntil and now < ffnav.landingDismountLockUntil) then return true end
@@ -1246,8 +1279,20 @@ function ml_navigation:GetAirborneGroundAcquireMoveToGoal(task)
 end
 
 function ml_navigation:IsAirborneGroundAcquireTaskActive(task, ppos)
-	if not (task and task.name == "MOVETOPOS") then return false end
+	if not task then return false end
 	if task.completed or task.valid == false then return false end
+	if task.interactActionCommitted or task.disableFlyingLandingAfterInteract then return false end
+
+	local taskName = tostring(task.name or "")
+	local canAcquire = (taskName == "MOVETOPOS"
+		or taskName == "MOVETOINTERACT"
+		or taskName == "NAV_INTERACT"
+		or taskName == "MOVEAETHERNET"
+		or taskName == "QUEST_ATTUNEAETHERYTE"
+		or taskName == "QUEST_ATTUNECURRENT"
+		or self:IsInteractActionTask(task))
+	if not canAcquire then return false end
+
 	local goal = self:GetAirborneGroundAcquireMoveToGoal(task)
 	if not table.valid(goal) then return false end
 	ppos = ppos or (Player and Player.pos)
@@ -1260,7 +1305,7 @@ function ml_navigation:IsAirborneGroundAcquireTaskActive(task, ppos)
 		local dist2d = math.distance2d(ppos, goal)
 		if dist2d <= required2d then
 			if (self.DebugLog) then
-				self:DebugLog("airborne-acquire-arrived", "Airborne acquire released near MoveTo goal dist2d=" .. tostring(dist2d), 1000)
+				self:DebugLog("airborne-acquire-arrived", "Airborne acquire released near navigation goal task=" .. taskName .. " dist2d=" .. tostring(dist2d), 1000)
 			end
 			return false
 		end
@@ -1541,6 +1586,7 @@ function ml_navigation:PrepareLandingTakeoff(task, ppos)
 
 	ffnav.landingTakeoffUntil = Now() + 2500
 	ffnav.landingTakeoffKey = request.key
+	ffnav.landingTakeoffTaskKey = request.taskKey
 	self:SuppressUnstuck(3500, "LandingTakeoff")
 	d('[Landing] mounted ground approach needs flight; taking off for landing controller.')
 	Player:Jump()
@@ -1558,6 +1604,7 @@ function ml_navigation:LandForAction(anchor, maxDistance3d, source)
 	local actionRange = math.max(tonumber(maxDistance3d) or 5, 2.5)
 	local request = {
 		key = 'action:' .. tostring(source or 'unknown'),
+		taskKey = self:GetAirborneGroundAcquireTaskKey(ml_task_hub and ml_task_hub:CurrentTask()),
 		source = tostring(source or 'action'),
 		anchor = { x = anchor.x, y = anchor.y, z = anchor.z },
 		maxDistance3d = math.min(35, math.max(20, actionRange + 12)),
@@ -1584,7 +1631,7 @@ end
 
 function ml_navigation:IsInteractActionTask(task)
 	if not task then return false end
-	if task.name == "MOVETOINTERACT" or task.name == "MOVEAETHERNET"
+	if task.name == "MOVETOINTERACT" or task.name == "NAV_INTERACT" or task.name == "MOVEAETHERNET"
 		or task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "QUEST_ATTUNECURRENT" then
 		return true
 	end
@@ -1623,7 +1670,9 @@ ml_navigation.DisablePathing = function (self)
 end
 
 function ml_navigation:BeginInteractActionHandoff(duration, source, commitInteract)
+	local task = ml_task_hub and ml_task_hub:CurrentTask()
 	local holdUntil = Now() + (duration or 5000)
+	ffnav.actionHandoffTaskKey = self:GetAirborneGroundAcquireTaskKey(task)
 	ffnav.interactSuppressRemountUntil = holdUntil
 	ffnav.actionHandoffUntil = holdUntil
 	self:SuppressUnstuck(duration or 5000, source or "InteractActionHandoff")
@@ -1634,11 +1683,8 @@ function ml_navigation:BeginInteractActionHandoff(duration, source, commitIntera
 	self:ResetLandingController()
 	self:ClearAirborneGroundAcquire()
 	self:ClearAirborneGroundWalkSegment()
-	if (commitInteract and ml_task_hub) then
-		local task = ml_task_hub:CurrentTask()
-		if task then
-			self:MarkInteractActionHandoff(task, source)
-		end
+	if (commitInteract and task) then
+		self:MarkInteractActionHandoff(task, source)
 	end
 	self:DisableAutoFollow(true, source or "InteractActionHandoff")
 	if (NavigationManager and NavigationManager.ResetPath) then

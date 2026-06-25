@@ -5137,7 +5137,7 @@ local function c_dointeract_shouldHandoff(task)
 	if (ml_navigation and ml_navigation.IsInteractActionTask) then
 		return ml_navigation:IsInteractActionTask(task)
 	end
-	return task and (task.name == "MOVETOINTERACT" or task.name == "MOVEAETHERNET"
+	return task and (task.name == "MOVETOINTERACT" or task.name == "NAV_INTERACT" or task.name == "MOVEAETHERNET"
 		or task.name == "QUEST_ATTUNEAETHERYTE" or task.name == "QUEST_ATTUNECURRENT"
 		or (task.interact and task.interact ~= 0))
 end
