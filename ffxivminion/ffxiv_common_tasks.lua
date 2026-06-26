@@ -719,10 +719,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local interactAttempted = IsNull(self.interactAttempts, 0) > 0
 	if (self.interactActionCommitted and interactAttempted) then
 		if (TimeSince(IsNull(self.interactActionAt, 0)) > 1500) then
-			if (not self.interactCompleteDebugLog or TimeSince(self.interactCompleteDebugLog) > 1000) then
-				d("[MoveToInteractDebug] completing after committed interact attempts=" .. tostring(self.interactAttempts))
-				self.interactCompleteDebugLog = Now()
-			end
 			return true
 		end
 	end
@@ -748,11 +744,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
 				if (postLandingInteractRequired) then
-					if (not self.postLandingInteractCompleteLog or TimeSince(self.postLandingInteractCompleteLog) > 1000) then
-						d("[MoveToInteractDebug] holding completion after landing: target not ready interact=" .. tostring(self.interact)
-							.. " hasEntity=" .. tostring(interactable ~= nil) .. " targetable=" .. tostring(interactable and interactable.targetable))
-						self.postLandingInteractCompleteLog = Now()
-					end
 					return false
 				end
 				if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
@@ -765,10 +756,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
 					if (postLandingInteractRequired) then
-						if (not self.postLandingInteractCompleteLog or TimeSince(self.postLandingInteractCompleteLog) > 1000) then
-							d("[MoveToInteractDebug] holding completion after landing: no nearby contentid target contentid=" .. tostring(self.contentid))
-							self.postLandingInteractCompleteLog = Now()
-						end
 						return false
 					end
 					if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
@@ -1538,7 +1525,6 @@ function ffxiv_task_grindCombat.Create()
 	newinst.pullPos1 = Player.pos
 	newinst.pullPos2 = Player.pos
 	newinst.betterTargetFunction = nil
-	newinst.lastNoCastLog = 0
 	ffxiv_unstuck.Reset()
 
 	-- Combat is taking over (aggro/kill/assist). Release any in-flight
@@ -1734,20 +1720,7 @@ function ffxiv_task_grindCombat:Process()
 				if (InCombatRange(target.id) and target.attackable and target.alive) then
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 						--d("FIRE AWAY")
-						local casted = SkillMgr.Cast( target )
-						if (not casted and TimeSince(self.lastNoCastLog) > 3000) then
-							local inPvP = IsPVPMap(Player.localmapid)
-							local acrEnabled = (inPvP and gACREnabledPVP) or (not inPvP and gACREnabled)
-							local acrProfile = nil
-							if (inPvP) then
-								acrProfile = table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job] or nil
-							else
-								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
-							end
-							local myTarget = MGetTarget()
-							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." ignoreLOS="..tostring(ignoreLOS).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
-							self.lastNoCastLog = Now()
-						end
+						SkillMgr.Cast( target )
 						if (self.attackThrottle) then
 							if (Player.level > target.level) then
 								self.attackThrottleTimer = Now() + 2900
@@ -1806,19 +1779,6 @@ function ffxiv_task_grindCombat:Process()
 					-- Check for combat range before executing.
 					if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 						local casted = SkillMgr.Cast( target )
-						if (not casted and TimeSince(self.lastNoCastLog) > 3000) then
-							local inPvP = IsPVPMap(Player.localmapid)
-							local acrEnabled = (inPvP and gACREnabledPVP) or (not inPvP and gACREnabled)
-							local acrProfile = nil
-							if (inPvP) then
-								acrProfile = table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job] or nil
-							else
-								acrProfile = table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job] or nil
-							end
-							local myTarget = MGetTarget()
-							d("[GrindCombatDebug]: no cast. target="..tostring(target.name).."("..tostring(target.id)..") myTarget="..tostring(myTarget and myTarget.id or 0).." dist="..tostring(target.distance2d).." inRange="..tostring(InCombatRange(target.id)).." los="..tostring(target.los or target.los2).." ignoreLOS="..tostring(ignoreLOS).." acrEnabled="..tostring(acrEnabled).." acrProfile="..tostring(acrProfile),2)
-							self.lastNoCastLog = Now()
-						end
 						if (casted and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
 							--Player:Stop()
 							local pullPos = nil
@@ -2391,7 +2351,10 @@ function ffxiv_misc_switchclass:Init()
 	c_autoequip.postpone = 0
 end
 function ffxiv_misc_switchclass:task_complete_eval()
-	local class = self.class
+	local class = rawget(self, "class")
+	if (type(class) ~= "number" or class == 0) then
+		return true
+	end
 	
 	if (IsControlOpen("RecipeNote")) then
 		ffxiv_craft.ToggleCraftingLog()
