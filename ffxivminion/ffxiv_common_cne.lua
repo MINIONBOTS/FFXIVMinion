@@ -2178,12 +2178,6 @@ function c_getmovementpath:evaluate()
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
 				return false
 			end
-			if (IsFlying() and ml_navigation and ml_navigation.StartAirborneGroundAcquire
-				and ml_navigation.IsAirborneGroundAcquireTaskActive
-				and ml_navigation:IsAirborneGroundAcquireTaskActive(currentTask, Player.pos)
-				and ml_navigation:StartAirborneGroundAcquire("NoPath", nil)) then
-				return false
-			end
 		else
 			d("[GetMovementPath]: Invalid gotopos in current Task")
 		end
@@ -2265,6 +2259,22 @@ c_walktoentity = inheritsFrom( ml_cause )
 e_walktoentity = inheritsFrom( ml_effect )
 function c_walktoentity:evaluate()
 	if (Busy() or Player:IsJumping() or IsMounting()) then
+		return false
+	end
+
+	local currentTask = ml_task_hub:CurrentTask()
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		if (ml_navigation.DebugLog and ml_navigation.GetLandingHandoffDebugState) then
+			local realHandoff = (ml_navigation.IsRealLandingOrActionHandoffActive
+				and ml_navigation:IsRealLandingOrActionHandoffActive()) or false
+			local logKey = realHandoff and "walktoentity-handoff" or "walktoentity-unstuck-suppressed"
+			local logPrefix = realHandoff
+				and "WalkToEntity suppressed by landing/action handoff task="
+				or "WalkToEntity delayed by navigation handoff task="
+			ml_navigation:DebugLog(logKey, logPrefix
+				.. tostring(currentTask and currentTask.name) .. " " .. ml_navigation:GetLandingHandoffDebugState(), 1000)
+		end
 		return false
 	end
 	
@@ -5479,8 +5489,14 @@ function c_dointeract:evaluate()
 		and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
 		local landingHandoff = (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
 			and ml_navigation:IsLandingOrActionHandoffActive())
+		local landingController = ffnav and ffnav.landingController
+		local landingDismounting = landingController and landingController.active
+			and landingController.phase == 'dismount'
 		if (landingHandoff and not IsFlying() and not IsDiving() and not IsDismounting()
 			and effectiveDistance3d < (maxInteractDistance3d + 4)) then
+			if landingDismounting then
+				return true
+			end
 			if (not Player:IsMoving()) then
 				local epos = interactable.pos
 				Player:MoveTo(epos.x, epos.y, epos.z)
