@@ -252,8 +252,8 @@ function ffxiv_task_movetopos:task_complete_eval()
 				end
 			end
 
-			-- Switch to MoveToExact for final approach when within 30y (ground only)
-			if (self.useExactMovement and not self.exactMovementStarted and not self.exactMovementDone and dist3d < 30 and not IsFlying() and not IsDiving()) then
+			-- Switch to MoveToExact for final approach when within 10y (ground only)
+			if (self.useExactMovement and not self.exactMovementStarted and not self.exactMovementDone and dist3d < 10 and not IsFlying() and not IsDiving()) then
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end

@@ -5221,6 +5221,13 @@ function c_dointeract:evaluate()
 		if (TimeSince(self._interactTime) < self.WINDOW_TIMEOUT_MS) then
 			return true
 		end
+		if (ml_navigation) then
+			ffnav.actionHandoffUntil = 0
+			ffnav.interactSuppressRemountUntil = 0
+			ml_navigation.canPath = true
+			ml_navigation:EnablePathing()
+			ml_global_information.monitorStuck = true
+		end
 		d("[MOVETOINTERACT] Interact timed out, recovering.")
 		self._interacting = false
 		task.exactMovementDone = false
@@ -5338,7 +5345,7 @@ function c_dointeract:evaluate()
 		if (not task.exactMovementStarted and not task.exactMovementDone
 			and not (interactable and table.valid(interactable) and interactable.interactable)) then
 			local dist3d = math.distance3d(ppos, task.pos)
-			if (dist3d < 30) then
+			if (dist3d < 10) then
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
