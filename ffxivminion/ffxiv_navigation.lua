@@ -977,6 +977,51 @@ function ml_navigation:GetFlightDispatchNode(ppos, targetNode, radius)
 	return nil, true
 end
 
+function ml_navigation:GetAirborneGroundApproachNode(ppos, targetNode, radius)
+	if not (table.valid(ppos) and table.valid(targetNode)) then return nil end
+	radius = math.max(tonumber(radius) or 3.5, 1.0)
+
+	local dx = (targetNode.x or 0) - (ppos.x or 0)
+	local dz = (targetNode.z or 0) - (ppos.z or 0)
+	local dist2d = math.sqrt((dx * dx) + (dz * dz))
+	if dist2d <= 2 then return nil end
+
+	local dirX = dx / dist2d
+	local dirZ = dz / dist2d
+	local sideX = -dirZ
+	local sideZ = dirX
+	local baseY = math.max((ppos.y or 0), (targetNode.y or 0))
+	local maxStep = math.min(dist2d - 1, 22)
+	local distances = { maxStep, math.min(dist2d - 1, 16), math.min(dist2d - 1, 10), math.min(dist2d - 1, 6) }
+	local heights = { 8, 14, 22, 32, 4 }
+	local laterals = { 0, radius * 1.5, -(radius * 1.5), radius * 3, -(radius * 3) }
+
+	for _, forward in ipairs(distances) do
+		if forward and forward > 3 then
+			for _, height in ipairs(heights) do
+				for _, lateral in ipairs(laterals) do
+					local node = {
+						x = (ppos.x or 0) + (dirX * forward) + (sideX * lateral),
+						y = baseY + height,
+						z = (ppos.z or 0) + (dirZ * forward) + (sideZ * lateral),
+					}
+					if self:IsFlightSegmentClear(ppos, node, radius) then
+						if (self.DebugLog) then
+							self:DebugLog("airborne-ground-approach-node",
+								"Airborne MoveTo using short flight approach toward ground segment dist2d="
+								.. tostring(math.round(dist2d, 1))
+								.. " node=(" .. string.format("%.1f, %.1f, %.1f", node.x, node.y, node.z) .. ")", 1000)
+						end
+						return node
+					end
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
 function ml_navigation:PlanFlyingLanding(controller, request, ppos)
 	local landing, quality, original = self:ResolveLandingSite(request)
 	local route = landing and self:BuildLandingRoute(ppos, landing, request.footprintRadius, quality) or nil
@@ -3592,6 +3637,10 @@ function ml_navigation.Navigate(event, ticks)
 						-- cube recordings, so validate the live flight corridor before trusting it.
 						local flightRadius = math.max((Player and Player.hitradius) or 0.5, 3.5)
 						local dispatchNode, usingFlightBypass = ml_navigation:GetFlightDispatchNode(ppos, targetnode, flightRadius)
+						if (not dispatchNode and approachingFinalGround) then
+							dispatchNode = ml_navigation:GetAirborneGroundApproachNode(ppos, targetnode, flightRadius)
+							usingFlightBypass = false
+						end
 						if not dispatchNode then
 							ml_navigation:DisableAutoFollow(true, "FlightSegmentBlocked")
 							Player:StopMovement()
