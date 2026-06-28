@@ -2437,7 +2437,12 @@ local function AethernetShardPos(row, refY)
 	if (not row or not row.WorldX) then
 		return AethernetApproachPos(row)
 	end
-	return { x = row.WorldX, y = row.WorldY or refY or Player.pos.y, z = row.WorldZ }
+	local y = row.WorldY
+	if (not y and NavigationManager and NavigationManager.GetClosestPointOnMesh) then
+		local meshPt = NavigationManager:GetClosestPointOnMesh({ x = row.WorldX, y = 0, z = row.WorldZ })
+		y = meshPt and meshPt.y
+	end
+	return { x = row.WorldX, y = y or refY or Player.pos.y, z = row.WorldZ }
 end
 
 local function PathAethernetWalkCost(fromPos, entryRow, entryDist3d, exitRow, exitDist3d, gotoPos)
