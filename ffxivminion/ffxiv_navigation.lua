@@ -2311,6 +2311,8 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 				self.omc_details = nc
 				if(ncdirectionFromA~=nil) then
 					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				elseif (nc.sideA ~= nil and table.valid(nc.sideA) and table.valid(nc.sideB)) then
+					self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 				end
 			end
 			return true
@@ -2323,6 +2325,8 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 				self.omc_details = nc
 				if(ncdirectionFromA~=nil) then
 					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				elseif (nc.sideA ~= nil and table.valid(nc.sideA) and table.valid(nc.sideB)) then
+					self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 				end
 			end
 			return true
@@ -2335,6 +2339,8 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 				self.omc_details = nc
 				if(ncdirectionFromA~=nil) then
 					self.omc_direction = ncdirectionFromA == true and 1 or 2
+				elseif (nc.sideA ~= nil and table.valid(nc.sideA) and table.valid(nc.sideB)) then
+					self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 				end
 			end
 			return true
@@ -2348,6 +2354,8 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 					self.omc_details = nc
 					if(ncdirectionFromA~=nil) then
 						self.omc_direction = ncdirectionFromA == true and 1 or 2
+					elseif (nc.sideA ~= nil and table.valid(nc.sideA) and table.valid(nc.sideB)) then
+						self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 					end
 				end
 				return true
@@ -2362,6 +2370,8 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 					self.omc_details = nc
 					if(ncdirectionFromA~=nil) then
 						self.omc_direction = ncdirectionFromA == true and 1 or 2
+					elseif (nc.sideA ~= nil and table.valid(nc.sideA) and table.valid(nc.sideB)) then
+						self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 					end
 				end
 				return true
@@ -3239,7 +3249,7 @@ function ml_navigation.Navigate(event, ticks)
 						end
 
 						if (self.omc_direction == 0) then
-							if (math.distance3d(ppos, from_pos) < math.distance3d(ppos, to_pos)) then
+							if (math.distance2d(ppos, from_pos) < math.distance2d(ppos, to_pos)) then
 								self.omc_direction = 1
 							else
 								self.omc_direction = 2
@@ -3284,7 +3294,15 @@ function ml_navigation.Navigate(event, ticks)
 							-- distance to the far END) would falsely trip "not getting closer".
 							local stuckTarget = nextnode
 							if (ncsubtype == 1 and not ml_navigation.omc_startheight) then
-								stuckTarget = from_pos
+								local fromdist2d = math.distance2d(ppos, from_pos)
+								local fromheight = math.abs(ppos.y - from_pos.y)
+								local reach = math.max(ncradius or 0.5, 0.5)
+								local stepH = to_pos.y - from_pos.y
+								local edgeReach = reach
+								if (stepH < -1) then
+									edgeReach = math.max(reach, math.min(math.distance2d(from_pos, to_pos) * 0.45, reach + 2.0))
+								end
+								stuckTarget = (ml_navigation.omc_atedge or (fromdist2d <= edgeReach and fromheight <= 3)) and to_pos or from_pos
 							end
 							local dist = math.distance3d(ppos, stuckTarget)
 							if (ml_navigation.omc_traveldist == 0) then
@@ -3296,6 +3314,27 @@ function ml_navigation.Navigate(event, ticks)
 									ml_navigation.omc_traveltimer = ticks
 								end
 							else
+								if (ncsubtype == 1 and not ml_navigation.omc_startheight) then
+									local dbgFromDist2d = math.distance2d(ppos, from_pos)
+									local dbgGap2d = math.distance2d(from_pos, to_pos)
+									local dbgStepH = to_pos.y - from_pos.y
+									local dbgReach = math.max(ncradius or 0.5, 0.5)
+									local dbgEdgeReach = dbgReach
+									local dbgAlong = 0
+									local dbgLineDist = dbgFromDist2d
+									if (dbgStepH < -1 and dbgGap2d > 0) then
+										dbgEdgeReach = math.max(dbgReach, math.min(dbgGap2d * 0.45, dbgReach + 2.0))
+										local dx = to_pos.x - from_pos.x
+										local dz = to_pos.z - from_pos.z
+										local px = ppos.x - from_pos.x
+										local pz = ppos.z - from_pos.z
+										dbgAlong = ((px * dx) + (pz * dz)) / dbgGap2d
+										local cx = from_pos.x + (dx * (dbgAlong / dbgGap2d))
+										local cz = from_pos.z + (dz * (dbgAlong / dbgGap2d))
+										dbgLineDist = math.distance2d(ppos.x, ppos.z, cx, cz)
+									end
+									d("[OMC-DBG] MoveTo:STUCK_PREJUMP id=" .. tostring(self.omc_id) .. " dir=" .. tostring(self.omc_direction) .. " atedge=" .. tostring(ml_navigation.omc_atedge) .. " fromdist2d=" .. tostring(dbgFromDist2d) .. " fromheight=" .. tostring(math.abs(ppos.y - from_pos.y)) .. " todist2d=" .. tostring(math.distance2d(ppos, to_pos)) .. " edgeReach=" .. tostring(dbgEdgeReach) .. " along=" .. tostring(dbgAlong) .. " lineDist=" .. tostring(dbgLineDist) .. " reach=" .. tostring(dbgReach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+								end
 								d("[Navigation] - Not getting closer to NavConnection END node. We are most likely stuck.")
 								ml_navigation:ResetOMCHandler()
 								ml_navigation.StopMovement()
@@ -3332,9 +3371,28 @@ function ml_navigation.Navigate(event, ticks)
 							if ( not ml_navigation.omc_startheight ) then
 								-- Phase A
 								local fromdist3d = math.distance3d(ppos, from_pos)
+								local fromdist2d = math.distance2d(ppos, from_pos)
+								local fromheight = math.abs(ppos.y - from_pos.y)
 								local gap2d = math.distance2d(from_pos, to_pos)
 								local stepH = to_pos.y - from_pos.y
 								local needCarry = gap2d > math.abs(stepH)
+								local launchCenter = (stepH < -1) and reach or 0.25
+								local sameFloorBand = fromheight <= 3
+								local edgeReach = reach
+								local along = 0
+								local lineDist = fromdist2d
+								if (stepH < -1 and gap2d > 0) then
+									edgeReach = math.max(reach, math.min(gap2d * 0.45, reach + 2.0))
+									local dx = to_pos.x - from_pos.x
+									local dz = to_pos.z - from_pos.z
+									local px = ppos.x - from_pos.x
+									local pz = ppos.z - from_pos.z
+									along = ((px * dx) + (pz * dz)) / gap2d
+									local cx = from_pos.x + (dx * (along / gap2d))
+									local cz = from_pos.z + (dz * (along / gap2d))
+									lineDist = math.distance2d(ppos.x, ppos.z, cx, cz)
+								end
+								local atStart = sameFloorBand and (fromdist2d <= reach or (stepH < -1 and fromdist2d <= edgeReach and along >= -0.25 and along <= gap2d * 0.6 and lineDist <= math.max(reach + 1.0, 2.0)))
 								if ( ml_navigation.omc_starttimer == 0 ) then
 									ml_navigation.omc_starttimer = ticks
 								end
@@ -3348,25 +3406,26 @@ function ml_navigation.Navigate(event, ticks)
 								ml_navigation.omc_prevx = ppos.x
 								ml_navigation.omc_prevz = ppos.z
 								ml_navigation.omc_prevtick = ticks
-								if ( fromdist3d <= reach ) then
+								if ( atStart ) then
 									ml_navigation.omc_atedge = true
 								end
-								local notDescending = ppos.y <= from_pos.y + 0.3
-								local hasCarry = ( not needCarry ) or ( Player:IsMoving() and speed >= 0.0022 )
-								local centered = needCarry or fromdist3d <= 0.25
+								local notDescending = ppos.y <= from_pos.y + math.max(1.5, reach + 0.5)
+								local centered = needCarry or atStart or (fromdist2d <= launchCenter and sameFloorBand)
 								local runThrough = ml_navigation.omc_atedge or ( not needCarry )
-								local launchOk = hasCarry
-								if ( not needCarry ) then
-									if ( centered and notDescending and not Player:IsJumping() ) then
-										if ( not ml_navigation.omc_centeredsince ) then
-											ml_navigation.omc_centeredsince = ticks
-										end
-									else
-										ml_navigation.omc_centeredsince = nil
+								if ( centered and notDescending and not Player:IsJumping() ) then
+									if ( not ml_navigation.omc_centeredsince ) then
+										ml_navigation.omc_centeredsince = ticks
 									end
-									local movingNow = Player:IsMoving() and speed >= 0.0015
-									local waited = ml_navigation.omc_centeredsince and (ticks - ml_navigation.omc_centeredsince) or 0
+								else
+									ml_navigation.omc_centeredsince = nil
+								end
+								local movingNow = Player:IsMoving() and speed >= 0.0015
+								local waited = ml_navigation.omc_centeredsince and (ticks - ml_navigation.omc_centeredsince) or 0
+								local launchOk = Player:IsMoving() and speed >= 0.0022
+								if ( not needCarry ) then
 									launchOk = movingNow or (waited >= 200)
+								elseif ( ml_navigation.omc_atedge ) then
+									launchOk = Player:IsMoving() or (waited >= 200)
 								end
 								if ( runThrough ) then
 									ml_navigation:DispatchAutoFollowNode(to_pos, true)
@@ -3374,7 +3433,7 @@ function ml_navigation.Navigate(event, ticks)
 										ml_navigation.omc_centeredsince = nil
 										ml_navigation.omc_startheight = ppos.y
 										ml_navigation.omc_jumptimer = ticks
-										d("[OMC-DBG] MoveTo:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+										d("[OMC-DBG] MoveTo:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
 										Player:Jump()
 									end
 								else
@@ -3957,11 +4016,13 @@ function ml_navigation_exact.Navigate(event, ticks)
 				if (nc.sideA ~= nil) then
 					if (nextnode.navconnectionsideA == true) then
 						self.omc_direction = 1
-					else
+					elseif (nextnode.navconnectionsideA == false) then
 						self.omc_direction = 2
+					else
+						self.omc_direction = (math.distance2d(ppos, nc.sideA) <= math.distance2d(ppos, nc.sideB)) and 1 or 2
 					end
 				else
-					if (math.distance3d(ppos, nc.from) < math.distance3d(ppos, nc.to)) then
+					if (math.distance2d(ppos, nc.from) < math.distance2d(ppos, nc.to)) then
 						self.omc_direction = 1
 					else
 						self.omc_direction = 2
@@ -4043,7 +4104,15 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		-- landing is not falsely flagged as stuck (mirrors the MoveTo path).
 		local stuckTarget = nextnode
 		if (ncsubtype == 1 and not self.omc_startheight) then
-			stuckTarget = from_pos
+			local fromdist2d = math.distance2d(ppos, from_pos)
+			local fromheight = math.abs(ppos.y - from_pos.y)
+			local reach = math.max(ncradius or 0.5, 0.5)
+			local stepH = to_pos.y - from_pos.y
+			local edgeReach = reach
+			if (stepH < -1) then
+				edgeReach = math.max(reach, math.min(math.distance2d(from_pos, to_pos) * 0.45, reach + 2.0))
+			end
+			stuckTarget = (self.omc_atedge or (fromdist2d <= edgeReach and fromheight <= 3)) and to_pos or from_pos
 		end
 		local dist = math.distance3d(ppos, stuckTarget)
 		if (self.omc_traveldist == 0) then
@@ -4079,9 +4148,28 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		if (not self.omc_startheight) then
 			-- Phase A
 			local fromdist3d = math.distance3d(ppos, from_pos)
+			local fromdist2d = math.distance2d(ppos, from_pos)
+			local fromheight = math.abs(ppos.y - from_pos.y)
 			local gap2d = math.distance2d(from_pos, to_pos)
 			local stepH = to_pos.y - from_pos.y
 			local needCarry = gap2d > math.abs(stepH)
+			local launchCenter = (stepH < -1) and reach or 0.25
+			local sameFloorBand = fromheight <= 3
+			local edgeReach = reach
+			local along = 0
+			local lineDist = fromdist2d
+			if (stepH < -1 and gap2d > 0) then
+				edgeReach = math.max(reach, math.min(gap2d * 0.45, reach + 2.0))
+				local dx = to_pos.x - from_pos.x
+				local dz = to_pos.z - from_pos.z
+				local px = ppos.x - from_pos.x
+				local pz = ppos.z - from_pos.z
+				along = ((px * dx) + (pz * dz)) / gap2d
+				local cx = from_pos.x + (dx * (along / gap2d))
+				local cz = from_pos.z + (dz * (along / gap2d))
+				lineDist = math.distance2d(ppos.x, ppos.z, cx, cz)
+			end
+			local atStart = sameFloorBand and (fromdist2d <= reach or (stepH < -1 and fromdist2d <= edgeReach and along >= -0.25 and along <= gap2d * 0.6 and lineDist <= math.max(reach + 1.0, 2.0)))
 			if (self.omc_starttimer == 0) then
 				self.omc_starttimer = ticks
 			end
@@ -4095,25 +4183,26 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			self.omc_prevx = ppos.x
 			self.omc_prevz = ppos.z
 			self.omc_prevtick = ticks
-			if (fromdist3d <= reach) then
+			if (atStart) then
 				self.omc_atedge = true
 			end
-			local notDescending = ppos.y <= from_pos.y + 0.3
-			local hasCarry = (not needCarry) or (Player:IsMoving() and speed >= 0.0022)
-			local centered = needCarry or fromdist3d <= 0.25
+			local notDescending = ppos.y <= from_pos.y + math.max(1.5, reach + 0.5)
+			local centered = needCarry or atStart or (fromdist2d <= launchCenter and sameFloorBand)
 			local runThrough = self.omc_atedge or (not needCarry)
-			local launchOk = hasCarry
-			if (not needCarry) then
-				if (centered and notDescending and not Player:IsJumping()) then
-					if (not self.omc_centeredsince) then
-						self.omc_centeredsince = ticks
-					end
-				else
-					self.omc_centeredsince = nil
+			if (centered and notDescending and not Player:IsJumping()) then
+				if (not self.omc_centeredsince) then
+					self.omc_centeredsince = ticks
 				end
-				local movingNow = Player:IsMoving() and speed >= 0.0015
-				local waited = self.omc_centeredsince and (ticks - self.omc_centeredsince) or 0
+			else
+				self.omc_centeredsince = nil
+			end
+			local movingNow = Player:IsMoving() and speed >= 0.0015
+			local waited = self.omc_centeredsince and (ticks - self.omc_centeredsince) or 0
+			local launchOk = Player:IsMoving() and speed >= 0.0022
+			if (not needCarry) then
 				launchOk = movingNow or (waited >= 200)
+			elseif (self.omc_atedge) then
+				launchOk = Player:IsMoving() or (waited >= 200)
 			end
 			if (runThrough) then
 				ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)
@@ -4121,7 +4210,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 					self.omc_centeredsince = nil
 					self.omc_startheight = ppos.y
 					self.omc_jumptimer = ticks
-					d("[OMC-DBG] Exact:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+					d("[OMC-DBG] Exact:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
 					Player:Jump()
 				end
 			else
