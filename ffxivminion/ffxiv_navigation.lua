@@ -1240,6 +1240,7 @@ function ml_navigation:GetCurrentPathSegmentInfo(pathIndex, lastnode, nextnode, 
 		descent = false,
 		finalLanding = false,
 		groundAcquire = false,
+		groundAcquireDeferred = false,
 	}
 	if not table.valid(nextnode) then return segment end
 
@@ -1259,8 +1260,27 @@ function ml_navigation:GetCurrentPathSegmentInfo(pathIndex, lastnode, nextnode, 
 		and not table.valid(nextnextnode))
 	segment.floor = (nextnode.is_floor == true and not segment.flight and not segment.dive
 		and not segment.descent and not segment.finalLanding)
-	segment.groundAcquire = segment.floor
+	if segment.floor then
+		segment.groundAcquireDeferred = self:HasFutureAirbornePathSegment(pathIndex)
+		segment.groundAcquire = not segment.groundAcquireDeferred
+	end
 	return segment
+end
+
+function ml_navigation:HasFutureAirbornePathSegment(pathIndex)
+	if not table.valid(self.path) then return false end
+	pathIndex = tonumber(pathIndex or self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
+
+	for index, node in pairsByKeys(self.path) do
+		local i = tonumber(index)
+		if i and i > pathIndex and table.valid(node) then
+			ml_navigation.TagNode(node)
+			if node.is_cube and (node.air == true or node.water == true or node.air_avoid == true) then
+				return true
+			end
+		end
+	end
+	return false
 end
 function ml_navigation:ClearAirborneGroundAcquire()
 	ffnav.airborneGroundAcquire = nil
@@ -1370,8 +1390,11 @@ end
 
 function ml_navigation:GetAirborneGroundAcquireTarget(ppos, nextnode)
 	if not table.valid(ppos) then return nil end
+	local anchor = table.valid(nextnode) and nextnode or ppos
+	local rayTop = math.max(ppos.y or 0, anchor.y or ppos.y or 0) + 25
+	local rayBottom = math.min(ppos.y or 0, anchor.y or ppos.y or 0) - 80
 	local function groundAt(x, z)
-		local hit, hx, hy, hz = RayCast(x, (ppos.y or 0) + 2, z, x, (ppos.y or 0) - 80, z)
+		local hit, hx, hy, hz = RayCast(x, rayTop, z, x, rayBottom, z)
 		if hit and hy then
 			return { x = x, y = self:GetLandingSurfaceDispatchY(hy), z = z, landing = true, surfaceY = hy }
 		end
@@ -1404,16 +1427,19 @@ function ml_navigation:GetAirborneGroundAcquireTarget(ppos, nextnode)
 		{ dz, -dx },
 		{ -dx, -dz },
 	}
-	for _, step in ipairs({ 2.5, 4.5 }) do
+	local target = groundAt(anchor.x, anchor.z)
+	if target then return target end
+
+	for _, step in ipairs({ 2.5, 4.5, 7.0 }) do
 		for _, dir in ipairs(dirs) do
-			local x = (ppos.x or 0) + (dir[1] * step)
-			local z = (ppos.z or 0) + (dir[2] * step)
+			local x = (anchor.x or 0) + (dir[1] * step)
+			local z = (anchor.z or 0) + (dir[2] * step)
 			local target = groundAt(x, z)
 			if target then return target end
 		end
 	end
 
-	local target = groundAt(ppos.x, ppos.z)
+	target = groundAt(ppos.x, ppos.z)
 	if target then return target end
 
 	local meshPoint = Player and Player.meshpos
@@ -1431,6 +1457,22 @@ function ml_navigation:GetAirborneGroundAcquireTarget(ppos, nextnode)
 	return nil
 end
 
+function ml_navigation:IsAirborneGroundAcquireReady(ppos, segment, quiet)
+	if not (table.valid(ppos) and segment and table.valid(segment.node)) then return false end
+	local dist2d = math.distance2d(ppos, segment.node)
+	local dist3d = math.distance3d(ppos, segment.node)
+	local ready2d = 12
+	local ready3d = 35
+	if dist2d <= ready2d or dist3d <= ready3d then return true end
+	if (self.DebugLog and not quiet) then
+		self:DebugLog("airborne-ground-acquire-approach",
+			"Airborne MoveTo continuing flight toward ground segment index=" .. tostring(segment.index)
+			.. " dist2d=" .. tostring(math.round(dist2d, 1))
+			.. " dist3d=" .. tostring(math.round(dist3d, 1)), 1000)
+	end
+	return false
+end
+
 function ml_navigation:StartAirborneGroundAcquire(reason, nextnode)
 	reason = reason or "GroundPath"
 	if reason ~= "GroundPath" then return false end
@@ -1445,6 +1487,7 @@ function ml_navigation:StartAirborneGroundAcquire(reason, nextnode)
 	if pathIndex < 1 then pathIndex = 1 end
 	local segment = self:GetCurrentPathSegmentInfo(pathIndex, nil, nextnode, nil, task)
 	if not (segment and segment.groundAcquire) then return false end
+	if not self:IsAirborneGroundAcquireReady(ppos, segment) then return false end
 
 	local target = self:GetAirborneGroundAcquireTarget(ppos, segment.node)
 	if not table.valid(target) then return false end
@@ -3520,8 +3563,14 @@ function ml_navigation.Navigate(event, ticks)
 						local nextnextGround = (nextnextnode and nextnextnode.ground == true) or false
 						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextGround))
 						local unstableTransition = ml_navigation:IsUnstableFlightTransition(nextnode, nextnextnode)
+						local approachingFinalGround = currentSegment and currentSegment.groundAcquire
+							and not ml_navigation:IsAirborneGroundAcquireReady(ppos, currentSegment, true)
 
-						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and ml_navigation:CanContinueFlying()) then
+						if (approachingFinalGround and not nextnode.is_cube) then
+							targetnode.y = math.max((targetnode.y or 0) + 8, (ppos.y or 0) + 1)
+						end
+
+						if ((not isDescentCon or not ml_navigation:IsGoalClose(ppos,targetnode,lastnode)) and not nextnode.is_cube and (ml_navigation:CanContinueFlying() or approachingFinalGround)) then
 							for i = 3,5,1 do
 								local hit = RayCast(targetnode.x,targetnode.y+i+1,targetnode.z,targetnode.x,targetnode.y+i-2,targetnode.z)
 								if (not hit) then
