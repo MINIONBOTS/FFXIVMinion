@@ -2405,8 +2405,12 @@ function e_avoidaggressives:execute()
 end
 
 local function PathDistanceOr3d(from, to, fallback3d)
-	if (table.valid(to) and ml_navigation:CheckPath(to)) then
-		return GetPathDistance(from, to) or fallback3d
+	if (not table.valid(from) or not table.valid(to)) then
+		return fallback3d
+	end
+	local pathDist = GetPathDistance(from, to)
+	if (pathDist and pathDist > 0) then
+		return pathDist
 	end
 	return fallback3d
 end
@@ -2428,9 +2432,17 @@ local function AethernetApproachPos(row)
 	return rawPos
 end
 
+-- Teleport drops you at the shard world coords, not the interact approach offset.
+local function AethernetShardPos(row, refY)
+	if (not row or not row.WorldX) then
+		return AethernetApproachPos(row)
+	end
+	return { x = row.WorldX, y = row.WorldY or refY or Player.pos.y, z = row.WorldZ }
+end
+
 local function PathAethernetWalkCost(fromPos, entryRow, entryDist3d, exitRow, exitDist3d, gotoPos)
 	local entryPos = AethernetApproachPos(entryRow)
-	local exitPos = AethernetApproachPos(exitRow)
+	local exitPos = AethernetShardPos(exitRow, gotoPos and gotoPos.y)
 	local leg1 = PathDistanceOr3d(fromPos, entryPos, entryDist3d or math.huge)
 	local leg2 = PathDistanceOr3d(exitPos, gotoPos, exitDist3d or math.huge)
 	return leg1 + leg2
@@ -2633,7 +2645,7 @@ function c_useaethernet:evaluate(mapid, pos)
 			crossMapRule = (aethernetDetour < gatedist and destMapID ~= Player.localmapid)
 		end
 		
-		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and 
+		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and
 			((sameMapRule) or 
 			(crossMapRule)
 			)) then
