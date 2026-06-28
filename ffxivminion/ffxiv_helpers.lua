@@ -2782,19 +2782,28 @@ function GetPathDistance(pos1,pos2,threshold)
 	if not (pos2 and pos2.x and pos2.y and pos2.z) then return nil end
 	local threshold = IsNull(threshold,100)
 
-	local dist = math.distance3d(pos1,pos2)
+	local euclidDist = math.distance3d(pos1,pos2)
+	local dist = euclidDist
 	if (dist < threshold) then
-		--local path = NavigationManager:MoveTo(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) -- this does something else in addition to path
-		local _t0 = os.clock() * 1000
-		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
-		local _dt = os.clock() * 1000 - _t0
-		if (_dt > 1) then
-			--d("[QPerf] GetPathDistance->GetPath: " .. string.format("%.2f", _dt) .. "ms eucl=" .. string.format("%.1f", dist))
+		-- Prefer native path distance (matches mesh "Get PathDistance" button).
+		-- GetPath + Lua PathDistance() sum uses macro shortcuts and was never applied
+		-- anyway because table.valid() is false for numeric PathDistance results.
+		if (NavigationManager and NavigationManager.GetPathDistance) then
+			local nativeDist = NavigationManager:GetPathDistance(
+				pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)
+			if (type(nativeDist) == "number" and nativeDist > 0 and nativeDist < 1000000000) then
+				return nativeDist
+			end
 		end
+		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (table.valid(path)) then
-			local pathdist = PathDistance(path)
-			if (table.valid(pathdist)) then
-				dist = pathdist
+			if (path[1] and type(path[1].pathdistance) == "number" and path[1].pathdistance > 0) then
+				dist = path[1].pathdistance
+			else
+				local pathdist = PathDistance(path)
+				if (type(pathdist) == "number" and pathdist > 0) then
+					dist = pathdist
+				end
 			end
 		end
 	end
@@ -2813,11 +2822,18 @@ function GetPathDistanceAsync(pos1,pos2,threshold)
 		local result = NavigationManager:GetPathAsync(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (type(result) == "table" and table.valid(result)) then
 			-- Path table returned from cache - extract distance from first node
-			if (result[1] and result[1].pathdistance) then
+			if (result[1] and type(result[1].pathdistance) == "number" and result[1].pathdistance > 0) then
 				return result[1].pathdistance, true
 			end
+			if (NavigationManager and NavigationManager.GetPathDistance) then
+				local nativeDist = NavigationManager:GetPathDistance(
+					pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)
+				if (type(nativeDist) == "number" and nativeDist > 0 and nativeDist < 1000000000) then
+					return nativeDist, true
+				end
+			end
 			local pathdist = PathDistance(result)
-			if (table.valid(pathdist)) then
+			if (type(pathdist) == "number" and pathdist > 0) then
 				return pathdist, true
 			end
 		elseif (type(result) == "number" and result <= 0) then

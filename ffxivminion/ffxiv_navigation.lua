@@ -1109,6 +1109,14 @@ function ml_navigation:ClearInteractActionHandoff()
 	ffnav.interactSuppressRemountUntil = 0
 	ffnav.landingDismountLockUntil = 0
 	ffnav.actionHandoffTaskKey = nil
+	local reason = ffnav.suppressUnstuckReason or ""
+	if (reason == "InteractActionHandoff" or reason == "DoInteract"
+		or reason == "DoInteractStop" or reason == "DoInteractNudge") then
+		ffnav.suppressUnstuckUntil = 0
+		ffnav.suppressUnstuckReason = nil
+	end
+	ml_global_information.monitorStuck = true
+	self:EnablePathing()
 end
 
 function ml_navigation:ClearLandingTakeoffHandoff()
