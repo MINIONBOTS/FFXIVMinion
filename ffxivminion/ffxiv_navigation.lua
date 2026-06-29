@@ -700,10 +700,10 @@ function ml_navigation.TryInteractAutoFollow(task, resolvedTarget)
 	return true
 end
 
-ml_navigation.landingSurfacePenetration = 1.25
+ml_navigation.landingDismountHeight = 1.75
 
 function ml_navigation:GetLandingSurfaceDispatchY(surfaceY)
-	return (surfaceY or 0) - (tonumber(self.landingSurfacePenetration) or 1.25)
+	return (surfaceY or 0) + (tonumber(self.landingDismountHeight) or 1.75)
 end
 
 function ml_navigation:GetLandingDispatchNode(surfaceNode)
@@ -1067,8 +1067,9 @@ function ml_navigation:DismountForLanding(controller)
 end
 
 function ml_navigation:FinishFlyingLanding(controller, request)
-	local _, lx, ly, lz = CheckLandingZone(controller.landing.x, controller.landing.y,
-		controller.landing.z, request.footprintRadius, 0, 0)
+	local checkPos = Player.pos or controller.landing
+	local _, lx, ly, lz = CheckLandingZone(checkPos.x, checkPos.y,
+		checkPos.z, request.footprintRadius, 0, 0)
 	if not (lx and ly and lz) then
 		self:ResetLandingController()
 		self:SuppressUnstuck(2500, "LandingRecheckBlocked")
