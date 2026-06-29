@@ -122,6 +122,7 @@ function ffxiv_task_movetopos.Create()
 	ml_global_information.monitorStuck = true
 	
 	newinst.destMapID = 0
+	newinst.disableTeleport = false
 	newinst.alwaysMount = false
 	newinst.noFly = false
 	newinst.useExactMovement = false
@@ -844,7 +845,7 @@ function ffxiv_task_movetomap.Create()
     newinst.name = "MOVETOMAP"
 	newinst.useAethernetTickets = false
     newinst.destMapID = 0
-    newinst.tryTP = true
+	newinst.disableTeleport = false
 	newinst.setHomepoint = false
 	newinst.pos = nil
    
