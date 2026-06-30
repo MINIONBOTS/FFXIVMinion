@@ -713,12 +713,12 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 
 	-- Some accepted NPC/object interactions do not expose Busy/window state long
-	-- enough for the old completion checks. Once c_dointeract has actually fired
-	-- Player:Interact, retire this task after a short grace period so a stale
-	-- MOVETOINTERACT cannot restart flying landing if the user remounts manually.
+	-- enough for the old completion checks. Once c_dointeract's state machine has
+	-- accepted or completed the interact, retire this task so it cannot restart
+	-- landing if the user remounts manually.
 	local interactAttempted = IsNull(self.interactAttempts, 0) > 0
 	if (self.interactActionCommitted and interactAttempted) then
-		if (TimeSince(IsNull(self.interactActionAt, 0)) > 1500) then
+		if (self.interactState == "accepted" or self.interactState == "complete") then
 			return true
 		end
 	end

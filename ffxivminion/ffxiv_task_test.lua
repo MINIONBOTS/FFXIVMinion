@@ -165,6 +165,11 @@ function ffxiv_task_test.Create()
     newinst.name = "TEST"
 	newinst.taskCreated = false
 	newinst.moveCreated = false
+	if (c_gotonpctest) then
+		c_gotonpctest.started = false
+		c_gotonpctest.reached = false
+		c_gotonpctest.lastKey = nil
+	end
    
     return newinst
 end
@@ -276,6 +281,9 @@ end
 c_gotonpctest = inheritsFrom( ml_cause )
 e_gotonpctest = inheritsFrom( ml_effect )
 c_gotonpctest.pos = {}
+c_gotonpctest.started = false
+c_gotonpctest.reached = false
+c_gotonpctest.lastKey = nil
 function c_gotonpctest:evaluate()
 	c_gotonpctest.pos = {}
 	c_gotonpctest.path = {}
@@ -286,10 +294,22 @@ function c_gotonpctest:evaluate()
 		pos.x = tonumber(gTestMapX)
 		pos.y = tonumber(gTestMapY)
 		pos.z = tonumber(gTestMapZ)
+		local key = tostring(mapID).."|"..tostring(gTestNPCID).."|"..tostring(pos.x).."|"..tostring(pos.y).."|"..tostring(pos.z)
+		if (c_gotonpctest.lastKey ~= key) then
+			c_gotonpctest.started = false
+			c_gotonpctest.reached = false
+			c_gotonpctest.lastKey = key
+		end
+		if (c_gotonpctest.reached or c_gotonpctest.started) then
+			return false
+		end
 		
 		c_gotonpctest.pos = pos
 		return true
 	end
+	c_gotonpctest.started = false
+	c_gotonpctest.reached = false
+	c_gotonpctest.lastKey = nil
 	return false
 end
 function e_gotonpctest:execute()
@@ -300,6 +320,8 @@ function e_gotonpctest:execute()
 	--newTask.interactRange = 1
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	c_gotonpctest.started = true
+	c_gotonpctest.reached = true
 end
 
 function ffxiv_task_test.ResetInstructions()

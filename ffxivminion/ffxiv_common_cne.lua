@@ -3113,14 +3113,6 @@ function c_mount:evaluate()
 		c_mount.blockOnly = true
 		return false
 	end
-	if ffnav.interactSuppressRemountUntil and Now() < ffnav.interactSuppressRemountUntil then
-		return false
-	end
-	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
-		and ml_navigation:IsLandingOrActionHandoffActive()) then
-		c_mount.blockOnly = true
-		return false
-	end
 	local patchLevel = GetPatchLevel()
 	
 	local myPos = Player.pos
@@ -3161,12 +3153,21 @@ function c_mount:evaluate()
 					doDismount = true
 				end
 				if (doDismount and not IsDismounting()) then
+					if (ml_navigation and ml_navigation.MarkGroundDismountHandoff) then
+						ml_navigation:MarkGroundDismountHandoff(task, "c_mount")
+					end
 					Dismount()
 					c_mount.blockOnly = true
 					return true
 				end
 			end
 		end
+	end
+
+	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
+		and ml_navigation:IsLandingOrActionHandoffActive()) then
+		c_mount.blockOnly = true
+		return false
 	end
 
 	if (Player.ismounted or Player.incombat or ml_task_hub:CurrentTask().nomount) then
@@ -5169,12 +5170,11 @@ local function c_dointeract_shouldHandoff(task)
 		or (task.interact and task.interact ~= 0))
 end
 
-local function c_dointeract_beginHandoff(task, duration, source, commitInteract)
+local function c_dointeract_beginHandoff(task, source, commitInteract)
 	if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
-		ml_navigation:BeginInteractActionHandoff(duration, source, commitInteract)
+		ml_navigation:BeginInteractActionHandoff(source, commitInteract)
 		return
 	end
-	ffnav.interactSuppressRemountUntil = Now() + (duration or 7000)
 	if (commitInteract and task) then
 		task.interactActionCommitted = true
 		task.interactActionAt = Now()
@@ -5185,18 +5185,41 @@ end
 c_dointeract = inheritsFrom( ml_cause )
 e_dointeract = inheritsFrom( ml_effect )
 c_dointeract.blockExecution = false
-c_dointeract.lastInteract = 0
-
--- Interaction timing constants
-c_dointeract.INTERACT_DEBOUNCE_MS = 1500
-c_dointeract.WINDOW_TIMEOUT_MS   = 3000
-c_dointeract.RECOVER_COOLDOWN_MS = 500
-
--- Runtime state: tracks whether we're actively interacting/waiting
-c_dointeract._interacting    = false
-c_dointeract._interactTime   = 0
-c_dointeract._recoverUntil   = 0
 c_dointeract._lastTaskStart  = 0
+
+local function c_dointeract_needsResultState(task)
+	if not task then return false end
+	if string.valid(task.conversationstring) then return true end
+	if table.valid(task.conversationstrings) then return true end
+	if tonumber(task.conversationindex or -1) > 0 then return true end
+	return false
+end
+
+local function c_dointeract_setState(task, state, interactable)
+	if not task then return end
+	task.interactState = state
+	task.interactStateTarget = interactable and interactable.id or task.interact
+	task.interactStateNeedsResult = c_dointeract_needsResultState(task)
+end
+
+local function c_dointeract_clearState(task)
+	if not task then return end
+	task.interactState = nil
+	task.interactStateTarget = nil
+	task.interactStateNeedsResult = nil
+end
+
+local function c_dointeract_fireInteract(task, interactable, source)
+	if not (task and interactable) then return false end
+	d("["..task.name.."]: Interacting with target ["..tostring(interactable.name).."].")
+	if (c_dointeract_shouldHandoff(task)) then
+		c_dointeract_beginHandoff(task, source or "DoInteract", true)
+	end
+	Player:Interact(interactable.id)
+	c_dointeract_setState(task, "interactSent", interactable)
+	task.interactAttempts = (task.interactAttempts or 0) + 1
+	return true
+end
 
 function c_dointeract:evaluate()
 	local task = ml_task_hub:CurrentTask()
@@ -5206,8 +5229,7 @@ function c_dointeract:evaluate()
 	-- Reset when task changes
 	if (task.started ~= self._lastTaskStart) then
 		self._lastTaskStart = task.started
-		self._interacting = false
-		self._recoverUntil = 0
+		c_dointeract_clearState(task)
 	end
 	
 	-- Housing handler (unchanged)
@@ -5226,30 +5248,18 @@ function c_dointeract:evaluate()
 		return true
 	end
 	
-	-------------------------------------------------------------------
-	-- If we already fired an interact and are waiting for a window,
-	-- hold unconditionally. This MUST run before anything else;
-	-- the entity can flicker nil during interact animations.
-	-------------------------------------------------------------------
-	if (self._interacting) then
-		if (HasInteractWindows() or Busy()) then
+	if (task.interactState == "interactSent") then
+		if (HasInteractWindows() or Busy() or IsShopWindowOpen() or IsControlOpen("GrandCompanyExchange")) then
+			task.interactState = "accepted"
 			return true
 		end
-		if (TimeSince(self._interactTime) < self.WINDOW_TIMEOUT_MS) then
+		if (task.interactStateNeedsResult) then
 			return true
 		end
-		if (ml_navigation) then
-			ffnav.actionHandoffUntil = 0
-			ffnav.interactSuppressRemountUntil = 0
-			ml_navigation.canPath = true
-			ml_navigation:EnablePathing()
-			ml_global_information.monitorStuck = true
-		end
-		d("[MOVETOINTERACT] Interact timed out, recovering.")
-		self._interacting = false
-		task.exactMovementDone = false
-		self._recoverUntil = Now() + self.RECOVER_COOLDOWN_MS
-		return false
+		task.interactState = "complete"
+		return true
+	elseif (task.interactState == "accepted" or task.interactState == "complete") then
+		return true
 	end
 	
 	-------------------------------------------------------------------
@@ -5392,14 +5402,7 @@ function c_dointeract:evaluate()
 			task.nudging = false
 			if (interactable and table.valid(interactable) and interactable.interactable) then
 				d("["..task.name.."]: Nudge done, interacting with ["..tostring(interactable.name).."].")
-				if (c_dointeract_shouldHandoff(task)) then
-					c_dointeract_beginHandoff(task, 7000, "DoInteractNudge", true)
-				end
-				Player:Interact(interactable.id)
-				self.lastInteract = Now()
-				self._interactTime = Now()
-				self._interacting = true
-				task.interactAttempts = (task.interactAttempts or 0) + 1
+				c_dointeract_fireInteract(task, interactable, "DoInteractNudge")
 			end
 			return true
 		end
@@ -5434,11 +5437,6 @@ function c_dointeract:evaluate()
 	-- Flying: let navigation handle descent
 	if (IsFlying()) then
 		return false
-	end
-	
-	-- Recovery cooldown: don't re-attempt too quickly after a failed interact
-	if (self._recoverUntil > 0 and Now() < self._recoverUntil) then
-		return false  -- let nav keep moving us closer during cooldown
 	end
 	
 	-- Aggro check
@@ -5577,26 +5575,11 @@ function c_dointeract:evaluate()
 		if (ml_navigation and ml_navigation.DisableAutoFollow) then
 			ml_navigation:DisableAutoFollow(true, "dointeract")
 		end
-		if (c_dointeract_shouldHandoff(task)) then
-			c_dointeract_beginHandoff(task, 7000, "DoInteractStop")
-		end
+		task.interactState = "stopping"
 		return true  -- wait one frame for stop to take effect
 	end
-	
-	-- Enforce interact debounce
-	if (TimeSince(self.lastInteract) < self.INTERACT_DEBOUNCE_MS) then
-		return true
-	end
-	
-	d("["..task.name.."]: Interacting with target ["..tostring(interactable.name).."].")
-	if (c_dointeract_shouldHandoff(task)) then
-		c_dointeract_beginHandoff(task, 7000, "DoInteract", true)
-	end
-	Player:Interact(interactable.id)
-	self.lastInteract = Now()
-	self._interactTime = Now()
-	self._interacting = true
-	task.interactAttempts = (task.interactAttempts or 0) + 1
+
+	c_dointeract_fireInteract(task, interactable, "DoInteract")
 	
 	return true
 end
