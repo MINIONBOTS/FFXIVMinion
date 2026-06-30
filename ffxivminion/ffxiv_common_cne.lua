@@ -1327,6 +1327,7 @@ function e_movetogate:execute()
 	newTask.remainMounted = true
 	newTask.ignoreAggro = true
 	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
+	newTask.disableTeleport = ml_task_hub:CurrentTask().disableTeleport
 	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
@@ -1337,6 +1338,13 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
+	local task = ml_task_hub:CurrentTask()
+	while (task) do
+		if (task.disableTeleport) then
+			return false
+		end
+		task = task:ParentTask()
+	end
 	local _destCheck = IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid)
 	--d("[TeleportToMap] busy=" .. tostring(Busy()) .. " gil=" .. tostring(GilCount()) .. " destMapID=" .. tostring(ml_task_hub:ThisTask().destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " destCheck=" .. tostring(_destCheck))
 	if (Busy() or GilCount() < 2000 or _destCheck == Player.localmapid) then
@@ -1470,7 +1478,22 @@ function c_teleporttomap:evaluate()
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,destMapID)
 					if (table.valid(backupPos)) then
-						d("using block 2")
+						d("using block 3")
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			
+			-- Fall back check to see if we can get to Thavnair, and from there to
+			-- the destination (Radz-at-Han 963 aetheryte is quest-locked; walk in
+			-- from Thavnair 957 when entry is unlocked).
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 169 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 192.39, y = 5.80, z = 625.79}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,957,destMapID)
+					if (table.valid(backupPos)) then
+						d("using block 4")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -1484,7 +1507,7 @@ function c_teleporttomap:evaluate()
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,destMapID)
 					--table.print(ml_nav_manager.GetNextPathPos({x = 66.53, y = 207.82, z = -26.03},478,399))
 					if (table.valid(backupPos)) then
-						d("using block 3")
+						d("using block 5")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end

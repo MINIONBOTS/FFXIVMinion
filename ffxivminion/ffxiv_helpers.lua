@@ -5591,8 +5591,13 @@ local function _CanAccessMapImpl(mapid)
 			
 			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
 			navd("[CanAccessMap] attunedAetherytes count=" .. tostring(attunedAetherytes and #attunedAetherytes or 0))
+			-- Require IsAetheryte: aethernet shards (e.g. 191 in Radz) share the
+			-- territory but cannot be teleported to, so they must not count as
+			-- direct access here.  Keeps this consistent with the teleport
+			-- executor (GetAetheryteByMapID), otherwise access reports true but
+			-- the teleport never fires and MOVETOMAP loops.
 			for _, aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
+				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id)) then
 					navd("[CanAccessMap] direct aetheryte match id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory))
 					return true
 				end
@@ -5651,6 +5656,20 @@ local function _CanAccessMapImpl(mapid)
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
 					if (table.valid(backupPos)) and _canTraverseNavPath(418, mapid) then
+						return true
+					end
+				end
+			end
+			
+			-- Fall back check to see if we can get to Thavnair, and from there to
+			-- the destination (Radz-at-Han 963 aetheryte is quest-locked; walk in
+			-- from Thavnair 957 when entry is unlocked).
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 169 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 192.39, y = 5.80, z = 625.79}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,957,mapid)
+					if (table.valid(backupPos)) and _canTraverseNavPath(957, mapid) then
+						e_teleporttomap.aeth = aetheryte
 						return true
 					end
 				end

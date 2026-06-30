@@ -199,6 +199,7 @@ function e_gotomaptest:execute()
 	task.pos = pos
 	task.destMapID = mapID
 	task.setHomepoint = gTestSetHomepoint
+	task.disableTeleport = gTestDisableTeleport
 	ml_task_hub:CurrentTask():AddSubTask(task)
 end
 
@@ -392,6 +393,7 @@ function ffxiv_task_test:UIInit()
 	gTestRemainMounted = ffxivminion.GetSetting("gTestRemainMounted",true)
 	gTestUseMoveToExact = ffxivminion.GetSetting("gTestUseMoveToExact",false)
 	gTestSetHomepoint = ffxivminion.GetSetting("gTestSetHomepoint",false)
+	gTestDisableTeleport = ffxivminion.GetSetting("gTestDisableTeleport",false)
 end
 
 ffxiv_task_test.GUI = {
@@ -416,6 +418,7 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Remain Mounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Use MoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Set Home Point")
+	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Disable Teleport")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Nav Range")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("Map ID")
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text("NPC ID")
@@ -444,6 +447,7 @@ function ffxiv_task_test:Draw()
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Remain Mounted",gTestRemainMounted),"gTestRemainMounted")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Use MoveToExact",gTestUseMoveToExact),"gTestUseMoveToExact")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Set Home Point",gTestSetHomepoint),"gTestSetHomepoint")
+	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:Checkbox("##Disable Teleport",gTestDisableTeleport),"gTestDisableTeleport")
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Required Range",gTestNavRange),"gTestNavRange");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##Map ID",gTestMapID),"gTestMapID");
 	GUI:AlignFirstTextHeightToWidgets() GUI_Capture(GUI:InputText("##NPC ID",gTestNPCID),"gTestNPCID");
