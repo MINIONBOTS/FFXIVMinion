@@ -1012,9 +1012,22 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 	end
 	if controller.phase == 'dismount' then
 		self:SuppressUnstuck(3000, "LandingDismountWait")
-		if not IsFlying() then
+		if self:IsAirLandingResolved() then
 			self:MarkAirLandingComplete(controller)
 			self:ResetLandingController()
+			return true
+		end
+		if self:IsLandingControllerWaterSurfaceReady(controller, ppos) then
+			controller.airLandingStartedAt = Now()
+			self:SuppressUnstuck(3000, "LandingWaterDismount")
+			if (self.DebugLog) then
+				self:DebugLog("landing-water-dismount",
+					"Water landing surface detected; retrying dismount at "
+					.. self:FormatGroundAcquirePoint(controller.landing), 1000)
+			end
+			if not IsDismounting() then
+				Dismount()
+			end
 			return true
 		end
 		if TimeSince(controller.airLandingStartedAt or 0) > 6500 then
@@ -1024,10 +1037,6 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 			self:ClearNavigationHandoff("airLanding")
 			self:SuppressUnstuck(1500, "LandingAirTimeout")
 			return false
-		end
-		if not Player.ismounted then
-			self:ResetLandingController()
-			return true
 		end
 		return true
 	end
@@ -1122,8 +1131,8 @@ function ml_navigation:UpdateNavigationHandoff(task)
 	end
 
 	if handoff.kind == "airLanding" then
-		if not IsFlying() then
-			if Player.ismounted then
+		if self:IsAirLandingResolved() then
+			if Player.ismounted and not self:IsPlayerSwimming() then
 				handoff.phase = "landedMounted"
 			else
 				ffnav.handoff = nil
@@ -1136,6 +1145,10 @@ function ml_navigation:UpdateNavigationHandoff(task)
 			return nil
 		end
 	elseif handoff.kind == "landingTakeoff" then
+		if self:IsCurrentWalkingPathSegment(task, Player and Player.pos) then
+			self:ClearLandingTakeoffHandoff()
+			return nil
+		end
 		if IsFlying() then
 			self:ClearLandingTakeoffHandoff()
 			return nil
@@ -1163,11 +1176,123 @@ end
 
 function ml_navigation:MarkAirLandingComplete(controller)
 	local taskKey = controller and controller.request and controller.request.taskKey
-	if Player.ismounted then
+	if Player.ismounted and not self:IsPlayerSwimming() then
 		self:SetNavigationHandoff("airLanding", "landedMounted", taskKey, "LandingComplete")
 	else
 		self:ClearNavigationHandoff("airLanding")
 	end
+end
+
+function ml_navigation:IsPlayerSwimming()
+	return (type(IsSwimming) == "function" and IsSwimming()) or false
+end
+
+function ml_navigation:IsAirLandingResolved()
+	return (not IsFlying()) or self:IsPlayerSwimming() or (Player and Player.ismounted == false)
+end
+
+function ml_navigation:ProbeWaterSurfaceAt(pos, verticalTolerance, source)
+	if not (table.valid(pos) and type(Raycast2) == "function") then return false end
+	verticalTolerance = tonumber(verticalTolerance) or 4
+	local WATER_FLAG = 0x8000
+	local PASSTHRU_BOUNDARIES = 0x4000
+	local function hasWaterFlag(raw1, raw2)
+		raw1 = tonumber(raw1) or 0
+		raw2 = tonumber(raw2) or 0
+		return (bit.band(raw1, WATER_FLAG) ~= 0) or (bit.band(raw2, WATER_FLAG) ~= 0)
+	end
+
+	local probes = {
+		{ mask = WATER_FLAG, value = WATER_FLAG, name = "water" },
+		{ mask = PASSTHRU_BOUNDARIES, value = PASSTHRU_BOUNDARIES, name = "passthru" },
+	}
+	local lastHit, lastY, lastRaw1, lastRaw2, lastProbe = false, nil, nil, nil, nil
+	for _, probe in ipairs(probes) do
+		local hit, hx, hy, hz, ax, ay, az, bx, by, bz, cx, cy, cz, raw1, raw2 = Raycast2(
+			pos.x, (pos.y or 0) + 8, pos.z,
+			pos.x, (pos.y or 0) - 40, pos.z,
+			probe.mask, probe.value)
+		lastHit, lastY, lastRaw1, lastRaw2, lastProbe = hit, hy, raw1, raw2, probe.name
+		if hit and hasWaterFlag(raw1, raw2) then
+			if (not hy) or math.abs((hy or 0) - (pos.y or 0)) <= verticalTolerance then
+				return true, { x = hx or pos.x, y = hy or pos.y, z = hz or pos.z }
+			end
+		end
+	end
+
+	if self.DebugLog then
+		self:DebugLog("water-surface-probe-fail",
+			"Water probe failed source=" .. tostring(source or "unknown")
+			.. " pos=" .. self:FormatGroundAcquirePoint(pos)
+			.. " hit=" .. tostring(lastHit)
+			.. " y=" .. tostring(lastY)
+			.. " raw1=" .. tostring(lastRaw1)
+			.. " raw2=" .. tostring(lastRaw2)
+			.. " probe=" .. tostring(lastProbe), 1000)
+	end
+	return false
+end
+
+function ml_navigation:IsWaterSurfaceDismountReady(task, ppos, goal)
+	if not (task and Player and Player.ismounted and IsFlying()) then return false end
+	if (type(IsDiving) == "function" and IsDiving()) then return false end
+	if not (table.valid(ppos) and table.valid(goal)) then return false end
+	if type(CanAirDismountAtPos) ~= "function" or type(Raycast2) ~= "function" then return false end
+
+	local dismountDistance = tonumber(task.dismountDistance) or 5
+	local scanDistance = math.max(dismountDistance + 3, 8)
+	local verticalTolerance = math.max(tonumber(task.dismountHeightTolerance) or 3.5, 4)
+	if math.distance2d(ppos, goal) > scanDistance then return false end
+	if math.abs((ppos.y or 0) - (goal.y or 0)) > verticalTolerance then return false end
+
+	local function canAirDismountToWater(pos)
+		if not table.valid(pos) then return false end
+		local canDismount, lx, ly, lz = CanAirDismountAtPos(pos.x, pos.y, pos.z)
+		if not (canDismount and lx and ly and lz) then return false end
+		local landing = { x = lx, y = ly, z = lz }
+		if math.distance2d(ppos, landing) > scanDistance then return false end
+		if math.distance2d(goal, landing) > scanDistance then return false end
+		local isWater = self:ProbeWaterSurfaceAt(landing, verticalTolerance, "moveto-landing")
+		if isWater then
+			return true
+		end
+		isWater = self:ProbeWaterSurfaceAt(pos, verticalTolerance, "moveto-sample")
+		if isWater and math.abs((landing.y or 0) - (pos.y or 0)) <= verticalTolerance then
+			return true
+		end
+		return false
+	end
+
+	local samples = {
+		goal,
+		ppos,
+		{ x = (ppos.x + goal.x) * 0.5, y = (ppos.y + goal.y) * 0.5, z = (ppos.z + goal.z) * 0.5 },
+	}
+	for _, sample in ipairs(samples) do
+		if canAirDismountToWater(sample) then
+			if (self.DebugLog) then
+				self:DebugLog("water-surface-dismount-ready",
+					"Water surface air dismount ready sample=" .. self:FormatGroundAcquirePoint(sample)
+					.. " goal=" .. self:FormatGroundAcquirePoint(goal), 1000)
+			end
+			return true
+		end
+	end
+
+	return false
+end
+
+function ml_navigation:IsLandingControllerWaterSurfaceReady(controller, ppos)
+	if not (controller and controller.active and Player and Player.ismounted and IsFlying()) then return false end
+	if not table.valid(controller.landing) then return false end
+	ppos = ppos or (Player and Player.pos)
+	if not table.valid(ppos) then return false end
+
+	local verticalTolerance = math.max(tonumber(controller.request and controller.request.dismountHeightTolerance) or 3.5, 4)
+	local dist2d = math.distance2d(ppos, controller.landing)
+	local dist3d = math.distance3d(ppos, controller.landing)
+	if dist2d > 3.5 or dist3d > 9.0 then return false end
+	return self:ProbeWaterSurfaceAt(controller.landing, verticalTolerance, "landing-controller")
 end
 
 function ml_navigation:MarkGroundDismountHandoff(task, source)
@@ -1227,7 +1352,8 @@ function ml_navigation:IsLandingOrActionHandoffActive()
 	if (ffnav.airborneGroundAcquire and ffnav.airborneGroundAcquire.active) then
 		local task = ml_task_hub and ml_task_hub:CurrentTask()
 		local ppos = Player and Player.pos
-		if not IsFlying() then
+		if self:IsAirLandingResolved() then
+			self:MarkAirborneGroundAcquireLanded(ffnav.airborneGroundAcquire)
 			self:ClearAirborneGroundAcquire()
 		elseif not self:IsAirborneGroundAcquireStateForTask(ffnav.airborneGroundAcquire, task) then
 			self:ClearAirborneGroundAcquire()
@@ -1251,17 +1377,7 @@ function ml_navigation:IsLandingOrActionHandoffActive()
 	if (ffnav.airborneGroundWalkTaskKey) then
 		local task = ml_task_hub and ml_task_hub:CurrentTask()
 		local ppos = Player and Player.pos
-		local taskKey = self:GetAirborneGroundAcquireTaskKey(task)
-		if taskKey ~= ffnav.airborneGroundWalkTaskKey or not self:IsAirborneGroundAcquireTaskActive(task, ppos) then
-			self:ClearAirborneGroundWalkSegment()
-		else
-			local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
-			if not (segment and segment.groundAcquire
-				and segment.key == ffnav.airborneGroundWalkSegmentKey
-				and segment.index == ffnav.airborneGroundWalkIndex) then
-				self:ClearAirborneGroundWalkSegment()
-			end
-		end
+		self:GetAirborneGroundWalkHandoffSegment(task, ppos)
 	end
 	return self:IsRealLandingOrActionHandoffActive()
 end
@@ -1396,10 +1512,34 @@ function ml_navigation:FormatGroundAcquireState(segment, task, ppos, request)
 	return table.concat(bits, " ")
 end
 
+function ml_navigation:IsSkippableAirborneGroundAcquireSegment(segment, task, ppos)
+	if not (IsFlying() and segment and table.valid(segment.node) and table.valid(segment.nextnextnode)
+		and table.valid(ppos)) then return false end
+
+	local distToNode = math.distance2d(ppos, segment.node)
+	if distToNode > 2.0 then return false end
+
+	local goal = self:GetAirborneGroundAcquireMoveToGoal(task)
+	if table.valid(goal) then
+		local range = tonumber(task and task.range) or 1.5
+		local gatherRange = tonumber(task and task.gatherRange) or 0
+		local arrived2d = math.max(range + gatherRange, 2.0) + 0.75
+		if math.distance2d(ppos, goal) <= arrived2d then return false end
+	end
+
+	if (self.DebugLog) then
+		self:DebugLog("airborne-ground-acquire-skip-start",
+			"Skipping airborne ground acquire at current/start node "
+			.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
+	end
+	return true
+end
+
 function ml_navigation:FindUpcomingGroundAcquireSegment(task, startIndex)
 	if not table.valid(self.path) then return nil end
 	startIndex = tonumber(startIndex or self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
 	if startIndex < 1 then startIndex = 1 end
+	local ppos = Player and Player.pos
 
 	for index, node in pairsByKeys(self.path) do
 		local i = tonumber(index)
@@ -1409,7 +1549,9 @@ function ml_navigation:FindUpcomingGroundAcquireSegment(task, startIndex)
 			local nextnextnode = self.path[i + 1]
 			local segment = self:GetCurrentPathSegmentInfo(i, lastnode, nextnode, nextnextnode, task)
 			if segment and segment.groundAcquire then
-				return segment
+				if not self:IsSkippableAirborneGroundAcquireSegment(segment, task, ppos) then
+					return segment
+				end
 			end
 			if segment and segment.finalLanding then
 				return nil
@@ -1449,6 +1591,53 @@ function ml_navigation:ClearAirborneGroundWalkSegment()
 	ffnav.airborneGroundWalkReason = nil
 end
 
+function ml_navigation:IsAirborneGroundWalkContinuationSegment(segment)
+	return segment and (segment.groundAcquire or segment.finalLanding)
+end
+
+function ml_navigation:GetPathLastIndex()
+	if not table.valid(self.path) then return nil end
+	local lastIndex = nil
+	for index, node in pairsByKeys(self.path) do
+		local i = tonumber(index)
+		if i and table.valid(node) and (not lastIndex or i > lastIndex) then
+			lastIndex = i
+		end
+	end
+	return lastIndex
+end
+
+function ml_navigation:GetCurrentWalkingPathSegmentInfo(task, ppos)
+	if IsFlying() or (type(IsDiving) == "function" and IsDiving()) then return false end
+	if not table.valid(self.path) then return false end
+
+	local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
+	if segment and table.valid(segment.node) then
+		if segment.flight or segment.dive or segment.descent then return false end
+		if segment.floor or segment.groundAcquire or segment.finalLanding then return segment end
+
+		local node = segment.node
+		if node.is_floor == true and node.is_cube ~= true then return segment end
+		return false
+	end
+
+	local pathIndex = tonumber(self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
+	local lastIndex = self:GetPathLastIndex()
+	if not (lastIndex and pathIndex > lastIndex) then return false end
+
+	local lastSegment = self:GetCurrentPathSegmentInfo(lastIndex,
+		self.path[lastIndex - 1] or self.startposition, self.path[lastIndex], self.path[lastIndex + 1], task)
+	if not (lastSegment and table.valid(lastSegment.node)) then return false end
+	if lastSegment.flight or lastSegment.dive or lastSegment.descent then return false end
+	if lastSegment.floor or lastSegment.groundAcquire or lastSegment.finalLanding then return lastSegment end
+	if lastSegment.node.is_floor == true and lastSegment.node.is_cube ~= true then return lastSegment end
+	return false
+end
+
+function ml_navigation:IsCurrentWalkingPathSegment(task, ppos)
+	return self:GetCurrentWalkingPathSegmentInfo(task, ppos) ~= false
+end
+
 function ml_navigation:GetAirborneGroundAcquireTaskKey(task)
 	if not task then return nil end
 	local goal = task.gatePos or task.pos
@@ -1482,9 +1671,51 @@ function ml_navigation:MarkAirborneGroundAcquireLanded(state)
 	return true
 end
 
-function ml_navigation:ShouldWalkAirborneGroundAcquiredSegment(node)
-	if not (ffnav.airborneGroundWalkTaskKey and table.valid(node)) then return false end
-	local task = ml_task_hub and ml_task_hub:CurrentTask()
+function ml_navigation:GetAirborneGroundWalkHandoffSegment(task, ppos)
+	if not ffnav.airborneGroundWalkTaskKey then return nil end
+	task = task or (ml_task_hub and ml_task_hub:CurrentTask())
+	local taskKey = self:GetAirborneGroundAcquireTaskKey(task)
+	if taskKey ~= ffnav.airborneGroundWalkTaskKey then
+		self:ClearAirborneGroundWalkSegment()
+		return nil
+	end
+
+	ppos = ppos or (Player and Player.pos)
+	if not table.valid(ppos) then return nil end
+	if not self:IsAirborneGroundAcquireTaskActive(task, ppos) then
+		self:ClearAirborneGroundWalkSegment()
+		return nil
+	end
+
+	local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
+	if not (self:IsAirborneGroundWalkContinuationSegment(segment) and segment.key == ffnav.airborneGroundWalkSegmentKey
+		and segment.index == ffnav.airborneGroundWalkIndex) then
+		if self:IsAirborneGroundWalkContinuationSegment(segment) then
+			ffnav.airborneGroundWalkIndex = segment.index
+			ffnav.airborneGroundWalkSegmentKey = segment.key
+			ffnav.airborneGroundWalkTaskKey = taskKey
+			ffnav.airborneGroundWalkReason = ffnav.airborneGroundWalkReason or "GroundPath"
+			if (self.DebugLog) then
+				self:DebugLog("airborne-ground-walk-realign",
+					"Realigned acquired ground walk "
+					.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
+			end
+		else
+			self:ClearAirborneGroundWalkSegment()
+			return nil
+		end
+	end
+
+	return segment
+end
+
+function ml_navigation:IsAirborneGroundWalkHandoffActive(task, ppos)
+	return self:GetAirborneGroundWalkHandoffSegment(task, ppos) ~= nil
+end
+
+function ml_navigation:AdvanceAirborneGroundWalkSegment(task, pathIndex)
+	if not ffnav.airborneGroundWalkTaskKey then return false end
+	task = task or (ml_task_hub and ml_task_hub:CurrentTask())
 	local taskKey = self:GetAirborneGroundAcquireTaskKey(task)
 	if taskKey ~= ffnav.airborneGroundWalkTaskKey then
 		self:ClearAirborneGroundWalkSegment()
@@ -1492,20 +1723,33 @@ function ml_navigation:ShouldWalkAirborneGroundAcquiredSegment(node)
 	end
 
 	local ppos = Player and Player.pos
-	if not table.valid(ppos) then return false end
 	if not self:IsAirborneGroundAcquireTaskActive(task, ppos) then
 		self:ClearAirborneGroundWalkSegment()
 		return false
 	end
 
-	local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
-	if not (segment and segment.groundAcquire and segment.key == ffnav.airborneGroundWalkSegmentKey
-		and segment.index == ffnav.airborneGroundWalkIndex) then
-		self:ClearAirborneGroundWalkSegment()
-		return false
+	pathIndex = tonumber(pathIndex or self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
+	local segment = self:GetCurrentPathSegmentInfo(pathIndex, nil, nil, nil, task)
+	if self:IsAirborneGroundWalkContinuationSegment(segment) then
+		ffnav.airborneGroundWalkIndex = segment.index
+		ffnav.airborneGroundWalkSegmentKey = segment.key
+		ffnav.airborneGroundWalkTaskKey = taskKey
+		ffnav.airborneGroundWalkReason = ffnav.airborneGroundWalkReason or "GroundPath"
+		if (self.DebugLog) then
+			self:DebugLog("airborne-ground-walk-advance",
+				"Continuing acquired ground walk "
+				.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
+		end
+		return true
 	end
 
-	return true
+	self:ClearAirborneGroundWalkSegment()
+	return false
+end
+
+function ml_navigation:ShouldWalkAirborneGroundAcquiredSegment(node)
+	if not table.valid(node) then return false end
+	return self:IsAirborneGroundWalkHandoffActive()
 end
 function ml_navigation:GetAirborneGroundAcquireMoveToGoal(task)
 	if not task then return nil end
@@ -1664,6 +1908,7 @@ function ml_navigation:StartAirborneGroundAcquire(reason, nextnode)
 	if pathIndex < 1 then pathIndex = 1 end
 	local segment = self:GetCurrentPathSegmentInfo(pathIndex, nil, nextnode, nil, task)
 	if not (segment and segment.groundAcquire) then return false end
+	if self:IsSkippableAirborneGroundAcquireSegment(segment, task, ppos) then return false end
 	if not self:IsAirborneGroundAcquireReady(ppos, segment) then return false end
 
 	local target = self:GetAirborneGroundAcquireTarget(ppos, segment.node)
@@ -1728,7 +1973,7 @@ function ml_navigation:DriveAirborneGroundAcquire(ppos)
 		return false
 	end
 
-	if not IsFlying() then
+	if self:IsAirLandingResolved() then
 		self:MarkAirborneGroundAcquireLanded(state)
 		self:ClearAirborneGroundAcquire()
 		self.lastPathUpdate = 0
@@ -1855,7 +2100,25 @@ end
 function ml_navigation:NeedsLandingApproachFlight(task, request, ppos)
 	if not (task and request and ppos and table.valid(request.anchor)) then return false end
 	if IsFlying() or IsDiving() or not CanFlyInZone() then return false end
+	if self:IsCurrentWalkingPathSegment(task, ppos) then
+		if (self.DebugLog) then
+			local segment = self:GetCurrentWalkingPathSegmentInfo(task, ppos)
+			self:DebugLog("landing-flight-suppressed-walking-segment",
+				"Landing approach flight suppressed by current walking segment "
+				.. self:FormatGroundAcquireState(segment, task, ppos, request), 1000)
+		end
+		return false
+	end
 	if self:IsLandingDismountOrActionHandoffActive() then return false end
+	if self:IsAirborneGroundWalkHandoffActive(task, ppos) then
+		if (self.DebugLog) then
+			local segment = self:GetAirborneGroundWalkHandoffSegment(task, ppos)
+			self:DebugLog("landing-flight-suppressed-ground-walk",
+				"Landing approach flight suppressed while walking acquired ground segment "
+				.. self:FormatGroundAcquireState(segment, task, ppos, request), 1000)
+		end
+		return false
+	end
 
 	local dist2d = math.distance2d(ppos, request.anchor)
 	if (dist2d > request.activateDistance) then return false end
@@ -1889,8 +2152,22 @@ function ml_navigation:PrepareLandingTakeoff(task, ppos)
 	if not (task and ppos) then return false end
 	local request = self:GetLandingRequest(task)
 	if not request then return false end
+	if self:IsCurrentWalkingPathSegment(task, ppos) then
+		self:ClearLandingTakeoffHandoff()
+		if (self.DebugLog) then
+			local segment = self:GetCurrentWalkingPathSegmentInfo(task, ppos)
+			self:DebugLog("landing-takeoff-suppressed-walking-segment",
+				"Landing takeoff suppressed by current walking segment "
+				.. self:FormatGroundAcquireState(segment, task, ppos, request), 1000)
+		end
+		return false
+	end
 	local handoff = ffnav.handoff
 	if handoff and handoff.kind == "landingTakeoff" then
+		if self:IsCurrentWalkingPathSegment(task, ppos) then
+			self:ClearLandingTakeoffHandoff()
+			return false
+		end
 		if ffnav.landingTakeoffKey ~= request.key then
 			self:ClearLandingTakeoffHandoff()
 			return false
@@ -3983,7 +4260,7 @@ function ml_navigation.Navigate(event, ticks)
 										ml_navigation.pathindex = ml_navigation.pathindex + 1
 										NavigationManager.NavPathNode = ml_navigation.pathindex
 										ml_navigation:ResetAutoFollowState()
-										ml_navigation:ClearAirborneGroundWalkSegment()
+										ml_navigation:AdvanceAirborneGroundWalkSegment(nil, ml_navigation.pathindex)
 									else
 										ml_navigation:DispatchAutoFollowNode(nextnode, true)
 									end
@@ -4075,13 +4352,17 @@ function ml_navigation.Navigate(event, ticks)
 							end
 						else
 							-- Normal ground navigation: dispatch autofollow, check arrival
-							ml_navigation.GUI.lastAction = "Walk to Node"
+							local walkingAcquiredGround = ml_navigation:ShouldWalkAirborneGroundAcquiredSegment(nextnode)
+							ml_navigation.GUI.lastAction = walkingAcquiredGround and "Walk acquired ground segment" or "Walk to Node"
 							if (ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.lastconnectiontimer = Now()
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								NavigationManager.NavPathNode = ml_navigation.pathindex
 								ml_navigation:ResetAutoFollowState()
+								if walkingAcquiredGround then
+									ml_navigation:AdvanceAirborneGroundWalkSegment(nil, ml_navigation.pathindex)
+								end
 							else
 								ml_navigation:DispatchAutoFollowNode(nextnode, true)
 								if (not IsFlying() and not IsDiving()) then

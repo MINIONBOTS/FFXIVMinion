@@ -17,6 +17,74 @@ ffxiv_task_test.metricAsyncQuery = {
 	startedAt = 0,
 	timeoutMs = 1500,
 }
+ffxiv_task_test.contexts = {
+	"Direct",
+	"Quest Navigate",
+	"Quest Interact",
+	"Grind ReturnToMarker",
+}
+
+local function _NavTestContextIndex(context)
+	for i,name in ipairs(ffxiv_task_test.contexts) do
+		if (context == name) then
+			return i
+		end
+	end
+	return 1
+end
+
+local function _NavTestNormalizeContext()
+	gTestTaskContextIndex = tonumber(gTestTaskContextIndex) or _NavTestContextIndex(gTestTaskContext)
+	if (not ffxiv_task_test.contexts[gTestTaskContextIndex]) then
+		gTestTaskContextIndex = _NavTestContextIndex(gTestTaskContext)
+	end
+	if (not ffxiv_task_test.contexts[gTestTaskContextIndex]) then
+		gTestTaskContextIndex = 1
+	end
+	gTestTaskContext = ffxiv_task_test.contexts[gTestTaskContextIndex] or "Direct"
+	if (Settings and Settings.FFXIVMINION) then
+		Settings.FFXIVMINION["gTestTaskContextIndex"] = gTestTaskContextIndex
+		Settings.FFXIVMINION["gTestTaskContext"] = gTestTaskContext
+	end
+	return gTestTaskContext
+end
+
+local function _NavTestContext()
+	if (gTestTaskContext ~= nil or gTestTaskContextIndex ~= nil) then
+		return _NavTestNormalizeContext()
+	end
+	return "Direct"
+end
+
+local function _NavTestPosFromFields()
+	return {
+		x = tonumber(gTestMapX) or 0,
+		y = tonumber(gTestMapY) or 0,
+		z = tonumber(gTestMapZ) or 0,
+	}
+end
+
+local function _NavTestScenarioKey(context, mapID, npcID, pos)
+	return tostring(context).."|"..tostring(mapID).."|"..tostring(npcID).."|"
+		..tostring(pos.x).."|"..tostring(pos.y).."|"..tostring(pos.z).."|"
+		..tostring(gTestNavRange).."|"..tostring(gTestNoFly).."|"..tostring(gTestNoMount).."|"
+		..tostring(gTestRemainMounted)
+end
+
+function ffxiv_task_test.ResetLaunchGuards()
+	if (c_gotopostest) then
+		c_gotopostest.reached = false
+	end
+	if (c_gotonpctest) then
+		c_gotonpctest.started = false
+		c_gotonpctest.reached = false
+		c_gotonpctest.lastKey = nil
+	end
+	if (c_navtestscenario) then
+		c_navtestscenario.started = false
+		c_navtestscenario.lastKey = nil
+	end
+end
 
 local function _PosEquals(a, b)
 	return (a and b and a.x == b.x and a.y == b.y and a.z == b.z)
@@ -170,6 +238,10 @@ function ffxiv_task_test.Create()
 		c_gotonpctest.reached = false
 		c_gotonpctest.lastKey = nil
 	end
+	if (c_navtestscenario) then
+		c_navtestscenario.started = false
+		c_navtestscenario.lastKey = nil
+	end
    
     return newinst
 end
@@ -203,11 +275,170 @@ function e_gotomaptest:execute()
 	ml_task_hub:CurrentTask():AddSubTask(task)
 end
 
+ffxiv_task_navtest_grindmarker = inheritsFrom(ml_task)
+function ffxiv_task_navtest_grindmarker.Create(pos)
+	local newinst = inheritsFrom(ffxiv_task_navtest_grindmarker)
+
+	newinst.valid = true
+	newinst.completed = false
+	newinst.subtask = nil
+	newinst.auxiliary = false
+	newinst.process_elements = {}
+	newinst.overwatch_elements = {}
+
+	newinst.name = "LT_GRIND"
+	newinst.pos = pos
+	newinst.previousMarker = ml_marker_mgr.currentMarker
+	newinst.targetFunction = function() return nil end
+	newinst.killFunction = nil
+
+	return newinst
+end
+function ffxiv_task_navtest_grindmarker:Init()
+	ml_marker_mgr.currentMarker = {
+		name = "NavTest Grind Marker",
+		type = GetString("grindMarker"),
+		pos = self.pos,
+		maxradius = tonumber(gTestNavRange) or 4,
+	}
+
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+	self:add(ke_returnToMarker, self.process_elements)
+	self:AddTaskCheckCEs()
+end
+function ffxiv_task_navtest_grindmarker:task_complete_eval()
+	if (self.subtask ~= nil) then
+		return false
+	end
+	local ppos = Player.pos
+	local pos = self.pos
+	local range = tonumber(gTestNavRange) or 4
+	return Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) <= math.max(range + 2, 10)
+end
+function ffxiv_task_navtest_grindmarker:task_complete_execute()
+	Player:Stop()
+	ml_marker_mgr.currentMarker = self.previousMarker
+	self.completed = true
+end
+function ffxiv_task_navtest_grindmarker:task_fail_eval()
+	return not Player.alive
+end
+function ffxiv_task_navtest_grindmarker:task_fail_execute()
+	ml_marker_mgr.currentMarker = self.previousMarker
+	self.valid = false
+end
+
+c_navtestscenario = inheritsFrom( ml_cause )
+e_navtestscenario = inheritsFrom( ml_effect )
+c_navtestscenario.pos = {}
+c_navtestscenario.context = "Direct"
+c_navtestscenario.key = nil
+c_navtestscenario.started = false
+c_navtestscenario.lastKey = nil
+function c_navtestscenario:evaluate()
+	c_navtestscenario.pos = {}
+	c_navtestscenario.context = _NavTestContext()
+	c_navtestscenario.key = nil
+
+	local context = c_navtestscenario.context
+	if (context == "Direct") then
+		return false
+	end
+
+	local mapID = tonumber(gTestMapID)
+	local npcID = tonumber(gTestNPCID) or 0
+	if (Player.localmapid ~= mapID) then
+		c_navtestscenario.started = false
+		return false
+	end
+	if (context == "Quest Interact" and npcID == 0) then
+		return false
+	end
+
+	local pos = _NavTestPosFromFields()
+	local key = _NavTestScenarioKey(context, mapID, npcID, pos)
+	if (c_navtestscenario.lastKey ~= key) then
+		c_navtestscenario.started = false
+		c_navtestscenario.lastKey = key
+	end
+	if (c_navtestscenario.started) then
+		return false
+	end
+
+	if (context ~= "Quest Interact") then
+		local ppos = Player.pos
+		local range = tonumber(gTestNavRange) or 4
+		local dist = Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
+		local triggerDist = (context == "Grind ReturnToMarker") and 10 or (range + 2)
+		if (dist <= triggerDist) then
+			return false
+		end
+	end
+
+	c_navtestscenario.pos = pos
+	c_navtestscenario.key = key
+	return true
+end
+function e_navtestscenario:execute()
+	local context = c_navtestscenario.context
+	local pos = c_navtestscenario.pos
+	local mapID = tonumber(gTestMapID) or Player.localmapid
+	local npcID = tonumber(gTestNPCID) or 0
+	local range = tonumber(gTestNavRange) or 4
+	local newTask = nil
+
+	if (context == "Quest Navigate" or context == "Quest Interact") then
+		if (not FFXIVLib or not FFXIVLib.Questing or not FFXIVLib.Questing.NavTest
+			or not FFXIVLib.Questing.NavTest.CreateScenarioTask) then
+			d("[NavTest] Questing NavTest adapter is unavailable.")
+			return
+		end
+
+		local kind = (context == "Quest Navigate") and "nav" or "interact"
+		local params = {
+			type = kind,
+			mapid = mapID,
+			pos = pos,
+			range = range,
+			noflight = gTestNoFly,
+			nomount = gTestNoMount,
+			remainmounted = gTestRemainMounted,
+		}
+		if (npcID ~= 0) then
+			params.id = npcID
+		end
+		if (kind == "interact") then
+			params.type = "interact"
+			params.interactrange = range
+			params.interactrange3d = range + 3
+		end
+
+		local err = nil
+		newTask, err = FFXIVLib.Questing.NavTest.CreateScenarioTask(kind, params)
+		if (not newTask) then
+			d("[NavTest] Failed to create Questing scenario task: "..tostring(err))
+			return
+		end
+	elseif (context == "Grind ReturnToMarker") then
+		newTask = ffxiv_task_navtest_grindmarker.Create(pos)
+	end
+
+	if (newTask) then
+		d("[NavTest] Starting task-context scenario ["..tostring(context).."].")
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		c_navtestscenario.started = true
+	end
+end
+
 c_gotopostest = inheritsFrom( ml_cause )
 e_gotopostest = inheritsFrom( ml_effect )
 c_gotopostest.pos = {}
 function c_gotopostest:evaluate()
 	c_gotopostest.pos = {}
+
+	if (_NavTestContext() ~= "Direct") then
+		return false
+	end
 
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID and tonumber(gTestNPCID) == 0) then
@@ -289,6 +520,10 @@ function c_gotonpctest:evaluate()
 	c_gotonpctest.pos = {}
 	c_gotonpctest.path = {}
 
+	if (_NavTestContext() ~= "Direct") then
+		return false
+	end
+
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID and tonumber(gTestNPCID) ~= 0) then
 		local pos = {}
@@ -369,6 +604,9 @@ end
 function ffxiv_task_test:Init()
 	local ke_startMapTest = ml_element:create( "GoToMapTest", c_gotomaptest, e_gotomaptest, 20 )
     self:add(ke_startMapTest, self.process_elements)
+
+	local ke_startScenarioTest = ml_element:create( "TaskContextTest", c_navtestscenario, e_navtestscenario, 18 )
+    self:add(ke_startScenarioTest, self.process_elements)
 	
 	local ke_startMoveTest = ml_element:create( "GoToNPCTest", c_gotonpctest, e_gotonpctest, 15 )
     self:add(ke_startMoveTest, self.process_elements)
@@ -394,6 +632,9 @@ function ffxiv_task_test:UIInit()
 	gTestUseMoveToExact = ffxivminion.GetSetting("gTestUseMoveToExact",false)
 	gTestSetHomepoint = ffxivminion.GetSetting("gTestSetHomepoint",false)
 	gTestDisableTeleport = ffxivminion.GetSetting("gTestDisableTeleport",false)
+	gTestTaskContext = ffxivminion.GetSetting("gTestTaskContext","Direct")
+	gTestTaskContextIndex = ffxivminion.GetSetting("gTestTaskContextIndex",_NavTestContextIndex(gTestTaskContext))
+	_NavTestNormalizeContext()
 end
 
 ffxiv_task_test.GUI = {
@@ -464,7 +705,22 @@ function ffxiv_task_test:Draw()
 	GUI:PopItemWidth()
 	GUI:Columns()
 	local FullWidth = GUI:GetContentRegionAvail()
-	if (GUI:Button("Get Current Pos",FullWidth,20)) then
+	local itemSpacingX = GUI:GetStyle().itemspacing.x
+	local halfWidth = (FullWidth - itemSpacingX) / 2
+	if (halfWidth < 80) then
+		halfWidth = FullWidth
+	end
+	_NavTestNormalizeContext()
+	GUI:PushItemWidth(halfWidth)
+	if (GUI_Combo("##Task Context", "gTestTaskContextIndex", "gTestTaskContext", ffxiv_task_test.contexts)) then
+		_NavTestNormalizeContext()
+		ffxiv_task_test.ResetLaunchGuards()
+	end
+	GUI:PopItemWidth()
+	if (halfWidth < FullWidth) then
+		GUI:SameLine()
+	end
+	if (GUI:Button("Get Current Pos",halfWidth,20)) then
 		ffxiv_task_test.GetCurrentPosition()
 	end
 	if (GUI:Button("Get Target Pos",FullWidth,20)) then
@@ -478,6 +734,7 @@ function ffxiv_task_test:Draw()
 		 gTestMapX = IsNull(newpos.x,gTestMapX)
 		 gTestMapY = IsNull(newpos.y,gTestMapY)
 		 gTestMapZ = IsNull(newpos.z,gTestMapZ)
+		 ffxiv_task_test.ResetLaunchGuards()
 	end
 	GUI:EndChild()
 end
@@ -495,7 +752,7 @@ function ffxiv_task_test.GetCurrentPosition()
 	gTestMapY = savePos.y
 	gTestMapZ = savePos.z
 	gTestMapID = mapid
-	c_gotopostest.reached = false
+	ffxiv_task_test.ResetLaunchGuards()
 	
 	GUI_Set("gTestMapID",gTestMapID)
 	GUI_Set("gTestNPCID",0)
@@ -515,7 +772,7 @@ function ffxiv_task_test.GetTargetPosition()
 		gTestMapY = pos.y
 		gTestMapZ = pos.z
 		gTestMapID = mapid
-		c_gotopostest.reached = false
+		ffxiv_task_test.ResetLaunchGuards()
 		
 		GUI_Set("gTestMapID",gTestMapID)
 		GUI_Set("gTestNPCID",gTestNPCID)
@@ -534,7 +791,7 @@ function ffxiv_task_test.GetRandomPosition()
 		gTestMapY = pos.y
 		gTestMapZ = pos.z
 		gTestMapID = mapid
-		c_gotopostest.reached = false
+		ffxiv_task_test.ResetLaunchGuards()
 		
 		GUI_Set("gTestMapID",gTestMapID)
 		GUI_Set("gTestMapX",gTestMapX)

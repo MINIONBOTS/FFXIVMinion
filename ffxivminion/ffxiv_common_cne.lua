@@ -5457,8 +5457,9 @@ function c_dointeract:evaluate()
 		return false
 	end
 	
-	-- Flying: let navigation handle descent
-	if (IsFlying()) then
+	-- Flying: let navigation handle descent. Swimming is the landed water state after
+	-- dismounting onto a game-reported water surface.
+	if (IsFlying() and not IsSwimming()) then
 		return false
 	end
 	
@@ -5583,7 +5584,7 @@ function c_dointeract:evaluate()
 	
 	-- Interactable or bypass: claim control from here on (return true).
 	-- Must be fully landed and not mid-animation before firing interact.
-	if (IsFlying() or IsDismounting() or Busy()) then
+	if ((IsFlying() and not IsSwimming()) or IsDismounting() or Busy()) then
 		return true
 	end
 	
@@ -5600,6 +5601,20 @@ function c_dointeract:evaluate()
 		end
 		task.interactState = "stopping"
 		return true  -- wait one frame for stop to take effect
+	end
+
+	if (Player.ismounted and not task.remainMounted) then
+		if (ml_navigation and ml_navigation.MarkGroundDismountHandoff) then
+			ml_navigation:MarkGroundDismountHandoff(task, "DoInteractDismount")
+		end
+		if (ml_navigation and ml_navigation.DisableAutoFollow) then
+			ml_navigation:DisableAutoFollow(true, "DoInteractDismount")
+		end
+		if not IsDismounting() then
+			d("["..task.name.."]: Dismounting before interacting with ["..tostring(interactable.name).."].")
+			Dismount()
+		end
+		return true
 	end
 
 	c_dointeract_fireInteract(task, interactable, "DoInteract")

@@ -274,6 +274,15 @@ function ffxiv_task_movetopos:task_complete_eval()
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 				if not plainMoveTo and not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
+					if (ml_navigation and ml_navigation.IsWaterSurfaceDismountReady
+						and ml_navigation:IsWaterSurfaceDismountReady(self, ppos, gotoPos)) then
+						if (ml_navigation.MarkGroundDismountHandoff) then
+							ml_navigation:MarkGroundDismountHandoff(self, "MoveToWaterSurface")
+						end
+						if not IsDismounting() then
+							Dismount()
+						end
+					end
 					return false
 				end
 				if (self.interact and self.interact ~= 0) then
