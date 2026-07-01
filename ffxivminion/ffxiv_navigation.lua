@@ -1365,6 +1365,75 @@ function ml_navigation:HasFutureAirbornePathSegment(pathIndex)
 	end
 	return false
 end
+
+function ml_navigation:FormatGroundAcquirePoint(point)
+	if not table.valid(point) then return "nil" end
+	return string.format("(%.1f,%.1f,%.1f)", tonumber(point.x) or 0, tonumber(point.y) or 0, tonumber(point.z) or 0)
+end
+
+function ml_navigation:FormatGroundAcquireState(segment, task, ppos, request)
+	local navIndex = NavigationManager and NavigationManager.NavPathNode or nil
+	local goal = task and self:GetAirborneGroundAcquireMoveToGoal(task) or nil
+	local acquire = ffnav and ffnav.airborneGroundAcquire or nil
+	local walkIndex = ffnav and ffnav.airborneGroundWalkIndex or nil
+	local requestAnchor = request and request.anchor or nil
+	local bits = {
+		"seg=" .. tostring(segment and segment.index or "nil"),
+		"path=" .. tostring(self.pathindex),
+		"nav=" .. tostring(navIndex),
+		"player=" .. self:FormatGroundAcquirePoint(ppos),
+		"node=" .. self:FormatGroundAcquirePoint(segment and segment.node),
+		"next=" .. self:FormatGroundAcquirePoint(segment and segment.nextnextnode),
+		"goal=" .. self:FormatGroundAcquirePoint(goal),
+		"anchor=" .. self:FormatGroundAcquirePoint(requestAnchor),
+		"task=" .. tostring(task and task.name or "nil"),
+		"flying=" .. tostring(IsFlying()),
+		"mounted=" .. tostring(type(IsMounted) == "function" and IsMounted() or false),
+		"request=" .. tostring(request and request.source or "nil"),
+		"activeAcquire=" .. tostring(acquire and acquire.pathindex or "nil"),
+		"walkAcquire=" .. tostring(walkIndex),
+	}
+	return table.concat(bits, " ")
+end
+
+function ml_navigation:FindUpcomingGroundAcquireSegment(task, startIndex)
+	if not table.valid(self.path) then return nil end
+	startIndex = tonumber(startIndex or self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
+	if startIndex < 1 then startIndex = 1 end
+
+	for index, node in pairsByKeys(self.path) do
+		local i = tonumber(index)
+		if i and i >= startIndex and table.valid(node) then
+			local lastnode = self.path[i - 1] or self.startposition
+			local nextnode = self.path[i]
+			local nextnextnode = self.path[i + 1]
+			local segment = self:GetCurrentPathSegmentInfo(i, lastnode, nextnode, nextnextnode, task)
+			if segment and segment.groundAcquire then
+				return segment
+			end
+			if segment and segment.finalLanding then
+				return nil
+			end
+		end
+	end
+	return nil
+end
+
+function ml_navigation:ShouldDeferTaskLandingToGroundAcquire(task, ppos, request)
+	if not (IsFlying() and task and self:IsInteractActionTask(task)) then return false end
+	if request and request.source == "action" then return false end
+	local startIndex = tonumber(self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
+	local segment = self:FindUpcomingGroundAcquireSegment(task, startIndex)
+	if not segment then return false end
+	if self.DebugLog then
+		self:DebugLog("task-landing-defer-ground",
+			"Task landing deferred to ground path segment "
+			.. self:FormatGroundAcquireState(segment, task, ppos, request)
+			.. " searchStart=" .. tostring(startIndex), 1000)
+	end
+	return true
+end
+
 function ml_navigation:ClearAirborneGroundAcquire()
 	ffnav.airborneGroundAcquire = nil
 	if (ffnav.suppressUnstuckReason == "AirborneGroundAcquire") then
@@ -1401,7 +1470,14 @@ function ml_navigation:MarkAirborneGroundAcquireLanded(state)
 	ffnav.airborneGroundWalkIndex = state.pathindex
 	ffnav.airborneGroundWalkSegmentKey = state.segmentKey
 	if (self.DebugLog) then
-		self:DebugLog("airborne-ground-walk-segment", "Walking landed " .. tostring(state.reason) .. " segment index=" .. tostring(state.pathindex), 1000)
+		local task = ml_task_hub and ml_task_hub:CurrentTask()
+		local ppos = Player and Player.pos
+		local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
+		self:DebugLog("airborne-ground-walk-segment",
+			"Walking landed " .. tostring(state.reason) .. " "
+			.. self:FormatGroundAcquireState(segment, task, ppos, nil)
+			.. " landedSeg=" .. tostring(state.pathindex)
+			.. " landedTarget=" .. self:FormatGroundAcquirePoint(state.target), 1000)
 	end
 	return true
 end
@@ -1610,6 +1686,13 @@ function ml_navigation:StartAirborneGroundAcquire(reason, nextnode)
 	if (ffxiv_unstuck and ffxiv_unstuck.Reset) then
 		ffxiv_unstuck.Reset()
 	end
+	if (self.DebugLog) then
+		self:DebugLog("airborne-ground-acquire-start",
+			"Airborne ground acquire start "
+			.. self:FormatGroundAcquireState(segment, task, ppos, nil)
+			.. " target=" .. self:FormatGroundAcquirePoint(target)
+			.. " reason=" .. tostring(reason), 1000)
+	end
 	if (not ffnav.airborneGroundAcquireLog or TimeSince(ffnav.airborneGroundAcquireLog) > 1000) then
 		d('[Navigation]: Airborne MoveTo landing to acquire ground target=(' .. string.format('%.1f, %.1f, %.1f', target.x or 0, target.y or 0, target.z or 0) .. ').')
 		ffnav.airborneGroundAcquireLog = Now()
@@ -1739,11 +1822,19 @@ function ml_navigation:ShouldTaskLandingOwnAirborne(task, ppos)
 
 	local controller = ffnav.landingController
 	if controller and controller.active and controller.phase and controller.phase ~= 'idle' then
+		if self:ShouldDeferTaskLandingToGroundAcquire(task, ppos, controller.request) then
+			self:ResetLandingController()
+			return false
+		end
 		if controller.phase == 'blocked' then
 			self:ResetLandingController()
 			return false
 		end
 		return true
+	end
+
+	if self:ShouldDeferTaskLandingToGroundAcquire(task, ppos, request) then
+		return false
 	end
 
 	local dist2d = math.distance2d(ppos, request.anchor)
@@ -1784,7 +1875,14 @@ function ml_navigation:NeedsMountedLandingTakeoff(task, request, ppos)
 	if not Player.ismounted then return false end
 	if (Player.mountcanfly == false) then return false end
 	local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
-	if not (segment and segment.flight) then return false end
+	if segment and segment.flight then
+		if self.DebugLog then
+			self:DebugLog("landing-takeoff-defer-flight-path",
+				"Landing takeoff deferred to flight path segment index=" .. tostring(segment.index)
+				.. " task=" .. tostring(task and task.name or "nil"), 1000)
+		end
+		return false
+	end
 	return self:NeedsLandingApproachFlight(task, request, ppos)
 end
 function ml_navigation:PrepareLandingTakeoff(task, ppos)
@@ -3238,6 +3336,11 @@ function ml_navigation.Navigate(event, ticks)
 			end
 			if ml_navigation.CanRun() and not ml_navigation.debug then
 				local landing = ffnav and ffnav.landingController
+				if guardTask and IsFlying() and landing and landing.active
+					and ml_navigation:ShouldDeferTaskLandingToGroundAcquire(guardTask, guardPos, landing.request) then
+					ml_navigation:ResetLandingController()
+					landing = ffnav and ffnav.landingController
+				end
 				if landing and landing.active and landing.phase and landing.phase ~= 'idle'
 					and ml_navigation:DriveFlyingLanding(landing, landing.request or {}, guardPos) then return end
 				if guardTask and (guardTask.name == "MOVETOINTERACT" or (guardTask.interact and guardTask.interact ~= 0)) then
@@ -3265,6 +3368,11 @@ function ml_navigation.Navigate(event, ticks)
 			local currentTask = ml_task_hub and ml_task_hub:CurrentTask()
 			if ml_navigation:DriveAirborneGroundAcquire(ppos) then return end
 			local landingController = ffnav and ffnav.landingController
+			if IsFlying() and landingController and landingController.active
+				and ml_navigation:ShouldDeferTaskLandingToGroundAcquire(currentTask, ppos, landingController.request) then
+				ml_navigation:ResetLandingController()
+				landingController = ffnav and ffnav.landingController
+			end
 			if landingController and landingController.active and landingController.phase and landingController.phase ~= 'idle'
 				and ml_navigation:DriveFlyingLanding(landingController, landingController.request or {}, ppos) then return end
 			local taskLandingOwnsAirborne = IsFlying() and ml_navigation:ShouldTaskLandingOwnAirborne(currentTask, ppos)
