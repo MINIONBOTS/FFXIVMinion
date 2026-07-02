@@ -2836,6 +2836,13 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 		lastgoal,lastgoal2d = ml_navigation:GetRaycast_Player_Node_Distance(lastnode,node)
 	end
 	local isLast = (ml_navigation.path[ml_navigation.pathindex+1]==nil)
+	local finalArrivalRadius = nil
+	if (isLast) then
+		finalArrivalRadius = tonumber(ml_navigation.finalArrivalRadius)
+		if (finalArrivalRadius and finalArrivalRadius <= 0) then
+			finalArrivalRadius = nil
+		end
+	end
 
 	-- Floor2Cube connections have a radius in which the player is allowed to traverse
 	local nc
@@ -2880,7 +2887,9 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 	end
 
 	if (Player.flying.isflying) then
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
+		local close3d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["3dfly"]
+		local close2d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["2dfly"]
+		if (goaldist <= close3d and goaldist2d <= close2d) then
 			self:ResetOMCHandler()
 			if ( nc and In(ncsubtype,1,2,3,4)) then
 				self.omc_id = nc.id
@@ -2894,7 +2903,9 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 			return true
 		end
 	elseif (Player.diving.isdiving) then
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3ddive"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2ddive"]) then
+		local close3d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["3ddive"]
+		local close2d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["2ddive"]
+		if (goaldist <= close3d and goaldist2d <= close2d) then
 			self:ResetOMCHandler()
 			if ( nc and In(ncsubtype,1,2,3,4)) then
 				self.omc_id = nc.id
@@ -2908,7 +2919,9 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 			return true
 		end
 	elseif (Player.diving.isswimming) then
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3dswim"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dswim"]) then
+		local close3d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["3dswim"]
+		local close2d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["2dswim"]
+		if (goaldist <= close3d and goaldist2d <= close2d) then
 			self:ResetOMCHandler()
 			if ( nc and In(ncsubtype,1,2,3,4)) then
 				self.omc_id = nc.id
@@ -2922,7 +2935,9 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 			return true
 		end
 	elseif (Player.ismounted) then
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
+		local close3d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["3dmount"]
+		local close2d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["2dmount"]
+		if (goaldist <= close3d and goaldist2d <= close2d) then
 			if (isLast or lastdist == nil or lastdist >= lastgoal or goaldist <= 1.0) then
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then
@@ -2938,7 +2953,9 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 			end
 		end
 	else
-		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+		local close3d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["3dwalk"]
+		local close2d = finalArrivalRadius or ml_navigation.NavPointReachedDistances["2dwalk"]
+		if (goaldist <= close3d and goaldist2d <= close2d) then
 			if (isLast or lastdist == nil or lastdist >= lastgoal or goaldist <= 1.0) then
 				self:ResetOMCHandler()
 				if ( nc and In(ncsubtype,1,2,3,4)) then
@@ -3241,11 +3258,12 @@ function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
 
 	if (MPlayerDriving() or IsCosmolinerActive()) then
 		d("[NAVIGATION]: Releasing control to Player..")
+		ml_navigation.finalArrivalRadius = nil
 		ml_navigation:ResetCurrentPath()
 		return -1337
 	end
 
-	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid)
+	local ret = Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, nil, dist)
 	if (ml_navigation:HasPath()) then
 		if (ml_navigation:EnablePathing()) then
 		end
@@ -3260,10 +3278,17 @@ ml_navigation.lastPathUpdate = 0
 ml_navigation.pathchanged = false
 ml_navigation.lastBuildCall = 0
 ml_navigation.lastpos = {x=0, y=0, z=0}
-function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
+ml_navigation.finalArrivalRadius = nil
+function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force, finalArrivalRadius)
 	ml_navigation.debug = nil
 	local floorfilters = IsNull(floorfilters,0,true)
 	local cubefilters = IsNull(cubefilters,0,true)
+	local arrivalRadius = tonumber(finalArrivalRadius)
+	if (arrivalRadius and arrivalRadius > 0) then
+		arrivalRadius = math.max(0.1, math.min(arrivalRadius, 50))
+	else
+		arrivalRadius = nil
+	end
 
 	if (targetid == 0) then
 		targetid = nil
@@ -3271,6 +3296,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 
 	if (MPlayerDriving() or IsCosmolinerActive()) then
 		d("[NAVIGATION]: Releasing control to Player..")
+		ml_navigation.finalArrivalRadius = nil
 		ml_navigation:ResetCurrentPath()
 		return -1337
 	end
@@ -3289,6 +3315,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending) and (TimeSince(ml_navigation.lastconnectiontimer) < 5000)) then
 		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
+		ml_navigation.finalArrivalRadius = arrivalRadius
 		return currentPathSize
 	end
 
@@ -3323,8 +3350,10 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 	if (ret <= 0) then
 		if ((IsFlying() or IsDiving()) and hasPreviousPath) then
 			d("[NAVIGATION]: Encountered an issue on path pull, using previous path, errors may be encountered here.")
+			ml_navigation.finalArrivalRadius = arrivalRadius
 			return currentPathSize
 		else
+			ml_navigation.finalArrivalRadius = nil
 			ml_navigation:ResetCurrentPath()
 		end
 		local ppos = Player.pos
@@ -3332,6 +3361,7 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force)
 		ml_navigation.targetposition = { x=0, y=0, z=0 }
 		ml_navigation.lasttargetid = nil
 	else
+		ml_navigation.finalArrivalRadius = arrivalRadius
 		ml_navigation.startposition = { x=ppos.x, y=ppos.y, z=ppos.z }
 		ml_navigation.targetposition = newGoal
 		ml_navigation.lasttargetid = targetid
@@ -3775,7 +3805,7 @@ function ml_navigation.Navigate(event, ticks)
 					ml_global_information.GetMovementInfo(true)
 
 					if (not ml_navigation:IsUsingConnection() and TimeSince(ml_navigation.lastPathUpdate) >= 2000) then
-						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid)
+						Player:BuildPath(ml_navigation.targetposition.x, ml_navigation.targetposition.y, ml_navigation.targetposition.z, NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.FLOOR), NavigationManager:GetExcludeFilter(GLOBAL.NODETYPE.CUBE), ml_navigation.lasttargetid, nil, ml_navigation.finalArrivalRadius)
 						ml_navigation.lastPathUpdate = Now()
 						ml_navigation._refreshPrefetched = false
 						return
