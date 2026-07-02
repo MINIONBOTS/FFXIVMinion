@@ -244,7 +244,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
 		--d("[MOVETOPOS]: Checking manual requirement ["..tostring(requiredRange).."]")
 		
-		if (Player.onmesh or IsFlying()) then
+		if (Player.onmesh or IsFlying() or IsDiving()) then
 			-- Safety: disable exact movement if path is beyond macro mesh threshold
 			if (self.useExactMovement and not self.exactMovementStarted) then
 				local macroThresh = NavigationManager.MacroMeshDistanceThreshold or 650
@@ -273,8 +273,19 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+				if (self.interact and self.interact ~= 0) then
+					local interactable = EntityList:Get(self.interact)
+					if (not table.valid(interactable) or not interactable.interactable) then
+						return false
+					end
+				end
 				if not plainMoveTo and not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
-					if (ml_navigation and ml_navigation.IsWaterSurfaceDismountReady
+					if (IsDiving()) then
+						Player:Stop()
+						if not IsDismounting() then
+							Dismount()
+						end
+					elseif (ml_navigation and ml_navigation.IsWaterSurfaceDismountReady
 						and ml_navigation:IsWaterSurfaceDismountReady(self, ppos, gotoPos)) then
 						if (ml_navigation.MarkGroundDismountHandoff) then
 							ml_navigation:MarkGroundDismountHandoff(self, "MoveToWaterSurface")
@@ -284,12 +295,6 @@ function ffxiv_task_movetopos:task_complete_eval()
 						end
 					end
 					return false
-				end
-				if (self.interact and self.interact ~= 0) then
-					local interactable = EntityList:Get(self.interact)
-					if (table.valid(interactable) and not interactable.interactable) then
-						return false
-					end
 				end
 
 				if (self.useExactMovement) then

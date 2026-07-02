@@ -613,6 +613,13 @@ ml_navigation.lastExternalAutoFollowActivity = 0
 ml_navigation.externalAutoFollowGraceMs = 500
 
 function ml_navigation.GetInteractStopDistance3d(task)
+	if IsDiving() then
+		local interactRange = tonumber(task and task.interactRange)
+		if interactRange and interactRange > 0 then
+			return interactRange
+		end
+		return 4
+	end
 	local cap = tonumber(task and task.interactRange3d)
 	if cap and cap > 0 then
 		return cap
@@ -621,6 +628,7 @@ function ml_navigation.GetInteractStopDistance3d(task)
 end
 function ml_navigation.IsInteractCloseApproachTask(task)
 	return task ~= nil and IsDiving()
+		and (task.name == "MOVETOINTERACT" or (task.interact and task.interact ~= 0))
 end
 function ml_navigation.GetInteractCloseFollowMax2d(task)
 	return 15
@@ -628,20 +636,6 @@ end
 function ml_navigation.GetInteractFollowPos(ppos, tpos, target)
 	local followPos = { x = tpos.x, y = tpos.y, z = tpos.z }
 	if not (ppos and table.valid(tpos)) then return followPos end
-	if IsDiving() then
-		local planarDist = ml_navigation.GetInteractPlanarSeparation(ppos, tpos, target)
-		local verticalSep = ml_navigation.GetInteractVerticalSeparation(ppos, tpos, target)
-		-- Directly above/below: swim down to inferred entity height.
-		if (planarDist < 2 and verticalSep > 1) then
-			followPos.y = (ppos.y or tpos.y) - verticalSep
-			return followPos
-		end
-		followPos.y = (tpos.y - 2)
-		local hit = RayCast(ppos.x, ppos.y, ppos.z, followPos.x, followPos.y, followPos.z)
-		if (hit) then
-			followPos = { x = tpos.x, y = tpos.y, z = tpos.z }
-		end
-	end
 	return followPos
 end
 function ml_navigation.GetInteractVerticalSeparation(ppos, tpos, target)
@@ -677,25 +671,59 @@ end
 function ml_navigation.NeedsInteractCloseApproach(task, resolvedTarget)
 	if not ml_navigation.IsInteractCloseApproachTask(task) then return false end
 	local target = resolvedTarget or (Player and Player.GetTarget and Player:GetTarget())
-	if not (target and target.los) then return false end
-	local ppos = Player.pos
-	local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(task)
-	if (ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) >= maxFollow2d) then return false end
-	local stopDist = ml_navigation.GetInteractStopDistance3d(task)
-	if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, stopDist) then
+	local dbg = IsDiving() and TimeSince(IsNull(ml_navigation._diveNeedDbgLast, 0)) > 400
+	if (dbg) then ml_navigation._diveNeedDbgLast = Now() end
+	if not (target and target.los) then
+		if (dbg) then d("[DiveDbg][NeedsApproach] false: hasTarget="..tostring(target ~= nil).." los="..tostring(target and target.los)) end
 		return false
 	end
+	if (target.interactable) then
+		if (dbg) then d("[DiveDbg][NeedsApproach] false: target.interactable=true (should stop & interact)") end
+		return false
+	end
+	local ppos = Player.pos
+	local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(task)
+	local planarSep = ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target)
+	if (planarSep >= maxFollow2d) then
+		if (dbg) then d("[DiveDbg][NeedsApproach] false: planar="..tostring(planarSep).." >= maxFollow2d="..tostring(maxFollow2d)) end
+		return false
+	end
+	if (dbg) then d("[DiveDbg][NeedsApproach] true: follow target, planar="..tostring(planarSep)) end
 	return true
 end
 function ml_navigation.TryInteractAutoFollow(task, resolvedTarget)
+	local dbg = IsDiving() and TimeSince(IsNull(ml_navigation._diveTryFollowDbgLast, 0)) > 400
+	if (dbg) then ml_navigation._diveTryFollowDbgLast = Now() end
+	if (FFXIV_Common_BotRunning == false or (ml_task_hub and ml_task_hub.shouldRun == false)) then
+		if (dbg) then d("[DiveDbg][TryFollow] false: bot not running") end
+		return false
+	end
+	local handoff = ffnav and ffnav.handoff
+	if (handoff and (handoff.kind == "interactAction" or handoff.kind == "groundDismount")) then
+		if (dbg) then d("[DiveDbg][TryFollow] false: active handoff kind="..tostring(handoff.kind)) end
+		return false
+	end
 	local landing = ffnav and ffnav.landingController
-	if landing and landing.active and landing.phase == 'dismount' then return false end
-	if IsFlying() or IsDismounting() then return false end
+	if landing and landing.active and landing.phase == 'dismount' then
+		if (dbg) then d("[DiveDbg][TryFollow] false: landingController dismount phase") end
+		return false
+	end
+	if IsFlying() or IsDismounting() then
+		if (dbg) then d("[DiveDbg][TryFollow] false: flying="..tostring(IsFlying()).." dismounting="..tostring(IsDismounting())) end
+		return false
+	end
 	local target = resolvedTarget or Player:GetTarget()
 	local ppos = Player.pos
-	if not (target and ppos and table.valid(target.pos)) then return false end
-	if not ml_navigation.NeedsInteractCloseApproach(task, target) then return false end
+	if not (target and ppos and table.valid(target.pos)) then
+		if (dbg) then d("[DiveDbg][TryFollow] false: no target/ppos/target.pos") end
+		return false
+	end
+	if not ml_navigation.NeedsInteractCloseApproach(task, target) then
+		if (dbg) then d("[DiveDbg][TryFollow] false: NeedsInteractCloseApproach=false (see NeedsApproach log)") end
+		return false
+	end
 	local followPos = ml_navigation.GetInteractFollowPos(ppos, target.pos, target)
+	if (dbg) then d("[DiveDbg][TryFollow] TRUE: dispatch follow node ["..tostring(followPos.x)..","..tostring(followPos.y)..","..tostring(followPos.z).."]") end
 	ml_navigation:DispatchAutoFollowNode(followPos, true)
 	return true
 end
@@ -1307,7 +1335,8 @@ function ml_navigation:ClearInteractActionHandoff()
 	self:ClearNavigationHandoff("interactAction")
 	local reason = ffnav.suppressUnstuckReason or ""
 	if (reason == "InteractActionHandoff" or reason == "DoInteract"
-		or reason == "DoInteractStop" or reason == "DoInteractNudge") then
+		or reason == "DoInteractStop" or reason == "DoInteractNudge"
+		or reason == "DoInteractDiveStop" or reason == "DoInteractDiveDismount") then
 		ffnav.suppressUnstuckUntil = 0
 		ffnav.suppressUnstuckReason = nil
 	end
@@ -1352,9 +1381,18 @@ function ml_navigation:IsLandingOrActionHandoffActive()
 	if (ffnav.airborneGroundAcquire and ffnav.airborneGroundAcquire.active) then
 		local task = ml_task_hub and ml_task_hub:CurrentTask()
 		local ppos = Player and Player.pos
-		if self:IsAirLandingResolved() then
-			self:MarkAirborneGroundAcquireLanded(ffnav.airborneGroundAcquire)
-			self:ClearAirborneGroundAcquire()
+		if self:IsAirborneGroundAcquireGroundDismountPending(ffnav.airborneGroundAcquire, task, ppos) then
+			if self:DriveAirborneGroundAcquireGroundDismount(ffnav.airborneGroundAcquire, task, ppos) then
+				return true
+			end
+		elseif self:IsAirLandingResolved() then
+			if self:MarkAirborneGroundAcquireLanded(ffnav.airborneGroundAcquire) then
+				self:ClearAirborneGroundAcquire()
+			elseif self:DriveAirborneGroundAcquireGroundDismount(ffnav.airborneGroundAcquire, task, ppos) then
+				return true
+			else
+				self:ClearAirborneGroundAcquire()
+			end
 		elseif not self:IsAirborneGroundAcquireStateForTask(ffnav.airborneGroundAcquire, task) then
 			self:ClearAirborneGroundAcquire()
 			self:ClearAirborneGroundWalkSegment()
@@ -1578,10 +1616,61 @@ end
 
 function ml_navigation:ClearAirborneGroundAcquire()
 	ffnav.airborneGroundAcquire = nil
-	if (ffnav.suppressUnstuckReason == "AirborneGroundAcquire") then
+	if (ffnav.suppressUnstuckReason == "AirborneGroundAcquire"
+		or ffnav.suppressUnstuckReason == "AirborneGroundAcquireDismount") then
 		ffnav.suppressUnstuckUntil = 0
 		ffnav.suppressUnstuckReason = nil
 	end
+end
+
+function ml_navigation:IsAirborneGroundAcquireGroundDismountPending(state, task, ppos)
+	if not (state and state.active and state.reason == "GroundPath") then return false end
+	if not task or task.completed or task.valid == false then return false end
+	if not (Player and Player.ismounted) then return false end
+	if IsFlying() or (type(IsDiving) == "function" and IsDiving()) then return false end
+	if task and task.remainMounted then return false end
+	return true
+end
+
+function ml_navigation:DriveAirborneGroundAcquireGroundDismount(state, task, ppos)
+	if not self:IsAirborneGroundAcquireGroundDismountPending(state, task, ppos) then return false end
+
+	local now = Now()
+	state.groundDismountStartedAt = state.groundDismountStartedAt or now
+	self.GUI = self.GUI or {}
+	self.GUI.lastAction = "Dismounting to acquire ground"
+	self:SuppressUnstuck(1500, "AirborneGroundAcquireDismount")
+	self:DisableAutoFollow(true, "AirborneGroundAcquireDismount")
+
+	if Player:IsMoving() or Player:IsExactMoving() then
+		Player:Stop()
+	end
+
+	if (not state.lastGroundDismountAttempt or TimeSince(state.lastGroundDismountAttempt) > 650) then
+		state.lastGroundDismountAttempt = now
+		if not IsDismounting() then
+			if (self.DebugLog) then
+				self:DebugLog("airborne-ground-acquire-dismount",
+					"Ground acquire landed mounted; retrying dismount task="
+					.. tostring(task and task.name or "nil"), 1000)
+			end
+			Dismount()
+		end
+	end
+
+	if TimeSince(state.groundDismountStartedAt) > 3500 then
+		if (self.DebugLog) then
+			self:DebugLog("airborne-ground-acquire-dismount-timeout",
+				"Ground acquire dismount still mounted after timeout; releasing to task recovery task="
+				.. tostring(task and task.name or "nil"), 1000)
+		end
+		self:ClearAirborneGroundAcquire()
+		self.lastPathUpdate = 0
+		self._refreshPrefetched = false
+		return false
+	end
+
+	return true
 end
 
 function ml_navigation:ClearAirborneGroundWalkSegment()
@@ -1654,13 +1743,21 @@ end
 function ml_navigation:MarkAirborneGroundAcquireLanded(state)
 	if not (state and state.reason == "GroundPath") then return false end
 	if not (state.taskKey and state.segmentKey and state.pathindex) then return false end
+	local task = ml_task_hub and ml_task_hub:CurrentTask()
+	local ppos = Player and Player.pos
+	if self:IsAirborneGroundAcquireGroundDismountPending(state, task, ppos) then
+		if (self.DebugLog) then
+			self:DebugLog("airborne-ground-acquire-hold-dismount",
+				"Ground acquire landed mounted; holding acquire before walk handoff task="
+				.. tostring(task and task.name or "nil"), 1000)
+		end
+		return false
+	end
 	ffnav.airborneGroundWalkTaskKey = state.taskKey
 	ffnav.airborneGroundWalkReason = state.reason
 	ffnav.airborneGroundWalkIndex = state.pathindex
 	ffnav.airborneGroundWalkSegmentKey = state.segmentKey
 	if (self.DebugLog) then
-		local task = ml_task_hub and ml_task_hub:CurrentTask()
-		local ppos = Player and Player.pos
 		local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
 		self:DebugLog("airborne-ground-walk-segment",
 			"Walking landed " .. tostring(state.reason) .. " "
@@ -1955,6 +2052,9 @@ function ml_navigation:DriveAirborneGroundAcquire(ppos)
 		self:DisableAutoFollow(true, "AirborneGroundAcquireTaskChanged")
 		return false
 	end
+	if self:IsAirborneGroundAcquireGroundDismountPending(state, task, ppos) then
+		return self:DriveAirborneGroundAcquireGroundDismount(state, task, ppos)
+	end
 	if not self:IsAirborneGroundAcquireTaskActive(task, ppos) then
 		self:ClearAirborneGroundAcquire()
 		self:DisableAutoFollow(true, "AirborneGroundAcquireReleased")
@@ -1974,12 +2074,14 @@ function ml_navigation:DriveAirborneGroundAcquire(ppos)
 	end
 
 	if self:IsAirLandingResolved() then
-		self:MarkAirborneGroundAcquireLanded(state)
-		self:ClearAirborneGroundAcquire()
-		self.lastPathUpdate = 0
-		self._refreshPrefetched = false
-		self:DisableAutoFollow(true, "AirborneGroundAcquireDone")
-		return false
+		if self:MarkAirborneGroundAcquireLanded(state) then
+			self:ClearAirborneGroundAcquire()
+			self.lastPathUpdate = 0
+			self._refreshPrefetched = false
+			self:DisableAutoFollow(true, "AirborneGroundAcquireDone")
+			return false
+		end
+		return self:DriveAirborneGroundAcquireGroundDismount(state, task, ppos)
 	end
 	if not table.valid(state.target) then
 		self:ClearAirborneGroundAcquire()
@@ -4108,12 +4210,31 @@ function ml_navigation.Navigate(event, ticks)
 					if (IsDiving()) then
 						local target = Player:GetTarget()
 						local interactTask = ml_task_hub and ml_task_hub:CurrentTask()
+						local isInteractDive = ml_navigation.IsInteractCloseApproachTask(interactTask)
 						local interactStopDist = ml_navigation.GetInteractStopDistance3d(interactTask)
 						local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(interactTask)
-						if (target and target.los and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) < maxFollow2d) then
-							if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
+						local navDivePlanar = (target and table.valid(target.pos)) and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) or nil
+						if (TimeSince(IsNull(ml_navigation._diveNavDbgLast, 0)) > 400) then
+							ml_navigation._diveNavDbgLast = Now()
+							d("[DiveDbg][nav] isInteractDive="..tostring(isInteractDive)
+								.." hasTarget="..tostring(target ~= nil)
+								.." los="..tostring(target and target.los)
+								.." tgtInteractable="..tostring(target and target.interactable)
+								.." targetable="..tostring(target and target.targetable)
+								.." planar="..tostring(navDivePlanar)
+								.." maxFollow2d="..tostring(maxFollow2d)
+								.." stopDist="..tostring(interactStopDist)
+								.." tgtDist3d="..tostring(target and target.distance))
+						end
+						if (isInteractDive and target and target.los and navDivePlanar and navDivePlanar < maxFollow2d) then
+							if target.interactable and ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
+								d("[DiveDbg][nav] interactable+CanStop -> Player:Stop(), yield to c_dointeract for dismount/interact")
 								Player:Stop()
 								return false
+							end
+							if (TimeSince(IsNull(ml_navigation._diveNavFollowDbgLast, 0)) > 400) then
+								ml_navigation._diveNavFollowDbgLast = Now()
+								d("[DiveDbg][nav] FOLLOW branch (target not interactable or cannot stop) -> TryInteractAutoFollow. tgtInteractable="..tostring(target.interactable))
 							end
 							ml_navigation.TryInteractAutoFollow(interactTask)
 							return
@@ -4121,20 +4242,23 @@ function ml_navigation.Navigate(event, ticks)
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 
 							if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
+								if (isInteractDive) then
+									d("[DiveDbg][nav] ELSE swim-to-node + IsGoalClose TRUE -> advancing pathindex & STOPPING at node (STALL: interact-dive fell through follow gate)")
+								end
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
 								ml_navigation.lastconnectiontimer = Now()
 								ml_navigation.pathindex = ml_navigation.pathindex + 1
 								NavigationManager.NavPathNode = ml_navigation.pathindex
 								ml_navigation:ResetAutoFollowState()
 							else
-								local modifiedNode = { x = nextnode.x, y = (nextnode.y - 2), z = nextnode.z }
-								local hit = RayCast(ppos.x,ppos.y,ppos.z,modifiedNode.x,modifiedNode.y,modifiedNode.z)
-								if (hit) then
-									modifiedNode = nextnode
+								if (isInteractDive and TimeSince(IsNull(ml_navigation._diveNavSwimDbgLast, 0)) > 400) then
+									ml_navigation._diveNavSwimDbgLast = Now()
+									d("[DiveDbg][nav] ELSE swim-to-node -> DispatchAutoFollowNode(nextnode) (following PATH node, not target)")
 								end
-								ml_navigation:DispatchAutoFollowNode(modifiedNode, true)
+								ml_navigation:DispatchAutoFollowNode(nextnode, true)
 							end
 						end
+						return
 					end
 
 					----------------------------------------------------
@@ -4252,6 +4376,25 @@ function ml_navigation.Navigate(event, ticks)
 								return
 
 							elseif (not IsFlying() and CanFlyInZone()) then
+								local currentWalkingSegment = ml_navigation:GetCurrentWalkingPathSegmentInfo(currentTask, ppos)
+								if currentWalkingSegment then
+									ml_navigation.GUI.lastAction = "Walk current ground segment"
+									if (ml_navigation.DebugLog) then
+										ml_navigation:DebugLog("flight-mount-suppressed-walking-segment",
+											"Flight mount suppressed by current walking segment "
+											.. ml_navigation:FormatGroundAcquireState(currentWalkingSegment, currentTask, ppos, nil), 1000)
+									end
+									if (ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
+										ml_navigation.lastconnectionid = nextnode.navconnectionid
+										ml_navigation.lastconnectiontimer = Now()
+										ml_navigation.pathindex = ml_navigation.pathindex + 1
+										NavigationManager.NavPathNode = ml_navigation.pathindex
+										ml_navigation:ResetAutoFollowState()
+									else
+										ml_navigation:DispatchAutoFollowNode(nextnode, true)
+									end
+									return
+								end
 								if ml_navigation:ShouldWalkAirborneGroundAcquiredSegment(nextnode) then
 									ml_navigation.GUI.lastAction = "Walk acquired ground segment"
 									if (ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then

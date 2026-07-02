@@ -71,6 +71,40 @@ local function _NavTestScenarioKey(context, mapID, npcID, pos)
 		..tostring(gTestRemainMounted)
 end
 
+local function _NavTestTargetIsNetworkCrystal(entity)
+	if (not entity or entity.type ~= 5 or not entity.contentid or not ffxiv_map_nav) then
+		return false
+	end
+	if (ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(entity.contentid)) then
+		return true
+	end
+	if (ffxiv_map_nav.IsAethernet and ffxiv_map_nav.IsAethernet(entity.contentid)) then
+		return true
+	end
+	return false
+end
+
+local function _NavTestApplyInteractTarget(newTask, targetID)
+	targetID = tonumber(targetID) or 0
+	newTask.interact = targetID
+	newTask.navid = targetID
+
+	if (targetID == 0) then
+		return
+	end
+
+	local target = EntityList:Get(targetID)
+	if (_NavTestTargetIsNetworkCrystal(target)) then
+		newTask.contentid = target.contentid
+		newTask.navid = 0
+		newTask.pathChecked = false
+		if (table.valid(target.meshpos)) then
+			newTask.pos = target.meshpos
+		end
+		d("[NavTest] Selected target is a network crystal; using contentid ["..tostring(target.contentid).."] for interact pathing.")
+	end
+end
+
 function ffxiv_task_test.ResetLaunchGuards()
 	if (c_gotopostest) then
 		c_gotopostest.reached = false
@@ -405,7 +439,16 @@ function e_navtestscenario:execute()
 			remainmounted = gTestRemainMounted,
 		}
 		if (npcID ~= 0) then
-			params.id = npcID
+			local target = EntityList:Get(npcID)
+			if (_NavTestTargetIsNetworkCrystal(target)) then
+				params.id = target.contentid
+				if (table.valid(target.meshpos)) then
+					params.pos = target.meshpos
+				end
+				d("[NavTest] Quest scenario target is a network crystal; using contentid ["..tostring(target.contentid).."].")
+			else
+				params.id = npcID
+			end
 		end
 		if (kind == "interact") then
 			params.type = "interact"
@@ -550,14 +593,58 @@ function c_gotonpctest:evaluate()
 end
 function e_gotonpctest:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
-	newTask.interact = gTestNPCID
-	newTask.navid = gTestNPCID
 	newTask.pos = c_gotonpctest.pos
+	_NavTestApplyInteractTarget(newTask, gTestNPCID)
 	--newTask.interactRange = 1
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 	c_gotonpctest.started = true
 	c_gotonpctest.reached = true
+end
+
+-- Cancels an in-progress GoToNPC interact task when the user picks a different
+-- node in the NavTest GUI. Runs as an OVERWATCH element so it fires even while
+-- the MOVETOINTERACT subtask is active (process elements like c_gotonpctest are
+-- skipped while a subtask is running). When this overwatch effect executes, the
+-- task framework drops the active subtask automatically; clearing the GoToNPC
+-- state lets c_gotonpctest rebuild the task for the newly-selected node.
+c_gotonpc_nodechanged = inheritsFrom( ml_cause )
+e_gotonpc_nodechanged = inheritsFrom( ml_effect )
+function c_gotonpc_nodechanged:evaluate()
+	if (_NavTestContext() ~= "Direct") then
+		return false
+	end
+	-- Nothing to cancel unless a GoToNPC task has actually been launched.
+	if (c_gotonpctest.lastKey == nil) then
+		return false
+	end
+	local mapID = tonumber(gTestMapID)
+	if (Player.localmapid ~= mapID or tonumber(gTestNPCID) == 0) then
+		return false
+	end
+	-- Is a GoToNPC interact task currently running anywhere in the chain?
+	local hasInteractTask = false
+	local t = ml_task_hub:RootTask()
+	while (t ~= nil) do
+		if (t.name == "MOVETOINTERACT") then
+			hasInteractTask = true
+			break
+		end
+		t = t.subtask
+	end
+	if (not hasInteractTask) then
+		return false
+	end
+	-- Fire only when the current GUI selection differs from the running target.
+	local key = tostring(mapID).."|"..tostring(gTestNPCID).."|"..tostring(gTestMapX).."|"..tostring(gTestMapY).."|"..tostring(gTestMapZ)
+	return (c_gotonpctest.lastKey ~= key)
+end
+function e_gotonpc_nodechanged:execute()
+	d("[NavTest] Target node changed - cancelling active MOVETOINTERACT so the new node takes over.")
+	Player:Stop()
+	c_gotonpctest.started = false
+	c_gotonpctest.reached = false
+	c_gotonpctest.lastKey = nil
 end
 
 function ffxiv_task_test.ResetInstructions()
@@ -613,6 +700,10 @@ function ffxiv_task_test:Init()
 	
 	local ke_startMoveTest = ml_element:create( "GoToPosTest", c_gotopostest, e_gotopostest, 15 )
     self:add(ke_startMoveTest, self.process_elements)
+	
+	-- Overwatch: cancel an active GoToNPC interact task when the selected node changes.
+	local ke_nodeChanged = ml_element:create( "GoToNPCNodeChanged", c_gotonpc_nodechanged, e_gotonpc_nodechanged, 100 )
+    self:add(ke_nodeChanged, self.overwatch_elements)
 	
 	--local ke_flightTest = ml_element:create( "FlightTest", c_flighttest, e_flighttest, 15 )
     --self:add(ke_flightTest, self.process_elements)

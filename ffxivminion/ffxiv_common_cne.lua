@@ -5300,12 +5300,23 @@ function c_dointeract:evaluate()
 		-- enough; without this an aetheryte task can stay locked onto a type-2 mob.
 		local typeMismatch = interactable and expectedInteractTypes
 			and not table.contains(expectedInteractTypes, interactable.type)
-		if (not interactable or typeMismatch
-			or (IsNull(task.contentid, 0) ~= 0
-				and tonumber(interactable.contentid) ~= tonumber(task.contentid))) then
+		local contentMismatch = interactable and IsNull(task.contentid, 0) ~= 0
+			and tonumber(interactable.contentid) ~= tonumber(task.contentid)
+		if (interactable and (typeMismatch or contentMismatch)) then
+			-- Loaded, but it is the wrong entity (shared contentid / stale id).
+			-- Drop it so the contentid re-search below can find the right one.
 			interactable = nil
 			task.interact = 0
+		elseif (not interactable and IsNull(task.contentid, 0) ~= 0) then
+			-- Not currently loaded, but we have a contentid to re-acquire by,
+			-- so drop the id and let the contentid re-search below run.
+			task.interact = 0
 		end
+		-- else: entity simply not loaded yet and there is no contentid fallback
+		-- (e.g. an id-only quest interact target still outside load range).
+		-- KEEP task.interact and retry EntityList:Get next frame - zeroing it here
+		-- would permanently lose the only handle we have to the target, so it could
+		-- never resolve once the object finally streams in.
 	end
 	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
 		if (IsNull(task.contentid,0) ~= 0) then
@@ -5454,6 +5465,10 @@ function c_dointeract:evaluate()
 	
 	-- No valid entity yet, let nav drive
 	if (not interactable or not table.valid(interactable)) then
+		if (IsDiving() and TimeSince(IsNull(task._diveDbgNoEntLast, 0)) > 400) then
+			task._diveDbgNoEntLast = Now()
+			d("[DiveDbg][c_dointeract] no interactable entity resolved (task.interact="..tostring(task.interact)..", contentid="..tostring(task.contentid)..") -> return false, nav drives")
+		end
 		return false
 	end
 	
@@ -5485,6 +5500,30 @@ function c_dointeract:evaluate()
 	local maxInteractDistance3d = c_dointeract_cap3d(task, interactable)
 	local effectiveDistance3d, effectivePlanarAbs = c_dointeract_effectiveDistances(task, interactable)
 	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
+	local gameInteractable = interactable.interactable and not isNetworkCrystalTarget
+
+	if (IsDiving() and TimeSince(IsNull(task._diveDbgHeartbeatLast, 0)) > 400) then
+		task._diveDbgHeartbeatLast = Now()
+		local dbgTgt = Player:GetTarget()
+		d("[DiveDbg][c_dointeract][state] name="..tostring(interactable.name)
+			.." id="..tostring(interactable.id)
+			.." mounted="..tostring(Player.ismounted)
+			.." swim="..tostring(IsSwimming())
+			.." interactable="..tostring(interactable.interactable)
+			.." los="..tostring(interactable.los)
+			.." targetable="..tostring(interactable.targetable)
+			.." gameInteractable="..tostring(gameInteractable)
+			.." crystal="..tostring(isNetworkCrystalTarget)
+			.." dist3d="..tostring(interactable.distance)
+			.." dist2d="..tostring(interactable.distance2d)
+			.." effDist3d="..tostring(effectiveDistance3d)
+			.." effPlanar="..tostring(effectivePlanarAbs)
+			.." cap3d="..tostring(maxInteractDistance3d)
+			.." remainMounted="..tostring(task.remainMounted)
+			.." interactState="..tostring(task.interactState)
+			.." curTgtId="..tostring(dbgTgt and dbgTgt.id)
+			.." posDist3d="..tostring(math.distance3d(ppos, task.pos)))
+	end
 
 	-- Network crystals (aetherytes / aethernet shards): the game's `interactable`
 	-- flag is not a reliable gate. It can read true while the player stands too high
@@ -5519,12 +5558,42 @@ function c_dointeract:evaluate()
 		return false
 	end
 
+	if (IsDiving() and Player.ismounted and not task.remainMounted and not isNetworkCrystalTarget) then
+		if (gameInteractable) then
+			if (Player:IsMoving() or Player:IsExactMoving()) then
+				Player:Stop()
+				if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
+					ml_navigation:BeginInteractActionHandoff("DoInteractDiveStop", false)
+				end
+				task.interactState = "stopping"
+				return true
+			end
+			if (ml_navigation and ml_navigation.BeginInteractActionHandoff) then
+				ml_navigation:BeginInteractActionHandoff("DoInteractDiveDismount", false)
+			elseif (ml_navigation and ml_navigation.DisableAutoFollow) then
+				ml_navigation:DisableAutoFollow(true, "DoInteractDiveDismount")
+			end
+			if not IsDismounting() then
+				d("["..task.name.."]: Diving dismount before interacting with ["..tostring(interactable.name).."].")
+				Dismount()
+			end
+			return true
+		else
+			if (TimeSince(IsNull(task._diveDbgDismountLast, 0)) > 400) then
+				task._diveDbgDismountLast = Now()
+				d("[DiveDbg][c_dointeract] diving+mounted but gameInteractable=false (interactable.interactable="..tostring(interactable.interactable).."); NOT dismounting, falling through")
+			end
+		end
+	end
+
 	-- Check for "too far away" error feedback from game
 	if IsControlOpen("_TextError") and FFXIVLib.API.Strings and FFXIVLib.API.Strings.Contains then
 		local errStrings = GetControl("_TextError"):GetStrings()
 		if (errStrings and errStrings[2] and FFXIVLib.API.Strings.TOO_FAR_AWAY) then
 			if FFXIVLib.API.Strings.Contains(errStrings[2], FFXIVLib.API.Strings.TOO_FAR_AWAY) then
-				return false  -- too far, let nav keep moving us
+				if (not gameInteractable) then
+					return false  -- too far, let nav keep moving us
+				end
 			end
 		end
 	end
@@ -5532,7 +5601,11 @@ function c_dointeract:evaluate()
 	-- Network crystals are gated on approach arrival above, not on center distance
 	-- or the unreliable `interactable` flag.
 	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d
-		and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
+		and not gameInteractable and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
+		if (IsDiving() and TimeSince(IsNull(task._diveDbgFarLast, 0)) > 400) then
+			task._diveDbgFarLast = Now()
+			d("[DiveDbg][c_dointeract] beyond cap (effDist3d="..tostring(effectiveDistance3d).." > cap="..tostring(maxInteractDistance3d)..") not gameInteractable -> return false, nav drives")
+		end
 		local landingHandoff = (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
 			and ml_navigation:IsLandingOrActionHandoffActive())
 		local landingController = ffnav and ffnav.landingController
@@ -5562,11 +5635,23 @@ function c_dointeract:evaluate()
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold
 	-------------------------------------------------------------------
 	if (not bypassInteractableGate and not interactable.interactable) then
+		local handoff = ffnav and ffnav.handoff
+		if (IsDiving() and handoff and handoff.kind == "interactAction"
+			and ml_navigation and ml_navigation.ClearInteractActionHandoff) then
+			ml_navigation:ClearInteractActionHandoff()
+		end
 		-- Not interactable yet: walk toward entity when the relevant distance check is within cap.
 		-- (abs planar: distance2d can be negative for some field objects.)
 		local closeWalkCapY = (maxInteractDistance3d and maxInteractDistance3d > 0) and maxInteractDistance3d or 6
 		local withinPlanar = (not c_dointeract_isNetworkCrystal(task, interactable)) and effectivePlanarAbs < closeWalkCapY
 		local within3d = effectiveDistance3d < closeWalkCapY
+		if (IsDiving() and TimeSince(IsNull(task._diveDbgKeyLast, 0)) > 400) then
+			task._diveDbgKeyLast = Now()
+			d("[DiveDbg][c_dointeract][KEYCHECK] not interactable. withinPlanar="..tostring(withinPlanar)
+				.." within3d="..tostring(within3d).." closeWalkCap="..tostring(closeWalkCapY)
+				.." effPlanar="..tostring(effectivePlanarAbs).." effDist3d="..tostring(effectiveDistance3d)
+				.." (diving skips walk branch)")
+		end
 		if (not IsFlying() and not IsDiving() and not IsDismounting() and (withinPlanar or within3d)) then
 			if (not Player:IsMoving()) then
 				local epos = interactable.pos
@@ -5575,9 +5660,18 @@ function c_dointeract:evaluate()
 			return true
 		end
 		if (ml_navigation and ml_navigation.TryInteractAutoFollow and ml_navigation.IsInteractCloseApproachTask(task)) then
-			if (ml_navigation.TryInteractAutoFollow(task)) then
+			local didFollow = ml_navigation.TryInteractAutoFollow(task)
+			if (IsDiving() and TimeSince(IsNull(task._diveDbgFollowLast, 0)) > 400) then
+				task._diveDbgFollowLast = Now()
+				d("[DiveDbg][c_dointeract][KEYCHECK] TryInteractAutoFollow -> "..tostring(didFollow))
+			end
+			if (didFollow) then
 				return true
 			end
+		end
+		if (IsDiving() and TimeSince(IsNull(task._diveDbgKeyRetLast, 0)) > 400) then
+			task._diveDbgKeyRetLast = Now()
+			d("[DiveDbg][c_dointeract][KEYCHECK] returning false -> c_getmovementpath/nav takes over (STALL if nav parks at task.pos)")
 		end
 		return false
 	end
@@ -5597,15 +5691,24 @@ function c_dointeract:evaluate()
 		end
 		Player:Stop()
 		if (ml_navigation and ml_navigation.DisableAutoFollow) then
-			ml_navigation:DisableAutoFollow(true, "dointeract")
+			if (IsDiving() and Player.ismounted and not task.remainMounted
+				and ml_navigation.BeginInteractActionHandoff) then
+				ml_navigation:BeginInteractActionHandoff("DoInteractDiveStop", false)
+			else
+				ml_navigation:DisableAutoFollow(true, "dointeract")
+			end
 		end
 		task.interactState = "stopping"
 		return true  -- wait one frame for stop to take effect
 	end
 
 	if (Player.ismounted and not task.remainMounted) then
-		if (ml_navigation and ml_navigation.MarkGroundDismountHandoff) then
-			ml_navigation:MarkGroundDismountHandoff(task, "DoInteractDismount")
+		if (ml_navigation) then
+			if (IsDiving() and ml_navigation.BeginInteractActionHandoff) then
+				ml_navigation:BeginInteractActionHandoff("DoInteractDiveDismount", false)
+			elseif (ml_navigation.MarkGroundDismountHandoff) then
+				ml_navigation:MarkGroundDismountHandoff(task, "DoInteractDismount")
+			end
 		end
 		if (ml_navigation and ml_navigation.DisableAutoFollow) then
 			ml_navigation:DisableAutoFollow(true, "DoInteractDismount")
