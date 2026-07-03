@@ -5675,6 +5675,11 @@ function c_dointeract:evaluate()
 		end
 		return false
 	end
+
+	if (effectiveDistance3d > maxInteractDistance3d and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
+		task.pathChecked = false
+		return false
+	end
 	
 	-- Interactable or bypass: claim control from here on (return true).
 	-- Must be fully landed and not mid-animation before firing interact.
