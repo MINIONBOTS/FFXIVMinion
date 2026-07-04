@@ -81,6 +81,35 @@ local function TaskIsPlainMoveTo(task)
 	return true
 end
 
+local function TaskDebugPos(pos)
+	if (not table.valid(pos)) then
+		return "nil"
+	end
+	return tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z)
+end
+
+local function TaskDebugParentName(task)
+	local parent = task and task.ParentTask and task:ParentTask() or nil
+	return parent and parent.name or "nil"
+end
+
+local function TaskHandoffLog(message)
+	d("[TaskHandoff] "..tostring(message))
+end
+
+local function TaskHandoffLogThrottle(task, key, ms, message)
+	if (not task) then
+		TaskHandoffLog(message)
+		return
+	end
+	task._taskHandoffLog = task._taskHandoffLog or {}
+	local now = Now()
+	if (TimeSince(IsNull(task._taskHandoffLog[key], 0)) > ms) then
+		task._taskHandoffLog[key] = now
+		TaskHandoffLog(message)
+	end
+end
+
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 
 function ffxiv_task_movetopos.Create()
@@ -138,6 +167,18 @@ function ffxiv_task_movetopos.Create()
 end
 
 function ffxiv_task_movetopos:Init()
+	TaskHandoffLog("MOVETOPOS init parent="..TaskDebugParentName(self)
+		.." pos="..TaskDebugPos(self.pos)
+		.." gatePos="..TaskDebugPos(self.gatePos)
+		.." range="..tostring(self.range)
+		.." range3d="..tostring(self.range3d)
+		.." interact="..tostring(self.interact)
+		.." contentid="..tostring(self.contentid)
+		.." remainMounted="..tostring(self.remainMounted)
+		.." useExactMovement="..tostring(self.useExactMovement)
+		.." destMapID="..tostring(self.destMapID)
+		.." startMap="..tostring(self.startMap))
+
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 160 )
     self:add( ke_stuck, self.overwatch_elements)
 	
@@ -183,14 +224,26 @@ end
 
 function ffxiv_task_movetopos:task_complete_eval()
 	if ((MIsLoading() or (MIsLocked() and not HasInteractWindows())) and ml_navigation:IsUsingConnection()) then
+		TaskHandoffLogThrottle(self, "movetopos-locked-connection", 1000,
+			"MOVETOPOS holding completion while loading/locked on connection parent="..TaskDebugParentName(self)
+			.." loading="..tostring(MIsLoading())
+			.." locked="..tostring(MIsLocked())
+			.." interactWindows="..tostring(HasInteractWindows()))
 		return false
 	end
 	
 	if (Busy() or self.startMap ~= Player.localmapid) then
+		TaskHandoffLog("MOVETOPOS complete_eval true reason="
+			..(Busy() and "Busy" or "MapChanged")
+			.." parent="..TaskDebugParentName(self)
+			.." startMap="..tostring(self.startMap)
+			.." currentMap="..tostring(Player.localmapid))
 		return true
 	end
 	
 	if (self.destMapID and Player.localmapid == self.destMapID) then
+		TaskHandoffLog("MOVETOPOS complete_eval true reason=DestMapReached parent="..TaskDebugParentName(self)
+			.." destMapID="..tostring(self.destMapID))
 		return true
 	end
 
@@ -249,12 +302,19 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (self.useExactMovement and not self.exactMovementStarted) then
 				local macroThresh = NavigationManager.MacroMeshDistanceThreshold or 650
 				if (dist3d > macroThresh) then
+					TaskHandoffLog("MOVETOPOS disabling exact movement: dist3d="..tostring(dist3d)
+						.." macroThresh="..tostring(macroThresh)
+						.." parent="..TaskDebugParentName(self))
 					self.useExactMovement = false
 				end
 			end
 
 			-- Switch to MoveToExact for final approach when within 10y (ground only)
 			if (self.useExactMovement and not self.exactMovementStarted and not self.exactMovementDone and dist3d < 10 and not IsFlying() and not IsDiving()) then
+				TaskHandoffLog("MOVETOPOS starting MoveToExact parent="..TaskDebugParentName(self)
+					.." pos="..TaskDebugPos(gotoPos)
+					.." dist2d="..tostring(dist2d)
+					.." dist3d="..tostring(dist3d))
 				if (ml_navigation.canPath) then
 					ml_navigation:DisablePathing()
 				end
@@ -270,16 +330,34 @@ function ffxiv_task_movetopos:task_complete_eval()
 				self.exactMovementDone = true
 				ml_global_information.monitorStuck = true
 				ml_navigation:EnablePathing()
+				TaskHandoffLog("MOVETOPOS MoveToExact finished parent="..TaskDebugParentName(self)
+					.." pos="..TaskDebugPos(gotoPos)
+					.." dist2d="..tostring(dist2d)
+					.." dist3d="..tostring(dist3d))
 			end
 
 			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
 				if (self.interact and self.interact ~= 0) then
 					local interactable = EntityList:Get(self.interact)
 					if (not table.valid(interactable) or not interactable.interactable) then
+						TaskHandoffLogThrottle(self, "movetopos-wait-interact", 1000,
+							"MOVETOPOS in range but waiting for interactable target parent="..TaskDebugParentName(self)
+							.." interact="..tostring(self.interact)
+							.." targetValid="..tostring(table.valid(interactable))
+							.." targetable="..tostring(interactable and interactable.targetable)
+							.." interactable="..tostring(interactable and interactable.interactable)
+							.." dist2d="..tostring(dist2d)
+							.." dist3d="..tostring(dist3d))
 						return false
 					end
 				end
 				if not plainMoveTo and not self.remainMounted and Player.ismounted and (IsFlying() or IsDiving()) then
+					TaskHandoffLogThrottle(self, "movetopos-air-dismount", 1000,
+						"MOVETOPOS in range but airborne mounted; preparing dismount parent="..TaskDebugParentName(self)
+						.." flying="..tostring(IsFlying())
+						.." diving="..tostring(IsDiving())
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d))
 					if (IsDiving()) then
 						Player:Stop()
 						if not IsDismounting() then
@@ -306,11 +384,22 @@ function ffxiv_task_movetopos:task_complete_eval()
 				if (not plainMoveTo and not self.remainMounted and Player.ismounted) then
 					-- Interaction-style MoveTo tasks still need to be grounded before dismounting.
 					if (IsFlying() or IsDiving()) then
+						TaskHandoffLogThrottle(self, "movetopos-ground-before-dismount", 1000,
+							"MOVETOPOS waiting to be grounded before dismount parent="..TaskDebugParentName(self)
+							.." flying="..tostring(IsFlying())
+							.." diving="..tostring(IsDiving()))
 						return false
 					end
+					TaskHandoffLog("MOVETOPOS dismounting before completion parent="..TaskDebugParentName(self))
 					Dismount()
 					return false
 				else
+					TaskHandoffLog("MOVETOPOS complete_eval true reason=RangeReached parent="..TaskDebugParentName(self)
+						.." plainMoveTo="..tostring(plainMoveTo)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d)
+						.." requiredRange="..tostring(requiredRange)
+						.." requiredRange3d="..tostring(requiredRange3d))
 					return true
 				end
 			end
@@ -320,6 +409,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
+	TaskHandoffLog("MOVETOPOS complete_execute parent="..TaskDebugParentName(self)
+		.." pos="..TaskDebugPos(self.pos)
+		.." completed="..tostring(self.completed)
+		.." useExactMovement="..tostring(self.useExactMovement))
 	if (self.useExactMovement) then
 		Player:StopExact()
 		ml_global_information.monitorStuck = true
@@ -628,6 +721,20 @@ function ffxiv_task_movetointeract.Create()
 end
 
 function ffxiv_task_movetointeract:Init()
+	TaskHandoffLog("MOVETOINTERACT init parent="..TaskDebugParentName(self)
+		.." pos="..TaskDebugPos(self.pos)
+		.." contentid="..tostring(self.contentid)
+		.." interact="..tostring(self.interact)
+		.." navid="..tostring(self.navid)
+		.." interactRange="..tostring(self.interactRange)
+		.." interactRange3d="..tostring(self.interactRange3d)
+		.." killParent="..tostring(self.killParent)
+		.." useTargetPos="..tostring(self.useTargetPos)
+		.." useProfilePos="..tostring(self.useProfilePos)
+		.." conversationstring="..tostring(self.conversationstring)
+		.." conversationindex="..tostring(self.conversationindex)
+		.." startMap="..tostring(self.startMap))
+
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
@@ -674,13 +781,26 @@ end
 function ffxiv_task_movetointeract:task_complete_eval()
 	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 		local convoList = GetConversationList()
+		TaskHandoffLogThrottle(self, "mti-dialog-open", 1000,
+			"MOVETOINTERACT dialog open parent="..TaskDebugParentName(self)
+			.." selectString="..tostring(IsControlOpen("SelectString"))
+			.." selectIconString="..tostring(IsControlOpen("SelectIconString"))
+			.." convoCount="..tostring(table.valid(convoList) and table.size(convoList) or 0)
+			.." expectedString="..tostring(self.conversationstring)
+			.." expectedStrings="..tostring(table.valid(self.conversationstrings) and table.size(self.conversationstrings) or self.conversationstrings)
+			.." expectedIndex="..tostring(self.conversationindex)
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." interactState="..tostring(self.interactState))
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
 				for selectindex,convo in pairs(convoList) do
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(self.conversationstring)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-						d("Use conversation line ["..tostring(convo).."]")
+						TaskHandoffLog("MOVETOINTERACT selecting conversation line by string parent="..TaskDebugParentName(self)
+							.." index="..tostring(selectindex)
+							.." line="..tostring(convo)
+							.." expected="..tostring(self.conversationstring))
 						SelectConversationLine(selectindex)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
@@ -692,7 +812,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = CleanConvoLine(v)
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-							d("Use conversation line ["..tostring(convo).."]")
+							TaskHandoffLog("MOVETOINTERACT selecting conversation line by strings parent="..TaskDebugParentName(self)
+								.." index="..tostring(selectindex)
+								.." line="..tostring(convo)
+								.." expected="..tostring(v))
 							SelectConversationLine(selectindex)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
@@ -700,30 +823,56 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					end
 				end
 				if (self.conversationindex > 0) then
+					TaskHandoffLog("MOVETOINTERACT selecting conversation index parent="..TaskDebugParentName(self)
+						.." index="..tostring(self.conversationindex)
+						.." source=conversationstringsFallback")
 					SelectConversationIndex(self.conversationindex)
 					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 					return false
 				end
 			elseif (self.conversationindex > 0) then
+				TaskHandoffLog("MOVETOINTERACT selecting conversation index parent="..TaskDebugParentName(self)
+					.." index="..tostring(self.conversationindex))
 				SelectConversationIndex(self.conversationindex)
 				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 				return false
 			end
+			TaskHandoffLogThrottle(self, "mti-dialog-no-match", 1000,
+				"MOVETOINTERACT dialog open but no configured conversation matched parent="..TaskDebugParentName(self)
+				.." convoCount="..tostring(table.size(convoList))
+				.." expectedString="..tostring(self.conversationstring)
+				.." expectedStrings="..tostring(table.valid(self.conversationstrings) and table.size(self.conversationstrings) or self.conversationstrings)
+				.." expectedIndex="..tostring(self.conversationindex))
+		else
+			TaskHandoffLogThrottle(self, "mti-dialog-no-list", 1000,
+				"MOVETOINTERACT dialog control open but GetConversationList returned empty parent="..TaskDebugParentName(self))
 		end
 	end
 	
 	-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
 	if ((MIsLoading() or (MIsLocked() and not HasInteractWindows())) and ml_navigation:IsUsingConnection()) then
+		TaskHandoffLogThrottle(self, "mti-locked-connection", 1000,
+			"MOVETOINTERACT holding completion while loading/locked on connection parent="..TaskDebugParentName(self)
+			.." loading="..tostring(MIsLoading())
+			.." locked="..tostring(MIsLocked())
+			.." interactWindows="..tostring(HasInteractWindows())
+			.." usingConnection="..tostring(ml_navigation:IsUsingConnection()))
 		return false
 	end
 	
 	-- Complete when a shop window is open (NPC stays targetable with shop open)
 	if (IsShopWindowOpen() or IsControlOpen("GrandCompanyExchange")) then
+		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=ShopWindow parent="..TaskDebugParentName(self)
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." interactState="..tostring(self.interactState))
 		return true
 	end
 
 	-- Map change (e.g. transfer after interaction). task_complete_execute uses 0ms parent wait.
 	if (self.startMap ~= Player.localmapid) then
+		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=MapChanged parent="..TaskDebugParentName(self)
+			.." startMap="..tostring(self.startMap)
+			.." currentMap="..tostring(Player.localmapid))
 		return true
 	end
 
@@ -734,6 +883,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local interactAttempted = IsNull(self.interactAttempts, 0) > 0
 	if (self.interactActionCommitted and interactAttempted) then
 		if (self.interactState == "accepted" or self.interactState == "complete") then
+			TaskHandoffLog("MOVETOINTERACT complete_eval true reason=InteractState parent="..TaskDebugParentName(self)
+				.." interactState="..tostring(self.interactState)
+				.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+				.." actionAt="..tostring(self.interactActionAt))
 			return true
 		end
 	end
@@ -759,11 +912,30 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
 				if (postLandingInteractRequired) then
+					TaskHandoffLogThrottle(self, "mti-postlanding-wait-target", 1000,
+						"MOVETOINTERACT waiting for post-landing interact target parent="..TaskDebugParentName(self)
+						.." interact="..tostring(self.interact)
+						.." targetValid="..tostring(table.valid(interactable))
+						.." targetable="..tostring(interactable and interactable.targetable)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d))
 					return false
 				end
 				if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
+					TaskHandoffLogThrottle(self, "mti-missing-target-too-far", 1000,
+						"MOVETOINTERACT missing target but too far to fail-forward parent="..TaskDebugParentName(self)
+						.." interact="..tostring(self.interact)
+						.." completeRange3d="..tostring(completeRange3d)
+						.." dist3d="..tostring(dist3d))
 					return false
 				end
+				TaskHandoffLog("MOVETOINTERACT complete_eval true reason=TargetMissingOrUntargetable parent="..TaskDebugParentName(self)
+					.." interact="..tostring(self.interact)
+					.." targetValid="..tostring(table.valid(interactable))
+					.." targetable="..tostring(interactable and interactable.targetable)
+					.." dist2d="..tostring(dist2d)
+					.." dist3d="..tostring(dist3d)
+					.." attempts="..tostring(IsNull(self.interactAttempts, 0)))
 				return true
 			end
 		else
@@ -771,11 +943,26 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
 					if (postLandingInteractRequired) then
+						TaskHandoffLogThrottle(self, "mti-postlanding-wait-content", 1000,
+							"MOVETOINTERACT waiting for post-landing contentid target parent="..TaskDebugParentName(self)
+							.." contentid="..tostring(self.contentid)
+							.." dist2d="..tostring(dist2d)
+							.." dist3d="..tostring(dist3d))
 						return false
 					end
 					if (completeRange3d and completeRange3d > 0 and dist3d > completeRange3d) then
+						TaskHandoffLogThrottle(self, "mti-missing-content-too-far", 1000,
+							"MOVETOINTERACT missing contentid target but too far to fail-forward parent="..TaskDebugParentName(self)
+							.." contentid="..tostring(self.contentid)
+							.." completeRange3d="..tostring(completeRange3d)
+							.." dist3d="..tostring(dist3d))
 						return false
 					end
+					TaskHandoffLog("MOVETOINTERACT complete_eval true reason=ContentTargetMissingNearPos parent="..TaskDebugParentName(self)
+						.." contentid="..tostring(self.contentid)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d)
+						.." attempts="..tostring(IsNull(self.interactAttempts, 0)))
 					return true
 				end
 			end			
@@ -787,8 +974,14 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	-- Busy to complete the task (post-interact UI, etc.) once interactAttempts > 0.
 	if (Busy()) then
 		if (IsNull(self.interactAttempts, 0) == 0) then
+			TaskHandoffLogThrottle(self, "mti-busy-no-attempts", 1000,
+				"MOVETOINTERACT busy but no interact attempts yet; holding completion parent="..TaskDebugParentName(self)
+				.." interactState="..tostring(self.interactState))
 			return false
 		end
+		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=BusyAfterInteract parent="..TaskDebugParentName(self)
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." interactState="..tostring(self.interactState))
 		return true
 	end
 
@@ -796,6 +989,12 @@ function ffxiv_task_movetointeract:task_complete_eval()
 end
 
 function ffxiv_task_movetointeract:task_complete_execute()
+	TaskHandoffLog("MOVETOINTERACT complete_execute parent="..TaskDebugParentName(self)
+		.." interact="..tostring(self.interact)
+		.." contentid="..tostring(self.contentid)
+		.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+		.." interactState="..tostring(self.interactState)
+		.." killParent="..tostring(self.killParent))
     Player:Stop()
 	Player:StopExact()
 	
@@ -828,7 +1027,11 @@ function ffxiv_task_movetointeract:task_fail_eval()
 			ml_global_information.failedInteracts = {}
 		end
 		if (self.interact) then
-			d("adding ["..tostring(self.interact).."] to failed interacts")
+			TaskHandoffLog("MOVETOINTERACT failing due to maxAttempts parent="..TaskDebugParentName(self)
+				.." interact="..tostring(self.interact)
+				.." contentid="..tostring(self.contentid)
+				.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+				.." maxAttempts="..tostring(IsNull(self.maxAttempts, 0)))
 			ml_global_information.failedInteracts[self.interact] = Now()
 		end
 		return true
@@ -1569,6 +1772,13 @@ function ffxiv_task_grindCombat:ShouldIgnoreLOS(target)
 end
 
 function ffxiv_task_grindCombat:Init()
+	TaskHandoffLog("GRIND_COMBAT init parent="..TaskDebugParentName(self)
+		.." targetid="..tostring(self.targetid)
+		.." endOnDisengage="..tostring(self.endOnDisengage)
+		.." noFlee="..tostring(self.noFlee)
+		.." attackThrottle="..tostring(self.attackThrottle)
+		.." hasBetterTargetFunction="..tostring(type(self.betterTargetFunction) == "function"))
+
     local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 50 )
 	self:add( ke_avoidance, self.overwatch_elements)
 	
@@ -1819,6 +2029,10 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	else
+		TaskHandoffLogThrottle(self, "grind-missing-target-process", 1000,
+			"GRIND_COMBAT has no valid target during Process parent="..TaskDebugParentName(self)
+			.." targetid="..tostring(self.targetid)
+			.." syncLevel="..tostring(Player:GetSyncLevel()))
 		if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 			if (ml_task_hub:CurrentTask():ParentTask()) then
 				ml_debug("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
@@ -1834,7 +2048,11 @@ end
 function ffxiv_task_grindCombat:task_complete_eval()
 	local target = EntityList:Get(self.targetid)
     if (not target or not target.alive or not target.attackable) then
-		--d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
+		TaskHandoffLog("GRIND_COMBAT complete_eval true reason=TargetInvalid parent="..TaskDebugParentName(self)
+			.." targetid="..tostring(self.targetid)
+			.." targetValid="..tostring(table.valid(target))
+			.." alive="..tostring(target and target.alive)
+			.." attackable="..tostring(target and target.attackable))
         return true
     end
 
@@ -1848,6 +2066,8 @@ function ffxiv_task_grindCombat:task_complete_eval()
 			self.hadAggro = true
 		end
 		if (self.hadAggro and targetTargetId == 0) then
+			TaskHandoffLog("GRIND_COMBAT complete_eval true reason=Disengaged parent="..TaskDebugParentName(self)
+				.." targetid="..tostring(self.targetid))
 			return true
 		end
 	end
@@ -1855,6 +2075,10 @@ function ffxiv_task_grindCombat:task_complete_eval()
 	return false
 end
 function ffxiv_task_grindCombat:task_complete_execute()
+	TaskHandoffLog("GRIND_COMBAT complete_execute parent="..TaskDebugParentName(self)
+		.." targetid="..tostring(self.targetid)
+		.." hadAggro="..tostring(self.hadAggro)
+		.." endOnDisengage="..tostring(self.endOnDisengage))
 	ml_debug("[GrindCombat]: Task completing.")
 	if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 		if (Player:GetSyncLevel() ~= 0) then

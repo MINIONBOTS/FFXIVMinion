@@ -768,9 +768,10 @@ function ml_navigation:GetLandingRequest(task)
 		end
 	end
 	actionRange = math.max(actionRange, 2.5)
-	local landingSearchRadius = math.min(35, math.max(20, actionRange + 12, (tonumber(task.dismountDistance) or 5) + 18))
-	local landingMaxDistance = math.min(35, math.max(landingSearchRadius, actionRange))
-	local activateDistance = math.min(45, math.max(30, landingMaxDistance + 8, (tonumber(task.dismountDistance) or 5) + 20))
+	local dismountDistance = tonumber(task.dismountDistance) or 5
+	local landingSearchRadius = math.min(12, math.max(8, actionRange + 4, dismountDistance + 4))
+	local landingMaxDistance = math.min(12, math.max(landingSearchRadius, actionRange))
+	local activateDistance = math.min(35, math.max(24, landingMaxDistance + 8, dismountDistance + 14))
 	return {
 		key = tostring(task.started or task.name) .. ':' .. tostring(task.interact or 0),
 		taskKey = self:GetAirborneGroundAcquireTaskKey(task),
@@ -782,8 +783,62 @@ function ml_navigation:GetLandingRequest(task)
 	}
 end
 
+function ml_navigation:GetLandingPlanCacheFailedKey(request)
+	if not (request and request.key) then return "none" end
+	local failed = ffnav.failedLandingCandidates and ffnav.failedLandingCandidates[request.key]
+	if not table.valid(failed) then return "none" end
+	return string.format("%.1f:%.1f:%.1f:%s",
+		tonumber(failed.x) or 0, tonumber(failed.y) or 0, tonumber(failed.z) or 0,
+		tostring(failed.reason or "failed"))
+end
+
+function ml_navigation:GetCachedLandingSite(request)
+	local cache = ffnav.landingPlanCache
+	if not (cache and request and table.valid(cache.landing) and table.valid(cache.anchor) and table.valid(request.anchor)) then
+		return nil
+	end
+	if cache.key ~= request.key or cache.taskKey ~= request.taskKey then return nil end
+	if math.distance3d(cache.anchor, request.anchor) > 1.5 then return nil end
+	if math.abs((tonumber(cache.maxSearchRadius) or 0) - (tonumber(request.maxSearchRadius) or 0)) > 0.1 then return nil end
+	if math.abs((tonumber(cache.maxDistance3d) or 0) - (tonumber(request.maxDistance3d) or 0)) > 0.1 then return nil end
+	if cache.failedKey ~= self:GetLandingPlanCacheFailedKey(request) then return nil end
+	return cache.landing, cache.quality, cache.original
+end
+
+function ml_navigation:SetCachedLandingSite(request, landing, quality, original)
+	if not (request and table.valid(request.anchor) and table.valid(landing)) then return end
+	ffnav.landingPlanCache = {
+		key = request.key,
+		taskKey = request.taskKey,
+		anchor = { x = request.anchor.x, y = request.anchor.y, z = request.anchor.z },
+		maxSearchRadius = request.maxSearchRadius,
+		maxDistance3d = request.maxDistance3d,
+		failedKey = self:GetLandingPlanCacheFailedKey(request),
+		landing = { x = landing.x, y = landing.y, z = landing.z },
+		quality = quality,
+		original = original,
+	}
+end
+
+function ml_navigation:ClearCachedLandingSite(request)
+	if not ffnav.landingPlanCache then return end
+	if not request or ffnav.landingPlanCache.key == request.key then
+		ffnav.landingPlanCache = nil
+	end
+end
+
 function ml_navigation:ResolveLandingSite(request, approachPos)
 	if not (request and type(CheckLandingZone) == 'function') then return nil end
+	local cachedLanding, cachedQuality, cachedOriginal = self:GetCachedLandingSite(request)
+	if cachedLanding then
+		if (self.DebugLog) then
+			self:DebugLog("landing-cache-" .. tostring(request.key),
+				"Reusing cached landing target=("
+				.. string.format("%.1f, %.1f, %.1f", cachedLanding.x, cachedLanding.y, cachedLanding.z)
+				.. ") key=" .. tostring(request.key), 1000)
+		end
+		return cachedLanding, cachedQuality, cachedOriginal
+	end
 	local original, lx, ly, lz, quality
 	local failed = ffnav.failedLandingCandidates and ffnav.failedLandingCandidates[request.key]
 	if table.valid(approachPos) then
@@ -805,10 +860,16 @@ function ml_navigation:ResolveLandingSite(request, approachPos)
 			request.footprintRadius, request.maxSearchRadius, request.maxDistance3d)
 	end
 	if lx and ly and lz then
-		return { x = lx, y = ly, z = lz }, tonumber(quality) or 1, original == true
+		local landing = { x = lx, y = ly, z = lz }
+		local landingQuality = tonumber(quality) or 1
+		local landingOriginal = original == true
+		self:SetCachedLandingSite(request, landing, landingQuality, landingOriginal)
+		return landing, landingQuality, landingOriginal
 	end
 	if original then
-		return { x = request.anchor.x, y = request.anchor.y, z = request.anchor.z }, 1, true
+		local landing = { x = request.anchor.x, y = request.anchor.y, z = request.anchor.z }
+		self:SetCachedLandingSite(request, landing, 1, true)
+		return landing, 1, true
 	end
 	return nil
 end
@@ -991,6 +1052,14 @@ function ml_navigation:PlanFlyingLanding(controller, request, ppos)
 		return false
 	end
 	controller.phase = 'approach'
+	controller.lastApproachWaypoint = nil
+	controller.lastApproachDist2d = nil
+	controller.lastApproachDist3d = nil
+	controller.approachNoProgressTicks = 0
+	controller.approachAutoFollowDropTicks = 0
+	controller.approachDispatchFailTicks = 0
+	controller.approachStationaryTicks = 0
+	controller.lastApproachPlayerPos = nil
 	d('[Landing] route=' .. tostring(#route) .. ' quality=' .. tostring(quality)
 		.. ' target=(' .. string.format('%.1f, %.1f, %.1f', landing.x, landing.y, landing.z) .. ')')
 	return true
@@ -1023,6 +1092,7 @@ function ml_navigation:MarkLandingCandidateFailed(controller, reason)
 		z = controller.landing.z,
 		reason = reason or "landing_failed",
 	}
+	self:ClearCachedLandingSite(controller.request)
 	d('[Landing] rejected failed landing target=('
 		.. string.format('%.1f, %.1f, %.1f', controller.landing.x, controller.landing.y, controller.landing.z)
 		.. ') reason=' .. tostring(reason or "landing_failed"))
@@ -1069,17 +1139,130 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 		return true
 	end
 	if not IsFlying() then
-		return self:FinishFlyingLanding(controller, request)
+		if table.valid(ppos) and table.valid(controller.landing) then
+			local dist2d = math.distance2d(ppos, controller.landing)
+			local dist3d = math.distance3d(ppos, controller.landing)
+			if dist2d <= 4.0 and dist3d <= 6.0 then
+				return self:FinishFlyingLanding(controller, request)
+			end
+			if (self.DebugLog) then
+				self:DebugLog("landing-controller-not-flying-far",
+					"Landing controller not flying and far from landing dist2d="
+					.. tostring(math.round(dist2d, 1))
+					.. " dist3d=" .. tostring(math.round(dist3d, 1))
+					.. " target=" .. self:FormatGroundAcquirePoint(controller.landing), 1000)
+			end
+		end
+		if Player and Player.ismounted and CanFlyInZone() then
+			if (self.DebugLog) then
+				self:DebugLog("landing-controller-wait-takeoff",
+					"Landing controller preserving route while mounted but not flying; takeoff handoff can continue.", 1000)
+			end
+			self:ClearNavigationHandoff("airLanding")
+			return false
+		end
+		self:ResetLandingController()
+		self:ClearNavigationHandoff("airLanding")
+		return false
 	end
 	self:SuppressUnstuck(1500, "LandingApproach")
 	local waypoint = controller.route and controller.route[controller.waypoint]
-	if waypoint and math.distance2d(ppos, waypoint) <= 2.0
-		and math.distance3d(ppos, waypoint) <= 3.5 then
-		controller.waypoint = controller.waypoint + 1
-		waypoint = controller.route[controller.waypoint]
+	if waypoint then
+		local waypointIndex = tonumber(controller.waypoint or 1) or 1
+		local waypoint2d = waypoint.landing and 1.25 or 2.0
+		local waypoint3d = waypoint.landing and 0.65 or 3.5
+		local dist2d = math.distance2d(ppos, waypoint)
+		local dist3d = math.distance3d(ppos, waypoint)
+		local playerDelta = table.valid(controller.lastApproachPlayerPos)
+			and math.distance3d(ppos, controller.lastApproachPlayerPos) or 999
+		local wasAutoFollowOn = (Player and Player.IsAutoFollowOn and Player:IsAutoFollowOn()) == true
+		local moving = (Player and Player.IsMoving and Player:IsMoving()) == true
+		if (self.DebugLog) then
+			self:DebugLog("landing-approach-state",
+				"Landing approach waypoint=" .. tostring(waypointIndex)
+				.. "/" .. tostring(controller.route and #controller.route or 0)
+				.. " landing=" .. tostring(waypoint.landing == true)
+				.. " dist2d=" .. tostring(math.round(dist2d, 1))
+				.. " dist3d=" .. tostring(math.round(dist3d, 1))
+				.. " noProgress=" .. tostring(controller.approachNoProgressTicks or 0)
+				.. " autoDrop=" .. tostring(controller.approachAutoFollowDropTicks or 0)
+				.. " stationary=" .. tostring(controller.approachStationaryTicks or 0)
+				.. " moving=" .. tostring(moving)
+				.. " afOn=" .. tostring(wasAutoFollowOn)
+				.. " player=" .. self:FormatGroundAcquirePoint(ppos)
+				.. " waypoint=" .. self:FormatGroundAcquirePoint(waypoint)
+				.. " target=" .. self:FormatGroundAcquirePoint(controller.landing), 1000)
+		end
+		local progressed = false
+		if controller.lastApproachWaypoint ~= waypointIndex
+			or not controller.lastApproachDist3d
+			or dist3d <= ((tonumber(controller.lastApproachDist3d) or dist3d) - 0.75)
+			or dist2d <= ((tonumber(controller.lastApproachDist2d) or dist2d) - 0.75) then
+			progressed = true
+			controller.lastApproachWaypoint = waypointIndex
+			controller.lastApproachDist2d = dist2d
+			controller.lastApproachDist3d = dist3d
+			controller.approachNoProgressTicks = 0
+			controller.approachAutoFollowDropTicks = 0
+			controller.approachDispatchFailTicks = 0
+			controller.approachStationaryTicks = 0
+		else
+			controller.approachNoProgressTicks = (controller.approachNoProgressTicks or 0) + 1
+		end
+		if dist2d <= waypoint2d and dist3d <= waypoint3d then
+			controller.waypoint = controller.waypoint + 1
+			progressed = true
+			controller.lastApproachWaypoint = nil
+			controller.lastApproachDist2d = nil
+			controller.lastApproachDist3d = nil
+			controller.approachNoProgressTicks = 0
+			controller.approachAutoFollowDropTicks = 0
+			controller.approachDispatchFailTicks = 0
+			controller.approachStationaryTicks = 0
+			controller.lastApproachPlayerPos = nil
+			waypoint = controller.route[controller.waypoint]
+		end
+		controller.lastApproachPlayerPos = { x = ppos.x, y = ppos.y, z = ppos.z }
+		if waypoint and not progressed then
+			if wasAutoFollowOn == false then
+				controller.approachAutoFollowDropTicks = (controller.approachAutoFollowDropTicks or 0) + 1
+			end
+			if (not moving) and playerDelta < 0.15 then
+				controller.approachStationaryTicks = (controller.approachStationaryTicks or 0) + 1
+			else
+				controller.approachStationaryTicks = 0
+			end
+		end
 	end
 	if waypoint then
-		self:DispatchAutoFollowNode(waypoint, true)
+		local dispatched = self:DispatchAutoFollowNode(waypoint, true)
+		if not dispatched then
+			controller.approachDispatchFailTicks = (controller.approachDispatchFailTicks or 0) + 1
+		else
+			controller.approachDispatchFailTicks = 0
+		end
+		local noProgress = tonumber(controller.approachNoProgressTicks) or 0
+		local autoDrop = tonumber(controller.approachAutoFollowDropTicks) or 0
+		local dispatchFail = tonumber(controller.approachDispatchFailTicks) or 0
+		local stationary = tonumber(controller.approachStationaryTicks) or 0
+		if dispatchFail >= 6 or (noProgress >= 80 and (autoDrop >= 12 or stationary >= 20)) then
+			d('[Landing] approach state stalled waypoint=' .. tostring(controller.waypoint)
+				.. '/' .. tostring(controller.route and #controller.route or 0)
+				.. ' noProgress=' .. tostring(noProgress)
+				.. ' autoDrop=' .. tostring(autoDrop)
+				.. ' stationary=' .. tostring(stationary)
+				.. ' dispatchFail=' .. tostring(dispatchFail)
+				.. ' player=' .. self:FormatGroundAcquirePoint(ppos)
+				.. ' waypoint=' .. self:FormatGroundAcquirePoint(waypoint)
+				.. ' target=' .. self:FormatGroundAcquirePoint(controller.landing))
+			self:MarkLandingCandidateFailed(controller, "approach_state_stalled")
+			self:ResetLandingController()
+			self:ClearAirborneGroundAcquire()
+			self:ClearNavigationHandoff("airLanding")
+			self:SuppressUnstuck(1500, "LandingApproachStateStalled")
+			self:DisableAutoFollow(true, "LandingApproachStateStalled")
+			return false
+		end
 		return true
 	end
 	return self:FinishFlyingLanding(controller, request)
@@ -2339,16 +2522,47 @@ function ml_navigation:LandForAction(anchor, maxDistance3d, source)
 		taskKey = self:GetAirborneGroundAcquireTaskKey(ml_task_hub and ml_task_hub:CurrentTask()),
 		source = tostring(source or 'action'),
 		anchor = { x = anchor.x, y = anchor.y, z = anchor.z },
-		maxDistance3d = math.min(35, math.max(20, actionRange + 12)),
-		maxSearchRadius = math.min(35, math.max(20, actionRange + 12)),
+		maxDistance3d = math.min(12, math.max(8, actionRange + 4)),
+		maxSearchRadius = math.min(12, math.max(8, actionRange + 4)),
 		activateDistance = math.huge,
 		footprintRadius = math.max((Player and Player.hitradius) or 0.5, 3.5),
 	}
 	return self:ManageFlyingLanding(request, Player.pos)
 end
 
+function ml_navigation:IsStableLandingFlight()
+	if not IsFlying() then
+		ffnav.landingStableFlightSince = 0
+		return false
+	end
+	if Player and Player:IsJumping() then
+		ffnav.landingStableFlightSince = 0
+		return false
+	end
+	if ffnav.isascending then
+		ffnav.landingStableFlightSince = 0
+		return false
+	end
+	local now = Now()
+	if not ffnav.landingStableFlightSince or ffnav.landingStableFlightSince == 0 then
+		ffnav.landingStableFlightSince = now
+		return false
+	end
+	return TimeSince(ffnav.landingStableFlightSince) >= 650
+end
+
 function ml_navigation:UpdateFlyingLanding(task, ppos)
 	if not IsFlying() then return false end
+	if not self:IsStableLandingFlight() then
+		if (self.DebugLog) then
+			self:DebugLog("landing-wait-stable-flight",
+				"Landing controller waiting for stable flight before planning task="
+				.. tostring(task and task.name or "nil")
+				.. " jumping=" .. tostring(Player and Player:IsJumping() or false)
+				.. " ascending=" .. tostring(ffnav.isascending or false), 1000)
+		end
+		return false
+	end
 	local controller = ffnav.landingController
 	if self:IsLandingDismountOrActionHandoffActive()
 		and not (controller and controller.active and controller.phase == 'dismount') then return false end

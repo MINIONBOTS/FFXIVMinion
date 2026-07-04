@@ -205,6 +205,9 @@ function e_add_killtarget:execute()
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.betterTargetFunction = ml_task_hub:CurrentTask().targetFunction
 	newTask.targetid = c_add_killtarget.targetid
+	d("[TaskHandoff] AddKillTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+		.." targetid="..tostring(newTask.targetid)
+		.." hasBetterTargetFunction="..tostring(type(newTask.betterTargetFunction) == "function"))
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -246,6 +249,9 @@ function e_killaggrotarget:execute()
 	newTask.endOnDisengage = true
 	Player:SetTarget(c_killaggrotarget.targetid)
     newTask.targetid = c_killaggrotarget.targetid
+	d("[TaskHandoff] KillAggroTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+		.." targetid="..tostring(newTask.targetid)
+		.." endOnDisengage="..tostring(newTask.endOnDisengage))
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 ---------------------------------------------------------------------------------------------
@@ -300,6 +306,9 @@ function e_assistleader:execute()
 			local newTask = ffxiv_task_grindCombat.Create()
 			newTask.targetid = id 
 			newTask.noFateSync = true
+			d("[TaskHandoff] AssistLeader -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+				.." targetid="..tostring(newTask.targetid)
+				.." noFateSync="..tostring(newTask.noFateSync))
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	else
@@ -1331,6 +1340,11 @@ function e_movetogate:execute()
 	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
+	d("[TaskHandoff] MoveToGate -> MOVETOPOS parent="..tostring(ml_task_hub:CurrentTask().name)
+		.." pos="..tostring(newTask.pos and newTask.pos.x)..","..tostring(newTask.pos and newTask.pos.y)..","..tostring(newTask.pos and newTask.pos.z)
+		.." gatePos="..tostring(newTask.gatePos and newTask.gatePos.x)..","..tostring(newTask.gatePos and newTask.gatePos.y)..","..tostring(newTask.gatePos and newTask.gatePos.z)
+		.." destMapID="..tostring(newTask.destMapID)
+		.." remainMounted="..tostring(newTask.remainMounted))
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -3073,6 +3087,9 @@ function e_usenavinteraction:execute()
 	end
 	
 	if (e_usenavinteraction.task) then
+		d("[TaskHandoff] UseNavInteraction executing transport function parent="..tostring(ml_task_hub:CurrentTask().name)
+			.." pos="..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.x)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.y)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.z)
+			.." map="..tostring(Player.localmapid))
 		e_usenavinteraction.task()
 	end
 	e_usenavinteraction.timer = Now() + 2000
@@ -5274,12 +5291,32 @@ function c_dointeract:evaluate()
 	if (task.interactState == "interactSent") then
 		if (HasInteractWindows() or Busy() or IsShopWindowOpen() or IsControlOpen("GrandCompanyExchange")) then
 			task.interactState = "accepted"
+			if (not task._interactAcceptedLogged) then
+				task._interactAcceptedLogged = true
+				local parent = task.ParentTask and task:ParentTask() or nil
+				d("[TaskHandoff] DoInteract accepted parent="..tostring(parent and parent.name)
+					.." task="..tostring(task.name)
+					.." interact="..tostring(task.interact)
+					.." attempts="..tostring(IsNull(task.interactAttempts, 0))
+					.." busy="..tostring(Busy())
+					.." interactWindows="..tostring(HasInteractWindows())
+					.." shop="..tostring(IsShopWindowOpen())
+					.." gcExchange="..tostring(IsControlOpen("GrandCompanyExchange")))
+			end
 			return true
 		end
 		if (task.interactStateNeedsResult) then
 			return true
 		end
 		task.interactState = "complete"
+		if (not task._interactCompleteLogged) then
+			task._interactCompleteLogged = true
+			local parent = task.ParentTask and task:ParentTask() or nil
+			d("[TaskHandoff] DoInteract completed without result window parent="..tostring(parent and parent.name)
+				.." task="..tostring(task.name)
+				.." interact="..tostring(task.interact)
+				.." attempts="..tostring(IsNull(task.interactAttempts, 0)))
+		end
 		return true
 	elseif (task.interactState == "accepted" or task.interactState == "complete") then
 		return true
@@ -5676,7 +5713,8 @@ function c_dointeract:evaluate()
 		return false
 	end
 
-	if (effectiveDistance3d > maxInteractDistance3d and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
+	if (maxInteractDistance3d and effectiveDistance3d > maxInteractDistance3d
+		and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
 		task.pathChecked = false
 		return false
 	end
