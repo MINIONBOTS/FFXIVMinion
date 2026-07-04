@@ -2011,6 +2011,23 @@ c_getmovementpath.lastFallback = 0
 c_getmovementpath.lastGoal = {}
 c_getmovementpath.lastOptimalPath = 0
 c_getmovementpath.asyncPrefetchPos = nil
+local function c_getmovementpath_resume_existing_path(task, reason)
+	if (ml_navigation and ml_navigation.HasPath and ml_navigation:HasPath()
+		and not ml_navigation.canPath
+		and ml_navigation.EnablePathing
+		and not (ml_navigation.IsRealLandingOrActionHandoffActive
+			and ml_navigation:IsRealLandingOrActionHandoffActive())) then
+		if (ml_navigation:EnablePathing()) then
+			if (ml_navigation.DebugLog) then
+				ml_navigation:DebugLog("getpath-resume-existing-path",
+					"GetMovementPath resumed existing path task=" .. tostring(task and task.name)
+					.. " reason=" .. tostring(reason or "existing-path")
+					.. " idx=" .. tostring(ml_navigation.pathindex)
+					.. " nav=" .. tostring(NavigationManager and NavigationManager.NavPathNode), 1000)
+			end
+		end
+	end
+end
 function c_getmovementpath:evaluate()
 	if not Player.onmesh and not IsFlying() and not IsDiving() then
 		return false
@@ -2045,6 +2062,7 @@ function c_getmovementpath:evaluate()
 		end
 		return false
 	end
+	c_getmovementpath_resume_existing_path(currentTask, "post-handoff-check")
 	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
 		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
 			or (ffxiv_map_nav and currentTask.contentid and (
@@ -2072,6 +2090,7 @@ function c_getmovementpath:evaluate()
 		if (interactable and table.valid(interactable)) then
 			local approachPos = currentTask.gatePos or currentTask.pos
 			if (table.valid(approachPos) and math.distance3d(Player.pos, approachPos) < 2.5) then
+				c_getmovementpath_resume_existing_path(currentTask, "crystal-approach-arrived")
 				return false
 			end
 		end
@@ -2081,9 +2100,11 @@ function c_getmovementpath:evaluate()
 		if table.valid(c_getmovementpath.lastGoal) then
 			local curGoal = currentTask and (currentTask.gatePos or currentTask.pos)
 			if curGoal and math.distance3d(c_getmovementpath.lastGoal, curGoal) < 2 then
+				c_getmovementpath_resume_existing_path(currentTask, "goal-throttle")
 				return false
 			end
 		else
+			c_getmovementpath_resume_existing_path(currentTask, "no-last-goal")
 			return false
 		end
 	end
@@ -2213,6 +2234,7 @@ function c_getmovementpath:evaluate()
 			
 			if (pathLength > 0 or ml_navigation:HasPath()) then
 				ml_debug("[GetMovementPath]: Path length returned ["..tostring(pathLength).."]")
+				c_getmovementpath_resume_existing_path(currentTask, "path-available")
 				return false
 			end
 		else
@@ -3133,6 +3155,7 @@ e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 e_mount.lastPathCheck = 0
 e_mount.lastPathPos = {}
+e_mount.mountFailed = nil
 c_mount.reattempt = 0
 c_mount.attemptPos = nil
 c_mount.blockOnly = true
@@ -3159,6 +3182,24 @@ function c_mount:evaluate()
 	local task = ml_task_hub:CurrentTask()
 	local gotoPos = task.pos
 	if (table.valid(gotoPos)) then
+		local failed = e_mount.mountFailed
+		if (failed and not Player.ismounted) then
+			local sameTask = failed.taskStarted == task.started and failed.mapid == Player.localmapid
+			local sameGoal = table.valid(failed.goal) and PDistance3D(failed.goal.x, failed.goal.y, failed.goal.z, gotoPos.x, gotoPos.y, gotoPos.z) <= 1
+			local movedAway = table.valid(failed.playerPos) and PDistance3D(failed.playerPos.x, failed.playerPos.y, failed.playerPos.z, myPos.x, myPos.y, myPos.z) > 12
+			if (sameTask and sameGoal and not movedAway) then
+				if (ml_navigation and ml_navigation.HasPath and ml_navigation:HasPath()
+					and not ml_navigation.canPath and ml_navigation.EnablePathing) then
+					if (ml_navigation:EnablePathing() and ml_navigation.DebugLog) then
+						ml_navigation:DebugLog("mount-failed-resume-path",
+							"Mount attempt previously failed; resuming existing path task=" .. tostring(task.name)
+							.. " goal=(" .. string.format("%.1f, %.1f, %.1f", gotoPos.x or 0, gotoPos.y or 0, gotoPos.z or 0) .. ")", 1000)
+					end
+				end
+				return false
+			end
+			e_mount.mountFailed = nil
+		end
 		local dist2d = math.distance2d(myPos, gotoPos)
 		local dist3d = math.distance3d(myPos, gotoPos)
 		local dismountDistance = IsNull(ml_task_hub:CurrentTask().dismountDistance,5)
@@ -3331,6 +3372,26 @@ function e_mount:execute()
 				ml_global_information.Await(3000, function () return (Player.ismounted or GetPatchLevel() >= 7.2)end)
 			end
 		)
+	else
+		local task = ml_task_hub and ml_task_hub:CurrentTask()
+		local goal = task and task.pos
+		e_mount.mountFailed = {
+			taskStarted = task and task.started,
+			mapid = Player and Player.localmapid,
+			goal = table.valid(goal) and { x = goal.x, y = goal.y, z = goal.z } or nil,
+			playerPos = table.valid(Player and Player.pos) and { x = Player.pos.x, y = Player.pos.y, z = Player.pos.z } or nil,
+		}
+		if (ml_navigation and ml_navigation.HasPath and ml_navigation:HasPath()
+			and not ml_navigation.canPath and ml_navigation.EnablePathing) then
+			ml_navigation:EnablePathing()
+		end
+		if (ml_navigation and ml_navigation.DebugLog) then
+			ml_navigation:DebugLog("mount-failed-release",
+				"Mount attempt failed; releasing to path task=" .. tostring(task and task.name)
+				.. " mountId=" .. tostring(e_mount.id)
+				.. " hasPath=" .. tostring(ml_navigation and ml_navigation.HasPath and ml_navigation:HasPath())
+				.. " canPath=" .. tostring(ml_navigation and ml_navigation.canPath), 1000)
+		end
 	end
 end
 
@@ -5421,7 +5482,7 @@ function c_dointeract:evaluate()
 	-------------------------------------------------------------------
 	-- Interaction logic: move until interactable, then stop + interact
 	-------------------------------------------------------------------
-	if (task.useProfilePos and not IsFlying() and not IsDiving()) then
+	if (task.useProfilePos and not IsFlying() and not IsDiving() and not IsDismounting()) then
 		local useStandardMovementOnIce = false
 		if (ml_navigation and ml_navigation.GetIceMovementState) then
 			useStandardMovementOnIce = select(1, ml_navigation:GetIceMovementState())

@@ -78,6 +78,7 @@ local function TaskIsPlainMoveTo(task)
 	if (task.interact and task.interact ~= 0) then return false end
 	if (IsNull(task.contentid, 0) ~= 0) then return false end
 	if (IsNull(task.customSearch, "") ~= "") then return false end
+	if (task.useExactMovement or task.exactMovementSource) then return false end
 	return true
 end
 
@@ -731,6 +732,7 @@ function ffxiv_task_movetointeract:Init()
 		.." killParent="..tostring(self.killParent)
 		.." useTargetPos="..tostring(self.useTargetPos)
 		.." useProfilePos="..tostring(self.useProfilePos)
+		.." useProfilePosOnMissingTarget="..tostring(self.useProfilePosOnMissingTarget)
 		.." conversationstring="..tostring(self.conversationstring)
 		.." conversationindex="..tostring(self.conversationindex)
 		.." startMap="..tostring(self.startMap))
@@ -909,8 +911,48 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	--if (not IsFlying()) then
 		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
 		local completeRange3d = tonumber(self.interactRange3d)
+		local function holdForTriggerPosition(reason)
+			if (self.useProfilePosOnMissingTarget and not interactAttempted) then
+				local triggerRange2d = tonumber(self.triggerPositionRange2d) or 0.75
+				local triggerRange3d = tonumber(self.triggerPositionRange3d) or 1.25
+				local mounted = Player.ismounted
+				local flying = IsFlying()
+				local diving = IsDiving()
+				local dismounting = IsDismounting()
+				local needsPosition = (dist2d > triggerRange2d or dist3d > triggerRange3d)
+				local needsGrounded = (mounted or flying or diving or dismounting)
+
+				if (needsPosition or needsGrounded) then
+					self.useProfilePos = true
+					if (flying and ml_navigation and ml_navigation.LandForAction) then
+						ml_navigation:LandForAction(self.pos, triggerRange3d, "movetointeract-trigger-position")
+					elseif (mounted and not flying and not diving and not dismounting) then
+						Dismount()
+					end
+					TaskHandoffLogThrottle(self, "mti-trigger-position-"..tostring(reason), 1000,
+						"MOVETOINTERACT holding missing target until trigger position parent="..TaskDebugParentName(self)
+						.." reason="..tostring(reason)
+						.." contentid="..tostring(self.contentid)
+						.." interact="..tostring(self.interact)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d)
+						.." triggerRange2d="..tostring(triggerRange2d)
+						.." triggerRange3d="..tostring(triggerRange3d)
+						.." mounted="..tostring(mounted)
+						.." flying="..tostring(flying)
+						.." diving="..tostring(diving)
+						.." dismounting="..tostring(dismounting)
+						.." useProfilePos="..tostring(self.useProfilePos))
+					return true
+				end
+			end
+			return false
+		end
 		if (self.interact ~= 0 and dist2d < 50 and dist3d < 50) then
 			if (not interactable or not interactable.targetable) then
+				if (holdForTriggerPosition("missing-target")) then
+					return false
+				end
 				if (postLandingInteractRequired) then
 					TaskHandoffLogThrottle(self, "mti-postlanding-wait-target", 1000,
 						"MOVETOINTERACT waiting for post-landing interact target parent="..TaskDebugParentName(self)
@@ -942,6 +984,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			if (dist2d <= 5 and dist3d <= 10) then
 				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 				if (not table.valid(interacts)) then
+					if (holdForTriggerPosition("missing-content")) then
+						return false
+					end
 					if (postLandingInteractRequired) then
 						TaskHandoffLogThrottle(self, "mti-postlanding-wait-content", 1000,
 							"MOVETOINTERACT waiting for post-landing contentid target parent="..TaskDebugParentName(self)

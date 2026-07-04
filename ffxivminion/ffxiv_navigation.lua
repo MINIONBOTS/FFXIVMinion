@@ -2062,6 +2062,20 @@ function ml_navigation:IsAirborneGroundAcquireTaskActive(task, ppos)
 		required2d = math.max(required2d, threshold2d or 0) + 0.75
 		local dist2d = math.distance2d(ppos, goal)
 		if dist2d <= required2d then
+			local requiresGroundArrival = taskName == "MOVETOPOS"
+				and not task.remainMounted
+				and (task.useExactMovement or task.exactMovementSource)
+				and Player and Player.ismounted
+				and (IsFlying() or IsDiving())
+			if requiresGroundArrival then
+				if (self.DebugLog) then
+					self:DebugLog("airborne-acquire-hold-ground-arrival",
+						"Airborne acquire holding exact MoveTo until grounded task=" .. taskName
+						.. " dist2d=" .. tostring(dist2d)
+						.. " source=" .. tostring(task.exactMovementSource), 1000)
+				end
+				return true
+			end
 			if (self.DebugLog) then
 				self:DebugLog("airborne-acquire-arrived", "Airborne acquire released near navigation goal task=" .. taskName .. " dist2d=" .. tostring(dist2d), 1000)
 			end
