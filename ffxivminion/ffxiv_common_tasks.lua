@@ -1128,6 +1128,10 @@ function ffxiv_task_movetointeract:task_complete_execute()
 		.." killParent="..tostring(self.killParent))
     Player:Stop()
 	Player:StopExact()
+
+	if (questing and questing.MarkAwaitingInteractResolution) then
+		questing.MarkAwaitingInteractResolution(self)
+	end
 	
 	if (self.killParent) then
 		local parent = ml_task_hub:ThisTask():ParentTask()
