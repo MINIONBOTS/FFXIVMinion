@@ -3547,7 +3547,9 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force, f
 	local sametarget = ml_navigation.lasttargetid and targetid and ml_navigation.lasttargetid == targetid
 	local hasPreviousPath = hasCurrentPath and table.valid(newGoal) and table.valid(ml_navigation.targetposition) and ( (not sametarget and math.distance3d(newGoal,ml_navigation.targetposition) < 1) or sametarget )
 	if (hasPreviousPath and (ml_navigation.lastconnectionid ~= 0 or ffnav.isascending or ffnav.isdescending) and (TimeSince(ml_navigation.lastconnectiontimer) < 5000)) then
-		d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
+		if (gNavDebug) then
+			d("[NAVIGATION]: We are currently using a Navconnection / ascending / descending, wait until we finish to pull a new path.")
+		end
 		ml_navigation.finalArrivalRadius = arrivalRadius
 		return currentPathSize
 	end

@@ -293,6 +293,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local requiredRange = (range + gatherRange)
 		local requiredRange3d = (IsNull(self.range3d, range + 2))
 		local plainMoveTo = TaskIsPlainMoveTo(self)
+		local profileRangeStrict = (self.useExactMovement or self.exactMovementSource)
 		
 		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
@@ -337,7 +338,60 @@ function ffxiv_task_movetopos:task_complete_eval()
 					.." dist3d="..tostring(dist3d))
 			end
 
-			if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d)) then
+			local parentName = TaskDebugParentName(self)
+			local isQuestAggroMove = (parentName == "QUEST_KILLAGGRO" and self.exactMovementSource == "questmovetopos")
+			if (isQuestAggroMove and not IsFlying() and not IsDiving()) then
+				local questAggroDetected = false
+				if (c_questkillaggrotarget and c_questkillaggrotarget.evaluate) then
+					questAggroDetected = c_questkillaggrotarget:evaluate()
+				end
+				if (questAggroDetected or Player.incombat) then
+					if (Player.ismounted or IsDismounting()) then
+						TaskHandoffLogThrottle(self, "movetopos-questaggro-dismount", 1000,
+							"MOVETOPOS quest aggro detected; waiting for dismount before combat handoff parent="..parentName
+							.." targetid="..tostring(c_questkillaggrotarget and c_questkillaggrotarget.targetid)
+							.." playerCombat="..tostring(Player.incombat)
+							.." mounted="..tostring(Player.ismounted)
+							.." dismounting="..tostring(IsDismounting()))
+						if (Player.ismounted and not IsDismounting()) then
+							Dismount()
+						end
+						return false
+					end
+					TaskHandoffLog("MOVETOPOS complete_eval true reason=QuestAggroDetected parent="..parentName
+						.." targetid="..tostring(c_questkillaggrotarget and c_questkillaggrotarget.targetid)
+						.." playerCombat="..tostring(Player.incombat)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d))
+					return true
+				end
+				if (self.exactMovementDone and not Player.ismounted and not IsDismounting()) then
+					local planarReleaseRange = math.max(requiredRange, ((Player and Player.hitradius) or 0.5) + 0.25)
+					if (dist2d <= planarReleaseRange) then
+						TaskHandoffLog("MOVETOPOS complete_eval true reason=QuestAggroPlanarReached parent="..parentName
+							.." dist2d="..tostring(dist2d)
+							.." dist3d="..tostring(dist3d)
+							.." planarReleaseRange="..tostring(planarReleaseRange)
+							.." requiredRange3d="..tostring(requiredRange3d)
+							.." exactMovementDone="..tostring(self.exactMovementDone))
+						return true
+					end
+				end
+			end
+
+			local completionRangeReached = false
+			if (profileRangeStrict) then
+				completionRangeReached = (dist2d <= requiredRange and dist3d <= requiredRange3d)
+			else
+				completionRangeReached = ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= requiredRange3d or dist3d <= range3d))
+			end
+			local airborneLandingRangeReached = false
+			if (profileRangeStrict and not completionRangeReached and not plainMoveTo and not self.remainMounted
+				and Player.ismounted and (IsFlying() or IsDiving())) then
+				local landingAcquireRange = requiredRange + math.max(((Player and Player.hitradius) or 0.5) * 2.5, 1.5)
+				airborneLandingRangeReached = (dist2d <= landingAcquireRange and dist3d <= requiredRange3d)
+			end
+			if (completionRangeReached or airborneLandingRangeReached) then
 				if (self.interact and self.interact ~= 0) then
 					local interactable = EntityList:Get(self.interact)
 					if (not table.valid(interactable) or not interactable.interactable) then
@@ -365,14 +419,33 @@ function ffxiv_task_movetopos:task_complete_eval()
 							Dismount()
 						end
 					elseif (ml_navigation and ml_navigation.IsWaterSurfaceDismountReady
-						and ml_navigation:IsWaterSurfaceDismountReady(self, ppos, gotoPos)) then
+						and ml_navigation:IsWaterSurfaceDismountReady(self, myPos, gotoPos)) then
 						if (ml_navigation.MarkGroundDismountHandoff) then
 							ml_navigation:MarkGroundDismountHandoff(self, "MoveToWaterSurface")
 						end
 						if not IsDismounting() then
 							Dismount()
 						end
+					elseif (IsFlying() and ml_navigation and ml_navigation.LandForAction) then
+						TaskHandoffLogThrottle(self, "movetopos-air-land-for-action", 1000,
+							"MOVETOPOS requesting landing for airborne ground trigger parent="..TaskDebugParentName(self)
+							.." source="..tostring(self.exactMovementSource)
+							.." dist2d="..tostring(dist2d)
+							.." dist3d="..tostring(dist3d)
+							.." requiredRange="..tostring(requiredRange)
+							.." requiredRange3d="..tostring(requiredRange3d))
+						ml_navigation:LandForAction(gotoPos, requiredRange3d, "movetopos-ground-trigger")
 					end
+					return false
+				end
+				if (airborneLandingRangeReached and not completionRangeReached) then
+					TaskHandoffLogThrottle(self, "movetopos-profile-range-hold", 1000,
+						"MOVETOPOS holding completion until profile range is reached parent="..TaskDebugParentName(self)
+						.." dist2d="..tostring(dist2d)
+						.." dist3d="..tostring(dist3d)
+						.." requiredRange="..tostring(requiredRange)
+						.." requiredRange3d="..tostring(requiredRange3d)
+						.." profileRangeStrict="..tostring(profileRangeStrict))
 					return false
 				end
 
@@ -397,6 +470,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 				else
 					TaskHandoffLog("MOVETOPOS complete_eval true reason=RangeReached parent="..TaskDebugParentName(self)
 						.." plainMoveTo="..tostring(plainMoveTo)
+						.." profileRangeStrict="..tostring(profileRangeStrict)
 						.." dist2d="..tostring(dist2d)
 						.." dist3d="..tostring(dist3d)
 						.." requiredRange="..tostring(requiredRange)
