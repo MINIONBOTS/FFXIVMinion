@@ -944,6 +944,15 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return true
 	end
 
+	if (IsControlOpen("JournalAccept") or IsControlOpen("JournalResult")) then
+		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=JournalWindow parent="..TaskDebugParentName(self)
+			.." journalAccept="..tostring(IsControlOpen("JournalAccept"))
+			.." journalResult="..tostring(IsControlOpen("JournalResult"))
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." interactState="..tostring(self.interactState))
+		return true
+	end
+
 	-- Map change (e.g. transfer after interaction). task_complete_execute uses 0ms parent wait.
 	if (self.startMap ~= Player.localmapid) then
 		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=MapChanged parent="..TaskDebugParentName(self)
@@ -1095,7 +1104,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (IsNull(self.interactAttempts, 0) == 0) then
 			TaskHandoffLogThrottle(self, "mti-busy-no-attempts", 1000,
 				"MOVETOINTERACT busy but no interact attempts yet; holding completion parent="..TaskDebugParentName(self)
-				.." interactState="..tostring(self.interactState))
+				.." interactState="..tostring(self.interactState)
+				.." journalAccept="..tostring(IsControlOpen("JournalAccept"))
+				.." journalResult="..tostring(IsControlOpen("JournalResult"))
+				.." request="..tostring(IsControlOpen("Request")))
 			return false
 		end
 		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=BusyAfterInteract parent="..TaskDebugParentName(self)
