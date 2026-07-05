@@ -2349,13 +2349,18 @@ function ml_navigation:GetLandingHandoffDebugState()
 end
 
 function ml_navigation:DebugLog(key, message, throttleMs)
+	if (not gNavDebug) then
+		return false
+	end
 	ffnav.navDebugLog = ffnav.navDebugLog or {}
 	key = tostring(key or "nav")
 	local last = ffnav.navDebugLog[key]
 	if (not last or TimeSince(last) > (throttleMs or 1000)) then
 		d("[NavDebug] " .. tostring(message))
 		ffnav.navDebugLog[key] = Now()
+		return true
 	end
+	return false
 end
 
 function ml_navigation:ShouldTaskLandingOwnAirborne(task, ppos)
