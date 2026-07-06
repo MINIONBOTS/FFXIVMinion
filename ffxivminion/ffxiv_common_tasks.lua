@@ -3019,6 +3019,18 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			return true
 		end
 	end
+
+	-- Unlocking an aethernet shard is a one-shot interaction, not a menu travel.
+	-- Retire the task as soon as c_dointeract commits Player:Interact so the
+	-- higher-priority movement elements cannot rebuild movement into the attune cast.
+	if (self.unlockAethernet and self.interactActionCommitted and IsNull(self.interactAttempts, 0) > 0) then
+		TaskHandoffLog("MOVEAETHERNET complete_eval true reason=UnlockInteractCommitted parent="..TaskDebugParentName(self)
+			.." interactState="..tostring(self.interactState)
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." contentid="..tostring(self.contentid)
+			.." actionAt="..tostring(self.interactActionAt))
+		return true
+	end
 	
 	local interactable = nil
 	if (self.interact ~= 0) then

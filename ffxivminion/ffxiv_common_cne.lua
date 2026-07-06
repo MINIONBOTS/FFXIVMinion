@@ -1964,6 +1964,9 @@ function c_getmovementpath:evaluate()
 	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
 		return false
 	end
+	if (currentTask and currentTask.unlockAethernet and currentTask.interactActionCommitted) then
+		return false
+	end
 	if (ml_navigation and ml_navigation.IsLandingOrActionHandoffActive
 		and ml_navigation:IsLandingOrActionHandoffActive()) then
 		if (ml_navigation.DebugLog and ml_navigation.GetLandingHandoffDebugState) then
@@ -2186,6 +2189,12 @@ function c_walktopos:evaluate()
 	end
 
 	local currentTask = ml_task_hub:CurrentTask()
+	if (currentTask and currentTask.unlockAethernet and currentTask.interactActionCommitted) then
+		if (ml_navigation and ml_navigation.DisablePathing) then
+			ml_navigation:DisablePathing()
+		end
+		return false
+	end
 	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
 		return false
 	end
