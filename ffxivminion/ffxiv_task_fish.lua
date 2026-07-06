@@ -2310,7 +2310,7 @@ function e_fishnextprofilemap:execute()
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
 		if (mapID and taskPos) then
-			local aeth = GetAetheryteByMapID(mapID, taskPos)
+			local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(mapID, taskPos, { fromMapId = Player.localmapid })
 			if (aeth) then
 				if (Player:IsMoving()) then
 					Player:Stop()

@@ -155,7 +155,7 @@ function c_stuck:evaluate()
 							local ppos = Player.pos
 							local distToRemesh = IsNull(Distance2D(ppos.x,ppos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
 							local returnHome = ActionList:Get(1,6)
-							local aeth = GetAetheryteByMapID(Player.localmapid, ppos)
+							local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(Player.localmapid, ppos, { fromMapId = Player.localmapid })
 							if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or e_stuck.lastfixmeshmap == Player.localmapid)) then
 								e_stuck.task = "Remesh"
 								d("Attempt Remesh")

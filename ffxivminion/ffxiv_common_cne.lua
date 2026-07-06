@@ -1406,8 +1406,8 @@ function c_teleporttomap:evaluate()
 			--d("[TeleportToMap] dist=" .. tostring(dist) .. " pathSize=" .. tostring(pathSize) .. " pathValid=" .. tostring(pathValid))
 			if (pathValid and (pathSize > 2 or (pathSize <= 2 and dist > 120))) then
 				
-				local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
-				--d("[TeleportToMap] GetAetheryteByMapID(" .. tostring(destMapID) .. ")=" .. tostring(aeth and aeth.id))
+				local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(destMapID, ml_task_hub:ThisTask().pos, { fromMapId = Player.localmapid })
+				--d("[TeleportToMap] GetBestAetheryteForMap(" .. tostring(destMapID) .. ")=" .. tostring(aeth and aeth.id))
 				if (aeth) then
 					e_teleporttomap.aeth = aeth
 					return true
@@ -1416,7 +1416,7 @@ function c_teleporttomap:evaluate()
 				local lastAeth = nil
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
 					if (node.id ~= Player.localmapid) then
-						local aeth = GetAetheryteByMapID(node.id)
+						local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(node.id, nil, { fromMapId = Player.localmapid })
 						--d("[TeleportToMap] path node " .. tostring(node.id) .. " aeth=" .. tostring(aeth and aeth.id))
 						if (aeth) then
 							lastAeth = aeth
@@ -1435,7 +1435,7 @@ function c_teleporttomap:evaluate()
 			end
 		else
 			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
-			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
+			local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(destMapID, ml_task_hub:ThisTask().pos, { fromMapId = Player.localmapid })
 			if (aeth) then
 				d("using block 1")
 				e_teleporttomap.aeth = aeth
@@ -1458,7 +1458,7 @@ function c_teleporttomap:evaluate()
 					end
 				end
 				
-				if (not CanUseAetheryte(134)) then
+				if (not FFXIVLib.API.Map.CanUseAetheryte(134)) then
 				-- Fall back alternate check to see if we can get to EL, and from there to the destination.
 					for k,aetheryte in pairs(attunedAetherytes) do
 						if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
@@ -1641,8 +1641,8 @@ function c_teleportsamemap:evaluate()
 		local list = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(list)) then
 			for _, aetheryte in pairs(list) do
-				if (aetheryte.ishomepoint and aetheryte.territory == myMapID and IsAetheryte(aetheryte.id)) then
-					local aethPos = GetAetheryteLocation(aetheryte.id)
+				if (aetheryte.ishomepoint and aetheryte.territory == myMapID and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+					local aethPos = FFXIVLib.API.Map.GetAetheryteLocation(aetheryte.id)
 					if (aethPos) then
 						local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
 						if ((distToDest - aethToDest) > minAdvantage) then
@@ -1664,97 +1664,13 @@ function c_teleportsamemap:evaluate()
 		return false
 	end
 
-	local list = FFXIVLib.API.Map.GetAetherytes(1)
-	if (not table.valid(list)) then
+	local best = FFXIVLib.API.Map.GetBestAetheryteForMap(myMapID, destPos, { fromMapId = myMapID })
+	if (not best) then
 		return false
 	end
 
-	-- Collect candidate aetherytes on this map
-	local candidates = {}
-	for _, aetheryte in pairs(list) do
-		if (aetheryte.territory == myMapID and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id)) then
-			candidates[#candidates + 1] = aetheryte
-		end
-	end
-
-	if (#candidates == 0) then
-		return false
-	end
-
-	-- Use section-aware override if available
-	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[myMapID]
-	if (sectionOverride) then
-		local section = GetMapSection(myMapID, destPos)
-		if (section and section > 0) then
-			for _, rule in ipairs(sectionOverride) do
-				if (rule.fn) then
-					local overrideId = rule.fn(section, destPos)
-					if (overrideId) then
-						for _, c in ipairs(candidates) do
-							if (c.id == overrideId) then
-								local aethPos = GetAetheryteLocation(c.id)
-								if (aethPos) then
-									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-									if ((distToDest - aethToDest) > minAdvantage) then
-										e_teleportsamemap.aeth = c
-										return true
-									end
-								end
-							end
-						end
-					end
-				elseif (rule.sections and rule.aethid) then
-					if (In(section, unpack(rule.sections))) then
-						for _, c in ipairs(candidates) do
-							if (c.id == rule.aethid) then
-								local aethPos = GetAetheryteLocation(c.id)
-								if (aethPos) then
-									local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-									if ((distToDest - aethToDest) > minAdvantage) then
-										e_teleportsamemap.aeth = c
-										return true
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	-- Always-prefer override
-	local alwaysPrefer = AETHERYTE_ALWAYS_PREFER[myMapID]
-	if (alwaysPrefer) then
-		for _, c in ipairs(candidates) do
-			if (c.id == alwaysPrefer) then
-				local aethPos = GetAetheryteLocation(c.id)
-				if (aethPos) then
-					local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-					if ((distToDest - aethToDest) > minAdvantage) then
-						e_teleportsamemap.aeth = c
-						return true
-					end
-				end
-			end
-		end
-	end
-
-	-- Distance-based: pick aetheryte closest to destination
-	local best = nil
-	local bestDist = math.huge
-	for _, c in ipairs(candidates) do
-		local aethPos = GetAetheryteLocation(c.id)
-		if (aethPos) then
-			local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-			if (aethToDest < bestDist) then
-				best = c
-				bestDist = aethToDest
-			end
-		end
-	end
-
-	if (best and (distToDest - bestDist) > minAdvantage) then
+	local bestPos = FFXIVLib.API.Map.GetAetheryteLocation(best.id)
+	if (bestPos and (distToDest - PDistance3D(bestPos.x, bestPos.y, bestPos.z, destPos.x, destPos.y, destPos.z)) > minAdvantage) then
 		e_teleportsamemap.aeth = best
 		return true
 	end

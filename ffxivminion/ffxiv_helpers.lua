@@ -3866,128 +3866,23 @@ function MembersWithBuffs(hasbuffs, hasnot, maxdistance, includeself)
 end
 
 ml_global_information.lastAetheryteCache = 0
--- Returns the game's aetheryte list, optionally filtered by attunement.
--- force: boolean - force refresh the cache
--- attunementFlag: 0 or nil = all, 1 = unlocked only, 2 = locked only
--- Returns: { [index] = aetheryte, ... }
 function GetAetheryteList(force, attunementFlag)
-	
-	--return Player:GetAetheryteList()
-	local force = IsNull(force,false)
 	attunementFlag = IsNull(attunementFlag, 0)
 	if attunementFlag == true then attunementFlag = 1
 	elseif attunementFlag == false then attunementFlag = 2 end
-	
-	if (force == true or ml_global_information.Player_Aetherytes == nil) then
-		local newData = CopyAetheryteData()
-		if (newData) then
-			ml_global_information.Player_Aetherytes = newData
-			ml_global_information.lastAetheryteCache = Now()
-		end
-	else
-		if not (MIsLoading()) then
-			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
-				local newData = CopyAetheryteData()
-				if (newData) then
-					ml_global_information.Player_Aetherytes = newData
-					ml_global_information.lastAetheryteCache = Now()
-				end
-			end
-		end
-	end
-	
-	if attunementFlag == 0 then
-		return ml_global_information.Player_Aetherytes
-	end
-	
-	local result = {}
-	local list = ml_global_information.Player_Aetherytes
-	if (table.valid(list)) then
-		for key, aetheryte in pairs(list) do
-			if (attunementFlag == 1 and aetheryte.isattuned)
-				or (attunementFlag == 2 and not aetheryte.isattuned) then
-				result[aetheryte.id or key] = aetheryte
-			end
-		end
-	end
-	return result
-end
-local function MergeAetheryteData(aetheryte, row)
-	if (type(aetheryte) ~= "table") then
-		return aetheryte
-	end
 
-	local shardId = aetheryte.id
-	if (type(row) == "table") then
-		local territoryId = row.TerritoryId or row.territory
-		local worldY = row.WorldY
-		if (worldY == nil) then
-			worldY = aetheryte.y or 0
-		end
-
-		shardId = shardId or row.AetheryteId or row.id
-		aetheryte.id = shardId
-		aetheryte.aethid = row.AetheryteId or row.id or aetheryte.aethid or shardId
-		aetheryte.AetheryteId = row.AetheryteId or row.id or shardId
-		aetheryte.territory = territoryId or aetheryte.territory
-		aetheryte.TerritoryId = territoryId or aetheryte.TerritoryId or aetheryte.territory
-		aetheryte.AethernetGroup = row.AethernetGroup
-		aetheryte.AethernetName = row.AethernetName or aetheryte.AethernetName
-		aetheryte.conversationstrings = aetheryte.conversationstrings or row.AethernetName
-		aetheryte.IsAetheryte = row.IsAetheryte
-		aetheryte.Invisible = row.Invisible
-		aetheryte.RequiredQuest = row.RequiredQuest
-		if (row.WorldX ~= nil and row.WorldZ ~= nil) then
-			aetheryte.WorldX = row.WorldX
-			aetheryte.WorldY = worldY
-			aetheryte.WorldZ = row.WorldZ
-			aetheryte.x = row.WorldX
-			aetheryte.y = worldY
-			aetheryte.z = row.WorldZ
-			aetheryte.pos = { x = row.WorldX, y = worldY, z = row.WorldZ }
-		end
+	local list = FFXIVLib.API.Map.GetAetherytes(attunementFlag)
+	if (attunementFlag == 0) then
+		ml_global_information.Player_Aetherytes = list
+		ml_global_information.lastAetheryteCache = Now()
 	end
-
-	shardId = shardId or aetheryte.aethid or aetheryte.AetheryteId
-	if (shardId) then
-		aetheryte.aethid = aetheryte.aethid or shardId
-		aetheryte.AetheryteId = aetheryte.AetheryteId or shardId
-	end
-	if (aetheryte.territory ~= nil) then
-		aetheryte.TerritoryId = aetheryte.TerritoryId or aetheryte.territory
-	end
-	if (not aetheryte.pos and aetheryte.x ~= nil and aetheryte.z ~= nil) then
-		aetheryte.pos = { x = aetheryte.x, y = aetheryte.y or 0, z = aetheryte.z }
-	end
-
-	return aetheryte
+	return list
 end
 function CopyAetheryteData()
-	local apiList = Player:GetAetheryteList()
-	if (table.valid(apiList)) then
-		local aethData = {}
-		local dict = FFXIVLib.API.Map.GetAethernetDictionary()
-		for i,aetheryte in pairs(apiList) do
-			local entry = {
-				ptr = aetheryte.ptr,
-				id = aetheryte.id,
-				name = aetheryte.name,
-				ishomepoint = aetheryte.ishomepoint,
-				isfavpoint = aetheryte.isfavpoint,
-				territory = aetheryte.territory,
-				region = aetheryte.region,
-				islocalmap = aetheryte.islocalmap,
-				price = aetheryte.price,
-				isattuned = aetheryte.isattuned,
-			}
-			aethData[aetheryte.id or i] = MergeAetheryteData(entry, dict and dict[aetheryte.id])
-		end
-		return aethData
-	end
-	return nil
+	return FFXIVLib.API.Map.GetAetherytes(0)
 end
 function GetLocalAetheryte()
-    local list = ml_global_information.Player_Aetherytes
+    local list = FFXIVLib.API.Map.GetAetherytes(0)
 	if (table.valid(list)) then
 		for index,aetheryte in pairs(list) do
 			if (aetheryte.islocalmap) then
@@ -4021,7 +3916,7 @@ function GetUnattunedAetheryteList()
 	end
 
 	if (table.valid(aethList)) then
-		local list = ml_global_information.Player_Aetherytes
+		local list = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(list)) then
 			for id,aetheryte in pairs(list) do
 				if (aetheryte.isattuned and aethList[aetheryte.id]) then
@@ -4180,17 +4075,15 @@ function GetHomepoint(force)
 end
 function GetAetheryteByID(id,force)
 	local aethid = tonumber(id) or 0
-	local force = IsNull(force,false)
-	
-	local list = GetAetheryteList(force)
+	local list = FFXIVLib.API.Map.GetAetherytes(0)
 	if (table.valid(list)) then
 		local aetheryte = list[aethid]
 		if (type(aetheryte) == "table") then
-			return MergeAetheryteData(aetheryte, FFXIVLib.API.Map.GetAetheryteById(aethid))
+			return aetheryte
 		end
 		for _, entry in pairs(list) do
 			if (entry.id == aethid) then
-				return MergeAetheryteData(entry, FFXIVLib.API.Map.GetAetheryteById(aethid))
+				return entry
 			end
 		end
 	end
@@ -4206,274 +4099,20 @@ function IsAetheryteUnattuned(id)
 	return false
 end
 function IsAetheryte(id)
-	if not id then return false end
-	local row = FFXIVLib.API.Map.GetAetheryteById(id)
-	if not row then return false end
-	return row.IsAetheryte == true
+	return FFXIVLib.API.Map.IsAetheryte(id)
 end
 
 ------------------------------------------------------------
--- Section-aware aetheryte selection overrides
---
--- Maps territory IDs to rules that override distance-based
--- aetheryte selection when the destination is in a specific
--- map section (terrain obstacles make closer aetheryte impractical).
---
--- Each rule: { sections = {sectionIds}, aethid = preferredId }
--- Or: { fn = function(section, pos) -> aethid|nil } for complex cases
+-- Compatibility wrappers; route/aetheryte policy lives in FFXIVLib.
 ------------------------------------------------------------
-AETHERYTE_SECTION_OVERRIDES = {
-	-- Eastern La Noscea: sections 1,3 -> Costa Del Sol (11); section 2 -> Wineport (12)
-	[137] = {
-		{ sections = {1, 3}, aethid = 11 },
-		{ sections = {2},    aethid = 12 },
-	},
-	-- Sea of Clouds: section 2 -> Cloudtop (72); section 1 -> Ok'Zundu (73)
-	[401] = {
-		{ sections = {2}, aethid = 72 },
-		{ sections = {1}, aethid = 73 },
-	},
-	-- Dravanian Forelands: section 1 -> Tailfeather (76); section 2 -> Anyx Trine (77)
-	[398] = {
-		{ sections = {1}, aethid = 76 },
-		{ sections = {2}, aethid = 77 },
-	},
-	-- Yanxia: section 1 -> Namai (107); section 2 -> House of the Fierce (108)
-	[614] = {
-		{ sections = {1}, aethid = 107 },
-		{ sections = {2}, aethid = 108 },
-	},
-	-- Kholusia: section 2 -> Tomra (139)
-	[814] = {
-		{ sections = {2}, aethid = 139 },
-	},
-	-- Labyrinthos: section 2 -> Hamlet (167); section 3 -> Aporia (168)
-	[956] = {
-		{ sections = {2}, aethid = 167 },
-		{ sections = {3}, aethid = 168 },
-	},
-	-- Thavnair: section 2 -> Palaka's Stand (171)
-	[957] = {
-		{ sections = {2}, aethid = 171 },
-	},
-	-- Ultima Thule: section 2 -> Abode of the Ea (180); sections 3,4,5 -> Base Omicron (181)
-	[960] = {
-		{ sections = {2},       aethid = 180 },
-		{ sections = {3, 4, 5}, aethid = 181 },
-	},
-	-- Urqopacha: section 2 -> Wolar's Echo (201)
-	[1187] = {
-		{ sections = {2}, aethid = 201 },
-	},
-	-- Kozama'uka: section 1 -> Ok'hanu (202);
-	-- section 2 + pos.x > 0 -> Many Fires (203); section 2 (else) -> Earthenshire (204)
-	[1188] = {
-		{ sections = {1}, aethid = 202 },
-		{ fn = function(section, pos)
-			if section == 2 then
-				if pos.x > 0 then return 203 end
-				return 204
-			end
-		end },
-	},
-	-- Yak T'el: sections 2,3 -> Mamook (206); section 1 + pos.x > 0 + pos.z > 300 -> Mamook (206)
-	[1189] = {
-		{ fn = function(section, pos)
-			if In(section, 2, 3) then return 206 end
-			if section == 1 and pos.x > 0 and pos.z > 300 then return 206 end
-		end },
-	},
-}
-
--- Aetherytes to always prefer regardless of distance (workarounds)
-AETHERYTE_ALWAYS_PREFER = {
-	[958] = 172, -- Garlemald: always Camp Broken Glass (pathing issue exiting Tertium)
-}
-
 function GetAetheryteByMapID(mapid, p)
-	local pos = p
-	
-	local myMap = Player.localmapid
-	if (mapid == 133 and myMap ~= 132) then
-		mapid = 132
-	elseif (mapid == 128 and myMap ~= 129) then
-		mapid = 129
-	elseif (mapid == 131 and myMap ~= 130) then
-		mapid = 130
-	elseif (mapid == 419 and myMap ~= 418) then
-		mapid = 418
-	elseif (mapid == 399 and myMap ~= 478) then
-		mapid = 478
-	elseif (In(mapid,177) and not In(myMap,177,128,129)) then
-		mapid = 129
-	elseif (In(mapid,178) and not In(myMap,178,130,131)) then
-		mapid = 130
-	elseif (In(mapid,179) and not In(myMap,179,132,133)) then
-		mapid = 132
-	elseif (In(mapid,629,628) and not In(myMap,629,628)) then
-		mapid = 628
-	elseif (In(mapid,843,819) and not In(myMap,843,819)) then
-		mapid = 819
-	end
-	
-	if 	(myMap == 131 and mapid == 130) or
-		(myMap == 128 and mapid == 129) or
-		(myMap == 133 and mapid == 133) or
-		(myMap == 418 and (mapid == 419 or mapid == 439 or mapid == 427 or mapid == 456 or mapid == 433)) or
-		(myMap == 399 and mapid == 478)
-	then
-		return nil
-	end
-	if (mapid == 639 and myMap ~= 628) then
-		mapid = 628
-	end
-	if myMap == 813 and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
-		return nil
-	end
-	-- DT path blocking
-	if myMap == 1185 and (HasQuest(4879) or (QuestCompleted(4879) and not CanUseAetheryte(203))) then
-		d("special path needed for Kozamauka Section 2")
-		return nil
-	end
-	if myMap == 1188 and (HasQuest(4889) or (QuestCompleted(4889) and not CanUseAetheryte(201))) then
-		d("special path needed for Uyuypoga Section 2")
-		return nil
-	end
-	
-	-- assign map for special paths
-	if (mapid == 815 and GetMapSection(815, pos) == 1) and (HasQuest(3609) or (QuestCompleted(3609) and not CanUseAetheryte(141))) then
-		mapid = 813
-	end
-	if ((myMap == 614 and GetMapSection(614, Player.pos) == 2) or (myMap == 622)) and HasQuest(2518) then
-		return nil
-	end
-	if (((mapid == 614 and GetMapSection(614, pos) == 2) or (myMap == 614 and GetMapSection(614, Player.pos) == 1)) and HasQuest(2518)) then
-		mapid = 622
-	end
-	-- DT Teleports
-	-- Kozamauka Section 2
-	if (mapid == 1188 and GetMapSection(1188, pos) == 2) and (HasQuest(4879) or (QuestCompleted(4879) and not CanUseAetheryte(203))) then
-		mapid = 1185
-	end
-	
-	-- Uyuypoga Section 2
-	if (mapid == 1187 and GetMapSection(1187, pos) == 2) and (HasQuest(4889) or (QuestCompleted(4889) and not CanUseAetheryte(201))) then
-		mapid = 1188
-	end
-	-- Main hall
-	if (mapid == 987 and myMap ~= 962) then
-		mapid = 962
-	end
-
-
-	-- Section-aware aetheryte overrides: (mapId -> section -> preferred aethid)
-	-- For zones where terrain makes straight-line distance misleading.
-	local sectionOverride = AETHERYTE_SECTION_OVERRIDES[mapid]
-
-	local list = GetAttunedAetheryteList()
-	if (table.valid(list)) then
-		local aethData = FFXIVLib.API.Map.GetAetherytesByMapId(mapid)
-		-- Build list of affordable, unlocked aetherytes on this map
-		local candidates = {}
-		for _, aetheryte in pairs(list) do
-			if aetheryte.territory == mapid and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id) then
-				local row = aethData and aethData[aetheryte.id] or FFXIVLib.API.Map.GetAetheryteById(aetheryte.id)
-				candidates[#candidates+1] = MergeAetheryteData(aetheryte, row)
-			end
-		end
-
-		if #candidates == 0 then
-			return nil
-		end
-
-		-- No destination position: return first available
-		if not pos then
-			return candidates[1]
-		end
-
-		-- Single candidate: return it
-		if #candidates == 1 then
-			return candidates[1]
-		end
-
-		-- Check section-aware override first
-		if sectionOverride then
-			local section = GetMapSection(mapid, pos)
-			if section and section > 0 then
-				-- Check override functions (Kozama'uka, Yak T'el special cases)
-				for _, rule in ipairs(sectionOverride) do
-					if rule.fn then
-						local overrideId = rule.fn(section, pos)
-						if overrideId then
-							for _, c in ipairs(candidates) do
-								if c.id == overrideId then return c end
-							end
-						end
-					elseif rule.sections and rule.aethid then
-						if In(section, unpack(rule.sections)) then
-							for _, c in ipairs(candidates) do
-								if c.id == rule.aethid then return c end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		-- Always-prefer override (Garlemald pathing workaround)
-		local alwaysPrefer = AETHERYTE_ALWAYS_PREFER[mapid]
-		if alwaysPrefer then
-			for _, c in ipairs(candidates) do
-				if c.id == alwaysPrefer then return c end
-			end
-		end
-
-		-- Distance-based fallback: pick closest aetheryte to destination
-		local best = nil
-		local bestDist = math.huge
-		for _, c in ipairs(candidates) do
-			local row = aethData and aethData[c.id] or FFXIVLib.API.Map.GetAetheryteById(c.id)
-			local dist
-			if row and row.WorldX and row.WorldZ then
-				dist = Distance2D(pos.x, pos.z, row.WorldX, row.WorldZ)
-			else
-				-- Fallback to game aetheryte pos
-				dist = Distance2D(pos.x, pos.z, c.pos and c.pos.x or 0, c.pos and c.pos.z or 0)
-			end
-			if dist < bestDist then
-				best = c
-				bestDist = dist
-			end
-		end
-
-		return best
-	else
-		--d("No attuned aetherytes found.")
-	end
-	
-	return nil
+	return FFXIVLib.API.Map.GetBestAetheryteForMap(mapid, p, { fromMapId = Player.localmapid })
 end
 function GetAetheryteLocation(id)
-	local aethid = tonumber(id) or 0
-	if aethid == 0 then return nil end
-	local aetheryte = GetAetheryteByID(aethid)
-	if (aetheryte and aetheryte.x ~= nil and aetheryte.z ~= nil) then
-		return {x = aetheryte.x, y = aetheryte.y, z = aetheryte.z}
-	end
-	local row = FFXIVLib.API.Map.GetAetheryteById(aethid)
-	if not row then return nil end
-	return {x = row.WorldX, y = row.WorldY, z = row.WorldZ}
+	return FFXIVLib.API.Map.GetAetheryteLocation(id)
 end
 function CanUseAetheryte(aethid)
-	local aethid = tonumber(aethid) or 0
-	if (aethid ~= 0) then
-		local aetheryte = GetAetheryteByID(aethid)
-		if (aetheryte and aetheryte.isattuned and GilCount() >= aetheryte.price and IsAetheryte(aethid)) then
-			return true
-		end
-	end
-	
-	return false
+	return FFXIVLib.API.Map.CanUseAetheryte(aethid)
 end
 function GetOffMapMarkerList(strMeshName, strMarkerType)
 	return nil
@@ -5597,13 +5236,13 @@ local function _CanAccessMapImpl(mapid)
 			-- executor (GetAetheryteByMapID), otherwise access reports true but
 			-- the teleport never fires and MOVETOMAP loops.
 			for _, aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price and IsAetheryte(aetheryte.id)) then
+				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
 					navd("[CanAccessMap] direct aetheryte match id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory))
 					return true
 				end
 			end
 			
-			local nearestAetheryte = GetAetheryteByMapID(mapid)
+			local nearestAetheryte = FFXIVLib.API.Map.GetBestAetheryteForMap(mapid, nil, { fromMapId = Player.localmapid })
 			navd("[CanAccessMap] nearestAetheryte=" .. tostring(nearestAetheryte and nearestAetheryte.id) .. " price=" .. tostring(nearestAetheryte and nearestAetheryte.price) .. " gil=" .. tostring(GilCount()))
 			if (nearestAetheryte) then
 				if (GilCount() >= nearestAetheryte.price) then
@@ -5624,7 +5263,7 @@ local function _CanAccessMapImpl(mapid)
 				end
 			end
 			
-			if (mapid == 820 and not CanUseAetheryte(134)) then
+			if (mapid == 820 and not FFXIVLib.API.Map.CanUseAetheryte(134)) then
 			-- Fall back alternate check to see if we can get to EL, and from there to the destination.
 				for k,aetheryte in pairs(attunedAetherytes) do
 					if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
