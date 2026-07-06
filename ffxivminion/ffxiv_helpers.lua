@@ -5132,7 +5132,20 @@ function CanUseAirship()
 end
 
 local _canAccessMapCache = {}
-local _canAccessMapCacheTime = 0
+
+function ClearCanAccessMapCache(reason)
+	_canAccessMapCache = {}
+	_G["gCanAccessMapCacheVersion"] = IsNull(_G["gCanAccessMapCacheVersion"], 0) + 1
+	if (ffxivminion and ffxivminion.GUI and ffxivminion.GUI.help) then
+		ffxivminion.GUI.help.access_cache = {}
+		ffxivminion.GUI.help.access_cache_mapid = 0
+		ffxivminion.GUI.help.access_cache_questcount = -1
+		ffxivminion.GUI.help.access_cache_version = -1
+	end
+	navd("[CanAccessMap] cache cleared: " .. tostring(reason or "unknown"))
+end
+
+InvalidateCanAccessMapCache = ClearCanAccessMapCache
 
 -- BFS that walks the nav graph (Lua side) and only follows edges
 -- where at least one entry satisfies its requirements.
@@ -5204,179 +5217,158 @@ local function _canTraverseNavPath(fromMap, toMap)
 	return false
 end
 
-local function _CanAccessMapImpl(mapid)
-	if (mapid ~= 0) then
-		if (Player.localmapid ~= mapid) then
-			local ppos = Player.pos
-			local srcMap = Player.localmapid
+local function _CanAccessMapRoute(kind, aetheryte, setTeleportAeth)
+	return {
+		kind = kind,
+		aeth = aetheryte,
+		price = aetheryte and aetheryte.price or 0,
+		setTeleportAeth = setTeleportAeth == true,
+	}
+end
 
-			local pos = ml_nav_manager.GetNextPathPos(	ppos,
-													srcMap,
-													mapid	)
-			navd("[CanAccessMap] GetNextPathPos(" .. tostring(srcMap) .. "->" .. tostring(mapid) .. ")=" .. tostring(pos and table.valid(pos)))
-			if (table.valid(pos)) then
-				local traversable = _canTraverseNavPath(srcMap, mapid)
-				navd("[CanAccessMap] _canTraverseNavPath(pos valid)=" .. tostring(traversable))
-				if traversable then
-					return true
-				end
-			else
-				-- GetNextPathPos failed but BFS may still find a traversable path
-				local traversable = _canTraverseNavPath(srcMap, mapid)
-				navd("[CanAccessMap] _canTraverseNavPath(pos nil)=" .. tostring(traversable))
-				if traversable then
-				end
+local function _CanAccessMapAddRoute(routes, kind, aetheryte, setTeleportAeth)
+	routes[#routes + 1] = _CanAccessMapRoute(kind, aetheryte, setTeleportAeth)
+end
+
+local function _CanAccessMapHasAetheryteRoute(routeFacts)
+	return routeFacts and routeFacts.routes and #routeFacts.routes > 0
+end
+
+local function _CanAccessMapRouteIsAffordable(route)
+	if not route then return false end
+	if (route.kind == "nav" or route.kind == "local") then
+		return true
+	end
+	return GilCount() >= IsNull(route.price, 0)
+end
+
+local function _CanAccessMapFinalize(routeFacts, mapid)
+	if not routeFacts or not routeFacts.reachable then
+		return false
+	end
+	for _, route in ipairs(routeFacts.routes or {}) do
+		if _CanAccessMapRouteIsAffordable(route) then
+			if (route.setTeleportAeth and route.aeth and e_teleporttomap) then
+				e_teleporttomap.aeth = route.aeth
 			end
-			
-			local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
-			navd("[CanAccessMap] attunedAetherytes count=" .. tostring(attunedAetherytes and #attunedAetherytes or 0))
-			-- Require IsAetheryte: aethernet shards (e.g. 191 in Radz) share the
-			-- territory but cannot be teleported to, so they must not count as
-			-- direct access here.  Keeps this consistent with the teleport
-			-- executor (GetAetheryteByMapID), otherwise access reports true but
-			-- the teleport never fires and MOVETOMAP loops.
-			for _, aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
-					navd("[CanAccessMap] direct aetheryte match id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory))
-					return true
-				end
-			end
-			
-			local nearestAetheryte = FFXIVLib.API.Map.GetBestAetheryteForMap(mapid, nil, { fromMapId = Player.localmapid })
-			navd("[CanAccessMap] nearestAetheryte=" .. tostring(nearestAetheryte and nearestAetheryte.id) .. " price=" .. tostring(nearestAetheryte and nearestAetheryte.price) .. " gil=" .. tostring(GilCount()))
-			if (nearestAetheryte) then
-				if (GilCount() >= nearestAetheryte.price) then
-					return true
-				end
-			end
-			
-			-- Fall back check to see if we can get to EL, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 0, y = 82, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(820, mapid) then
-						navd("Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			if (mapid == 820 and not FFXIVLib.API.Map.CanUseAetheryte(134)) then
-			-- Fall back alternate check to see if we can get to EL, and from there to the destination.
-				for k,aetheryte in pairs(attunedAetherytes) do
-					if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
-						local aethPos = {x = -244, y = 20, z = 385}
-						local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
-						if (table.valid(backupPos)) and _canTraverseNavPath(814, 820) then
-							e_teleporttomap.aeth = aetheryte
-							return true
-						end
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Crystal, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -65, y = 4, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(819, mapid) then
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Foundation, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(418, mapid) then
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Thavnair, and from there to
-			-- the destination (Radz-at-Han 963 aetheryte is quest-locked; walk in
-			-- from Thavnair 957 when entry is unlocked).
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 169 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 192.39, y = 5.80, z = 625.79}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,957,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(957, mapid) then
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Idyllshire, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(478, mapid) then
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Kugane, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 111 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 45.89, y = 4.2, z = -40.59}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,628,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(628, mapid) then
-						d("Found an attuned backup position aetheryte for mapid 2["..tostring(mapid).."].")
-						return true
-					end
-				end
-			end
-			-- Fall back check to see if we can get to Tuliyollal, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 216 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -24, y = 0, z = 7.5}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,mapid)
-					if (table.valid(backupPos)) and _canTraverseNavPath(1185, mapid) then
-						d("Found an attuned backup position aetheryte for mapid 3["..tostring(mapid).."].")
-						return true
-					end
-				end
-			end
-		else
-			navd("[CanAccessMap] mapid=" .. tostring(mapid) .. " == localmapid, returning true")
 			return true
 		end
 	end
-	navd("[CanAccessMap] all paths exhausted, returning false for mapid=" .. tostring(mapid))
+	navd("[CanAccessMap] reachable but unaffordable mapid=" .. tostring(mapid) .. " gil=" .. tostring(GilCount()))
 	return false
+end
+
+local function _CanAccessMapCheckNav(srcMap, mapid)
+	local ppos = Player.pos
+	local pos = ml_nav_manager.GetNextPathPos(ppos, srcMap, mapid)
+	navd("[CanAccessMap] GetNextPathPos(" .. tostring(srcMap) .. "->" .. tostring(mapid) .. ")=" .. tostring(pos and table.valid(pos)))
+	local traversable = _canTraverseNavPath(srcMap, mapid)
+	navd("[CanAccessMap] _canTraverseNavPath(pos " .. tostring(table.valid(pos) and "valid" or "nil") .. ")=" .. tostring(traversable))
+	if traversable then
+		return _CanAccessMapRoute("nav")
+	end
+	return nil
+end
+
+local function _CanAccessMapAddAetheryteRoutes(routes, attunedAetherytes, territoryId, kind, setTeleportAeth)
+	if not territoryId or not attunedAetherytes then return end
+	for _, aetheryte in pairs(attunedAetherytes) do
+		if (aetheryte.territory == territoryId and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+			navd("[CanAccessMap] " .. tostring(kind) .. " aetheryte id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory) .. " price=" .. tostring(aetheryte.price))
+			_CanAccessMapAddRoute(routes, kind, aetheryte, setTeleportAeth)
+		end
+	end
+end
+
+local function _CanAccessMapAetheryteById(attunedAetherytes, aetheryteId)
+	if not attunedAetherytes then return nil end
+	for _, aetheryte in pairs(attunedAetherytes) do
+		if (aetheryte.id == aetheryteId and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+			return aetheryte
+		end
+	end
+	return nil
+end
+
+local function _CanAccessMapAddFallbackRoute(routes, attunedAetherytes, aetheryteId, hubMapId, hubPos, mapid, setTeleportAeth, debugText)
+	local aetheryte = _CanAccessMapAetheryteById(attunedAetherytes, aetheryteId)
+	if not aetheryte then return end
+
+	local backupPos = ml_nav_manager.GetNextPathPos(hubPos, hubMapId, mapid)
+	if (table.valid(backupPos)) and _canTraverseNavPath(hubMapId, mapid) then
+		navd(debugText or ("[CanAccessMap] fallback route via " .. tostring(aetheryteId) .. " -> " .. tostring(mapid)))
+		_CanAccessMapAddRoute(routes, "fallback", aetheryte, setTeleportAeth)
+	end
+end
+
+local function _CanAccessMapBuildRouteFacts(mapid)
+	local srcMap = Player.localmapid
+	if (mapid == 0) then
+		return { reachable = false, routes = {} }
+	end
+	if (srcMap == mapid) then
+		navd("[CanAccessMap] mapid=" .. tostring(mapid) .. " == localmapid, returning local route")
+		return { reachable = true, routes = { _CanAccessMapRoute("local") } }
+	end
+
+	local navRoute = _CanAccessMapCheckNav(srcMap, mapid)
+	if navRoute then
+		return { reachable = true, routes = { navRoute } }
+	end
+
+	local routes = {}
+	local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
+	navd("[CanAccessMap] attunedAetherytes count=" .. tostring(attunedAetherytes and TableSize(attunedAetherytes) or 0))
+
+	-- Aethernet shards can share a territory but cannot be teleported to, so
+	-- only true aetherytes count as a direct teleport route.
+	_CanAccessMapAddAetheryteRoutes(routes, attunedAetherytes, mapid, "direct-aetheryte", false)
+
+	if (FFXIVLib.API.Map.ResolveAetheryteDestinationMap) then
+		local resolvedMapId = FFXIVLib.API.Map.ResolveAetheryteDestinationMap(mapid, nil, srcMap)
+		if (resolvedMapId and resolvedMapId ~= mapid) then
+			_CanAccessMapAddAetheryteRoutes(routes, attunedAetherytes, resolvedMapId, "resolved-aetheryte", false)
+		end
+	end
+
+	-- Expansion hub fallbacks.
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 134, 820, {x = 0, y = 82, z = 0}, mapid, true, "Found an attuned backup position aetheryte for mapid 1["..tostring(mapid).."].")
+	if (mapid == 820) then
+		_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 138, 814, {x = -244, y = 20, z = 385}, 820, true, "[CanAccessMap] fallback route to 820 via Kholusia")
+	end
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 133, 819, {x = -65, y = 4, z = 0}, mapid, true, "[CanAccessMap] fallback route via Crystarium")
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 70, 418, {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}, mapid, false, "[CanAccessMap] fallback route via Foundation")
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 169, 957, {x = 192.39, y = 5.80, z = 625.79}, mapid, true, "[CanAccessMap] fallback route via Thavnair")
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 75, 478, {x = 66.53, y = 207.82, z = -26.03}, mapid, false, "[CanAccessMap] fallback route via Idyllshire")
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 111, 628, {x = 45.89, y = 4.2, z = -40.59}, mapid, false, "Found an attuned backup position aetheryte for mapid 2["..tostring(mapid).."].")
+	_CanAccessMapAddFallbackRoute(routes, attunedAetherytes, 216, 1185, {x = -24, y = 0, z = 7.5}, mapid, false, "Found an attuned backup position aetheryte for mapid 3["..tostring(mapid).."].")
+
+	if _CanAccessMapHasAetheryteRoute({ routes = routes }) then
+		return { reachable = true, routes = routes }
+	end
+
+	navd("[CanAccessMap] all paths exhausted, returning false for mapid=" .. tostring(mapid))
+	return { reachable = false, routes = {} }
 end
 
 function CanAccessMap(mapid)
 	local mapid = tonumber(mapid) or 0
-	
-	local now = Now()
-	if (now - _canAccessMapCacheTime) > 30000 then
-		_canAccessMapCache = {}
-		_canAccessMapCacheTime = now
-	end
-	local cached = _canAccessMapCache[mapid]
+	local srcMap = Player and Player.localmapid or 0
+	local cacheKey = tostring(srcMap) .. "->" .. tostring(mapid)
+	local cached = _canAccessMapCache[cacheKey]
 	if (cached ~= nil) then
-		return cached
+		return _CanAccessMapFinalize(cached, mapid)
 	end
 	
-	local ok, result = xpcall(function() return _CanAccessMapImpl(mapid) end, function(err)
-		navd("[Nav] _CanAccessMapImpl ERROR mapid=" .. tostring(mapid) .. ": " .. tostring(err))
+	local ok, routeFacts = xpcall(function() return _CanAccessMapBuildRouteFacts(mapid) end, function(err)
+		navd("[Nav] _CanAccessMapBuildRouteFacts ERROR mapid=" .. tostring(mapid) .. ": " .. tostring(err))
 		local tb = debug and debug.traceback and debug.traceback("", 2) or "no traceback"
 		navd("[Nav] traceback: " .. tostring(tb))
 	end)
-	if not ok then result = false end
+	if not ok then routeFacts = { reachable = false, routes = {} } end
+	_canAccessMapCache[cacheKey] = routeFacts
+	local result = _CanAccessMapFinalize(routeFacts, mapid)
 	navd("[Nav] CanAccessMap(" .. tostring(mapid) .. ") = " .. tostring(result) .. " ok=" .. tostring(ok))
-	_canAccessMapCache[mapid] = result
 	return result
 end
 

@@ -202,9 +202,9 @@ ffxivminion.GUI = {
 		open = false,
 		visible = true,
 		access_cache = {},
-		access_cache_time = 0,
 		access_cache_mapid = 0,
 		access_cache_questcount = -1,
+		access_cache_version = -1,
 	},
 	informational = {
 		name = "Information Window",
@@ -609,6 +609,9 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 
 					-- Re-warm map/aetheryte/weather data for the new zone.
 					FFXIVData_PreWarmMap(Player.localmapid)
+					if (ClearCanAccessMapCache) then
+						ClearCanAccessMapCache("zone load")
+					end
 				end
 			end
 		end
@@ -2945,13 +2948,13 @@ invalid name or haven't chosen one.")
 						GUI:TextColored(1, .1, .2, 1, "Not On Mesh")
 					end
 
-					-- Cache CanAccessMap results to avoid expensive per-frame nav/aetheryte lookups
+					-- Cache the displayed access text until map-access state changes.
 					local helpData = ffxivminion.GUI.help
-					local now = os.clock()
 					local currentMap = Player.localmapid
-					if (now - helpData.access_cache_time > 30) or (currentMap ~= helpData.access_cache_mapid) then
-						helpData.access_cache_time = now
+					local accessVersion = IsNull(gCanAccessMapCacheVersion, 0)
+					if (currentMap ~= helpData.access_cache_mapid) or (accessVersion ~= IsNull(helpData.access_cache_version, -1)) then
 						helpData.access_cache_mapid = currentMap
+						helpData.access_cache_version = accessVersion
 						local accessChecks = {
 							{1192, "Can Access Living Memory"},
 							{1191, "Can Access Heritage Found"},

@@ -677,11 +677,15 @@ function ml_navigation.NeedsInteractCloseApproach(task, resolvedTarget)
 		if (dbg) then d("[DiveDbg][NeedsApproach] false: hasTarget="..tostring(target ~= nil).." los="..tostring(target and target.los)) end
 		return false
 	end
-	if (target.interactable) then
-		if (dbg) then d("[DiveDbg][NeedsApproach] false: target.interactable=true (should stop & interact)") end
-		return false
-	end
 	local ppos = Player.pos
+	if (target.interactable) then
+		local stopDist = ml_navigation.GetInteractStopDistance3d(task)
+		if ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, stopDist) then
+			if (dbg) then d("[DiveDbg][NeedsApproach] false: target.interactable=true and within stop volume") end
+			return false
+		end
+		if (dbg) then d("[DiveDbg][NeedsApproach] continue: target.interactable=true but outside stop volume") end
+	end
 	local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(task)
 	local planarSep = ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target)
 	if (planarSep >= maxFollow2d) then
@@ -3960,6 +3964,17 @@ function ml_navigation.Navigate(event, ticks)
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then
 		ml_navigation.lastupdate = ticks
+		if (FFXIV_Common_BotRunning == false or (ml_task_hub and ml_task_hub.shouldRun == false)) then
+			if (ml_navigation.navAutoFollowOwned) then
+				ml_navigation:DisableAutoFollow(true, "NavGuardBotStopped")
+			else
+				ml_navigation:ResetAutoFollowState()
+			end
+			ml_navigation:ResetLandingController()
+			ml_navigation:ClearAirborneGroundAcquire()
+			ml_navigation:ClearAirborneGroundWalkSegment()
+			return
+		end
 		if (not (ml_navigation.CanRun() and ml_navigation.canPath and not ml_navigation.debug)) then
 			local guardTask = nil
 			local guardPos = nil
