@@ -4814,11 +4814,22 @@ end
 RegisterEventHandler("Gameloop.Update", ml_navigation.GroundFollowCamWrapper, "ml_navigation.GroundFollowCamWrapper")
 
 function ml_navigation.DebugDraw(event, ticks)
-	if (ml_navigation.debug) then
-		if (table.valid(ml_navigation.path)) then
-			for i,node in pairs(ml_navigation.path) do
-				RenderManager:AddObject3D(node,1,1)
+	if (not ml_navigation.debug) then
+		return
+	end
+	if (not RenderManager or type(RenderManager.AddObject3D) ~= "function") then
+		if (not ml_navigation.debugDrawWarned) then
+			ml_navigation.debugDrawWarned = true
+			if (gNavDebug) then
+				d("[NavDebug] DebugDraw disabled: RenderManager:AddObject3D is unavailable.")
 			end
+		end
+		ml_navigation.debug = nil
+		return
+	end
+	if (table.valid(ml_navigation.path)) then
+		for i,node in pairs(ml_navigation.path) do
+			RenderManager:AddObject3D(node,1,1)
 		end
 	end
 end
