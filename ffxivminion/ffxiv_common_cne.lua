@@ -1573,6 +1573,13 @@ function e_teleporttomap:execute()
 			newTask.setHomepoint = ml_task_hub:ThisTask().setHomepoint
 			newTask.aetheryte = e_teleporttomap.aeth.id
 			newTask.mapID = e_teleporttomap.aeth.territory
+			if (table.valid(ml_task_hub:ThisTask().pos)) then
+				newTask.pos = {
+					x = ml_task_hub:ThisTask().pos.x,
+					y = ml_task_hub:ThisTask().pos.y,
+					z = ml_task_hub:ThisTask().pos.z
+				}
+			end
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
 	end
@@ -1587,6 +1594,23 @@ e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
 e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- fraction of distToDest; savings must be >= max(100 yalms, ratio * distToDest)
 e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
+
+local function SameMapTeleportShouldSetHomepoint(task)
+	if (not task) then
+		return false
+	end
+	if (task.setHomepoint) then
+		return true
+	end
+	local parent = task.ParentTask and task:ParentTask() or nil
+	return parent and In(parent.name, "QUEST_INTERACT", "QUEST_MOVETOPOS", "QUEST_KILL", "QUEST_KILLAGGRO")
+end
+
+local function SameMapTeleportCopyDestination(newTask, task)
+	if (newTask and task and table.valid(task.pos)) then
+		newTask.pos = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
+	end
+end
 
 function c_teleportsamemap:evaluate()
 	e_teleportsamemap.aeth = nil
@@ -1698,9 +1722,10 @@ function e_teleportsamemap:execute()
 				ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
 
 				local newTask = ffxiv_task_teleport.Create()
-				newTask.setHomepoint = false
+				newTask.setHomepoint = SameMapTeleportShouldSetHomepoint(task)
 				newTask.aetheryte = e_teleportsamemap.aeth.id
 				newTask.mapID = e_teleportsamemap.aeth.territory
+				SameMapTeleportCopyDestination(newTask, task)
 				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 			end
 		end
@@ -1715,9 +1740,10 @@ function e_teleportsamemap:execute()
 				ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
 
 				local newTask = ffxiv_task_teleport.Create()
-				newTask.setHomepoint = false
+				newTask.setHomepoint = SameMapTeleportShouldSetHomepoint(task)
 				newTask.aetheryte = e_teleportsamemap.aeth.id
 				newTask.mapID = e_teleportsamemap.aeth.territory
+				SameMapTeleportCopyDestination(newTask, task)
 				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 			end
 		end
@@ -1982,7 +2008,9 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	c_getmovementpath_resume_existing_path(currentTask, "post-handoff-check")
-	local currentTaskTargetsCrystal = currentTask and IsNull(currentTask.contentid, 0) ~= 0
+	local currentTaskContentID = IsNull(currentTask and currentTask.contentid, 0)
+	local currentTaskInteractID = IsNull(currentTask and currentTask.interact, 0)
+	local currentTaskTargetsCrystal = currentTask and (currentTaskContentID ~= 0 or currentTaskInteractID ~= 0)
 		and (In(currentTask.name, "QUEST_ATTUNEAETHERYTE", "MOVEAETHERNET")
 			or (ffxiv_map_nav and currentTask.contentid and (
 				(ffxiv_map_nav.IsAetheryte and ffxiv_map_nav.IsAetheryte(currentTask.contentid))
@@ -1997,7 +2025,7 @@ function c_getmovementpath:evaluate()
 				interactable = nil
 			end
 		end
-		if (not interactable or not table.valid(interactable)) then
+		if ((not interactable or not table.valid(interactable)) and currentTaskContentID ~= 0) then
 			interactable = GetInteractableEntity(currentTask.contentid, {5})
 			if (interactable) then
 				currentTask.interact = interactable.id
@@ -5493,6 +5521,12 @@ function c_dointeract:evaluate()
 			d("[DiveDbg][c_dointeract] no interactable entity resolved (task.interact="..tostring(task.interact)..", contentid="..tostring(task.contentid)..") -> return false, nav drives")
 		end
 		return false
+	end
+
+	if (interactable.contentid and IsNull(task.contentid, 0) == 0
+		and In(task.name, "MOVETOINTERACT", "MOVEAETHERNET", "QUEST_ATTUNEAETHERYTE")
+		and interactable.type == 5) then
+		task.contentid = interactable.contentid
 	end
 	
 	-- Flying: let navigation handle descent. Swimming is the landed water state after

@@ -4061,17 +4061,26 @@ function GetUnattunedCurrents()
 end
 
 function GetHomepoint(force)
-	local homepoint = 0
-	
+	local homepoint = GetHomepointAetheryte(force)
+	if (homepoint) then
+		return homepoint.TerritoryId or homepoint.territory or 0
+	end
+	return 0
+end
+function GetHomepointAetheryte(force)
 	local list = GetAttunedAetheryteList(force)
 	if (table.valid(list)) then
-		for _, aetheryte in pairs(list) do
+		for id, aetheryte in pairs(list) do
 			if (aetheryte.ishomepoint) then
-				homepoint = aetheryte.TerritoryId or aetheryte.territory
+				aetheryte.id = aetheryte.id or tonumber(id) or aetheryte.aethid or aetheryte.AetheryteId
+				aetheryte.aethid = aetheryte.aethid or aetheryte.id
+				aetheryte.AetheryteId = aetheryte.AetheryteId or aetheryte.id
+				aetheryte.TerritoryId = aetheryte.TerritoryId or aetheryte.territory
+				return aetheryte
 			end
 		end
 	end
-	return homepoint
+	return nil
 end
 function GetAetheryteByID(id,force)
 	local aethid = tonumber(id) or 0
@@ -7860,8 +7869,12 @@ function Transport614(pos1,pos2)
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(108)) then	
 									local newTask = ffxiv_task_teleport.Create()
+									newTask.setHomepoint = true
 									newTask.aetheryte = 108
 									newTask.mapID = 614
+									if (table.valid(pos2)) then
+										newTask.pos = { x = pos2.x, y = pos2.y, z = pos2.z }
+									end
 									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 								end
 							end
@@ -7878,8 +7891,12 @@ function Transport614(pos1,pos2)
 							if (ActionIsReady(7,5) and not MIsCasting(true) and not CannotMove()) then
 								if (Player:Teleport(107)) then	
 									local newTask = ffxiv_task_teleport.Create()
+									newTask.setHomepoint = true
 									newTask.aetheryte = 107
 									newTask.mapID = 614
+									if (table.valid(pos2)) then
+										newTask.pos = { x = pos2.x, y = pos2.y, z = pos2.z }
+									end
 									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 								end
 							end

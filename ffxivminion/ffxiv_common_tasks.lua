@@ -111,6 +111,42 @@ local function TaskHandoffLogThrottle(task, key, ms, message)
 	end
 end
 
+local function TaskLooksLikeRuntimeEntityID(id)
+	id = tonumber(id) or 0
+	return id >= 268435456
+end
+
+local function TaskNormalizeRuntimeEntityTarget(task, source)
+	if (not task or not TaskLooksLikeRuntimeEntityID(task.contentid)) then
+		return false
+	end
+
+	local runtimeID = task.contentid
+	local entity = EntityList:Get(runtimeID)
+	if (entity and entity.contentid and tonumber(entity.contentid) ~= 0) then
+		task.interact = entity.id
+		task.contentid = entity.contentid
+		if (entity.type == 5 and table.valid(entity.meshpos) and not task.useProfilePos) then
+			task.pos = entity.meshpos
+		end
+		TaskHandoffLog("Normalized runtime entity id to contentid source="..tostring(source)
+			.." task="..tostring(task.name)
+			.." interact="..tostring(task.interact)
+			.." contentid="..tostring(task.contentid))
+		return true
+	end
+
+	if (IsNull(task.interact, 0) == 0) then
+		task.interact = runtimeID
+	end
+	task.contentid = 0
+	TaskHandoffLog("Normalized unloaded runtime entity id source="..tostring(source)
+		.." task="..tostring(task.name)
+		.." interact="..tostring(task.interact)
+		.." contentid=0")
+	return true
+end
+
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 
 function ffxiv_task_movetopos.Create()
@@ -392,6 +428,18 @@ function ffxiv_task_movetopos:task_complete_eval()
 				airborneLandingRangeReached = (dist2d <= landingAcquireRange and dist3d <= requiredRange3d)
 			end
 			if (completionRangeReached or airborneLandingRangeReached) then
+				if (completionRangeReached and plainMoveTo and table.valid(self.gatePos) and table.valid(self.pos)
+					and IsNull(self.destMapID, 0) ~= 0 and Player.localmapid ~= self.destMapID) then
+					TaskHandoffLog("MOVETOPOS reached gate approach; advancing to transition point parent="..TaskDebugParentName(self)
+						.." transitionPos="..TaskDebugPos(self.pos)
+						.." transitionDist="..tostring(math.distance3d(myPos,self.pos))
+						.." destMapID="..tostring(self.destMapID))
+					self.gatePos = nil
+					if (ml_navigation and ml_navigation.ResetCurrentPath) then
+						ml_navigation:ResetCurrentPath()
+					end
+					return false
+				end
 				if (self.interact and self.interact ~= 0) then
 					local interactable = EntityList:Get(self.interact)
 					if (not table.valid(interactable) or not interactable.interactable) then
@@ -796,6 +844,7 @@ function ffxiv_task_movetointeract.Create()
 end
 
 function ffxiv_task_movetointeract:Init()
+	TaskNormalizeRuntimeEntityTarget(self, "movetointeract-init")
 	TaskHandoffLog("MOVETOINTERACT init parent="..TaskDebugParentName(self)
 		.." pos="..TaskDebugPos(self.pos)
 		.." contentid="..tostring(self.contentid)
@@ -1342,6 +1391,7 @@ function ffxiv_task_teleport.Create()
 	newinst.aetheryte = 0
     newinst.mapID = 0
 	newinst.mesh = nil
+	newinst.pos = nil
     newinst.started = Now()
 	newinst.lastActivity = Now()
 	newinst.setEvac = true
@@ -1356,6 +1406,71 @@ function ffxiv_task_teleport:Init()
 	self:add( ke_setHomepoint, self.process_elements)
 	
     self:AddTaskCheckCEs()
+end
+
+local function TeleportAetheryteID(aetheryte)
+	if (not aetheryte) then
+		return 0
+	end
+	return tonumber(aetheryte.id or aetheryte.aethid or aetheryte.AetheryteId or 0) or 0
+end
+
+local function TeleportShouldSetHomepoint(task)
+	if (not task or not task.setHomepoint or Player.localmapid ~= task.mapID or IsCityMap(Player.localmapid)) then
+		return false
+	end
+
+	local targetID = tonumber(task.aetheryte or 0) or 0
+	if (targetID == 0) then
+		return false
+	end
+
+	local targetLocation = GetAetheryteLocation(targetID)
+	if (not table.valid(targetLocation)) then
+		return false
+	end
+
+	local homepoint = GetHomepointAetheryte and GetHomepointAetheryte(true) or nil
+	local homepointID = TeleportAetheryteID(homepoint)
+	local homepointMap = homepoint and (homepoint.TerritoryId or homepoint.territory) or 0
+	local destination = task.pos
+
+	if (homepointID == 0) then
+		return true, targetID, targetLocation, "NoHomepoint"
+	end
+
+	if (table.valid(destination) and destination.x ~= nil) then
+		local best = FFXIVLib.API.Map.GetBestAetheryteForMap(task.mapID, destination, { fromMapId = Player.localmapid })
+		local bestID = TeleportAetheryteID(best)
+		if (bestID ~= 0) then
+			if (homepointID == bestID) then
+				return false
+			end
+			if (targetID == bestID) then
+				return true, targetID, targetLocation, "BestForDestination"
+			end
+			return false
+		end
+
+		local homepointLocation = GetAetheryteLocation(homepointID)
+		if (homepointMap ~= task.mapID) then
+			return true, targetID, targetLocation, "DifferentMap"
+		end
+		if (table.valid(homepointLocation)) then
+			local homeDist = PDistance3D(homepointLocation.x, homepointLocation.y, homepointLocation.z, destination.x, destination.y, destination.z)
+			local targetDist = PDistance3D(targetLocation.x, targetLocation.y, targetLocation.z, destination.x, destination.y, destination.z)
+			if (targetDist < homeDist) then
+				return true, targetID, targetLocation, "CloserToDestination"
+			end
+			return false
+		end
+	end
+
+	if (homepointID ~= targetID) then
+		return true, targetID, targetLocation, "DifferentAetheryte"
+	end
+
+	return false
 end
 
 c_sethomepoint = inheritsFrom( ml_cause )
@@ -1376,18 +1491,13 @@ function c_sethomepoint:evaluate()
 		return false
 	end
 	
-	local homepoint = GetHomepoint(true)
-	if (homepoint ~= 0) then
-		d("homepoint is ["..tostring(homepoint).."] and current mapid is ["..tostring(ml_task_hub:CurrentTask().mapID).."]")
-		if (homepoint ~= ml_task_hub:CurrentTask().mapID) then
-			local location = GetAetheryteLocation(ml_task_hub:CurrentTask().aetheryte)
-			if (table.valid(location)) then
-				d("need to set homepoint")
-				e_sethomepoint.aethid = ml_task_hub:CurrentTask().aetheryte
-				e_sethomepoint.aethpos = {x = location.x, y = location.y, z = location.z}
-				return true
-			end
-		end
+	local shouldSet, aethid, location, reason = TeleportShouldSetHomepoint(ml_task_hub:CurrentTask())
+	if (shouldSet and table.valid(location)) then
+		d("need to set homepoint reason=["..tostring(reason).."] aetheryte=["..tostring(aethid)
+			.."] mapid=["..tostring(ml_task_hub:CurrentTask().mapID).."]")
+		e_sethomepoint.aethid = aethid
+		e_sethomepoint.aethpos = {x = location.x, y = location.y, z = location.z}
+		return true
 	end
     
     return false
@@ -1396,12 +1506,10 @@ function e_sethomepoint:execute()
     local newTask = ffxiv_task_movetointeract.Create()
     newTask.contentid = e_sethomepoint.aethid
     newTask.pos = e_sethomepoint.aethpos
-    if In(Player.localmapid,956,957,958,960,961) then
-        newTask.interactRange3d = 6.5
-    elseif In(Player.localmapid,959) then
-        newTask.interactRange3d = 10
-    end
-
+    -- This is post-teleport cleanup at the destination aetheryte. Stay grounded
+    -- so a short crystal approach cannot be promoted into a flight route.
+    newTask.nomount = true
+    newTask.cubefilters = 1
     if (gTeleportHack) then
         newTask.useTeleport = true
     end
@@ -1448,9 +1556,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
-		local homepoint = GetHomepoint(true)
-		if (homepoint ~= self.mapID) then
-			--d("homepoint doesn't match the mapid")
+		if (TeleportShouldSetHomepoint(self)) then
 			return false
 		end
 	end
@@ -2835,6 +2941,7 @@ function ffxiv_task_moveaethernet.Create()
 end
 
 function ffxiv_task_moveaethernet:Init()
+	TaskNormalizeRuntimeEntityTarget(self, "moveaethernet-init")
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 
@@ -3035,6 +3142,14 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	local interactable = nil
 	if (self.interact ~= 0) then
 		interactable = EntityList:Get(self.interact)
+		if (interactable and interactable.contentid and IsNull(self.contentid, 0) == 0) then
+			self.contentid = interactable.contentid
+		end
+	end
+
+	if (self.interact ~= 0 and IsNull(self.contentid, 0) == 0 and IsNull(self.interactAttempts, 0) == 0
+		and (not interactable or not table.valid(interactable))) then
+		return false
 	end
 	
 	local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)

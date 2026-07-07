@@ -84,6 +84,11 @@ local function _NavTestTargetIsNetworkCrystal(entity)
 	return false
 end
 
+local function _NavTestLooksLikeRuntimeEntityID(id)
+	id = tonumber(id) or 0
+	return id >= 268435456
+end
+
 local function _NavTestApplyInteractTarget(newTask, targetID)
 	targetID = tonumber(targetID) or 0
 	newTask.interact = targetID
@@ -446,6 +451,15 @@ function e_navtestscenario:execute()
 					params.pos = target.meshpos
 				end
 				d("[NavTest] Quest scenario target is a network crystal; using contentid ["..tostring(target.contentid).."].")
+			elseif (target and target.contentid and target.contentid ~= 0) then
+				params.id = target.contentid
+				if (table.valid(target.pos)) then
+					params.pos = target.pos
+				end
+				d("[NavTest] Quest scenario target is an entity; using contentid ["..tostring(target.contentid).."].")
+			elseif (_NavTestLooksLikeRuntimeEntityID(npcID)) then
+				params.entityid = npcID
+				d("[NavTest] Quest scenario target id ["..tostring(npcID).."] is not loaded; using it as an entity id until it streams in.")
 			else
 				params.id = npcID
 			end
