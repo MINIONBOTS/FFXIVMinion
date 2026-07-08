@@ -1,0 +1,65 @@
+name: Auto Beta Release
+
+on:
+  push:
+    branches:
+      - ffxivlib_refactor
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-beta-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  beta-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine next beta tag
+        id: next_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+
+          # Find tags like v1.0.1.2-beta
+          last_tag=$(git tag -l 'v*.*.*.*-beta' --sort=-v:refname | head -n 1)
+
+          if [[ -z "${last_tag}" ]]; then
+            # Starting point if no matching tag exists yet
+            new_tag="v1.0.1.1-beta"
+            title_version="1.0.1.1"
+          else
+            # Parse vA.B.C.D-beta
+            core="${last_tag#v}"          # A.B.C.D-beta
+            core="${core%-beta}"          # A.B.C.D
+            IFS='.' read -r a b c d <<< "$core"
+            d=$((d + 1))
+            new_tag="v${a}.${b}.${c}.${d}-beta"
+            title_version="${a}.${b}.${c}.${d}"
+          fi
+
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+          echo "title_version=$title_version" >> "$GITHUB_OUTPUT"
+          echo "Last tag: ${last_tag:-<none>}"
+          echo "New tag:  $new_tag"
+
+      - name: Create Git tag
+        run: |
+          git tag "${{ steps.next_tag.outputs.new_tag }}"
+          git push origin "${{ steps.next_tag.outputs.new_tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.next_tag.outputs.new_tag }}
+          name: Public Beta ${{ steps.next_tag.outputs.title_version }}
+          generate_release_notes: true
+          prerelease: true
