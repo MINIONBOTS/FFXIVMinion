@@ -1149,6 +1149,15 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	-- Run after in-range / missing-entity checks so mount lock (Busy/MIsLocked) does not
 	-- block "fail forward" when the object is gone or not targetable. Only then allow
 	-- Busy to complete the task (post-interact UI, etc.) once interactAttempts > 0.
+	if (IsControlOpen("Snipe") and IsNull(self.interactAttempts, 0) == 0) then
+		TaskHandoffLogThrottle(self, "mti-snipe-no-attempts", 1000,
+			"MOVETOINTERACT snipe active but no interact attempts yet; holding completion parent="..TaskDebugParentName(self)
+			.." interactState="..tostring(self.interactState)
+			.." journalAccept="..tostring(IsControlOpen("JournalAccept"))
+			.." journalResult="..tostring(IsControlOpen("JournalResult"))
+			.." request="..tostring(IsControlOpen("Request")))
+		return false
+	end
 	if (Busy()) then
 		if (IsNull(self.interactAttempts, 0) == 0) then
 			TaskHandoffLogThrottle(self, "mti-busy-no-attempts", 1000,
@@ -1156,7 +1165,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				.." interactState="..tostring(self.interactState)
 				.." journalAccept="..tostring(IsControlOpen("JournalAccept"))
 				.." journalResult="..tostring(IsControlOpen("JournalResult"))
-				.." request="..tostring(IsControlOpen("Request")))
+				.." request="..tostring(IsControlOpen("Request"))
+				.." snipe="..tostring(IsControlOpen("Snipe")))
 			return false
 		end
 		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=BusyAfterInteract parent="..TaskDebugParentName(self)

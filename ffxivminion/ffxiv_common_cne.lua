@@ -2052,6 +2052,24 @@ function c_getmovementpath:evaluate()
 		return false
 	end
 	local currentTask = ml_task_hub:CurrentTask()
+	if (currentTask and currentTask.name == "MOVETOINTERACT" and IsControlOpen("Snipe")) then
+		if (Player:IsMoving() or Player:IsExactMoving()) then
+			Player:Stop()
+			Player:StopExact()
+			if (ml_navigation and ml_navigation.DisableAutoFollow) then
+				ml_navigation:DisableAutoFollow(true, "movetointeract-snipe")
+			end
+		end
+		if (TimeSince(IsNull(currentTask._snipePathHoldLast, 0)) > 1000) then
+			currentTask._snipePathHoldLast = Now()
+			d("[TaskHandoff] MOVETOINTERACT holding movement/path while Snipe is active parent="
+				..tostring(currentTask.ParentTask and currentTask:ParentTask() and currentTask:ParentTask().name)
+				.." contentid="..tostring(currentTask.contentid)
+				.." interact="..tostring(currentTask.interact)
+				.." attempts="..tostring(IsNull(currentTask.interactAttempts, 0)))
+		end
+		return false
+	end
 	if (currentTask and currentTask.name == "MOVETOPOS" and currentTask.exactMovementStarted and Player:IsExactMoving()) then
 		return false
 	end
