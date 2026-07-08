@@ -3886,6 +3886,14 @@ end
 function Player:Stop(resetpath)
 	ml_navigation:CancelFlightFollowCam()
 
+	-- Drop the run gate before touching native movement/autofollow state. This
+	-- keeps bot-off direct MoveTo paths from being re-dispatched from stale state
+	-- while Stop() is clearing them.
+	ml_navigation.canPath = false
+	if (NavigationManager and NavigationManager.ResetPath) then
+		NavigationManager:ResetPath()
+	end
+
 	-- MoveToExact is a task-independent state machine that the standard nav
 	-- reset below does NOT touch. Release it here so any task transition that
 	-- halts movement via Player:Stop() (combat/aggro takeover, zone change,
@@ -3907,11 +3915,9 @@ function Player:Stop(resetpath)
 	ml_navigation.lastconnectiontimer = 0
 	ml_navigation:ResetFlightActionThrottle(true)
 	ml_navigation.lasttargetid = nil
-	NavigationManager:ResetPath()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation.receivedInstructions = {}
 	ml_navigation:ResetOMCHandler()
-	ml_navigation.canPath = false
 	ffnav.yield = {}
 	ffnav.process = {}
 end
@@ -3964,7 +3970,8 @@ function ml_navigation.Navigate(event, ticks)
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then
 		ml_navigation.lastupdate = ticks
-		if (ml_task_hub and ml_task_hub.shouldRun == false) then
+		local hasActiveMoveToPath = ml_navigation.canPath and ml_navigation:HasPath()
+		if (ml_task_hub and ml_task_hub.shouldRun == false and not hasActiveMoveToPath) then
 			if (ml_navigation.navAutoFollowOwned) then
 				ml_navigation:DisableAutoFollow(true, "NavGuardBotStopped")
 			else
