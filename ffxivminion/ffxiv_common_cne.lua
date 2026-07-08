@@ -2530,27 +2530,106 @@ local function PathAethernetWalkCost(fromPos, entryRow, entryDist3d, exitRow, ex
 	return leg1 + leg2
 end
 
--- Unlock only when walk via shard is shorter than walking straight to goal.
-local function ShardUnlockSavesPath(gotoPos, shardRow)
+local AETHERNET_UNLOCK_MAX_PASSBY_DETOUR = 45
+local AETHERNET_UNLOCK_MAX_PASSBY_START = 110
+local AETHERNET_UNLOCK_MAX_CANDIDATES = 4
+
+local function AethernetRowIsVisible(row)
+	local v = row and row.Invisible
+	return not (v == true or v == 1 or v == "True" or v == "true")
+end
+
+local function BuildLockedAethernetCandidates(mapid)
+	local onMap = FFXIVLib.API.Map.GetAetherytesByMapId(mapid)
+	local locked = FFXIVLib.API.Map.GetAetherytes(2)
+	if (not table.valid(onMap) or not table.valid(locked)) then
+		return nil
+	end
+
+	local candidates = {}
+	for shardId,row in pairs(onMap) do
+		if (locked[shardId] and AethernetRowIsVisible(row)
+			and row.AethernetGroup and row.AethernetGroup > 0
+			and FFXIVLib.API.Map.CanAttuneAetheryte(row)) then
+			local pos = AethernetApproachPos(row)
+			if (table.valid(pos)) then
+				row._unlockLineDist = math.distance3d(Player.pos, pos)
+				candidates[#candidates + 1] = row
+			end
+		end
+	end
+
+	if (not table.valid(candidates)) then
+		return nil
+	end
+
+	table.sort(candidates, function(left, right)
+		return (left._unlockLineDist or math.huge) < (right._unlockLineDist or math.huge)
+	end)
+	return candidates
+end
+
+local function EvaluateShardUnlockDetour(gotoPos, shardRow)
 	if (not table.valid(gotoPos) or not shardRow) then
-		return false
+		return false, "missing"
 	end
 	local shardPos = AethernetApproachPos(shardRow)
 	if (not table.valid(shardPos)) then
-		return false
+		return false, "no_pos"
 	end
 	if (not ml_navigation:CheckPath(gotoPos) or not ml_navigation:CheckPath(shardPos)) then
-		return false
+		return false, "no_path"
 	end
 
 	local gotoDist = GetPathDistance(Player.pos, gotoPos)
 	local shardDist = GetPathDistance(Player.pos, shardPos)
 	local shardToGoal = GetPathDistance(shardPos, gotoPos)
 	if (not gotoDist or not shardDist or not shardToGoal) then
-		return false
+		return false, "no_distance"
 	end
 
-	return (shardDist + shardToGoal) < gotoDist
+	local viaShard = shardDist + shardToGoal
+	local extraCost = viaShard - gotoDist
+	if (extraCost <= 0) then
+		return true, "saves_path", extraCost, shardDist, gotoDist, shardToGoal
+	end
+	if (extraCost <= AETHERNET_UNLOCK_MAX_PASSBY_DETOUR and shardDist <= AETHERNET_UNLOCK_MAX_PASSBY_START) then
+		return true, "passby", extraCost, shardDist, gotoDist, shardToGoal
+	end
+
+	return false, "too_far", extraCost, shardDist, gotoDist, shardToGoal
+end
+
+local function FindBestLockedAethernetForGoal(gotoPos, currentTask)
+	local candidates = BuildLockedAethernetCandidates(Player.localmapid)
+	if (not table.valid(candidates)) then
+		return nil
+	end
+
+	local best, bestReason, bestExtra, bestStart, bestGoal, bestEnd
+	local maxCandidates = math.min(AETHERNET_UNLOCK_MAX_CANDIDATES, #candidates)
+	for i = 1, maxCandidates do
+		local row = candidates[i]
+		if (IsNull(currentTask and currentTask.contentid, 0) ~= row.id) then
+			local ok, reason, extraCost, shardDist, gotoDist, shardToGoal = EvaluateShardUnlockDetour(gotoPos, row)
+			if (ok and (not best or extraCost < bestExtra or (extraCost == bestExtra and shardDist < bestStart))) then
+				best = row
+				bestReason = reason
+				bestExtra = extraCost
+				bestStart = shardDist
+				bestGoal = gotoDist
+				bestEnd = shardToGoal
+			end
+		end
+	end
+
+	return best, bestReason, bestExtra, bestStart, bestGoal, bestEnd
+end
+
+-- Unlock when the shard either saves path distance or is a small pass-by detour.
+local function ShardUnlockSavesPath(gotoPos, shardRow)
+	local ok = EvaluateShardUnlockDetour(gotoPos, shardRow)
+	return ok == true
 end
 
 c_useaethernet = inheritsFrom( ml_cause )
@@ -3051,19 +3130,29 @@ function c_unlockaethernet:evaluate(mapid, pos)
 		return false
 	end
 
-	local nearestAethernetUnlocked, nearestDistanceUnlocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid, Player.pos, 1)
-	local nearestAethernetLocked, nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid, Player.pos, 2)
-	if (nearestAethernetLocked and IsNull(currentTask and currentTask.contentid, 0) ~= nearestAethernetLocked.id) then
-		local shouldUnlock
-		if (destMapID ~= Player.localmapid) then
+	if (destMapID ~= Player.localmapid) then
+		local nearestAethernetLocked, nearestDistanceLocked = FFXIVLib.API.Map.GetNearestAethernet(Player.localmapid, Player.pos, 2)
+		if (nearestAethernetLocked and IsNull(currentTask and currentTask.contentid, 0) ~= nearestAethernetLocked.id) then
 			-- Off-map destination treated as far (~2000): attune the nearest on-map locked shard
 			-- on the way out, even if a closer unlocked aetheryte exists.
-			shouldUnlock = (nearestDistanceLocked < 2000)
-		elseif (not nearestAethernetUnlocked or nearestDistanceLocked <= nearestDistanceUnlocked) then
-			shouldUnlock = ShardUnlockSavesPath(gotoPos, nearestAethernetLocked)
+			if (nearestDistanceLocked < 2000) then
+				d("[AethernetUnlock] picking off-map shard id="..tostring(nearestAethernetLocked.id)
+					.." dist="..tostring(nearestDistanceLocked)
+					.." destMapID="..tostring(destMapID))
+				e_unlockaethernet.nearest = nearestAethernetLocked
+				return true
+			end
 		end
-		if (shouldUnlock) then
-			e_unlockaethernet.nearest = nearestAethernetLocked
+	else
+		local bestLocked, reason, extraCost, shardDist, gotoDist, shardToGoal = FindBestLockedAethernetForGoal(gotoPos, currentTask)
+		if (bestLocked) then
+			d("[AethernetUnlock] picking same-map shard id="..tostring(bestLocked.id)
+				.." reason="..tostring(reason)
+				.." extra="..tostring(extraCost)
+				.." shardDist="..tostring(shardDist)
+				.." goalDist="..tostring(gotoDist)
+				.." shardToGoal="..tostring(shardToGoal))
+			e_unlockaethernet.nearest = bestLocked
 			return true
 		end
 	end
