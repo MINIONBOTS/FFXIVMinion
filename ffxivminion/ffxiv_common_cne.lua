@@ -1351,6 +1351,15 @@ end
 c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
+e_teleporttomap.useReturn = false
+
+local function TeleportMapID(aetheryte)
+	if (not aetheryte) then
+		return 0
+	end
+	return tonumber(aetheryte.TerritoryId or aetheryte.territory or 0) or 0
+end
+
 function c_teleporttomap:evaluate()
 	local task = ml_task_hub:CurrentTask()
 	while (task) do
@@ -1359,18 +1368,31 @@ function c_teleporttomap:evaluate()
 		end
 		task = task:ParentTask()
 	end
-	local _destCheck = IsNull(ml_task_hub:ThisTask().destMapID,Player.localmapid)
+	e_teleporttomap.aeth = nil
+	e_teleporttomap.useReturn = false
+
+	local destMapID = tonumber(ml_task_hub:ThisTask().destMapID or 0) or 0
+	local _destCheck = (destMapID ~= 0) and destMapID or Player.localmapid
 	--d("[TeleportToMap] busy=" .. tostring(Busy()) .. " gil=" .. tostring(GilCount()) .. " destMapID=" .. tostring(ml_task_hub:ThisTask().destMapID) .. " localmapid=" .. tostring(Player.localmapid) .. " destCheck=" .. tostring(_destCheck))
-	if (Busy() or GilCount() < 2000 or _destCheck == Player.localmapid) then
+	if (Busy() or _destCheck == Player.localmapid) then
 		--d("[TeleportToMap] blocked: busy=" .. tostring(Busy()) .. " lowgil=" .. tostring(GilCount() < 2000) .. " sameMap=" .. tostring(_destCheck == Player.localmapid))
 		return false
 	end
+
+	local returnAction = ActionList:Get(1, 6)
+	if (returnAction and returnAction:IsReady(Player.id)) then
+		local homepoint = GetHomepointAetheryte and GetHomepointAetheryte(true) or nil
+		if (homepoint and TeleportMapID(homepoint) == destMapID and FFXIVLib.API.Map.IsAetheryte(homepoint.id)) then
+			e_teleporttomap.aeth = homepoint
+			e_teleporttomap.useReturn = true
+			return true
+		end
+	end
+
 	if (GilCount() < 2000) then
 		ml_global_information.ShowInformation(GetString("Cannot use teleport, gil count is less than 2000."))
 		return false
 	end
-	
-	e_teleporttomap.aeth = nil
 	
 	--local el = EntityList("alive,attackable,onmesh,aggro")
 	--if (table.valid(el)) then
@@ -1392,7 +1414,6 @@ function c_teleporttomap:evaluate()
 		return false
 	end]=]
 	
-	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID and destMapID > 0) then
 		local ppos = Player.pos
         local pos = ml_nav_manager.GetNextPathPos(	ppos,
@@ -1556,7 +1577,32 @@ function e_teleporttomap:execute()
 		return
 	end
 	
-	if (ActionIsReady(7,5)) then
+	if (e_teleporttomap.useReturn) then
+		local returnAction = ActionList:Get(1, 6)
+		if (returnAction and returnAction:IsReady(Player.id)) then
+			if (returnAction:Cast(Player.id)) then
+				d("[TeleportToMap] Using Return to homepoint aetheryte " .. tostring(e_teleporttomap.aeth.id))
+				ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
+
+				if (ml_task_hub:CurrentTask().name ~= "MOVETOMAP") then
+					ml_task_hub:CurrentTask().completed = true
+				end
+
+				local newTask = ffxiv_task_teleport.Create()
+				newTask.setHomepoint = ml_task_hub:ThisTask().setHomepoint
+				newTask.aetheryte = e_teleporttomap.aeth.id
+				newTask.mapID = TeleportMapID(e_teleporttomap.aeth)
+				if (table.valid(ml_task_hub:ThisTask().pos)) then
+					newTask.pos = {
+						x = ml_task_hub:ThisTask().pos.x,
+						y = ml_task_hub:ThisTask().pos.y,
+						z = ml_task_hub:ThisTask().pos.z
+					}
+				end
+				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			end
+		end
+	elseif (ActionIsReady(7,5)) then
 		local useTicket = ml_task_hub:ThisTask().useAethernetTickets
 		if ItemCount(7569) < 1 then
 			useTicket = false
@@ -1640,18 +1686,21 @@ function c_teleportsamemap:evaluate()
 		return false
 	end
 
+	local myMapID = Player.localmapid
+	local destMapID = tonumber(task.destMapID or myMapID) or myMapID
+	local sameMapDestination = (destMapID == myMapID)
+
 	-- One teleport per destination: if we already teleported for this dest, skip
 	local lastDest = e_teleportsamemap.lastTeleportDest
-	if (lastDest and PDistance3D(lastDest.x, lastDest.y, lastDest.z, destPos.x, destPos.y, destPos.z) < 10) then
+	if (lastDest and lastDest.mapID == destMapID and PDistance3D(lastDest.x, lastDest.y, lastDest.z, destPos.x, destPos.y, destPos.z) < 10) then
 		return false
 	end
 
-	local myMapID = Player.localmapid
 	local ppos = Player.pos
 	local distToDest = PDistance3D(ppos.x, ppos.y, ppos.z, destPos.x, destPos.y, destPos.z)
 
 	-- Only bother when the destination is far enough that a teleport + load screen is worth it
-	if (distToDest < 150) then
+	if (sameMapDestination and distToDest < 150) then
 		return false
 	end
 
@@ -1665,19 +1714,30 @@ function c_teleportsamemap:evaluate()
 		local list = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(list)) then
 			for _, aetheryte in pairs(list) do
-				if (aetheryte.ishomepoint and aetheryte.territory == myMapID and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
-					local aethPos = FFXIVLib.API.Map.GetAetheryteLocation(aetheryte.id)
-					if (aethPos) then
-						local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
-						if ((distToDest - aethToDest) > minAdvantage) then
-							e_teleportsamemap.aeth = aetheryte
-							e_teleportsamemap.useReturn = true
-							return true
+				if (aetheryte.ishomepoint and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+					local homeMapID = TeleportMapID(aetheryte)
+					if (sameMapDestination and homeMapID == myMapID) then
+						local aethPos = FFXIVLib.API.Map.GetAetheryteLocation(aetheryte.id)
+						if (aethPos) then
+							local aethToDest = PDistance3D(aethPos.x, aethPos.y, aethPos.z, destPos.x, destPos.y, destPos.z)
+							if ((distToDest - aethToDest) > minAdvantage) then
+								e_teleportsamemap.aeth = aetheryte
+								e_teleportsamemap.useReturn = true
+								return true
+							end
 						end
+					elseif (homeMapID == destMapID) then
+						e_teleportsamemap.aeth = aetheryte
+						e_teleportsamemap.useReturn = true
+						return true
 					end
 				end
 			end
 		end
+	end
+
+	if (not sameMapDestination) then
+		return false
 	end
 
 	-- ----------------------------------------------------------------
@@ -1711,7 +1771,12 @@ function e_teleportsamemap:execute()
 	-- Record the destination so we don't re-teleport for the same spot
 	local task = ml_task_hub:ThisTask()
 	if (task and table.valid(task.pos)) then
-		e_teleportsamemap.lastTeleportDest = { x = task.pos.x, y = task.pos.y, z = task.pos.z }
+		e_teleportsamemap.lastTeleportDest = {
+			mapID = tonumber(task.destMapID or Player.localmapid) or Player.localmapid,
+			x = task.pos.x,
+			y = task.pos.y,
+			z = task.pos.z
+		}
 	end
 
 	if (e_teleportsamemap.useReturn) then
@@ -1724,7 +1789,7 @@ function e_teleportsamemap:execute()
 				local newTask = ffxiv_task_teleport.Create()
 				newTask.setHomepoint = SameMapTeleportShouldSetHomepoint(task)
 				newTask.aetheryte = e_teleportsamemap.aeth.id
-				newTask.mapID = e_teleportsamemap.aeth.territory
+				newTask.mapID = TeleportMapID(e_teleportsamemap.aeth)
 				SameMapTeleportCopyDestination(newTask, task)
 				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 			end
@@ -1742,7 +1807,7 @@ function e_teleportsamemap:execute()
 				local newTask = ffxiv_task_teleport.Create()
 				newTask.setHomepoint = SameMapTeleportShouldSetHomepoint(task)
 				newTask.aetheryte = e_teleportsamemap.aeth.id
-				newTask.mapID = e_teleportsamemap.aeth.territory
+				newTask.mapID = TeleportMapID(e_teleportsamemap.aeth)
 				SameMapTeleportCopyDestination(newTask, task)
 				ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 			end
