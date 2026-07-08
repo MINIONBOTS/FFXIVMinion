@@ -3964,7 +3964,7 @@ function ml_navigation.Navigate(event, ticks)
 	local self = ml_navigation
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then
 		ml_navigation.lastupdate = ticks
-		if (FFXIV_Common_BotRunning == false or (ml_task_hub and ml_task_hub.shouldRun == false)) then
+		if (ml_task_hub and ml_task_hub.shouldRun == false) then
 			if (ml_navigation.navAutoFollowOwned) then
 				ml_navigation:DisableAutoFollow(true, "NavGuardBotStopped")
 			else
