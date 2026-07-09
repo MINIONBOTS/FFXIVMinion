@@ -381,7 +381,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 				if (c_questkillaggrotarget and c_questkillaggrotarget.evaluate) then
 					questAggroDetected = c_questkillaggrotarget:evaluate()
 				end
-				if (questAggroDetected or Player.incombat) then
+				if (questAggroDetected) then
 					if (Player.ismounted or IsDismounting()) then
 						TaskHandoffLogThrottle(self, "movetopos-questaggro-dismount", 1000,
 							"MOVETOPOS quest aggro detected; waiting for dismount before combat handoff parent="..parentName

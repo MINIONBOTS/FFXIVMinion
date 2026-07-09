@@ -620,12 +620,8 @@ function c_avoid:evaluate()
 	local avoidList = {}
 	local lastAvoid = c_avoid.lastAvoid
 	
-	local function check_entity(e)
+	local function check_entity(e, allowNeutralCaster)
 		if not e then return end
-		-- Skip friendly/allied entities - we only dodge hostile casters.
-		-- Enemies are attackable or have aggro. Allied NPCs (Scion Thaumaturge,
-		-- Scion Conjurer, etc.) are neither attackable nor aggro.
-		if not e.attackable and not e.aggro then return end
 		local ci = e.castinginfo
 		local castId = ci and (ci.castingid or 0) or 0
 		local chanId = ci and (ci.channelingid or 0) or 0
@@ -647,6 +643,10 @@ function c_avoid:evaluate()
 			end]]
 			return
 		end
+		-- Normal scans only dodge hostile casters. The broad scan passes
+		-- allowNeutralCaster for environmental/marker casters that are not
+		-- attackable or aggro but still expose an avoidable cast.
+		if not allowNeutralCaster and not e.attackable and not e.aggro then return end
 		if castId ~= 0 or chanId ~= 0 then
 		end
 		--[[ Pulse diagnostic: when casting Landslide (650), log caster heading vs
@@ -848,7 +848,7 @@ function c_avoid:evaluate()
 			  .." type="..tostring(spellData.type).." range="..tostring(spellData.range)
 			  .." caster="..tostring(e.id).." ("..tostring(e.name)..")"
 			  .." castTime="..tostring(spellData.castTime))
-			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e, castinginfo = ci }
 		end
 	end
 	
@@ -884,22 +884,34 @@ function c_avoid:evaluate()
 		for i,entity in pairs(el) do
 			if not checked[entity.id] then
 				checked[entity.id] = true
-				check_entity(EntityList:Get(entity.id))
+				check_entity(EntityList:Get(entity.id), true)
 			end
 		end
 	end
 	
-	if #avoidList > 0 then
+	-- Argus is optional. Its public live-AoE API is used only when the user
+	-- already has a working licensed installation; any missing or failing API
+	-- simply leaves this list empty and preserves the normal avoidance path.
+	local argusZones = {}
+	local argusAPI = FFXIVLib and FFXIVLib.API and FFXIVLib.API.Avoidance
+	if argusAPI and type(argusAPI.GetArgusZones) == 'function' then
+		local ok, zones = pcall(argusAPI.GetArgusZones)
+		if ok and type(zones) == 'table' then
+			argusZones = zones
+		end
+	end
+
+	if #avoidList > 0 or #argusZones > 0 then
 		-- Store the full list for the execute phase and for lastAvoid tracking
 		c_avoid.newAvoid = avoidList
 		
 		local newPos, seconds
-		if #avoidList == 1 then
+		if #avoidList == 1 and #argusZones == 0 then
 			-- Single AoE: use legacy single-spell path
 			newPos, seconds = FFXIVLib.API.Avoidance.GetAvoidancePos(avoidList[1])
 		else
-			-- Multiple AoEs: find a position safe from ALL of them
-			newPos, seconds = FFXIVLib.API.Avoidance.GetSafePosition(avoidList)
+			-- Multiple or provider-supplied AoEs: find a position safe from ALL.
+			newPos, seconds = FFXIVLib.API.Avoidance.GetSafePosition(avoidList, nil, nil, argusZones)
 		end
 		
 		if (table.valid(newPos)) then
