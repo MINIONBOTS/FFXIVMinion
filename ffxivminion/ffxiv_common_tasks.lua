@@ -1759,9 +1759,11 @@ function ffxiv_task_avoid:task_complete_eval()
 		end
 	end
 	
-	local target = MGetEntity(self.targetid)
-	if (not target or not target.alive or target.castinginfo.channelingid == 0) then
-		return true
+	if self.targetid and self.targetid ~= 0 then
+		local target = MGetEntity(self.targetid)
+		if (not target or not target.alive or target.castinginfo.channelingid == 0) then
+			return true
+		end
 	end
 	
 	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then

@@ -593,6 +593,7 @@ c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
+c_avoid.throttle = 50
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
 	if gBotMode == "assistMode" and not gAssistAvoidAOE then
@@ -620,6 +621,9 @@ function c_avoid:evaluate()
 	local avoidList = {}
 	local lastAvoid = c_avoid.lastAvoid
 	
+	local avoidanceAPI = FFXIVLib and FFXIVLib.API and FFXIVLib.API.Avoidance
+	local scanStartedAt = avoidanceAPI and avoidanceAPI._performanceMetricsEnabled and (os.clock() * 1000) or nil
+
 	local function check_entity(e, allowNeutralCaster)
 		if not e then return end
 		local ci = e.castinginfo
@@ -852,44 +856,20 @@ function c_avoid:evaluate()
 		end
 	end
 	
-	-- Track which entity IDs we've already checked across all scans
-	local checked = {}
-	
-	-- Check for nearby enemies casting things on us.
-	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
-	if (table.valid(el)) then
-		for i,entity in pairs(el) do
-			if not checked[entity.id] then
-				checked[entity.id] = true
-				check_entity(EntityList:Get(entity.id))
-			end
-		end
-	end
-	
-	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
-	if (table.valid(el)) then
-		for i,entity in pairs(el) do
-			if not checked[entity.id] then
-				checked[entity.id] = true
-				check_entity(EntityList:Get(entity.id))
-			end
-		end
-	end
-	
-	-- Broad scan: catches environmental AoE sources (traps, untargetable
-	-- casters, FATE hazards) that lack aggro/incombat/attackable flags.
-	-- check_entity() does fast early-returns for non-casting entities.
+	-- One broad scan covers hostile combatants plus environmental/neutral casters.
+	-- check_entity() exits before lookup work for entities that are not casting.
 	local el = EntityList("onmesh,maxdistance=40")
 	if (table.valid(el)) then
 		for i,entity in pairs(el) do
-			if not checked[entity.id] then
-				checked[entity.id] = true
-				check_entity(EntityList:Get(entity.id), true)
-			end
+			check_entity(EntityList:Get(entity.id), true)
 		end
 	end
 	
 	-- Argus is optional. Its public live-AoE API is used only when the user
+	if scanStartedAt and avoidanceAPI and avoidanceAPI._RecordPerformance then
+		avoidanceAPI._RecordPerformance('scan', (os.clock() * 1000) - scanStartedAt)
+	end
+
 	-- already has a working licensed installation; any missing or failing API
 	-- simply leaves this list empty and preserves the normal avoidance path.
 	local argusZones = {}
