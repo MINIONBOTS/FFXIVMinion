@@ -240,6 +240,11 @@ function c_movetochainlocation:evaluate()
 	then
         local fate = ml_task_hub:CurrentTask().nextFate
 		local myPos = Player.pos
+		if (type(myPos) ~= "table" or type(myPos.x) ~= "number" or type(myPos.y) ~= "number" or type(myPos.z) ~= "number" or
+			 type(fate.x) ~= "number" or type(fate.y) ~= "number" or type(fate.z) ~= "number")
+		then
+			return false
+		end
 		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 		if (distance > 5) then				
 			return true
@@ -250,7 +255,7 @@ function c_movetochainlocation:evaluate()
 end
 function e_movetochainlocation:execute()
     local fate = ml_task_hub:CurrentTask().nextFate
-    if (table.valid(fate)) then
+	if (table.valid(fate) and type(fate.x) == "number" and type(fate.y) == "number" and type(fate.z) == "number") then
 		d("Moving into position for next fate in chain.")
         local newTask = ffxiv_task_movetopos.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}

@@ -2142,6 +2142,19 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		local ignoreLOS = self:ShouldIgnoreLOS(target)
+		local targetHitRadius = tonumber(target.hitradius) or 0
+		local landingApproachRange = math.max(15, range + targetHitRadius + 3)
+		if (IsFlying() and target.distance2d <= landingApproachRange
+			and ml_navigation and ml_navigation.LandForAction) then
+			TaskHandoffLogThrottle(self, "grind-combat-air-landing", 1000,
+				"GRIND_COMBAT requesting landing for airborne target id="..tostring(target.id)
+				.." dist2d="..tostring(target.distance2d)
+				.." dist3d="..tostring(dist)
+				.." approachRange="..tostring(landingApproachRange))
+			if (ml_navigation:LandForAction(pos, math.max(range, targetHitRadius + 1), "grind-combat")) then
+				return false
+			end
+		end
 		if (range > 5) then
 			-- No LOS while in distance range - move closer before trying to cast.
 			if (not IsFlying() and target.distance2d <= range and not ignoreLOS and not target.los and not target.los2) then

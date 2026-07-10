@@ -594,6 +594,9 @@ e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.throttle = 50
+
+c_avoid.nextOutcomeLogAt = 0
+
 c_avoid.avoidDetails = {}
 function c_avoid:evaluate()	
 	if gBotMode == "assistMode" and not gAssistAvoidAOE then
@@ -901,10 +904,16 @@ function c_avoid:evaluate()
 				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
 				return true
 			else
-				d("[Avoidance] Dodge distance is very close.")
+				if Now() >= (c_avoid.nextOutcomeLogAt or 0) then
+					d("[Avoidance] Dodge distance is very close.")
+					c_avoid.nextOutcomeLogAt = Now() + 1000
+				end
 			end
 		else
-			d("[Avoidance] Can't dodge, didn't find a valid position.")
+			if Now() >= (c_avoid.nextOutcomeLogAt or 0) then
+				d("[Avoidance] Can't dodge, didn't find a valid position.")
+				c_avoid.nextOutcomeLogAt = Now() + 1000
+			end
 		end
 	end
 	
