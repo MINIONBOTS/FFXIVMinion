@@ -1077,6 +1077,10 @@ function ffxivminion.SetMainVars()
 	gStuckDisable = ffxivminion.GetSetting("gStuckDisable", true)
 	gStuckRemesh = ffxivminion.GetSetting("gStuckRemesh", false)
 	gNavDebug = ffxivminion.GetSetting("gNavDebug", false)
+	gOMCDebug = ffxivminion.GetSetting("gOMCDebug", false)
+	gDiveDebug = ffxivminion.GetSetting("gDiveDebug", false)
+	gTaskHandoffDebug = ffxivminion.GetSetting("gTaskHandoffDebug", false)
+	gArgusDebug = ffxivminion.GetSetting("gArgusDebug", false)
 
 	for _, jobid in pairs(FFXIV.JOBS) do
 		if type(jobid) == "number" and jobid > 0 then
@@ -1129,7 +1133,7 @@ function ffxivminion.HandleInit()
 	end
 
 	-- Build bottom menu for new GUI addons.
-	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings,Stuck!", true)
+	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("Bot Status,General,Auto-Equip,Behavioral,companion,playerHPMPTP,hacks,advancedSettings,Stuck!,betaDebug", true)
 	ffxivminion.GUI.help.main_tabs = GUI_CreateTabs("Report,Help,FAQ,Mesh Report", false)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
@@ -2081,9 +2085,17 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("Teleport to local Aetheryte"), gStuckTeleport), "gStuckTeleport");
 					GUI_Capture(GUI:Checkbox(GetString("Disable Bot"), gStuckDisable), "gStuckDisable");
 
-					GUI:Separator()
-					GUI_Capture(GUI:Checkbox("Nav Debug Log", gNavDebug), "gNavDebug");
+					GUI:EndChild()
+				end
 
+				if (tabindex == 10) then
+					GUI:BeginChild("##main-header-beta-debug", 0, GUI_GetFrameHeight(10), true)
+					GUI:Text(GetString("betaDebugDescription"));
+					GUI_Capture(GUI:Checkbox(GetString("betaDebugNavigation"), gNavDebug), "gNavDebug");
+					GUI_Capture(GUI:Checkbox(GetString("betaDebugOMC"), gOMCDebug), "gOMCDebug");
+					GUI_Capture(GUI:Checkbox(GetString("betaDebugDive"), gDiveDebug), "gDiveDebug");
+					GUI_Capture(GUI:Checkbox(GetString("betaDebugTaskHandoff"), gTaskHandoffDebug), "gTaskHandoffDebug");
+					GUI_Capture(GUI:Checkbox(GetString("betaDebugArgus"), gArgusDebug), "gArgusDebug");
 					GUI:EndChild()
 				end
 

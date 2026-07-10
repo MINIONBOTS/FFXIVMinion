@@ -205,9 +205,11 @@ function e_add_killtarget:execute()
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.betterTargetFunction = ml_task_hub:CurrentTask().targetFunction
 	newTask.targetid = c_add_killtarget.targetid
-	d("[TaskHandoff] AddKillTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
-		.." targetid="..tostring(newTask.targetid)
-		.." hasBetterTargetFunction="..tostring(type(newTask.betterTargetFunction) == "function"))
+	if (gTaskHandoffDebug) then
+		d("[TaskHandoff] AddKillTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+			.." targetid="..tostring(newTask.targetid)
+			.." hasBetterTargetFunction="..tostring(type(newTask.betterTargetFunction) == "function"))
+	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -249,9 +251,11 @@ function e_killaggrotarget:execute()
 	newTask.endOnDisengage = true
 	Player:SetTarget(c_killaggrotarget.targetid)
     newTask.targetid = c_killaggrotarget.targetid
-	d("[TaskHandoff] KillAggroTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
-		.." targetid="..tostring(newTask.targetid)
-		.." endOnDisengage="..tostring(newTask.endOnDisengage))
+	if (gTaskHandoffDebug) then
+		d("[TaskHandoff] KillAggroTarget -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+			.." targetid="..tostring(newTask.targetid)
+			.." endOnDisengage="..tostring(newTask.endOnDisengage))
+	end
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 ---------------------------------------------------------------------------------------------
@@ -306,9 +310,11 @@ function e_assistleader:execute()
 			local newTask = ffxiv_task_grindCombat.Create()
 			newTask.targetid = id 
 			newTask.noFateSync = true
-			d("[TaskHandoff] AssistLeader -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
-				.." targetid="..tostring(newTask.targetid)
-				.." noFateSync="..tostring(newTask.noFateSync))
+			if (gTaskHandoffDebug) then
+				d("[TaskHandoff] AssistLeader -> GRIND_COMBAT parent="..tostring(ml_task_hub:CurrentTask().name)
+					.." targetid="..tostring(newTask.targetid)
+					.." noFateSync="..tostring(newTask.noFateSync))
+			end
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	else
@@ -851,10 +857,12 @@ function c_avoid:evaluate()
 					end
 				end
 			end
-			d("[Avoid] spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
-			  .." type="..tostring(spellData.type).." range="..tostring(spellData.range)
-			  .." caster="..tostring(e.id).." ("..tostring(e.name)..")"
-			  .." castTime="..tostring(spellData.castTime))
+			if (gArgusDebug) then
+				d("[Avoid] spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
+				  .." type="..tostring(spellData.type).." range="..tostring(spellData.range)
+				  .." caster="..tostring(e.id).." ("..tostring(e.name)..")"
+				  .." castTime="..tostring(spellData.castTime))
+			end
 			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e, castinginfo = ci }
 		end
 	end
@@ -904,13 +912,13 @@ function c_avoid:evaluate()
 				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
 				return true
 			else
-				if Now() >= (c_avoid.nextOutcomeLogAt or 0) then
+				if gArgusDebug and Now() >= (c_avoid.nextOutcomeLogAt or 0) then
 					d("[Avoidance] Dodge distance is very close.")
 					c_avoid.nextOutcomeLogAt = Now() + 1000
 				end
 			end
 		else
-			if Now() >= (c_avoid.nextOutcomeLogAt or 0) then
+			if gArgusDebug and Now() >= (c_avoid.nextOutcomeLogAt or 0) then
 				d("[Avoidance] Can't dodge, didn't find a valid position.")
 				c_avoid.nextOutcomeLogAt = Now() + 1000
 			end
@@ -1341,11 +1349,13 @@ function e_movetogate:execute()
 	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
-	d("[TaskHandoff] MoveToGate -> MOVETOPOS parent="..tostring(ml_task_hub:CurrentTask().name)
-		.." pos="..tostring(newTask.pos and newTask.pos.x)..","..tostring(newTask.pos and newTask.pos.y)..","..tostring(newTask.pos and newTask.pos.z)
-		.." gatePos="..tostring(newTask.gatePos and newTask.gatePos.x)..","..tostring(newTask.gatePos and newTask.gatePos.y)..","..tostring(newTask.gatePos and newTask.gatePos.z)
-		.." destMapID="..tostring(newTask.destMapID)
-		.." remainMounted="..tostring(newTask.remainMounted))
+	if (gTaskHandoffDebug) then
+		d("[TaskHandoff] MoveToGate -> MOVETOPOS parent="..tostring(ml_task_hub:CurrentTask().name)
+			.." pos="..tostring(newTask.pos and newTask.pos.x)..","..tostring(newTask.pos and newTask.pos.y)..","..tostring(newTask.pos and newTask.pos.z)
+			.." gatePos="..tostring(newTask.gatePos and newTask.gatePos.x)..","..tostring(newTask.gatePos and newTask.gatePos.y)..","..tostring(newTask.gatePos and newTask.gatePos.z)
+			.." destMapID="..tostring(newTask.destMapID)
+			.." remainMounted="..tostring(newTask.remainMounted))
+	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -2061,7 +2071,7 @@ function c_getmovementpath:evaluate()
 				ml_navigation:DisableAutoFollow(true, "movetointeract-snipe")
 			end
 		end
-		if (TimeSince(IsNull(currentTask._snipePathHoldLast, 0)) > 1000) then
+		if (gTaskHandoffDebug and TimeSince(IsNull(currentTask._snipePathHoldLast, 0)) > 1000) then
 			currentTask._snipePathHoldLast = Now()
 			d("[TaskHandoff] MOVETOINTERACT holding movement/path while Snipe is active parent="
 				..tostring(currentTask.ParentTask and currentTask:ParentTask() and currentTask:ParentTask().name)
@@ -3235,9 +3245,11 @@ function e_usenavinteraction:execute()
 	end
 	
 	if (e_usenavinteraction.task) then
-		d("[TaskHandoff] UseNavInteraction executing transport function parent="..tostring(ml_task_hub:CurrentTask().name)
-			.." pos="..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.x)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.y)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.z)
-			.." map="..tostring(Player.localmapid))
+		if (gTaskHandoffDebug) then
+			d("[TaskHandoff] UseNavInteraction executing transport function parent="..tostring(ml_task_hub:CurrentTask().name)
+				.." pos="..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.x)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.y)..","..tostring(ml_task_hub:ThisTask().pos and ml_task_hub:ThisTask().pos.z)
+				.." map="..tostring(Player.localmapid))
+		end
 		e_usenavinteraction.task()
 	end
 	e_usenavinteraction.timer = Now() + 2000
@@ -3417,7 +3429,7 @@ function c_mount:evaluate()
 				local request = ml_navigation:GetLandingRequest(task)
 				if (ml_navigation:NeedsLandingApproachFlight(task, request, myPos)) then
 					forcemount = true
-					d("[Landing] unmounted ground approach needs flight; mounting for landing controller.")
+					if (gNavDebug) then d("[Landing] unmounted ground approach needs flight; mounting for landing controller.") end
 				end
 			end
 		end
@@ -5481,14 +5493,16 @@ function c_dointeract:evaluate()
 			if (not task._interactAcceptedLogged) then
 				task._interactAcceptedLogged = true
 				local parent = task.ParentTask and task:ParentTask() or nil
-				d("[TaskHandoff] DoInteract accepted parent="..tostring(parent and parent.name)
-					.." task="..tostring(task.name)
-					.." interact="..tostring(task.interact)
-					.." attempts="..tostring(IsNull(task.interactAttempts, 0))
-					.." busy="..tostring(Busy())
-					.." interactWindows="..tostring(HasInteractWindows())
-					.." shop="..tostring(IsShopWindowOpen())
-					.." gcExchange="..tostring(IsControlOpen("GrandCompanyExchange")))
+				if (gTaskHandoffDebug) then
+					d("[TaskHandoff] DoInteract accepted parent="..tostring(parent and parent.name)
+						.." task="..tostring(task.name)
+						.." interact="..tostring(task.interact)
+						.." attempts="..tostring(IsNull(task.interactAttempts, 0))
+						.." busy="..tostring(Busy())
+						.." interactWindows="..tostring(HasInteractWindows())
+						.." shop="..tostring(IsShopWindowOpen())
+						.." gcExchange="..tostring(IsControlOpen("GrandCompanyExchange")))
+				end
 			end
 			return true
 		end
@@ -5499,10 +5513,12 @@ function c_dointeract:evaluate()
 		if (not task._interactCompleteLogged) then
 			task._interactCompleteLogged = true
 			local parent = task.ParentTask and task:ParentTask() or nil
-			d("[TaskHandoff] DoInteract completed without result window parent="..tostring(parent and parent.name)
-				.." task="..tostring(task.name)
-				.." interact="..tostring(task.interact)
-				.." attempts="..tostring(IsNull(task.interactAttempts, 0)))
+			if (gTaskHandoffDebug) then
+				d("[TaskHandoff] DoInteract completed without result window parent="..tostring(parent and parent.name)
+					.." task="..tostring(task.name)
+					.." interact="..tostring(task.interact)
+					.." attempts="..tostring(IsNull(task.interactAttempts, 0)))
+			end
 		end
 		return true
 	elseif (task.interactState == "accepted" or task.interactState == "complete") then
@@ -5689,7 +5705,7 @@ function c_dointeract:evaluate()
 	
 	-- No valid entity yet, let nav drive
 	if (not interactable or not table.valid(interactable)) then
-		if (IsDiving() and TimeSince(IsNull(task._diveDbgNoEntLast, 0)) > 400) then
+		if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgNoEntLast, 0)) > 400) then
 			task._diveDbgNoEntLast = Now()
 			d("[DiveDbg][c_dointeract] no interactable entity resolved (task.interact="..tostring(task.interact)..", contentid="..tostring(task.contentid)..") -> return false, nav drives")
 		end
@@ -5732,7 +5748,7 @@ function c_dointeract:evaluate()
 	local isNetworkCrystalTarget = c_dointeract_isNetworkCrystal(task, interactable)
 	local gameInteractable = interactable.interactable and not isNetworkCrystalTarget
 
-	if (IsDiving() and TimeSince(IsNull(task._diveDbgHeartbeatLast, 0)) > 400) then
+	if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgHeartbeatLast, 0)) > 400) then
 		task._diveDbgHeartbeatLast = Now()
 		local dbgTgt = Player:GetTarget()
 		d("[DiveDbg][c_dointeract][state] name="..tostring(interactable.name)
@@ -5809,7 +5825,7 @@ function c_dointeract:evaluate()
 			end
 			return true
 		else
-			if (TimeSince(IsNull(task._diveDbgDismountLast, 0)) > 400) then
+			if (gDiveDebug and TimeSince(IsNull(task._diveDbgDismountLast, 0)) > 400) then
 				task._diveDbgDismountLast = Now()
 				d("[DiveDbg][c_dointeract] diving+mounted but gameInteractable=false (interactable.interactable="..tostring(interactable.interactable).."); NOT dismounting, falling through")
 			end
@@ -5832,7 +5848,7 @@ function c_dointeract:evaluate()
 	-- or the unreliable `interactable` flag.
 	if (maxInteractDistance3d and maxInteractDistance3d > 0 and effectiveDistance3d > maxInteractDistance3d
 		and not gameInteractable and not (isNetworkCrystalTarget and reachedCrystalApproach)) then
-		if (IsDiving() and TimeSince(IsNull(task._diveDbgFarLast, 0)) > 400) then
+		if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgFarLast, 0)) > 400) then
 			task._diveDbgFarLast = Now()
 			d("[DiveDbg][c_dointeract] beyond cap (effDist3d="..tostring(effectiveDistance3d).." > cap="..tostring(maxInteractDistance3d)..") not gameInteractable -> return false, nav drives")
 		end
@@ -5875,7 +5891,7 @@ function c_dointeract:evaluate()
 		local closeWalkCapY = (maxInteractDistance3d and maxInteractDistance3d > 0) and maxInteractDistance3d or 6
 		local withinPlanar = (not c_dointeract_isNetworkCrystal(task, interactable)) and effectivePlanarAbs < closeWalkCapY
 		local within3d = effectiveDistance3d < closeWalkCapY
-		if (IsDiving() and TimeSince(IsNull(task._diveDbgKeyLast, 0)) > 400) then
+		if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgKeyLast, 0)) > 400) then
 			task._diveDbgKeyLast = Now()
 			d("[DiveDbg][c_dointeract][KEYCHECK] not interactable. withinPlanar="..tostring(withinPlanar)
 				.." within3d="..tostring(within3d).." closeWalkCap="..tostring(closeWalkCapY)
@@ -5891,7 +5907,7 @@ function c_dointeract:evaluate()
 		end
 		if (ml_navigation and ml_navigation.TryInteractAutoFollow and ml_navigation.IsInteractCloseApproachTask(task)) then
 			local didFollow = ml_navigation.TryInteractAutoFollow(task)
-			if (IsDiving() and TimeSince(IsNull(task._diveDbgFollowLast, 0)) > 400) then
+			if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgFollowLast, 0)) > 400) then
 				task._diveDbgFollowLast = Now()
 				d("[DiveDbg][c_dointeract][KEYCHECK] TryInteractAutoFollow -> "..tostring(didFollow))
 			end
@@ -5899,7 +5915,7 @@ function c_dointeract:evaluate()
 				return true
 			end
 		end
-		if (IsDiving() and TimeSince(IsNull(task._diveDbgKeyRetLast, 0)) > 400) then
+		if (gDiveDebug and IsDiving() and TimeSince(IsNull(task._diveDbgKeyRetLast, 0)) > 400) then
 			task._diveDbgKeyRetLast = Now()
 			d("[DiveDbg][c_dointeract][KEYCHECK] returning false -> c_getmovementpath/nav takes over (STALL if nav parks at task.pos)")
 		end

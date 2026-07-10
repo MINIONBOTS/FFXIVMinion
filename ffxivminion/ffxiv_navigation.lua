@@ -671,7 +671,7 @@ end
 function ml_navigation.NeedsInteractCloseApproach(task, resolvedTarget)
 	if not ml_navigation.IsInteractCloseApproachTask(task) then return false end
 	local target = resolvedTarget or (Player and Player.GetTarget and Player:GetTarget())
-	local dbg = IsDiving() and TimeSince(IsNull(ml_navigation._diveNeedDbgLast, 0)) > 400
+	local dbg = gDiveDebug and IsDiving() and TimeSince(IsNull(ml_navigation._diveNeedDbgLast, 0)) > 400
 	if (dbg) then ml_navigation._diveNeedDbgLast = Now() end
 	if not (target and target.los) then
 		if (dbg) then d("[DiveDbg][NeedsApproach] false: hasTarget="..tostring(target ~= nil).." los="..tostring(target and target.los)) end
@@ -696,7 +696,7 @@ function ml_navigation.NeedsInteractCloseApproach(task, resolvedTarget)
 	return true
 end
 function ml_navigation.TryInteractAutoFollow(task, resolvedTarget)
-	local dbg = IsDiving() and TimeSince(IsNull(ml_navigation._diveTryFollowDbgLast, 0)) > 400
+	local dbg = gDiveDebug and IsDiving() and TimeSince(IsNull(ml_navigation._diveTryFollowDbgLast, 0)) > 400
 	if (dbg) then ml_navigation._diveTryFollowDbgLast = Now() end
 	if (FFXIV_Common_BotRunning == false or (ml_task_hub and ml_task_hub.shouldRun == false)) then
 		if (dbg) then d("[DiveDbg][TryFollow] false: bot not running") end
@@ -980,7 +980,7 @@ function ml_navigation:GetFlightDispatchNode(ppos, targetNode, radius)
 		return targetNode, false
 	end
 
-	if (not ffnav.flightBlockedLog or TimeSince(ffnav.flightBlockedLog) > 1000) then
+	if (gNavDebug and (not ffnav.flightBlockedLog or TimeSince(ffnav.flightBlockedLog) > 1000)) then
 		local hit = ffnav.lastFlightSegmentHit
 		if hit then
 			d('[Flight] direct segment blocked; trusting nav path hit=(' .. string.format('%.1f, %.1f, %.1f', hit.x, hit.y, hit.z) .. ')')
@@ -1064,8 +1064,10 @@ function ml_navigation:PlanFlyingLanding(controller, request, ppos)
 	controller.approachDispatchFailTicks = 0
 	controller.approachStationaryTicks = 0
 	controller.lastApproachPlayerPos = nil
-	d('[Landing] route=' .. tostring(#route) .. ' quality=' .. tostring(quality)
-		.. ' target=(' .. string.format('%.1f, %.1f, %.1f', landing.x, landing.y, landing.z) .. ')')
+	if (gNavDebug) then
+		d('[Landing] route=' .. tostring(#route) .. ' quality=' .. tostring(quality)
+			.. ' target=(' .. string.format('%.1f, %.1f, %.1f', landing.x, landing.y, landing.z) .. ')')
+	end
 	return true
 end
 
@@ -1074,7 +1076,7 @@ function ml_navigation:DismountForLanding(controller)
 	controller.phase = 'dismount'
 	controller.airLandingStartedAt = now
 	self:SetNavigationHandoff("airLanding", "airLandSent", controller.request and controller.request.taskKey, "LandingDismount")
-	d('[Landing] reached planned hover; air landing.')
+	if (gNavDebug) then d('[Landing] reached planned hover; air landing.') end
 	Player:StopMovement()
 	self:SuppressUnstuck(4500, "LandingDismount")
 	self:DisableAutoFollow(true, "LandingDismount")
@@ -1097,9 +1099,11 @@ function ml_navigation:MarkLandingCandidateFailed(controller, reason)
 		reason = reason or "landing_failed",
 	}
 	self:ClearCachedLandingSite(controller.request)
-	d('[Landing] rejected failed landing target=('
-		.. string.format('%.1f, %.1f, %.1f', controller.landing.x, controller.landing.y, controller.landing.z)
-		.. ') reason=' .. tostring(reason or "landing_failed"))
+	if (gNavDebug) then
+		d('[Landing] rejected failed landing target=('
+			.. string.format('%.1f, %.1f, %.1f', controller.landing.x, controller.landing.y, controller.landing.z)
+			.. ') reason=' .. tostring(reason or "landing_failed"))
+	end
 	return true
 end
 
@@ -1250,15 +1254,17 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 		local dispatchFail = tonumber(controller.approachDispatchFailTicks) or 0
 		local stationary = tonumber(controller.approachStationaryTicks) or 0
 		if dispatchFail >= 6 or (noProgress >= 80 and (autoDrop >= 12 or stationary >= 20)) then
-			d('[Landing] approach state stalled waypoint=' .. tostring(controller.waypoint)
-				.. '/' .. tostring(controller.route and #controller.route or 0)
-				.. ' noProgress=' .. tostring(noProgress)
-				.. ' autoDrop=' .. tostring(autoDrop)
-				.. ' stationary=' .. tostring(stationary)
-				.. ' dispatchFail=' .. tostring(dispatchFail)
-				.. ' player=' .. self:FormatGroundAcquirePoint(ppos)
-				.. ' waypoint=' .. self:FormatGroundAcquirePoint(waypoint)
-				.. ' target=' .. self:FormatGroundAcquirePoint(controller.landing))
+			if (gNavDebug) then
+				d('[Landing] approach state stalled waypoint=' .. tostring(controller.waypoint)
+					.. '/' .. tostring(controller.route and #controller.route or 0)
+					.. ' noProgress=' .. tostring(noProgress)
+					.. ' autoDrop=' .. tostring(autoDrop)
+					.. ' stationary=' .. tostring(stationary)
+					.. ' dispatchFail=' .. tostring(dispatchFail)
+					.. ' player=' .. self:FormatGroundAcquirePoint(ppos)
+					.. ' waypoint=' .. self:FormatGroundAcquirePoint(waypoint)
+					.. ' target=' .. self:FormatGroundAcquirePoint(controller.landing))
+			end
 			self:MarkLandingCandidateFailed(controller, "approach_state_stalled")
 			self:ResetLandingController()
 			self:ClearAirborneGroundAcquire()
@@ -2494,7 +2500,7 @@ function ml_navigation:PrepareLandingTakeoff(task, ppos)
 			handoff.phase = "jumpSent"
 			self:SuppressUnstuck(3500, "LandingTakeoff")
 			if not handoff.logged then
-				d('[Landing] mounted ground approach needs flight; taking off for landing controller.')
+				if (gNavDebug) then d('[Landing] mounted ground approach needs flight; taking off for landing controller.') end
 				handoff.logged = true
 			end
 			Player:Jump()
@@ -2531,7 +2537,7 @@ function ml_navigation:PrepareLandingTakeoff(task, ppos)
 	local takeoffHandoff = self:SetNavigationHandoff("landingTakeoff", "jumpSent", task, "LandingTakeoff")
 	if takeoffHandoff then takeoffHandoff.logged = true end
 	self:SuppressUnstuck(3500, "LandingTakeoff")
-	d('[Landing] mounted ground approach needs flight; taking off for landing controller.')
+	if (gNavDebug) then d('[Landing] mounted ground approach needs flight; taking off for landing controller.') end
 	Player:Jump()
 	return true
 end
@@ -3673,7 +3679,7 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 		end
 	end
 
-	d("[MoveToExact]: Requesting fresh path. cacheId=" .. tostring(cacheId))
+	if (gNavDebug) then d("[MoveToExact]: Requesting fresh path. cacheId=" .. tostring(cacheId)) end
 	local result = NavigationManager:GetPathAsync(ppos.x, ppos.y, ppos.z, x, y, z, cacheId, false, true)
 
 	if (type(result) == "table" and table.valid(result)) then
@@ -3701,7 +3707,7 @@ function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 		ml_navigation_exact.disableSmoothing = noSmoothing
 		ml_navigation_exact.targetposition = goal
 		ml_navigation_exact.lastRequestId = cacheId
-		d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId))
+		if (gNavDebug) then d("[MoveToExact]: Path queued. cacheId=" .. tostring(cacheId)) end
 		return 0
 	else
 		d("[MoveToExact]: Path request failed. cacheId=" .. tostring(cacheId))
@@ -4206,7 +4212,7 @@ function ml_navigation.Navigate(event, ticks)
 										local cz = from_pos.z + (dz * (dbgAlong / dbgGap2d))
 										dbgLineDist = math.distance2d(ppos.x, ppos.z, cx, cz)
 									end
-									d("[OMC-DBG] MoveTo:STUCK_PREJUMP id=" .. tostring(self.omc_id) .. " dir=" .. tostring(self.omc_direction) .. " atedge=" .. tostring(ml_navigation.omc_atedge) .. " fromdist2d=" .. tostring(dbgFromDist2d) .. " fromheight=" .. tostring(math.abs(ppos.y - from_pos.y)) .. " todist2d=" .. tostring(math.distance2d(ppos, to_pos)) .. " edgeReach=" .. tostring(dbgEdgeReach) .. " along=" .. tostring(dbgAlong) .. " lineDist=" .. tostring(dbgLineDist) .. " reach=" .. tostring(dbgReach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+								if (gOMCDebug) then d("[OMC-DBG] MoveTo:STUCK_PREJUMP id=" .. tostring(self.omc_id) .. " dir=" .. tostring(self.omc_direction) .. " atedge=" .. tostring(ml_navigation.omc_atedge) .. " fromdist2d=" .. tostring(dbgFromDist2d) .. " fromheight=" .. tostring(math.abs(ppos.y - from_pos.y)) .. " todist2d=" .. tostring(math.distance2d(ppos, to_pos)) .. " edgeReach=" .. tostring(dbgEdgeReach) .. " along=" .. tostring(dbgAlong) .. " lineDist=" .. tostring(dbgLineDist) .. " reach=" .. tostring(dbgReach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z)) end
 								end
 								d("[Navigation] - Not getting closer to NavConnection END node. We are most likely stuck.")
 								ml_navigation:ResetOMCHandler()
@@ -4306,7 +4312,7 @@ function ml_navigation.Navigate(event, ticks)
 										ml_navigation.omc_centeredsince = nil
 										ml_navigation.omc_startheight = ppos.y
 										ml_navigation.omc_jumptimer = ticks
-										d("[OMC-DBG] MoveTo:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+										if (gOMCDebug) then d("[OMC-DBG] MoveTo:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z)) end
 										Player:Jump()
 									end
 								else
@@ -4317,14 +4323,14 @@ function ml_navigation.Navigate(event, ticks)
 								local todist2d = math.distance2d(ppos, to_pos)
 								ml_navigation:DispatchAutoFollowNode(to_pos, true)
 								if ( not Player:IsJumping() and todist2d <= landing2d and math.abs(ppos.y - to_pos.y) <= landHeightTolerance ) then
-									d("[OMC-DBG] MoveTo:LANDED ismounted=" .. tostring(Player.ismounted) .. " jumping=" .. tostring(Player:IsJumping()) .. " todist2d=" .. tostring(todist2d) .. " ppy=" .. tostring(ppos.y) .. " toy=" .. tostring(to_pos.y))
+									if (gOMCDebug) then d("[OMC-DBG] MoveTo:LANDED ismounted=" .. tostring(Player.ismounted) .. " jumping=" .. tostring(Player:IsJumping()) .. " todist2d=" .. tostring(todist2d) .. " ppy=" .. tostring(ppos.y) .. " toy=" .. tostring(to_pos.y)) end
 									ml_navigation.pathindex = ml_navigation.pathindex + 1
 									NavigationManager.NavPathNode = ml_navigation.pathindex
 									ml_navigation:ResetAutoFollowState()
 									ml_navigation:ResetOMCHandler()
 								elseif ( not Player:IsJumping() and (ticks - ml_navigation.omc_jumptimer) > 800 and ppos.y < to_pos.y - landHeightTolerance ) then
 									-- REJUMP: jump fell short, re-arm Phase A.
-									d("[OMC-DBG] MoveTo:REJUMP ppy=" .. tostring(ppos.y) .. " startheight=" .. tostring(ml_navigation.omc_startheight) .. " toy=" .. tostring(to_pos.y) .. " todist2d=" .. tostring(todist2d))
+									if (gOMCDebug) then d("[OMC-DBG] MoveTo:REJUMP ppy=" .. tostring(ppos.y) .. " startheight=" .. tostring(ml_navigation.omc_startheight) .. " toy=" .. tostring(to_pos.y) .. " todist2d=" .. tostring(todist2d)) end
 									ml_navigation.omc_startheight = nil
 								end
 							end
@@ -4501,7 +4507,7 @@ function ml_navigation.Navigate(event, ticks)
 						local interactStopDist = ml_navigation.GetInteractStopDistance3d(interactTask)
 						local maxFollow2d = ml_navigation.GetInteractCloseFollowMax2d(interactTask)
 						local navDivePlanar = (target and table.valid(target.pos)) and ml_navigation.GetInteractPlanarSeparation(ppos, target.pos, target) or nil
-						if (TimeSince(IsNull(ml_navigation._diveNavDbgLast, 0)) > 400) then
+						if (gDiveDebug and TimeSince(IsNull(ml_navigation._diveNavDbgLast, 0)) > 400) then
 							ml_navigation._diveNavDbgLast = Now()
 							d("[DiveDbg][nav] isInteractDive="..tostring(isInteractDive)
 								.." hasTarget="..tostring(target ~= nil)
@@ -4515,11 +4521,11 @@ function ml_navigation.Navigate(event, ticks)
 						end
 						if (isInteractDive and target and target.los and navDivePlanar and navDivePlanar < maxFollow2d) then
 							if target.interactable and ml_navigation.CanStopInteractCloseApproach(ppos, target.pos, target, interactStopDist) then
-								d("[DiveDbg][nav] interactable+CanStop -> Player:Stop(), yield to c_dointeract for dismount/interact")
+								if (gDiveDebug) then d("[DiveDbg][nav] interactable+CanStop -> Player:Stop(), yield to c_dointeract for dismount/interact") end
 								Player:Stop()
 								return false
 							end
-							if (TimeSince(IsNull(ml_navigation._diveNavFollowDbgLast, 0)) > 400) then
+							if (gDiveDebug and TimeSince(IsNull(ml_navigation._diveNavFollowDbgLast, 0)) > 400) then
 								ml_navigation._diveNavFollowDbgLast = Now()
 								d("[DiveDbg][nav] FOLLOW branch (target not interactable or cannot stop) -> TryInteractAutoFollow. tgtInteractable="..tostring(target.interactable))
 							end
@@ -4529,7 +4535,7 @@ function ml_navigation.Navigate(event, ticks)
 							ml_navigation.GUI.lastAction = "Swimming underwater to Node"
 
 							if ( ml_navigation:IsGoalClose(ppos,nextnode,lastnode)) then
-								if (isInteractDive) then
+								if (gDiveDebug and isInteractDive) then
 									d("[DiveDbg][nav] ELSE swim-to-node + IsGoalClose TRUE -> advancing pathindex & STOPPING at node (STALL: interact-dive fell through follow gate)")
 								end
 								ml_navigation.lastconnectionid = nextnode.navconnectionid
@@ -4538,7 +4544,7 @@ function ml_navigation.Navigate(event, ticks)
 								NavigationManager.NavPathNode = ml_navigation.pathindex
 								ml_navigation:ResetAutoFollowState()
 							else
-								if (isInteractDive and TimeSince(IsNull(ml_navigation._diveNavSwimDbgLast, 0)) > 400) then
+								if (gDiveDebug and isInteractDive and TimeSince(IsNull(ml_navigation._diveNavSwimDbgLast, 0)) > 400) then
 									ml_navigation._diveNavSwimDbgLast = Now()
 									d("[DiveDbg][nav] ELSE swim-to-node -> DispatchAutoFollowNode(nextnode) (following PATH node, not target)")
 								end
@@ -4878,7 +4884,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 			end
 			ml_navigation_exact.OptimizeCachedPath(ppos, ml_navigation_exact.disableSmoothing)
 			ml_navigation_exact.SkipResolvedAnchorNodes(ppos)
-			d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path)))
+			if (gNavDebug) then d("[MoveToExact]: Path resolved. cacheId=" .. tostring(cacheId) .. ", nodes=" .. tostring(table.size(ml_navigation_exact.path))) end
 		elseif (type(result) == "number" and result > 0) then
 			return
 		else
@@ -4894,7 +4900,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 	-- No more nodes — destination reached
 	if (not nextnode) then
 		if (not self.reachedLogged) then
-			d("[MoveToExact]: Destination reached.")
+			if (gNavDebug) then d("[MoveToExact]: Destination reached.") end
 			self.reachedLogged = true
 			self.active = false
 			self.completed = true
@@ -4954,7 +4960,7 @@ function ml_navigation_exact.Navigate(event, ticks)
 
 		if (not self.path[self.pathindex]) then
 			if (not self.reachedLogged) then
-				d("[MoveToExact]: Destination reached.")
+				if (gNavDebug) then d("[MoveToExact]: Destination reached.") end
 				self.reachedLogged = true
 				self.active = false
 				self.completed = true
@@ -5128,7 +5134,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 					self.omc_centeredsince = nil
 					self.omc_startheight = ppos.y
 					self.omc_jumptimer = ticks
-					d("[OMC-DBG] Exact:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z))
+					if (gOMCDebug) then d("[OMC-DBG] Exact:JUMP ismounted=" .. tostring(Player.ismounted) .. " speed=" .. tostring(speed) .. " needCarry=" .. tostring(needCarry) .. " stepH=" .. tostring(stepH) .. " gap2d=" .. tostring(gap2d) .. " fromdist3d=" .. tostring(fromdist3d) .. " fromdist2d=" .. tostring(fromdist2d) .. " fromheight=" .. tostring(fromheight) .. " edgeReach=" .. tostring(edgeReach) .. " along=" .. tostring(along) .. " lineDist=" .. tostring(lineDist) .. " reach=" .. tostring(reach) .. " from=" .. tostring(from_pos.x) .. "," .. tostring(from_pos.y) .. "," .. tostring(from_pos.z) .. " to=" .. tostring(to_pos.x) .. "," .. tostring(to_pos.y) .. "," .. tostring(to_pos.z) .. " ppos=" .. tostring(ppos.x) .. "," .. tostring(ppos.y) .. "," .. tostring(ppos.z)) end
 					Player:Jump()
 				end
 			else
@@ -5139,13 +5145,13 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			local todist2d = math.distance2d(ppos, to_pos)
 			ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)
 			if (not Player:IsJumping() and todist2d <= landing2d and math.abs(ppos.y - to_pos.y) <= landHeightTolerance) then
-				d("[OMC-DBG] Exact:LANDED ismounted=" .. tostring(Player.ismounted) .. " jumping=" .. tostring(Player:IsJumping()) .. " todist2d=" .. tostring(todist2d) .. " ppy=" .. tostring(ppos.y) .. " toy=" .. tostring(to_pos.y))
+				if (gOMCDebug) then d("[OMC-DBG] Exact:LANDED ismounted=" .. tostring(Player.ismounted) .. " jumping=" .. tostring(Player:IsJumping()) .. " todist2d=" .. tostring(todist2d) .. " ppy=" .. tostring(ppos.y) .. " toy=" .. tostring(to_pos.y)) end
 				self.pathindex = self.pathindex + 1
 				ml_navigation_exact.ResetAutoFollowState()
 				ml_navigation_exact.ResetOMCState()
 			elseif (not Player:IsJumping() and (ticks - self.omc_jumptimer) > 800 and ppos.y < to_pos.y - landHeightTolerance) then
 				-- REJUMP: jump fell short, re-arm Phase A.
-				d("[OMC-DBG] Exact:REJUMP ppy=" .. tostring(ppos.y) .. " startheight=" .. tostring(self.omc_startheight) .. " toy=" .. tostring(to_pos.y) .. " todist2d=" .. tostring(todist2d))
+				if (gOMCDebug) then d("[OMC-DBG] Exact:REJUMP ppy=" .. tostring(ppos.y) .. " startheight=" .. tostring(self.omc_startheight) .. " toy=" .. tostring(to_pos.y) .. " todist2d=" .. tostring(todist2d)) end
 				self.omc_startheight = nil
 			end
 		end
@@ -5162,7 +5168,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			self.pathindex = self.pathindex + 1
 			ml_navigation_exact.ResetAutoFollowState()
 			ml_navigation_exact.ResetOMCState()
-			d("[MoveToExact]: OMC Walk complete.")
+			if (gNavDebug) then d("[MoveToExact]: OMC Walk complete.") end
 		else
 			ml_navigation_exact.DispatchAutoFollow(nextnode, ppos, true)
 		end
@@ -5177,7 +5183,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		end
 		if (gTeleportHack) then
 			Hacks:TeleportToXYZ(to_pos.x, to_pos.y, to_pos.z)
-			d("[MoveToExact]: OMC Teleport.")
+			if (gNavDebug) then d("[MoveToExact]: OMC Teleport.") end
 		else
 			NavigationManager:DisableNavConnection(nc.id)
 		end
@@ -5219,7 +5225,7 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			self.pathindex = self.pathindex + 1
 			ml_navigation_exact.ResetAutoFollowState()
 			ml_navigation_exact.ResetOMCState()
-			d("[MoveToExact]: OMC Interact node reached.")
+			if (gNavDebug) then d("[MoveToExact]: OMC Interact node reached.") end
 			return
 		end
 

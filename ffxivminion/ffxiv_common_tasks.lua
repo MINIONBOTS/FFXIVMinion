@@ -95,10 +95,16 @@ local function TaskDebugParentName(task)
 end
 
 local function TaskHandoffLog(message)
+	if (not gTaskHandoffDebug) then
+		return
+	end
 	d("[TaskHandoff] "..tostring(message))
 end
 
 local function TaskHandoffLogThrottle(task, key, ms, message)
+	if (not gTaskHandoffDebug) then
+		return
+	end
 	if (not task) then
 		TaskHandoffLog(message)
 		return
