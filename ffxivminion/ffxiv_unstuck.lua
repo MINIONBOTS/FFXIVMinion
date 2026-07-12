@@ -23,6 +23,30 @@ ffxiv_unstuck.State = {
 	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, safeticks = 0, minsafeticks = 10, minticks = 50, maxticks = 50},
 }
 
+function ffxiv_unstuck.IsOnCosmicMap()
+	return In(Player.localmapid, 1237, 1291, 1310, 1319)
+end
+
+function ffxiv_unstuck.GetReturnAction()
+	if ffxiv_unstuck.IsOnCosmicMap() then
+		return ActionList:Get(1, 42149)
+	end
+
+	return ActionList:Get(1, 6)
+end
+
+function ffxiv_unstuck.IsReturnReady(returnAction)
+	if not returnAction then
+		return false
+	end
+
+	if ffxiv_unstuck.IsOnCosmicMap() then
+		return returnAction:IsReady(Player.id)
+	end
+
+	return returnAction:IsReady()
+end
+
 ffxiv_unstuck.SLOW_BUFFS = "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967,1939,2730,2738,2760"
 
 function ffxiv_unstuck.Reset()
@@ -154,7 +178,7 @@ function c_stuck:evaluate()
 						if ffxiv_unstuck.State[state.name].stats >= 3 then
 							local ppos = Player.pos
 							local distToRemesh = IsNull(Distance2D(ppos.x,ppos.z,e_stuck.lastfixmeshpos.x,e_stuck.lastfixmeshpos.z),0)
-							local returnHome = ActionList:Get(1,6)
+							local returnHome = ffxiv_unstuck.GetReturnAction()
 							local aeth = FFXIVLib.API.Map.GetBestAetheryteForMap(Player.localmapid, ppos, { fromMapId = Player.localmapid })
 							if gStuckRemesh and (distToRemesh >= 30 and (not e_stuck.lastfixmeshmap or e_stuck.lastfixmeshmap == Player.localmapid)) then
 								e_stuck.task = "Remesh"
@@ -168,7 +192,7 @@ function c_stuck:evaluate()
 								ffxiv_unstuck.remeshstate = 1
 
 								return true
-							elseif gStuckReturn and (returnHome and returnHome:IsReady()) then
+							elseif gStuckReturn and ffxiv_unstuck.IsReturnReady(returnHome) then
 								e_stuck.task = "Return"
 								return true
 							elseif gStuckTeleport and (ActionIsReady(7,5) and aeth) and (e_stuck.lastteleport < Now()) then	
@@ -242,7 +266,7 @@ function e_stuck:execute()
 	ffxiv_unstuck.State.STALLED.ticks = 0
 	ffxiv_unstuck.State.OFFMESH.ticks = 0
 	
-	if (not Player.incombat and not MIsCasting() and (ffxiv_unstuck.State[state.name].stats > 2) and not InInstance()) then
+	if (not Player.incombat and not MIsCasting() and (ffxiv_unstuck.State[state.name].stats > 2) and (not InInstance() or ffxiv_unstuck.IsOnCosmicMap())) then
 		Player:Stop()
 		if task == "Disable" then
 			
@@ -277,9 +301,16 @@ function e_stuck:execute()
 			ml_global_information.Await(5000, 
 				function () return (not Player:IsMoving()) end, 
 				function ()
-					local returnHome = ActionList:Get(1,6)
-					if (returnHome and returnHome:IsReady()) then
-						if (returnHome:Cast(Player.id)) then
+					local returnHome = ffxiv_unstuck.GetReturnAction()
+					if ffxiv_unstuck.IsReturnReady(returnHome) then
+						local castSucceeded
+						if ffxiv_unstuck.IsOnCosmicMap() then
+							castSucceeded = returnHome:Cast()
+						else
+							castSucceeded = returnHome:Cast(Player.id)
+						end
+
+						if castSucceeded then
 							ffxiv_unstuck.State[state.name].stats = 0
 							ml_global_information.Await(10000, function () return (MIsLoading() and not MIsLocked()) end)
 							ffxiv_unstuck.State[state.name].stats = 0
