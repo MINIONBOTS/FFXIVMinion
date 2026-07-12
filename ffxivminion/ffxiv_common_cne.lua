@@ -2511,13 +2511,10 @@ function e_avoidaggressives:execute()
 end
 
 local function PathDistanceOr3d(from, to, fallback3d)
-	if (not table.valid(from) or not table.valid(to)) then
-		return fallback3d
-	end
-	local pathDist = GetPathDistance(from, to)
-	if (pathDist and pathDist > 0) then
-		return pathDist
-	end
+	-- NavigationManager:GetPathDistance is stateful while the player is moving:
+	-- a request for a shard-to-goal leg can return the active player path instead.
+	-- Aethernet decisions need comparable, reproducible legs, so use the supplied
+	-- world-distance fallback for all of them.
 	return fallback3d
 end
 
@@ -2748,6 +2745,9 @@ function c_useaethernet:evaluate(mapid, pos)
 	local aethernetDetour = math.huge
 	local sameMapRule = false
 	local crossMapRule = false
+	local gotoWalkDist = nil
+	local aethernetWalkDist = nil
+	local destinationWalkDist = nil
 	local sameCityTravel = (destMapID ~= Player.localmapid)
 		and ((IsLimsa(Player.localmapid) and IsLimsa(destMapID))
 		or (IsUldah(Player.localmapid) and IsUldah(destMapID))
@@ -2829,12 +2829,18 @@ function c_useaethernet:evaluate(mapid, pos)
 			end
 		end
 		if (nearestAethernet and bestAethernet) then
-			local gotoWalkDist = PathDistanceOr3d(Player.pos, gotoPos, gotoDist)
-			local aethernetWalkDist = PathAethernetWalkCost(Player.pos, nearestAethernet, nearestDistance, bestAethernet, bestDistance, gotoPos)
-			sameMapRule = (aethernetWalkDist < gotoWalkDist and destMapID == Player.localmapid)
+				gotoWalkDist = PathDistanceOr3d(Player.pos, gotoPos, gotoDist)
+				aethernetWalkDist = PathAethernetWalkCost(Player.pos, nearestAethernet, nearestDistance, bestAethernet, bestDistance, gotoPos)
+				destinationWalkDist = PathDistanceOr3d(
+					AethernetShardPos(bestAethernet, gotoPos.y), gotoPos, bestDistance or math.huge)
+				-- A transfer must not land us farther from the goal than our current
+				-- position. This guards against stale/partial mesh path estimates and
+				-- prevents a MOVEAETHERNET -> resume-navigation loop.
+				sameMapRule = (aethernetWalkDist < gotoWalkDist
+					and destinationWalkDist < gotoWalkDist
+					and destMapID == Player.localmapid)
 			crossMapRule = (aethernetDetour < gatedist and destMapID ~= Player.localmapid)
 		end
-		
 		if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and
 			((sameMapRule) or 
 			(crossMapRule)
