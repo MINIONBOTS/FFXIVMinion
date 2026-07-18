@@ -1566,6 +1566,7 @@ function c_teleporttomap:evaluate()
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,destMapID)
 					if (table.valid(backupPos)) then
 						d("Found an attuned backup position aetheryte for mapid 3["..tostring(destMapID).."].")
+						e_teleporttomap.aeth = aetheryte
 						return true
 					end
 				end
