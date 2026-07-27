@@ -3245,6 +3245,10 @@ end
 function ShouldEat()
 	if (gFood ~= GetString("none")) then
 		local foodEntry = ml_global_information.foods[gFood]
+		if (not foodEntry and ffxivminion and ffxivminion.FillFoodOptions) then
+			ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+			foodEntry = ml_global_information.foods[gFood]
+		end
 		if (foodEntry) then
 			local foodID = foodEntry.id
 			local foodStack = foodEntry.buffstackid

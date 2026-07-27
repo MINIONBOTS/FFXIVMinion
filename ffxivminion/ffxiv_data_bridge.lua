@@ -40,6 +40,17 @@ function e_ffxivlib_dataready:execute()
     -- The async callbacks will populate the caches in the background.
 end
 
+local function FFXIVData_IsOptiFineMode()
+    return FFXIVLib
+        and FFXIVLib.IsOptiFineMode
+        and FFXIVLib.IsOptiFineMode()
+end
+
+local function FFXIVData_ShouldDeferSpeculative()
+    return FFXIVData_IsOptiFineMode()
+        and FFXIV_Common_BotRunning ~= true
+end
+
 ------------------------------------------------------------
 -- Pre-Warm Utilities
 --
@@ -68,6 +79,7 @@ end
 -- @param classJobId (number)
 function FFXIVData_PreWarmActions(classJobId)
     if not FFXIVLib or not classJobId then return nil end
+    if FFXIVData_ShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmClassActions(classJobId)
 end
 
@@ -76,6 +88,7 @@ end
 -- @param mapId (number)
 function FFXIVData_PreWarmMap(mapId)
     if not FFXIVLib or not mapId then return nil end
+    if FFXIVData_ShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmCurrentMap(mapId)
 end
 
@@ -83,6 +96,7 @@ end
 -- Call after equipping new gear.
 function FFXIVData_PreWarmGear()
     if not FFXIVLib then return nil end
+    if FFXIVData_ShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmEquippedGear()
 end
 
@@ -119,24 +133,36 @@ end
 ml_global_information._nav_enrich_done = false
 ml_global_information._nav_resolve_done = false
 
+local FFXIVDATA_NAV_TICK_NORMAL_MS = 35
+local FFXIVDATA_NAV_TICK_OPTIFINE_MS = 250
+local ffxivDataNavLastTick = 0
+
 local function FFXIVData_NavDiscoveryDone()
     return FFXIVLib and FFXIVLib.API.Nav and FFXIVLib.API.Nav._discoveryDone
 end
 
+local function FFXIVData_ShouldDeferAutomaticNav()
+    return FFXIVData_IsOptiFineMode()
+        and FFXIV_Common_BotRunning ~= true
+end
+
 --- Tick nav discovery (bulk SQL warp scanning).
--- Call once per frame until it returns true.
+-- Call periodically until it returns true.
 -- @return (boolean) true when discovery is complete.
 function FFXIVData_NavDiscoverTick()
     if FFXIVData_NavDiscoveryDone() then return true end
+    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav or not FFXIVLib.API.Nav.DiscoverConnections then return false end
+    if FFXIVLib.EnsureDomain and not FFXIVLib.EnsureDomain("Nav") then return false end
     return FFXIVLib.API.Nav.DiscoverConnections()
 end
 
 --- Tick nav enrichment (conversation strings from Warp SQL).
--- Call once per frame until it returns true.
+-- Call periodically until it returns true.
 -- @return (boolean) true when all entries are enriched.
 function FFXIVData_NavEnrichTick()
     if ml_global_information._nav_enrich_done then return true end
+    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before enriching
     if not FFXIVData_NavDiscoveryDone() then return false end
@@ -149,10 +175,11 @@ function FFXIVData_NavEnrichTick()
 end
 
 --- Tick nav resolution (on-demand data vs static comparison).
--- Call once per frame until it returns true.
+-- Call periodically until it returns true.
 -- @return (boolean) true when all entries are resolved.
 function FFXIVData_NavResolveTick()
     if ml_global_information._nav_resolve_done then return true end
+    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before resolving
     if not FFXIVData_NavDiscoveryDone() then return false end
@@ -163,3 +190,41 @@ function FFXIVData_NavResolveTick()
     end
     return done
 end
+
+--- Independently drives FFXIVLib Nav discovery.
+-- Optifine replaces ml_global_information.InGameOnUpdate, so this must be
+-- registered directly instead of relying on the replaceable base function.
+function FFXIVData_NavOnUpdate(event, tickcount)
+    if not Player
+        or MGetGameState() ~= FFXIV.GAMESTATE.INGAME
+        or FFXIVData_ShouldDeferAutomaticNav()
+        or (ml_global_information.IsYielding and ml_global_information.IsYielding())
+    then
+        return
+    end
+    if FFXIVData_NavDiscoveryDone()
+        and ml_global_information._nav_enrich_done
+        and ml_global_information._nav_resolve_done
+    then
+        return
+    end
+
+    local now = tonumber(tickcount) or Now()
+    local interval = FFXIVData_IsOptiFineMode()
+        and FFXIVDATA_NAV_TICK_OPTIFINE_MS
+        or FFXIVDATA_NAV_TICK_NORMAL_MS
+    if ffxivDataNavLastTick > 0 and (now - ffxivDataNavLastTick) < interval then
+        return
+    end
+    ffxivDataNavLastTick = now
+
+    FFXIVData_NavDiscoverTick()
+    FFXIVData_NavEnrichTick()
+    FFXIVData_NavResolveTick()
+end
+
+RegisterEventHandler(
+    "Gameloop.Update",
+    FFXIVData_NavOnUpdate,
+    "FFXIVData.NavOnUpdate"
+)

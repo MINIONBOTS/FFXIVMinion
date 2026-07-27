@@ -679,6 +679,10 @@ function c_precraftbuff:evaluate()
 		
 		if (gCraftFood ~= GetString("none")) then
 			local foodDetails = ml_global_information.foods[gCraftFood]
+			if (not foodDetails and ffxivminion and ffxivminion.FillFoodOptions) then
+				ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+				foodDetails = ml_global_information.foods[gCraftFood]
+			end
 			if (foodDetails) then
 				local foodID = foodDetails.id
 				local foodStack = foodDetails.buffstackid
@@ -1147,8 +1151,8 @@ function ffxiv_task_craft:Init()
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 140 )
     self:add( ke_inventoryFull, self.process_elements)
 	
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
-    self:add( ke_autoEquip, self.process_elements)
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
+    self:add( ke_recommendEquip, self.process_elements)
 	
 	local ke_selectCraft = ml_element:create( "SelectCraft", c_selectcraft, e_selectcraft, 100 )
     self:add(ke_selectCraft, self.process_elements)
@@ -1184,9 +1188,34 @@ function ffxiv_task_craft.SetModeOptions()
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
+function ffxiv_craft.EnsureCollectablePresetsMigrated()
+	if (IsNull(gRefreshCollectables, 0) >= 20200807) then
+		return true
+	end
+
+	local migrated = {}
+	for _, collectible in pairs(ffxiv_craft.collectibles) do
+		local name = FFXIVLib.API.Items.GetNameByID(collectible.id)
+		if not name then
+			return false
+		end
+		migrated[collectible.id] = {
+			name = name,
+			value = collectible.minimum,
+		}
+	end
+
+	gCraftCollectablePresets = migrated
+	GUI_Set("gCraftCollectablePresets", migrated)
+	Settings.FFXIVMINION.gCraftCollectablePresets = migrated
+	gRefreshCollectables = 20200807
+	Settings.FFXIVMINION.gRefreshCollectables = gRefreshCollectables
+	d("[Craft] Collectables Updated")
+	return true
+end
+
 -- New GUI.
 function ffxiv_task_craft:UIInit()
-	FFXIVLib.API.Recipe.Enable()
 	gCrafts = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
 	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
 	
@@ -1217,24 +1246,6 @@ function ffxiv_task_craft:UIInit()
 	gCraftDictionarySelectKeepSettings = false
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 	gRefreshCollectables = ffxivminion.GetSetting("gRefreshCollectables",0)
-	
-	if gRefreshCollectables < 20200807 then
-		gCraftCollectablePresets = {}
-		GUI_Set("gCraftCollectablePresets",{})
-		for k,v in pairs(ffxiv_craft.collectibles) do
-			local name = FFXIVLib.API.Items.GetNameByID(v.id)
-			if name then
-				gCraftCollectablePresets[v.id] =  { name = name, value = v.minimum }
-			end
-		end
-		
-		FFXIVLib.API.Items.UpdateCollectablePresets() -- Updates all basic class items, region specific.
-		Settings.FFXIVMINION.gCraftCollectablePresets = gCraftCollectablePresets
-		
-		gRefreshCollectables = 20200807
-		Settings.FFXIVMINION.gRefreshCollectables = gRefreshCollectables
-		d("[Craft] Collectables Updated")
-	end
 	
 		
 	gTeaSelection = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
@@ -1361,6 +1372,7 @@ ffxiv_task_craft.GUI = {
 }
 
 function ffxiv_task_craft:Draw()
+	ffxiv_craft.EnsureCollectablePresetsMigrated()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	-- Craft Mode Selections.

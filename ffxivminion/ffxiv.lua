@@ -570,11 +570,6 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		ml_global_information._ffxivlib_prewarm_done = true
 	end
 
-	-- Drive nav data discovery, enrichment & resolution until complete.
-	if FFXIVData_NavDiscoverTick then FFXIVData_NavDiscoverTick() end
-	if FFXIVData_NavEnrichTick then FFXIVData_NavEnrichTick() end
-	if FFXIVData_NavResolveTick then FFXIVData_NavResolveTick() end
-
 	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		FFXIV_Common_BotRunning = false
@@ -724,9 +719,28 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		end
 
 		if (not Player.incombat) then
-			if ((ffxivminion.GUI.settings.open and TimeSince(ml_global_information.updateFoodTimer) > 15000) or ml_global_information.updateFoodTimer == 0) then
-				ml_global_information.updateFoodTimer = tickcount
-				ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+			local optifineLazyUI = FFXIVLib
+				and FFXIVLib.IsOptiFineMode
+				and FFXIVLib.IsOptiFineMode()
+			local refreshFoodOptions
+			if optifineLazyUI then
+				local configuredFood = (gFood and gFood ~= GetString("none"))
+					or (gCraftFood and gCraftFood ~= GetString("none"))
+				refreshFoodOptions = (ffxivminion.GUI.settings.open
+						or (FFXIV_Common_BotRunning and configuredFood))
+					and (ml_global_information.updateFoodTimer == 0
+						or TimeSince(ml_global_information.updateFoodTimer) > 15000)
+			else
+				refreshFoodOptions = (ffxivminion.GUI.settings.open
+						and TimeSince(ml_global_information.updateFoodTimer) > 15000)
+					or ml_global_information.updateFoodTimer == 0
+			end
+			if refreshFoodOptions then
+				if ffxivminion.FillFoodOptions(gFoodAvailableOnly) then
+					ml_global_information.updateFoodTimer = tickcount
+				else
+					ml_global_information.updateFoodTimer = 0
+				end
 			end
 
 			if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair and GetPatchLevel() < 5.4) then
@@ -1001,10 +1015,10 @@ function ffxivminion.SetMainVars()
 	gTradeInviteMessages = ffxivminion.GetSetting("gTradeInviteMessages", "?;/shrug")
 
 	gFoodAvailableOnly = ffxivminion.GetSetting("gFoodAvailableOnly", true)
-	ffxivminion.FillFoodOptions(gFoodAvailableOnly)
+	gFoods = { GetString("none") }
+	ml_global_information.foods = {}
 	gFood = ffxivminion.GetSetting("gFood", GetString("none"))
 	gFoodIndex = IsNull(GetKeyByValue(gFood, gFoods), 1)
-	gFoods = { GetString("none") }
 	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific", true)
 
 	local currentFood = gFoods[gFoodIndex]
@@ -1530,17 +1544,19 @@ function ffxivminion.FillFoodOptions(availableonly)
 		allFoods = {}
 	end
 
+	if not table.valid(allFoods) then
+		return false
+	end
+
 	ml_global_information.foods = {}
-	if (table.valid(allFoods)) then
-		for i, item in pairs(allFoods) do
-			if item.name then
-				ml_global_information.foods[item.name] = {
-					id = item.hqid,
-					name = item.name,
-					buffid = item.buffid,
-					buffstackid = item.buffstackid,
-				}
-			end
+	for i, item in pairs(allFoods) do
+		if item.name then
+			ml_global_information.foods[item.name] = {
+				id = item.hqid,
+				name = item.name,
+				buffid = item.buffid,
+				buffstackid = item.buffstackid,
+			}
 		end
 	end
 
@@ -1553,6 +1569,7 @@ function ffxivminion.FillFoodOptions(availableonly)
 			table.insert(gFoods, item.name)
 		end
 	end
+	return true
 end
 
 function ffxivminion.FillMountOptions()
@@ -2174,6 +2191,16 @@ function ml_global_information.DrawSettings()
 					GUI:PopItemWidth()
 					GUI:SameLine()
 					GUI:Text(GetString("Current Active Food"))
+					-- Optifine may replace the base InGameOnUpdate callback.  Request
+					-- food rows from the UI that consumes them as well, so the list
+					-- remains lazy but cannot get stuck at "none".
+					if (ml_global_information.updateFoodTimer == 0
+						or TimeSince(ml_global_information.updateFoodTimer) > 15000)
+					then
+						if ffxivminion.FillFoodOptions(gFoodAvailableOnly) then
+							ml_global_information.updateFoodTimer = Now()
+						end
+					end
 					GUI:PushItemWidth(200);
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods);
 					GUI:PopItemWidth()
