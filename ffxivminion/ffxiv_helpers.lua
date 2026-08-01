@@ -29,9 +29,14 @@ end
 ffxivminion = ffxivminion or {}
 ffxivminion.patchLevel = ffxivminion.patchLevel or {}
 
--- Nav debug logger (no-op by default, set navd = d to enable debug output)
+-- Nav debug logger. Read gNavDebug at call time because this file loads before
+-- ffxiv.lua initializes the setting and the checkbox can change it at runtime.
 if (not navd) then
-	navd = function() end
+	navd = function(message)
+		if (gNavDebug and d) then
+			d(message)
+		end
+	end
 end
 
 -- QuestCompleted fallback: C++ registers this global, but if missing provide a Lua shim
