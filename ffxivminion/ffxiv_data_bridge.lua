@@ -134,7 +134,6 @@ ml_global_information._nav_enrich_done = false
 ml_global_information._nav_resolve_done = false
 
 local FFXIVDATA_NAV_TICK_NORMAL_MS = 35
-local FFXIVDATA_NAV_TICK_OPTIFINE_MS = 250
 local ffxivDataNavLastTick = 0
 
 local function FFXIVData_NavDiscoveryDone()
@@ -191,11 +190,12 @@ function FFXIVData_NavResolveTick()
     return done
 end
 
---- Independently drives FFXIVLib Nav discovery.
--- Optifine replaces ml_global_information.InGameOnUpdate, so this must be
--- registered directly instead of relying on the replaceable base function.
+--- Independently drives FFXIVLib Nav discovery in normal mode.
+-- Optifine sessions are raid/Assist-only, so automatic world-nav discovery
+-- stays disabled there. Explicit FFXIVData_Nav*Tick callers remain available.
 function FFXIVData_NavOnUpdate(event, tickcount)
-    if not Player
+    if FFXIVData_IsOptiFineMode()
+        or not Player
         or MGetGameState() ~= FFXIV.GAMESTATE.INGAME
         or FFXIVData_ShouldDeferAutomaticNav()
         or (ml_global_information.IsYielding and ml_global_information.IsYielding())
@@ -210,10 +210,9 @@ function FFXIVData_NavOnUpdate(event, tickcount)
     end
 
     local now = tonumber(tickcount) or Now()
-    local interval = FFXIVData_IsOptiFineMode()
-        and FFXIVDATA_NAV_TICK_OPTIFINE_MS
-        or FFXIVDATA_NAV_TICK_NORMAL_MS
-    if ffxivDataNavLastTick > 0 and (now - ffxivDataNavLastTick) < interval then
+    if ffxivDataNavLastTick > 0
+        and (now - ffxivDataNavLastTick) < FFXIVDATA_NAV_TICK_NORMAL_MS
+    then
         return
     end
     ffxivDataNavLastTick = now
