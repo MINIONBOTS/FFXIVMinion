@@ -49,67 +49,19 @@ end
 ff.mapsections = {
 	[399] = 0,
 }
--- Trust member role tables (by contentid)
--- Derived from AST card targeting: Bole/Ewer = tanks, Balance/Spear = DPS, remainder = healers
-ff.trust_tanks = {
-	[713]=true, [1455]=true, [5964]=true, [8650]=true, [9348]=true, [9363]=true,
-	[11262]=true, [11266]=true, [11271]=true, [11313]=true, [11326]=true, [11330]=true, [11334]=true,
-	[11416]=true, [11431]=true, [12236]=true, [12312]=true, [12463]=true, [12464]=true, [12487]=true, [12488]=true,
-}
-ff.trust_healers = {
-	[1492]=true, [4130]=true,
-	[8650]=true, [9346]=true, [9349]=true, [9363]=true, [10586]=true,
-	[11264]=true, [11267]=true, [11271]=true, [11329]=true, [11333]=true, [11337]=true,
-	[12239]=true, [12465]=true, [12468]=true, [12469]=true,
-	[12487]=true, [12488]=true,
-}
-ff.trust_melee_dps = {
-	[4133]=true, -- Raubahn (Gladiator)
-	[5970]=true, -- Lyse (Monk)
-	[6148]=true, -- Hien (Samurai)
-	[8650]=true, -- Crystal Exarch (all-rounder)
-	[8889]=true, -- Ryne (Rogue)
-	[8917]=true, -- Minfilia (Rogue)
-	[9363]=true, -- G'raha Tia (all-rounder)
-	[10013]=true, -- Estinien (Dragoon)
-	[11269]=true, -- Ryne's avatar (Rogue)
-	[11270]=true, -- Estinien's avatar
-	[11271]=true, -- G'raha Tia's avatar (all-rounder)
-	[11331]=true, -- Scion Lancer
-	[11335]=true, -- Serpent Lancer
-	[11433]=true, -- Temple Banneret (Lancer)
-	[12237]=true, -- House Fortemps Banneret (Lancer)
-	[12466]=true, -- Yugiri (Ninja)
-	[12470]=true, -- Resistance Pikedance (Lancer)
-	[12487]=true, -- Wuk Lamat (all-rounder)
-	[12488]=true, -- G'raha Tia (all-rounder)
-	[12635]=true, -- J'moldva (Lancer)
-}
-ff.trust_phys_ranged_dps = {
-	[8919]=true, -- Lyna (Dancer)
-	[10899]=true, -- Hythlodaeus (Bard)
-	[11418]=true, -- Zero (Bard)
-	[12053]=true, -- Zero's avatar (Bard)
-	[12740]=true, -- Koana (Phys Ranged)
-}
-ff.trust_caster_dps = {
-	[4846]=true, -- Krile (Pictomancer)
-	[5239]=true, -- Alisaie (Red Mage)
-	[8378]=true, -- Y'shtola (caster DPS)
-	[10898]=true, -- Emet-Selch (caster DPS)
-	[11265]=true, -- Alisaie's avatar (Red Mage)
-	[11268]=true, -- Y'shtola's avatar (caster DPS)
-	[11328]=true, [11332]=true, [11336]=true, -- Thaumaturges
-	[12739]=true, -- Zoraal Ja (Magic DPS)
-	[13522]=true, -- Krile's avatar (Pictomancer)
-}
-ff.trust_dps = {
-	[4133]=true, [4846]=true, [5239]=true, [5970]=true, [6148]=true,
-	[8378]=true, [8650]=true, [8889]=true, [8917]=true, [8919]=true, [9347]=true, [9363]=true,
-	[10013]=true, [10898]=true, [10899]=true, [11265]=true, [11268]=true,
-	[11269]=true, [11270]=true, [11271]=true, [11282]=true, [11328]=true, [11331]=true, [11332]=true, [11335]=true, [11336]=true, [11418]=true, [11433]=true,
-	[12053]=true, [12237]=true, [12466]=true, [12467]=true, [12470]=true, [12487]=true, [12488]=true, [12489]=true, [12635]=true, [12739]=true, [12740]=true, [13522]=true,
-}
+-- Keep the old ff.trust_* lookups working for profiles that index them.
+-- The actual role list is kept in ffxiv_overrides_npc.lua.
+local function TrustRoleProxy(role)
+    return setmetatable({}, {
+        __index = function(_, contentId) return FFXIVMinionNPC.HasTrustRole(contentId, role) or nil end,
+    })
+end
+ff.trust_tanks = TrustRoleProxy("tank")
+ff.trust_healers = TrustRoleProxy("healer")
+ff.trust_melee_dps = TrustRoleProxy("melee")
+ff.trust_phys_ranged_dps = TrustRoleProxy("physicalranged")
+ff.trust_caster_dps = TrustRoleProxy("caster")
+ff.trust_dps = TrustRoleProxy("dps")
 
 function GetPatchLevel()
 	local gr = ffxivminion.gameRegion
@@ -1107,10 +1059,9 @@ function GetLowestMPParty( range, role, includeself )
 	-- DPS, Healer, Tank, Caster
 
 	-- If the role is to be filtered, remove the non-applicable jobs here.
-	local roleTable = GetRoleTable(role)
-	if (roleTable) then
+	if (role) then
 		for jobid,_ in pairs(mpUsers) do
-			if (not roleTable[jobid]) then
+			if FFXIVLib.API.ClassJob.MatchesRole(jobid, role) == false then
 				mpUsers[jobid] = nil
 			end
 		end
@@ -1161,10 +1112,9 @@ function GetLowestTPParty( range, role, includeself )
 	}
 	
 	-- If the role is to be filtered, remove the non-applicable jobs here.
-	local roleTable = GetRoleTable(role)
-	if (roleTable) then
+	if (role) then
 		for jobid,_ in pairs(tpUsers) do
-			if (not roleTable[jobid]) then
+			if FFXIVLib.API.ClassJob.MatchesRole(jobid, role) == false then
 				tpUsers[jobid] = nil
 			end
 		end
@@ -1343,10 +1293,9 @@ function GetBestRevive( party, role)
 	-- Filter out the inappropriate roles.
 	local targets = {}
 	if (table.valid(el)) then
-		local roleTable = GetRoleTable(role)
-		if (roleTable) then
+		if (role) then
 			for id,entity in pairs(el) do
-				if (entity.job and roleTable[entity.job]) then
+				if entity.job and FFXIVLib.API.ClassJob.MatchesRole(entity.job, role) ~= false then
 					targets[id] = entity
 				end
 			end
@@ -2049,10 +1998,7 @@ function GetFleeHP()
 	return fleeHP
 end
 function HasInfiniteDuration(id)
-	infiniteDurationAbilities = {
-		[614] = true,
-	}
-	return infiniteDurationAbilities[id] or false
+	return FFXIVLib.API.Status.HasInfiniteDuration(id)
 end
 function IsPlayerCasting(fullcheck)
 	fullcheck = IsNull(fullcheck,false)
@@ -2094,128 +2040,19 @@ function HasContentID(entity, contentIDs)
 	return false
 end
 function IsPetSummonSkill(skillID)
-    if (skillID == 165 or
-		skillID == 150 or
-        skillID == 170 or
-        skillID == 180 or
-		skillID == 2864 or
-		skillID == 2865) 
-	then
-        return true
-    end
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "petsummon")
 end
 function IsHealingSkill(skillID)
-	local id = tonumber(skillID)
-	
-	local cures = {
-		[120] = true,
-		[124] = true,
-		[126] = true,
-		[131] = true,
-		[133] = true,
-		[135] = true,
-		[140] = true,
-		[185] = true,
-		[186] = true,
-		[187] = true,
-		[189] = true,
-		[190] = true,
-		[3541] = true,
-		[3570] = true,
-		[3583] = true,
-		[3594] = true,
-		[3595] = true,
-		[3600] = true,
-		[3601] = true,
-		[3602] = true,
-		[3610] = true,
-		[3614] = true,
-		[7434] = true,
-		[7445] = true,
-		[8895] = true,
-		[8896] = true,
-		[8898] = true,
-		[8902] = true,
-		[8904] = true,
-		[8905] = true,
-		[8909] = true,
-		[8913] = true,
-		[8914] = true,
-		[8916] = true,
-		[10029] = true,
-	}
-    if (cures[id]) then
-        return true
-    end
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "healing")
 end
-local buffs = {
-		[27] = true,
-		[123] = true,
-		[129] = true,
-		[137] = true,
-		[2249] = true,
-		[3564] = true,
-		[3565] = true,
-		[3611] = true,
-		[3612] = true,
-		[7432] = true,
-		[8921] = true,
-		[8922] = true,
-		[8923] = true,
-		[8924] = true,
-		[9621] = true,
-		[9651] = true,
-	}
 function IsFriendlyBuff(skillID)
-	local id = tonumber(skillID)
-	
-    if (buffs[id]) then
-        return true
-    end
-	
-	if (id >= 4401 and id <= 4424) then
-		return true
-	end
-	
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "friendlybuff")
 end
-local mudras = {
-	[2261] = true,
-	[2259] = true,
-	[2263] = true,
-	[18805] = true,
-	[18806] = true,
-	[18807] = true,
-}
 function IsMudraSkill(skillID)
-	local id = tonumber(skillID)
-	
-    if (mudras[id]) then
-        return true
-    end
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "mudra")
 end
-local ninjutsus = {
-	[2260] = true,
-	[2265] = true,
-	[2266] = true,
-	[2267] = true,
-	[2268] = true,
-	[2269] = true,
-	[2270] = true,
-	[2271] = true,
-	[2272] = true,
-}
 function IsNinjutsuSkill(skillID)
-	local id = tonumber(skillID)
-	
-
-    if (ninjutsus[id]) then
-        return true
-    end
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "ninjutsu")
 end
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
@@ -2223,11 +2060,8 @@ end
 function IsOmni(entity)
 	if not entity or entity.id == Player.id then return false end
 	if (HasBuff(Player,1250)) then return true end
-	local omnis = {
-		[4954] = true,
-		[4776] = true,
-	}
-	return omnis[entity.contentid]
+	if FFXIVMinionNPC.HasOmnidirectionalOverride(entity.contentid) then return true end
+	return FFXIVLib.API.NPC.IsOmnidirectional(entity.contentid)
 end
 function IsFlanking(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
@@ -3339,109 +3173,23 @@ function BlacklistTarget()
 	end
 end
 function IsMap(itemid)
-	local itemid = tonumber(itemid) or 0
-	return ((itemid >= 6687 and itemid <= 6692) or
-		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
-		(itemid >= 12241 and itemid <= 12243) or
-		(itemid >= 17835 and itemid <= 17836) or 
-		In(itemid,19770,24794,26744,26745,33611,36612,39591) or
-		In(itemid,43556,43557,46185))
+	local row = FFXIVLib.API.Items.GetGatheringClassification(itemid)
+	if not row then return nil end
+	return row.IsTreasureMap == true or row.IsTreasureMap == 1
 end
 function IsGardening(itemid)
-	local itemid = tonumber(itemid) or 0
-	return ((itemid >= 7715 and itemid <= 7767) 
-			or (itemid >= 7029 and itemid <= 7031)
-			or itemid == 8024
-			or itemid == 5365
-			or itemid == 7034
-			or itemid == 12650
-			or itemid == 12656
-			or itemid == 12887
-			or (itemid >= 15865 and itemid <= 15870)
-			)
+	if FFXIVMinionItem.HasGatheringPriority(itemid, "gardening") then return true end
+	local row = FFXIVLib.API.Items.GetGatheringClassification(itemid)
+	if not row then return nil end
+	return row.IsGardening == true or row.IsGardening == 1
 end
--- Ixali hidden items have a max item count of 5.
-function IsIxaliRare(itemid)
-	local itemid = tonumber(itemid) or 0
-	local rares = {
-		[2001392] = true,
-		[2001389] = true,
-		[2001427] = true,
-		[2001416] = true,
-		[2001413] = true,
-		[2001425] = true,
-	}
-	return rares[itemid]
-end
--- Ixali "regular" items have a max item count of 15.
-function IsIxaliSemiRare(itemid)
-	local itemid = tonumber(itemid) or 0
-	local rares = {
-		[2001391] = true,
-		[2001388] = true,
-		[2001426] = true,
-		[2001415] = true,
-		[2001412] = true,
-		[2001424] = true,
-	}
-	return rares[itemid]
-end
-function IsChocoboFood(itemid)
-	local itemid = tonumber(itemid) or 0
-	return ((itemid >= 10094 and itemid <= 10095) or
-			(itemid >= 10097 and itemid <= 10098))
-end
-function IsChocoboFoodSpecial(itemid)
-	local itemid = tonumber(itemid) or 0
-	
-	local special = {
-		[10098] = true,
-		[10095] = true,
-	}
-	return special[itemid]
-end
-function IsRareItem(itemid)
-	local itemid = tonumber(itemid) or 0
-	local rareItem = {
-		[8024] = true,
-		[5365] = true,
-		[10099] = true,
-		[10335] = true,
-		
-		[12946] = true,
-		[12947] = true,
-		[12948] = true,
-		[12949] = true,
-		[12950] = true,
-		
-		
-		[12956] = true,
-		[12957] = true,
-		[12958] = true,
-		[12959] = true,
-		[12960] = true,
-	}
-	
-	return rareItem[itemid]
-end
-function IsRareItemSpecial(itemid)
-	local itemid = tonumber(itemid) or 0
-	local superRare = {
-		[12951] = true,
-		[12952] = true,
-		[12953] = true,
-		[12954] = true,
-		[12955] = true,
-		[12961] = true,
-		[12962] = true,
-		[12963] = true,
-		[12964] = true,
-		[12965] = true,
-		[12966] = true,
-	}
-	
-	return superRare[itemid]
-end
+function IsIxaliRare(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "ixalirare") end
+function IsIxaliSemiRare(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "ixalisemirare") end
+function IsChocoboFood(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "chocobofood") end
+function IsChocoboFoodSpecial(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "chocobofoodspecial") end
+function IsRareItem(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "rare") end
+function IsRareItemSpecial(itemid) return FFXIVMinionItem.HasGatheringPriority(itemid, "superrare") end
+
 function IsUnspoiled(contentid)
 	local contid = IsNull(contentid,0)
 	if (type(contentid) == "table") then
@@ -3484,128 +3232,10 @@ function GetRoleString(jobID)
 		end
 		jobID = jobID.job or 0
 	end
-    if 
-        jobID == FFXIV.JOBS.ARCANIST or
-        jobID == FFXIV.JOBS.ARCHER or
-        jobID == FFXIV.JOBS.BARD or
-        jobID == FFXIV.JOBS.BLACKMAGE or
-		jobID == FFXIV.JOBS.DANCER or
-        jobID == FFXIV.JOBS.DRAGOON or
-        jobID == FFXIV.JOBS.LANCER or
-        jobID == FFXIV.JOBS.MONK or
-        jobID == FFXIV.JOBS.PUGILIST or
-        jobID == FFXIV.JOBS.SUMMONER or
-        jobID == FFXIV.JOBS.THAUMATURGE or
-		jobID == FFXIV.JOBS.ROGUE or
-		jobID == FFXIV.JOBS.NINJA or
-		jobID == FFXIV.JOBS.MACHINIST or
-		jobID == FFXIV.JOBS.SAMURAI or
-		jobID == FFXIV.JOBS.REDMAGE or
-		jobID == FFXIV.JOBS.BLUEMAGE or
-		jobID == FFXIV.JOBS.REAPER or
-		jobID == FFXIV.JOBS.VIPER or
-		jobID == FFXIV.JOBS.PICTOMANCER
-    then
-        return GetString("dps")
-    elseif
-        jobID == FFXIV.JOBS.CONJURER or
-        jobID == FFXIV.JOBS.SCHOLAR or
-        jobID == FFXIV.JOBS.WHITEMAGE or
-		jobID == FFXIV.JOBS.ASTROLOGIAN or
-		jobID == FFXIV.JOBS.SAGE
-    then
-        return GetString("healer")
-    elseif 
-        jobID == FFXIV.JOBS.GLADIATOR or
-        jobID == FFXIV.JOBS.MARAUDER or
-        jobID == FFXIV.JOBS.PALADIN or
-        jobID == FFXIV.JOBS.WARRIOR or 
-		jobID == FFXIV.JOBS.DARKKNIGHT or 
-		jobID == FFXIV.JOBS.GUNBREAKER
-    then
-        return GetString("tank")
-    end
-end
-function GetRoleTable(rolestring)
-	if (rolestring == "DPS") then
-		return {
-			[FFXIV.JOBS.ARCHER] = true,
-			[FFXIV.JOBS.BARD] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DANCER] = true,
-			[FFXIV.JOBS.DRAGOON] = true,
-			[FFXIV.JOBS.LANCER] = true,
-			[FFXIV.JOBS.MONK] = true,
-			[FFXIV.JOBS.PUGILIST] = true,
-			[FFXIV.JOBS.ROGUE] = true,
-			[FFXIV.JOBS.NINJA] = true,
-			[FFXIV.JOBS.MACHINIST] = true,
-			[FFXIV.JOBS.SAMURAI] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-			[FFXIV.JOBS.BLUEMAGE] = true,
-			[FFXIV.JOBS.REAPER] = true,
-			[FFXIV.JOBS.VIPER] = true,
-			[FFXIV.JOBS.PICTOMANCER] = true,
-		}
-	elseif (rolestring == "Healer") then
-		return {
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
-			[FFXIV.JOBS.SAGE] = true,
-		}
-	elseif (rolestring == "Tank") then
-		return {
-			[FFXIV.JOBS.GLADIATOR] = true,
-			[FFXIV.JOBS.MARAUDER] = true,
-			[FFXIV.JOBS.PALADIN] = true,
-			[FFXIV.JOBS.WARRIOR] = true,
-			[FFXIV.JOBS.DARKKNIGHT] = true,
-			[FFXIV.JOBS.GUNBREAKER] = true,
-		}
-	elseif (rolestring == "Caster") then
-		return {
-			[FFXIV.JOBS.ARCANIST] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.SUMMONER] = true,
-			[FFXIV.JOBS.THAUMATURGE] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-			[FFXIV.JOBS.BLUEMAGE] = true,
-			[FFXIV.JOBS.SAGE] = true,
-		}
-	elseif (rolestring == "MeleeDPS") then
-      		return {
-  			[FFXIV.JOBS.DRAGOON] = true,
-			[FFXIV.JOBS.LANCER] = true,
-			[FFXIV.JOBS.MONK] = true,
-			[FFXIV.JOBS.PUGILIST] = true,
-  			[FFXIV.JOBS.ROGUE] = true,
-			[FFXIV.JOBS.NINJA] = true,
-         	[FFXIV.JOBS.SAMURAI] = true,
-			[FFXIV.JOBS.REAPER] = true,
-			[FFXIV.JOBS.VIPER] = true,
-		}
-	elseif (rolestring == "RangeDPS") then
-		return {
-			[FFXIV.JOBS.ARCHER] = true,
-			[FFXIV.JOBS.BARD] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DANCER] = true,
-			[FFXIV.JOBS.MACHINIST] = true,
-			[FFXIV.JOBS.ARCANIST] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.SUMMONER] = true,
-			[FFXIV.JOBS.THAUMATURGE] = true,
-			[FFXIV.JOBS.REDMAGE] = true,
-			[FFXIV.JOBS.PICTOMANCER] = true,
-		}
-	end
-	return nil
+	local role = FFXIVLib.API.ClassJob.GetRole(jobID)
+	if role == 1 then return GetString("tank") end
+	if role == 4 then return GetString("healer") end
+	if role == 2 or role == 3 then return GetString("dps") end
 end
 function IsMeleeDPS(var)
 	local var = IsNull(var,Player)
@@ -3940,94 +3570,6 @@ end
 
 -- Quest unlock overrides for aether currents gated behind content
 -- that the data tables don't reflect. Key = EObjId, Value = QuestId.
-local AetherCurrentQuestOverrides = {
-	-- Drav Hinterlands (399)
-	[2006210] = 1658,
-	[2006214] = 1658,
-	-- Coerthas Western Highlands (401)
-	[2006228] = 1643,
-	[2006229] = 1643,
-	[2006231] = 1643,
-	[2006234] = 1643,
-	-- The Fringes (612)
-	[2007967] = 2530,
-	[2007971] = 2530,
-	[2007972] = 2530,
-	-- The Ruby Sea (613)
-	[2008004] = 2484,
-	-- The Peaks (620)
-	[2007981] = 2534,
-	[2007984] = 2537,
-	-- The Lochs (621)
-	[2007994] = 2550,
-	-- Yanxia (622)
-	[2008019] = 2507,
-	-- Il Mheg (814)
-	[2010041] = 3634,
-	[2010042] = 3634,
-	-- Ahm Araeng (815)
-	[2010050] = 3609,
-	[2010052] = 3619,
-	-- The Rak'tika Greatwood (816)
-	[2010059] = 3313,
-	[2010062] = 3313,
-	[2010063] = 3313,
-	-- Amh Araeng (817)
-	[2010069] = 3334,
-	[2010073] = 3334,
-	-- The Tempest (818)
-	[2010083] = 3651,
-	-- Thavnair (956)
-	[2011985] = 4441,
-	[2011986] = 4441,
-	-- Garlemald (957)
-	[2011995] = 4412,
-	[2011996] = 4412,
-	-- Mare Lamentorum (959)
-	[2012010] = 4400,
-	[2012011] = 4400,
-	[2012012] = 4400,
-	[2012013] = 4400,
-	-- Elpis (961)
-	[2012020] = 4421,
-	[2012021] = 4421,
-	[2012025] = 4433,
-	[2012026] = 4429,
-	-- Ultima Thule (960)
-	[2012030] = 4455,
-	[2012031] = 4455,
-	[2012032] = 4459,
-	[2012033] = 4459,
-	-- Urqopacha (1187)
-	[2013929] = 4889,
-	[2013930] = 4889,
-	[2013931] = 4889,
-	[2013932] = 4889,
-	[2013933] = 4889,
-	-- Kozama'uka (1188)
-	[2013940] = 4879,
-	[2013941] = 4879,
-	[2013942] = 4879,
-	[2013943] = 4879,
-	-- Yak T'el (1189)
-	[2013949] = 4903,
-	[2013950] = 4903,
-	[2013951] = 4903,
-	[2013952] = 4903,
-	[2013953] = 4903,
-	-- Living Memory (1192)
-	[2013974] = 4949,
-	[2013975] = 4951,
-	[2013976] = 4949,
-	[2013977] = 4951,
-	[2013978] = 4951,
-	[2013979] = 4953,
-	[2013980] = 4956,
-	[2013981] = 4953,
-	[2013982] = 4953,
-	[2013983] = 4956,
-}
-
 function GetUnattunedCurrents()
 	if not QuestCompleted(1597) then
 		return nil
@@ -4051,9 +3593,10 @@ function GetUnattunedCurrents()
 		-- Check quest gate
 		elseif row.QuestId and row.QuestId > 0 and not QuestCompleted(row.QuestId) then
 			-- quest not completed, skip
-		-- Check quest override gate
-		elseif AetherCurrentQuestOverrides[row.EObjId] and not QuestCompleted(AetherCurrentQuestOverrides[row.EObjId]) then
-			-- quest override not completed, skip
+		-- Check curated field-access requirements not represented by
+		-- AetherCurrent.Quest (story phase, active quest step, map section).
+		elseif not FFXIVAetherCurrentRequirementsMet(row.EObjId) then
+			-- field current is not reachable yet, skip
 		else
 			-- Return in old-compatible shape: keyed by EObjId (old "aethid")
 			currentList[row.EObjId] = {
@@ -4271,41 +3814,7 @@ function HasDutyUnlocked(dutyID)
 	return false
 end
 function HuntingLogsUnlocked()
-	-- Minion questids are (datamined_questid-65536), so 253 is http://garlandtools.org/db/#quest/65789
-	-- Grand Company unlock quests are included here to allow boosted chars without a class hunt log
-	-- to do GC hunt logs (e.g.: jobs released after ARR: AST, RDM, GNB, etc.)
-	local requiredQuests = {
-		[1] = 253,  -- Way of the Gladiator
-		[2] = 286,  -- My First Gladius
-		[3] = 311,  -- Way of the Marauder
-		[4] = 312,  -- My First Axe
-		[5] = 345,  -- Way of the Thaumaturge
-		[6] = 346,  -- My First Scepter
-		[7] = 23,   -- Way of the Lancer
-		[8] = 218,  -- My First Spear
-		[9] = 533,  -- Way of the Pugilist
-		[10] = 553, -- My First Hora
-		[11] = 21,  -- Way of the Archer
-		[12] = 219, -- My First Bow
-		[13] = 453, -- Way of the Arcanist
-		[14] = 454, -- My First Grimoire
-		[15] = 22,  -- Way of the Conjurer
-		[16] = 211, -- My First Cane
-		[17] = 680, -- The Company You Keep (Twin Adder)
-		[18] = 681, -- The Company You Keep (Maelstrom)
-		[19] = 682, -- The Company You Keep (Immortal Flames)
-	}
-	
-	for i,quest in pairs(requiredQuests) do
-		if (Quest:IsQuestCompleted(quest)) then
-			--d("Quest :"..tostring(quest).." is completed.")
-			return true
-		else
-			--d("Quest :"..tostring(quest).." is NOT completed.")
-		end
-	end
-	
-	return false
+	return FFXIVMinionHuntlog.IsUnlocked()
 end
 function GetBestGrindMapDefault()
 	local mapid = Player.localmapid
@@ -4495,7 +4004,7 @@ end
 
 function GetItem(hqid,inventories)
 	local hqid = tonumber(hqid) or 0
-	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	local inventories = inventories or FFXIVMinionItem.SearchInventories
 	
 	if (hqid ~= 0) then
 		if (table.isa(inventories)) then
@@ -4520,7 +4029,7 @@ end
 function GetItems(hqids,inventories)
 	
 	local hqids = IsNull(hqids,{})
-	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	local inventories = inventories or FFXIVMinionItem.SearchInventories
 	
 	local returnables = {}
 	if (table.isa(hqids)) then
@@ -4769,24 +4278,10 @@ function IsShopWindowOpen()
 end
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
-	local xref = {
-		[0] = 3500, -- Weapon
-		[1] = 3200, -- OffHand
-		[2] = 3201, -- Head
-		[3] = 3202, -- Chest
-		[4] = 3203, -- Gloves
-		[5] = 3204, -- Belt
-		[6] = 3205, -- Pants
-		[7] = 3206, -- Feet
-		[8] = 3207, -- Earring
-		[9] = 3208, -- Necklace
-		[10] = 3209, -- Wrist
-		[11] = 3300, -- Rings
-		[12] = 3300, -- Rings		
-	}
+	local bagid = FFXIVMinionItem.GetArmoryBag(slot)
 	
 	if (slot ~= 13) then
-		local bag = Inventory:Get(xref[slot])
+		local bag = Inventory:Get(bagid)
 		if (table.valid(bag)) then
 			return bag.free <= 0
 		end
@@ -4795,24 +4290,10 @@ function IsArmoryFull(slot)
 end
 function ArmoryItemCount(slot)
 	local slot = tonumber(slot)
-	local xref = {
-		[0] = 3500, -- Weapon
-		[1] = 3200, -- OffHand
-		[2] = 3201, -- Head
-		[3] = 3202, -- Chest
-		[4] = 3203, -- Gloves
-		[5] = 3204, -- Belt
-		[6] = 3205, -- Pants
-		[7] = 3206, -- Feet
-		[8] = 3207, -- Earring
-		[9] = 3208, -- Necklace
-		[10] = 3209, -- Wrist
-		[11] = 3300, -- Rings
-		[12] = 3300, -- Rings		
-	}
+	local bagid = FFXIVMinionItem.GetArmoryBag(slot)
 	
 	if (slot ~= 13) then
-		local bag = Inventory:Get(xref[slot])
+		local bag = Inventory:Get(bagid)
 		if (table.valid(bag)) then
 			return bag.used > 0
 		end
@@ -4821,27 +4302,13 @@ function ArmoryItemCount(slot)
 end
 function LowestArmoryItem(slot)
 	local slot = tonumber(slot)
-	local xref = {
-		[0] = 3500, -- Weapon
-		[1] = 3200, -- OffHand
-		[2] = 3201, -- Head
-		[3] = 3202, -- Chest
-		[4] = 3203, -- Gloves
-		[5] = 3204, -- Belt
-		[6] = 3205, -- Pants
-		[7] = 3206, -- Feet
-		[8] = 3207, -- Earring
-		[9] = 3208, -- Necklace
-		[10] = 3209, -- Wrist
-		[11] = 3300, -- Rings
-		[12] = 3300, -- Rings		
-	}
+	local bagid = FFXIVMinionItem.GetArmoryBag(slot)
 	
 	local lowest = nil
 	local lowesti = 999
 	
 	if (slot ~= 13) then
-		local bag = Inventory:Get(xref[slot])
+		local bag = Inventory:Get(bagid)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
@@ -4872,47 +4339,13 @@ function GetUnequippedItem(itemid)
 	return GetItem(hqid,inventories)
 end
 function GetEquipSlotForItem(slot)
-	local slot = tonumber(slot)
-	local equipSlot = {
-		[1] = 0,
-		[2] = 1,
-		[3] = 2,
-		[4] = 3,
-		[5] = 4,
-		[6] = 5,
-		[7] = 6,
-		[8] = 7,
-		[9] = 8,
-		[10] = 9,
-		[11] = 10,
-		[12] = 11,
-		[13] = 0,
-		[17] = 13,
-	}
-	
-	return equipSlot[slot]
+    return FFXIVMinionItem.GetEquipSlot(slot)
 end
+
 function GetArmorySlotForItem(slot)
-	local slot = tonumber(slot)
-	local armorySlot = {
-		[1] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
-		[13] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
-		[2] = FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND,
-		[3] = FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD,
-		[4] = FFXIV.INVENTORYTYPE.INV_ARMORY_BODY,
-		[5] = FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS,
-		[6] = FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST,
-		[7] = FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS,
-		[8] = FFXIV.INVENTORYTYPE.INV_ARMORY_FEET,
-		[9] = FFXIV.INVENTORYTYPE.INV_ARMORY_NECK,
-		[10] = FFXIV.INVENTORYTYPE.INV_ARMORY_EARS,
-		[11] = FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST,
-		[12] = FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS,
-		[17] = FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL,
-	}
-	
-	return armorySlot[slot]
+    return FFXIVMinionItem.GetArmoryType(slot)
 end
+
 function SubtractHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start - value
@@ -5050,89 +4483,12 @@ function IsTable(t)
 	return false
 end
 
-local pvpMaps = {
-        
-    [250] = true, -- Wolves Den
-    [336] = true, -- Wolves Den
-    [337] = true, -- Wolves Den
-    [175] = true, -- Wolves Den
-    [352] = true, -- Wolves Den
-    [186] = true, -- Wolves Den
-    
-    [422] = true, -- Frontlines - Slaughter
-    
-    [149] = true, --   The Feasting Grounds
-    [376] = true, --   the Borderland Ruins (Secure)
-    [431] = true, --   Seal Rock (Seize)
-    [525] = true, --   the Feast (4 on 4 - Training)
-    [527] = true, --   the Feast (4 on 4 - Ranked)
-    [554] = true, --   the Fields of Glory (Shatter)
-    [619] = true, --   the Feast (Custom Match - Feasting Grounds)
-    [632] = true, --   the Feast (4 on 4 - Training)
-    [644] = true, --   the Feast (4 on 4 - Ranked)
-    [646] = true, --   the Feast (Custom Match - Lichenweed)
-    [729] = true, --   Astragalos
-    [745] = true, --   the Feast (Team Ranked)
-    [765] = true, --   the Feast (Ranked)
-    [766] = true, --   the Feast (Training)
-    [767] = true, --   the Feast (Custom Match - Crystal Tower)
-    [767] = true, --   the Feast (Team Custom Match - Crystal Tower)
-    [791] = true, --   Hidden Gorge
-    [888] = true, --   Onsal Hakair (Danshig Naadam)
-    
-    [537] = true, -- The Fold ??
-    [538] = true, -- The Fold ??
-    [539] = true, -- The Fold ??
-    [540] = true, -- The Fold ??
-    [541] = true, -- The Fold ??
-    [542] = true, -- The Fold ??
-    [543] = true, -- The Fold ??
-    [544] = true, -- The Fold ??
-    [545] = true, -- The Fold ??
-    [546] = true, -- The Fold ??
-    [547] = true, -- The Fold ??
-    [548] = true, -- The Fold ??
-    [549] = true, -- The Fold ??
-    [550] = true, -- The Fold ??
-    [551] = true, -- The Fold ??
-
-    [1032] = true, -- ???, The Palaistra
-    [1033] = true, -- ???, The Volcanic Heart
-    [1034] = true, -- ???, Cloud Nine
-    
-    [1058] = true, -- ???, The Palaistra
-    [1059] = true, -- ???, The Volcanic Heart
-    [1060] = true, -- ???, Cloud Nine
-	
-    [1116] = true, -- ???, Clockwork Castletown
-    [1117] = true, -- ???, Clockwork Castletown
-
-    [1138] = true, -- The Red Sands
-    [1139] = true, -- The Red Sands
-    
-    [1273] = true, -- secure frontline
-
-	[1293] = true, -- ???, Wolves' Den Pier, The Bayside Battleground
-	[1294] = true, -- ???, Wolves' Den Pier, The Bayside Battleground
-
-	[1313] = true, -- worqor chirteh (triumph)
-}
 function IsPVPMap(mapid)
-    local mapid = tonumber(mapid) or Player.localmapid
-    return (pvpMaps[mapid] ~= nil)
+    return FFXIVLib.API.Map.IsPvpMap(tonumber(mapid) or Player.localmapid)
 end
 
 function IsEurekaMap(mapid)
-	local mapid = tonumber(mapid) or 0
-	local eMaps = {
-		[732] = true,
-		[763] = true,
-		[795] = true,
-		[827] = true,
-		[920] = true, --Bozjan Southern Front
-		[975] = true, --Zadnor
-	}
-	return (eMaps[mapid] ~= nil)
+    return FFXIVLib.API.Map.IsExploratoryZone(tonumber(mapid) or 0)
 end
 
 function CanUseAirship()
@@ -5370,6 +4726,11 @@ local function _CanAccessMapBuildRouteFacts(mapid)
 end
 
 function CanAccessMap(mapid)
+	if ffxiv_map_nav and ffxiv_map_nav.EnsureNavGraph
+		and not ffxiv_map_nav.EnsureNavGraph()
+	then
+		return false
+	end
 	local mapid = tonumber(mapid) or 0
 	local srcMap = Player and Player.localmapid or 0
 	local cacheKey = tostring(srcMap) .. "->" .. tostring(mapid)
@@ -5422,19 +4783,6 @@ function GetKozamaukaSection(pos) return GetMapSection(1188, pos) end
 function GetYakTelSection(pos) return GetMapSection(1189, pos) end
 
 function GetLivingMemorySection(pos) return GetMapSection(1192, pos) end
--- Cosmic data now lives in FFXIVLib.API.CosmicExploration (data_cosmic.lua).
--- Local aliases kept so Transport1237/1291/1310/1319 references still resolve.
-local centerPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1237)
-local portalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1237)
-
-local phaennaCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1291)
-local phaennaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1291)
-
-local oizysCenterPoints = FFXIVLib.API.CosmicExploration.GetCenterPoints(1310)
-local oizysPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1310)
-
-local auxesiaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1319)
-
 function GetCosmicMoon(pos, closest)
 	return FFXIVLib.API.CosmicExploration.GetSection(1237, pos, closest)
 end
@@ -5515,7 +4863,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,2,3,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 4.5, y = 3, z = -61}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 1)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5525,7 +4874,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.13)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5534,7 +4883,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,4,10) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 59, y = 3, z = 4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 2)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5544,7 +4894,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.57)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5553,7 +4903,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,5,6,7,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -4.5, y = 3.025, z = 60}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 3)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5563,7 +4914,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.04)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5572,7 +4923,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,8,9,13,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -61, y = 3.3, z = -4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 4)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5582,7 +4934,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.63)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5592,7 +4944,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,1,6,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -19.2, y = 40, z = -404}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 5)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5602,7 +4955,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.6)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5611,7 +4964,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,3,4,5,10,11,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 18.3, y = 39.8, z = -395}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 6)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5621,7 +4975,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.55)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5630,7 +4984,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,7,8,9,13,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -19.2, y = 40, z = -404}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 7)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5640,7 +4995,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.6)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5650,7 +5005,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,8,9,13,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 278, y = 42, z = -318}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 8)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5660,7 +5016,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.51)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5669,7 +5025,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,4,5,6,7,10,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 304, y = 42, z = -273}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 9)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5679,7 +5036,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.7)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5688,7 +5045,8 @@ function Transport1237(pos1,pos2)
 		-- enter
 		if In(pos2Section,23,24,25,26,27,28,29) and ffxivminion.MoonMapVersion >= 13 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 320, y = 42, z = -305}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 10)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5698,7 +5056,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(2.23)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5708,7 +5066,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,1,8,9,13,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 379, y = 42, z = -4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 11)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5718,7 +5077,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.55)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end
@@ -5727,7 +5086,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,2,3,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 404, y = 42, z = -19}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 12)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5737,7 +5097,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.13)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5746,7 +5106,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,10) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 419, y = 42, z = 4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 13)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5756,7 +5117,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.55)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5765,7 +5126,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,5,6,7,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 395, y = 42, z = 19}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 14)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5775,7 +5137,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.01)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5785,7 +5147,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,3,4,10,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 297, y = 27, z = 268}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 15)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5795,7 +5158,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(2.31)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5804,7 +5167,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,11) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 290, y = 27, z = 296}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 16)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5814,7 +5178,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.77)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5823,7 +5187,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,6,7,8,9,12,13,14,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 263, y = 27, z = 290}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 17)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5833,7 +5198,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.81)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5843,7 +5208,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 4.4, y = 37, z = 379}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 18)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5853,7 +5219,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.1)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5862,7 +5228,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,3,4,5,10,11,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 21, y = 37, z = 404.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 19)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5872,7 +5239,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.54)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5881,7 +5248,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,12,15,16,17) and ffxivminion.MoonMapVersion >= 7 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -4, y = 37, z = 418}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 20)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5891,7 +5259,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.01)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5900,7 +5268,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,7,8,9,13,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -19, y = 37, z = 395}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 21)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5910,7 +5279,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.61)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5920,7 +5289,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,3,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -290, y = 31, z = 263}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 22)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5930,7 +5300,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.35)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5939,7 +5309,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,4,5,6,10,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -269, y = 31, z = 296}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 23)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5949,7 +5320,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.79)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5959,7 +5330,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,14) and ffxivminion.MoonMapVersion >= 6 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -291, y = 36, z = -297}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 24)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5969,7 +5341,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.36)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5978,7 +5350,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,3,4,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -263, y = 36, z = -290}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 25)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -5988,7 +5361,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(2.33)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -5997,7 +5370,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,5,6,7,9,10,11,12,13,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -297, y = 36, z = -269}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 26)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6007,7 +5381,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.8)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6017,7 +5391,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,2,3,8,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -395, y = 38, z = -19}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 27)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6027,7 +5402,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.14)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6036,7 +5411,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,1,4,10) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -380, y = 38, z = 4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 28)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6046,7 +5422,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.55)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6055,7 +5431,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,5,6,7,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -404, y = 38, z = 19}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 29)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6065,7 +5442,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.01)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6074,7 +5451,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,13) and ffxivminion.MoonMapVersion >= 6 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -419, y = 38, z = -4.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 30)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6084,7 +5462,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.59)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6094,7 +5472,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 724, y = 61, z = -8.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 31)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6104,7 +5483,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.57)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6113,7 +5492,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,11,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 739, y = 61, z = 15.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 32)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6123,7 +5503,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.04)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6133,7 +5513,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,10) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 443, y = 46, z = 500}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 33)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6143,7 +5524,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(2.34)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6152,7 +5533,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 416, y = 47, z = 493}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 34)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6162,7 +5544,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.36)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6171,7 +5553,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,12,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 410, y = 47, z = 521}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 35)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6181,7 +5564,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.79)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6191,7 +5574,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,1,2,3,6,7,8,9,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -95, y = 52, z = 730}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 36)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6201,7 +5585,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.12)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6210,7 +5594,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,4,5,10,11) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -80, y = 53, z = 754}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 37)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6220,7 +5605,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.55)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6229,7 +5614,8 @@ function Transport1237(pos1,pos2)
 		-- into Tunnel
 		if In(pos2Section,15,16,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -121, y = 54, z = 739}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 38)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6239,7 +5625,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.56)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6249,7 +5635,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -679, y = 62, z = 14.5}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 39)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6259,7 +5646,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.5)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6268,7 +5655,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,14) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -694, y = 62, z = -9.8}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 40)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6278,7 +5666,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.13)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6288,7 +5676,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,13) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -557, y = 61, z = -529}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 41)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6298,7 +5687,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.82)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6307,7 +5696,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -529, y = 61, z = -523}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 42)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6317,7 +5707,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.77)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6328,7 +5718,8 @@ function Transport1237(pos1,pos2)
 		-- out of tunnel
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -319, y = 54, z = 759}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 43)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6338,7 +5729,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.57)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6347,7 +5738,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,16) and ffxivminion.MoonMapVersion >= 9 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -335, y = 53, z = 730}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 44)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6357,7 +5749,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(3.12)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6366,7 +5758,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,17) and ffxivminion.MoonMapVersion >= 9 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -360, y = 53, z = 745}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 45)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6376,7 +5769,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.59)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6386,7 +5779,8 @@ function Transport1237(pos1,pos2)
 		-- to tunnel exit
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -599, y = 53, z = 394}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 46)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6396,7 +5790,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.57)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6405,7 +5799,8 @@ function Transport1237(pos1,pos2)
 		-- south
 		if In(pos2Section,17) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -639, y = 53, z = 385}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 47)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6415,7 +5810,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-1.57)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6425,7 +5820,8 @@ function Transport1237(pos1,pos2)
 		-- to tunnel exit
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,23,24,25,26,27,28,29) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -713, y = 93, z = 768}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 48)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6435,7 +5831,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.59)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6444,7 +5840,8 @@ function Transport1237(pos1,pos2)
 		-- north
 		if In(pos2Section,16) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = -729, y = 93, z = 743}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 49)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6454,7 +5851,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-3.13)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6464,7 +5861,8 @@ function Transport1237(pos1,pos2)
 		-- exit tunnel
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22) then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 391, y = -57, z = -395}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 50)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6474,7 +5872,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.89)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6483,7 +5881,8 @@ function Transport1237(pos1,pos2)
 		-- further into nadir
 		if In(pos2Section,25,26,27,28,29) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 434, y = -57, z = -409}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 51)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6493,7 +5892,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(2.25)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6503,7 +5902,8 @@ function Transport1237(pos1,pos2)
 		-- to exit tunnel
 		if In(pos2Section,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,24) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 624, y = -72, z = -562}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 52)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6513,7 +5913,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-0.91)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6522,7 +5922,8 @@ function Transport1237(pos1,pos2)
 		-- west
 		if In(pos2Section,26) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 625, y = -72, z = -582}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 53)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6532,7 +5933,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.48)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6541,7 +5942,8 @@ function Transport1237(pos1,pos2)
 		-- east
 		if In(pos2Section,28) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 651, y = -72, z = -552}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 54)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6551,7 +5953,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.64)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6561,7 +5963,8 @@ function Transport1237(pos1,pos2)
 		-- to exit tunnel
 		if not In(pos2Section,26) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 387, y = -117, z = -848}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 55)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6571,7 +5974,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(1.91)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6581,7 +5984,8 @@ function Transport1237(pos1,pos2)
 		-- to exit tunnel
 		if not In(pos2Section,27) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 645, y = -108, z = -925}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 56)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6591,7 +5995,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(0.87)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6601,7 +6005,8 @@ function Transport1237(pos1,pos2)
 		-- to exit tunnel
 		if not In(pos2Section,28) and ffxivminion.MoonMapVersion >= 14 then
 			if CalcMoonTransport(pos1, pos2, pos1Section, pos2Section) then
-				local portalPos = {x = 874, y = -55, z = -374}
+				local portalData = FFXIVLib.API.CosmicExploration.GetLegacyPortal(1237, 57)
+				local portalPos = portalData.pos
 				local distance = math.distance2d(pos1, portalPos)
 				if distance > 2 then
 					return true, function()
@@ -6611,7 +6016,7 @@ function Transport1237(pos1,pos2)
 					end
 				else
 					return true, function()
-						Player:SetFacing(-2.3)
+						Player:SetFacing(portalData.facing)
 						Player:Move(FFXIV.MOVEMENT.FORWARD)
 					end
 				end 
@@ -6621,6 +6026,7 @@ function Transport1237(pos1,pos2)
 	return false
 end
 function Transport1291(pos1, pos2)
+	local phaennaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1291)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	local pos1Section = GetPhaenna(pos1)
@@ -6886,6 +6292,7 @@ function Transport1291(pos1, pos2)
 end
 
 function Transport1310(pos1, pos2)
+	local oizysPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1310)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	local pos1Section = GetOizys(pos1)
@@ -7163,6 +6570,7 @@ function Transport1310(pos1, pos2)
 end
 
 function Transport1319(pos1, pos2)
+	local auxesiaPortalPositions = FFXIVLib.API.CosmicExploration.GetPortalPositions(1319)
 	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	local pos1Section = GetAuxesia(pos1)
@@ -10403,21 +9811,15 @@ function GetAetherCurrentData(mapid)
 end
 
 function FindNearestCollectableAppraiser()
-	-- Collectable Appraiser ENpc IDs and their access requirements
-	local appraisers = {
-		{ id = 1049084, aethid = 217, mapid = 1186, quest = 5008 }, -- Solution Nine
-		{ id = 1037306, aethid = 183, mapid = 963,  quest = 4175 }, -- Radz-at-Han
-		{ id = 1027542, aethid = 134, mapid = 820,  quest = 3603 }, -- Eulmore
-		{ id = 1019457, aethid = 104, mapid = 635 },                -- Rhalgr's Reach
-		{ id = 1012300, aethid = 75,  mapid = 478 },                -- Idyllshire
-		{ id = 1013396, aethid = 24,  mapid = 156 },                -- Mor Dhona
-		{ id = 1003076, aethid = 2,   mapid = 133 },                -- Old Gridania
-		{ id = 1003632, aethid = 8,   mapid = 129 },                -- Limsa Lominsa
-		{ id = 1001616, aethid = 9,   mapid = 131 },                -- Ul'dah
-	}
+	local appraisers = FFXIVLib.API.Shop.GetCollectableAppraisers()
+	if not table.valid(appraisers) then return nil end
 
 	-- Resolve NPC positions from game data
 	local function resolveAppraiser(entry)
+		if entry.x and entry.y and entry.z then
+			return { id = entry.id, aethid = entry.aethid, mapid = entry.mapid,
+				pos = { x = entry.x, y = entry.y, z = entry.z } }
+		end
 		local spawns = FFXIVLib.API.NPC.GetENpcSpawns(entry.id)
 		if spawns and #spawns > 0 then
 			-- Find the spawn on the expected map
@@ -10601,26 +10003,7 @@ function IsHousingMap(mapid)
 	return FFXIVLib.API.Map.IsHousingZone(mapid)
 end
 function IsCityMap(mapid)
-	local mapid = tonumber(mapid)
-	local cityMaps = {
-		[133] = true,
-		[132] = true,
-		[128] = true,
-		[129] = true,
-		[131] = true,
-		[130] = true,
-		[418] = true,
-		[419] = true,
-		[478] = true,
-		[628] = true,
-		[635] = true,			
-		[819] = true,			
-		[820] = true,		
-		[886] = true,		
-		[1185] = true,	
-		[1186] = true,
-	}
-	return cityMaps[mapid]
+	return FFXIVLib.API.Map.IsCityMap(mapid)
 end
 function IsInn(mapid)
 	return FFXIVLib.API.Map.IsInn(mapid)

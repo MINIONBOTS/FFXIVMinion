@@ -10,10 +10,8 @@ ffxiv_gather.profileData = {}
 ffxiv_gather.currentTask = {}
 ffxiv_gather.accessmaplist = {}
 ffxiv_gather.currentTaskIndex = 0
-ffxiv_gather.collectors = {
-	[16] = 4074,
-	[17] = 4088,
-}
+-- Old Collector's Glove IDs. Addons may still read this table.
+ffxiv_gather.collectors = { [16] = 4074, [17] = 4088 }
 ffxiv_gather.sticklerProfiles = {}
 
 ffxiv_task_gather = inheritsFrom(ml_task)
@@ -1194,7 +1192,7 @@ gd("Checking regular item section.",2)
 		
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
-			if (not IsMap(item.id)) then
+			if (IsMap(item.id) == false) then
 				if (item.chance > 50) then
 					gd("[Gather]: chance - ["..tostring(item.id).."].",2)
 					return DoGathering(item)
@@ -1204,7 +1202,7 @@ gd("Checking regular item section.",2)
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
-			if (not IsMap(item.id)) then
+			if (IsMap(item.id) == false) then
 				gd("[Gather]: map - ["..tostring(item.id).."].",2)
 				return DoGathering(item)
 			end

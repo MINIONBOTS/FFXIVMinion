@@ -41,9 +41,10 @@ function e_ffxivlib_dataready:execute()
 end
 
 local function FFXIVData_IsOptiFineMode()
-    return FFXIVLib
-        and FFXIVLib.IsOptiFineMode
-        and FFXIVLib.IsOptiFineMode()
+    return rawget(_G, "Optifine") ~= nil
+        or (FFXIVLib
+            and FFXIVLib.IsOptiFineMode
+            and FFXIVLib.IsOptiFineMode())
 end
 
 local function FFXIVData_ShouldDeferSpeculative()
@@ -108,7 +109,7 @@ function FFXIVData_PreWarmWorld(gameRegion)
     FFXIVLib.PreWarm.PreWarmWorld(gameRegion)
 end
 
---- Trigger the full pre-warm sweep (called once at login).
+--- Trigger the startup-only Strings/World prewarm (called once at login).
 function FFXIVData_PreWarmAll()
     if not FFXIVLib then return nil end
     FFXIVLib.PreWarm.PreWarmAll()
@@ -135,14 +136,14 @@ ml_global_information._nav_resolve_done = false
 
 local FFXIVDATA_NAV_TICK_NORMAL_MS = 35
 local ffxivDataNavLastTick = 0
+local ffxivDataNavRequested = false
+
+function FFXIVData_RequestNavDiscovery()
+    ffxivDataNavRequested = true
+end
 
 local function FFXIVData_NavDiscoveryDone()
     return FFXIVLib and FFXIVLib.API.Nav and FFXIVLib.API.Nav._discoveryDone
-end
-
-local function FFXIVData_ShouldDeferAutomaticNav()
-    return FFXIVData_IsOptiFineMode()
-        and FFXIV_Common_BotRunning ~= true
 end
 
 --- Tick nav discovery (bulk SQL warp scanning).
@@ -150,7 +151,6 @@ end
 -- @return (boolean) true when discovery is complete.
 function FFXIVData_NavDiscoverTick()
     if FFXIVData_NavDiscoveryDone() then return true end
-    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav or not FFXIVLib.API.Nav.DiscoverConnections then return false end
     if FFXIVLib.EnsureDomain and not FFXIVLib.EnsureDomain("Nav") then return false end
     return FFXIVLib.API.Nav.DiscoverConnections()
@@ -161,7 +161,6 @@ end
 -- @return (boolean) true when all entries are enriched.
 function FFXIVData_NavEnrichTick()
     if ml_global_information._nav_enrich_done then return true end
-    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before enriching
     if not FFXIVData_NavDiscoveryDone() then return false end
@@ -178,7 +177,6 @@ end
 -- @return (boolean) true when all entries are resolved.
 function FFXIVData_NavResolveTick()
     if ml_global_information._nav_resolve_done then return true end
-    if FFXIVData_ShouldDeferAutomaticNav() then return false end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before resolving
     if not FFXIVData_NavDiscoveryDone() then return false end
@@ -190,14 +188,12 @@ function FFXIVData_NavResolveTick()
     return done
 end
 
---- Independently drives FFXIVLib Nav discovery in normal mode.
--- Optifine sessions are raid/Assist-only, so automatic world-nav discovery
--- stays disabled there. Explicit FFXIVData_Nav*Tick callers remain available.
+--- Drives discovery only after a world-navigation consumer explicitly asks for it.
 function FFXIVData_NavOnUpdate(event, tickcount)
-    if FFXIVData_IsOptiFineMode()
+    if not ffxivDataNavRequested
+        or FFXIVData_IsOptiFineMode()
         or not Player
         or MGetGameState() ~= FFXIV.GAMESTATE.INGAME
-        or FFXIVData_ShouldDeferAutomaticNav()
         or (ml_global_information.IsYielding and ml_global_information.IsYielding())
     then
         return

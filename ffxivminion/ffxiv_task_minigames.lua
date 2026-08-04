@@ -2,32 +2,15 @@ ffxiv_task_minigames = {}
 MiniGames = {}
 MiniGames.lastTick = 0
 MiniGames.gameDetails = {}
-MiniGames.restPositions = {
-	{x = -0.1, y = 3.4, z = -0.1, minrad = 4.3, maxrad = 13},
-	{x = -46.96, y = 1.6, z = 29.87, minrad = 5, maxrad = 23},
-}
-MiniGames.vendors = {
-	["cuff"] = {
-		{id = 2005029, mapid = 388, x = 9.75, y = 0.03, z = -33.43},
-		{id = 2005029, mapid = 144, x = 25.17, y = -5, z = -48.85},
-		{id = 2005029, mapid = 144, x = 14.35, y = -5, z = -54.01},
-	},
-	["toss"] = {
-		{id = 2004804, mapid = 144, x = 41.39, y = 4, z = 18},
-		{id = 2004804, mapid = 144, x = 37.18, y = 4, z = 17.70},
-	},
-	["striker"] = {
-		{ id = 2005035, mapid = 144, x = 25.28, y = 4, z = 89.28},
-		{ id = 2005035, mapid = 144, x = 24.55, y = 4, z = 99.63},
-	},
-}
-MiniGames.optionGroups = {
-	[1] = {
-		["gMGOptionPunch"] = { id = 2005029, x = 25.17, y = -5, z = -48.85},
-		["gMGOptionToss"] = { id = 2004804, x = 37.18, y = 4, z = 17.70},
-		["gMGOptionHammer"] = { id = 2005035, x = 25.28, y = 4, z = 89.28},
-	}
-}
+
+function MiniGames.EnsureData()
+	if MiniGames.dataInitialized then return true end
+	MiniGames.restPositions = FFXIVLib.API.Minigame.GetRestPositions()
+	MiniGames.vendors = FFXIVLib.API.Minigame.GetVendors()
+	MiniGames.optionGroups = FFXIVLib.API.Minigame.GetOptionGroups()
+	MiniGames.dataInitialized = true
+	return true
+end
 
 function MiniGames.ModuleInit()
 	ffxivminion.AddMode("MiniGames", ffxiv_task_minigames)
@@ -68,6 +51,7 @@ end
 ffxiv_task_minigames = inheritsFrom(ml_task)
 ffxiv_task_minigames.name = "LT_MINIGAMES"
 function ffxiv_task_minigames.Create()
+	MiniGames.EnsureData()
     local newinst = inheritsFrom(ffxiv_task_minigames)
     
     --ml_task members

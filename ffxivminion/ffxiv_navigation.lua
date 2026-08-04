@@ -3488,6 +3488,9 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 end
 
 function Player:MoveTo(x, y, z, dist, floorfilters, cubefilters, targetid)
+	if ml_global_information and ml_global_information.EnsureMeshDefaults then
+		ml_global_information.EnsureMeshDefaults()
+	end
 	ml_navigation:ResetLandingController()
 	ml_navigation:ClearAirborneGroundAcquire()
 	ml_navigation:ClearAirborneGroundWalkSegment()
@@ -3633,6 +3636,9 @@ end
 ------------------------------------------------------------
 function Player:MoveToExact(x, y, z, threshold, disableSmoothing)
 	if (not x or not y or not z) then return -1 end
+	if ml_global_information and ml_global_information.EnsureMeshDefaults then
+		ml_global_information.EnsureMeshDefaults()
+	end
 
 	if (IsCosmolinerActive()) then
 		if (ml_navigation_exact.active) then

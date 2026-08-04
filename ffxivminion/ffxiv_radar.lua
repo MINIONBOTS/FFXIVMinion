@@ -31,14 +31,31 @@ ffxiv_radar.Tabs = {
 	["HoveredColour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 0, ["a"] = 1 },
 }
 
-function ffxiv_radar.Init()
+function ffxiv_radar.EnsureData()
+	if ffxiv_radar.dataInitialized then return true end
 	ffxiv_radar.SetData()
 	ffxiv_radar.SetColours()
 	ffxiv_radar.Settings()
 	ffxiv_radar.UpdateColours()
+	ffxiv_radar.dataInitialized = true
+	return true
+end
+
+function ffxiv_radar.Init()
+	Settings.ffxiv_radar = Settings.ffxiv_radar or {}
+	ffxiv_radar.Enable3D = Settings.ffxiv_radar.Enable3D or false
+	ffxiv_radar.Enable2D = Settings.ffxiv_radar.Enable2D or false
+	if ffxiv_radar.Enable3D or ffxiv_radar.Enable2D then
+		ffxiv_radar.EnsureData()
+	end
 end
 
 function ffxiv_radar.DrawCall(event, ticks )
+	if (ffxiv_radar.GUI.open or ffxiv_radar.Enable3D or ffxiv_radar.Enable2D)
+		and not ffxiv_radar.EnsureData()
+	then
+		return
+	end
 	if not(GUI_NewWindow) then
 		local gamestate = GetGameState()
 		if ( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -399,6 +416,7 @@ end
 function ffxiv_radar.Radar() -- Table
 	--if Now() > lastupdate + 25 then
 	--lastupdate = Now()
+		if not FFXIVLib.API.Radar.IsHuntDataReady() then return end
 		local EntityTable = EntityList("")
 		if ValidTable(EntityTable) then
 			-- Update/Clean table.
@@ -436,94 +454,20 @@ function ffxiv_radar.Radar() -- Table
 					local efriendly = e.friendly
 					local etype = e.type
 					local ename
+					local _, _, huntOptionIndex = FFXIVLib.API.Radar.GetHuntRank(econtentid)
+					local _, deepDungeonOptionIndex = FFXIVLib.API.Radar.GetDeepDungeonType(econtentid)
 					--if ffxiv_radar.InvalidNames and ename ~= "?" and ename ~= "" or not ffxiv_radar.InvalidNames then
 						if ffxiv_radar.CustomList[econtentid] ~= nil and ffxiv_radar.CustomList[econtentid].Enabled then -- Custom List
 							Colour = ffxiv_radar.CustomList[econtentid].ColourU32
 							if ffxiv_radar.CustomList[econtentid].Name ~= "" then d("Updating Name") ename = ffxiv_radar.CustomList[econtentid].Name end -- Custom name overwite.
 							Draw = true
 							CustomName = true
-						-- Hunts.
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][3].Enabled) and ffxiv_radar.HuntFilters.ARR.S[econtentid] == true) then -- ARR S Rank.
-							Colour = ffxiv_radar.Options[2][3].ColourU32
+						elseif huntOptionIndex and (ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][huntOptionIndex].Enabled) then
+							Colour = ffxiv_radar.Options[2][huntOptionIndex].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][2].Enabled) and ffxiv_radar.HuntFilters.ARR.A[econtentid] == true) then -- ARR A Rank.
-							Colour = ffxiv_radar.Options[2][2].ColourU32
+						elseif deepDungeonOptionIndex and ffxiv_radar.Options[3][deepDungeonOptionIndex].Enabled then
+							Colour = ffxiv_radar.Options[3][deepDungeonOptionIndex].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][1].Enabled) and ffxiv_radar.HuntFilters.ARR.B[econtentid] == true) then -- ARR B Rank.
-							Colour = ffxiv_radar.Options[2][1].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][6].Enabled) and ffxiv_radar.HuntFilters.HW.S[econtentid] == true) then -- HW S Rank.
-							Colour = ffxiv_radar.Options[2][6].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][5].Enabled) and ffxiv_radar.HuntFilters.HW.A[econtentid] == true) then -- HW A Rank.
-							Colour = ffxiv_radar.Options[2][5].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][4].Enabled) and ffxiv_radar.HuntFilters.HW.B[econtentid] == true) then -- HW B Rank.
-							Colour = ffxiv_radar.Options[2][4].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][9].Enabled) and ffxiv_radar.HuntFilters.StB.S[econtentid] == true) then -- StB S Rank.
-							Colour = ffxiv_radar.Options[2][9].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][8].Enabled) and ffxiv_radar.HuntFilters.StB.A[econtentid] == true) then -- StB A Rank.
-							Colour = ffxiv_radar.Options[2][8].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][7].Enabled) and ffxiv_radar.HuntFilters.StB.B[econtentid] == true) then -- StB B Rank.
-							Colour = ffxiv_radar.Options[2][7].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][12].Enabled) and ffxiv_radar.HuntFilters.ShB.S[econtentid] == true) then -- ShB S/SS Rank.
-							Colour = ffxiv_radar.Options[2][12].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][11].Enabled) and ffxiv_radar.HuntFilters.ShB.A[econtentid] == true) then -- ShB A Rank.
-							Colour = ffxiv_radar.Options[2][11].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][10].Enabled) and ffxiv_radar.HuntFilters.ShB.B[econtentid] == true) then -- ShB B Rank.
-							Colour = ffxiv_radar.Options[2][10].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][15].Enabled) and ffxiv_radar.HuntFilters.EW.S[econtentid] == true) then -- EW S/SS Rank.
-							Colour = ffxiv_radar.Options[2][15].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][14].Enabled) and ffxiv_radar.HuntFilters.EW.A[econtentid] == true) then -- EW A Rank.
-							Colour = ffxiv_radar.Options[2][14].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][13].Enabled) and ffxiv_radar.HuntFilters.EW.B[econtentid] == true) then -- EW B Rank.
-							Colour = ffxiv_radar.Options[2][13].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][18].Enabled) and ffxiv_radar.HuntFilters.DT.S[econtentid] == true) then -- DT S/SS Rank.
-							Colour = ffxiv_radar.Options[2][18].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][17].Enabled) and ffxiv_radar.HuntFilters.DT.A[econtentid] == true) then -- DT A Rank.
-							Colour = ffxiv_radar.Options[2][17].ColourU32
-							Draw = true
-						elseif ((ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][16].Enabled) and ffxiv_radar.HuntFilters.DT.B[econtentid] == true) then -- DT B Rank.
-							Colour = ffxiv_radar.Options[2][16].ColourU32
-							Draw = true
-						-- End of hunts.
-						-- Start Of Deep Dungeon
-						elseif (ffxiv_radar.Options[3][1].Enabled and ffxiv_radar.DeepDungeonFilters.Passage[econtentid] == true) then -- Passage
-							Colour = ffxiv_radar.Options[3][1].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][2].Enabled and ffxiv_radar.DeepDungeonFilters.Return[econtentid] == true) then -- Return
-							Colour = ffxiv_radar.Options[3][2].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][3].Enabled and ffxiv_radar.DeepDungeonFilters.SilverChest[econtentid] == true) then -- Silver Chest
-							Colour = ffxiv_radar.Options[3][3].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][4].Enabled and ffxiv_radar.DeepDungeonFilters.GoldChest[econtentid] == true) then -- Gold Chest
-							Colour = ffxiv_radar.Options[3][4].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][5].Enabled and ffxiv_radar.DeepDungeonFilters.BronzeChest[econtentid] == true) then -- Bronze Chest
-							Colour = ffxiv_radar.Options[3][5].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][6].Enabled and ffxiv_radar.DeepDungeonFilters.BandedCoffer[econtentid] == true) then -- Banded Coffer
-							Colour = ffxiv_radar.Options[3][6].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][7].Enabled and ffxiv_radar.DeepDungeonFilters.Hoard[econtentid] == true) then -- Hoard
-							Colour = ffxiv_radar.Options[3][7].ColourU32
-							Draw = true
-						elseif (ffxiv_radar.Options[3][8].Enabled and ffxiv_radar.DeepDungeonFilters.Traps[econtentid] == true) then -- Traps
-							Colour = ffxiv_radar.Options[3][8].ColourU32
-							Draw = true
-						-- End Of Deep Dungeon
 						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][2].Enabled) and eattackable and e.fateid ~= 0) then -- Attackable Fates.
 							Colour = ffxiv_radar.Options[1][2].ColourU32
 							Draw = true
@@ -562,123 +506,67 @@ function ffxiv_radar.Radar() -- Table
 end
 
 function ffxiv_radar.AddPreset()
-	local PresetData = {
-		[2007744] = { ["Name"] = "[Diadem] Buried Coffer", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2005808] = { ["Name"] = "[PoTD] Treasure Coffer - Trap", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2006020] = { ["Name"] = "[PoTD] Treasure Coffer Silver - Mimic", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2006022] = { ["Name"] = "[PoTD] Treasure Coffer Gold - Mimic", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007182] = { ["Name"] = "[PoTD] Trap - Landmine", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007183] = { ["Name"] = "[PoTD] Trap - Luring", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007184] = { ["Name"] = "[PoTD] Trap - Enfeebling", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007186] = { ["Name"] = "[PoTD] Trap - Toading", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007357] = { ["Name"] = "[PoTD] Treasure Coffer Silver", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007358] = { ["Name"] = "[PoTD] Treasure Coffer Gold", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007542] = { ["Name"] = "[PoTD] Accursed Hoard", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007188] = { ["Name"] = "[PoTD] Cairn of Passage", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007187] = { ["Name"] = "[PoTD] Cairn of Return", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-	}
+	local PresetData = FFXIVLib.API.Radar.GetPresets()
 	for i,e in pairs(PresetData) do
 		if ffxiv_radar.CustomList[i] == nil then ffxiv_radar.CustomList[i] = e end
 	end
 	Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList
 end
 
+local function BuildRadarColours(alpha, radarAlpha, storedAlpha)
+	local result = {}
+	local function add(key, label, red, green, blue)
+		local entry = {
+			r = red, g = green, b = blue, a = storedAlpha,
+			name = label, colourtype = solid,
+			colourval = GUI:ColorConvertFloat4ToU32(red, green, blue, alpha),
+		}
+		if radarAlpha then
+			entry.radar = GUI:ColorConvertFloat4ToU32(red, green, blue, radarAlpha)
+		end
+		result[key] = entry
+	end
+	add("white", white, 1.0, 1.0, 1.0)
+	add("lightgrey", lightgrey, 0.8, 0.8, 0.8)
+	add("silver", silver, 0.8, 0.8, 0.8)
+	add("gray", gray, 0.5, 0.5, 0.5)
+	add("black", black, 0.0, 0.0, 0.0)
+	add("maroon", maroon, 0.5, 0.0, 0.0)
+	add("brown", brown, 0.6, 0.2, 0.2)
+	add("red", red, 1.0, 0.0, 0.0)
+	add("orange", orange, 1.0, 0.5, 0.0)
+	add("gold", gold, 1.0, 0.8, 0.0)
+	add("yellow", yellow, 1.0, 1.0, 0.0)
+	add("limegreen", limegreen, 0.0, 1.0, 0.0)
+	add("emeraldgreen", emeraldgreen, 0.0, 0.8, 0.3)
+	add("green", green, 0.0, 0.5, 0.0)
+	add("forestgreen", forestgreen, 0.1, 0.5, 0.1)
+	add("manganeseblue", manganeseblue, 0.0, 0.7, 0.6)
+	add("turquoise", turquoise, 0.3, 0.9, 0.8)
+	add("cyan", cyan, 0.0, 1.0, 1.0)
+	add("blue", blue, 0.0, 0.0, 1.0)
+	add("navy", navy, 0.0, 0.0, 0.5)
+	add("indigo", indigo, 0.3, 0.0, 0.5)
+	add("blueviolet", blueviolet, 0.5, 0.2, 0.9)
+	add("darkviolet", darkviolet, 0.6, 0.0, 0.8)
+	add("purple", purple, 0.5, 0.0, 0.5)
+	add("magenta", magenta, 1.0, 0.0, 1.0)
+	add("hotpink", hotpink, 1.0, 0.4, 0.7)
+	add("pink", pink, 1.0, 0.8, 0.8)
+	return result
+end
+
 function ffxiv_radar.SetColours()
 	Colours = {
-		Solid = {
-			white = { r = 1.0, g = 1.0, b = 1.0, a = 1.0, name = white, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,0.7) },
-			lightgrey = { r = 0.8, g = 0.8, b = 0.8, a = 1.0, name = lightgrey, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,1.0), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,0.7) },
-			silver = { r = 0.8, g = 0.8, b = 0.8, a = 1.0, name = silver, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,1.0), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,0.7) },
-			gray = { r = 0.5, g = 0.5, b = 0.5, a = 1.0, name = gray, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,1.0), radar = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,0.7) },
-			black = { r = 0.0, g = 0.0, b = 0.0, a = 1.0, name = black, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,0.7) },
-			maroon = { r = 0.5, g = 0.0, b = 0.0, a = 1.0, name = maroon, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,0.7) },
-			brown = { r = 0.6, g = 0.2, b = 0.2, a = 1.0, name = brown, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,1.0), radar = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,0.7) },
-			red = { r = 1.0, g = 0.0, b = 0.0, a = 1.0, name = red, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,0.7) },
-			orange = { r = 1.0, g = 0.5, b = 0.0, a = 1.0, name = orange, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,0.7) },
-			gold = { r = 1.0, g = 0.8, b = 0.0, a = 1.0, name = gold, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,0.7) },
-			yellow = { r = 1.0, g = 1.0, b = 0.0, a = 1.0, name = yellow, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,0.7) },
-			limegreen = { r = 0.0, g = 1.0, b = 0.0, a = 1.0, name = limegreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,0.7) },
-			emeraldgreen = { r = 0.0, g = 0.8, b = 0.3, a = 1.0, name = emeraldgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,0.7) },
-			green = { r = 0.0, g = 0.5, b = 0.0, a = 1.0, name = green, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,0.7) },
-			forestgreen = { r = 0.1, g = 0.5, b = 0.1, a = 1.0, name = forestgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,1.0), radar = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,0.7) },
-			manganeseblue = { r = 0.0, g = 0.7, b = 0.6, a = 1.0, name = manganeseblue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,0.7) },
-			turquoise = { r = 0.3, g = 0.9, b = 0.8, a = 1.0, name = turquoise, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,1.0), radar = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,0.7) },
-			cyan = { r = 0.0, g = 1.0, b = 1.0, a = 1.0, name = cyan, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,0.7) },
-			blue = { r = 0.0, g = 0.0, b = 1.0, a = 1.0, name = blue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,0.7) },
-			navy = { r = 0.0, g = 0.0, b = 0.5, a = 1.0, name = navy, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,1.0), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,0.7) },
-			indigo = { r = 0.3, g = 0.0, b = 0.5, a = 1.0, name = indigo, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,1.0), radar = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,0.7) },
-			blueviolet = { r = 0.5, g = 0.2, b = 0.9, a = 1.0, name = blueviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,1.0), radar = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,0.7) },
-			darkviolet = { r = 0.6, g = 0.0, b = 0.8, a = 1.0, name = darkviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,1.0), radar = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,0.7) },
-			purple = { r = 0.5, g = 0.0, b = 0.5, a = 1.0, name = purple, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,1.0), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,0.7) },
-			magenta = { r = 1.0, g = 0.0, b = 1.0, a = 1.0, name = magenta, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,0.7) },
-			hotpink = { r = 1.0, g = 0.4, b = 0.7, a = 1.0, name = hotpink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,0.7) },
-			pink = { r = 1.0, g = 0.8, b = 0.8, a = 1.0, name = pink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,1.0), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,0.7) },
-		},
-		Transparent = {
-			white = { r = 1.0, g = 1.0, b = 1.0, a = ColourAlpha, name = white, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,ColourAlpha-0.2) },
-			lightgrey = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = lightgrey, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.2) },
-			silver = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = silver, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.2) },
-			gray = { r = 0.5, g = 0.5, b = 0.5, a = ColourAlpha, name = gray, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha-0.2) },
-			black = { r = 0.0, g = 0.0, b = 0.0, a = ColourAlpha, name = black, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha-0.2) },
-			maroon = { r = 0.5, g = 0.0, b = 0.0, a = ColourAlpha, name = maroon, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha-0.2) },
-			brown = { r = 0.6, g = 0.2, b = 0.2, a = ColourAlpha, name = brown, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha-0.2) },
-			red = { r = 1.0, g = 0.0, b = 0.0, a = ColourAlpha, name = red, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha-0.2) },
-			orange = { r = 1.0, g = 0.5, b = 0.0, a = ColourAlpha, name = orange, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha-0.2) },
-			gold = { r = 1.0, g = 0.8, b = 0.0, a = ColourAlpha, name = gold, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha-0.2) },
-			yellow = { r = 1.0, g = 1.0, b = 0.0, a = ColourAlpha, name = yellow, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha-0.2) },
-			limegreen = { r = 0.0, g = 1.0, b = 0.0, a = ColourAlpha, name = limegreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha-0.2) },
-			emeraldgreen = { r = 0.0, g = 0.8, b = 0.3, a = ColourAlpha, name = emeraldgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha-0.2) },
-			green = { r = 0.0, g = 0.5, b = 0.0, a = ColourAlpha, name = green, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha-0.2) },
-			forestgreen = { r = 0.1, g = 0.5, b = 0.1, a = ColourAlpha, name = forestgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha-0.2) },
-			manganeseblue = { r = 0.0, g = 0.7, b = 0.6, a = ColourAlpha, name = manganeseblue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha-0.2) },
-			turquoise = { r = 0.3, g = 0.9, b = 0.8, a = ColourAlpha, name = turquoise, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha-0.2) },
-			cyan = { r = 0.0, g = 1.0, b = 1.0, a = ColourAlpha, name = cyan, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha-0.2) },
-			blue = { r = 0.0, g = 0.0, b = 1.0, a = ColourAlpha, name = blue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha-0.2) },
-			navy = { r = 0.0, g = 0.0, b = 0.5, a = ColourAlpha, name = navy, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha-0.2) },
-			indigo = { r = 0.3, g = 0.0, b = 0.5, a = ColourAlpha, name = indigo, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha-0.2) },
-			blueviolet = { r = 0.5, g = 0.2, b = 0.9, a = ColourAlpha, name = blueviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha-0.2) },
-			darkviolet = { r = 0.6, g = 0.0, b = 0.8, a = ColourAlpha, name = darkviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha-0.2) },
-			purple = { r = 0.5, g = 0.0, b = 0.5, a = ColourAlpha, name = purple, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha-0.2) },
-			magenta = { r = 1.0, g = 0.0, b = 1.0, a = ColourAlpha, name = magenta, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha-0.2) },
-			hotpink = { r = 1.0, g = 0.4, b = 0.7, a = ColourAlpha, name = hotpink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha-0.2) },
-			pink = { r = 1.0, g = 0.8, b = 0.8, a = ColourAlpha, name = pink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha-0.2) },
-		},
+		Solid = BuildRadarColours(1.0, 0.7, 1.0),
+		Transparent = BuildRadarColours(ColourAlpha, ColourAlpha - 0.2, ColourAlpha),
 	}
 end
 
 function ffxiv_radar.UpdateColours() -- Transparency Slider Colours (Only used on 2D Radar background atm).
-	local CustomTransparencyAlpha = (tonumber(ffxiv_radar.Opacity)/100)
-	CustomTransparency = {
-		white = { r = 1.0, g = 1.0, b = 1.0, a = 1.0, name = white, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,CustomTransparencyAlpha) },
-		lightgrey = { r = 0.8, g = 0.8, b = 0.8, a = 1.0, name = lightgrey, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,CustomTransparencyAlpha) },
-		silver = { r = 0.8, g = 0.8, b = 0.8, a = 1.0, name = silver, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,CustomTransparencyAlpha) },
-		gray = { r = 0.5, g = 0.5, b = 0.5, a = 1.0, name = gray, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,CustomTransparencyAlpha) },
-		black = { r = 0.0, g = 0.0, b = 0.0, a = 1.0, name = black, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,CustomTransparencyAlpha) },
-		maroon = { r = 0.5, g = 0.0, b = 0.0, a = 1.0, name = maroon, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,CustomTransparencyAlpha) },
-		brown = { r = 0.6, g = 0.2, b = 0.2, a = 1.0, name = brown, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,CustomTransparencyAlpha) },
-		red = { r = 1.0, g = 0.0, b = 0.0, a = 1.0, name = red, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,CustomTransparencyAlpha) },
-		orange = { r = 1.0, g = 0.5, b = 0.0, a = 1.0, name = orange, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,CustomTransparencyAlpha) },
-		gold = { r = 1.0, g = 0.8, b = 0.0, a = 1.0, name = gold, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,CustomTransparencyAlpha) },
-		yellow = { r = 1.0, g = 1.0, b = 0.0, a = 1.0, name = yellow, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,CustomTransparencyAlpha) },
-		limegreen = { r = 0.0, g = 1.0, b = 0.0, a = 1.0, name = limegreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,CustomTransparencyAlpha) },
-		emeraldgreen = { r = 0.0, g = 0.8, b = 0.3, a = 1.0, name = emeraldgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,CustomTransparencyAlpha) },
-		green = { r = 0.0, g = 0.5, b = 0.0, a = 1.0, name = green, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,CustomTransparencyAlpha) },
-		forestgreen = { r = 0.1, g = 0.5, b = 0.1, a = 1.0, name = forestgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,CustomTransparencyAlpha) },
-		manganeseblue = { r = 0.0, g = 0.7, b = 0.6, a = 1.0, name = manganeseblue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,CustomTransparencyAlpha) },
-		turquoise = { r = 0.3, g = 0.9, b = 0.8, a = 1.0, name = turquoise, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,CustomTransparencyAlpha) },
-		cyan = { r = 0.0, g = 1.0, b = 1.0, a = 1.0, name = cyan, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,CustomTransparencyAlpha) },
-		blue = { r = 0.0, g = 0.0, b = 1.0, a = 1.0, name = blue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,CustomTransparencyAlpha) },
-		navy = { r = 0.0, g = 0.0, b = 0.5, a = 1.0, name = navy, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,CustomTransparencyAlpha) },
-		indigo = { r = 0.3, g = 0.0, b = 0.5, a = 1.0, name = indigo, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,CustomTransparencyAlpha) },
-		blueviolet = { r = 0.5, g = 0.2, b = 0.9, a = 1.0, name = blueviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,CustomTransparencyAlpha) },
-		darkviolet = { r = 0.6, g = 0.0, b = 0.8, a = 1.0, name = darkviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,CustomTransparencyAlpha) },
-		purple = { r = 0.5, g = 0.0, b = 0.5, a = 1.0, name = purple, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,CustomTransparencyAlpha) },
-		magenta = { r = 1.0, g = 0.0, b = 1.0, a = 1.0, name = magenta, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,CustomTransparencyAlpha) },
-		hotpink = { r = 1.0, g = 0.4, b = 0.7, a = 1.0, name = hotpink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,CustomTransparencyAlpha) },
-		pink = { r = 1.0, g = 0.8, b = 0.8, a = 1.0, name = pink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,CustomTransparencyAlpha) },
-	}
+	local alpha = tonumber(ffxiv_radar.Opacity) / 100
+	CustomTransparency = BuildRadarColours(alpha, nil, 1.0)
 end
-
 function ffxiv_radar.Settings()
 	AddColour = Colours.Solid.white
 	-- Radar Settings.
@@ -742,368 +630,10 @@ function ffxiv_radar.Settings()
 end
 
 function ffxiv_radar.SetData()
-	ffxiv_radar.HuntFilters = {
-		["ARR"] = {
-			["S"] = {
-				[2953] = true,
-				[2954] = true,
-				[2955] = true,
-				[2956] = true,
-				[2957] = true,
-				[2958] = true,
-				[2959] = true,
-				[2960] = true,
-				[2961] = true,
-				[2962] = true,
-				[2963] = true,
-				[2964] = true,
-				[2965] = true,
-				[2966] = true,
-				[2967] = true,
-				[2968] = true,
-				[2969] = true,
-			},
-			["A"] = {
-				[2936] = true,
-				[2937] = true,
-				[2938] = true,
-				[2939] = true,
-				[2940] = true,
-				[2941] = true,
-				[2942] = true,
-				[2943] = true,
-				[2944] = true,
-				[2945] = true,
-				[2946] = true,
-				[2947] = true,
-				[2948] = true,
-				[2949] = true,
-				[2950] = true,
-				[2951] = true,
-				[2952] = true,
-			},
-			["B"] = {
-				[2919] = true,
-				[2920] = true,
-				[2921] = true,
-				[2922] = true,
-				[2923] = true,
-				[2924] = true,
-				[2925] = true,
-				[2926] = true,
-				[2927] = true,
-				[2928] = true,
-				[2929] = true,
-				[2930] = true,
-				[2931] = true,
-				[2932] = true,
-				[2933] = true,
-				[2934] = true,
-				[2935] = true,
-			},
-		},
-		["HW"] = {
-			["S"] = {
-				[4374] = true,
-				[4375] = true,
-				[4376] = true,
-				[4377] = true,
-				[4378] = true,
-				[4380] = true,
-			},
-			["A"] = {
-				[4362] = true,
-				[4363] = true,
-				[4364] = true,
-				[4365] = true,
-				[4366] = true,
-				[4367] = true,
-				[4368] = true,
-				[4369] = true,
-				[4370] = true,
-				[4371] = true,
-				[4372] = true,
-				[4373] = true,
-			},
-			["B"] = {
-				[4350] = true,
-				[4351] = true,
-				[4352] = true,
-				[4353] = true,
-				[4354] = true,
-				[4355] = true,
-				[4356] = true,
-				[4357] = true,
-				[4358] = true,
-				[4359] = true,
-				[4360] = true,
-				[4361] = true,
-			},
-		},
-		["StB"] = {
-			["S"] = {
-				[5984] = true,
-				[5985] = true,
-				[5986] = true,
-				[5987] = true,
-				[5988] = true,
-				[5989] = true,
-			},
-			["A"] = {
-				[5990] = true,
-				[5991] = true,
-				[5992] = true,
-				[5993] = true,
-				[5994] = true,
-				[5995] = true,
-				[5996] = true,
-				[5997] = true,
-				[5998] = true,
-				[5999] = true,
-				[6000] = true,
-				[6001] = true,
-			},
-			["B"] = {
-				[6002] = true,
-				[6003] = true,
-				[6004] = true,
-				[6005] = true,
-				[6006] = true,
-				[6007] = true,
-				[6008] = true,
-				[6009] = true,
-				[6010] = true,
-				[6011] = true,
-				[6012] = true,
-				[6013] = true,
-			},
-		},
-		["ShB"] = {
-			["SS"] = {
-				[8915] = true,
-				[8916] = true,
-			},
-			["S"] = {
-				[8915] = true, -- SS
-				[8916] = true, -- SS
-				[8653] = true,
-				[8890] = true,
-				[8895] = true,
-				[8900] = true,
-				[8905] = true,
-				[8910] = true,
-			},
-			["A"] = {
-				[8654] = true,
-				[8655] = true,
-				[8891] = true,
-				[8892] = true,
-				[8896] = true,
-				[8897] = true,
-				[8901] = true,
-				[8902] = true,
-				[8906] = true,
-				[8907] = true,
-				[8911] = true,
-				[8912] = true,
-			},
-			["B"] = {
-				[8656] = true,
-				[8657] = true,
-				[8893] = true,
-				[8894] = true,
-				[8898] = true,
-				[8899] = true,
-				[8903] = true,
-				[8904] = true,
-				[8908] = true,
-				[8909] = true,
-				[8913] = true,
-				[8914] = true,
-			},
-		},
-		["EW"] = {
-			["SS"] = {
-				[10616] = true,
-				[10615] = true,
-			},
-			["S"] = {
-				[10615] = true,--SS
-				[10616] = true,--SS
-				[10617] = true,
-				[10618] = true,
-				[10619] = true,
-				[10620] = true,
-				[10621] = true,
-				[10622] = true,
-			},
-			["A"] = {
-				[10624] = true,
-				[10625] = true,
-				[10626] = true,
-				[10623] = true,
-				[10632] = true,
-				[10631] = true,
-				[10629] = true,
-				[10630] = true,
-				[10634] = true,
-				[10633] = true,
-				[10628] = true,
-				[10627] = true,
-			},
-			["B"] = {
-				[10635] = true,
-				[10636] = true,
-				[10637] = true,
-				[10638] = true,
-				[10639] = true,
-				[10640] = true,
-				[10641] = true,
-				[10642] = true,
-				[10643] = true,
-				[10644] = true,
-				[10645] = true,
-				[10646] = true,
-			},
-		},
-		["DT"] = {
-			["SS"] = {
-				[13407] = true,
-				[13406] = true,
-			},
-			["S"] = {
-				[13407] = true,--SS
-				[13406] = true,--SS
-				[13360] = true,
-				[13444] = true,
-				[12754] = true,
-				[13399] = true,
-				[13156] = true,
-				[13437] = true,
-			},
-			["A"] = {
-				[13361] = true,
-				[13362] = true,
-				[13442] = true,
-				[13443] = true,
-				[12753] = true,
-				[13400] = true,
-				[13401] = true,
-				[13157] = true,
-				[13158] = true,
-				[13435] = true,
-				[13436] = true,
-				[12692] = true,
-			},
-			["B"] = {
-				[13144] = true,
-				[13145] = true,
-				[13146] = true,
-				[13147] = true,
-				[13148] = true,
-				[13149] = true,
-				[13150] = true,
-				[13151] = true,
-				[13152] = true,
-				[13153] = true,
-				[13154] = true,
-				[13155] = true,
-			},
-		},
-	}
-	ffxiv_radar.DeepDungeonFilters = {
-		["Traps"] = { 
-			[2007182] = true, -- Landmine
-			[2007183] = true, -- Mobs
-			[2007184] = true, -- Enervation
-			[2007185] = true, -- Pacification
-			[2009504] = true, -- Odder
-			
-			[2007182] = true, -- Landmine
-			[2007183] = true, -- Mobs
-			[2007184] = true, -- Enervation
-			[2007185] = true, -- Pacification
-			[2007185] = true, -- Unknown?
-		},
-		["Return"] = { 
-			[2009506] = true,
-			
-			[2007187] = true,
-		},
-		["Passage"] = { 
-			[2009507] = true,
-			
-			[2007188] = true,
-		},
-		["SilverChest"] = { 
-			[2007357] = true,
-			
-			[2007357] = true,
-		},
-		["GoldChest"] = { 
-			[2007358] = true,
-			
-			[2007358] = true,
-		},
-		["BronzeChest"] = { 
-			[1036] = true,
-			[1037] = true,
-			[1038] = true,
-			[1039] = true,
-			[1040] = true,
-			[1041] = true,
-			[1042] = true,
-			[1043] = true,
-			[1044] = true,
-			[1045] = true,
-			[1046] = true,
-			[1047] = true,
-			[1048] = true,
-			[1049] = true,
-			[1050] = true,
-			[1051] = true,
-			
-			[782] = true,
-			[783] = true,
-			[784] = true,
-			[785] = true,
-			[786] = true,
-			[787] = true,
-			[788] = true,
-			[789] = true,
-			[790] = true,
-			[802] = true,
-			[803] = true,
-		},
-		["BandedCoffer"] = { 
-			[2007543] = true,
-			
-			[2007543] = true,
-		},
-		["Hoard"] = { 
-			[2007542] = true,
-			
-			[2007542] = true,
-		},
-	}
 	ffxiv_radar.AddColour = { ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 }
 	ffxiv_radar.ContentID = ""
 	ffxiv_radar.CustomName = ""
-	ffxiv_radar.CustomList = {
-		[2007744] = { ["Name"] = "[Diadem] Buried Coffer", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2005808] = { ["Name"] = "[PoTD] Treasure Coffer - Trap", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2006020] = { ["Name"] = "[PoTD] Treasure Coffer Silver - Mimic", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2006022] = { ["Name"] = "[PoTD] Treasure Coffer Gold - Mimic", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007182] = { ["Name"] = "[PoTD] Trap - Landmine", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007183] = { ["Name"] = "[PoTD] Trap - Luring", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007184] = { ["Name"] = "[PoTD] Trap - Enfeebling", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007186] = { ["Name"] = "[PoTD] Trap - Toading", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007357] = { ["Name"] = "[PoTD] Treasure Coffer Silver", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007358] = { ["Name"] = "[PoTD] Treasure Coffer Gold", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007542] = { ["Name"] = "[PoTD] Accursed Hoard", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007188] = { ["Name"] = "[PoTD] Cairn of Passage", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-		[2007187] = { ["Name"] = "[PoTD] Cairn of Return", ["Enabled"] = false, ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 },
-	}
+	ffxiv_radar.CustomList = table.deepcopy(FFXIVLib.API.Radar.GetPresets())
 	-- New Options List
 	ffxiv_radar.Options = {
 		[1] = {
@@ -1184,6 +714,7 @@ end
 
 function ffxiv_radar.ToggleMenu()
 	ffxiv_radar.GUI.open = not ffxiv_radar.GUI.open
+	if ffxiv_radar.GUI.open then ffxiv_radar.EnsureData() end
 end
 
 -- Register Event Handlers

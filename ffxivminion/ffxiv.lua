@@ -760,7 +760,7 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 					if (TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 						ml_global_information.rootCheckTimer = tickcount
 
-						local itemBuffs = ml_global_information.chocoItemBuffs
+						local itemBuffs = FFXIVMinionItem.GetChocoboItemBuffs()
 						if (table.valid(itemBuffs)) then
 							for itemid, itemdetails in pairs(itemBuffs) do
 								if (gChocoItemString == itemdetails.name) then
@@ -1141,7 +1141,7 @@ end
 
 -- Module Event Handler
 function ffxivminion.HandleInit()
-	-- Activate FFXIVLib (loads data tables, bulk caches, pre-warm).
+	-- Activate FFXIVLib (loads startup Strings/World; feature data stays lazy).
 	if FFXIVLib and FFXIVLib.Initialize then
 		FFXIVLib.Initialize()
 	end
@@ -1498,6 +1498,11 @@ function ffxivminion.CheckMode()
 end
 
 function ffxivminion.UpdateGlobals()
+	if rawget(_G, "Optifine") ~= nil
+		or (FFXIVLib and FFXIVLib.IsOptiFineMode and FFXIVLib.IsOptiFineMode())
+	then
+		return
+	end
 	if (gBotMode ~= "assistMode") then
 		if (Player) then
 			ml_global_information.Player_Aetherytes = GetAetheryteList()
@@ -2269,11 +2274,9 @@ function ml_global_information.DrawSettings()
 						end
 					end
 
-					local fighters = { "GLA", "PLD", "PGL", "MNK", "MRD", "WAR", "LNC", "DRG", "ARC", "BRD"
-						, "CNJ", "WHM", "THM", "BLM", "ACN", "SMN", "SCH", "ROG", "NIN", "DRK", "MCH", "AST", "SAM", "RDM"
-						, "BLU", "GNB", "DNC", "RPR", "SGE", "VPR", "PCT" }
-					local crafters = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" }
-					local gatherers = { "MIN", "BTN", "FSH" }
+					local fighters = FFXIVLib.API.ClassJob.GetAbbreviations("gear_fighters") or {}
+					local crafters = FFXIVLib.API.ClassJob.GetAbbreviations("crafters") or {}
+					local gatherers = FFXIVLib.API.ClassJob.GetAbbreviations("gatherers") or {}
 
 					GUI:PushItemWidth(50)
 					local count = 1
@@ -2770,6 +2773,9 @@ function ml_global_information.DrawHelper()
 				GUI:Separator()
 				GUI_DrawTabs(ffxivminion.GUI.help.main_tabs)
 				local tabs = ffxivminion.GUI.help.main_tabs
+				if tabs.tabs[1].isselected or tabs.tabs[4].isselected then
+					ml_global_information.EnsureMeshDefaults()
+				end
 				if not (tabs.tabs[4].isselected) then
 					NavigationManager.ShowFloorMesh = false
 					Settings.minionlib.ShowNavPath = false
@@ -2994,45 +3000,7 @@ invalid name or haven't chosen one.")
 					if (currentMap ~= helpData.access_cache_mapid) or (accessVersion ~= IsNull(helpData.access_cache_version, -1)) then
 						helpData.access_cache_mapid = currentMap
 						helpData.access_cache_version = accessVersion
-						local accessChecks = {
-							{1192, "Can Access Living Memory"},
-							{1191, "Can Access Heritage Found"},
-							{1186, "Can Access Solution Nine"},
-							{1190, "Can Access Shaaloani"},
-							{1189, "Can Access Yak T'el"},
-							{1188, "Can Access Kozama'uka"},
-							{1187, "Can Access Urqopacha"},
-							{1185, "Can Access Tuliyollal"},
-							{818,  "Can Access The Tempest"},
-							{817,  "Can Access The Rak'tika Greatwood"},
-							{816,  "Can Access Il Mheg"},
-							{815,  "Can Access Amh Araeng"},
-							{814,  "Can Access Lakeland"},
-							{819,  "Can Access The Crystarium"},
-							{621,  "Can Access The Lochs"},
-							{622,  "Can Access Azim Steppes"},
-							{614,  "Can Access Yanxia"},
-							{613,  "Can Access The Ruby Sea"},
-							{612,  "Can Access The Fringes"},
-							{402,  "Can Access Azys Lla"},
-							{399,  "Can Access Dravanian Hinterlands"},
-							{398,  "Can Access Dravanian Forelands"},
-							{397,  "Can Access CWH"},
-						}
-						helpData.access_cache.text = nil
-						for _, check in ipairs(accessChecks) do
-							if CanAccessMap(check[1]) then
-								helpData.access_cache.text = check[2]
-								break
-							end
-						end
-						if not helpData.access_cache.text then
-							if CanAccessMap(418) then
-								helpData.access_cache.text = "Can NOT Access CWH"
-							else
-								helpData.access_cache.text = "Can NOT Access Heavensward maps"
-							end
-						end
+						helpData.access_cache.text = FFXIVMinionMap.GetAccessText()
 					end
 					if helpData.access_cache.text then
 						GUI:Text(helpData.access_cache.text)

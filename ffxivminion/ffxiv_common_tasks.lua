@@ -3200,7 +3200,14 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	return false
 end
 
-ffxiv_task_moveaethernet.task_complete_execute = ffxiv_task_movetointeract.task_complete_execute
+function ffxiv_task_moveaethernet:task_complete_execute()
+	if self.unlockAethernet and FFXIVLib and FFXIVLib.API and FFXIVLib.API.Map
+		and FFXIVLib.API.Map.InvalidateAetheryteCache
+	then
+		FFXIVLib.API.Map.InvalidateAetheryteCache("aethernet unlocked")
+	end
+	return ffxiv_task_movetointeract.task_complete_execute(self)
+end
 ffxiv_task_moveaethernet.task_fail_eval = ffxiv_task_movetointeract.task_fail_eval
 ffxiv_task_moveaethernet.task_fail_execute = ffxiv_task_movetointeract.task_fail_execute
 

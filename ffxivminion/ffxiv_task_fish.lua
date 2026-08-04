@@ -11,51 +11,6 @@ ffxiv_fish.accessmaplist = {}
 ffxiv_fish.profileData = {}
 ffxiv_fish.currentTask = {}
 ffxiv_fish.currentTaskIndex = 0
-ffxiv_fish.collectibles = {
-    { id = 14211, alias = "Amber Salamander", minimum = 900 },
-    { id = 12827, alias = "Barreleye", minimum = 923 },
-    { id = 12739, alias = "Bubble Eye", minimum = 162 },
-    { id = 12837, alias = "Capelin", minimum = 89 },
-    { id = 13729, alias = "Dravanian Smelt", minimum = 83 },
-    { id = 12742, alias = "Dravanian Squeaker", minimum = 158 },
-    { id = 12724, alias = "Glacier Core", minimum = 310 },
-    { id = 12713, alias = "Icepick", minimum = 106 },
-    { id = 12804, alias = "Illuminati Perch", minimum = 826 },
-    { id = 12830, alias = "Loosetongue", minimum = 2441 },
-    { id = 12814, alias = "Moogle Spirit", minimum = 1062 },
-    { id = 12768, alias = "Noontide Oscar", minimum = 258 },
-    { id = 12726, alias = "Sorcerer Fish", minimum = 646 },
-    { id = 12825, alias = "Stupendemys", minimum = 1526 },
-    { id = 12828, alias = "Thunderbolt Eel", minimum = 813 },
-    { id = 12774, alias = "Tiny Axolotl", minimum = 320 },
-    { id = 12834, alias = "Vampiric Tapestry", minimum = 1308 },
-    { id = 12767, alias = "Warmwater Bichir", minimum = 683 },
-    { id = 12792, alias = "Weston Bowfin", minimum = 376 },
-    { id = 12721, alias = "Whilom Catfish", minimum = 459 },
-	-- SB
-    { id = 20274, alias = "Deemster", minimum = 829 },
-    { id = 20234, alias = "Wraithfish", minimum = 50 },
-    { id = 20024, alias = "Sweatfish", minimum = 0 },
-    { id = 20234, alias = "Soul of the Stallion", minimum = 50 },
-    { id = 20019, alias = "Ala Mhigan Ribbon", minimum = 41 },
-    { id = 20021, alias = "Seraphim", minimum = 49 },
-    { id = 20234, alias = "Thousandfang", minimum = 50 },
-    { id = 20230, alias = "Fangshi", minimum = 303 },
-    { id = 20239, alias = "Mosasaur", minimum = 824 },
-    { id = 20233, alias = "Eternal Eye", minimum = 25 },
-    { id = 20210, alias = "Mitsuriku Shark", minimum = 819 },
-    { id = 20238, alias = "Silken Sunfish", minimum = 767 },
-    { id = 20220, alias = "Cherubfish", minimum = 21 },
-    { id = 20104, alias = "Daio Squid", minimum = 1034 },
-    { id = 20028, alias = "Samurai Fish", minimum = 14 },
-    { id = 20044, alias = "Tao Bitterling", minimum = 49 },
-    { id = 20036, alias = "Killifish", minimum = 9 },
-    { id = 20118, alias = "Yanxian Koi", minimum = 451 },
-    { id = 20098, alias = "Butterfly Fish", minimum = 115 },
-    { id = 20087, alias = "Velodyna Grass Carp", minimum = 690 },
-	
-}
-
 ffxiv_fish.GUI = {
 	x = 0,
 	y = 0, 
@@ -66,6 +21,19 @@ ffxiv_fish.GUI = {
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.addon_process_elements = {}
 ffxiv_task_fish.addon_overwatch_elements = {}
+ffxiv_task_fish._baitKey = nil
+function ffxiv_task_fish.GetBaitKey()
+	if not ffxiv_task_fish._baitKey then
+		local result = {}
+		local baitNames = FFXIVLib.API.Items.GetFishingBaitNames()
+		if not table.valid(baitNames) then return { GetString("None") } end
+		for index, name in ipairs(baitNames) do
+			result[index] = GetString(name)
+		end
+		ffxiv_task_fish._baitKey = result
+	end
+	return ffxiv_task_fish._baitKey
+end
 function ffxiv_task_fish.Create()
     --local newinst = inheritsFrom(ffxiv_task_fish)
     if gFishMarkerOrProfileIndex == 1 then
@@ -2809,7 +2777,7 @@ function ffxiv_task_fish:UIInit()
 	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})
 	
 	gFishQuickBait = ffxivminion.GetSetting("gFishQuickBait", GetString("None"))
-	local baitKey = { GetString("None"),GetString("Balloon Bug"),GetString("Baitbugs"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Cactuar Jig"),GetString("Caddisfly Larva"),GetString("Chimera Worm"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crimson Lugworm"),GetString("Crow Fly"),GetString("Desert Dessert Frog"),GetString("Dragonfly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Freshwater Boilie"),GetString("Fruit Worm"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Gold Salmon Roe"),GetString("Golden Stonefly Nymph"),GetString("Grey Worm"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honeybee"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Jerked Ovim"),GetString("Live Shrimp"),GetString("Leech"),GetString("Lugworm"),GetString("Mackerel Strip"),GetString("Magma Worm"),GetString("Marble Nymph"),GetString("Midge Basket"),GetString("Mayfly"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Moyebi Shrimp"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Panic Jig"),GetString("Pill Bug"),GetString("Popper Lure"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Red Maggots"),GetString("Robber Ball"),GetString("Salmon Roe"),GetString("Saltwater Boilie"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Short Bill Minnow"),GetString("Shrimp Ball"),GetString("Shucked Clam"),GetString("Silkmoth Pupa"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Sky Spoon Lure"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Squid Strip"),GetString("Snurble Fly"),GetString("Stardust"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Versatile Lure"),GetString("White Worm"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+	local baitKey = ffxiv_task_fish.GetBaitKey()
 
 	gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey)
 	
@@ -3014,14 +2982,18 @@ function ffxiv_task_fish:Draw()
 	-- Collectables
 	if (tabname == GetString("Collectable")) then
 		local CollectableFullWidth = GUI:GetContentRegionAvail()-8
+		local knownDefaults = FFXIVLib.API.Items.GetCollectibleFishDefaults()
 		if (GUI:Button(GetString("Use Known Defaults"),CollectableFullWidth,20)) then
-			GUI_Set("gFishCollectablePresets",{})
-			for k,v in pairs(ffxiv_fish.collectibles) do
-				local name = FFXIVLib.API.Items.GetNameByID(v.id) or v.alias
-				local newCollectable = { name = name, value = v.minimum }
-				table.insert(gFishCollectablePresets,newCollectable)
+			if table.valid(knownDefaults) then
+				gFishCollectablePresets = {}
+				for _, row in ipairs(knownDefaults) do
+					table.insert(gFishCollectablePresets, {
+						name = FFXIVLib.Cache.Text(row.Name),
+						value = row.Minimum,
+					})
+				end
+				GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 			end
-			GUI_Set("gFishCollectablePresets",gFishCollectablePresets)
 		end
 		if (GUI:Button(GetString("Add Collectable"),CollectableFullWidth,20)) then
 			local newCollectable = { name = "", value = 0 }
@@ -3212,7 +3184,7 @@ function ffxiv_task_fish:Draw()
 		
 		local MarkerTypeWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(MarkerTypeWidth-8)
-		local baitKey = {GetString("None"),GetString("Balloon Bug"),GetString("Baitbugs"),GetString("Bass Ball"),GetString("Bladed Steel Jig"),GetString("Bloodworm"),GetString("Blue Bobbit"),GetString("Bream Lure"),GetString("Brute Leech"),GetString("Butterworm"),GetString("Cactuar Jig"),GetString("Caddisfly Larva"),GetString("Chimera Worm"),GetString("Chocobo Fly"),GetString("Crayfish Ball"),GetString("Crimson Lugworm"),GetString("Crow Fly"),GetString("Desert Dessert Frog"),GetString("Dragonfly"),GetString("Fiend Worm"),GetString("Floating Minnow"),GetString("Freshwater Boilie"),GetString("Fruit Worm"),GetString("Giant Crane Fly"),GetString("Glowworm"),GetString("Goblin Jig"),GetString("Goby Ball"),GetString("Gold Salmon Roe"),GetString("Golden Stonefly Nymph"),GetString("Grey Worm"),GetString("Heavy Steel Jig"),GetString("Herring Ball"),GetString("Honeybee"),GetString("Honey Worm"),GetString("Hoverworm"),GetString("Jerked Ovim"),GetString("Live Shrimp"),GetString("Leech"),GetString("Lugworm"),GetString("Mackerel Strip"),GetString("Magma Worm"),GetString("Marble Nymph"),GetString("Midge Basket"),GetString("Mayfly"),GetString("Midge Larva"),GetString("Moth Pupa"),GetString("Moyebi Shrimp"),GetString("Nightcrawler"),GetString("Northern Krill"),GetString("Panic Jig"),GetString("Pill Bug"),GetString("Popper Lure"),GetString("Purse Web Spider"),GetString("Rainbow Spoon Lure"),GetString("Rat Tail"),GetString("Red Balloon"),GetString("Red Maggots"),GetString("Robber Ball"),GetString("Salmon Roe"),GetString("Saltwater Boilie"),GetString("Sand Leech"),GetString("Sand Gecko"),GetString("Short Bill Minnow"),GetString("Shrimp Ball"),GetString("Shucked Clam"),GetString("Silkmoth Pupa"),GetString("Silkworm"),GetString("Silver Spoon Lure"),GetString("Sinking Minnow"),GetString("Sky Spoon Lure"),GetString("Spinner"),GetString("Spinnerbait"),GetString("Spoon Worm"),GetString("Squid Strip"),GetString("Snurble Fly"),GetString("Stardust"),GetString("Steel Jig"),GetString("Stem Borer"),GetString("Stonefly Larva"),GetString("Stonefly Nymph"),GetString("Streamer"),GetString("Suspending Minnow"),GetString("Syrphid Basket"),GetString("Topwater Frog"),GetString("Versatile Lure"),GetString("White Worm"),GetString("Wildfowl Fly"),GetString("Yumizuno")}
+		local baitKey = ffxiv_task_fish.GetBaitKey()
 		gFishBaitIndex = GetKeyByValue(gFishQuickBait,baitKey) or 1
 		if (baitKey[gFishBaitIndex] ~= gFishQuickBait) then
 			gFishQuickBait = baitKey[gFishBaitIndex]

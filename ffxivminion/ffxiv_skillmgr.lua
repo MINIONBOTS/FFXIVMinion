@@ -41,19 +41,6 @@ SkillMgr.GUI = {
 	},
 }
 
-SkillMgr.ClassJob = {
-	[19] = 1,
-	[20] = 2,
-	[21] = 3,
-	[22] = 4,
-	[23] = 5,
-	[24] = 6,
-	[25] = 7,
-	[27] = 26,
-	[28] = 26,
-	[30] = 29,
-}
-
 SkillMgr.SkillBook = {}
 SkillMgr.lastBookUpdate = 0
 SkillMgr.lastBookClass = 0
@@ -98,7 +85,6 @@ SkillMgr.profiles = {}
 SkillMgr.latencyTimer = 0
 SkillMgr.forceStop = false
 SkillMgr.preCombat = false
-SkillMgr.knownDebuffs = "1,3,4,5,6,7,9,10,14,15,17,18,19,20,26,28,30,32,34,36,38,54,55,58,59,62,67,181,19​3,210,213,215,216,240,250,267,275,280,284,268,285,235,269,270,271,272,273,283,28​6,287,288,320,339,343,407,442,48​2,485,503,509,530,532,533,534,535,559,560,561,5​64,569,571,605,610,619,620,642,643,666,677,686,723,785,801,893,910,926"
 SkillMgr.doLoad = true
 
 SkillMgr.StartingProfiles = {
@@ -175,76 +161,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	end
 	
 	local targetid = target.id
-	
-	local testSkills = {}
-	if (not pvp) then
-		testSkills = {
-			[FFXIV.JOBS.GLADIATOR] = 9,
-			[FFXIV.JOBS.PALADIN] = 9,
-			[FFXIV.JOBS.MARAUDER] = 31,
-			[FFXIV.JOBS.WARRIOR] = 31,
-			[FFXIV.JOBS.PUGILIST] = 53,
-			[FFXIV.JOBS.MONK] = 53,
-			[FFXIV.JOBS.LANCER] = 75,
-			[FFXIV.JOBS.DRAGOON] = 75,
-			[FFXIV.JOBS.ARCHER] = {98, 97},
-			[FFXIV.JOBS.BARD] = {98, 97},
-			[FFXIV.JOBS.CONJURER] = { 132, 127, 121, 119 },
-			[FFXIV.JOBS.WHITEMAGE] = { 7431, 3568, 132, 127, 121, 119 },
-			[FFXIV.JOBS.THAUMATURGE] = {156, 142},
-			[FFXIV.JOBS.BLACKMAGE] = {156, 142},
-			[FFXIV.JOBS.ARCANIST] = {178, 164, 163},
-			[FFXIV.JOBS.SUMMONER] = { 7424, 3579, 178, 164, 163 },
-			[FFXIV.JOBS.SCHOLAR] = { 7435, 3584, 178, 164, 163},
-			[FFXIV.JOBS.BOTANIST] = 218,
-			[FFXIV.JOBS.MINER] = 235,
-			[FFXIV.JOBS.ROGUE] = 2240,
-			[FFXIV.JOBS.NINJA] = 2240,
-			[FFXIV.JOBS.MACHINIST] = { 7411, 2866 },
-			[FFXIV.JOBS.ASTROLOGIAN] = { 7442, 3598, 3596 },
-			[FFXIV.JOBS.DARKKNIGHT] = 3617,
-			[FFXIV.JOBS.SAMURAI] = 7477,
-			[FFXIV.JOBS.REDMAGE] = { 7503, 7504 },
-			[FFXIV.JOBS.BLUEMAGE] = 11385,
-			[FFXIV.JOBS.DANCER] = 15989,
-			[FFXIV.JOBS.GUNBREAKER] = 16137,
-		}
-	else
-		testSkills = {
-			[FFXIV.JOBS.GLADIATOR] = 8718,
-			[FFXIV.JOBS.PALADIN] = 8718,
-			[FFXIV.JOBS.MARAUDER] = 8758,
-			[FFXIV.JOBS.WARRIOR] = 8758,
-			[FFXIV.JOBS.PUGILIST] = 8780,
-			[FFXIV.JOBS.MONK] = 8780,
-			[FFXIV.JOBS.LANCER] = 8791,
-			[FFXIV.JOBS.DRAGOON] = 8791,
-			[FFXIV.JOBS.ARCHER] = 8834,
-			[FFXIV.JOBS.BARD] = 8834,
-			[FFXIV.JOBS.CONJURER] = 8895,
-			[FFXIV.JOBS.WHITEMAGE] = 8895,
-			[FFXIV.JOBS.THAUMATURGE] = 8858,
-			[FFXIV.JOBS.BLACKMAGE] = 8858,
-			[FFXIV.JOBS.ARCANIST] = 8904,
-			[FFXIV.JOBS.SUMMONER] = 8872,
-			[FFXIV.JOBS.SCHOLAR] = 8904,
-			[FFXIV.JOBS.ROGUE] = 8807,
-			[FFXIV.JOBS.NINJA] = 8807,
-			[FFXIV.JOBS.MACHINIST] = 8845,
-			[FFXIV.JOBS.ASTROLOGIAN] = 8912,
-			[FFXIV.JOBS.DARKKNIGHT] = 8769,
-			[FFXIV.JOBS.SAMURAI] = 8821,
-			[FFXIV.JOBS.REDMAGE] = 8882,
-			[FFXIV.JOBS.DANCER] = 17756,
-			[FFXIV.JOBS.GUNBREAKER] = 17703,
-			[FFXIV.JOBS.REAPER] = 24373,
-			[FFXIV.JOBS.SAGE] = 24283,
-			[FFXIV.JOBS.VIPER] = 34606,
-			[FFXIV.JOBS.PICTOMANCER]= 34650,
-		}
-	end
-	
-	local testSkill = testSkills[Player.job]
+	local testSkill = FFXIVMinionAction.GetTestSkill(Player.job, pvp)
 	if (testSkill) then
 		if (type(testSkill) == "number") then
 			local action = ActionList:Get(1,testSkill)
@@ -292,70 +209,20 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 end
 
 function SkillMgr.UpdateBasicSkills()
-	SkillMgr.GCDSkills = {
-		[FFXIV.JOBS.GLADIATOR] = 9,
-		[FFXIV.JOBS.PALADIN] = 9,
-		[FFXIV.JOBS.MARAUDER] = 31,
-		[FFXIV.JOBS.WARRIOR] = 31,
-		[FFXIV.JOBS.PUGILIST] = 53,
-		[FFXIV.JOBS.MONK] = 53,
-		[FFXIV.JOBS.LANCER] = 75,
-		[FFXIV.JOBS.DRAGOON] = 75,
-		[FFXIV.JOBS.ARCHER] = 97,
-		[FFXIV.JOBS.BARD] = 97,
-		[FFXIV.JOBS.CONJURER] = 119,
-		[FFXIV.JOBS.WHITEMAGE] = 119,
-		[FFXIV.JOBS.THAUMATURGE] = 142,
-		[FFXIV.JOBS.BLACKMAGE] = 142,
-		[FFXIV.JOBS.ARCANIST] = 163,
-		[FFXIV.JOBS.SUMMONER] = 163,
-		[FFXIV.JOBS.SCHOLAR] = 163,
-		[FFXIV.JOBS.BOTANIST] = 218,
-		[FFXIV.JOBS.MINER] = 235,
-		[FFXIV.JOBS.ROGUE] = 2240,
-		[FFXIV.JOBS.NINJA] = 2240,
-		[FFXIV.JOBS.MACHINIST] = 2866,
-		[FFXIV.JOBS.ASTROLOGIAN] = 3596,
-		[FFXIV.JOBS.DARKKNIGHT] = 3617,
-		[FFXIV.JOBS.SAMURAI] = 7477,
-		[FFXIV.JOBS.REDMAGE] = IIF(Player.level > 1,7503,7504),
-		[FFXIV.JOBS.BLUEMAGE] = 11385,
-		[FFXIV.JOBS.DANCER] = 15989,
-		[FFXIV.JOBS.GUNBREAKER] = 16137,
-		[FFXIV.JOBS.REAPER] = 24373,
-		[FFXIV.JOBS.SAGE] = 24283,
-		[FFXIV.JOBS.VIPER] = 34606,
-		[FFXIV.JOBS.PICTOMANCER]= 34650,
-	}
-	
-	SkillMgr.GCDSkillsPVP = {
-		[FFXIV.JOBS.GLADIATOR] = 8718,
-		[FFXIV.JOBS.PALADIN] = 8718,
-		[FFXIV.JOBS.MARAUDER] = 8758,
-		[FFXIV.JOBS.WARRIOR] = 8758,
-		[FFXIV.JOBS.PUGILIST] = 8780,
-		[FFXIV.JOBS.MONK] = 8780,
-		[FFXIV.JOBS.LANCER] = 8791,
-		[FFXIV.JOBS.DRAGOON] = 8791,
-		[FFXIV.JOBS.ARCHER] = 8834,
-		[FFXIV.JOBS.BARD] = 8834,
-		[FFXIV.JOBS.CONJURER] = 8895,
-		[FFXIV.JOBS.WHITEMAGE] = 8895,
-		[FFXIV.JOBS.THAUMATURGE] = 8858,
-		[FFXIV.JOBS.BLACKMAGE] = 8858,
-		[FFXIV.JOBS.ARCANIST] = 8904,
-		[FFXIV.JOBS.SUMMONER] = 8872,
-		[FFXIV.JOBS.SCHOLAR] = 8904,
-		[FFXIV.JOBS.ROGUE] = 8807,
-		[FFXIV.JOBS.NINJA] = 8807,
-		[FFXIV.JOBS.MACHINIST] = 8845,
-		[FFXIV.JOBS.ASTROLOGIAN] = 8912,
-		[FFXIV.JOBS.DARKKNIGHT] = 8769,
-		[FFXIV.JOBS.SAMURAI] = 8821,
-		[FFXIV.JOBS.REDMAGE] = 8882,
-		[FFXIV.JOBS.DANCER] = 17756,
-		[FFXIV.JOBS.GUNBREAKER] = 17703,
-	}
+    if not SkillMgr.GCDSkills then
+        SkillMgr.GCDSkills = setmetatable({}, {
+            __index = function(_, jobId)
+                return FFXIVMinionAction.GetRepresentativeGCD(jobId, false, Player and Player.level)
+            end,
+        })
+    end
+    if not SkillMgr.GCDSkillsPVP then
+        SkillMgr.GCDSkillsPVP = setmetatable({}, {
+            __index = function(_, jobId)
+                return FFXIVMinionAction.GetRepresentativeGCD(jobId, true, Player and Player.level)
+            end,
+        })
+    end
 end
 
 function SkillMgr.UpdateDefaultProfiles()
@@ -2692,32 +2559,15 @@ function SkillMgr.GetCooldown(action)
 end
 
 function SkillMgr.IsPetSummonSkill(skillID)
-    if (skillID == 165 or
-		skillID == 150 or
-        skillID == 170 or
-        skillID == 180 or
-		skillID == 2864 or
-		skillID == 2865) 
-	then
-        return true
-    end
-    return false
+	return FFXIVMinionAction.HasClassification(skillID, "petsummon")
 end
 
 function SkillMgr.IsPetSummonActive(skillID)
-	local contentids = {
-		[2864] = "3666",
-		[2865] = "3667",
-		[165] = "1404;1398;1401",
-		[170] = "1403;1399;1400",
-		[180] = "1402",
-	}
-	
 	if (table.valid(Player.pet)) then
 		return true
 	end
 	
-	local petstring = contentids[skillID]
+	local petstring = FFXIVMinionAction.GetPetContentIds(skillID)
 	if (petstring) then
 		local el = EntityList("ownerid="..tostring(Player.id)..",contentid="..petstring)
 		if (table.valid(el)) then
@@ -3119,54 +2969,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	end
 end
 
-SkillMgr.MatchingCraftSkills = {
-	["Basic Synthesis"] = { [8] = 100001, [9] = 100015, [10] = 100030, [11] = 100075, [12] = 100045, [13] = 100060, [14] = 100090, [15] = 100105, },
-	["Basic Touch"] = { [8] = 100002, [9] = 100016, [10] = 100031, [11] = 100076, [12] = 100046, [13] = 100061, [14] = 100091, [15] = 100106, },
-	["Brand of the Elements"] = { [8] = 100331, [9] = 100332, [10] = 100333, [11] = 100334, [12] = 100335, [13] = 100336, [14] = 100337, [15] = 100338, },
-	["Byregot's Blessing"] = { [8] = 100339, [9] = 100340, [10] = 100341, [11] = 100342, [12] = 100343, [13] = 100344, [14] = 100345, [15] = 100346, },
-	["Careful Observation"] = { [8] = 100395, [9] = 100396, [10] = 100397, [11] = 100398, [12] = 100399, [13] = 100400, [14] = 100401, [15] = 100402, },
-	["Careful Synthesis"] = { [8] = 100203, [9] = 100204, [10] = 100205, [11] = 100206, [12] = 100207, [13] = 100208, [14] = 100209, [15] = 100210, },
-	["Delicate Synthesis"] = { [8] = 100323, [9] = 100324, [10] = 100325, [11] = 100326, [12] = 100327, [13] = 100328, [14] = 100329, [15] = 100330, },
-	["Final Appraisal"] = { [8] = 19012, [9] = 19013, [10] = 19014, [11] = 19015, [12] = 19016, [13] = 19017, [14] = 19018, [15] = 19019, },
-	["Focused Synthesis"] = { [8] = 100235, [9] = 100236, [10] = 100237, [11] = 100238, [12] = 100239, [13] = 100240, [14] = 100241, [15] = 100242, },
-	["Focused Touch"] = { [8] = 100243, [9] = 100244, [10] = 100245, [11] = 100246, [12] = 100247, [13] = 100248, [14] = 100249, [15] = 100250, },
-	["Great Strides"] = { [8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 265, [13] = 264, [14] = 266, [15] = 267, },
-	["Hasty Touch"] = { [8] = 100355, [9] = 100356, [10] = 100357, [11] = 100358, [12] = 100359, [13] = 100360, [14] = 100361, [15] = 100362, },
-	["Inner Quiet"] = { [8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259, },
-	["Innovation"] = { [8] = 19004, [9] = 19005, [10] = 19006, [11] = 19007, [12] = 19008, [13] = 19009, [14] = 19010, [15] = 19011, },
-	["Intensive Synthesis"] = { [8] = 100315, [9] = 100316, [10] = 100317, [11] = 100318, [12] = 100319, [13] = 100320, [14] = 100321, [15] = 100322, },
-	["Manipulation"] = { [8] = 4574, [9] = 4575, [10] = 4576, [11] = 4577, [12] = 4578, [13] = 4579, [14] = 4580, [15] = 4581, },
-	["Master's Mend"] = { [8] = 100003, [9] = 100017, [10] = 100032, [11] = 100077, [12] = 100047, [13] = 100062, [14] = 100092, [15] = 100107, },
-	["Muscle Memory"] = { [8] = 100379, [9] = 100380, [10] = 100381, [11] = 100382, [12] = 100383, [13] = 100384, [14] = 100385, [15] = 100386, },
-	["Name of the Elements"] = { [8] = 4615, [9] = 4616, [10] = 4617, [11] = 4618, [12] = 4620, [13] = 4619, [14] = 4621, [15] = 4622, },
-	["Observe"] = { [8] = 100010, [9] = 100023, [10] = 100040, [11] = 100082, [12] = 100053, [13] = 100070, [14] = 100099, [15] = 100113, },
-	["Patient Touch"] = { [8] = 100219, [9] = 100220, [10] = 100221, [11] = 100222, [12] = 100223, [13] = 100224, [14] = 100225, [15] = 100226, },
-	["Precise Touch"] = { [8] = 100128, [9] = 100129, [10] = 100130, [11] = 100131, [12] = 100132, [13] = 100133, [14] = 100134, [15] = 100135, },
-	["Preparatory Touch"] = { [8] = 100299, [9] =100300, [10] = 100301, [11] = 100302, [12] = 100303, [13] = 100304, [14] = 100305, [15] = 100306, },
-	["Prudent Touch"] = { [8] = 100227, [9] = 100228, [10] = 100229, [11] = 100230, [12] = 100231, [13] = 100232, [14] = 100233, [15] = 100234, },
-	["Rapid Synthesis"] = { [8] = 100363, [9] = 100364, [10] = 100365, [11] = 100366, [12] = 100367, [13] = 100368, [14] = 100369, [15] = 100370, },
-	["Reflect"] = { [8] = 100387, [9] = 100388, [10] = 100389, [11] = 100390, [12] = 100391, [13] = 100392, [14] = 100393, [15] = 100394, },
-	["Standard Touch"] = { [8] = 100004, [9] = 100018, [10] = 100034, [11] = 100078, [12] = 100048, [13] = 100064, [14] = 100093, [15] = 100109, },
-	["Trained Eye"] = { [8] = 100283, [9] = 100284, [10] = 100285, [11] = 100286, [12] = 100287, [13] =100288, [14] = 100289, [15] = 100290, },
-	["Tricks of the Trade"] = { [8] = 100371, [9] = 100372, [10] = 100373, [11] = 100374, [12] = 100375, [13] = 100376, [14] = 100377, [15] = 100378, },
-	["Waste Not"] = { [8] = 4631, [9] = 4632, [10] = 4633, [11] = 4634, [12] = 4635, [13] = 4636, [14] = 4637, [15] = 4638, },
-	["Waste Not II"] = { [8] = 4639, [9] = 4640, [10] = 4641, [11] = 4642, [12] = 4643, [13] = 4644, [14] = 19002, [15] = 19003, },
-	["Veneration"] = { [8] = 19297, [9] = 19298, [10] = 19299, [11] = 19300, [12] = 19301, [13] = 19302, [14] = 19303, [15] = 19304, },
-	["Groundwork"] = { [8] = 100403, [9] = 100404, [10] = 100405, [11] = 100406, [12] = 100407, [13] = 100408, [14] = 100409, [15] = 100410, },
-	-- EW
-	["Advanced Touch"] = { [8] = 100411, [9] = 100412, [10] = 100413, [11] = 100414, [12] = 100415, [13] = 100416, [14] = 100417, [15] = 100418, },
-	["Prudent Synthesis"] = { [8] = 100427, [9] = 100428, [10] = 100429, [11] = 100430, [12] = 100431, [13] = 100432, [14] = 100433, [15] = 100434, },
-	["Trained Instinct"] = { [8] = 100291, [9] = 100292, [10] = 100293, [11] = 100294, [12] = 100295, [13] = 100296, [14] = 100297, [15] = 100298, },
-	["Trained Finesse"] = { [8] = 100435, [9] = 100436, [10] = 100437, [11] = 100438, [12] = 100439, [13] = 100440, [14] = 100441, [15] = 100442, },
-	["Heart and Soul"] = { [8] = 100419, [9] = 100420, [10] = 100421, [11] = 100422, [12] = 100423, [13] = 100424, [14] = 100425, [15] = 100426, },
-	-- DT
-	["Refined Touch"] = { [8] = 100443, [9] = 100444, [10] = 100445, [11] = 100446, [12] = 100447, [13] = 100448, [14] = 100449, [15] = 100450, },
-	["Daring Touch"] = { [8] = 100451, [9] = 100452, [10] = 100453, [11] = 100454, [12] = 100455, [13] = 100456, [14] = 100457, [15] = 100458, },
-	["Quick Innovation"] = { [8] = 100459, [9] = 100460, [10] = 100461, [11] = 100462, [12] = 100463, [13] = 100464, [14] = 100465, [15] = 100466, },
-	["Immaculate Mend"] = { [8] = 100467, [9] = 100468, [10] = 100469, [11] = 100470, [12] = 100471, [13] = 100472, [14] = 100473, [15] = 100474, },
-	["Trained Perfection"] = { [8] = 100475, [9] = 100476, [10] = 100477, [11] = 100478, [12] = 100479, [13] = 100480, [14] = 100481, [15] = 100482, },
-}
-
 SkillMgr.lastquality = 0
 SkillMgr.currentIQStack = 0
 SkillMgr.currentWasteNotStack = 0
@@ -3232,38 +3034,20 @@ function SkillMgr.Craft()
                 local realskilldata = SkillMgr.GetAction(skillid,skill.type)
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
-					for skillname,data in pairs(SkillMgr.MatchingCraftSkills) do
-						for job, sid in pairs(data) do
-							if (sid == skill.id) then
-								skillid = tonumber(data[Player.job]) or 0
-								realskilldata = SkillMgr.GetAction(skillid,skill.type)
-							end
-							if (realskilldata) then
-								break
-							end
-						end
-						if (realskilldata) then
-							break
-						end
+					local equivalentId = FFXIVLib.API.Action.ResolveEquivalent(skill.id, Player.job, "craft")
+					if equivalentId then
+						skillid = equivalentId
+						realskilldata = SkillMgr.GetAction(skillid,skill.type)
 					end
 				end
 				if (not realskilldata) then
 					local oppositetype = (skill.type == 1 and 9) or 1
 					realskilldata = SkillMgr.GetAction(skillid,oppositetype)
 					if (not realskilldata) then
-						for skillname,data in pairs(SkillMgr.MatchingCraftSkills) do
-							for job, sid in pairs(data) do
-								if (sid == skill.id) then
-									skillid = tonumber(data[Player.job]) or 0
-									realskilldata = SkillMgr.GetAction(skillid,oppositetype)
-								end
-								if (realskilldata) then
-									break
-								end
-							end
-							if (realskilldata) then
-								break
-							end
+						local equivalentId = FFXIVLib.API.Action.ResolveEquivalent(skill.id, Player.job, "craft")
+						if equivalentId then
+							skillid = equivalentId
+							realskilldata = SkillMgr.GetAction(skillid,oppositetype)
 						end
 					end
 				end
@@ -3516,50 +3300,6 @@ function SkillMgr.Craft()
 	return false
 end
 
-SkillMgr.MatchingGatherSkills = {
-	--Basic Skills
-	-- MIN/BTN
-	["Prospect"] 				={ [16] = 227, [17] = 210 },
-	["Preparation"] 			={ [16] = 230, [17] = 213 },
-	["Sharp Vision"] 			={ [16] = 235, [17] = 218 },
-	["Sharp Vision 2"] 			={ [16] = 237, [17] = 220 },
-	["Sharp Vision 3"] 			={ [16] = 295, [17] = 294 },
-	["HQ Chance Up"] 			={ [16] = 242, [17] = 225 },
-	["HQ Chance Up 2"] 			={ [16] = 243, [17] = 226 },
-	["HQ Chance Up 3"] 			={ [16] = 270, [17] = 271 },
-	["Toil"] 					={ [16] = 231, [17] = 214 },
-	["Luck"] 					={ [16] = 4081, [17] = 4095 },
-	["Discerning Eye"] 			={ [16] = 4078, [17] = 4092 },
-	["Methodical Appraisal"] 	={ [16] = 4075, [17] = 4089 },
-	["Collector's Glove"] 		={ [16] = 4074, [17] = 4088 },
-	["Utmost Caution"] 			={ [16] = 4079, [17] = 4093 },
-	["Instinctual Appraisal"] 	={ [16] = 4076, [17] = 4090 },
-	["Impulsive Appraisal"] 	={ [16] = 4077, [17] = 4091 },
-	["Impulsive Appraisal 2"] 	={ [16] = 301, [17] = 302 },
-	["Single Mind"] 			={ [16] = 4084, [17] = 4098 },
-	["Dredge / Prune"] 			={ [16] = 4082, [17] = 4096 },
-	["Dredge 2 / Prune 2"] 		={ [16] = 4083, [17] = 4097 },
-	["Counsel"] 				={ [16] = 274, [17] = 275 },
-	["Solid / Ageless"] 		={ [16] = 232, [17] = 215 },
-	["Vigor / Brunt"] 			={ [16] = 233, [17] = 216 },
-	["Clear / Flora"] 			={ [16] = 4072, [17] = 4086 },
-	["King / Blessed"] 			={ [16] = 239, [17] = 222 },
-	["King 2/ Blessed 2"] 		={ [16] = 241, [17] = 224 },
-	["Bountiful"] 				={ [16] = 4073, [17] = 4087 },
-	["Bountiful 2"] 			={ [16] = 272, [17] = 273 },
-	["Stickler"] 				={ [16] = 4593, [17] = 4594 },
-	["The Giving Land"] 		={ [16] = 4589, [17] = 4590 },
-	["Pick Clean"] 				={ [16] = 4587, [17] = 4588 },
-	["Mountaineer / Pioneer"] 	={ [16] = 4605, [17] = 4606 },
-	["Twelve Bounty"] 			={ [16] = 280, [17] = 282 },
-	
-	["Scour"] 					={ [16] = 22182, [17] = 22186 },
-	["Brazen Prospector"] 		={ [16] = 22183, [17] = 22187 },
-	["Meticulous Prospector"] 	={ [16] = 22184, [17] = 22188 },
-	["Scrutiny"] 				={ [16] = 22185, [17] = 22189 },
-	["Collector's Focus"] 		={ [16] = 21205, [17] = 21206 },
-}
-
 function SkillMgr.Gather(item)
 	if (SkillMgr.IsYielding()) then
 		d("[SkillManager]: Wait a bit, yielding..")
@@ -3579,22 +3319,13 @@ function SkillMgr.Gather(item)
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used  ) then		-- takes care of los, range, facing target and valid target		
-                local realskilldata = SkillMgr.GetAction(skillid,1)
+				local realskilldata = SkillMgr.GetAction(skillid,1)
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
-					local found = false
-					for skillname,data in pairs(SkillMgr.MatchingGatherSkills) do
-						for job, sid in pairs(data) do
-							if (sid == skill.id) then
-								skillid = tonumber(data[Player.job]) or 0
-								realskilldata = SkillMgr.GetAction(skillid,1)
-								found = true
-								break
-							end
-						end
-						if (found) then
-							break
-						end
+					local equivalentId = FFXIVLib.API.Action.ResolveEquivalent(skill.id, Player.job, "gather")
+					if equivalentId then
+						skillid = equivalentId
+						realskilldata = SkillMgr.GetAction(skillid,1)
 					end
 				end
 
@@ -4036,7 +3767,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff ) then
-			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartyMemberWithBuff(FFXIVLib.API.Status.GetKnownDebuffsString(), skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -4068,7 +3799,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff ) then
-			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartySMemberWithBuff(FFXIVLib.API.Status.GetKnownDebuffsString(), skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -4306,7 +4037,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff ) then
-			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartyMemberWithBuff(FFXIVLib.API.Status.GetKnownDebuffsString(), skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -4338,7 +4069,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff ) then
-			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartySMemberWithBuff(FFXIVLib.API.Status.GetKnownDebuffsString(), skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -6087,6 +5818,7 @@ end
 function SkillMgr.FillSkillBook()
 	if (TimeSince(SkillMgr.lastBookUpdate) > 10000 or Player.job ~= SkillMgr.lastBookClass) then
 		SkillMgr.SkillBook = {[1] = {}, [9] = {}, [11] = {}}
+		local baseClass = FFXIVLib.API.ClassJob.GetBaseClass(Player.job)
 		
 		local types = {[1] = "Actions",[9] = "Crafting", [11] = "Pets"}
 		for actiontype,actiondesc in pairsByKeys(types) do
@@ -6094,7 +5826,7 @@ function SkillMgr.FillSkillBook()
 			if (table.valid(actionlist)) then
 				for actionid, action in pairs(actionlist) do
 					if ((actiontype ~= 1 or action.job ~= 0) and 
-						(not gSkillMgrFilterJob or actiontype ~= 1 or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) 
+						(not gSkillMgrFilterJob or actiontype ~= 1 or action.job == Player.job or action.job == baseClass))
 					then
 						if (not gSkillMgrFilterUsable or action.usable == true) then
 							SkillMgr.SkillBook[actiontype][actionid] = { 
@@ -6176,22 +5908,14 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				-- Check which type of conditionals to show.
 				local fighting, gathering, crafting = false, false, false
-				local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE","VPR","PCT",
-					"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
-				
-				for i,abrev in pairsByKeys(classes) do
-					if (_G["gSkillProfileValid"..abrev] == true) then
-						if (i <= 29) then
-							fighting = true
-							break
-						elseif (i >= 30 and i <= 32) then
-							gathering = true
-							break
-						elseif (i >= 33 and i <= 40) then
-							crafting = true
-							break
-						end
-					end
+				for _,abrev in pairsByKeys(FFXIVLib.API.ClassJob.GetAbbreviations("fighters") or {}) do
+					if (_G["gSkillProfileValid"..abrev] == true) then fighting = true break end
+				end
+				for _,abrev in pairsByKeys(FFXIVLib.API.ClassJob.GetAbbreviations("gatherers") or {}) do
+					if (_G["gSkillProfileValid"..abrev] == true) then gathering = true break end
+				end
+				for _,abrev in pairsByKeys(FFXIVLib.API.ClassJob.GetAbbreviations("crafters") or {}) do
+					if (_G["gSkillProfileValid"..abrev] == true) then crafting = true break end
 				end
 				
 				if (fighting) then
@@ -6836,9 +6560,9 @@ function SkillMgr.DrawManager()
 				end
 					
 				if (GUI:CollapsingHeader(GetString("Valid Classes"),"classes-header")) then
-					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE","VPR","PCT"}
-					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
-					local gatherers = {"MIN","BTN","FSH"}
+					local fighters = FFXIVLib.API.ClassJob.GetAbbreviations("fighters") or {}
+					local crafters = FFXIVLib.API.ClassJob.GetAbbreviations("crafters") or {}
+					local gatherers = FFXIVLib.API.ClassJob.GetAbbreviations("gatherers") or {}
 					
 					local count = 1
 					for i,abrev in pairsByKeys(fighters) do
@@ -6892,10 +6616,7 @@ function SkillMgr.DrawManager()
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								--if (SkillMgr.EditingSkill ~= prio) then
 									local classCheck = false
-									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST","SAM","RDM","BLU","GNB","DNC","RPR","SGE",
-										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
-									
-									for i,abrev in pairsByKeys(classes) do
+									for _,abrev in pairsByKeys(FFXIVLib.API.ClassJob.GetAbbreviations("editor_classes") or {}) do
 										if (_G["gSkillProfileValid"..abrev] == true) then
 											classCheck = true
 										end

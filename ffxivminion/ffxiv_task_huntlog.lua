@@ -2,20 +2,6 @@ ffxiv_task_huntlog = inheritsFrom(ml_task)
 ffxiv_task_huntlog.addon_process_elements = {}
 ffxiv_task_huntlog.addon_overwatch_elements = {}
 
---Translate jobs down to their class equivalent.
-ffxiv_task_huntlog.jobTranslate = {
-	[19] = 1,
-	[20] = 2,
-	[21] = 3,
-	[22] = 4,
-	[23] = 5,
-	[24] = 6,
-	[25] = 7,
-	[27] = 26,
-	[28] = 26,
-	[30] = 29,
-}
-
 function ffxiv_task_huntlog.Create()
     local newinst = inheritsFrom(ffxiv_task_huntlog)
     

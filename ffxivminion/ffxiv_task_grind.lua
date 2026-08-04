@@ -17,30 +17,6 @@ ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0
 
-ffxiv_task_grind.atmas = {
-	["Maiden"] = { name = "Maiden", 			hour = 1,	tele = 3, 	map = 148, item = 7851, mesh = "Central Shroud"},
-	["Scorpion"] = { name = "Scorpion", 		hour = 2,	tele = 20, 	map = 146, item = 7852, mesh = "Southern Thanalan"},
-	["Waterbearer"] = { name = "Waterbearer",	hour = 3, 	tele = 15, 	map = 139, item = 7853, mesh = "Upper La Noscea - Merged"},
-	["Goat"] = { name = "Goat", 				hour = 4, 	tele = 4, 	map = 152, item = 7854, mesh = "East Shroud"},
-	["Bull"] = { name = "Bull", 				hour = 5, 	tele = 18, 	map = 145, item = 7855, mesh = "Eastern Thanalan"},
-	["Ram"] = { name = "Ram", 					hour = 6, 	tele = 52, 	map = 134, item = 7856, mesh = "Middle La Noscea"},
-	["Twins"] = { name = "Twins", 				hour = 7, 	tele = 17, 	map = 140, item = 7857, mesh = "Western Thanalan"},
-	["Lion"] = { name = "Lion", 				hour = 8, 	tele = 16, 	map = 180, item = 7858, mesh = "Outer La Noscea"},
-	["Fish"] = { name = "Fish", 				hour = 9, 	tele = 10, 	map = 135, item = 7859, mesh = "Lower La Noscea"},
-	["Archer"] = { name = "Archer", 			hour = 10, 	tele = 7, 	map = 154, item = 7860, mesh = "North Shroud"},
-	["Scales"] = { name = "Scales", 			hour = 11, 	tele = 53, 	map = 141, item = 7861, mesh = "Central Thanalan"},
-	["Crab"] = { name = "Crab", 				hour = 12, 	tele = 14, 	map = 138, item = 7862, mesh = "Western La Noscea"},
-}
-
-ffxiv_task_grind.luminous = {
-	["Ice"] = 		{ name = "Ice", 		map = 397, item = 13569 },
-	["Earth"] = 	{ name = "Earth", 		map = 398, item = 13572 },
-	["Water"] = 	{ name = "Water", 		map = 399, item = 13574 },
-	["Lightning"] = { name = "Lightning", 	map = 400, item = 13573 },
-	["Fire"] = 		{ name = "Fire",		map = 402, item = 13571 },
-	["Wind"] = 		{ name = "Wind", 		map = 401, item = 13570 },
-}
-
 function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
 	local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18

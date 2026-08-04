@@ -6,10 +6,6 @@ ffxiv_craft.tracking = {
 	quickTimer = 0,
 	lastSetRecipe = 0,
 }
-ffxiv_craft.crafts = {
-	["CRP"] = 8,	["BSM"] = 9,	["ARM"] = 10,	["GSM"] = 11,
-	["LTW"] = 12,	["WVR"] = 13,	["ALC"] = 14,	["CUL"] = 15,
-}
 ffxiv_craft.itemCounts = {}
 ffxiv_craft.profilePath = GetLuaModsPath()..[[ffxivminion\CraftProfiles\]]
 ffxiv_craft.profiles = {}
@@ -21,44 +17,11 @@ ffxiv_craft.orderSelectorVisible = false
 ffxiv_craft.dictionaries = {}
 ffxiv_craft.dictionariesDisplay = {}
 ffxiv_craft.lastCraft = {}
+-- Old collectable stance IDs. Addons may still read this table.
 ffxiv_craft.collectors = {
-	[8] = 4560,
-	[9] = 4561,
-	[10] = 4562,
-	[11] = 4563,
-	[12] = 4565,
-	[13] = 4564,
-	[14] = 4566,
-	[15] = 4567,
+	[8] = 4560, [9] = 4561, [10] = 4562, [11] = 4563,
+	[12] = 4565, [13] = 4564, [14] = 4566, [15] = 4567,
 }
-ffxiv_craft.collectibles = {
-	-- Weekly (Custom Delivery)
-	-- Zhloe Alipoh
-	{ id = 17549, minimum = 55 },	--	Near Eastern Antique
-	{ id = 17550, minimum = 57 },	--	Coerthan Souvenir	
-	{ id = 17551, minimum = 59 },	--	Maelstrom Materiel	
-	{ id = 17552, minimum = 63 },	--	Heartfelt Gift	
-	{ id = 17553, minimum = 68 },	--	Orphanage Donation	
-	-- M 'naago
-	{ id = 20775, minimum = 157 },	--	Gyr Abanian Souvenir
-	{ id = 20776, minimum = 167 },	--	Far Eastern Antique	
-	{ id = 20777, minimum = 130 },	--	Gold Saucer Consolation Prize	
-	{ id = 20778, minimum = 130 },	--	M Tribe Sundries	
-	{ id = 20779, minimum = 104 },	--	Resistance Materiel
-	-- Kurenai
-	{ id = 23143, minimum = 195 },	--	Gyr Abanian Remedies	
-	{ id = 23144, minimum = 195 },	--	Anti-shark Harpoon
-	{ id = 23145, minimum = 130 },	--	Coerthan Cold-weather Gear
-	{ id = 23146, minimum = 130 },	--	Sui-no-Sato Special
-	{ id = 23147, minimum = 110 },	--	Cloud Pearl
-	-- Adkiragh
-	{ id = 24562, minimum = 233 },	--	Ishgardian Culinary Essentials
-	{ id = 24563, minimum = 233 },	--	Fermented Juice
-	{ id = 24564, minimum = 161 },	--	Signature Buuz Cookware
-	{ id = 24565, minimum = 161 },	--	Hard Place Decorative Furnishings 
-	{ id = 24566, minimum = 125 },	--	Arkhi Brewing Set
-}
-
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
 ffxiv_task_craft.addon_process_elements = {}
@@ -83,40 +46,17 @@ end
 function cd(var,level)
 	ff.debugLog(var, level, gCraftDebug, gCraftDebugLevel, false)
 end
--- Tea items by type index: { typeIndex = { {hqId, nqId}, ... } }
--- Ordered highest tier first so best available is returned
-local _teaItems = {
-	[2] = { -- Cunning
-		{1044169, 44169}, -- Tisane
-		{1036116, 36116}, -- Draught
-		{1027959, 27959}, -- Syrup
-		{1019884, 19884}, -- Tea
-	},
-	[3] = { -- Commanding
-		{1044168, 44168}, -- Tisane
-		{1036115, 36115}, -- Draught
-		{1027958, 27958}, -- Syrup
-		{1019883, 19883}, -- Tea
-	},
-	[4] = { -- Competent
-		{1044167, 44167}, -- Tisane
-		{1036114, 36114}, -- Draught
-		{1027957, 27957}, -- Syrup
-		{1019882, 19882}, -- Tea
-	},
-}
-
 function ffxiv_craft.CanUseTea()
 	if (IsCrafter(Player.job) and MissingBuff(Player.id,49,0,30)) then
 		local typesToCheck = {}
 		if gCraftTeaTypeIndex == 5 then
 			typesToCheck = {2, 3, 4}
-		elseif _teaItems[gCraftTeaTypeIndex] then
+		elseif FFXIVLib.API.Items.GetCraftingTeaItems(gCraftTeaTypeIndex) then
 			typesToCheck = {gCraftTeaTypeIndex}
 		end
 		
 		for _, typeIdx in ipairs(typesToCheck) do
-			for _, pair in ipairs(_teaItems[typeIdx]) do
+			for _, pair in ipairs(FFXIVLib.API.Items.GetCraftingTeaItems(typeIdx) or {}) do
 				for _, itemId in ipairs(pair) do
 					local item, action = GetItem(itemId)
 					if (item and action and not action.isoncd) then
@@ -1188,32 +1128,6 @@ function ffxiv_task_craft.SetModeOptions()
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
-function ffxiv_craft.EnsureCollectablePresetsMigrated()
-	if (IsNull(gRefreshCollectables, 0) >= 20200807) then
-		return true
-	end
-
-	local migrated = {}
-	for _, collectible in pairs(ffxiv_craft.collectibles) do
-		local name = FFXIVLib.API.Items.GetNameByID(collectible.id)
-		if not name then
-			return false
-		end
-		migrated[collectible.id] = {
-			name = name,
-			value = collectible.minimum,
-		}
-	end
-
-	gCraftCollectablePresets = migrated
-	GUI_Set("gCraftCollectablePresets", migrated)
-	Settings.FFXIVMINION.gCraftCollectablePresets = migrated
-	gRefreshCollectables = 20200807
-	Settings.FFXIVMINION.gRefreshCollectables = gRefreshCollectables
-	d("[Craft] Collectables Updated")
-	return true
-end
-
 -- New GUI.
 function ffxiv_task_craft:UIInit()
 	gCrafts = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
@@ -1245,8 +1159,6 @@ function ffxiv_task_craft:UIInit()
 	gCraftOrderSelect = "CRP"
 	gCraftDictionarySelectKeepSettings = false
 	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
-	gRefreshCollectables = ffxivminion.GetSetting("gRefreshCollectables",0)
-	
 		
 	gTeaSelection = {GetString("none"),GetString("CP"),GetString("Control"),GetString("Craftmanship"),GetString("Any")}
 	gCraftTeaList = ffxivminion.GetSetting("gCraftTeaList",GetString("none"))
@@ -1372,7 +1284,6 @@ ffxiv_task_craft.GUI = {
 }
 
 function ffxiv_task_craft:Draw()
-	ffxiv_craft.EnsureCollectablePresetsMigrated()
 	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	local tabs = self.GUI.main_tabs
 	-- Craft Mode Selections.
@@ -2292,8 +2203,7 @@ function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
 	local craftid = IsNull(craftid,0)
 	local maxattemptlevel = IsNull(maxattemptlevel,5)
 	if (craftid == 0) then
-		local crafts = ffxiv_craft.crafts
-		craftid = crafts[gCraftOrderSelect]
+		craftid = FFXIVLib.API.ClassJob.GetJobId(gCraftOrderSelect)
 	end
 	
 	if (craftid) then

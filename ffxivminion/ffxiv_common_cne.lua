@@ -463,60 +463,20 @@ function c_nextatma:evaluate()
 	end
 	
 	local map = Player.localmapid
-	local mapFound = false
-	local mapItem = nil
-	local itemFound = false
-	local getNext = false
-	local jpTime = GetJPTime()
+	local atmas = FFXIVMinionItem.GetRelicGrindData("atma")
 	
-	--First loop, check for best atma based on JP time theory.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		if ((tonumber(atma.hour) == jpTime.hour and jpTime.min <= 55) or
-			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.min > 55)) then
-			local haveBest = false
-			--local bestAtma = a
-			
-			local item = GetItem(atma.item)
-			if (item) then
-				haveBest = true
-			end
-		
-			if (not haveBest) then
-				if (atma.map ~= map) then
-					e_nextatma.atma = atma
-					return true
-				end
-			end
-		end
-	end
-	
-	--Second loop, check to see if we have this map's atma, and return false if we still don't have it yet.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
+	-- Stay in the current region until its Atma drops.
+	for _, atma in pairs(atmas) do
 		if (atma.map == map) then
-			local haveClosest = false
-			
-			local item = GetItem(atma.item)
-			if (item) then
-				haveClosest = true
-			end
-			
-			if (not haveClosest) then
-				--We're already on the map with the most appropriate atma and we don't have it
+			if not GetItem(atma.item) then
 				return false
 			end
 		end
 	end
 	
-	--Third loop, figure out which ones we do have, then go anywhere else.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		local found = false
-		
-		local item = GetItem(atma.item)
-		if (item) then
-			found = true
-		end
-		
-		if (not found) then
+	-- Otherwise move to a region whose Atma is still missing.
+	for _, atma in pairs(atmas) do
+		if not GetItem(atma.item) then
 			e_nextatma.atma = atma
 			return true
 		end
@@ -556,7 +516,7 @@ function c_nextluminous:evaluate()
 	
 	e_nextluminous.crystal = nil
 	
-	local crystals = ffxiv_task_grind.luminous
+	local crystals = FFXIVMinionItem.GetRelicGrindData("luminous")
 	
 	--Second loop, check to see if we have this map's atma, and return false if we still don't have it yet.
 	for i, crystal in pairs(crystals) do
@@ -958,23 +918,6 @@ end
 
 c_autopotion = inheritsFrom( ml_cause )
 e_autopotion = inheritsFrom( ml_effect )
-c_autopotion.potions = {
-	{ minlevel = 90, item = 38956 },
-	{ minlevel = 60, item = 23167 },
-	{ minlevel = 50, item = 13637 },
-	{ minlevel = 40, item = 4554 },
-	{ minlevel = 30, item = 4553 },
-	{ minlevel = 10, item = 4552 },
-	{ minlevel = 1, item = 4551 },
-}
-c_autopotion.ethers = {
-	{ minlevel = 60, item = 23168 },
-	{ minlevel = 50, item = 13638 },
-	{ minlevel = 40, item = 4558 },
-	{ minlevel = 30, item = 4557 },
-	{ minlevel = 10, item = 4556 },
-	{ minlevel = 1, item = 4555 },
-}
 c_autopotion.item = nil
 c_autopotion.lastPass = 0
 function c_autopotion:evaluate()
@@ -998,7 +941,7 @@ function c_autopotion:evaluate()
 				table.insert(findPotions,4564)
 			end
 		else 
-			local potions = c_autopotion.potions
+			local potions = FFXIVLib.API.Items.GetAutoConsumables("potion") or {}
 			if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
 				for k,itempair in ipairs(potions) do
 					if (plvl >= itempair.minlevel) then
@@ -1008,7 +951,7 @@ function c_autopotion:evaluate()
 				end
 			end
 			
-			local ethers = c_autopotion.ethers
+			local ethers = FFXIVLib.API.Items.GetAutoConsumables("ether") or {}
 			if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
 				for k,itempair in ipairs(ethers) do
 					if (plvl >= itempair.minlevel) then
@@ -1475,101 +1418,10 @@ function c_teleporttomap:evaluate()
 			end
 		
 			local attunedAetherytes = GetAttunedAetheryteList()
-			
-			-- Fall back check to see if we can get to EL, and from there to the destination.
-			if destMapID == 820 then
-				for k,aetheryte in pairs(attunedAetherytes) do
-					if (aetheryte.id == 134 and GilCount() >= aetheryte.price) then
-						local aethPos = {x = 0, y = 82, z = 0}
-						local backupPos = ml_nav_manager.GetNextPathPos(aethPos,820,destMapID)
-						if (table.valid(backupPos)) then
-							d("Found an attuned backup position aetheryte for mapid ["..tostring(destMapID).."].")
-							e_teleporttomap.aeth = aetheryte
-							return true
-						end
-					end
-				end
-				
-				if (not FFXIVLib.API.Map.CanUseAetheryte(134)) then
-				-- Fall back alternate check to see if we can get to EL, and from there to the destination.
-					for k,aetheryte in pairs(attunedAetherytes) do
-						if (aetheryte.id == 138 and GilCount() >= aetheryte.price) then
-							local aethPos = {x = -244, y = 20, z = 385}
-							local backupPos = ml_nav_manager.GetNextPathPos({x = -244, y = 20, z = 385},814,820)
-							if (table.valid(backupPos)) then
-								--d("Found an attuned backup position aetheryte for 820 in Kholusia.")
-								e_teleporttomap.aeth = aetheryte
-								return true
-							end
-						end
-					end
-				end
-			end
-			-- Fall back check to see if we can get to Crystal, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 133 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -65, y = 4, z = 0}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,819,destMapID)
-					if (table.valid(backupPos)) then
-						d("using block 2")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Foundation, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,destMapID)
-					if (table.valid(backupPos)) then
-						d("using block 3")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Thavnair, and from there to
-			-- the destination (Radz-at-Han 963 aetheryte is quest-locked; walk in
-			-- from Thavnair 957 when entry is unlocked).
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 169 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 192.39, y = 5.80, z = 625.79}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,957,destMapID)
-					if (table.valid(backupPos)) then
-						d("using block 4")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			
-			-- Fall back check to see if we can get to Idyllshire, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,destMapID)
-					--table.print(ml_nav_manager.GetNextPathPos({x = 66.53, y = 207.82, z = -26.03},478,399))
-					if (table.valid(backupPos)) then
-						d("using block 5")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
-			end
-			-- Fall back check to see if we can get to Tuliyollal, and from there to the destination.
-			for k,aetheryte in pairs(attunedAetherytes) do
-				if (aetheryte.id == 216 and GilCount() >= aetheryte.price) then
-					local aethPos = {x = -24, y = 0, z = 7.5}
-					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,1185,destMapID)
-					if (table.valid(backupPos)) then
-						d("Found an attuned backup position aetheryte for mapid 3["..tostring(destMapID).."].")
-						e_teleporttomap.aeth = aetheryte
-						return true
-					end
-				end
+			local fallbackAetheryte = FFXIVMinionMap.GetFallbackTravelAetheryte(destMapID, attunedAetherytes)
+			if fallbackAetheryte then
+				e_teleporttomap.aeth = fallbackAetheryte
+				return true
 			end
 		end
 	else
@@ -3404,12 +3256,7 @@ function c_mount:evaluate()
 		return true
 	end
 	
-	noMountMaps = {
-		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
-		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
-	}
-	
-    if (noMountMaps[Player.localmapid]) then
+	if not FFXIVLib.API.Map.CanMount(Player.localmapid) then
 		return false
 	end
 	
@@ -3554,12 +3401,7 @@ function c_battlemount:evaluate()
 		return true
 	end
 	
-	noMountMaps = {
-		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
-		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
-	}
-	
-    if (noMountMaps[Player.localmapid]) then
+	if not FFXIVLib.API.Map.CanMount(Player.localmapid) then
 		return false
 	end
 	
@@ -5992,19 +5834,6 @@ c_classexchange.Item = 0
 c_classexchange.count = 0
 c_classexchange.set = false
 c_classexchange.time = 0
-c_classexchange.npcids = {
-	[8] = 1028326,
-	[9] = 1027233,
-	[10] = 1027233,
-	[11] = 1027233,
-	[12] = 1028326,
-	[13] = 1028326,
-	[14] = 1027235,
-	[15] = 1027235,
-	[16] = 1027236,
-	[17] = 1027236,
-	[18] = 1027237,
-}
 function c_classexchange:evaluate()
 
 	if (IsControlOpen("HelpWindow")) then
@@ -6015,7 +5844,8 @@ function c_classexchange:evaluate()
 		return 
 	end
 	local uuid = GetUUID()
-	local npcid = c_classexchange.npcids[Player.job]	
+	local npcid = FFXIVLib.API.Shop.GetClassDeliveryNPC(Player.job)
+	if not npcid then return false end
 	
 	if (IsControlOpen("HugeCraftworksSupply")) then
 	local doTurnin = true
