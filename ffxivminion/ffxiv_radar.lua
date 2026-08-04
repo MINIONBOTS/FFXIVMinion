@@ -42,7 +42,6 @@ function ffxiv_radar.EnsureData()
 end
 
 function ffxiv_radar.Init()
-	Settings.ffxiv_radar = Settings.ffxiv_radar or {}
 	ffxiv_radar.Enable3D = Settings.ffxiv_radar.Enable3D or false
 	ffxiv_radar.Enable2D = Settings.ffxiv_radar.Enable2D or false
 	if ffxiv_radar.Enable3D or ffxiv_radar.Enable2D then

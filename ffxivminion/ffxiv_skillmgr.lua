@@ -87,69 +87,22 @@ SkillMgr.forceStop = false
 SkillMgr.preCombat = false
 SkillMgr.doLoad = true
 
+-- Combat defaults are supplied by ACR. Skill Manager continues to load saved
+-- and user-authored combat profiles, but only gathering profiles are bundled.
 SkillMgr.StartingProfiles = {
-	[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB",
-	[FFXIV.JOBS.PALADIN] = "Paladin_SHB",
-	[FFXIV.JOBS.MARAUDER] = "Warrior_SHB",
-	[FFXIV.JOBS.WARRIOR] = "Warrior_SHB",
-	[FFXIV.JOBS.PUGILIST] = "Monk",
-	[FFXIV.JOBS.MONK] = "Monk",
-	[FFXIV.JOBS.LANCER] = "Dragoon_SHB",
-	[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB",
-	[FFXIV.JOBS.ARCHER] = "Bard_SHB",
-	[FFXIV.JOBS.BARD] = "Bard_SHB",
-	[FFXIV.JOBS.CONJURER] = "Whitemage_SHB",
-	[FFXIV.JOBS.WHITEMAGE] = "Whitemage_SHB",
-	[FFXIV.JOBS.THAUMATURGE] = "Blackmage_SHB",
-	[FFXIV.JOBS.BLACKMAGE] = "Blackmage_SHB",
-	[FFXIV.JOBS.ARCANIST] = "Summoner_SHB",
-	[FFXIV.JOBS.SUMMONER] = "Summoner_SHB",
-	[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB",
 	[FFXIV.JOBS.BOTANIST] = "Gathering_Leveling",
 	[FFXIV.JOBS.MINER] = "Gathering_Leveling",
-	[FFXIV.JOBS.ROGUE] = "Ninja52",
-	[FFXIV.JOBS.NINJA] = "Ninja52",
-	[FFXIV.JOBS.MACHINIST] = "Machinist_SHB",
-	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB",
-	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB",
-	[FFXIV.JOBS.SAMURAI] = "Samurai_SHB",
-	[FFXIV.JOBS.REDMAGE] = "Redmage_SHB",
-	[FFXIV.JOBS.BLUEMAGE] = "BlueMage",
-	[FFXIV.JOBS.DANCER] = "Dancer",
-	[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker",
-	[FFXIV.JOBS.REAPER] = "Reaper",
-	[FFXIV.JOBS.SAGE] = "Sage",
-	[FFXIV.JOBS.VIPER] = "Viper",
-	[FFXIV.JOBS.PICTOMANCER] = "Pictomancer",
 }
 
 SkillMgr.ExtraProfiles = {
-	"Aetherial_Gathering",
+	"Custom_Task",
 	"Gathering_Multi",
-	"Gathering_530",
 	"Gathering_Clusters",
 	"Gathering_Collectables",
-	"Gathering_Collectables_2",
 	"Gathering_Crystals",
-	"Gathering_Custom",
-	"Gathering_Favors",
-	"Gathering_SB_3_Swings",
-	"Gathering_SB_4_Swings",
-	"Gathering_HQ",
-	"Gathering_Leveling",
-	"Gathering_Scrips",	
 	"Gathering_Shards",	
-	"Custom_Task",
-	"Aetherial_Gathering_SHB",
-	
-	"[Craft] Leveling",
-	"[Craft] 30+ 1 Skill Complete",
-	"[Craft] 70+ 1 Skill Complete",
-	
-	"[Craft] 30+ 2 Skill Complete",
-	"[Craft] 70+ 2 Skill Complete",
-	"Ninja52",
 }
+SkillMgr.defaultProfilesUpdated = false
 
 SkillMgr.lastCheckDetails = {}
 SkillMgr.lastCheckTime = 0
@@ -226,36 +179,6 @@ function SkillMgr.UpdateBasicSkills()
 end
 
 function SkillMgr.UpdateDefaultProfiles()
-	-- Strip default field values for reading clarity.
-	local profileList = FolderList(SkillMgr.defaultProfilePath,[[(.*)lua$]])
-    if (table.valid(profileList)) then		
-		for i,profile in pairs(profileList) do
-			local defaultFileData = persistence.load(profile)
-			if (defaultFileData) then
-				if (table.valid(defaultFileData.skills)) then
-					local fieldDefaults = {}
-					for fieldid, defaults in pairs(SkillMgr.Variables) do
-						fieldDefaults[defaults.profile] = defaults.default
-					end
-					
-					local requiredUpdate = false
-					for prio,skill in pairs(defaultFileData.skills) do
-						for field,fieldvalue in pairs(skill) do
-							if (fieldvalue == fieldDefaults[field] or fieldDefaults[field] == nil) then
-								defaultFileData.skills[prio][field] = nil
-								requiredUpdate = true
-							end
-						end
-					end
-					if (requiredUpdate) then
-						persistence.store(defaultPath, defaultFileData)
-						--d("Updated default profile ["..tostring(profile).."].")
-					end
-				end
-            end
-        end	
-    end
-
 	for _,profile in pairs(SkillMgr.StartingProfiles) do
 		local filePath = SkillMgr.profilePath..profile..".lua"
 		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
@@ -289,6 +212,16 @@ function SkillMgr.UpdateDefaultProfiles()
 			end
 		end
 	end
+end
+
+function SkillMgr.EnsureDefaultProfiles()
+	if (SkillMgr.defaultProfilesUpdated) then
+		return false
+	end
+
+	SkillMgr.UpdateDefaultProfiles()
+	SkillMgr.defaultProfilesUpdated = true
+	return true
 end
 
 SkillMgr.ActionTypes = {
@@ -706,7 +639,6 @@ SkillMgr.Variables = {
 	SKM_CNCLD = { default = false, cast = "boolean", profile = "isconcealed", readable = "", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", readable = "", section = "gathering"},
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", readable = "", section = "gathering"},
-	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", readable = "", section = "gathering"},
 	SKM_CollRarityLT = { default = 0, cast = "number", profile = "collraritylt", readable = "", section = "gathering"},
 	SKM_CollRarityGT = { default = 0, cast = "number", profile = "collraritygt", readable = "", section = "gathering"},
 	SKM_CollWearLT = { default = 0, cast = "number", profile = "collwearlt", readable = "", section = "gathering"},
@@ -716,8 +648,6 @@ SkillMgr.Variables = {
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", readable = "", section = "gathering"},
 	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", readable = "", section = "gathering"},
 }
-
-SkillMgr.UpdateDefaultProfiles()
 
 function SkillMgr.ModuleInit() 	
 	SkillMgr.GUI.manager.main_tabs = GUI_CreateTabs("Edit,Add,Debug",false)
@@ -738,97 +668,6 @@ function SkillMgr.ModuleInit()
 	end	
 
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
-	gSMProfileUpdates = ffxivminion.GetSetting("gSMProfileUpdates",0)
-
-	if gSMProfileUpdates < 20200805 then
-		if In(gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR],"Paladin",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Paladin_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.MARAUDER],"Warrior",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Warrior_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.LANCER],"Dragoon",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Dragoon_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.ARCHER],"Bard",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Bard_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.CONJURER],"Whitemage",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Whitemage_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE],"Blackmage",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Blackmage_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.PALADIN],"Paladin",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.WARRIOR],"Warrior",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.DRAGOON],"Dragoon",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.BARD],"Bard",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE],"Whitemage",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "Whitemage_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE],"Blackmage",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Blackmage_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.ARCANIST],"Summoner",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Summoner_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.SUMMONER],"Summoner",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR],"Scholar",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT],"DarkKnight",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.MACHINIST],"Machinist",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN],"Astrologian",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.SAMURAI],"Samurai",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.SAMURAI] = "Samurai_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.REDMAGE],"Redmage",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.REDMAGE] = "Redmage_SHB"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.DANCER],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.DANCER] = "Dancer"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.GUNBREAKER] = "Gunbreaker"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.REAPER],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.REAPER] = "Reaper"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.SAGE],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.SAGE] = "Sage"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.VIPER],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.VIPER] = "Viper"
-		end
-		if In(gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER],"None",nil) then
-			gSMDefaultProfiles[FFXIV.JOBS.PICTOMANCER] = "Pictomancer"
-		end
-		if In(GetGameRegion(),1,2) then
-			if In(gSMDefaultProfiles[FFXIV.JOBS.ROGUE],"Ninja","Rogue",nil) then
-				gSMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Ninja52"
-			end
-			if In(gSMDefaultProfiles[FFXIV.JOBS.NINJA],"Ninja","Rogue",nil) then
-				gSMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja52"
-			end
-		end
-		Settings.FFXIVMINION.gSMProfileUpdates = 20200805
-	end
 	
 	gSkillManagerQueueing = ffxivminion.GetSetting("gSkillManagerQueueing",false)
 	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug",false)
@@ -949,9 +788,13 @@ function SkillMgr.ModuleInit()
 end
 
 function SkillMgr.LoadInit()
+	local starterDefault = SkillMgr.StartingProfiles[Player.job]
+	if (starterDefault and SkillMgr.EnsureDefaultProfiles()) then
+		SkillMgr.UpdateProfiles()
+	end
+
 	gSkillProfile = gSMDefaultProfiles[Player.job]
 	if (not gSkillProfile) then
-		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
 			local filePath = SkillMgr.profilePath..starterDefault..".lua"
 			if (FileExists(filePath)) then
@@ -3488,10 +3331,6 @@ function SkillMgr.Gather(item)
 								castable = false
 							end
 							
-							if (tonumber(skill.itemhqchancemin) > 0 and item and (item.hqchance == 255 or item.hqchance < tonumber(skill.itemhqchancemin))) then
-								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the hq chance max check.")
-								castable = false
-							end
 						end
 					end
 					
@@ -6500,7 +6339,6 @@ function SkillMgr.DrawGatherEditor()
 		GUI:Text(GetString("Wear <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
 		GUI:Text(GetString("Wear =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearEQ",SKM_CollWearEQ,0,0),"SKM_CollWearEQ"); GUI:NextColumn();
 		GUI:Text(GetString("Chance <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemChanceMax",SKM_ItemChanceMax,0,0),"SKM_ItemChanceMax"); GUI:NextColumn();	
-		GUI:Text(GetString("HQ Chance >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemHQChanceMin",SKM_ItemHQChanceMin,0,0),"SKM_ItemHQChanceMin"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Time Since Last Cast(s) >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_GSecsPassed",SKM_GSecsPassed,0,0,2),"SKM_GSecsPassed"); GUI:NextColumn();
 		GUI:Text(GetString("Has Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	

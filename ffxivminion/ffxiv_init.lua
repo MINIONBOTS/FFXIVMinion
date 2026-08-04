@@ -401,19 +401,6 @@ function ml_global_information.Init()
 		end
 	end
 	
-	-- Load class files here instead of the module.def
-	local classFiles = FolderList(GetLuaModsPath().."ffxivminion\\class_routines")
-	if (classFiles) then
-		for i,file in pairs(classFiles) do
-			if ( string.ends(file,".lua") ) then
-				local file, e = persistence.load(GetLuaModsPath().."ffxivminion\\class_routines\\"..file)
-				if (e) then
-					d(e)
-				end
-			end
-		end		
-	end
-
 	local ffxiv_mainmenu = {
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	

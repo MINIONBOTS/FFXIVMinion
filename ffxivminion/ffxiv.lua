@@ -1268,6 +1268,177 @@ function ffxivminion.SetMode(mode)
 	end
 end
 
+function ffxivminion.GetRedMageRange()
+	if (Player.level >= 2) then
+		return 24
+	end
+	return 2
+end
+
+-- Compact replacement for the legacy class_routines files. The metadata is
+-- always available, while each job's .info settings remain lazy.
+ffxivminion.classMetadata = {}
+function ffxivminion.RegisterClassMetadata(jobId, name, range, settingsType, mode)
+	local classData = { name = name, range = range, settingsType = settingsType, mode = mode }
+	ffxivminion.classMetadata[jobId] = classData
+	-- Preserve active addon compatibility without loading a separate script.
+	_G[name] = classData
+end
+
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ARCANIST, "ffxiv_combat_arcanist", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ARCHER, "ffxiv_combat_archer", 24, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.BARD, "ffxiv_combat_bard", 24, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.BLACKMAGE, "ffxiv_combat_blackmage", 24, "caster")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.CONJURER, "ffxiv_combat_conjurer", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.DRAGOON, "ffxiv_combat_dragoon", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.GLADIATOR, "ffxiv_combat_gladiator", 2, "tank")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.LANCER, "ffxiv_combat_lancer", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.MARAUDER, "ffxiv_combat_marauder", 2, "tank")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.MONK, "ffxiv_combat_monk", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.PALADIN, "ffxiv_combat_paladin", 2, "tank")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.PUGILIST, "ffxiv_combat_pugilist", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.SCHOLAR, "ffxiv_combat_scholar", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.SUMMONER, "ffxiv_combat_summoner", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.THAUMATURGE, "ffxiv_combat_thaumaturge", 24, "caster")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.WARRIOR, "ffxiv_combat_warrior", 2, "tank")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.WHITEMAGE, "ffxiv_combat_whitemage", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ROGUE, "ffxiv_combat_rogue", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.NINJA, "ffxiv_combat_ninja", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.MACHINIST, "ffxiv_combat_machinist", 24, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.DARKKNIGHT, "ffxiv_combat_darkknight", 2, "tank")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ASTROLOGIAN, "ffxiv_combat_astrologian", 24, "mana")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.REDMAGE, "ffxiv_combat_redmage", ffxivminion.GetRedMageRange, "redmage")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.SAMURAI, "ffxiv_combat_samurai", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.BLUEMAGE, "ffxiv_combat_bluemage", 24, "caster")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.GUNBREAKER, "ffxiv_combat_gunbreaker", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.DANCER, "ffxiv_combat_dancer", 14, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.REAPER, "ffxiv_combat_reaper", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.SAGE, "ffxiv_combat_sage", 24, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.VIPER, "ffxiv_combat_viper", 2, "standard")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.PICTOMANCER, "ffxiv_combat_pictomancer", 24, "standard")
+
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.BOTANIST, "ffxiv_gather_botanist", 3, "mana", "gatherMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.FISHER, "ffxiv_gather_fisher", 3, "mana", "fishMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.MINER, "ffxiv_gather_miner", 3, "mana", "gatherMode")
+
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.CARPENTER, "ffxiv_crafting_carpenter", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.BLACKSMITH, "ffxiv_crafting_blacksmith", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ARMORER, "ffxiv_crafting_armorer", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.GOLDSMITH, "ffxiv_crafting_goldsmith", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.LEATHERWORKER, "ffxiv_crafting_leatherworker", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.WEAVER, "ffxiv_crafting_weaver", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.ALCHEMIST, "ffxiv_crafting_alchemist", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata(FFXIV.JOBS.CULINARIAN, "ffxiv_crafting_culinarian", 3, "mana", "craftMode")
+ffxivminion.RegisterClassMetadata = nil
+
+------------------------------------------------------------
+-- GetFallbackClassRange
+--
+-- Uses current action data when a newly released job has no curated metadata.
+-- @param  jobId  Numeric class/job ID reported by the game.
+-- @return (number) Conservative movement/attack range.
+------------------------------------------------------------
+function ffxivminion.GetFallbackClassRange(jobId)
+	if (FFXIVMinionAction and FFXIVMinionAction.GetRepresentativeGCD) then
+		local ok, actionId = pcall(FFXIVMinionAction.GetRepresentativeGCD, jobId, false, Player and Player.level)
+		if (ok and type(actionId) == "table") then
+			actionId = actionId[1]
+		end
+		if (ok and type(actionId) == "number" and ActionList) then
+			local action = ActionList:Get(1, actionId)
+			local actionRange = action and tonumber(action.range) or 0
+			if (actionRange > 2) then
+				return actionRange - 1
+			end
+		end
+	end
+	return 2
+end
+
+------------------------------------------------------------
+-- GetClassMetadata
+--
+-- Creates one bounded fallback entry for future jobs so class initialization
+-- continues until curated metadata is added in a bot update.
+-- @param  jobId  Numeric class/job ID reported by the game.
+-- @return (table|nil) Curated or fallback class metadata.
+------------------------------------------------------------
+function ffxivminion.GetClassMetadata(jobId)
+	if (type(jobId) ~= "number") then
+		return nil
+	end
+
+	local classData = ffxivminion.classMetadata[jobId]
+	if (classData) then
+		return classData
+	end
+
+	local name = "ffxiv_job_"..tostring(jobId)
+	classData = {
+		name = name,
+		range = ffxivminion.GetFallbackClassRange(jobId),
+		settingsType = "standard",
+		fallback = true,
+	}
+	ffxivminion.classMetadata[jobId] = classData
+	_G[name] = classData
+	d("[CheckClass] Using generic metadata for unknown job ID "..tostring(jobId)..".")
+	return classData
+end
+
+------------------------------------------------------------
+-- BuildClassOptions
+--
+-- @param  classData  Compact class metadata entry.
+-- @return (table) Fresh settings object safe for per-job mutation.
+------------------------------------------------------------
+function ffxivminion.BuildClassOptions(classData)
+	local restHP, restMP, fleeHP, useSprint = 75, 0, 35, "0"
+	if (classData.settingsType == "mana") then
+		restMP = 30
+		useSprint = "1"
+	elseif (classData.settingsType == "caster") then
+		useSprint = "1"
+	elseif (classData.settingsType == "tank") then
+		restHP = 70
+		fleeHP = 25
+	elseif (classData.settingsType == "redmage") then
+		restHP = 50
+		restMP = 30
+		useSprint = "1"
+	end
+
+	return {
+		settings = {
+			gRestHP = restHP,
+			gRestMP = restMP,
+			gPotionHP = 50,
+			gPotionMP = 0,
+			gFleeHP = fleeHP,
+			gFleeMP = 0,
+			gUseSprint = useSprint,
+		}
+	}
+end
+
+------------------------------------------------------------
+-- GetClassOptionsPath
+--
+-- Preserves legacy .info filenames and creates the settings folder lazily.
+-- @param  classData  Compact class metadata entry.
+-- @return (string) Full path to the job's settings file.
+------------------------------------------------------------
+function ffxivminion.GetClassOptionsPath(classData)
+	if (not classData.optionsPath) then
+		local directory = GetLuaModsPath()..[[ffxivminion\class_routines\]]
+		if (not FolderExists(directory)) then
+			FolderCreate(directory)
+		end
+		classData.optionsPath = directory..classData.name..".info"
+	end
+	return classData.optionsPath
+end
+
 function ffxivminion.VerifyClassSettings()
 	--Perform initial load.
 	ffxivminion.LoadClassSettings()
@@ -1310,8 +1481,9 @@ function ffxivminion.VerifyClassSettings()
 			end
 		end
 		if (requiredUpdate) then
-			d("VerifyClassSettings: Saving altered settings in : " .. tostring(currentClass.optionsPath))
-			persistence.store(currentClass.optionsPath, classOptions)
+			local optionsPath = ffxivminion.GetClassOptionsPath(currentClass)
+			d("VerifyClassSettings: Saving altered settings in : " .. tostring(optionsPath))
+			persistence.store(optionsPath, classOptions)
 
 			--Reload settings if they were altered.
 			ffxivminion.LoadClassSettings()
@@ -1327,7 +1499,7 @@ function ffxivminion.SaveClassSettings(strName, value)
 			local classSettings = classOptions.settings
 			if (classSettings) then
 				classSettings[strName] = value
-				persistence.store(currentClass.optionsPath, classOptions)
+				persistence.store(ffxivminion.GetClassOptionsPath(currentClass), classOptions)
 			end
 		end
 	end
@@ -1336,7 +1508,10 @@ end
 function ffxivminion.LoadClassSettings()
 	local currentClass = ml_global_information.CurrentClass
 	if (currentClass) then
-		local optionsPath = currentClass.optionsPath
+		local optionsPath = ffxivminion.GetClassOptionsPath(currentClass)
+		if (not FileExists(optionsPath)) then
+			persistence.store(optionsPath, ffxivminion.BuildClassOptions(currentClass))
+		end
 		local options, e = persistence.load(optionsPath)
 		if (options) then
 			currentClass.options = options
@@ -1345,7 +1520,7 @@ function ffxivminion.LoadClassSettings()
 				d("[LoadClassSettings] : Unable to find settings table in options file.")
 			end
 		else
-			d("[LoadClassSettings] :" .. e)
+			d("[LoadClassSettings] :" .. tostring(e))
 		end
 	else
 		d("[LoadClassSettings]: currentClass was invalid.")
@@ -1369,119 +1544,60 @@ function ffxivminion.UseClassSettings()
 end
 
 function ffxivminion.CheckClass()
-	if (not table.valid(ml_global_information.classes)) then
-		ml_global_information.classes = {
-			[FFXIV.JOBS.ARCANIST] = ffxiv_combat_arcanist,
-			[FFXIV.JOBS.ARCHER] = ffxiv_combat_archer,
-			[FFXIV.JOBS.BARD] = ffxiv_combat_bard,
-			[FFXIV.JOBS.BLACKMAGE] = ffxiv_combat_blackmage,
-			[FFXIV.JOBS.CONJURER] = ffxiv_combat_conjurer,
-			[FFXIV.JOBS.DRAGOON] = ffxiv_combat_dragoon,
-			[FFXIV.JOBS.GLADIATOR] = ffxiv_combat_gladiator,
-			[FFXIV.JOBS.LANCER] = ffxiv_combat_lancer,
-			[FFXIV.JOBS.MARAUDER] = ffxiv_combat_marauder,
-			[FFXIV.JOBS.MONK] = ffxiv_combat_monk,
-			[FFXIV.JOBS.PALADIN] = ffxiv_combat_paladin,
-			[FFXIV.JOBS.PUGILIST] = ffxiv_combat_pugilist,
-			[FFXIV.JOBS.SCHOLAR] = ffxiv_combat_scholar,
-			[FFXIV.JOBS.SUMMONER] = ffxiv_combat_summoner,
-			[FFXIV.JOBS.THAUMATURGE] = ffxiv_combat_thaumaturge,
-			[FFXIV.JOBS.WARRIOR] = ffxiv_combat_warrior,
-			[FFXIV.JOBS.WHITEMAGE] = ffxiv_combat_whitemage,
-			[FFXIV.JOBS.ROGUE] = ffxiv_combat_rogue,
-			[FFXIV.JOBS.NINJA] = ffxiv_combat_ninja,
-			[FFXIV.JOBS.MACHINIST] = ffxiv_combat_machinist,
-			[FFXIV.JOBS.DARKKNIGHT] = ffxiv_combat_darkknight,
-			[FFXIV.JOBS.ASTROLOGIAN] = ffxiv_combat_astrologian,
-			[FFXIV.JOBS.REDMAGE] = ffxiv_combat_redmage,
-			[FFXIV.JOBS.SAMURAI] = ffxiv_combat_samurai,
-			[FFXIV.JOBS.BLUEMAGE] = ffxiv_combat_bluemage,
-			[FFXIV.JOBS.GUNBREAKER] = ffxiv_combat_gunbreaker,
-			[FFXIV.JOBS.DANCER] = ffxiv_combat_dancer,
-			[FFXIV.JOBS.REAPER] = ffxiv_combat_reaper,
-			[FFXIV.JOBS.SAGE] = ffxiv_combat_sage,
-			[FFXIV.JOBS.VIPER] = ffxiv_combat_viper,
-			[FFXIV.JOBS.PICTOMANCER] = ffxiv_combat_pictomancer,
-
-			[FFXIV.JOBS.BOTANIST] = ffxiv_gather_botanist,
-			[FFXIV.JOBS.FISHER] = ffxiv_gather_fisher,
-			[FFXIV.JOBS.MINER] = ffxiv_gather_miner,
-
-			[FFXIV.JOBS.CARPENTER] = ffxiv_crafting_carpenter,
-			[FFXIV.JOBS.BLACKSMITH] = ffxiv_crafting_blacksmith,
-			[FFXIV.JOBS.ARMORER] = ffxiv_crafting_armorer,
-			[FFXIV.JOBS.GOLDSMITH] = ffxiv_crafting_goldsmith,
-			[FFXIV.JOBS.LEATHERWORKER] = ffxiv_crafting_leatherworker,
-			[FFXIV.JOBS.WEAVER] = ffxiv_crafting_weaver,
-			[FFXIV.JOBS.ALCHEMIST] = ffxiv_crafting_alchemist,
-			[FFXIV.JOBS.CULINARIAN] = ffxiv_crafting_culinarian,
-		}
+	if (ml_global_information.classes ~= ffxivminion.classMetadata) then
+		ml_global_information.classes = ffxivminion.classMetadata
 	end
 
-	local playerClass = ml_global_information.classes[Player.job]
+	local playerClass = ffxivminion.GetClassMetadata(Player.job)
 	if (not playerClass) then
-		ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
+		ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class metadata.")
 		return
 	end
 
-	if (ml_global_information.CurrentClass == nil) then
-		ml_global_information.CurrentClass = playerClass
-		ml_global_information.CurrentClassID = Player.job
-		local baseRange = 2
-		if (type(playerClass.range) == "function") then
-			baseRange = playerClass.range()
-		elseif (type(playerClass.range) == "number") then
-			baseRange = playerClass.range
-		end
-
-		ml_global_information.AttackRange = baseRange
-		SkillMgr.UseDefaultProfile()
-		SkillMgr.UpdateBasicSkills()
-		ffxivminion.VerifyClassSettings()
-		ffxivminion.UseClassSettings()
+	if (ml_global_information.CurrentClassID == Player.job and ml_global_information.CurrentClass == playerClass) then
 		return
-
 	end
-	if (ml_global_information.CurrentClassID ~= Player.job) then
-		ml_global_information.CurrentClass = playerClass
-		ml_global_information.CurrentClassID = Player.job
-		local baseRange = 2
-		if (type(playerClass.range) == "function") then
-			baseRange = playerClass.range()
-		elseif (type(playerClass.range) == "number") then
-			baseRange = playerClass.range
+
+	local previousClass = ml_global_information.CurrentClass
+	local initialLoad = previousClass == nil
+	if (previousClass and previousClass ~= playerClass) then
+		-- Only the active job retains its parsed settings table.
+		previousClass.options = nil
+	end
+
+	ml_global_information.CurrentClass = playerClass
+	ml_global_information.CurrentClassID = Player.job
+
+	local baseRange = 2
+	if (type(playerClass.range) == "function") then
+		baseRange = playerClass.range()
+	elseif (type(playerClass.range) == "number") then
+		baseRange = playerClass.range
+	end
+	ml_global_information.AttackRange = baseRange
+
+	SkillMgr.UseDefaultProfile()
+	SkillMgr.UpdateBasicSkills()
+	ffxivminion.VerifyClassSettings()
+	ffxivminion.UseClassSettings()
+
+	if (initialLoad) then
+		return
+	end
+
+	-- Re-warm FFXIVLib caches for the new job's gear and actions.
+	FFXIVData_PreWarmGear()
+	FFXIVData_PreWarmActions(Player.job)
+
+	if (gBotMode ~= "questMode") then
+		local newModeName = playerClass.mode or ""
+		-- Default to Assist after leaving a crafting, gathering, or fishing job.
+		if (newModeName == "" and (gBotMode == "gatherMode" or gBotMode == "fishMode" or gBotMode == "craftMode")) then
+			newModeName = "assistMode"
 		end
-		ml_global_information.AttackRange = baseRange
-		SkillMgr.UseDefaultProfile()
-		SkillMgr.UpdateBasicSkills()
-		ffxivminion.VerifyClassSettings()
-		ffxivminion.UseClassSettings()
 
-		-- Re-warm FFXIVLib caches for the new job's gear and actions.
-		FFXIVData_PreWarmGear()
-		FFXIVData_PreWarmActions(Player.job)
-
-		-- autosetting the correct botmode
-
-		if (gBotMode ~= "questMode") then
-			local newModeName = ""
-			if (ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
-				newModeName = "gatherMode"
-			elseif (ml_global_information.CurrentClass == ffxiv_gather_fisher) then
-				newModeName = "fishMode"
-			elseif (ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith
-					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
-					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
-					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-				newModeName = "craftMode"
-				--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-			elseif (gBotMode == "gatherMode" or gBotMode == "fishMode" or gBotMode == "craftMode") then
-				newModeName = "assistMode"
-			end
-
-			if (gBotMode ~= newModeName and newModeName ~= "") then
-				--ffxivminion.SwitchMode(newModeName)
-			end
+		if (gBotMode ~= newModeName and newModeName ~= "") then
+			--ffxivminion.SwitchMode(newModeName)
 		end
 	end
 end
@@ -1861,8 +1977,7 @@ function ml_global_information.DrawMainFull()
 							end
 						end
 						if (GUI:IsItemHovered()) then
-							GUI:SetTooltip(GetString("Please ensure _SHB profiles are used for Shadowbringer expansion. \
-(Not applicable for Monk or Ninja)"))
+							GUI:SetTooltip(GetString("skillManagerProfilesTooltip"))
 						end
 
 						if (GUI:Button(GetString("Skill Filters"), (contentwidth / 2) - 4, 20)) then

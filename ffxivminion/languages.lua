@@ -63,6 +63,7 @@
         -- skillmanager.lua
 		skillbook                 	 	= "SkillBook",
 		skillManager                    = "SkillManager",
+		skillManagerProfilesTooltip     = "Skill Manager profiles are intended for custom and gathering rotations. Combat defaults are provided through ACR.",
 		skillEditor_craft              	= "SkillEditor_Crafting",
         skillEditor_gather            	= "SkillEditor_Gathering",
 		saveProfile                 	= "Save Profile",
