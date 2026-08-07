@@ -221,7 +221,6 @@ ffxivminion.GUI = {
 FFXIVMINION = {}
 
 memoize = {}
-pmemoize = {}
 tasktracking = {}
 setmetatable(tasktracking, { __mode = 'v' })
 
@@ -1695,13 +1694,15 @@ end
 
 function ffxivminion.FillMountOptions()
 	gMountNames = { GetString("none") }
+	gMountNameIndex = 1
 	local mounts = ActionList:Get(13)
-	if (mounts) then
-		for k, v in pairs(mounts) do
-			if (ValidString(v.name)) then
-				if (not gMountAvailableOnly or v:IsReady()) then
-					table.insert(gMountNames, v.name)
-					if (v.name == gMountName) then
+	if (table.valid(mounts)) then
+		-- Inventory unlock type 2 is Mount.
+		for _, mount in pairsByKeys(mounts) do
+			if (ValidString(mount.name)) then
+				if (not gMountAvailableOnly or Inventory:IsUnlocked(2, mount.id)) then
+					table.insert(gMountNames, mount.name)
+					if (mount.name == gMountName) then
 						gMountNameIndex = table.size(gMountNames)
 					end
 				end
@@ -2302,9 +2303,9 @@ function ml_global_information.DrawSettings()
 						GUI:SetTooltip("Pick only a mount that you can actually use.")
 					end
 					GUI:SameLine(275)
-					GUI_Capture(GUI:Checkbox(GetString("Show Available Mounts Only"), gMountAvailableOnly), "gMountAvailableOnly", ffxivminion.FillMountOptions);
+					GUI_Capture(GUI:Checkbox(GetString("Show Unlocked Mounts Only"), gMountAvailableOnly), "gMountAvailableOnly", ffxivminion.FillMountOptions);
 					if (GUI:IsItemHovered()) then
-						GUI:SetTooltip("If this option is on, no mounts will be shown in an unmountable area.")
+						GUI:SetTooltip("Only show mounts unlocked by this character.")
 					end
 					GUI:PushItemWidth(200);
 					GUI:InputText("##Current Active gFood", gFood, GUI.InputTextFlags_ReadOnly)

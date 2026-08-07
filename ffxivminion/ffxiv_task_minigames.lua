@@ -1,4 +1,3 @@
-ffxiv_task_minigames = {}
 MiniGames = {}
 MiniGames.lastTick = 0
 MiniGames.gameDetails = {}

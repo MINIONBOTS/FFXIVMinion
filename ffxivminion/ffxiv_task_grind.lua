@@ -1,27 +1,21 @@
 ffxiv_grind = {}
-ffxiv_grind.lastTick = 0
-ffxiv_grind.timer = 0
 ffxiv_grind.profilePath = GetLuaModsPath()..[[ffxivminion\GrindProfiles\]]
 ffxiv_grind.profiles = {}
 ffxiv_grind.profilesDisplay = {}
 ffxiv_grind.profileData = {}
 ffxiv_grind.currentTask = {}
 ffxiv_grind.currentTaskIndex = 0
+ffxiv_grind.debugLevels = { 1, 2, 3 }
 
 ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.addon_process_elements = {}
 ffxiv_task_grind.addon_overwatch_elements = {}
 ffxiv_task_grind.name = "LT_GRIND"
 ffxiv_task_grind.inFate = false
-ffxiv_task_grind.ticks = 0
-ffxiv_task_grind.blTicks = 0
-gFateID = 0
 
 function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
-	local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
-	local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
-	if gatherClasses or craftClasses then
+	if (Player.job ~= nil and not IsFighter(Player.job)) then
 		ffxiv_dialog_manager.IssueStopNotice("	Grind Mode Stopped	", "	Wrong Class or Job	", "okonly")
 	end
 
@@ -47,10 +41,6 @@ function ffxiv_task_grind.Create()
 	if (gGrindAutoLevel and gBotMode == "grindMode") then
 		newinst.correctMapFunction = "GetBestGrindMap"
 	end
-	--if (gGrindAutoLevel and Player.level < 10) then
-	--	gMarkerModeIndex = 3
-	--end
-	
 	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
 	
@@ -66,9 +56,7 @@ end
 c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
-	local gatherClasses = Player.job == 16 or Player.job == 17 or Player.job == 18
-	local craftClasses = Player.job == 8 or Player.job == 9 or Player.job == 10 or Player.job == 11 or Player.job == 12 or Player.job == 13 or Player.job == 14 or Player.job == 15
-	if gatherClasses or craftClasses then
+	if (Player.job ~= nil and not IsFighter(Player.job)) then
 		return false
 	end
 
@@ -198,7 +186,6 @@ function c_grindisloading:evaluate()
 end
 function e_grindisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
-	--ml_task_hub:ThisTask().preserveSubtasks = true --tempfix until all transports are patched
 end
 
 c_grindislocked = inheritsFrom( ml_cause )
@@ -265,8 +252,9 @@ function c_grindnexttask:evaluate()
 			local profileName = (gBotMode == "questMode" and gQuestProfile) or gGrindProfile
 			local lastGrind = ffxiv_grind.GetLastGrind(profileName,currentTaskIndex)
 			if (lastGrind ~= 0) then
-				if (TimePassed(GetCurrentTime(), lastGrind) < 1400) then
-					gd("[GrindNextTask]: Our last grind was only ["..tostring(TimePassed(GetCurrentTime(), lastGrind)).."] seconds ago, invalidate.",3)
+				local timePassed = TimePassed(GetCurrentTime(), lastGrind)
+				if (timePassed < 1400) then
+					gd("[GrindNextTask]: Our last grind was only ["..tostring(timePassed).."] seconds ago, invalidate.",3)
 					invalid = true
 				end
 			end
@@ -375,16 +363,9 @@ function c_grindnexttask:evaluate()
 				c_grindnexttask.subset = validTasks
 				local eTime = FFXIVLib.API.Weather.GetDateTime() 
 				local eMinute = eTime.minute
-				local quarters = { [5] = true, [10] = true, [15] = true, [20] = true, [25] = true, [30] = true, [35] = true, [40] = true, [45] = true, [50] = true, [55] = true, [60] = true }
-				local expirationDelay = 0
-				for quarter,_ in pairs(quarters) do
-					local diff = (quarter - eMinute)
-					if (diff <= 5 and diff > 0) then
-						expirationDelay = (diff * 2.92) * 1000
-						d("[Grind]: Setting expiration delay of ["..tostring(expirationDelay).."] ms")
-						break
-					end	
-				end
+				local nextQuarter = (math.floor(eMinute / 5) + 1) * 5
+				local expirationDelay = ((nextQuarter - eMinute) * 2.92) * 1000
+				d("[Grind]: Setting expiration delay of ["..tostring(expirationDelay).."] ms")
 				d("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
 				c_grindnexttask.subsetExpiration = Now() + expirationDelay
 			end
@@ -621,9 +602,6 @@ function ffxiv_task_grind:Init()
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.process_elements)
     
-	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
-    --self:add( ke_autoEquip, self.process_elements)
-	
 	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
     self:add( ke_recommendEquip, self.process_elements)
 	
@@ -639,8 +617,8 @@ function ffxiv_task_grind:Init()
 	local ke_addHuntlog = ml_element:create( "AddHuntlog", c_grind_addhuntlogtask, e_grind_addhuntlogtask, 80 )
     self:add(ke_addHuntlog, self.process_elements)
 	
-	local ke_luminous = ml_element:create( "NextArea", c_nextgrindarea, e_nextgrindarea, 75 )
-    self:add(ke_luminous, self.process_elements)
+	local ke_nextArea = ml_element:create( "NextArea", c_nextgrindarea, e_nextgrindarea, 75 )
+    self:add(ke_nextArea, self.process_elements)
 	
 	local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 70 )
     self:add(ke_luminous, self.process_elements)
@@ -678,14 +656,14 @@ end
 function ffxiv_task_grind:InitExtras()
 	local overwatch_elements = self.addon_overwatch_elements
 	if (table.valid(overwatch_elements)) then
-		for i,element in pairs(overwatch_elements) do
+		for _,element in pairs(overwatch_elements) do
 			self:add(element, self.overwatch_elements)
 		end
 	end
 	
 	local process_elements = self.addon_process_elements
 	if (table.valid(process_elements)) then
-		for i,element in pairs(process_elements) do
+		for _,element in pairs(process_elements) do
 			self:add(element, self.process_elements)
 		end
 	end
@@ -696,9 +674,10 @@ function ffxiv_task_grind:Process()
 		return false
 	end
 	
-	if (TableSize(ml_task_hub:CurrentTask().process_elements) > 0) then
+	local processElements = ml_task_hub:CurrentTask().process_elements
+	if (next(processElements) ~= nil) then
 		ml_cne_hub.clear_queue()
-		ml_cne_hub.eval_elements(ml_task_hub:CurrentTask().process_elements)
+		ml_cne_hub.eval_elements(processElements)
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -772,9 +751,8 @@ function ffxiv_task_grind:UIInit()
 	ffxiv_grind.profileData = ffxiv_grind.profiles[gGrindProfile] or {}
 	
 	gGrindDebug = ffxivminion.GetSetting("gGrindDebug",false)
-	local debugLevels = { 1, 2, 3}
 	gGrindDebugLevel = ffxivminion.GetSetting("gGrindDebugLevel",1)
-	gGrindDebugLevelIndex = GetKeyByValue(gGrindDebugLevel,debugLevels)
+	gGrindDebugLevelIndex = GetKeyByValue(gGrindDebugLevel,ffxiv_grind.debugLevels)
 	
 	gGrindDoFates = ffxivminion.GetSetting("gGrindDoFates",true)
 	gGrindFatesOnly = ffxivminion.GetSetting("gGrindFatesOnly",false)
@@ -792,13 +770,10 @@ function ffxiv_task_grind:UIInit()
 	gClaimRange = ffxivminion.GetSetting("gClaimRange",20)
 	gClaimed = ffxivminion.GetSetting("gClaimed",false)
 	
-	--gKillAggroEnemies = ffxivminion.GetSetting("gKillAggroEnemies",false) -- check if needed
-	--gAlwaysKillAggro = ffxivminion.GetSetting("gAlwaysKillAggro",false) -- check if needed
-	gFateKillAggro = ffxivminion.GetSetting("gFateKillAggro",true) -- check if needed
-	gCombatRangePercent = ffxivminion.GetSetting("gCombatRangePercent",75) -- check if needed
+	gFateKillAggro = ffxivminion.GetSetting("gFateKillAggro",true)
+	gCombatRangePercent = ffxivminion.GetSetting("gCombatRangePercent",75)
 	gRestInFates = ffxivminion.GetSetting("gRestInFates",true)
-	gFateTeleportPercent = ffxivminion.GetSetting("gFateTeleportPercent",0) -- check if needed
-	gFateBLTimer = ffxivminion.GetSetting("gFateBLTimer",120) -- check if needed
+	gFateTeleportPercent = ffxivminion.GetSetting("gFateTeleportPercent",0)
 	
 	gDoChainFates = ffxivminion.GetSetting("gDoChainFates",true)
 	gGrindDoBattleFates = ffxivminion.GetSetting("gGrindDoBattleFates",true)
@@ -837,18 +812,18 @@ function ffxiv_task_grind:UIInit()
 end
 
 function ffxiv_task_grind:Draw()
-	local tabindex, tabname = GUI_DrawTabs(self.GUI.main_tabs)
+	local _, tabname = GUI_DrawTabs(self.GUI.main_tabs)
 	local currentMarker = ml_marker_mgr.currentMarker
 	if (table.valid(currentMarker)) then
-		TimeLeft = currentMarker:GetTimeRemaining()
+		local timeLeft = currentMarker:GetTimeRemaining()
 		GUI:Columns(2)
 		GUI:Spacing();
 		GUI:Text(GetString("Marker Time Remaning (s): "))
 		GUI:NextColumn()
 		
 		GUI:PushItemWidth(150)
-		if TimeLeft > 0 then
-			GUI:InputText("##TimeLeft",TimeLeft,GUI.InputTextFlags_ReadOnly) 
+		if timeLeft > 0 then
+			GUI:InputText("##TimeLeft",timeLeft,GUI.InputTextFlags_ReadOnly)
 		else
 			GUI:InputText("##TimeLeft","Inf",GUI.InputTextFlags_ReadOnly) 
 		end
@@ -857,10 +832,6 @@ function ffxiv_task_grind:Draw()
 	end
 		
 	if (tabname == GetString("Settings")) then
-		local settingschildsize = 5
-		if (gGrindDoFates) then
-			settingschildsize = 6
-		end
 		GUI:Separator()
 		GUI:Columns(2)
 		GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("AutoLevelMode"))
@@ -904,7 +875,7 @@ function ffxiv_task_grind:Draw()
 			end
 		end
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("DoOnlyFatesTooltip")) end
-		GUI_Capture(GUI:Checkbox("##doHuntingLog",gGrindDoHuntlog),"gGrindDoHuntlog"); if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("When enabled, FFXIVMinion will complete your class hunting log while grinding.")) end
+		GUI_Capture(GUI:Checkbox("##doHuntingLog",gGrindDoHuntlog),"gGrindDoHuntlog")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("doHuntingLogTooltip")) end
 		GUI_Capture(GUI:Checkbox("##KillNonFateAggro",gFateKillAggro),"gFateKillAggro")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("KillNonFateAggroTooltip")) end
@@ -1012,7 +983,6 @@ function ffxiv_task_grind:Draw()
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("claimRangeTooltip")) end
 		GUI_Capture(GUI:Checkbox("##attackClaimed",gClaimed),"gClaimed")
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("attackClaimedTooltip")) end
-		--GUI_DrawIntMinMax(GetString("combatRangePercent"),"gCombatRangePercent",1,5,25,100)
 		GUI:Columns()
 		GUI:PopItemWidth()
 		GUI:Separator()
@@ -1068,8 +1038,7 @@ function ffxiv_task_grind:Draw()
 		GUI:PushItemWidth(CraftStatusWidth)
 		GUI_Capture(GUI:Checkbox("##Grind Debug",gGrindDebug),"gGrindDebug");
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("GrindDebugTooltip")) end
-		local debugLevels = { 1, 2, 3}
-		GUI_Combo("##Debug Level", "gGrindDebugLevel", "gGrindDebugLevel", debugLevels)
+		GUI_Combo("##Debug Level", "gGrindDebugLevel", "gGrindDebugLevel", ffxiv_grind.debugLevels)
 		if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString("debugLevelTooltip")) end
 		GUI:PopItemWidth()
 		GUI:Columns()

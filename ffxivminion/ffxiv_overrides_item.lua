@@ -79,9 +79,12 @@ function FFXIVMinionItem.HasGatheringPriority(itemId, priority)
 			or id == 8024 -- Waterfowl Feather
 			or id == 10099 -- Unaspected Crystal
 			or id == 10335 -- Dark Matter Cluster
+			or (id >= 12946 and id <= 12950)
+			or (id >= 12956 and id <= 12960)
 	end
 	if priority == "superrare" then
-		return id == 12966 -- Bright Fire Rock
+		return (id >= 12951 and id <= 12955)
+			or (id >= 12961 and id <= 12966) -- Bright Fire Rock
 	end
 	return false
 end

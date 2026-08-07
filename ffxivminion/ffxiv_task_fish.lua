@@ -22,8 +22,15 @@ ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.addon_process_elements = {}
 ffxiv_task_fish.addon_overwatch_elements = {}
 ffxiv_task_fish._baitKey = nil
+ffxiv_task_fish._baitKeyLanguage = nil
+ffxiv_task_fish._inventorySlots = { 0, 1, 2, 3 }
+ffxiv_task_fish._emptyWeather = { last = "", now = "", next = "" }
+ffxiv_task_fish._quarterHours = { [15] = true, [30] = true, [45] = true, [60] = true }
+ffxiv_task_fish._noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+ffxiv_task_fish._debugLevels = { 1, 2, 3 }
 function ffxiv_task_fish.GetBaitKey()
-	if not ffxiv_task_fish._baitKey then
+	local language = FFXIVLib.Cache.GetLanguage()
+	if not ffxiv_task_fish._baitKey or ffxiv_task_fish._baitKeyLanguage ~= language then
 		local result = {}
 		local baitNames = FFXIVLib.API.Items.GetFishingBaitNames()
 		if not table.valid(baitNames) then return { GetString("None") } end
@@ -31,6 +38,7 @@ function ffxiv_task_fish.GetBaitKey()
 			result[index] = GetString(name)
 		end
 		ffxiv_task_fish._baitKey = result
+		ffxiv_task_fish._baitKeyLanguage = language
 	end
 	return ffxiv_task_fish._baitKey
 end
@@ -64,7 +72,7 @@ function ffxiv_task_fish.Create()
 	newinst.requiresAdjustment = false
 	newinst.requiresRelocate = false
 	
-	newinst.snapshot = GetInventorySnapshot({0,1,2,3})
+	newinst.snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 	ffxiv_fish.currentTask = {}
 	ffxiv_fish.currentTaskIndex = 0
 	ffxiv_fish.attemptedCasts = 0
@@ -82,18 +90,18 @@ function fd(var,level)
 end
 
 function ffxiv_fish.CanAccessFishingMap(mapid)
-
-	if ffxiv_fish.accessmaplist[mapid] ~= nil then
-		return ffxiv_fish.accessmaplist[mapid]
-	else
-		if CanAccessMap(mapid) then
-			ffxiv_fish.accessmaplist[mapid] = true
-			return true
-		else
-			ffxiv_fish.accessmaplist[mapid] = false
-			return false
-		end
+	if ffxiv_fish.accessmaplist[mapid] then
+		return true
 	end
+
+	if CanAccessMap(mapid) then
+		ffxiv_fish.accessmaplist[mapid] = true
+		return true
+	end
+
+	-- CanAccessMap may be waiting for asynchronous map data.  Cache only
+	-- confirmed access so a transient miss does not deny the map permanently.
+	return false
 end
 function ffxiv_fish.GetDirective()
 	local marker = ml_marker_mgr.currentMarker
@@ -116,9 +124,8 @@ function ffxiv_fish.HasDirective()
 end
 
 function HasBaits(name)
-	local inventories = {0,1,2,3}
 	local itemid = 0
-	local name = name or ""
+	name = name or ""
 	
 	if (name ~= "") then
 		for bait in StringSplit(name,",") do
@@ -130,7 +137,7 @@ function HasBaits(name)
 			end
 
 			if (itemid) then
-				local item = GetItem(itemid,inventories)
+				local item = GetItem(itemid,ffxiv_task_fish._inventorySlots)
 				if (item) then
 					return true
 				end
@@ -197,8 +204,8 @@ function GetNextTaskPos()
 			end
 		end
 		
-		if (table.size(rerollMap) > 0) then
-			local actual = rerollMap[math.random(1,table.size(rerollMap))]
+		if (#rerollMap > 0) then
+			local actual = rerollMap[math.random(1,#rerollMap)]
 			if (actual) then
 				newIndex = actual
 				newPos = multipos[actual]
@@ -234,6 +241,7 @@ function c_precastbuff:evaluate()
 	local useFood = 0
 	local taskType = "fishing"
 	local usePatience, usePatience2;
+	local minimumGP = 0
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -356,7 +364,7 @@ function e_precastbuff:execute()
 	end
 	
 	if (activity == "usemanual") then
-		local manual, action = GetItem(activityitemid)
+		local manual = GetItem(activityitemid)
 		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
@@ -432,7 +440,7 @@ function e_identicalcast:execute()
     if (identicalCast and identicalCast:IsReady(Player.id)) then
         if (identicalCast:Cast()) then
 			fd("Identical Cast",1)
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
@@ -487,7 +495,7 @@ function e_surfaceslap:execute()
     if (surfaceSlap and surfaceSlap:IsReady(Player.id)) then
         if (surfaceSlap:Cast()) then
 			fd("surfaceSlap Cast",1)
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
@@ -550,7 +558,7 @@ function e_mooch2:execute()
     if (mooch2 and mooch2:IsReady(Player.id)) then
         if (mooch2:Cast()) then
 			fd("Mooch2 Cast",1)
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
@@ -614,7 +622,7 @@ function e_mooch:execute()
     if (mooch and mooch:IsReady(Player.id)) then
         if (mooch:Cast()) then
 			fd("Mooch Cast",1)
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		ml_global_information.Await(3000, function () return not In(Player:GetFishingState(),0,4) end)
     end
@@ -732,7 +740,7 @@ function e_release:execute()
     local release = SkillMgr.GetAction(300,1)
     if (release and release:IsReady(Player.id)) then
         if (release:Cast()) then
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		ml_global_information.Await(1500)
     end
@@ -759,7 +767,7 @@ function e_cast:execute()
 	local cast = SkillMgr.GetAction(289,1)
 	if (cast and cast:IsReady(Player.id)) then	
 		if (cast:Cast()) then
-			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 		end
 		if (table.valid(ffxiv_fish.currentTask)) then
 			if (ffxiv_fish.currentTask.taskStarted == 0) then
@@ -773,7 +781,7 @@ function e_cast:execute()
 end
 
 function GetNewInventory(snapshot)
-	local currentInventory = GetInventorySnapshot({0,1,2,3})
+	local currentInventory = GetInventorySnapshot(ffxiv_task_fish._inventorySlots)
 
 	for itemid,item in pairs(currentInventory) do
 		if (snapshot[itemid] == nil) then
@@ -804,14 +812,6 @@ end
 c_finishcast = inheritsFrom( ml_cause )
 e_finishcast = inheritsFrom( ml_effect )
 function c_finishcast:evaluate()
-	local needsStop = false
-	
-	local marker = ml_marker_mgr.currentMarker
-	local task = ffxiv_fish.currentTask
-	if (not table.valid(task) or not table.valid(marker)) then
-		needsStop = true
-	end
-	
 	local fs = Player:GetFishingState()
 	if (fs ~= 0 and c_returntomarker:evaluate()) then
 		return true
@@ -1185,7 +1185,7 @@ function c_collectibleaddonfish:evaluate()
 	if (IsControlOpen(addonName)) then
 		local info = GetControlData(addonName)
 		if (info and info.collectability ~= nil) then
-			validCollectible = false
+			local validCollectible = false
 			
 			if (table.valid(gFishCollectablePresets)) then
 				for i,collectable in pairsByKeys(gFishCollectablePresets) do
@@ -1315,12 +1315,10 @@ function c_buybait:evaluate()
 		end
 		
 		local foundSuitable = false
-		local baitIDs = {}
 		if (baitChoice ~= "") then
 			for bait in StringSplit(baitChoice,",") do
 				if (tonumber(bait) ~= nil) then
-					baitIDs[#baitIDs+1] = tonumber(bait)
-					local item = GetItem(tonumber(bait),{0,1,2,3})
+					local item = GetItem(tonumber(bait),ffxiv_task_fish._inventorySlots)
 					if (item) then
 						foundSuitable = true
 						break
@@ -1328,8 +1326,7 @@ function c_buybait:evaluate()
 				else
 					local thisID = FFXIVLib.API.Items.GetIDByName(bait)
 					if (thisID) then
-						baitIDs[#baitIDs+1] = thisID
-						local item = GetItem(thisID,{0,1,2,3})
+						local item = GetItem(thisID,ffxiv_task_fish._inventorySlots)
 						if (item) then
 							foundSuitable = true
 							break
@@ -1521,26 +1518,20 @@ function e_setbait:execute()
 		baitChoice = gFishQuickBait
 	end
 
-	local foundSuitable = false
-	local baitIDs = {}
 	if (baitChoice ~= "") then
 		for bait in StringSplit(baitChoice,",") do
 			if (tonumber(bait) ~= nil) then
-				baitIDs[#baitIDs+1] = tonumber(bait)
-				local item = GetItem(tonumber(bait),{0,1,2,3})
+				local item = GetItem(tonumber(bait),ffxiv_task_fish._inventorySlots)
 				if (item) then
 					Player:SetBait(item.id)
-					foundSuitable = true
 					break
 				end
 			else
 				local thisID = FFXIVLib.API.Items.GetIDByName(bait)
 				if (thisID) then
-					baitIDs[#baitIDs+1] = thisID
-					local item = GetItem(thisID,{0,1,2,3})
+					local item = GetItem(thisID,ffxiv_task_fish._inventorySlots)
 					if (item) then
 						Player:SetBait(item.id)
-						foundSuitable = true
 						break
 					end
 				end
@@ -1772,7 +1763,7 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (not invalid) then
-				local weather = weatherAll[currentTask.mapid] or { last = "", now = "", next = "" }
+				local weather = weatherAll[currentTask.mapid] or ffxiv_task_fish._emptyWeather
 				local weatherLast = weather.last or ""
 				local weatherNow = weather.now or ""
 				local weatherNext = weather.next or ""
@@ -1940,7 +1931,7 @@ function c_fishnexttask:evaluate()
 						end
 						
 						if (valid) then
-							local weather = weatherAll[data.mapid] or { last = "", now = "", next = "" }
+							local weather = weatherAll[data.mapid] or ffxiv_task_fish._emptyWeather
 							local weatherLast = weather.last or ""
 							local weatherNow = weather.now or ""
 							local weatherNext = weather.next or ""
@@ -2029,9 +2020,8 @@ function c_fishnexttask:evaluate()
 					end
 				
 					c_fishnexttask.subset = validTasks
-					local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
 					local expirationDelay = 0
-					for quarter,_ in pairs(quarters) do
+					for quarter,_ in pairs(ffxiv_task_fish._quarterHours) do
 						local diff = (quarter - eMinute)
 						if (diff <= 15 and diff > 0) then
 							expirationDelay = (diff * 2.92) * 1000
@@ -2285,8 +2275,7 @@ function e_fishnextprofilemap:execute()
 					return
 				end
 				
-				local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-				if (noTeleportMaps[Player.localmapid]) then
+				if (ffxiv_task_fish._noTeleportMaps[Player.localmapid]) then
 					return
 				end
 				
@@ -2401,7 +2390,7 @@ function c_fishfirstrun:evaluate()
 	end
 	
 	if (firstRun and type(firstRun) == "function" and not ffxiv_fish.firstRunCompleted) then
-		local ok, ret = pcall(ffxiv_fish.firstRun)
+		local ok, ret = pcall(firstRun)
 		if (ok and ret ~= nil) then
 			ffxiv_fish.firstRunCompleted = ret
 		else
@@ -2453,8 +2442,8 @@ end
 function ffxiv_fish.NeedsPatienceCheck()
 	local usePatience = false
 	local usePatience2 = false
-		local patienceWithIntuition = true
-		local patienceWithoutIntuition = true
+	local patienceWithIntuition = true
+	local patienceWithoutIntuition = true
 	
 	local task = ffxiv_fish.currentTask
 	local marker = ml_marker_mgr.currentMarker
@@ -2470,8 +2459,8 @@ function ffxiv_fish.NeedsPatienceCheck()
 		else
 			usePatience = IsNull(task.usepatience,false)
 			usePatience2 = IsNull(task.usepatience2,false)
-			patienceWithIntuition = IsNull(task.moochwithintuition,true)
-			patienceWithoutIntuition = IsNull(task.moochwithoutintuition,true)
+			patienceWithIntuition = IsNull(task.patiencewithintuition,true)
+			patienceWithoutIntuition = IsNull(task.patiencewithoutintuition,true)
 		end
 	elseif (table.valid(marker)) then
 		usePatience = IsNull(marker.usepatience,false)
@@ -2485,7 +2474,7 @@ function ffxiv_fish.NeedsPatienceCheck()
 		usePatience2 = GUI_Get(usePatience2)
 	end
 	if (usePatience or usePatience2) then
-		if ((HasBuffs(Player,568) and moochWithIntuition) or (MissingBuffs(Player,568) and moochWithoutIntuition)) then
+		if ((HasBuffs(Player,568) and patienceWithIntuition) or (MissingBuffs(Player,568) and patienceWithoutIntuition)) then
 			return true
 		end
 	end
@@ -2760,18 +2749,8 @@ function ffxiv_task_fish:UIInit()
 	
 	
 	gFishDebug = ffxivminion.GetSetting("gFishDebug",false)
-	local debugLevels = { 1, 2, 3}
 	gFishDebugLevel = ffxivminion.GetSetting("gFishDebugLevel",1)
-	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels)
-	
-	
-	--local uistring = IsNull(FFXIVLib.API.Items.BuildUIString(47,120),"")
-	--gFishCollectablesList = { GetString("None") }
-	--if (ValidString(uistring)) then
-		--for collectable in StringSplit(uistring,",") do
-			--table.insert(gFishCollectablesList,collectable)
-		--end
-	--end
+	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,ffxiv_task_fish._debugLevels)
 	
 	gFishUseCordials = ffxivminion.GetSetting("gFishUseCordials",true)
 	gFishCollectablePresets = ffxivminion.GetSetting("gFishCollectablePresets",{})
@@ -2819,7 +2798,7 @@ function ffxiv_task_fish:Draw()
 	if FFXIV_Common_BotRunning then 
 		local currentMarker = ml_marker_mgr.currentMarker
 		if (currentMarker ~= nil) then
-		TimeLeft = currentMarker:GetTimeRemaining()
+		local TimeLeft = currentMarker:GetTimeRemaining()
 		GUI:Columns(2)
 		GUI:Spacing();
 		GUI:Text(GetString("Marker Time Remaning (s): "))
@@ -3262,7 +3241,7 @@ function ffxiv_task_fish:Draw()
 		local DebugWidth = GUI:GetContentRegionAvail()
 		GUI:PushItemWidth(DebugWidth)
 		
-		local debugLevels = { 1, 2, 3}
+		local debugLevels = ffxiv_task_fish._debugLevels
 		gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels) or 1
 		if (debugLevels[gFishDebugLevelIndex] ~= gFishDebugLevel) then
 			gFishDebugLevel = debugLevels[gFishDebugLevelIndex]
@@ -3279,7 +3258,7 @@ end
 
 function ffxiv_fish.GetLockout(profile,task)
 	if (Settings.FFXIVMINION.gFishLockout ~= nil) then
-		lockout = Settings.FFXIVMINION.gFishLockout
+		local lockout = Settings.FFXIVMINION.gFishLockout
 		if (table.valid(lockout[profile])) then
 			return lockout[profile][task] or 0
 		end

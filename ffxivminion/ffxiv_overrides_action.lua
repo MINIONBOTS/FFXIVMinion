@@ -224,6 +224,10 @@ function FFXIVMinionAction.GetTestSkill(jobId, pvp)
 	if id == 36 then return 11385 end -- BLU: Water Cannon
 	if id == 38 then return 15989 end -- DNC: Cascade
 	if id == 37 then return 16137 end -- GNB: Keen Edge
+	if id == 39 then return 24373 end -- RPR: Slice
+	if id == 40 then return 24283 end -- SGE: Dosis
+	if id == 41 then return 34606 end -- VPR: Steel Fangs
+	if id == 42 then return 34650 end -- PCT: Fire in Red
 	return nil
 
 end

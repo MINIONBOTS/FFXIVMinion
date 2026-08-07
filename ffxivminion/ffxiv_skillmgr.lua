@@ -106,6 +106,8 @@ SkillMgr.defaultProfilesUpdated = false
 
 SkillMgr.lastCheckDetails = {}
 SkillMgr.lastCheckTime = 0
+SkillMgr.debugPrioritiesText = nil
+SkillMgr.debugPriorities = {}
 function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	local jobid = IsNull(jobid,Player.job)
 	local pvp = IsNull(pvp,false)
@@ -114,7 +116,7 @@ function SkillMgr.CheckTestSkill(jobid, target, pvp)
 	end
 	
 	local targetid = target.id
-	local testSkill = FFXIVMinionAction.GetTestSkill(Player.job, pvp)
+	local testSkill = FFXIVMinionAction.GetTestSkill(jobid, pvp)
 	if (testSkill) then
 		if (type(testSkill) == "number") then
 			local action = ActionList:Get(1,testSkill)
@@ -553,23 +555,6 @@ SkillMgr.Variables = {
 	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", readable = "", section = "fighting" },
 	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", readable = "", section = "fighting" },
 	
-	-- Buff Vars.
-	--SKM_B1TARGET = { default = GetString("Target"), cast = "string", profile = "b1target", readable = "", section = "fighting" },
-	--SKM_B1QUALIFIER = { default = "HasBuff", cast = "string", profile = "b1qualifier", readable = "", section = "fighting" },
-	
-	--[[
-	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", readable = "", section = "fighting"  },
-	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", readable = "", section = "fighting" },
-	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", readable = "", section = "fighting"  },
-	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", readable = "", section = "fighting"   },
-	
-	SKM_B1TARGET = { default = GetString("Target"), cast = "string", profile = "b1target", readable = "", section = "fighting" },
-	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", readable = "", section = "fighting" },
-	SKM_M1ACTIONTARGET = { default = GetString("Target"), cast = "string", profile = "m1actiontarget", readable = "", section = "fighting" },
-	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", readable = "", section = "fighting" },
-	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", readable = "", section = "fighting" },
-	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", readable = "", section = "fighting" },
-	--]]
 	SKM_IgnoreMoving = { default = false, cast = "boolean", profile = "ignoremoving", readable = "", section = "fighting" },
 	
 	SKM_SingleUseCraft = { default = true, cast = "boolean", profile = "singleuseonly", readable = "", section = "crafting"},
@@ -1365,7 +1350,6 @@ function SkillMgr.OnUpdate()
 	
 	local pcast = Player.castinginfo
 	
-	local job = Player.job
 	if (pcast.channelingid ~= 0) then
 		local channelingskill = pcast.channelingid
 		SkillMgr.UpdateLastCast(channelingskill)
@@ -1374,7 +1358,7 @@ function SkillMgr.OnUpdate()
 	local actionWatch = SkillMgr.actionWatch
 	if (table.valid(actionWatch)) then
 		if (Now() > actionWatch.expiration) then
-			actionWatch = {}
+			SkillMgr.actionWatch = {}
 		else
 			local action = actionWatch.action
 			if (Player.action == action) then
@@ -1527,23 +1511,6 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidALC = IsNull(classes[FFXIV.JOBS.ALCHEMIST],false) 
 	gSkillProfileValidCUL = IsNull(classes[FFXIV.JOBS.CULINARIAN],false) 
 	 
-	local isdefault = false
-	local startingProfiles = SkillMgr.StartingProfiles
-	for job,name in pairs(startingProfiles) do
-		if (strFile == name) then
-			isdefault = true
-			break
-		end		
-	end
-	
-	local extraProfiles = SkillMgr.ExtraProfiles
-	for i,name in pairs(extraProfiles) do
-		if (strFile == name) then
-			isdefault = true
-			break
-		end		
-	end
-
 	SkillMgr.CheckProfileValidity()
 	--[[if needsSave then
 		SkillMgr.WriteToFile(gSkillProfile)
@@ -1634,6 +1601,13 @@ function SkillMgr.WriteToFile(strFile)
 		[FFXIV.JOBS.ALCHEMIST] = IsNull(gSkillProfileValidALC,false),
 		[FFXIV.JOBS.CULINARIAN] = IsNull(gSkillProfileValidCUL,false),
 	}
+	if (table.valid(SkillMgr.ProfileRaw.classes)) then
+		for jobid,validity in pairs(SkillMgr.ProfileRaw.classes) do
+			if (info.classes[jobid] == nil) then
+				info.classes[jobid] = validity
+			end
+		end
+	end
 	
 	if (table.valid(SkillMgr.ProfileRaw)) then
 		for k,v in pairs(SkillMgr.ProfileRaw) do
@@ -1694,45 +1668,10 @@ function SkillMgr.LegacyConversion()
 	SkillMgr.WriteToFile(gSkillProfile)
 end
 
---[[
-function SkillMgr.AceOnly()
-	local startingProfiles = SkillMgr.StartingProfiles
-	if (table.valid(startingProfiles)) then
-		for jobid,profilename in pairs(startingProfiles) do
-			d("Checking profile ["..tostring(profilename).."]")
-			gSkillProfile = profilename
-			local filename = SkillMgr.profilePath..profilename..".lua"
-			local profile,e = persistence.load(filename)
-			if (table.valid(profile)) then
-				SkillMgr.SkillProfile = profile.skills
-			end
-			SkillMgr.ResetSkillTracking()
-			SkillMgr.CheckProfileValidity()
-		end
-	end
-	
-	local extraProfiles = SkillMgr.ExtraProfiles
-	if (table.valid(extraProfiles)) then
-		for k,profilename in pairs(extraProfiles) do
-			d("Checking profile ["..tostring(profilename).."]")
-			gSkillProfile = profilename
-			local filename = SkillMgr.profilePath..profilename..".lua"
-			local profile,e = persistence.load(filename)
-			if (table.valid(profile)) then
-				SkillMgr.SkillProfile = profile.skills
-			end
-			SkillMgr.ResetSkillTracking()
-			SkillMgr.CheckProfileValidity()
-		end
-	end
-end
---]]
-
 function SkillMgr.CheckProfileValidity()
 	local profile = SkillMgr.SkillProfile
 	
 	local job = Player.job
-	local requiredUpdate = false
 	if (table.valid(profile)) then
 		for prio,skill in pairsByKeys(profile) do
 			local skID = tonumber(skill.id)
@@ -1741,7 +1680,6 @@ function SkillMgr.CheckProfileValidity()
 			
 			if (tonumber(skill.prio) ~= tonumber(prio)) then
 				skill.prio = tonumber(prio)
-				requiredUpdate = true
 			end
 			
 			--First pass, make sure the profile has all the required conditionals.
@@ -1755,7 +1693,6 @@ function SkillMgr.CheckProfileValidity()
 							else
 								skill[v.profile] = v.default
 							end
-							requiredUpdate = true							
 						end
 					end
 				end
@@ -1768,7 +1705,6 @@ function SkillMgr.CheckProfileValidity()
 							else
 								skill[v.profile] = v.default
 							end
-							requiredUpdate = true
 						end
 					end
 				end
@@ -1781,7 +1717,6 @@ function SkillMgr.CheckProfileValidity()
 							else
 								skill[v.profile] = v.default
 							end
-							requiredUpdate = true
 						end
 					end
 				end
@@ -1793,29 +1728,16 @@ function SkillMgr.CheckProfileValidity()
 					if (type(skill[v.profile]) ~= v.cast) then
 						if (v.cast == "number" and type(skill[v.profile]) ~= "number") then
 							skill[v.profile] = IsNull(tonumber(skill[v.profile]),v.default)
-							requiredUpdate = true
 						elseif (v.cast == "string" and type(skill[v.profile]) ~= "string") then
 							skill[v.profile] = IsNull(tostring(skill[v.profile]),v.default)
-							requiredUpdate = true
 						elseif (v.cast == "boolean" and type(skill[v.profile]) ~= "boolean") then
 							skill[v.profile] = toboolean(skill[v.profile])
-							requiredUpdate = true
 						end
 					end
 				end
 			end
 		end
 	end
-	
-	if (not deepcompare(SkillMgr.SkillProfile,profile,true)) then
-		SkillMgr.SkillProfile = profile
-	end
-	
-	-- No longer writing all defaults.
-	--if (requiredUpdate) then
-		--d("Profile required an update, resaving.")
-		--SkillMgr.SaveProfile()
-	--end
 end
 
 function SkillMgr.HasProfile(strName)
@@ -2021,10 +1943,9 @@ end
 
 function SkillMgr.PasteSkill(prio)
 	d("PASTING INTO SKILL #:"..tostring(prio))
-	local source = SkillMgr.copiedSkill
 	for k,v in pairs(SkillMgr.copiedSkill) do
-		if (SkillMgr.Variables[k] ~= nil) then
-			skillVar = SkillMgr.Variables[varName]
+		local skillVar = SkillMgr.Variables[k]
+		if (skillVar ~= nil) then
 			SkillMgr.SkillProfile[prio][skillVar.profile] = v
 		end
 	end
@@ -2440,19 +2361,21 @@ end
 
 function SkillMgr.UpdateLastCast(skillid)
 	local skillid = tonumber(skillid) or 0
+	local castTime = nil
 	
 	if (table.valid(SkillMgr.SkillProfile)) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			if (tonumber(skill.id) == skillid) then
-				SkillMgr.SkillProfile[prio].lastcast = Now()
+				castTime = castTime or Now()
+				SkillMgr.SkillProfile[prio].lastcast = castTime
 				
 				if (SkillMgr.throw[skillid]) then
 					local catch = SkillMgr.throw[skillid]
-					if (Now() < catch.expiration) then
+					if (castTime < catch.expiration) then
 						if (not table.valid(SkillMgr.SkillProfile[prio].lastcastunique)) then
 							SkillMgr.SkillProfile[prio].lastcastunique = {}
 						end
-						SkillMgr.SkillProfile[prio].lastcastunique[catch.targetid] = Now()
+						SkillMgr.SkillProfile[prio].lastcastunique[catch.targetid] = castTime
 					else
 						SkillMgr.throw[skillid] = nil
 					end
@@ -2464,31 +2387,25 @@ end
 
 function SkillMgr.IsMinuetAffected(skillid)
 	local skillid = tonumber(skillid) or 0
-	local affectedSkills = {
-		[97] = "HeavyShot",
-		[98] = "StraightShot",
-		[100] = "VenomousBite",
-		[106] = "QuickNock",
-		[111] = "WideVolley",
-		[113] = "Windbite",
-		[3558] = "EmpyrealArrow",
-		[3560] = "IronJaws"
-	}
-	
-	return affectedSkills[skillid]
+	if (skillid == 97) then return "HeavyShot" end
+	if (skillid == 98) then return "StraightShot" end
+	if (skillid == 100) then return "VenomousBite" end
+	if (skillid == 106) then return "QuickNock" end
+	if (skillid == 111) then return "WideVolley" end
+	if (skillid == 113) then return "Windbite" end
+	if (skillid == 3558) then return "EmpyrealArrow" end
+	if (skillid == 3560) then return "IronJaws" end
+	return nil
 end
 
 function SkillMgr.IsGaussAffected(skillid)
 	local skillid = tonumber(skillid) or 0
-	local affectedSkills = {
-		[2866] = "Split Shot",
-		[2872] = "Hot Shot",
-		[2869] = "Lead Shot",
-		[2870] = "Spread Shot",
-		[2871] = "Grenado Shot"
-	}
-	
-	return affectedSkills[skillid]
+	if (skillid == 2866) then return "Split Shot" end
+	if (skillid == 2872) then return "Hot Shot" end
+	if (skillid == 2869) then return "Lead Shot" end
+	if (skillid == 2870) then return "Spread Shot" end
+	if (skillid == 2871) then return "Grenado Shot" end
+	return nil
 end
 
 function SkillMgr.IsCasting(entity, actionIDs , minCasttime , targetid) 
@@ -2547,75 +2464,48 @@ function SkillMgr.GetTankableTarget( range )
 	local range = range or ml_global_information.AttackRange
 	local closest = nil
 	local closestRange = 100
-	local targets = {}
 	
 	local party = EntityList("myparty,chartype=4")
 	if (table.valid(party)) then
-		for i,member in pairs(party) do
+		for _,member in pairs(party) do
 			if (member.id ~= Player.id) then
 				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxdistance2d="..tostring(range))
 				if (table.valid(list)) then
-					for k,entity in pairs(list) do
-						targets[k] = entity
+					for _,entity in pairs(list) do
+						if (not closest or entity.distance2d < closestRange) then
+							closest = entity
+							closestRange = entity.distance2d
+						end
 					end
 				end
 			end
 		end
 	end
-	
-	if (table.valid(targets)) then
-		for k,entity in pairs(targets) do
-			if (not closest or (closest and entity.distance2d < closestRange)) then
-				closest = entity
-				closestRange = entity.distance2d
-			end
-		end
-		
-		return closest
-	end
-	
-	return nil
+	return closest
 end
 
 function SkillMgr.GetTankedTarget( range )
 	local range = range or ml_global_information.AttackRange
 	local closest = nil
 	local closestRange = 100
-	local tanks = {}
-	local targets = {}
 
     local party = EntityList("chartype=4,myparty")
     if ( table.valid(party) ) then
-		for i,e in pairs(party) do
-			if (IsTank(e)) then
-				tanks[i] = e
-			end
-        end
-    end
-	
-	if (table.valid(tanks)) then
-		for i,tank in pairs(tanks) do
-			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxdistance2d="..tostring(range))
-			if (table.valid(list)) then
-				for k,entity in pairs(list) do
-					targets[k] = entity
+		for _,tank in pairs(party) do
+			if (IsTank(tank)) then
+				local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxdistance2d="..tostring(range))
+				if (table.valid(list)) then
+					for _,target in pairs(list) do
+						if (not closest or target.distance2d < closestRange) then
+							closest = target
+							closestRange = target.distance2d
+						end
+					end
 				end
 			end
 		end
 	end
-	
-	if (table.valid(targets)) then
-		for i,target in pairs(targets) do
-			if (not closest or (closest and closest.distance2d < closestRange)) then
-				closest = target
-				closestRange = target.distance2d
-			end
-		end
-		
-		return closest
-	end
-	
-	return nil
+	return closest
 end
 
 function SkillMgr.Cast( entity , preCombat, forceStop )
@@ -3433,7 +3323,6 @@ end
 
 function SkillMgr.GCDTimeLT(mintime)
 	local mintime = tonumber(mintime) or 2.5
-	local castable = false
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	local actionIDPVP = SkillMgr.GCDSkillsPVP[Player.job]
 	
@@ -3461,7 +3350,7 @@ function SkillMgr.IsGCDReady(maxtime)
 		local action = SkillMgr.GetAction(actionID,1) or SkillMgr.GetAction(actionIDPVP,1)
 		if (action) then
 			timediff = (action.cdmax - action.cd)
-			if (action.cdmax - action.cd) < maxtime then
+			if (timediff < maxtime) then
 				castable = true
 			end
 		end
@@ -3517,21 +3406,28 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 end
 
 function SkillMgr.DebugOutput( prio, message )
+	if (not gSkillManagerDebug) then
+		return
+	end
+
 	local prio = tonumber(prio) or 0
 	local message = tostring(message)
-	
-	if (gSkillManagerDebug ) then
-		if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
-			d("[SkillManager] : " .. message)
-		elseif (IsNull(gSkillManagerDebugPriorities,"") ~= "") then
-			local priorityChecks = {}
-			for priority in StringSplit(gSkillManagerDebugPriorities,",") do
-				priorityChecks[tonumber(priority)] = true
-			end
-			if (priorityChecks[prio]) then
-				d("[SkillManager] : " .. message)
-			end
+	local prioritiesText = IsNull(gSkillManagerDebugPriorities,"")
+	if (prioritiesText == "") then
+		d("[SkillManager] : " .. message)
+		return
+	end
+
+	if (SkillMgr.debugPrioritiesText ~= prioritiesText) then
+		local priorityChecks = {}
+		for priority in StringSplit(prioritiesText,",") do
+			priorityChecks[tonumber(priority)] = true
 		end
+		SkillMgr.debugPrioritiesText = prioritiesText
+		SkillMgr.debugPriorities = priorityChecks
+	end
+	if (SkillMgr.debugPriorities[prio]) then
+		d("[SkillManager] : " .. message)
 	end
 end
 
@@ -4134,7 +4030,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	local maxrange = realskilldata.range
 	if (skill.stype == GetString("Pet")) then
-		petRangeRadius = GetPetSkillRangeRadius(skill.id)
+		local petRangeRadius = GetPetSkillRangeRadius(skill.id)
 		if (petRangeRadius) then
 			maxrange = petRangeRadius.ActionRange
 		end
@@ -4369,7 +4265,7 @@ end
 
 function SkillMgr.AddDefaultConditions()	
 
-	conditional = { name = "Chain Check"
+	local conditional = { name = "Chain Check"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 	
@@ -4409,10 +4305,15 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
+		local isFacing = nil
 		
-		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)) then
-			return false
-		elseif (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
+		if (realskilldata.isready) then
+			isFacing = SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)
+			if (isFacing) then
+				return false
+			end
+		end
+		if (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
 			if (not realskilldata.isoncd) then
 				return false
 			end
@@ -4422,7 +4323,10 @@ function SkillMgr.AddDefaultConditions()
 			return false
 		end
 		
-		SkillMgr.DebugOutput( skill.prio, "[ReadyCheck]: Target: ["..tostring(target.name).."], realskilldata.isready: ["..tostring(realskilldata.isready).."], IsFacing: ["..tostring(SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)).."]")
+		if (isFacing == nil) then
+			isFacing = SkillMgr.IsFacing(realskilldata,MUsingAutoFace(),target)
+		end
+		SkillMgr.DebugOutput( skill.prio, "[ReadyCheck]: Target: ["..tostring(target.name).."], realskilldata.isready: ["..tostring(realskilldata.isready).."], IsFacing: ["..tostring(isFacing).."]")
 		return true
 	end
 	}
@@ -4455,35 +4359,6 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-	
-	conditional = { name = "Valid Target Check"
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
-		
-		if (skill.trg == GetString("Target")) then
-			if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-				if (not IsValidHealTarget(target)) then
-					return true
-				end
-			end
-			if not (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-				if (not target.attackable) then
-					return true
-				end
-			end
-			
-			--d("skill:"..tostring(skill.name))
-			--local validtarget, inrangeforspell, inlos = ActionList:CanCast(skill.id,target.id,target.type)
-			--d("validtarget = "..tostring(validtarget))
-			--d("inrangeforspell = "..tostring(inrangeforspell))
-			--d("inlos = "..tostring(inlos))			
-		end
-		return false
-	end
-	}
-	--SkillMgr.AddConditional(conditional)
 	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
@@ -4521,23 +4396,6 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-	
-	--[[
-	conditional = { name = "Debuff/Buff Latency Check"
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		---removebuff
-		if ( skill.dobuff  and skill.lastcast) then
-			if ((skill.lastcast + 1000) > Now()) then
-				return true
-			end
-		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	--]]
 	
 	conditional = { name = "Other Skill Ready Check"	
 	, eval = function()	
@@ -4794,7 +4652,10 @@ function SkillMgr.AddDefaultConditions()
 	conditional = { name = "Only Solo/Party Checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
+		local partySizeLimit = tonumber(skill.partysizelt) or 0
+		if (not skill.onlysolo and not skill.onlyparty and partySizeLimit <= 0) then
+			return false
+		end
 		
 		local plist = EntityList("myparty")
 		local partySize = TableSize(plist)
@@ -4821,11 +4682,11 @@ function SkillMgr.AddDefaultConditions()
 			end
 		end
 		
-		if ( tonumber(skill.partysizelt) > 0 ) then
-			if ((partySize + 1) > tonumber(skill.partysizelt)) then
+		if (partySizeLimit > 0) then
+			if ((partySize + 1) > partySizeLimit) then
 				return true
 			end
-			if (npcTeam > tonumber(skill.partysizelt)) then
+			if (npcTeam > partySizeLimit) then
 				return true
 			end
 		end
@@ -4952,17 +4813,21 @@ function SkillMgr.AddDefaultConditions()
 	conditional = { name = "Player level checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
+		local levelmin = tonumber(skill.levelmin) or 0
+		local levelmax = tonumber(skill.levelmax) or 0
+		if (levelmin <= 0 and levelmax <= 0) then
+			return false
+		end
+
 		local mapid = Player.localmapid
 		local syncLevel = Player:GetSyncLevel()
 		
-		if (tonumber(skill.levelmin) > 0 and 
-			((tonumber(skill.levelmin) > Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (tonumber(skill.levelmin) > syncLevel))))
+		if (levelmin > 0 and
+			((levelmin > Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (levelmin > syncLevel))))
 		then
 			return true
-		elseif (tonumber(skill.levelmax) > 0 and
-			((tonumber(skill.levelmax) < Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (tonumber(skill.levelmax) < syncLevel))))
+		elseif (levelmax > 0 and
+			((levelmax < Player.level) or (not IsEurekaMap(mapid) and syncLevel > 0 and (levelmax < syncLevel))))
 		then
 			return true
 		end
@@ -5402,24 +5267,19 @@ function SkillMgr.AddDefaultConditions()
 		
 		local tlistAE = nil
 		if (tecount > 0 or tecount2 > 0) then
-			local targets = {}
-			tlistAE = EntityList("alive,attackable,maxdistance2d="..tostring(terange)..",distanceto="..tostring(TID))
-			for i,entity in pairs(tlistAE) do
-				table.insert(targets,entity)
-			end
-			
+			tlistAE = EntityList("alive,attackable,maxdistance2d="..tostring(terange)..",distanceto="..tostring(TID)) or {}
+
 			--Remove all that are targeting me if it's an enmity AOE.
-			for i,entity in pairs(targets) do
+			for i,entity in pairs(tlistAE) do
 				if (skill.enmityaoe  and entity.aggropercentage == 100) then
-					targets[i] = nil
+					tlistAE[i] = nil
 				elseif (skill.frontalconeaoe  and not EntityIsFrontWide(entity)) then
-					targets[i] = nil
+					tlistAE[i] = nil
 				elseif (skill.tankedonlyaoe  and entity.targetid == 0) then
-					targets[i] = nil
+					tlistAE[i] = nil
 				end
 			end
 			
-			tlistAE = targets
 			local attackTable = TableSize(tlistAE) or 0
 			
 			if (tlistAE) then
@@ -5595,7 +5455,6 @@ function SkillMgr.AddDefaultConditions()
 end
 
 function SkillMgr.Capture(newVal,varName)
-	local forceSave = IsNull(forceSave,false)
 	local needsSave = false
 	
 	local currentVal = _G[varName]
@@ -5624,8 +5483,8 @@ function SkillMgr.CaptureElement(newVal, varName)
 		
 	if (needsSave) then
 		local prio = SkillMgr.EditingSkill
-		if (SkillMgr.Variables[varName] ~= nil) then	
-			skillVar = SkillMgr.Variables[varName]
+		local skillVar = SkillMgr.Variables[varName]
+		if (skillVar ~= nil) then
 			SkillMgr.SkillProfile[prio][skillVar.profile] = newVal
 		end
 		SkillMgr.SaveProfile()
@@ -5644,8 +5503,8 @@ function SKM_Combo(label, varindex, varval, itemlist, height)
 		_G[varval] = itemlist[_G[varindex]]
 		
 		local prio = SkillMgr.EditingSkill
-		if (SkillMgr.Variables[varval] ~= nil) then	
-			skillVar = SkillMgr.Variables[varval]
+		local skillVar = SkillMgr.Variables[varval]
+		if (skillVar ~= nil) then
 			SkillMgr.SkillProfile[prio][skillVar.profile] = _G[varval]
 		end
 		SkillMgr.SaveProfile()

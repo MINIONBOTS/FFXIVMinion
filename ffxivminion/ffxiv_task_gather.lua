@@ -1,7 +1,6 @@
 ffxiv_gather = {}
 ffxiv_gather.lastTick = 0
 ffxiv_gather.timer = 0
-ffxiv_gather.lastItemAttempted = 0
 ffxiv_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
 ffxiv_gather.profilePath = GetLuaModsPath()..[[ffxivminion\GatherProfiles\]]
 ffxiv_gather.profiles = {}
@@ -10,9 +9,6 @@ ffxiv_gather.profileData = {}
 ffxiv_gather.currentTask = {}
 ffxiv_gather.accessmaplist = {}
 ffxiv_gather.currentTaskIndex = 0
--- Old Collector's Glove IDs. Addons may still read this table.
-ffxiv_gather.collectors = { [16] = 4074, [17] = 4088 }
-ffxiv_gather.sticklerProfiles = {}
 
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
@@ -69,7 +65,6 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 	local x = x or 0
 	local y = y or 0
 	local z = z or 0
-	local h = h or 0
 	local newPos = {}
 	
 	if (table.valid(pos)) then
@@ -94,19 +89,18 @@ function ffxiv_gather.RandomizePosition(pos, x, y, z)
 	return pos
 end
 function ffxiv_gather.CanAccessGatherMap(mapid)
-
 	if ffxiv_gather.accessmaplist[mapid] ~= nil then
 		return ffxiv_gather.accessmaplist[mapid]
-	else
-		if CanAccessMap(mapid) then
-			ffxiv_gather.accessmaplist[mapid] = true
-			return true
-		else
-		
-			ffxiv_gather.accessmaplist[mapid] = false
-			return false
-		end
 	end
+
+	-- CanAccessMap may return false while cached FFXIVLib metadata is still
+	-- loading. Cache confirmed access only so profile evaluation retries misses.
+	if CanAccessMap(mapid) then
+		ffxiv_gather.accessmaplist[mapid] = true
+		return true
+	end
+
+	return false
 end
 function ffxiv_gather.GetCurrentTaskPos()
 	local pos = {}
@@ -156,6 +150,7 @@ end
 function GetMinGP()
 	local minimumGP = 0
 	local task = ffxiv_gather.currentTask
+	local marker = ml_marker_mgr.currentMarker
 	if (table.valid(task)) then
 		minimumGP = IsNull(task.mingp,0)
 		if task.mingp == "skillProfileDefined" then
@@ -211,7 +206,6 @@ function c_findnode:evaluate()
 		local nodemaxlevel = ffxivminion.maxlevel
 		local basePos = {}
 		local blacklist = ""
-		local includesHighPrio = true;
 	
 		local task = ffxiv_gather.currentTask
 		local marker = ml_marker_mgr.currentMarker
@@ -224,7 +218,6 @@ function c_findnode:evaluate()
 			
 			if (task.unspoiled and task.unspoiled == false) then
 				blacklist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
-				includesHighPrio = false
 			elseif (task.unspoiled and task.unspoiled == true) then
 				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
 			end
@@ -325,7 +318,6 @@ function c_movetonode:evaluate()
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather and gatherable.targetable) then
 			local gpos = gatherable.pos
-			local ppos = Player.pos
 			local minimumGP = GetMinGP()	
 			local touchOnly = false
 			local noGPitem = ""
@@ -439,10 +431,6 @@ function e_movetonode:execute()
 				noGPitem = IsNull(marker.nogpitem,"")
 			end
 			
-			if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
-				useCordials = GUI_Get(useCordials)
-			end
-				
 			if (Player.gp.current < minimumGP and noGPitem ~= "") then
 				newTask.minGP = 0
 			else
@@ -675,22 +663,6 @@ function e_nextgathermarker:execute()
 end
 
 function DoGathering(item)
-
-	if GetPatchLevel() >= 5.4 then
-		if FFXIVLib.API.Items.IsCollectable(item.id) then
-			if not IsControlOpen("GatheringMasterpiece") then
-				noskills = true
-				d("Known collectable, lets open the window before wasting GP")
-			end
-		end
-	end
-	
-	if (ffxiv_gather.CheckBuffs(item)) then
-		gd("[Gather]: Running a buff check.",1)
-		ml_global_information.Await(1500)
-		return 1
-	end
-	
 	if (SkillMgr.Gather(item)) then
 		gd("[Gather]: Running a skillmanager process.",1)
 		ml_global_information.Await(500)
@@ -700,9 +672,6 @@ function DoGathering(item)
 	local gatherindex = (item.index-1)
 	gd("[Gather]: Using Gather ["..tostring(gatherindex).."].",1)
 	Player:Gather(gatherindex)
-	if (HasBuffs(Player,"805")) then
-		ml_global_information.AwaitDo(10000, function () return IsControlOpen("GatheringMasterpiece") end, function () Player:Gather(gatherindex) end)
-	end
 	return 3
 end
 
@@ -731,8 +700,11 @@ function e_gather:execute()
 	end
 	
 	local thisNode = MGetEntity(ml_global_information.gatherid)
-	if not thisNode and (MGetTarget() and (MGetTarget().distance < 5 and MGetTarget().cangather and MGetTarget().targetable)) then
-		thisNode = MGetTarget()
+	if not thisNode then
+		local currentTarget = MGetTarget()
+		if (currentTarget and currentTarget.distance < 5 and currentTarget.cangather and currentTarget.targetable) then
+			thisNode = currentTarget
+		end
 	end
 	if (not table.valid(thisNode) or not thisNode.cangather or not thisNode.targetable) then
 		return
@@ -758,6 +730,7 @@ function e_gather:execute()
 		local gatherGardening = ""
 		local gatherRares = false
 		local gatherSuperRares = false
+		local gatherChocoFood = false
 		local touchOnly = false
 		local noGPGather = false
 
@@ -783,9 +756,10 @@ function e_gather:execute()
 			noGPGather = IsNull(task.nogpgather,false)
 		elseif (table.valid(marker)) then
 			gatherMaps = gQuickstartMaps
-			gatherGardening = IsNull(marker.gathergardening,false)
-			gatherRares = IsNull(marker.gatherrares,false)
-			gatherChocoFood = IsNull(marker.gatherchocofood,false)
+			gatherGardening = ffxiv_marker_mgr.GetGatherField(marker,"gathergardening","gardening",false)
+			gatherRares = ffxiv_marker_mgr.GetGatherField(marker,"gatherrares","rares",false)
+			gatherSuperRares = ffxiv_marker_mgr.GetGatherField(marker,"gatherspecialrares","specialrares",false)
+			gatherChocoFood = ffxiv_marker_mgr.GetGatherField(marker,"gatherchocofood","chocofood",false)
 			item1 = IsNull(marker.item1,"")
 			item2 = IsNull(marker.item2,"")
 			item3 = IsNull(marker.item3,"")
@@ -1208,113 +1182,6 @@ gd("Checking regular item section.",2)
 			end
 		end
     end
-end
-
-function ffxiv_gather.CheckBuffs(item)
-	local canCollect = false
-
-	local valuepairs = {
-		[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
-		[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
-		[gMinerCollectibleName3 or ""] = gMinerCollectibleValue3 or 0,
-		[gBotanistCollectibleName or ""] = gBotanistCollectibleValue or 0,
-		[gBotanistCollectibleName2 or ""] = gBotanistCollectibleValue2 or 0,
-		[gBotanistCollectibleName3 or ""] = gBotanistCollectibleValue3 or 0,
-	}
-
-	for k,v in pairs(valuepairs) do
-		if ((not k or k == "") or
-			(not v or not tonumber(v) or tonumber(v) <= 0))
-		then
-			valuepairs[k] = nil
-		end
-	end
-		
-	local idpairs = {}
-	for k,v in pairs(valuepairs) do
-		local itemid;
-		if (type(k) == "string") then
-			itemid = FFXIVLib.API.Items.GetIDByName(k)
-		else
-			itemid = k
-		end
-		
-		if (itemid) then
-			idpairs[itemid] = v
-		end
-	end
-		
-	local task = ffxiv_gather.currentTask
-	local collectCost = 0
-		
-	if (table.valid(task)) then
-		local collectables = task.collectables
-		collectCost = IsNull(task.collectGP,0)
-		if (task.collectGP and type(task.collectGP) == "string") then
-			collectCost = IsNull(tonumber(SkillMgr.ProfileRaw.mingp),0)
-		else
-			collectCost = IsNull(tonumber(task.collectGP),collectCost)
-		end		
-		
-		if (table.valid(collectables)) then
-			for identifier,minvalue in pairs(collectables) do
-				local itemid;
-				if (type(identifier) == "string") then
-					
-					if (GUI_Get(identifier) ~= nil) then
-						local var = identifier
-						identifier = GUI_Get(var)
-						d("Converted identifier var ["..var.."] to ["..identifier.."]")
-					end
-				
-					itemid = FFXIVLib.API.Items.GetIDByName(identifier)
-				else
-					itemid = identifier
-				end
-				
-				if (type(minvalue) == "string") then
-					if (GUI_Get(minvalue) ~= nil) then
-						local var = minvalue
-						minvalue = GUI_Get(minvalue)
-						d("Converted value var ["..var.."] to ["..minvalue.."]")
-					end
-				end
-		
-				if (itemid) then
-					idpairs[itemid] = minvalue
-				end
-			end
-		end
-	end
-	
-	local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-	local maxAttempts = false
-	if (gatherable and gatherable.gatherattempts and gatherable.gatherattemptsmax) then
-		if (gatherable.gatherattempts == gatherable.gatherattemptsmax) or (gatherable.contentid > 4) then
-			maxAttempts = true
-		end
-	end
-	
-	local hasCollect = HasBuffs(Player,"805")
-	local isCollectable = ((maxAttempts and Player.gp.current >= collectCost)) and (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
-	if GetPatchLevel() >= 5.4 then
-		isCollectable = false
-	end
-	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
-		local collect = ActionList:Get(1,ffxiv_gather.collectors[Player.job])
-		if (collect and collect:IsReady(Player.id)) then
-			if (collect:Cast()) then
-				if (not hasCollect) then
-					ml_global_information.Await(2500, function () return HasBuff(Player.id,805) end)
-				else
-					ml_global_information.Await(2500, function () return MissingBuff(Player.id,805) end)
-				end
-			end
-		end
-		return true
-	end
-	
-	return false
 end
 
 function ffxiv_gather.GetLowestValue(...)
@@ -1865,7 +1732,7 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usefood") then
-		local food = GetItem(activityitemid)
+		local food, action = GetItem(activityitemid)
 		if (food and action and food:IsReady(Player.id)) then
 			food:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 48) end)
@@ -1990,268 +1857,24 @@ function e_gatherflee:execute()
 	end
 end
 
-function SetMasterpieceLocation()
-
-end
-
-function GetMasterpieceLocation()
-
-end
-
-c_collectiblegame = inheritsFrom( ml_cause )
-e_collectiblegame = inheritsFrom( ml_effect )
-e_collectiblegame.timer = 0
-function c_collectiblegame:evaluate()
-	if GetPatchLevel() >= 5.4 then
-		return false
-	end
-	if (IsControlOpen("GatheringMasterpiece")) then
-		return true
-	end
-	return false
-end
-function e_collectiblegame:execute()
-	if (Now() < e_collectiblegame.timer or MIsCasting()) then
-		return 
-	end
-	
-	local sticklerAvaliable = false
-		
-	if (table.valid(ffxiv_gather.sticklerProfiles) and ffxiv_gather.sticklerProfiles[gSkillProfile] ~= nil) then
-		sticklerAvaliable = ffxiv_gather.sticklerProfiles[gSkillProfile]
-	else
-		if table.valid(SkillMgr.ProfileRaw.skills) then
-		local stickler = false
-			for i,e in pairs(SkillMgr.ProfileRaw.skills) do
-			
-				if In(e.id,4593,4594) then
-					stickler = true
-					break
-				end
-			end
-			if stickler then
-				ffxiv_gather.sticklerProfiles[gSkillProfile] = true
-			else
-			
-				ffxiv_gather.sticklerProfiles[gSkillProfile] = false
-			end
-		end
-	end
-	
-	gd("[CollectableGame]: Checking collectable info.",1)
-	local info = GetControlData("GatheringMasterpiece")
-	if (table.valid(info)) then
-		
-		local valuepairs = {
-			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
-			[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
-			[gMinerCollectibleName3 or ""] = gMinerCollectibleValue3 or 0,
-			[gBotanistCollectibleName or ""] = gBotanistCollectibleValue or 0,
-			[gBotanistCollectibleName2 or ""] = gBotanistCollectibleValue2 or 0,
-			[gBotanistCollectibleName3 or ""] = gBotanistCollectibleValue3 or 0,
-		}
-
-		for k,v in pairs(valuepairs) do
-			if ((not k or k == "") or
-				(not v or not tonumber(v) or tonumber(v) <= 0))
-			then
-				valuepairs[k] = nil
-			end
-		end
-		
-		local idpairs = {}
-		for k,v in pairs(valuepairs) do
-			local itemid;
-			if (type(k) == "string") then
-				itemid = FFXIVLib.API.Items.GetIDByName(k)
-			else
-				itemid = k
-			end
-			
-			if (itemid) then
-				idpairs[itemid] = v
-			end
-		end
-		
-		local task = ffxiv_gather.currentTask
-		if (table.valid(task)) then
-			local collectables = task.collectables
-			if (table.valid(collectables)) then
-				for identifier,minvalue in pairs(collectables) do
-					local itemid;
-					if (type(identifier) == "string") then
-						
-						if (GUI_Get(identifier) ~= nil) then
-							local var = identifier
-							identifier = GUI_Get(var)
-							d("Converted identifier var ["..var.."] to ["..identifier.."]")
-						end
-					
-						itemid = FFXIVLib.API.Items.GetIDByName(identifier)
-					else
-						itemid = identifier
-					end
-					
-					if (type(minvalue) == "string") then
-						if (GUI_Get(minvalue) ~= nil) then
-							local var = minvalue
-							minvalue = GUI_Get(minvalue)
-							d("Converted value var ["..var.."] to ["..minvalue.."]")
-						end
-					end
-			
-					if (itemid) then
-						idpairs[itemid] = minvalue
-					end
-				end
-			end
-		end
-		
-		local requiredRarity = 0
-		if (table.valid(idpairs)) then
-			for itemid,cval in pairs(idpairs) do
-				if (ffxiv_gather.lastItemAttempted == itemid) then
-					d("[CollectableGame]: Setting required rarity to ["..tostring(cval).."].")
-					requiredRarity = cval
-				end
-				if (requiredRarity ~= 0) then
-					break
-				end
-			end
-		end
-					
-		gd("Item current rarity ["..tostring(info.rarity).."].",1)
-		gd("Item required rarity ["..tostring(requiredRarity).."].",1)
-		gd("Item current wear ["..tostring(info.wear).."].",1)
-		gd("Item max wear ["..tostring(info.wearmax).."].",1)
-				
-		if (info.rarity > 0 and (((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or (info.rarity == info.raritymax)) or 
-			(info.wear == 30 and not sticklerAvaliable)) then
-			
-			UseControlAction("GatheringMasterpiece","Collect",0,500)
-			e_collectiblegame.timer = Now() + 2500
-			ml_global_information.Await(2500)
-			return
-		else
-			if (SkillMgr.Gather()) then
-				gd("[CollectableGame]: Used skill from profile.",3)
-				e_collectiblegame.timer = Now() + 2500
-				return
-			else
-				if (info.wear >= 30) then
-					UseControlAction("GatheringMasterpiece","Collect",0,500)
-					e_collectiblegame.timer = Now() + 2500
-					ml_global_information.Await(2500)
-					return
-				else
-					local methodicals = {
-						[16] = 4075,
-						[17] = 4089,
-					}
-					local discernings = {
-						[16] = 4078,
-						[17] = 4092,
-					}
-					local impulsive2s = {
-						[16] = 301,
-						[17] = 302,
-					}
-					local impulsive1s = {
-						[16] = 4077,
-						[17] = 4091,
-					}
-								
-					gd("[CollectableGame]: Attempting to use auto-skills.",3)
-					local methodical = ActionList:Get(1,methodicals[Player.job])
-					local discerning = ActionList:Get(1,discernings[Player.job])
-					local impulsive2 = ActionList:Get(1,impulsive2s[Player.job])
-					local impulsive1 = ActionList:Get(1,impulsive1s[Player.job])
-				
-					if not HasBuffs(Player,"757") then
-						if (discerning and discerning:IsReady(Player.id) and info.rarity < 1) then
-							discerning:Cast()
-							e_collectiblegame.timer = Now() + 2500
-							return
-						end
-					end
-					if HasBuffs(Player,"757") or (info.wear >= 20) then
-						if (methodical and methodical:IsReady(Player.id)) then
-							methodical:Cast()
-							e_collectiblegame.timer = Now() + 2500
-							return
-						end
-					end
-					if (impulsive2 and impulsive2:IsReady(Player.id)) then
-						impulsive2:Cast()
-						e_collectiblegame.timer = Now() + 2500
-						return
-					end
-					if (impulsive1 and impulsive1:IsReady(Player.id)) then
-						impulsive1:Cast()
-						e_collectiblegame.timer = Now() + 2500
-						return
-					end
-					if (methodical and methodical:IsReady(Player.id)) then
-						methodical:Cast()
-						e_collectiblegame.timer = Now() + 2500
-						return
-					end
-				end
-			end
-		end
-	end
-end
-
 c_newcollectiblegame = inheritsFrom( ml_cause )
 e_newcollectiblegame = inheritsFrom( ml_effect )
 e_newcollectiblegame.timer = 0
 function c_newcollectiblegame:evaluate()
-	if GetPatchLevel() >= 5.4 then
-		if (IsControlOpen("GatheringMasterpiece")) then
-			--gdd("[CollectableGame]: Found the gathering masterpiece addon.")
-			return true
-		end
-	end
-	return false
+	return IsControlOpen("GatheringMasterpiece")
 end
 function e_newcollectiblegame:execute()
-	if (Now() < e_collectiblegame.timer or MIsCasting()) then
+	if (Now() < e_newcollectiblegame.timer or MIsCasting()) then
 		return 
 	end
 	
 	d("[CollectableGame]: Checking collectable info.",1)
 	local info = GetControlRawData("GatheringMasterpiece")
 	if (table.valid(info)) then
-		
-		local collectableId,collectableRarity,collectableMax,collectableAttemptsRemaining,collectableAttemptsMax
-		if (GetPatchLevel() >= 6.5) then
-			collectableId = info[3].value
-			collectableRarity = info[14].value
-			collectableMax = info[15].value
-			collectableAttemptsRemaining = info[59].value		
-			collectableAttemptsMax = info[60].value	
-		elseif (GetPatchLevel() >= 6.2) then
-			collectableId = info[3].value
-			collectableRarity = info[14].value
-			collectableMax = info[15].value
-			collectableAttemptsRemaining = info[57].value		
-			collectableAttemptsMax = info[58].value	
-		elseif (GetPatchLevel() >= 6) then
-			collectableId = info[11].value
-			collectableRarity = info[5].value
-			collectableMax = info[6].value
-			collectableAttemptsRemaining = info[50].value		
-			collectableAttemptsMax = info[51].value	
-		else
-			collectableId = info[11].value
-			collectableRarity = info[5].value
-			collectableMax = info[6].value
-			collectableAttemptsRemaining = info[41].value		
-			collectableAttemptsMax = info[42].value	
-		end
-		d("GetPatchLevel() = "..tostring(GetPatchLevel()))
+		local collectableId = info[3].value
+		local collectableRarity = info[14].value
+		local collectableAttemptsRemaining = info[59].value
 		d("collectableAttemptsRemaining = "..tostring(collectableAttemptsRemaining))
-		d("collectableAttemptsMax = "..tostring(collectableAttemptsMax))	
 		
 		local idpairs = {}
 		local task = ffxiv_gather.currentTask
@@ -2301,11 +1924,9 @@ function e_newcollectiblegame:execute()
 			end
 		end
 		
-		local collectSkills = {
-			[16] = 240,
-			[17] = 815
-		}
-		local collect = ActionList:Get(1,collectSkills[Player.job])
+		local collectSkill = (Player.job == FFXIV.JOBS.MINER and 240) or
+			(Player.job == FFXIV.JOBS.BOTANIST and 815) or nil
+		local collect = ActionList:Get(1,collectSkill)
 		
 		d("Item current rarity ["..tostring(collectableRarity).."].",1)
 		d("Item required rarity ["..tostring(requiredRarity).."].",1)
@@ -2315,7 +1936,7 @@ function e_newcollectiblegame:execute()
 			
 			if (collect and collect:IsReady(Player.id)) then
 				collect:Cast()
-				e_collectiblegame.timer = Now() + 3000
+				e_newcollectiblegame.timer = Now() + 3000
 				ml_global_information.Await(3000)
 			end
 			return
@@ -2326,23 +1947,12 @@ function e_newcollectiblegame:execute()
 				return
 			else
 			
-				local scour = {
-					[16] = 22182,
-					[17] = 22186,
-				}
-				local scrutiny = {
-					[16] = 22185,
-					[17] = 22189,
-				}
-				local meticulous = {
-					[16] = 22184,
-					[17] = 22188,
-				}
-			
 				d("[CollectableGame]: Attempting to use auto-skills.",1)
-				local methodical = ActionList:Get(1,scour[Player.job])
-				local discerning = ActionList:Get(1,scrutiny[Player.job])
-				local meticulousSkill = ActionList:Get(1,meticulous[Player.job])
+				local isMiner = Player.job == FFXIV.JOBS.MINER
+				local isBotanist = Player.job == FFXIV.JOBS.BOTANIST
+				local methodical = ActionList:Get(1, (isMiner and 22182) or (isBotanist and 22186) or nil)
+				local discerning = ActionList:Get(1, (isMiner and 22185) or (isBotanist and 22189) or nil)
+				local meticulousSkill = ActionList:Get(1, (isMiner and 22184) or (isBotanist and 22188) or nil)
 		
 				if (collectableAttemptsRemaining == 1) then
 					UseControlAction("GatheringMasterpiece","Collect")
@@ -3361,9 +2971,6 @@ function ffxiv_task_gather:Init()
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddongather, e_collectibleaddongather, 210 )
     self:add( ke_collectible, self.process_elements)
 	
-	local ke_collectibleGame = ml_element:create( "CollectibleGame", c_collectiblegame, e_collectiblegame, 200 )
-    self:add( ke_collectibleGame, self.process_elements)
-	
 	local ke_collectibleGame = ml_element:create( "CollectibleGame", c_newcollectiblegame, e_newcollectiblegame, 199 )
     self:add( ke_collectibleGame, self.process_elements)
 	
@@ -3505,7 +3112,7 @@ function ffxiv_task_gather:Draw()
 	if FFXIV_Common_BotRunning then 
 		local currentMarker = ml_marker_mgr.currentMarker
 		if (table.valid(currentMarker)) then
-			TimeLeft = currentMarker:GetTimeRemaining()
+			local TimeLeft = currentMarker:GetTimeRemaining()
 			GUI:Columns(2)
 			GUI:Spacing();
 			GUI:Text(GetString("Marker Time Remaning (s): "))
@@ -3937,7 +3544,7 @@ function ffxiv_task_gather:Draw()
 		GUI:NextColumn()
 		
 		
-		GUI_Capture(GUI:Checkbox("##Gather Debug",gFishDebug),"gFishDebug")
+		GUI_Capture(GUI:Checkbox("##Gather Debug",gGatherDebug),"gGatherDebug")
 		if (GUI:IsItemHovered()) then 
 			GUI:SetTooltip("Enable Debug messages in console.")
 		end
@@ -4083,7 +3690,7 @@ end
 
 function ffxiv_gather.GetLastGather(profile,task)
 	if (Settings.FFXIVMINION.gLastGather ~= nil) then
-		lastGather = Settings.FFXIVMINION.gLastGather
+		local lastGather = Settings.FFXIVMINION.gLastGather
 		if (table.valid(lastGather[profile])) then
 			return lastGather[profile][task] or 0
 		end

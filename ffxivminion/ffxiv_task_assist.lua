@@ -1,10 +1,7 @@
 ffxiv_assist = {}
-ffxiv_assist.strings = {}
 
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
-ffxiv_task_assist.autoRolled = {}
-ffxiv_task_assist.lastTarget = 0
 function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
     
@@ -68,7 +65,7 @@ end
 function ffxiv_task_assist:Process()
 	if (Player.alive and not MIsLoading()) then
 		
-		local autoface, movemode = ml_global_information.GetMovementInfo(false)
+		ml_global_information.GetMovementInfo(false)
 		
 		local target = Player:GetTarget()
 		
@@ -99,17 +96,17 @@ function ffxiv_task_assist:Process()
 			if (gStartCombat or (not gStartCombat and Player.incombat)) then
 				
 				if (gAssistFollowTarget) then
-					local ppos = Player.pos
 					local pos = target.pos
+					local inCombatRange = InCombatRange(target.id)
 					
 					if (ml_global_information.AttackRange > 5) then
-						if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
+						if ((not inCombatRange or not target.los) and not MIsCasting()) then
 							if (Now() > self.movementDelay) then
-								local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1),  0, 0, target.id)
+								Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1),  0, 0, target.id)
 								self.movementDelay = Now() + 1000
 							end
 						end
-						if (InCombatRange(target.id)) then
+						if (inCombatRange) then
 							if (Player.ismounted) then
 								Dismount()
 							end
@@ -123,13 +120,13 @@ function ffxiv_task_assist:Process()
 								TryFaceTarget(pos.x,pos.y,pos.z) 
 							end
 						end
-						if (InCombatRange(target.id) and target.attackable and target.alive) then
-							SkillMgr.Cast( target )
+						if (inCombatRange and target.attackable and target.alive) then
+							casted = SkillMgr.Cast(target)
 						end
 					else
-						if (not InCombatRange(target.id) or not target.los) then
+						if (not inCombatRange or not target.los) then
 							local pathLength = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 1, target.id)
-							if (pathLength <= 0) then
+							if ((tonumber(pathLength) or 0) <= 0) then
 								Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), 0, 0, target.id)
 							end
 						end
@@ -138,20 +135,21 @@ function ffxiv_task_assist:Process()
 								Dismount()
 							end
 						end
-						if (InCombatRange(target.id)) then
+						if (inCombatRange) then
 							TryFaceTarget(pos.x,pos.y,pos.z) 
 							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
 								Player:Stop()
 							end
 						end
-						if (SkillMgr.Cast( target )) then
+						if (SkillMgr.Cast(target)) then
 							Player:Stop()
+							casted = true
 						end
 					end
 					
 				end
 				
-				if (SkillMgr.Cast( target )) then
+				if (not casted and SkillMgr.Cast(target)) then
 					casted = true
 				end
 			end
@@ -162,7 +160,7 @@ function ffxiv_task_assist:Process()
 		end
 	end
 
-	if (TableSize(self.process_elements) > 0) then
+	if (next(self.process_elements) ~= nil) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
 		ml_cne_hub.queue_to_execute()
@@ -185,7 +183,6 @@ function ffxiv_task_assist:UIInit()
 	gAssistUseLegacy = ffxivminion.GetSetting("gAssistUseLegacy",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
 	gAssistPrioritizeAdds = ffxivminion.GetSetting("gAssistPrioritizeAdds",false)
-	--gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	gAssistSyncFate = ffxivminion.GetSetting("gAssistSyncFate",true)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
@@ -235,28 +232,7 @@ ffxiv_task_assist.GUI = {
 	width = 0,
 }
 
-function ffxiv_task_assist.StartElement(strText)
-	GUI:BeginGroup()
-	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString(strText))
-	GUI:SameLine(160)
-end
-
-function ffxiv_task_assist.EndElement(strTooltip)
-	GUI:EndGroup()
-	if (GUI:IsItemHovered()) then GUI:SetTooltip(GetString(strTooltip)) end
-	
-end
-
 function ffxiv_task_assist:Draw()
-	--local mainWidth = (GUI:GetContentRegionAvail() - 10)
-	--local fontSize = GUI:GetWindowFontSize()
-	--local windowPaddingY = GUI:GetStyle().windowpadding.y
-	--local framePaddingY = GUI:GetStyle().framepadding.y
-	--local itemSpacingY = GUI:GetStyle().itemspacing.y
-	
-	--GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(10),true)
-	--GUI:PushItemWidth(120)
-	
 	GUI:Columns(2)
 	if not gDisableAssistOptions then
 		GUI:AlignFirstTextHeightToWidgets() 
@@ -539,8 +515,8 @@ local function firstNonBossEntity(query)
 	local el = MEntityList(query)
 	if not table.valid(el) then return nil end
 	local bossFallback = nil
-	for i, e in pairs(el) do
-		if not FFXIVLib.API.NPC.IsBoss(e.contentid) then
+	for _, e in pairs(el) do
+		if not FFXIVLib.API.NPC.IsBoss(e) then
 			return e
 		elseif not bossFallback then
 			bossFallback = e
@@ -580,39 +556,33 @@ function ffxiv_assist.GetAttackTarget()
         target = pickEntity("los,nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 			or pickEntity("nearest,alive,attackable,maxdistance2d="..tostring(maxDistance))
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then 
-		local tanks = {}
+		local closest = nil
+		local closestDistance = math.huge
 		local party = EntityList("myparty")
 		if (table.valid(party)) then
-			for i,member in pairs(party) do
-				if (IsTank(member) and member.id ~= Player.id) then
-					table.insert(tanks,member)
+			for _,member in pairs(party) do
+				if (IsTank(member) and member.id ~= Player.id and
+					(not closest or member.distance2d < closestDistance))
+				then
+					closest = member
+					closestDistance = member.distance2d
 				end
 			end
 		end
 		local npcTeam = MEntityList("alive,chartype=9,targetable,maxdistance2d=100")
 		if (npcTeam) then
-			for i,entity in pairs(npcTeam) do
-				if IsTank(entity) then
-					table.insert(tanks,entity)
+			for _,entity in pairs(npcTeam) do
+				if (IsTank(entity) and (not closest or entity.distance2d < closestDistance)) then
+					closest = entity
+					closestDistance = entity.distance2d
 				end
 			end
 		end
-			
-		if (table.valid(tanks)) then
-			local closest = nil
-			local closestDistance = 999
-			for i,tank in pairs(tanks) do
-				if (not closest or tank.distance2d < closestDistance) then
-					closest = tank
-					closestDistance = tank.distance2d
-				end
-			end
-			
-			if (closest and closest.targetid ~= 0) then
-				local targeted = EntityList:Get(closest.targetid)
-				if (targeted and targeted.attackable and targeted.alive) then
-					target = targeted
-				end
+
+		if (closest and closest.targetid ~= 0) then
+			local targeted = EntityList:Get(closest.targetid)
+			if (targeted and targeted.attackable and targeted.alive) then
+				target = targeted
 			end
 		end
     end

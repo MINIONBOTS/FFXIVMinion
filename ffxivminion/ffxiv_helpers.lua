@@ -63,6 +63,30 @@ ff.trust_phys_ranged_dps = TrustRoleProxy("physicalranged")
 ff.trust_caster_dps = TrustRoleProxy("caster")
 ff.trust_dps = TrustRoleProxy("dps")
 
+-- Preserve the historical SkillManager ally-resource filters without building
+-- temporary lookup tables every time a profile condition evaluates. TP was
+-- removed from the game, but its filter remains callable by legacy profiles.
+function ff.IsLegacyMPUser(jobid)
+	return jobid == FFXIV.JOBS.GLADIATOR
+		or jobid == FFXIV.JOBS.CONJURER
+		or jobid == FFXIV.JOBS.PALADIN
+		or jobid == FFXIV.JOBS.WHITEMAGE
+		or jobid == FFXIV.JOBS.ARCANIST
+		or jobid == FFXIV.JOBS.SUMMONER
+		or jobid == FFXIV.JOBS.SCHOLAR
+		or jobid == FFXIV.JOBS.DARKKNIGHT
+		or jobid == FFXIV.JOBS.ASTROLOGIAN
+		or jobid == FFXIV.JOBS.REDMAGE
+		or jobid == FFXIV.JOBS.BLUEMAGE
+		or jobid == FFXIV.JOBS.PICTOMANCER
+end
+
+function ff.IsLegacyTPUser(jobid)
+	return jobid == 1 or jobid == 2 or jobid == 3 or jobid == 4 or jobid == 5
+		or jobid == 19 or jobid == 20 or jobid == 21 or jobid == 22
+		or jobid == 23 or jobid == 29 or jobid == 30
+end
+
 function GetPatchLevel()
 	local gr = ffxivminion.gameRegion
 	if (IsNull(gr,0) == 0) then
@@ -194,10 +218,7 @@ function GetNearestGrindAttackable()
 		huntString = monsterHuntlist:GetList("string","id",";")
 	end
 	
-	local block = 0
 	local el = nil
-	local nearestGrind = nil
-	local nearestDistance = 9999
 	
 	if (excludeString == "") then
 		excludeString = "541"
@@ -257,12 +278,10 @@ function GetNearestGrindAttackable()
 	local selfaggro = {}
 	local immediateaggro = {}
 	local partyaggro = {}
-	local notincombat = {}
 	local lowhp = {}
 	local claimrange = {}
 	local memberids = {}
 	local filtered = {}
-	local unclaimed = {}
 
 	local attackables = MEntityList("alive,attackable,fateid=0")
 	if (table.valid(attackables)) then
@@ -280,7 +299,7 @@ function GetNearestGrindAttackable()
 		
 		for i,entity in pairs(attackables) do
 			if (entity) then
-				local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.targetid, entity.targetid, entity.incombat
+				local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.claimedbyid, entity.targetid, entity.incombat
 				local cached = { id = eid, hpp = hpp, pos = epos, distance2d = distance2d, contentid = contentid, aggro = aggro, claimedbyid = claimedbyid, targetid = targetid, incombat = incombat }
 				
 				-- Filter out entities by distance
@@ -306,7 +325,6 @@ function GetNearestGrindAttackable()
 					filtered[eid] = cached
 				
 					if (gClaimed or not incombat) then
-						notincombat[eid] = cached
 						if (gClaimFirst) then
 							if (distance2d <= gClaimRange) then
 								claimrange[eid] = cached
@@ -424,195 +442,10 @@ function GetNearestGrindAttackable()
 end
 
 function GetNearestFateAttackable2()
-
-	local fate = FFXIVLib.API.Fate.GetActiveFateById(ml_task_hub:CurrentTask().fateid)
-	if (fate) then
-		local maxLevel = fate.maxlevel
-		local overMaxLevel = (Player.level > maxLevel)
-		local basePos = { x = fate.x, y = fate.y, z = fate.z }
-		local radius = fate.radius
-		
-		local excludeString = ""
-		local monsterBlacklist = ml_list_mgr.GetList("Mob Blacklist")
-		local monsterHuntlist = ml_list_mgr.GetList("Mob Whitelist")
-		if (monsterBlacklist) then
-			excludeString = monsterBlacklist:GetList("string","id",";")
-		end
-		
-		local el = nil
-		local nearestGrind = nil
-		local nearestDistance = 9999
-		
-		if (excludeString == "") then
-			excludeString = "541"
-		else
-			excludeString = excludeString..";541"
-		end
-		local blacklist = ""
-		if (blacklist ~= "") then
-			if (excludeString ~= "") then
-				excludeString = excludeString..";"..blacklist
-			else
-				excludeString = blacklist
-			end
-		end
-		
-		local excludeTable = {}
-		if (excludeString ~= "") then
-			for contentid in StringSplit(excludeString,";") do
-				excludeTable[tonumber(contentid)] = true
-			end
-		end
-		
-		local selfaggro = {}
-		local immediateaggro = {}
-		local partyaggro = {}
-		local notincombat = {}
-		local lowhp = {}
-		local claimrange = {}
-		local memberids = {}
-		local filtered = {}
-		local unclaimed = {}
-		
-		local attackables = MEntityList("alive,attackable")
-		if (table.valid(attackables)) then
-			local pid = Player.id
-			local party = EntityList.myparty
-			if (party) then
-				for i,e in pairs(party) do
-					memberids[e.id] = true
-				end
-			end
-			memberids[pid] = true
-			local pet = Player.pet
-			local companion = GetCompanionEntity()
-			
-			for i,entity in pairs(attackables) do
-				if (entity) then
-					local eid, hpp, epos, distance2d, contentid, aggro, claimedbyid, targetid, incombat, fateid = entity.id, entity.hp.percent, entity.pos, entity.distance2d, entity.contentid, entity.aggro, entity.targetid, entity.targetid, entity.incombat, entity.fateid
-					local cached = { id = eid, hpp = hpp, pos = epos, distance2d = distance2d, contentid = contentid, aggro = aggro, claimedbyid = claimedbyid, targetid = targetid, incombat = incombat, fateid = fateid }
-					
-					-- Filter out entities by distance
-					if (table.valid(basePos) and radius > 0) then
-						local dist2d = math.distance2d(entity.pos,basePos)
-						if (dist2d > radius) then
-							attackables[i] = nil
-						end
-					end
-					
-					-- Filter out blacklists
-					if (table.valid(excludeTable)) then
-						if (excludeTable[contentid]) then
-							attackables[i] = nil
-						end
-					end
-					
-					if (attackables[i]) then
-						filtered[eid] = cached
-					
-						if (gClaimed or not incombat) then
-							notincombat[eid] = cached
-							if (gClaimFirst) then
-								if (distance2d <= gClaimRange) then
-									claimrange[eid] = cached
-								end
-							end
-						end
-						if (hpp < 50) then
-							lowhp[eid] = cached
-						end
-						
-						if (aggro or claimedbyid == pid or targetid == Player.id) then
-							selfaggro[eid] = cached
-						elseif ((pet and (claimedbyid == pet.id or targetid == pet.id)) or (companion and (claimedbyid == companion.id or targetid == companion.id))) then
-							immediateaggro[eid] = cached
-						elseif (memberids[claimedbyid] or memberids[targetid]) then
-							partyaggro[eid] = cached					
-						end
-					end
-				end
-			end
-			
-		end
-	
-		
-		if (fate.status == 2 and fate.completion < 100) then
-			
-		end
-	end
-
-
-	
-	if (table.valid(filtered)) then
-	
-		-- Check if we have something we can claim (for hunting near us)
-		if (table.valid(claimrange)) then
-			local nearest, nearestDistance = nil, 1000
-			for i,e in pairs(filtered) do
-				if (claimrange[i]) then
-					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
-						nearest, nearestDistance = e, e.distance2d
-					end
-				end
-			end
-			
-			if (nearest) then
-				--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
-				return attackables[nearest.id]
-			end
-		end
-		
-		-- Check for aggro
-		if (table.valid(selfaggro) or table.valid(immediateaggro) or table.valid(partyaggro)) then
-			local lowest, lowestHP = nil, 100
-			local nearest, nearestDistance = nil, 1000
-			
-			if (table.valid(lowhp)) then
-				for i,e in pairs(lowhp) do
-					if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
-						if (not lowest or (lowest and e.hpp < lowestHP)) then
-							lowest, lowestHP = e, e.hpp
-						end
-					end
-				end
-			end
-			
-			if (lowest) then
-				--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
-				return attackables[lowest.id]
-			end
-			
-			for i,e in pairs(filtered) do
-				if (selfaggro[i] or immediateaggro[i] or partyaggro[i]) then
-					if (not nearest or (nearest and e.distance2d < nearestDistance)) then
-						nearest, nearestDistance = e, e.distance2d
-					end
-				end
-			end
-			
-			if (nearest) then
-				--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
-				return attackables[nearest.id]
-			end
-		end
-		
-		-- Last check, nearest non-filtered mob.
-		if (table.valid(notincombat)) then
-			local nearest, nearestDistance = nil, 1000
-			for i,e in pairs(notincombat) do
-				if (not nearest or (nearest and e.distance2d < nearestDistance)) then
-					nearest, nearestDistance = e, e.distance2d
-				end
-			end
-				
-			if (nearest) then
-				--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
-				return nearest
-			end
-		end
-	end
-	
-    return nil
+	-- Kept for addons that referenced the experimental 2017 helper. Its old
+	-- implementation had no internal caller and selected from out-of-scope
+	-- locals, so route compatibility calls through the maintained selector.
+	return GetNearestFateAttackable()
 end
 
 function GetNearestFateAttackable()
@@ -983,10 +816,10 @@ function GetPetSkillRangeRadius(id)
 	return FFXIVLib.API.Action.GetPetActionById(id)
 end
 function GetLowestHPParty( skill )
-    npc = (skill.npc )
-	range = skill.range or ml_global_information.AttackRange
-	count = skill.ptcount or 0
-	minHP = skill.pthpb or 0
+	local npc = skill.npc
+	local range = skill.range or ml_global_information.AttackRange
+	local count = skill.ptcount or 0
+	local minHP = skill.pthpb or 0
 	
 	local lowest = nil
 	local lowestHP = 101
@@ -1034,51 +867,30 @@ function GetLowestHPParty( skill )
 end
 
 function GetLowestMPParty( range, role, includeself )
-    local pID = Player.id
 	local lowest = nil
 	local lowestMP = 101
 	local includeself = IsNull(includeself,"0") 
 	local range = tonumber(range) or 35 
-	local role = tostring(role) or ""
-	
-	local mpUsers = {
-		[FFXIV.JOBS.GLADIATOR] = true,
-		[FFXIV.JOBS.CONJURER] = true,
-		[FFXIV.JOBS.PALADIN] = true,
-		[FFXIV.JOBS.WHITEMAGE] = true,
-		[FFXIV.JOBS.ARCANIST] = true,
-		[FFXIV.JOBS.SUMMONER] = true,
-		[FFXIV.JOBS.SCHOLAR] = true,
-		[FFXIV.JOBS.DARKKNIGHT] = true,
-		[FFXIV.JOBS.ASTROLOGIAN] = true,
-		[FFXIV.JOBS.REDMAGE] = true,
-		[FFXIV.JOBS.BLUEMAGE] = true,
-		[FFXIV.JOBS.PICTOMANCER] = true
-	}
-	
-	-- DPS, Healer, Tank, Caster
-
-	-- If the role is to be filtered, remove the non-applicable jobs here.
-	if (role) then
-		for jobid,_ in pairs(mpUsers) do
-			if FFXIVLib.API.ClassJob.MatchesRole(jobid, role) == false then
-				mpUsers[jobid] = nil
-			end
-		end
-	end
+	local role = tostring(role or "")
 	
     local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
     if ( table.valid(el) ) then
-		for i,entity in pairs(el) do
-			if (mpUsers[entity.job] and entity.mp.percent < lowestMP) then
+		for _,entity in pairs(el) do
+			if (ff.IsLegacyMPUser(entity.job)
+				and (role == "" or FFXIVLib.API.ClassJob.MatchesRole(entity.job, role) ~= false)
+				and entity.mp.percent < lowestMP)
+			then
 				lowest = entity
 				lowestMP = entity.mp.percent
 			end
         end
-    end
+	end
 	
 	if (includeself) then
-		if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
+		if (Player.alive and ff.IsLegacyMPUser(Player.job)
+			and (role == "" or FFXIVLib.API.ClassJob.MatchesRole(Player.job, role) ~= false)
+			and Player.mp.percent < lowestMP)
+		then
 			lowest = Player
 			lowestMP = Player.mp.percent
 		end
@@ -1092,49 +904,27 @@ function GetLowestTPParty( range, role, includeself )
 	local lowestTP = 1001
 	local includeself = IsNull(includeself,"0") 
 	local range = tonumber(range) or 35
-	local role = tostring(role) or ""
-	
-	local tpUsers = {
-		[1] = true,
-		[2] = true,
-		[3] = true,
-		[4] = true,
-		[5] = true,
-		[19] = true,
-		[20] = true,
-		[21] = true,
-		[22] = true,
-		[23] = true,
-		[29] = true,
-		[30] = true,
-		--[FFXIV.JOBS.GUNBREAKER] = true, not sure yet
-		--[FFXIV.JOBS.DANCER] = true, not sure yet
-	}
-	
-	-- If the role is to be filtered, remove the non-applicable jobs here.
-	if (role) then
-		for jobid,_ in pairs(tpUsers) do
-			if FFXIVLib.API.ClassJob.MatchesRole(jobid, role) == false then
-				tpUsers[jobid] = nil
-			end
-		end
-	end
+	local role = tostring(role or "")
 	
     local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	--local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
     if ( table.valid(el) ) then
-        for i,entity in pairs(el) do
-			if (entity.job and tpUsers[entity.job]) then
+		for _,entity in pairs(el) do
+			if (ff.IsLegacyTPUser(entity.job)
+				and (role == "" or FFXIVLib.API.ClassJob.MatchesRole(entity.job, role) ~= false))
+			then
 				if (entity.tp < lowestTP) then
 					lowest = entity
 					lowestTP = entity.tp
 				end
 			end
         end
-    end
+	end
 	
 	if (includeself) then
-		if (Player.alive and tpUsers[Player.job] and Player.tp < lowestTP) then
+		if (Player.alive and ff.IsLegacyTPUser(Player.job)
+			and (role == "" or FFXIVLib.API.ClassJob.MatchesRole(Player.job, role) ~= false)
+			and Player.tp < lowestTP)
+		then
 			lowest = Player
 			lowestTP = Player.tp
 		end
@@ -1281,7 +1071,7 @@ end
 function GetBestRevive( party, role)
 	party = IsNull(party,false)
 	role = role or ""
-	range = 30
+	local range = 30
 	
 	local el = nil
 	if (party) then
@@ -1618,8 +1408,8 @@ function GetNearestGatherable(marker)
 		end
 		
 		markerPos = marker:GetPosition()
-		whitelist = tostring(marker.whitelist)
-		blacklist = tostring(marker.blacklist)
+		whitelist = tostring(marker.whitelist or "")
+		blacklist = tostring(marker.blacklist or "")
 	end
     
 	if (radius == 0 or radius > 200 or not table.valid(markerPos)) then
@@ -1639,33 +1429,28 @@ function GetNearestGatherable(marker)
 		end
 	elseif (table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel)..",exclude_contentid="..blacklist)
 		else
-			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxcontentlevel))
+			el = MEntityList("onmesh,gatherable,targetable,minlevel="..tostring(mincontentlevel)..",maxlevel="..tostring(maxcontentlevel))
 		end
 		
-		local gatherables = {}
+		local nearest = nil
+		local nearestPathDistance = nil
 		if (table.valid(el)) then
-			for i,gatherable in pairs(el) do
+			for _,gatherable in pairs(el) do
 				local gpos = gatherable.pos
 				local dist = PDistance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
 				
-				if (dist <= radius) then
-					table.insert(gatherables,gatherable)
+				if (dist <= radius and (not nearest or gatherable.pathdistance < nearestPathDistance)) then
+					nearest = gatherable
+					nearestPathDistance = gatherable.pathdistance
 				end
 			end
 		end
 		
-		if (table.valid(gatherables)) then
-			table.sort(gatherables,	function(a,b) return a.pathdistance < b.pathdistance end)
-			for i,g in ipairs(gatherables) do
-				if (i and g) then
-					return g
-				end
-			end
-		end
+		if (nearest) then return nearest end
 	end
     
     ml_debug("GetNearestGatherable() failed with no entity found matching params")
@@ -2606,12 +2391,11 @@ function CanUseCannon()
 	if (MIsLocked()) then
 		local misc = ActionList(1)
 		if (table.valid(misc)) then
-			local cannons = { 1134, 1437, 2630, 1128, 2434 }
-			for _,cannonid in pairs(cannons) do
-				if (misc[cannonid] ~= nil and misc[cannonid]:IsReady(Player.id)) then
-					return true
-				end
-			end
+			if (misc[1134] and misc[1134]:IsReady(Player.id)) then return true end
+			if (misc[1437] and misc[1437]:IsReady(Player.id)) then return true end
+			if (misc[2630] and misc[2630]:IsReady(Player.id)) then return true end
+			if (misc[1128] and misc[1128]:IsReady(Player.id)) then return true end
+			if (misc[2434] and misc[2434]:IsReady(Player.id)) then return true end
 		end
 	end
 	return false
@@ -2880,7 +2664,7 @@ function InCombatRange(targetid)
 	return false
 end
 function CanAttack(targetid,skillid,skilltype)
-	local target = {}
+	local target
 	--Quick change here to allow passing of a target or just the ID.
 	if (type(targetid) == "table") then
 		local id = targetid.id
@@ -2905,7 +2689,7 @@ function CanAttack(targetid,skillid,skilltype)
 			end
 			action = ActionList:Get(stype,skillid)
 		else
-			testSkill = SkillMgr.GCDSkills[Player.job]
+			local testSkill = SkillMgr.GCDSkills[Player.job]
 			action = ActionList:Get(1,testSkill)
 		end
 		
@@ -3920,8 +3704,7 @@ function IsInventoryFull(maxitems)
 	local maxitems = maxitems or 137
 	
 	local itemcount = 0
-	local inventories = {0,1,2,3}
-	for _,invid in pairs(inventories) do
+	for invid = 0,3 do
 		local bag = Inventory:Get(invid)
 		if (table.valid(bag)) then
 			itemcount = itemcount + bag.used
@@ -3973,13 +3756,12 @@ function GetInventoryItemGains(itemid,hqonly)
 	local original = ml_global_information.lastInventorySnapshot
 	
 	if (table.valid(original)) then
-		for id,item in pairs(original) do
-			if (id == itemid) then
-				if (hqonly) then
-					originalCount = item.HQcount
-				else
-					originalCount = item.count + item.HQcount
-				end
+		local item = original[itemid]
+		if (item) then
+			if (hqonly) then
+				originalCount = item.HQcount
+			else
+				originalCount = item.count + item.HQcount
 			end
 		end
 	end
@@ -3987,13 +3769,12 @@ function GetInventoryItemGains(itemid,hqonly)
 	local new = GetInventorySnapshot()
 	
 	if (table.valid(new)) then
-		for id,item in pairs(new) do
-			if (id == itemid) then
-				if (hqonly) then
-					newCount = item.HQcount
-				else
-					newCount = item.count + item.HQcount
-				end
+		local item = new[itemid]
+		if (item) then
+			if (hqonly) then
+				newCount = item.HQcount
+			else
+				newCount = item.count + item.HQcount
 			end
 		end
 	end
@@ -4028,7 +3809,7 @@ end
 
 function GetItems(hqids,inventories)
 	
-	local hqids = IsNull(hqids,{})
+	if (hqids == nil) then hqids = {} end
 	local inventories = inventories or FFXIVMinionItem.SearchInventories
 	
 	local returnables = {}
@@ -4166,7 +3947,7 @@ function ItemCount(hqid,inventoriesArg,includehqArg)
 end
 
 function ItemCounts(hqids,inventoriesArg,includehqArg)
-	local hqids = IsNull(hqids,{})
+	if (hqids == nil) then hqids = {} end
 
 	local includehq = false
 	if (type(inventoriesArg) == "boolean") then
@@ -4312,7 +4093,7 @@ function LowestArmoryItem(slot)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
-				for slot, item in pairs(inv) do
+				for _, item in pairs(ilist) do
 					if (not lowest or (lowest and item.level < lowesti)) then
 						lowest,lowesti = item, item.level
 					end
@@ -4323,20 +4104,18 @@ function LowestArmoryItem(slot)
 	return lowest
 end
 function GetFirstFreeArmorySlot(armoryType)
-	return GetFirstFreeSlot({armoryType})
+	return GetFirstFreeSlot(1,{armoryType})
 end
 function GetFirstFreeInventorySlot()
-	return GetFirstFreeSlot({0,1,2,3})
+	return GetFirstFreeSlot(1,{0,1,2,3})
 end
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
-	local inventories = inventories or {1000}
-	return GetItem(hqid,inventories)
+	return GetItem(itemid,{1000})
 end
 function GetUnequippedItem(itemid)
 	local itemid = tonumber(itemid)
-	local inventories = inventories or {0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
-	return GetItem(hqid,inventories)
+	return GetItem(itemid,{0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500})
 end
 function GetEquipSlotForItem(slot)
     return FFXIVMinionItem.GetEquipSlot(slot)
@@ -4647,7 +4426,7 @@ end
 local function _CanAccessMapAddAetheryteRoutes(routes, attunedAetherytes, territoryId, kind, setTeleportAeth)
 	if not territoryId or not attunedAetherytes then return end
 	for _, aetheryte in pairs(attunedAetherytes) do
-		if (aetheryte.territory == territoryId and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+		if (aetheryte.territory == territoryId and aetheryte.IsAetheryte == true) then
 			navd("[CanAccessMap] " .. tostring(kind) .. " aetheryte id=" .. tostring(aetheryte.id) .. " territory=" .. tostring(aetheryte.territory) .. " price=" .. tostring(aetheryte.price))
 			_CanAccessMapAddRoute(routes, kind, aetheryte, setTeleportAeth)
 		end
@@ -4657,7 +4436,7 @@ end
 local function _CanAccessMapAetheryteById(attunedAetherytes, aetheryteId)
 	if not attunedAetherytes then return nil end
 	for _, aetheryte in pairs(attunedAetherytes) do
-		if (aetheryte.id == aetheryteId and FFXIVLib.API.Map.IsAetheryte(aetheryte.id)) then
+		if (aetheryte.id == aetheryteId and aetheryte.IsAetheryte == true) then
 			return aetheryte
 		end
 	end
@@ -4693,6 +4472,18 @@ local function _CanAccessMapBuildRouteFacts(mapid)
 	local routes = {}
 	local attunedAetherytes = FFXIVLib.API.Map.GetAetherytes(1)
 	navd("[CanAccessMap] attunedAetherytes count=" .. tostring(attunedAetherytes and TableSize(attunedAetherytes) or 0))
+	if not table.valid(attunedAetherytes) then return nil end
+	local metadataReady = false
+	for _, aetheryte in pairs(attunedAetherytes) do
+		if (aetheryte.IsAetheryte ~= nil) then
+			metadataReady = true
+			break
+		end
+	end
+	if not metadataReady then
+		navd("[CanAccessMap] aetheryte metadata pending; deferring result")
+		return nil
+	end
 
 	-- Aethernet shards can share a territory but cannot be teleported to, so
 	-- only true aetherytes count as a direct teleport route.
@@ -9100,12 +8891,6 @@ function Transport1192(pos1,pos2)
 	return false			
 end
 function CanFlyInZone()
-	if (GetPatchLevel() >= 5.35) then
-	--if (QuestCompleted(524)) then
-		--return true
-	--end 
-	end
-	
 	if (Player.flying) then
 		if (Player.flying.canflyinzone) then
 			return true
@@ -9910,8 +9695,8 @@ function FindClosestCity()
 	elseif (Player.localmapid == eulmore.mapid) then
 		return eulmore
 	else
-		local hasIdyllshire, hasRhalgr, hasEulmore, hasGridania, hasLimsa, hasUldah = false, false, false, false, false, false, false
-		local idyllshireCost, rhalgrCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost = 1000, 1000, 1000, 1000, 1000, 1000, 1000
+		local hasIdyllshire, hasRhalgr, hasEulmore, hasGridania, hasLimsa, hasUldah = false, false, false, false, false, false
+		local idyllshireCost, rhalgrCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost = 1000, 1000, 1000, 1000, 1000, 1000
 		local gil = GilCount()
 		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
 		if (table.valid(attuned)) then
@@ -9938,7 +9723,7 @@ function FindClosestCity()
 			end
 		end
 		
-		local cheapest = GetLowestValue(idyllshireCost, rhalgrCost, morDhonaCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost)
+		local cheapest = GetLowestValue(idyllshireCost, rhalgrCost, eulmoreCost, gridaniaCost, limsaCost, uldahCost)
 		if hasIdyllshire and (cheapest == idyllshireCost) then
 			return idyllshire.mapid
 		elseif hasRhalgr and (cheapest == rhalgrCost) then

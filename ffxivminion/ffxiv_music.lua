@@ -26,6 +26,9 @@ ffxiv_music = {
 	},
 	
 	last_wrap = 0,
+	last_wrap_width = nil,
+	_settingsInitialized = false,
+	_libraryInitialized = false,
 	
 	--[[
 	mml = "",
@@ -97,32 +100,27 @@ function ffxiv_music.SetTempo()
 	if (table.valid(tracks)) then
 		local track = tracks[1]
 		if (track) then
-		
-			local temp = deepcopy(track)
-			local tempo = temp.tempo
-			
-			local pos = 1
+			local tempo = track.tempo
+			local position = track.position
+			local str = track.mml
 			local tempoFound = false
 		
 			repeat
-				local pos = temp.position
-				local str = temp.mml
-				
 				local c, args, newpos = string.match(
-					string.sub(str, pos),
+					string.sub(str, position),
 					"^([%a<>])(%A-)%s-()[%a<>]"
 				)
 
 				if not c then -- Might be the last command in the string.
 					c, args = string.match(
-						string.sub(str, pos),
+						string.sub(str, position),
 						"^([%a<>])(%A-)"
 					)
 					newpos = 0
 				end
 
 				if c then 
-					temp.position = pos + (newpos - 1)
+					position = position + (newpos - 1)
 					
 					if c == "t" then -- Set tempo
 						if (tonumber(args) ~= nil) then
@@ -131,11 +129,6 @@ function ffxiv_music.SetTempo()
 						end
 					elseif c == "r" or c == "p" then -- Rest
 						tempoFound = true
-					elseif c == "l" then -- Set note length
-						if (tonumber(args) ~= nil) then
-							--ffxiv_music.notelength = tonumber(args)
-							temp.notelength = tonumber(args)
-						end
 					elseif c == ">" then -- Increase octave
 						tempoFound = true
 					elseif c == "<" then
@@ -150,8 +143,6 @@ function ffxiv_music.SetTempo()
 				end	
 				
 			until (tempoFound == true)
-			
-			d("setting tempo to ["..tostring(tempo).."]")
 			
 			for i,track in pairs(tracks) do
 				if (i > 1) then
@@ -196,12 +187,22 @@ function ffxiv_music.StartPlayback()
 	ffxiv_music.is_playing = true
 end
 
-function ffxiv_music.Init()
-	ffxiv_music.UpdateFiles()
-	
+-- Keep legacy gMusic* globals available at module initialization without
+-- touching the filesystem for users who never open the optional music tool.
+function ffxiv_music.LoadSettings()
+	if (ffxiv_music._settingsInitialized) then return end
 	gMusicTrack = ffxivminion.GetSetting("gMusicTrack",1)
 	gMusicText = ffxivminion.GetSetting("gMusicText","")
 	gMusicMML = ffxivminion.GetSetting("gMusicMML",GetString("None"))
+	ffxiv_music._settingsInitialized = true
+end
+
+-- The concatenated module cannot source-load this file lazily, so defer its
+-- directory scan and selected MML file read until the feature is first opened.
+function ffxiv_music.EnsureLibrary()
+	if (ffxiv_music._libraryInitialized) then return end
+	ffxiv_music.LoadSettings()
+	ffxiv_music.UpdateFiles()
 	gMusicMMLIndex = GetKeyByValue(gMusicMML,ffxiv_music.files) or 1
 	if (ffxiv_music.files[gMusicMMLIndex] ~= gMusicMML) then
 		gMusicMML = ffxiv_music.files[gMusicMMLIndex] or GetString("None")
@@ -210,8 +211,12 @@ function ffxiv_music.Init()
 	if (gMusicMML ~= GetString("None")) then
 		ffxiv_music.LoadMML(gMusicMML)
 	end
+	ffxiv_music._libraryInitialized = true
+end
 
-	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_Music", name = GetString("Music"), onClick = function() ffxiv_music.GUI.open = not ffxiv_music.GUI.open end, tooltip = "Open the Music editor."},"FFXIVMINION##MENU_HEADER")
+function ffxiv_music.Init()
+	ffxiv_music.LoadSettings()
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_Music", name = GetString("Music"), onClick = ffxiv_music.ToggleMenu, tooltip = "Open the Music editor."},"FFXIVMINION##MENU_HEADER")
 end
 
 function ffxiv_music.UpdateFiles()
@@ -220,7 +225,7 @@ function ffxiv_music.UpdateFiles()
 		local fileList = FolderList(ffxiv_music.filePath,[[(.*)mml$]])
 		if (table.valid(fileList)) then		
 			for i,profile in pairs(fileList) do
-				profileName = string.gsub(profile, ".mml", "")
+				local profileName = string.gsub(profile, ".mml", "")
 				table.insert(ffxiv_music.files,profileName)
 			end	
 		end
@@ -231,7 +236,7 @@ function ffxiv_music.LoadMML(filename)
 	local fullpath = ffxiv_music.filePath..filename..".mml"
 
 	if (FileExists(fullpath)) then
-		local file = io.open(fullpath, "r") -- r read mode and b binary mode
+		local file = io.open(fullpath, "r")
 		if not file then 
 			d("file could not be read")
 			return nil 
@@ -239,6 +244,7 @@ function ffxiv_music.LoadMML(filename)
 		local content = file:read "*a"
 		file:close()
 		gMusicText = content
+		ffxiv_music.last_wrap_width = nil
 	end
 end
 
@@ -248,7 +254,7 @@ function wrapText(str,width)
 	local str = IsNull(str,"")
 	local width = IsNull(width,0)
 	if (width > 0) then
-		local newstr = ""
+		local chunks = {}
 		
 		if (str and str ~= "") then
 			for line in string.split(str,"\n") do
@@ -265,7 +271,8 @@ function wrapText(str,width)
 						local textx = GUI:CalcTextSize(string.sub(section,1,i))
 						
 						if (textx >= (width - 40)) then
-							newstr = newstr..section.."\n"
+							table.insert(chunks,section)
+							table.insert(chunks,"\n")
 							newline = string.sub(newline,i+1)
 							textlen = string.len(newline)
 				
@@ -273,23 +280,27 @@ function wrapText(str,width)
 						else
 							i = i + 1
 							if (i > textlen) then
-								newstr = newstr..section.."\n"
+								table.insert(chunks,section)
+								table.insert(chunks,"\n")
 							end
 						end
 					end
 				else
-					newstr = newstr..newline.."\n"
+					table.insert(chunks,newline)
+					table.insert(chunks,"\n")
 				end
 			end
 		end
-		str = newstr
+		str = table.concat(chunks)
 	end
 	return str
 end
 
 function ffxiv_music.DrawCall(event, ticks )
+	if (not ffxiv_music.GUI.open) then return end
 	local gamestate = GetGameState()
 	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+		ffxiv_music.EnsureLibrary()
 		if ( ffxiv_music.GUI.open  ) then 
 			GUI:SetNextWindowSize(580,300,GUI.SetCond_FirstUseEver) --SetCond_FirstUseEver
 			ffxiv_music.GUI.visible, ffxiv_music.GUI.open = GUI:Begin("FFXIV Performance Music", ffxiv_music.GUI.open)
@@ -314,14 +325,17 @@ function ffxiv_music.DrawCall(event, ticks )
 				local availableWidth = GUI:GetContentRegionAvailWidth()
 				
 				--last_wrap
-				if (TimeSince(ffxiv_music.last_wrap) > 1500) then
+				if (availableWidth ~= ffxiv_music.last_wrap_width and TimeSince(ffxiv_music.last_wrap) > 1500) then
 					gMusicText = wrapText(gMusicText,availableWidth)
 					ffxiv_music.last_wrap = Now()
+					ffxiv_music.last_wrap_width = availableWidth
 				end
 				gMusicText,changed = GUI:InputTextMultiline("##reaction-code-add", gMusicText, availableWidth, 250)
 				if (changed) then
 					local newText = wrapText(gMusicText,availableWidth)
 					gMusicText = newText
+					ffxiv_music.last_wrap = Now()
+					ffxiv_music.last_wrap_width = availableWidth
 					Settings.FFXIVMINION.gMusicText = gMusicText
 				end
 				if (ffxiv_music.is_playing) then
@@ -340,7 +354,6 @@ function ffxiv_music.DrawCall(event, ticks )
 						for track in string.split(gMusicText,",") do
 							if (string.valid(track)) then
 								ffxiv_music.CreateTrack(i, string.gsub(track,"\n",""))
-								d("create track:"..tostring(i)..","..tostring(track))
 							end
 							i = i + 1
 						end
@@ -354,6 +367,7 @@ function ffxiv_music.DrawCall(event, ticks )
 end
 
 function ffxiv_music.OnUpdate( event, tickcount )
+	if (not ffxiv_music.is_playing) then return end
 	local gamestate = MGetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxiv_music.is_playing) then
@@ -362,7 +376,7 @@ function ffxiv_music.OnUpdate( event, tickcount )
 				local tracks = ffxiv_music.tracks
 				if (table.valid(tracks)) then
 					local isPlaying = false
-					if (table.size(tracks) >= gMusicTrack) then
+					if (#tracks >= gMusicTrack) then
 						local track = tracks[gMusicTrack]
 						if (track and track.playing) then
 							isPlaying = true
@@ -387,19 +401,31 @@ function ffxiv_music.OnUpdate( event, tickcount )
 	end
 end
 
+function ffxiv_music._ShiftDownReady()
+	return GUI:IsKeyDown(17) and not GUI:IsKeyDown(16)
+end
+
+function ffxiv_music._ShiftNeutralReady()
+	return not GUI:IsKeyDown(16) and not GUI:IsKeyDown(16)
+end
+
+function ffxiv_music._ShiftUpReady()
+	return GUI:IsKeyDown(16) and not GUI:IsKeyDown(17)
+end
+
 function ffxiv_music.ShiftOctave(octave)
 	if (octave < 0) then
 		KeyUp(16)
 		KeyDown(17)
-		ml_global_information.Await(10, function () return (GUI:IsKeyDown(17) and not GUI:IsKeyDown(16)) end)
+		ml_global_information.Await(10, ffxiv_music._ShiftDownReady)
 	elseif (octave == 0) then
 		KeyUp(16)
 		KeyUp(17)
-		ml_global_information.Await(10, function () return (not GUI:IsKeyDown(16) and not GUI:IsKeyDown(16)) end)
+		ml_global_information.Await(10, ffxiv_music._ShiftNeutralReady)
 	elseif (octave > 0) then
 		KeyUp(17)
 		KeyDown(16)
-		ml_global_information.Await(10, function () return (GUI:IsKeyDown(16) and not GUI:IsKeyDown(17)) end)
+		ml_global_information.Await(10, ffxiv_music._ShiftUpReady)
 	end
 end
 
@@ -560,14 +586,12 @@ function ffxiv_music.ParseMML(track)
 			elseif c == ">" then -- Increase octave
 				if (track.octave < 2) then
 					track.octave = octave + 1
-					d("shifting octave up")
 					ffxiv_music.ShiftOctave(track.octave)
 					return true
 				end
 			elseif c == "<" then -- Decrease octave
 				if (track.octave > -1) then
 					track.octave = octave - 1
-					d("shifting octave up")
 					ffxiv_music.ShiftOctave(track.octave)
 					return true
 				end
@@ -592,10 +616,8 @@ function ffxiv_music.ParseMML(track)
 				local length = string.match(args, "%d+")
 				if (tonumber(length) ~= nil) then
 					length = math.abs(length)
-					d("length ["..tostring(tonumber(length)).."] @ pos ["..tostring(newpos).."]")
 					notetime = ffxiv_music.CalculateNoteTime(tonumber(length), tempo)
 				else
-					d("notelength ["..tostring(notelength).."] @ pos ["..tostring(newpos).."]")
 					notetime = ffxiv_music.CalculateNoteTime(notelength, tempo)
 				end
 
@@ -633,6 +655,9 @@ function ffxiv_music.ParseMML(track)
 end
 
 function ffxiv_music.ToggleMenu()
+	if (not ffxiv_music.GUI.open) then
+		ffxiv_music.EnsureLibrary()
+	end
 	ffxiv_music.GUI.open = not ffxiv_music.GUI.open
 end
 

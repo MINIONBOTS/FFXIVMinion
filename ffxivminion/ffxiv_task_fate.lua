@@ -4,10 +4,7 @@
 ffxiv_task_fate = inheritsFrom(ml_task)
 ffxiv_task_fate.addon_process_elements = {}
 ffxiv_task_fate.addon_overwatch_elements = {}
-
-ffxiv_task_fate.tracking = {
-	measurementDelay = 0,
-}
+ffxiv_task_fate.eventInventories = { 2004 }
 function ffxiv_task_fate.Create()
     local newinst = inheritsFrom(ffxiv_task_fate)
     
@@ -30,10 +27,7 @@ function ffxiv_task_fate.Create()
 	newinst.nextFate = {}
 	newinst.randomDelayCompleted = false
 	newinst.specialDelay = 1000
-	
-    --newinst.fateTimer = 0
 	newinst.fateMap = Player.localmapid
-    newinst.fateCompletion = 0
     newinst.started = false
     newinst.moving = false
     newinst.fatePos = {}
@@ -77,6 +71,16 @@ function c_fatewait:evaluate()
 	end
 	return false
 end
+
+function ffxiv_task_fate.FateWaitFailEval()
+	return c_add_fate:evaluate()
+end
+
+function ffxiv_task_fate.FateWaitFailExecute(self)
+	Player:Stop()
+	self.valid = false
+end
+
 function e_fatewait:execute()
 	--d("Moving to evac point to wait for next FATE.")
 	
@@ -92,13 +96,8 @@ function e_fatewait:execute()
     
 	newTask.range = 5
     newTask.remainMounted = true
-	newTask.task_fail_eval = function ()
-		return c_add_fate:evaluate()
-	end
-	newTask.task_fail_execute = function ()
-		Player:Stop()
-		newTask.valid = false
-	end
+	newTask.task_fail_eval = ffxiv_task_fate.FateWaitFailEval
+	newTask.task_fail_execute = ffxiv_task_fate.FateWaitFailExecute
 
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -187,14 +186,13 @@ function c_teletofate:evaluate()
 				if (gTeleportHackParanoid) then
 					local scanDistance = gTeleportHackParanoidDistance
 					local players = EntityList("type=1,maxdistance=".. scanDistance)
-					local nearbyPlayers = TableSize(players)
-					if nearbyPlayers > 0 then
+					if table.valid(players) then
 						return false
 					end
 					
-					local players = EntityList("type=1")
+					players = EntityList("type=1")
 					if (players) then
-						for i,entity in pairs(players) do
+						for _,entity in pairs(players) do
 							local epos = entity.pos
 							if (Distance3D(epos.x,epos.y,epos.z,fatePos.x,fatePos.y,fatePos.z) <= scanDistance) then
 								return false
@@ -269,25 +267,20 @@ end
 c_movewithfate = inheritsFrom( ml_cause )
 e_movewithfate = inheritsFrom( ml_effect )
 function c_movewithfate:evaluate()
-	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
+	local currentTask = ml_task_hub:CurrentTask()
+	if (currentTask.fateid ~= nil and currentTask.fateid ~= 0) then
 	
-		local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
+		local fate = MGetFateByID(currentTask.fateid)
 		if (table.valid(fate)) then
 			if (fate.status == 2) then
-				local currentFatePos = ml_task_hub:CurrentTask().fatePos
+				local currentFatePos = currentTask.fatePos
 				local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
-			
-				local tablesEqual = true
-				if (table.valid(fate)) then
-					if (not table.valid(currentFatePos)) then
-						currentFatePos = shallowcopy(newFatePos)
-						return false
-					elseif (table.valid(currentFatePos) and not Player.incombat) then
-						if (not deepcompare(currentFatePos,newFatePos,true)) then
-							currentFatePos = shallowcopy(newFatePos)
-							return true
-						end
-					end
+				if (not table.valid(currentFatePos)) then
+					currentTask.fatePos = newFatePos
+					return false
+				elseif (not Player.incombat and not deepcompare(currentFatePos,newFatePos,true)) then
+					currentTask.fatePos = newFatePos
+					return true
 				end
 			end
 		end
@@ -378,7 +371,8 @@ function c_syncfatelevel:evaluate()
         return false
     end
 	
-	if (not IsEurekaMap(Player.localmapid) and Player:GetSyncLevel() ~= 0) then
+	local isEureka = IsEurekaMap(Player.localmapid)
+	if (not isEureka and Player:GetSyncLevel() ~= 0) then
 		return false
 	end
 	
@@ -386,7 +380,7 @@ function c_syncfatelevel:evaluate()
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = MGetFateByID(fateID)
 	if ( table.valid(fate)) then
-		if ((not IsEurekaMap(Player.localmapid) and fate.maxlevel < Player.level) or (IsEurekaMap(Player.localmapid) and fate.maxlevel < Player.eurekainfo.level)) then
+		if ((not isEureka and fate.maxlevel < Player.level) or (isEureka and fate.maxlevel < Player.eurekainfo.level)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
 				return true
@@ -405,27 +399,17 @@ end
 c_updatefate = inheritsFrom( ml_cause )
 e_updatefate = inheritsFrom( ml_effect )
 function c_updatefate:evaluate()
-	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
-	local fatePos = ml_task_hub:ThisTask().fatePos
-	
-	local tablesEqual = true
+	local currentTask = ml_task_hub:ThisTask()
+	local fate = MGetFateByID(currentTask.fateid)
 	if (table.valid(fate)) then
 		local nearestFateTarget = GetNearestFateAttackable()
 		if (fate.status == 2 or table.valid(nearestFateTarget)) then
-			if (not fatePos) then
-				fatePos = {x = fate.x, y = fate.y, z = fate.z}
-			elseif (table.valid(fatePos)) then
-				if not deepcompare(fate,fateDetails,true) then
-					fateDetails = shallowcopy(fate)
-				end
-			end
-			
-			if (ml_task_hub:ThisTask().waitingForChain) then 
-				ml_task_hub:ThisTask().waitingForChain = false 
+			if (currentTask.waitingForChain) then
+				currentTask.waitingForChain = false
 				d("Removing FATE wait flag.")
 			end
-			if (table.valid(ml_task_hub:ThisTask().nextFate)) then 
-				ml_task_hub:ThisTask().nextFate = {} 
+			if (table.valid(currentTask.nextFate)) then
+				currentTask.nextFate = {}
 				ml_debug("Clearing next FATE.")
 			end
 		end
@@ -450,7 +434,7 @@ function c_resettarget:evaluate()
 				local target = EntityList:Get(subtask.targetid)
 				if (table.valid(target)) then
 					if (target.fateid == fate.id) then
-						local epos = shallowcopy(target.pos)
+						local epos = target.pos
 						local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 						if (dist > fate.radius) then
 							return true
@@ -487,10 +471,7 @@ function c_faterandomdelay:evaluate()
     return false
 end
 function e_faterandomdelay:execute()
-	local minWait = 1 * 1000
-	local maxWait = 5 * 1000
-	
-	ml_global_information.Await(math.random(minWait,maxWait))
+	ml_global_information.Await(math.random(1000,5000))
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 end
 
@@ -500,12 +481,10 @@ end
 c_startfate = inheritsFrom( ml_cause )
 e_startfate = inheritsFrom( ml_effect )
 e_startfate.contentid = 0
-e_startfate.npcpos = {}
 e_startfate.fateid = 0
 function c_startfate:evaluate()
 	-- Reset tempvars.
 	e_startfate.contentid = 0
-	e_startfate.npcpos = {}
 	e_startfate.fateid = 0
 					
 	local fateid = ml_task_hub:CurrentTask().fateid
@@ -518,7 +497,7 @@ function c_startfate:evaluate()
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
 				local closest,closestDistance = nil,IsNull(activatable.range,100)
-				for i,entity in pairs(fatenpc) do
+				for _,entity in pairs(fatenpc) do
 					local dist = math.distance3d(entity.pos,activatable.pos)
 					if (not closest or dist < closestDistance) then
 						closest = entity
@@ -539,6 +518,43 @@ function c_startfate:evaluate()
 	return false
 end
 
+function ffxiv_task_fate.StartFateCompleteEval(self)
+	-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
+	local fate = MGetFateByID(self.fateid)
+	if (not fate or fate.status == 2 or Busy() or self.startMap ~= Player.localmapid) then
+		return true
+	end
+
+	local ppos = Player.pos
+	local interactable = nil
+	if (self.interact ~= 0) then
+		interactable = EntityList:Get(self.interact)
+	end
+
+	local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
+	if (self.interact ~= 0 and dist2d < 50 and dist2d < fate.radius and dist3d < fate.radius) then
+		if (not interactable or not interactable.targetable) then
+			d("[e_startfate] interact not targetable")
+			return true
+		end
+		local npcdist2d = math.distance2d(interactable.pos,self.pos)
+		if interactable and npcdist2d > 5 then
+			d("[e_startfate] intertactable moved...")
+			return true
+		end
+	else
+		if (dist2d <= 5) then
+			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
+			if (not table.valid(interacts)) then
+				d("[e_startfate] no valid interacts found")
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
 function e_startfate:execute()
    if (IsControlOpen("SelectYesno")) then
 		PressYesNo(true)
@@ -551,44 +567,7 @@ function e_startfate:execute()
 	newTask.pos = e_startfate.pos
 	newTask.fateid =  e_startfate.fateid
 	
-	newTask.task_complete_eval = function (self)
-		-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
-		local fate = MGetFateByID(self.fateid)
-		if (not fate or fate.status == 2 or Busy() or self.startMap ~= Player.localmapid) then
-			return true
-		end
-		
-		local myTarget = MGetTarget()
-		local ppos = Player.pos
-		
-		local interactable = nil
-		if (self.interact ~= 0) then
-			interactable = EntityList:Get(self.interact)
-		end
-		
-		local dist2d,dist3d = math.distance2d(ppos,self.pos),math.distance3d(ppos,self.pos)
-		if (self.interact ~= 0 and dist2d < 50 and dist2d < fate.radius and dist3d < fate.radius) then
-			if (not interactable or not interactable.targetable) then
-				d("[e_startfate] interact not targetable")
-				return true
-			end
-			local npcdist2d = math.distance2d(interactable.pos,self.pos)
-			if interactable and npcdist2d > 5 then
-				d("[e_startfate] intertactable moved...")
-				return true
-			end
-		else
-			if (dist2d <= 5) then
-				local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-				if (not table.valid(interacts)) then
-					d("[e_startfate] no valid interacts found")
-					return true
-				end
-			end			
-		end
-		
-		return false
-	end
+	newTask.task_complete_eval = ffxiv_task_fate.StartFateCompleteEval
 		
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -615,7 +594,7 @@ function c_turninItem:evaluate()
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
 				local turninid = gatherable.turninid
-				local currentcount = ItemCount(turninid,{2004})
+				local currentcount = ItemCount(turninid)
 				if ((currentcount >= gFateGatherTurnCount) or (currentcount >= 1 and (fate.status == 8 or fate.duration < 120))) then
 					local npcpos = gatherable.pos
 				
@@ -645,13 +624,12 @@ function c_handoveritem:evaluate()
 	return false
 end
 function e_handoveritem:execute()
-	local inventories = {2004}
-	for _,invid in pairs(inventories) do
+	for _,invid in pairs(ffxiv_task_fate.eventInventories) do
 		local bag = Inventory:Get(invid)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
-				for slot, item in pairs(ilist) do 
+				for _,item in pairs(ilist) do
 					local result = item:HandOver()
 					if (result and (result == 1 or result == true or result == 65536)) then
 						ml_global_information.Await(math.random(800,1200))
@@ -686,7 +664,7 @@ function c_pickupItem:evaluate()
 			local el = MEntityList("alive,attackable,onmesh")
 			local myPos = Player.pos
 			if (table.valid(el)) then
-				for i,entity in pairs(el) do
+				for _,entity in pairs(el) do
 					local efateid = entity.fateid
 					if (efateid == fateid or efateid == 0) then
 						local epos = entity.pos
@@ -703,13 +681,13 @@ function c_pickupItem:evaluate()
 			
 			local fatenpc = EntityList("targetable,type=3,chartype=5")
 			if (table.valid(fatenpc)) then
-				for i,entity in pairs(fatenpc) do
+				for _,entity in pairs(fatenpc) do
 					if entity.fateid == fateid then
 						local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
 						if (gatherable) then
 							local pickupitem = MEntityList("nearest,targetable,contentid="..tostring(gatherable.itemid))
 							if (table.valid(pickupitem)) then
-								for id,item in pairs(pickupitem) do
+								for _,item in pairs(pickupitem) do
 									local ipos = item.pos
 									local dist3d = Distance3D(ipos.x,ipos.y,ipos.z,myPos.x,myPos.y,myPos.z)
 									if (not nearest or dist3d < nearestDistance) then
@@ -739,7 +717,6 @@ end
 c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
-c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
 	if not Player.onmesh then
 		return false
@@ -758,10 +735,6 @@ function c_add_fatetarget:evaluate()
 	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (table.valid(fate)) then
 		if (fate.status == 2) then
-			--d("status:"..tostring(fate.status))
-			--d("completion:"..tostring(fate.completion))
-			--d("name:"..tostring(fate.name))
-			
 			local myPos = Player.pos
 			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
@@ -849,14 +822,14 @@ end
 function ffxiv_task_fate:InitExtras()
 	local overwatch_elements = self.addon_overwatch_elements
 	if (table.valid(overwatch_elements)) then
-		for i,element in pairs(overwatch_elements) do
+		for _,element in pairs(overwatch_elements) do
 			self:add(element, self.overwatch_elements)
 		end
 	end
 	
 	local process_elements = self.addon_process_elements
 	if (table.valid(process_elements)) then
-		for i,element in pairs(process_elements) do
+		for _,element in pairs(process_elements) do
 			self:add(element, self.process_elements)
 		end
 	end
@@ -877,12 +850,11 @@ function c_endfate:evaluate()
 	
     local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
 	local gatherable = false
-	local turninitem = 0
 	local redeemable = false
     if (table.valid(fate)) then
 		gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)
 		if (gatherable) then
-			redeemable = (ItemCount(gatherable.turninid,{2004}) >= 1)
+			redeemable = (ItemCount(gatherable.turninid) >= 1)
 		end
 	end
 	
@@ -897,11 +869,9 @@ function c_endfate:evaluate()
 		local foundTargetable = false
 		local el = MEntityList("fateid="..tostring(fate.id))
 		if (table.valid(el)) then
-			for i,e in pairs(el) do
+			for _,e in pairs(el) do
 				if (e.targetable) then
 					foundTargetable = true
-				end
-				if (foundTargetable) then
 					break
 				end
 			end
@@ -911,6 +881,8 @@ function c_endfate:evaluate()
 			return true
 		end
 	else
+		local minFateLevel
+		local maxFateLevel
 		if gEnableAdvancedGrindSettings then
 			minFateLevel = tonumber(gGrindFatesMinLevel) or 0
 			maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
@@ -926,11 +898,6 @@ function c_endfate:evaluate()
 		end
     end
 	
-	--if (not IsFateApproved(fate.id)) then
-		--d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
-		--return true
-	--end
-    
     return false
 end
 
@@ -960,7 +927,6 @@ function ffxiv_task_fate.IsHighPriority(mapid, fateid)
 end
 
 function ffxiv_task_fate.IsChain(mapid, fateid)
-	local mapid = tonumber(mapid) or 0
 	local fateid = tonumber(fateid) or 0
 
 	--d("Checking to see if fateid:"..tostring(fateid).." is a chain for mapid:"..tostring(mapid))
@@ -972,9 +938,10 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 	local chainId = fateData.FATEChain
 	local isInChain = (chainId and chainId > 0)
 
+	local followers = nil
 	if not isInChain then
 		-- Check if any other FATE chains FROM this one
-		local followers = FFXIVLib.API.Fate.GetFateChain(fateid)
+		followers = FFXIVLib.API.Fate.GetFateChain(fateid)
 		if followers and #followers > 1 then
 			isInChain = true
 		end
@@ -988,7 +955,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 	local firstChain = (not chainId or chainId == 0)
 
 	-- Find the next FATE in the chain (the one whose FATEChain points to us)
-	local followers = FFXIVLib.API.Fate.GetFateChain(fateid)
+	followers = followers or FFXIVLib.API.Fate.GetFateChain(fateid)
 	local nextFate = nil
 	local lastChain = true
 

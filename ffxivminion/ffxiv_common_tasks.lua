@@ -2328,20 +2328,17 @@ function ffxiv_task_grindCombat:task_complete_eval()
         return true
     end
 
-	-- Self-defense only: end after the mob was on us and disengages (targetid == 0).
-	-- Do not use for quest kills / path clears where targetid == 0 before the pull.
+	-- Self-defense callers only set this after selecting an existing aggro target.
+	-- End as soon as that target disengages, including targets that were attacking
+	-- a companion or party member and therefore never targeted Player directly.
 	if (self.endOnDisengage) then
 		local targetTargetId = target.targetid or 0
-		local playerId = Player.id
-		local petId = (ValidTable(Player.pet) and Player.pet.id) or 0
-		if (targetTargetId == playerId or (petId ~= 0 and targetTargetId == petId)) then
-			self.hadAggro = true
-		end
-		if (self.hadAggro and targetTargetId == 0) then
+		if (targetTargetId == 0) then
 			TaskHandoffLog("GRIND_COMBAT complete_eval true reason=Disengaged parent="..TaskDebugParentName(self)
 				.." targetid="..tostring(self.targetid))
 			return true
 		end
+		self.hadAggro = true
 	end
    
 	return false

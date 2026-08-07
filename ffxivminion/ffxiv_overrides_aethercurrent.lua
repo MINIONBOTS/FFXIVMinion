@@ -21,7 +21,7 @@ function FFXIVAetherCurrentRequirementsMet(eObjId)
 	end
 
 	-- The Fringes - Rising Fortunes, Rising Spirits
-	if id == 2007971 or id == 2007972 then
+	if id == 2007967 or id == 2007971 or id == 2007972 then
 		return QuestCompleted(2530)
 	end
 

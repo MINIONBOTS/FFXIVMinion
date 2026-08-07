@@ -17,8 +17,6 @@ function ffxiv_task_huntlog.Create()
     newinst.name = "LT_HUNTLOG"
 	
 	newinst.huntParams = {}
-	newinst.validIndexes = {}
-	newinst.possibleTargets = {}
 	
 	--Huntlog handles being called as a subtask via the adHoc property, which removes the task after a successful kill.
 	newinst.adHoc = false
@@ -30,6 +28,14 @@ end
 c_huntlogkillaggrotarget = inheritsFrom( ml_cause )
 e_huntlogkillaggrotarget = inheritsFrom( ml_effect )
 e_huntlogkillaggrotarget.targetid = 0
+c_huntlogkillfail = inheritsFrom( ml_cause )
+e_huntlogkillfail = inheritsFrom( ml_effect )
+function c_huntlogkillfail:evaluate()
+	return Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)
+end
+function e_huntlogkillfail:execute()
+	ml_task_hub:CurrentTask():Terminate()
+end
 function c_huntlogkillaggrotarget:evaluate()
 	if (IsPlayerCasting()) then
 		return false
@@ -39,7 +45,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	--Try onmesh first.
 	el = EntityList("lowesthealth,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
-		local id, target = next(el)
+		local _, target = next(el)
 		if (table.valid(target)) then
 			if((target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
 				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
@@ -56,7 +62,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	
 	el = EntityList("shortestpath,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
-		local id, target = next(el)
+		local _, target = next(el)
 		if (table.valid(target)) then
 			if((target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
 				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
@@ -73,7 +79,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	
 	el = EntityList("nearest,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
-		local id, target = next(el)
+		local _, target = next(el)
 		if (table.valid(target)) then
 			if((target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
 				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
@@ -97,7 +103,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	if (petid) then
 		el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
 		if (table.valid(el)) then
-			local id, target = next(el)
+			local _, target = next(el)
 			if (table.valid(target)) then
 				if (target.hp.current > 0 and (target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
 					(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
@@ -110,7 +116,7 @@ function c_huntlogkillaggrotarget:evaluate()
 		
 		el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
 		if (table.valid(el)) then
-			local id, target = next(el)
+			local _, target = next(el)
 			if (table.valid(target)) then
 				if (target.hp.current > 0 and (target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
 					(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
@@ -138,15 +144,7 @@ function e_huntlogkillaggrotarget:execute()
     newTask.targetid = e_huntlogkillaggrotarget.targetid
 	Player:SetTarget(e_huntlogkillaggrotarget.targetid)
 	
-	local c_killfail = inheritsFrom( ml_cause )
-	local e_killfail = inheritsFrom( ml_effect )
-	function c_killfail:evaluate()
-		return Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)
-	end
-	function e_killfail:execute()
-		ml_task_hub:CurrentTask():Terminate()
-	end
-    newTask:add( ml_element:create( "KillAggroFail", c_killfail, e_killfail, 100 ), newTask.overwatch_elements)
+    newTask:add( ml_element:create( "KillAggroFail", c_huntlogkillfail, e_huntlogkillfail, 100 ), newTask.overwatch_elements)
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
@@ -231,13 +229,14 @@ function e_grind_addhuntlogtask:execute()
 		return
 	end
 
-	ml_task_hub:CurrentTask().doingHuntlog = true
+	local currentTask = ml_task_hub:CurrentTask()
+	currentTask.doingHuntlog = true
 
 	local newTask = ffxiv_task_huntlog.Create()
 	newTask.huntParams = c_grind_addhuntlogtask.target
 	newTask.adHoc = true
 	newTask.toggleSource = "grind"
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	currentTask:AddSubTask(newTask)
 end
 
 c_evaluatebesttarget = inheritsFrom( ml_cause )
@@ -252,7 +251,8 @@ function c_evaluatebesttarget:evaluate()
 		c_evaluatebesttarget.targetinfo = bestTarget
 	end
 	
-	if (not deepcompare(ml_task_hub:CurrentTask().huntParams,c_evaluatebesttarget.targetinfo,true)) then
+	local currentTask = ml_task_hub:CurrentTask()
+	if (not deepcompare(currentTask.huntParams,c_evaluatebesttarget.targetinfo,true)) then
 		d("[EvaluateBestTarget]: Updating target info.")
 		return true
 	end
@@ -260,20 +260,23 @@ function c_evaluatebesttarget:evaluate()
 	return false
 end
 function e_evaluatebesttarget:execute()
-	ml_task_hub:CurrentTask().huntParams = deepcopy(c_evaluatebesttarget.targetinfo,true)
+	local currentTask = ml_task_hub:CurrentTask()
+	currentTask.huntParams = deepcopy(c_evaluatebesttarget.targetinfo,true)
 end
 
 c_huntlogmovetomap = inheritsFrom( ml_cause )
 e_huntlogmovetomap = inheritsFrom( ml_effect )
 e_huntlogmovetomap.mapID = 0
 function c_huntlogmovetomap:evaluate()
-	if Player.incombat or (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
+	local currentTask = ml_task_hub:CurrentTask()
+	local huntParams = currentTask.huntParams
+	if Player.incombat or (not huntParams or MIsLocked() or MIsLoading()) then
 		return false
 	end
 	
 	e_huntlogmovetomap.mapID = 0
 	
-	local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
+	local mapID = huntParams["mapid"]
 	if (mapID and mapID > 0) then
 		if (Player.localmapid ~= mapID) then
 			if (CanAccessMap(mapID)) then
@@ -287,26 +290,30 @@ function c_huntlogmovetomap:evaluate()
 	return false
 end
 function e_huntlogmovetomap:execute()
+	local currentTask = ml_task_hub:CurrentTask()
+	local huntParams = currentTask.huntParams
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = e_huntlogmovetomap.mapID
-	if (table.valid(ml_task_hub:CurrentTask().huntParams["pos"])) then
-		task.pos = ml_task_hub:CurrentTask().huntParams["pos"]
+	if (table.valid(huntParams["pos"])) then
+		task.pos = huntParams["pos"]
 	end
-	ml_task_hub:CurrentTask():AddSubTask(task)
+	currentTask:AddSubTask(task)
 end
 
 c_huntlogmovetopos = inheritsFrom( ml_cause )
 e_huntlogmovetopos = inheritsFrom( ml_effect )
 function c_huntlogmovetopos:evaluate()
-	if (not ml_task_hub:CurrentTask().huntParams or CannotMove() or MIsLoading()) then
+	local currentTask = ml_task_hub:CurrentTask()
+	local huntParams = currentTask.huntParams
+	if (not huntParams or CannotMove() or MIsLoading()) then
 		return false
 	end
 	
-	local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
+	local mapID = huntParams["mapid"]
 	if (mapID and mapID > 0) then
 		if (Player.localmapid == mapID) then
 			local ppos = Player.pos
-			local pos = ml_task_hub:CurrentTask().huntParams["pos"]
+			local pos = huntParams["pos"]
 			if (Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) > 15) then
 				d("[HuntlogMoveToMap]: Need to move into position.")
 				return true
@@ -317,7 +324,9 @@ function c_huntlogmovetopos:evaluate()
 	return false
 end
 function e_huntlogmovetopos:execute()
-	local pos = ml_task_hub:CurrentTask().huntParams["pos"]
+	local currentTask = ml_task_hub:CurrentTask()
+	local huntParams = currentTask.huntParams
+	local pos = huntParams["pos"]
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.range = 5
@@ -325,27 +334,28 @@ function e_huntlogmovetopos:execute()
 		newTask.useTeleport = true
 	end
 	
-	local id = ml_task_hub:CurrentTask().huntParams["id"]
+	local id = huntParams["id"]
 	local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
 	newTask.customSearch = customSearch
 	newTask.customSearchCompletes = true
 	
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	currentTask:AddSubTask(newTask)
 end
 
 c_huntlogkill = inheritsFrom( ml_cause )
 e_huntlogkill = inheritsFrom( ml_effect )
 e_huntlogkill.targetid = 0
 function c_huntlogkill:evaluate()
-	if (not table.valid(ml_task_hub:CurrentTask().huntParams) or MIsLoading() or MIsCasting() or CannotMove()) then
+	local currentTask = ml_task_hub:CurrentTask()
+	local huntParams = currentTask.huntParams
+	if (not table.valid(huntParams) or MIsLoading() or MIsCasting() or CannotMove()) then
 		return false
 	end
 	
-	local id = ml_task_hub:CurrentTask().huntParams["id"]
+	local id = huntParams["id"]
     if (id and id > 0) then
 		local el = nil
-		local pos = ml_task_hub:CurrentTask().huntParams["pos"]
 		local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 		
 		el = EntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
@@ -373,10 +383,10 @@ function c_huntlogkill:evaluate()
 		end
 		
 		if (table.valid(el)) then
-			if (TableSize(el) == 1) then
-				local id, entity = next(el)
-				if(entity) then
-					e_huntlogkill.targetid = id
+			local firstID, firstEntity = next(el)
+			if (next(el, firstID) == nil) then
+				if(firstEntity) then
+					e_huntlogkill.targetid = firstID
 					return true
 				end
 			else
@@ -408,37 +418,8 @@ function c_huntlogkill:evaluate()
 	
 	return false
 end
-function e_huntlogkill:execute()
-	local newTask = ffxiv_task_grindCombat.Create()
-	newTask.targetid = e_huntlogkill.targetid
-	d("[HuntlogKill]:Creating kill task for :"..tostring(e_huntlogkill.targetid))
-	newTask.attemptPull = true
-	
-	local ke_clearAggressives = ml_element:create( "ClearAggressiveTargets", c_questclearaggressive, e_questclearaggressive, 3 )
-	newTask:add( ke_clearAggressives, newTask.process_elements)
-		
-	-- If this is an ad-hoc quest huntlog, complete quickly and force fresh quest selection.
-	newTask.task_complete_execute = function ()
-		Player:Stop()
-		local huntTask = ml_task_hub:CurrentTask()
-		huntTask.completed = true
 
-		if (huntTask.adHoc and huntTask.toggleSource == "quest") then
-			if (questing and questing.InvalidateNearestQuestCache) then
-				questing.InvalidateNearestQuestCache()
-			end
-			ml_global_information.Await(250)
-		else
-			ml_global_information.Await(1000)
-		end
-	end
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
-end
-
-c_huntlog_disabled = inheritsFrom( ml_cause )
-e_huntlog_disabled = inheritsFrom( ml_effect )
-
-local function GetOwningHuntlogTask(task)
+function ffxiv_task_huntlog.GetOwningTask(task)
 	local current = task
 	local maxDepth = 12
 	while (table.valid(current) and maxDepth > 0) do
@@ -454,9 +435,42 @@ local function GetOwningHuntlogTask(task)
 	return nil
 end
 
+function ffxiv_task_huntlog.CompleteKillTask()
+	Player:Stop()
+	local currentTask = ml_task_hub:CurrentTask()
+	currentTask.completed = true
+
+	local huntTask = ffxiv_task_huntlog.GetOwningTask(currentTask)
+	if (huntTask and huntTask.adHoc and huntTask.toggleSource == "quest") then
+		if (questing and questing.InvalidateNearestQuestCache) then
+			questing.InvalidateNearestQuestCache()
+		end
+		ml_global_information.Await(250)
+	else
+		ml_global_information.Await(1000)
+	end
+end
+
+function e_huntlogkill:execute()
+	local currentTask = ml_task_hub:CurrentTask()
+	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.targetid = e_huntlogkill.targetid
+	d("[HuntlogKill]:Creating kill task for :"..tostring(e_huntlogkill.targetid))
+	newTask.attemptPull = true
+
+	local ke_clearAggressives = ml_element:create( "ClearAggressiveTargets", c_questclearaggressive, e_questclearaggressive, 3 )
+	newTask:add( ke_clearAggressives, newTask.process_elements)
+
+	newTask.task_complete_execute = ffxiv_task_huntlog.CompleteKillTask
+	currentTask:AddSubTask(newTask)
+end
+
+c_huntlog_disabled = inheritsFrom( ml_cause )
+e_huntlog_disabled = inheritsFrom( ml_effect )
+
 function c_huntlog_disabled:evaluate()
 	local currentTask = ml_task_hub:CurrentTask()
-	local sourceTask = GetOwningHuntlogTask(currentTask) or currentTask
+	local sourceTask = ffxiv_task_huntlog.GetOwningTask(currentTask) or currentTask
 
 	if (table.valid(sourceTask) and sourceTask.toggleSource == "grind") then
 		return not IsGrindHuntlogEnabled()
@@ -534,47 +548,17 @@ end
 function ffxiv_task_huntlog:InitExtras()
 	local overwatch_elements = self.addon_overwatch_elements
 	if (table.valid(overwatch_elements)) then
-		for i,element in pairs(overwatch_elements) do
+		for _,element in pairs(overwatch_elements) do
 			self:add(element, self.overwatch_elements)
 		end
 	end
 	
 	local process_elements = self.addon_process_elements
 	if (table.valid(process_elements)) then
-		for i,element in pairs(process_elements) do
+		for _,element in pairs(process_elements) do
 			self:add(element, self.process_elements)
 		end
 	end
-end
-
-function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
-    for k,v in pairs(NewVals) do
-        if ( 	k == "gDoGCHuntLog" )	then
-            SafeSetVar(tostring(k),v)
-        end
-    end
-    GUI_RefreshWindow(GetString("huntlogMode"))
-end
-function ffxiv_task_huntlog.UIInit()
-	--[[
-	ffxivminion.Windows.HuntLog = { id = strings["en"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
-	ffxivminion.CreateWindow(ffxivminion.Windows.HuntLog)
-	
-	local winName = GetString("huntlogMode")
-	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
-	
-	local group = GetString("status")
-	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,GetString("navmesh") ,"FFXIV_Common_NavMesh",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
-	
-	GUI_UnFoldGroup(winName,GetString("status"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	--]]
 end
 function ffxiv_task_huntlog:task_complete_eval()
 	if (self.adHoc) then
@@ -597,10 +581,9 @@ function ffxiv_task_huntlog:task_complete_execute()
     self.completed = true
 	
 	if (self.adHoc) then
-		if (ml_task_hub:CurrentTask():ParentTask() and ml_task_hub:CurrentTask():ParentTask().name == "LT_GRIND") then
-			ml_task_hub:CurrentTask():ParentTask().doingHuntlog = true
+		local parentTask = self:ParentTask()
+		if (parentTask and parentTask.name == "LT_GRIND") then
+			parentTask.doingHuntlog = true
 		end
 	end
 end
-
-RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate,"ffxiv_task_huntlog.GUIVarUpdate")

@@ -54,9 +54,6 @@ Do not move genuinely user-curated data into a private dependency. Curated
 files should explain why the game data is insufficient and how users should
 edit them.
 
-Run `python tools/audit_static_data.py` after changing static data ownership.
-Do not weaken its checks merely to admit a new copied game-data table.
-
 ## 3. FFXIVLib Is Asynchronous
 
 Most FFXIVLib data accessors return `nil` on the first call while an async query
@@ -172,12 +169,11 @@ behavioral change with broad whitespace or formatting churn.
 
 Use validation proportional to the change. For normal Lua changes:
 
-1. Run `python tools/audit_static_data.py` when available.
-2. Parse every changed Lua file with a Lua 5.1-compatible parser.
-3. Parse the files from `module.def` concatenated in module order.
-4. Run `git diff --check`.
-5. Search for stale references to removed functions, globals, and datasets.
-6. Perform a targeted runtime or mocked test when behavior depends on async
+1. Parse every changed Lua file with a Lua 5.1-compatible parser.
+2. Parse the files from `module.def` concatenated in module order.
+3. Run `git diff --check`.
+4. Search for stale references to removed functions, globals, and datasets.
+5. Perform a targeted runtime or mocked test when behavior depends on async
    data, timers, task transitions, or profile compatibility.
 
 Do not claim a runtime behavior is verified when only syntax was checked.

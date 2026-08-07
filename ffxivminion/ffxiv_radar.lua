@@ -12,15 +12,10 @@ ffxiv_radar.GUI = {
 }
 -- Check and load Custom List + Preset data.
 local ColourAlpha = 0.8 -- Alpha value for transparent colours.
-local lastupdate = 0
 local RadarTable = {}
 -- Colour Data
 local Colours = {}
 local CustomTransparency = {}
-local CloseColourR,CloseColourG,CloseColourB = 1,0,0
-
-local HPBarStyles = {"New", "Original"}
-local MainWindowPosx, MainWindowPosy, MainWindowSizex, MainWindowSizey
 
 ffxiv_radar.Tabs = {
 	["CurrentSelected"] = 1,
@@ -49,12 +44,22 @@ function ffxiv_radar.Init()
 	end
 end
 
-function ffxiv_radar.DrawCall(event, ticks )
-	if (ffxiv_radar.GUI.open or ffxiv_radar.Enable3D or ffxiv_radar.Enable2D)
-		and not ffxiv_radar.EnsureData()
-	then
-		return
+-- Custom label fields only change when the saved format string changes. Keep
+-- the parsed list out of the per-entity render loop.
+function ffxiv_radar.GetCustomStringFields()
+	local source = ffxiv_radar.CustomString or ""
+	if ffxiv_radar._customStringSource ~= source then
+		ffxiv_radar._customStringSource = source
+		ffxiv_radar._customStringFields = string.totable(source,",")
 	end
+	return ffxiv_radar._customStringFields
+end
+
+function ffxiv_radar.DrawCall(event, ticks )
+	if not (ffxiv_radar.GUI.open or ffxiv_radar.Enable3D or ffxiv_radar.Enable2D) then return end
+	if not ffxiv_radar.EnsureData() then return end
+	local changed
+	local flags
 	if not(GUI_NewWindow) then
 		local gamestate = GetGameState()
 		if ( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -62,8 +67,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 				GUI:SetNextWindowSize(580,340,GUI.SetCond_FirstUseEver) --SetCond_FirstUseEver
 				ffxiv_radar.GUI.visible, ffxiv_radar.GUI.open = GUI:Begin("FFXIV Radar", ffxiv_radar.GUI.open)
 				if ( ffxiv_radar.GUI.visible ) then
-					MainWindowPosx, MainWindowPosy = GUI:GetWindowPos()
-					MainWindowSizex, MainWindowSizey = GUI:GetWindowSize()
+					local MainWindowSizex = GUI:GetWindowSize()
 					-- GUI Start.
 					GUI:Columns(2,"Main Tab") GUI:SetColumnOffset(1, MainWindowSizex/2)
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Show 3D Radar:")) if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
@@ -194,7 +198,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 							local Size = GUI:GetContentRegionAvail()
 							ffxiv_radar.ShowHPBars, changed = GUI:Checkbox("##ShowHPBars", ffxiv_radar.ShowHPBars) if (changed) then Settings.ffxiv_radar.ShowHPBars = ffxiv_radar.ShowHPBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
 							ffxiv_radar.BlackBars, changed = GUI:Checkbox("##BlackBars", ffxiv_radar.BlackBars) if (changed) then Settings.ffxiv_radar.BlackBars = ffxiv_radar.BlackBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
-							GUI:PushItemWidth(Size) ffxiv_radar.HPBarStyle, changed = GUI:Combo("##HPBarStyle", ffxiv_radar.HPBarStyle, HPBarStyles) if (changed) then Settings.ffxiv_radar.HPBarStyle = ffxiv_radar.HPBarStyle end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end GUI:PopItemWidth()
+							GUI:PushItemWidth(Size) ffxiv_radar.HPBarStyle, changed = GUI:Combo("##HPBarStyle", ffxiv_radar.HPBarStyle, ffxiv_radar._hpBarStyles) if (changed) then Settings.ffxiv_radar.HPBarStyle = ffxiv_radar.HPBarStyle end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end GUI:PopItemWidth()
 							ffxiv_radar.EnableRadarDistance3D, changed = GUI:Checkbox("##EnableRadarDistance3D", ffxiv_radar.EnableRadarDistance3D) if (changed) then Settings.ffxiv_radar.EnableRadarDistance3D = ffxiv_radar.EnableRadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
 							GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance3D, changed = GUI:SliderInt("##RadarDistance3D", ffxiv_radar.RadarDistance3D,0,300) if (changed) then Settings.ffxiv_radar.RadarDistance3D = ffxiv_radar.RadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
 							ffxiv_radar.CustomStringEnabled, changed = GUI:Checkbox("##CustomStringEnabled",ffxiv_radar.CustomStringEnabled) if (changed) then Settings.ffxiv_radar.CustomStringEnabled = ffxiv_radar.CustomStringEnabled end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
@@ -229,6 +233,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 					flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
 					GUI:Begin("ffxiv_radar 3D Overlay", true, flags)	
 					if ValidTable(RadarTable) then -- Check Radar table is valid and write to screen.
+						local customStringFields = ffxiv_radar.CustomStringEnabled and ffxiv_radar.GetCustomStringFields() or nil
 						for i,e in pairs(RadarTable) do
 						local eColour = e.Colour
 						local eHP = e.hp
@@ -246,10 +251,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 							if (table.valid(screenPos)) then
 								local EntityString = ""
 								if ffxiv_radar.CustomStringEnabled then
-									EntityString = ""
-									StringTable = string.totable(ffxiv_radar.CustomString,",")
-									if ValidTable(StringTable) then
-										for stringindex,stringval in pairs(StringTable) do
+									if ValidTable(customStringFields) then
+										for stringindex,stringval in pairs(customStringFields) do
 											local StringLower = string.lower(stringval)
 											if StringLower == "name" then EntityString = EntityString.."["..e.name.."]"
 											elseif StringLower == "distance" then EntityString = EntityString.."["..eDistance.."]"
@@ -379,13 +382,13 @@ function ffxiv_radar.DrawCall(event, ticks )
 							EntityPosX = (((ePOS.x-PlayerPOS.x)/edistance2d)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
 							EntityPosY = (((ePOS.z-PlayerPOS.z)/edistance2d)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
 							end
-							local PointCalculation = math.sqrt(math.pow(MouseX-EntityPosX,2) + math.pow(MouseY-EntityPosY,2))
-							--if PointCalculation < (4*(ffxiv_radar.TextScale/100)) then d("YESSS") end
-							--d(EntityPosX..":"..EntityPosY)
 							if ffxiv_radar.Shape == 1 then
-								GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour) -- Filled Point Marker (Transparent).
-								GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour) -- Point Marker Outline (Transparent).
-								if PointCalculation <= (4*(ffxiv_radar.TextScale/100)) then MouseOver = true end
+								local pointRadius = 4*(ffxiv_radar.TextScale/100)
+								local mouseDeltaX = MouseX-EntityPosX
+								local mouseDeltaY = MouseY-EntityPosY
+								GUI:AddCircleFilled(EntityPosX,EntityPosY, pointRadius, eColour) -- Filled Point Marker (Transparent).
+								GUI:AddCircle(EntityPosX,EntityPosY, pointRadius, eColour) -- Point Marker Outline (Transparent).
+								if mouseDeltaX*mouseDeltaX + mouseDeltaY*mouseDeltaY <= pointRadius*pointRadius then MouseOver = true end
 							elseif ffxiv_radar.Shape == 2 then
 								local RectScale = math.round((4*(ffxiv_radar.TextScale/100)),0)
 								local Rectx1,Recty1,Rectx2,Recty2,Rectx3,Recty3,Rectx4,Recty4 = EntityPosX-RectScale, EntityPosY-RectScale, EntityPosX+RectScale, EntityPosY-RectScale, EntityPosX-RectScale, EntityPosY+RectScale, EntityPosX+RectScale, EntityPosY+RectScale
@@ -413,8 +416,6 @@ function ffxiv_radar.DrawCall(event, ticks )
 end
 
 function ffxiv_radar.Radar() -- Table
-	--if Now() > lastupdate + 25 then
-	--lastupdate = Now()
 		if not FFXIVLib.API.Radar.IsHuntDataReady() then return end
 		local EntityTable = EntityList("")
 		if ValidTable(EntityTable) then
@@ -458,7 +459,7 @@ function ffxiv_radar.Radar() -- Table
 					--if ffxiv_radar.InvalidNames and ename ~= "?" and ename ~= "" or not ffxiv_radar.InvalidNames then
 						if ffxiv_radar.CustomList[econtentid] ~= nil and ffxiv_radar.CustomList[econtentid].Enabled then -- Custom List
 							Colour = ffxiv_radar.CustomList[econtentid].ColourU32
-							if ffxiv_radar.CustomList[econtentid].Name ~= "" then d("Updating Name") ename = ffxiv_radar.CustomList[econtentid].Name end -- Custom name overwite.
+							if ffxiv_radar.CustomList[econtentid].Name ~= "" then ename = ffxiv_radar.CustomList[econtentid].Name end -- Custom name overwite.
 							Draw = true
 							CustomName = true
 						elseif huntOptionIndex and (ffxiv_radar.Options[1][1].Enabled or ffxiv_radar.Options[2][huntOptionIndex].Enabled) then
@@ -482,7 +483,7 @@ function ffxiv_radar.Radar() -- Table
 						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][5].Enabled) and efriendly and etype == 3) then -- NPCs.
 							Colour = ffxiv_radar.Options[1][5].ColourU32
 							Draw = true
-						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][7].Enabled) and ((econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2013924 and econtentid <= 2013983))) then -- Event objects.(AetherCurrents)
+						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][7].Enabled) and ((econtentid >= 2007965 and econtentid <= 2008024) or (econtentid >= 2006186 and econtentid <= 2006234) or (econtentid >= 2013924 and econtentid <= 2013983))) then -- Event objects.(AetherCurrents)
 							Colour = ffxiv_radar.Options[1][7].ColourU32
 							Draw = true
 						elseif ((ffxiv_radar.Options[1][8].Enabled or ffxiv_radar.Options[1][6].Enabled) and (etype == 0 or etype == 5 or etype == 7)) then -- Event objects.
@@ -501,7 +502,6 @@ function ffxiv_radar.Radar() -- Table
 				end 
 			end
 		end
-	--end
 end
 
 function ffxiv_radar.AddPreset()
@@ -512,7 +512,7 @@ function ffxiv_radar.AddPreset()
 	Settings.ffxiv_radar.CustomList = ffxiv_radar.CustomList
 end
 
-local function BuildRadarColours(alpha, radarAlpha, storedAlpha)
+function ffxiv_radar._BuildColours(alpha, radarAlpha, storedAlpha)
 	local result = {}
 	local function add(key, label, red, green, blue)
 		local entry = {
@@ -557,17 +557,16 @@ end
 
 function ffxiv_radar.SetColours()
 	Colours = {
-		Solid = BuildRadarColours(1.0, 0.7, 1.0),
-		Transparent = BuildRadarColours(ColourAlpha, ColourAlpha - 0.2, ColourAlpha),
+		Solid = ffxiv_radar._BuildColours(1.0, 0.7, 1.0),
+		Transparent = ffxiv_radar._BuildColours(ColourAlpha, ColourAlpha - 0.2, ColourAlpha),
 	}
 end
 
 function ffxiv_radar.UpdateColours() -- Transparency Slider Colours (Only used on 2D Radar background atm).
 	local alpha = tonumber(ffxiv_radar.Opacity) / 100
-	CustomTransparency = BuildRadarColours(alpha, nil, 1.0)
+	CustomTransparency = ffxiv_radar._BuildColours(alpha, nil, 1.0)
 end
 function ffxiv_radar.Settings()
-	AddColour = Colours.Solid.white
 	-- Radar Settings.
 	if Settings.ffxiv_radar.ShowHPBars == nil then Settings.ffxiv_radar.ShowHPBars = true end
 	ffxiv_radar.ShowHPBars = Settings.ffxiv_radar.ShowHPBars
@@ -629,6 +628,7 @@ function ffxiv_radar.Settings()
 end
 
 function ffxiv_radar.SetData()
+	ffxiv_radar._hpBarStyles = {"New", "Original"}
 	ffxiv_radar.AddColour = { ["Colour"] = { ["r"] = 1, ["g"] = 1, ["b"] = 1, ["a"] = 1 }, ["ColourU32"] = 4294967295 }
 	ffxiv_radar.ContentID = ""
 	ffxiv_radar.CustomName = ""
@@ -702,7 +702,6 @@ function ffxiv_radar.SetData()
 	if table.valid(Settings.ffxiv_radar.RadarList) == true then
 		d("[Radar] - Importing Old Custom Radar List...")
 		for i,e in pairs(Settings.ffxiv_radar.RadarList) do
-			local CurrentData = table.deepcopy(e)
 			Settings.ffxiv_radar.CustomList[i] = { ["Name"] = e.CustomName, ["Enabled"] = e.Enabled, ["Colour"] = { ["r"] = e.Colour.r, ["g"] = e.Colour.g, ["b"] = e.Colour.b, ["a"] = e.Colour.a }, ["ColourU32"] = e.Colour.colourval }
 		end
 		Settings.ffxiv_radar.CustomList = Settings.ffxiv_radar.CustomList

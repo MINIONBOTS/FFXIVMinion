@@ -72,9 +72,8 @@ ml_global_information.chocoStance = {
 }
 
 ml_global_information.classes = {}
-ml_global_information.blacklistedAetherytes = {}
 
-function ml_global_information.ToggleRun()	
+function ml_global_information.ToggleRun()
 	if ( ml_task_hub.shouldRun ) then
 		ml_task_hub.shouldRun = false
 		FFXIV_Common_BotRunning = false

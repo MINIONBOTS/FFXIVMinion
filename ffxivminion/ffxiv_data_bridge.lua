@@ -40,15 +40,15 @@ function e_ffxivlib_dataready:execute()
     -- The async callbacks will populate the caches in the background.
 end
 
-local function FFXIVData_IsOptiFineMode()
+function ml_global_information._ffxivDataIsOptiFineMode()
     return rawget(_G, "Optifine") ~= nil
         or (FFXIVLib
             and FFXIVLib.IsOptiFineMode
             and FFXIVLib.IsOptiFineMode())
 end
 
-local function FFXIVData_ShouldDeferSpeculative()
-    return FFXIVData_IsOptiFineMode()
+function ml_global_information._ffxivDataShouldDeferSpeculative()
+    return ml_global_information._ffxivDataIsOptiFineMode()
         and FFXIV_Common_BotRunning ~= true
 end
 
@@ -80,7 +80,7 @@ end
 -- @param classJobId (number)
 function FFXIVData_PreWarmActions(classJobId)
     if not FFXIVLib or not classJobId then return nil end
-    if FFXIVData_ShouldDeferSpeculative() then return nil end
+    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmClassActions(classJobId)
 end
 
@@ -89,7 +89,7 @@ end
 -- @param mapId (number)
 function FFXIVData_PreWarmMap(mapId)
     if not FFXIVLib or not mapId then return nil end
-    if FFXIVData_ShouldDeferSpeculative() then return nil end
+    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmCurrentMap(mapId)
 end
 
@@ -97,7 +97,7 @@ end
 -- Call after equipping new gear.
 function FFXIVData_PreWarmGear()
     if not FFXIVLib then return nil end
-    if FFXIVData_ShouldDeferSpeculative() then return nil end
+    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmEquippedGear()
 end
 
@@ -134,15 +134,16 @@ end
 ml_global_information._nav_enrich_done = false
 ml_global_information._nav_resolve_done = false
 
-local FFXIVDATA_NAV_TICK_NORMAL_MS = 35
-local ffxivDataNavLastTick = 0
-local ffxivDataNavRequested = false
+-- Namespace-owned state avoids consuming the concatenated chunk's local budget.
+ml_global_information._ffxivDataNavTickNormalMs = 35
+ml_global_information._ffxivDataNavLastTick = 0
+ml_global_information._ffxivDataNavRequested = false
 
 function FFXIVData_RequestNavDiscovery()
-    ffxivDataNavRequested = true
+    ml_global_information._ffxivDataNavRequested = true
 end
 
-local function FFXIVData_NavDiscoveryDone()
+function ml_global_information._ffxivDataNavDiscoveryDone()
     return FFXIVLib and FFXIVLib.API.Nav and FFXIVLib.API.Nav._discoveryDone
 end
 
@@ -150,7 +151,7 @@ end
 -- Call periodically until it returns true.
 -- @return (boolean) true when discovery is complete.
 function FFXIVData_NavDiscoverTick()
-    if FFXIVData_NavDiscoveryDone() then return true end
+    if ml_global_information._ffxivDataNavDiscoveryDone() then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav or not FFXIVLib.API.Nav.DiscoverConnections then return false end
     if FFXIVLib.EnsureDomain and not FFXIVLib.EnsureDomain("Nav") then return false end
     return FFXIVLib.API.Nav.DiscoverConnections()
@@ -163,7 +164,7 @@ function FFXIVData_NavEnrichTick()
     if ml_global_information._nav_enrich_done then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before enriching
-    if not FFXIVData_NavDiscoveryDone() then return false end
+    if not ml_global_information._ffxivDataNavDiscoveryDone() then return false end
     local done = FFXIVLib.API.Nav.EnrichAll()
     if done then
         ml_global_information._nav_enrich_done = true
@@ -179,7 +180,7 @@ function FFXIVData_NavResolveTick()
     if ml_global_information._nav_resolve_done then return true end
     if not FFXIVLib or not FFXIVLib.API.Nav then return false end
     -- Wait for discovery before resolving
-    if not FFXIVData_NavDiscoveryDone() then return false end
+    if not ml_global_information._ffxivDataNavDiscoveryDone() then return false end
     local done = FFXIVLib.API.Nav.ResolveAll()
     if done then
         ml_global_information._nav_resolve_done = true
@@ -190,15 +191,15 @@ end
 
 --- Drives discovery only after a world-navigation consumer explicitly asks for it.
 function FFXIVData_NavOnUpdate(event, tickcount)
-    if not ffxivDataNavRequested
-        or FFXIVData_IsOptiFineMode()
+    if not ml_global_information._ffxivDataNavRequested
+        or ml_global_information._ffxivDataIsOptiFineMode()
         or not Player
         or MGetGameState() ~= FFXIV.GAMESTATE.INGAME
         or (ml_global_information.IsYielding and ml_global_information.IsYielding())
     then
         return
     end
-    if FFXIVData_NavDiscoveryDone()
+    if ml_global_information._ffxivDataNavDiscoveryDone()
         and ml_global_information._nav_enrich_done
         and ml_global_information._nav_resolve_done
     then
@@ -206,12 +207,13 @@ function FFXIVData_NavOnUpdate(event, tickcount)
     end
 
     local now = tonumber(tickcount) or Now()
-    if ffxivDataNavLastTick > 0
-        and (now - ffxivDataNavLastTick) < FFXIVDATA_NAV_TICK_NORMAL_MS
+    if ml_global_information._ffxivDataNavLastTick > 0
+        and (now - ml_global_information._ffxivDataNavLastTick)
+            < ml_global_information._ffxivDataNavTickNormalMs
     then
         return
     end
-    ffxivDataNavLastTick = now
+    ml_global_information._ffxivDataNavLastTick = now
 
     FFXIVData_NavDiscoverTick()
     FFXIVData_NavEnrichTick()

@@ -1,13 +1,11 @@
 ffxiv_task_party = inheritsFrom(ml_task)
 ffxiv_task_party.name = "LT_PARTY"
-ffxiv_task_party.evacPoint = {0, 0, 0}
-ffxiv_task_party.isPL = false
-ffxiv_task_party.extraMembers = {}
 
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
+c_partysyncfatelevel.nextCheck = 0
 function c_partysyncfatelevel:evaluate()
-    if ( IsLeader() or Player:GetSyncLevel() ~= 0 or not gPartyGrindFateSync) then
+    if (not gPartyGrindFateSync or Player:GetSyncLevel() ~= 0 or IsLeader()) then
         return false
     end
 	
@@ -15,6 +13,10 @@ function c_partysyncfatelevel:evaluate()
 	if (not leader or not IsInParty(leader.id)) then
 		return false
 	end
+
+	local now = Now()
+	if (now < c_partysyncfatelevel.nextCheck) then return false end
+	c_partysyncfatelevel.nextCheck = now + 500
     
     local myPos = Player.pos
     local fate = FFXIVLib.API.Fate.GetClosestFate(myPos)
@@ -107,12 +109,13 @@ end
 ffxiv_task_party.lastOOCCast = 0
 function ffxiv_task_party:Process()
     local target = MGetTarget()
-	if ( target == nil and not IsPlayerCasting() and Now() > ffxiv_task_party.lastOOCCast) then
+	local now = Now()
+	if (target == nil and not IsPlayerCasting() and now > ffxiv_task_party.lastOOCCast) then
 		SkillMgr.Cast( Player, true )
-		ffxiv_task_party.lastOOCCast = Now() + 1000
+		ffxiv_task_party.lastOOCCast = now + 1000
 	end
 
-    if (TableSize(self.process_elements) > 0) then
+    if (next(self.process_elements) ~= nil) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
 		ml_cne_hub.queue_to_execute()
@@ -125,17 +128,10 @@ end
 
 function ffxiv_task_party.SetLeaderFromTarget()
 	local t = Player:GetTarget()
-	if (t~=nil) then
-		if (t.type == 1) then
-			GUI_Set("gPartyLeaderName",t.name)
-			GUI_Set("gPartyGrindUsePartyLeader",false)
-		end
+	if (t and t.type == 1) then
+		GUI_Set("gPartyLeaderName",t.name)
+		GUI_Set("gPartyGrindUsePartyLeader",false)
 	end
-end
-
-function ffxiv_task_party.AddExtraMember()
-	local i = TableSize(ffxiv_task_party.extraMembers) + 1
-	ffxiv_task_party.extraMembers[i] = gPartyExtraMember
 end
 
 function ffxiv_task_party.SetModeOptions()
@@ -179,10 +175,6 @@ ffxiv_task_party.GUI = {
 }
 
 function ffxiv_task_party:Draw()
-	local fontSize = GUI:GetWindowFontSize()
-	local windowPaddingY = GUI:GetStyle().windowpadding.y
-	local framePaddingY = GUI:GetStyle().framepadding.y
-	local itemSpacingY = GUI:GetStyle().itemspacing.y
 	GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 	GUI:Columns(2)
 	GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("UseGamePartyLeader"))
