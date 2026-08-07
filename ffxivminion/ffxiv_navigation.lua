@@ -65,7 +65,6 @@ ml_navigation_exact = {
 	verticalThreshold = 3,
 	reachedLogged = false,
 	completed = false,
-	lastOptimize = 0,
 	requestSeq = 0,
 	lastRequestId = nil,
 }
@@ -224,7 +223,7 @@ function ml_navigation.ParseInstructions(data)
 				)
 			elseif (itype == "Interact") then
 				local interactid = tonumber(iparams[1]) or 0
-				local complete = tonumber(iparams[2]) or ""
+				local complete = iparams[2] or ""
 				table.insert(ml_navigation.receivedInstructions,
 					function ()
 						if (interactid ~= 0) then
@@ -315,14 +314,15 @@ function ml_navigation.ParseInstructions(data)
 					end
 				)
 			elseif (itype == "Action") then
-				local actionid = iparams[1] or 0
-				local actiontype = iparams[2] or 0
-				local targetid = iparams[3] or 0
+				local actionid = tonumber(iparams[1]) or 0
+				local actiontype = tonumber(iparams[2]) or 0
+				local targetid = tonumber(iparams[3]) or 0
 
 				table.insert(ml_navigation.receivedInstructions,
 					function ()
+						local action = ActionList:Get(actiontype,actionid)
 						if (action) then
-							if (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+							if (action.isoncd and ((action.cdmax - action.cd) > 2.5)) then
 								return true
 							else
 								if (action:Cast(targetid)) then
@@ -353,7 +353,6 @@ function ml_navigation.ParseInstructions(data)
 				table.insert(ml_navigation.receivedInstructions,
 					function ()
 						if (not Player:IsMoving()) then
-							local casting = Player.castinginfo.channelingid
 							local returnHome = ActionList:Get(6)
 
 							if (returnHome and returnHome.isready) then
@@ -413,9 +412,11 @@ function ml_navigation.ParseInstructions(data)
 								function ()
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
+											local myPos = Player.pos
 											for i,jump in pairs(jumps) do
-												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.55) then
+												if (Distance3DT(jump,myPos) <= 2 and Distance2DT(jump,myPos) <= 0.55) then
 													Player:Jump()
+													break
 												end
 											end
 										end
@@ -461,9 +462,11 @@ function ml_navigation.ParseInstructions(data)
 								function ()
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
+											local myPos = Player.pos
 											for i,jump in pairs(jumps) do
-												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+												if (Distance3DT(jump,myPos) <= 2 and Distance2DT(jump,myPos) <= 0.5) then
 													Player:Jump()
+													break
 												end
 											end
 										end
@@ -835,7 +838,7 @@ function ml_navigation:ResolveLandingSite(request, approachPos)
 	if not (request and type(CheckLandingZone) == 'function') then return nil end
 	local cachedLanding, cachedQuality, cachedOriginal = self:GetCachedLandingSite(request)
 	if cachedLanding then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("landing-cache-" .. tostring(request.key),
 				"Reusing cached landing target=("
 				.. string.format("%.1f, %.1f, %.1f", cachedLanding.x, cachedLanding.y, cachedLanding.z)
@@ -1022,7 +1025,7 @@ function ml_navigation:GetAirborneGroundApproachNode(ppos, targetNode, radius)
 						z = (ppos.z or 0) + (dirZ * forward) + (sideZ * lateral),
 					}
 					if self:IsFlightSegmentClear(ppos, node, radius) then
-						if (self.DebugLog) then
+						if (gNavDebug and self.DebugLog) then
 							self:DebugLog("airborne-ground-approach-node",
 								"Airborne MoveTo using short flight approach toward ground segment dist2d="
 								.. tostring(math.round(dist2d, 1))
@@ -1126,7 +1129,7 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 		if self:IsLandingControllerWaterSurfaceReady(controller, ppos) then
 			controller.airLandingStartedAt = Now()
 			self:SuppressUnstuck(3000, "LandingWaterDismount")
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("landing-water-dismount",
 					"Water landing surface detected; retrying dismount at "
 					.. self:FormatGroundAcquirePoint(controller.landing), 1000)
@@ -1153,7 +1156,7 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 			if dist2d <= 4.0 and dist3d <= 6.0 then
 				return self:FinishFlyingLanding(controller, request)
 			end
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("landing-controller-not-flying-far",
 					"Landing controller not flying and far from landing dist2d="
 					.. tostring(math.round(dist2d, 1))
@@ -1162,7 +1165,7 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 			end
 		end
 		if Player and Player.ismounted and CanFlyInZone() then
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("landing-controller-wait-takeoff",
 					"Landing controller preserving route while mounted but not flying; takeoff handoff can continue.", 1000)
 			end
@@ -1185,7 +1188,7 @@ function ml_navigation:DriveFlyingLanding(controller, request, ppos)
 			and math.distance3d(ppos, controller.lastApproachPlayerPos) or 999
 		local wasAutoFollowOn = (Player and Player.IsAutoFollowOn and Player:IsAutoFollowOn()) == true
 		local moving = (Player and Player.IsMoving and Player:IsMoving()) == true
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("landing-approach-state",
 				"Landing approach waypoint=" .. tostring(waypointIndex)
 				.. "/" .. tostring(controller.route and #controller.route or 0)
@@ -1441,7 +1444,7 @@ function ml_navigation:ProbeWaterSurfaceAt(pos, verticalTolerance, source)
 		end
 	end
 
-	if self.DebugLog then
+	if gNavDebug and self.DebugLog then
 		self:DebugLog("water-surface-probe-fail",
 			"Water probe failed source=" .. tostring(source or "unknown")
 			.. " pos=" .. self:FormatGroundAcquirePoint(pos)
@@ -1491,7 +1494,7 @@ function ml_navigation:IsWaterSurfaceDismountReady(task, ppos, goal)
 	}
 	for _, sample in ipairs(samples) do
 		if canAirDismountToWater(sample) then
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("water-surface-dismount-ready",
 					"Water surface air dismount ready sample=" .. self:FormatGroundAcquirePoint(sample)
 					.. " goal=" .. self:FormatGroundAcquirePoint(goal), 1000)
@@ -1758,7 +1761,7 @@ function ml_navigation:IsSkippableAirborneGroundAcquireSegment(segment, task, pp
 		if math.distance2d(ppos, goal) <= arrived2d then return false end
 	end
 
-	if (self.DebugLog) then
+	if (gNavDebug and self.DebugLog) then
 		self:DebugLog("airborne-ground-acquire-skip-start",
 			"Skipping airborne ground acquire at current/start node "
 			.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
@@ -1798,7 +1801,7 @@ function ml_navigation:ShouldDeferTaskLandingToGroundAcquire(task, ppos, request
 	local startIndex = tonumber(self.pathindex or (NavigationManager and NavigationManager.NavPathNode) or 1) or 1
 	local segment = self:FindUpcomingGroundAcquireSegment(task, startIndex)
 	if not segment then return false end
-	if self.DebugLog then
+	if gNavDebug and self.DebugLog then
 		self:DebugLog("task-landing-defer-ground",
 			"Task landing deferred to ground path segment "
 			.. self:FormatGroundAcquireState(segment, task, ppos, request)
@@ -1842,7 +1845,7 @@ function ml_navigation:DriveAirborneGroundAcquireGroundDismount(state, task, ppo
 	if (not state.lastGroundDismountAttempt or TimeSince(state.lastGroundDismountAttempt) > 650) then
 		state.lastGroundDismountAttempt = now
 		if not IsDismounting() then
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("airborne-ground-acquire-dismount",
 					"Ground acquire landed mounted; retrying dismount task="
 					.. tostring(task and task.name or "nil"), 1000)
@@ -1852,7 +1855,7 @@ function ml_navigation:DriveAirborneGroundAcquireGroundDismount(state, task, ppo
 	end
 
 	if TimeSince(state.groundDismountStartedAt) > 3500 then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("airborne-ground-acquire-dismount-timeout",
 				"Ground acquire dismount still mounted after timeout; releasing to task recovery task="
 				.. tostring(task and task.name or "nil"), 1000)
@@ -1939,7 +1942,7 @@ function ml_navigation:MarkAirborneGroundAcquireLanded(state)
 	local task = ml_task_hub and ml_task_hub:CurrentTask()
 	local ppos = Player and Player.pos
 	if self:IsAirborneGroundAcquireGroundDismountPending(state, task, ppos) then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("airborne-ground-acquire-hold-dismount",
 				"Ground acquire landed mounted; holding acquire before walk handoff task="
 				.. tostring(task and task.name or "nil"), 1000)
@@ -1950,7 +1953,7 @@ function ml_navigation:MarkAirborneGroundAcquireLanded(state)
 	ffnav.airborneGroundWalkReason = state.reason
 	ffnav.airborneGroundWalkIndex = state.pathindex
 	ffnav.airborneGroundWalkSegmentKey = state.segmentKey
-	if (self.DebugLog) then
+	if (gNavDebug and self.DebugLog) then
 		local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
 		self:DebugLog("airborne-ground-walk-segment",
 			"Walking landed " .. tostring(state.reason) .. " "
@@ -1985,7 +1988,7 @@ function ml_navigation:GetAirborneGroundWalkHandoffSegment(task, ppos)
 			ffnav.airborneGroundWalkSegmentKey = segment.key
 			ffnav.airborneGroundWalkTaskKey = taskKey
 			ffnav.airborneGroundWalkReason = ffnav.airborneGroundWalkReason or "GroundPath"
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("airborne-ground-walk-realign",
 					"Realigned acquired ground walk "
 					.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
@@ -2025,7 +2028,7 @@ function ml_navigation:AdvanceAirborneGroundWalkSegment(task, pathIndex)
 		ffnav.airborneGroundWalkSegmentKey = segment.key
 		ffnav.airborneGroundWalkTaskKey = taskKey
 		ffnav.airborneGroundWalkReason = ffnav.airborneGroundWalkReason or "GroundPath"
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("airborne-ground-walk-advance",
 				"Continuing acquired ground walk "
 				.. self:FormatGroundAcquireState(segment, task, ppos, nil), 1000)
@@ -2078,7 +2081,7 @@ function ml_navigation:IsAirborneGroundAcquireTaskActive(task, ppos)
 				and Player and Player.ismounted
 				and (IsFlying() or IsDiving())
 			if requiresGroundArrival then
-				if (self.DebugLog) then
+				if (gNavDebug and self.DebugLog) then
 					self:DebugLog("airborne-acquire-hold-ground-arrival",
 						"Airborne acquire holding exact MoveTo until grounded task=" .. taskName
 						.. " dist2d=" .. tostring(dist2d)
@@ -2086,7 +2089,7 @@ function ml_navigation:IsAirborneGroundAcquireTaskActive(task, ppos)
 				end
 				return true
 			end
-			if (self.DebugLog) then
+			if (gNavDebug and self.DebugLog) then
 				self:DebugLog("airborne-acquire-arrived", "Airborne acquire released near navigation goal task=" .. taskName .. " dist2d=" .. tostring(dist2d), 1000)
 			end
 			return false
@@ -2189,7 +2192,7 @@ function ml_navigation:IsAirborneGroundAcquireReady(ppos, segment, quiet)
 	local ready2d = 12
 	local ready3d = 35
 	if dist2d <= ready2d or dist3d <= ready3d then return true end
-	if (self.DebugLog and not quiet) then
+	if (gNavDebug and self.DebugLog and not quiet) then
 		self:DebugLog("airborne-ground-acquire-approach",
 			"Airborne MoveTo continuing flight toward ground segment index=" .. tostring(segment.index)
 			.. " dist2d=" .. tostring(math.round(dist2d, 1))
@@ -2235,7 +2238,7 @@ function ml_navigation:StartAirborneGroundAcquire(reason, nextnode)
 	if (ffxiv_unstuck and ffxiv_unstuck.Reset) then
 		ffxiv_unstuck.Reset()
 	end
-	if (self.DebugLog) then
+	if (gNavDebug and self.DebugLog) then
 		self:DebugLog("airborne-ground-acquire-start",
 			"Airborne ground acquire start "
 			.. self:FormatGroundAcquireState(segment, task, ppos, nil)
@@ -2415,7 +2418,7 @@ function ml_navigation:NeedsLandingApproachFlight(task, request, ppos)
 	if not (task and request and ppos and table.valid(request.anchor)) then return false end
 	if IsFlying() or IsDiving() or not CanFlyInZone() then return false end
 	if self:IsCurrentWalkingPathSegment(task, ppos) then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			local segment = self:GetCurrentWalkingPathSegmentInfo(task, ppos)
 			self:DebugLog("landing-flight-suppressed-walking-segment",
 				"Landing approach flight suppressed by current walking segment "
@@ -2425,7 +2428,7 @@ function ml_navigation:NeedsLandingApproachFlight(task, request, ppos)
 	end
 	if self:IsLandingDismountOrActionHandoffActive() then return false end
 	if self:IsAirborneGroundWalkHandoffActive(task, ppos) then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			local segment = self:GetAirborneGroundWalkHandoffSegment(task, ppos)
 			self:DebugLog("landing-flight-suppressed-ground-walk",
 				"Landing approach flight suppressed while walking acquired ground segment "
@@ -2453,7 +2456,7 @@ function ml_navigation:NeedsMountedLandingTakeoff(task, request, ppos)
 	if (Player.mountcanfly == false) then return false end
 	local segment = self:GetCurrentPathSegmentInfo(nil, nil, nil, nil, task)
 	if segment and segment.flight then
-		if self.DebugLog then
+		if gNavDebug and self.DebugLog then
 			self:DebugLog("landing-takeoff-defer-flight-path",
 				"Landing takeoff deferred to flight path segment index=" .. tostring(segment.index)
 				.. " task=" .. tostring(task and task.name or "nil"), 1000)
@@ -2468,7 +2471,7 @@ function ml_navigation:PrepareLandingTakeoff(task, ppos)
 	if not request then return false end
 	if self:IsCurrentWalkingPathSegment(task, ppos) then
 		self:ClearLandingTakeoffHandoff()
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			local segment = self:GetCurrentWalkingPathSegmentInfo(task, ppos)
 			self:DebugLog("landing-takeoff-suppressed-walking-segment",
 				"Landing takeoff suppressed by current walking segment "
@@ -2583,7 +2586,7 @@ end
 function ml_navigation:UpdateFlyingLanding(task, ppos)
 	if not IsFlying() then return false end
 	if not self:IsStableLandingFlight() then
-		if (self.DebugLog) then
+		if (gNavDebug and self.DebugLog) then
 			self:DebugLog("landing-wait-stable-flight",
 				"Landing controller waiting for stable flight before planning task="
 				.. tostring(task and task.name or "nil")
@@ -3096,10 +3099,12 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 			if (table.valid(ml_mesh_mgr.navconnections)) then
 				nc = ml_mesh_mgr.navconnections[node.navconnectionid]
 			end
-			ncsubtype = nc.subtype
+			if (nc) then
+				ncsubtype = nc.subtype
+			end
 		else
 			nc = NavigationManager:GetNavConnection(node.navconnectionid)
-			if (nc.details and nc.details.subtype) then
+			if (nc and nc.details and nc.details.subtype) then
 				ncsubtype = nc.details.subtype
 			end
 		end
@@ -3224,7 +3229,6 @@ end
 function ml_navigation:CanContinueFlying()
 	if (table.valid(self.path)) then
 		local dist = math.distance3d(Player.pos,ml_navigation.targetposition)
-		local pathsize = table.size(self.path)
 		if (dist > 15) then
 			for index,node in pairsByKeys(self.path) do
 				if (index > self.pathindex and (node.type == GLOBAL.NODETYPE.CUBE) and
@@ -3325,30 +3329,6 @@ function ml_navigation.TagNode(node)
 
 		node.is_tagged = true
 	end
-end
-
-function ml_navigation.ScrubToGroundEndpoint(node)
-	if (not node) then return end
-	node.navconnectionid = 0
-	node.type = GLOBAL.NODETYPE.FLOOR
-	node.type2 = 2 -- is_end bit only
-	node.flags = 0
-	node.is_start = false
-	node.is_end = true
-	node.is_omc = false
-	node.is_floor = true
-	node.is_cube = false
-	node.ground = true
-	node.ground_water = false
-	node.ground_border = false
-	node.ground_avoid = false
-	node.air = false
-	node.water = false
-	node.air_avoid = false
-	node.cubecube = false
-	node.floorfloor = false
-	node.floorcube = false
-	node.is_tagged = true
 end
 
 ------------------------------------------------------------
@@ -3466,13 +3446,6 @@ function ml_navigation:CheckPath(pos2,floorfilters,cubefilters)
 	end
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.CUBE, cubefilters)
 	NavigationManager:SetExcludeFilter(GLOBAL.NODETYPE.FLOOR, floorfilters)
-	if In(Player.localmapid,1237) then
-		local retval = Transport1237(pos,pos2)
-		if (retval == true) then
-			reachable = true
-		end
-	end
-
 	local reachable = NavigationManager:IsReachable(pos2)
 	if (not reachable) then
 		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
@@ -3566,8 +3539,6 @@ function Player:BuildPath(x, y, z, floorfilters, cubefilters, targetid, force, f
 		ml_navigation.finalArrivalRadius = arrivalRadius
 		return currentPathSize
 	end
-
-	local distanceToGoal = math.distance2d(newGoal.x,newGoal.z,ppos.x,ppos.z)
 
 	-- Filter things for special tasks/circumstances
 	if ((not IsFlying() and not IsDiving() and ((Player.incombat and (not Player.ismounted)) or IsTransporting())) or
@@ -3760,7 +3731,6 @@ function ml_navigation_exact.Reset()
 	ml_navigation_exact.autoFollowLastSet = 0
 	ml_navigation_exact.reachedLogged = false
 	ml_navigation_exact.completed = false
-	ml_navigation_exact.lastOptimize = 0
 	ml_navigation_exact.lastRequestId = nil
 	ml_navigation_exact.disableSmoothing = false
 end
@@ -3800,7 +3770,6 @@ function ml_navigation_exact.OptimizeCachedPath(ppos, disableSmoothing)
 		end
 		self.path = optimized
 		self.pathindex = 1
-		self.lastOptimize = Now()
 	end
 
 	-- Second pass: smoothing
@@ -4057,12 +4026,10 @@ function ml_navigation.Navigate(event, ticks)
 			if taskLandingOwnsAirborne and ml_navigation:UpdateFlyingLanding(currentTask, ppos) then return end
 			if (not IsFlying()) and ml_navigation:PrepareLandingTakeoff(currentTask, ppos) then return end
 
-			ml_navigation.GUI = {
-				pathHops = 0,
-				currentIndex = 0,
-				nextNodeDistance = 0,
-				lastAction = "",
-			}
+			ml_navigation.GUI.pathHops = 0
+			ml_navigation.GUI.currentIndex = 0
+			ml_navigation.GUI.nextNodeDistance = 0
+			ml_navigation.GUI.lastAction = ""
 
 			-- Normal Navigation Mode
 			if (not ffnav.IsProcessing()) then
@@ -4126,7 +4093,6 @@ function ml_navigation.Navigate(event, ticks)
 						local to_pos = nc.to
 						local ncradius
 						local ncsubtype
-						local from_heading
 
 						if (nc.sideA ~= nil) then
 							from_pos = nc.sideA
@@ -4146,12 +4112,10 @@ function ml_navigation.Navigate(event, ticks)
 								from_pos = nc.sideA
 								to_pos = nc.sideB
 								ncradius = nc.sideA.radius
-								from_heading = nc.details.headingA_x
 							else
 								from_pos = nc.sideB
 								to_pos = nc.sideA
 								ncradius = nc.sideB.radius
-								from_heading = nc.details.headingB_x
 							end
 							ncsubtype = nc.details.subtype
 						else
@@ -4571,13 +4535,6 @@ function ml_navigation.Navigate(event, ticks)
 							ml_navigation.SmoothFaceTarget(nextnode.x,nextnode.y,nextnode.z)
 						end
 
-						local dist2D = math.distance2d(nextnode,ppos)
-						local dist3D = math.distance3d(nextnode,ppos)
-						local height = 0
-						if (Player and Player.meshpos and Player.meshpos.meshdistance) then
-							height = Player.meshpos.meshdistance
-						end
-
 						local targetnode = shallowcopy(nextnode)
 						local nextnextGround = (nextnextnode and nextnextnode.ground == true) or false
 						local isDescentCon = (nextnode.floorcube == true and (nextnode.ground == true or nextnextGround))
@@ -4678,7 +4635,7 @@ function ml_navigation.Navigate(event, ticks)
 								local currentWalkingSegment = ml_navigation:GetCurrentWalkingPathSegmentInfo(currentTask, ppos)
 								if currentWalkingSegment then
 									ml_navigation.GUI.lastAction = "Walk current ground segment"
-									if (ml_navigation.DebugLog) then
+									if (gNavDebug and ml_navigation.DebugLog) then
 										ml_navigation:DebugLog("flight-mount-suppressed-walking-segment",
 											"Flight mount suppressed by current walking segment "
 											.. ml_navigation:FormatGroundAcquireState(currentWalkingSegment, currentTask, ppos, nil), 1000)
@@ -4996,19 +4953,17 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 		return
 	end
 
-	local from_pos, to_pos, ncradius, ncsubtype, from_heading
+	local from_pos, to_pos, ncradius, ncsubtype
 
 	if (nc.sideA ~= nil) then
 		if (self.omc_direction == 1) then
 			from_pos = nc.sideA
 			to_pos = nc.sideB
 			ncradius = nc.sideA.radius
-			from_heading = nc.details.headingA_x
 		else
 			from_pos = nc.sideB
 			to_pos = nc.sideA
 			ncradius = nc.sideB.radius
-			from_heading = nc.details.headingB_x
 		end
 		ncsubtype = nc.details.subtype
 	else
@@ -5558,38 +5513,6 @@ end
 ------------------------------------------------------------
 -- Path Drawing
 ------------------------------------------------------------
-function ml_navigation.DrawPath(event, ticks)
-	if ( gNavShowPath and table.size(ml_navigation.path) > 1 ) then
-		local maxWidth, maxHeight = GUI:GetScreenSize()
-		GUI:SetNextWindowPos(0, 0, GUI.SetCond_Always)
-		GUI:SetNextWindowSize(maxWidth,maxHeight,GUI.SetCond_Always)
-		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
-		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
-		flags = (GUI.WindowFlags_NoInputs + GUI.WindowFlags_NoBringToFrontOnFocus + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
-		GUI:Begin("Show Nav Space", true, flags)
-
-		local nodemap = {}
-		for id, node in pairsByKeys(ml_navigation.path) do
-			local nodePos = RenderManager:WorldToScreen({ x = node.x, y = node.y, z = node.z })
-			if (table.valid(nodePos)) then
-				GUI:AddCircleFilled(nodePos.x,nodePos.y,7,GUI:ColorConvertFloat4ToU32(1,.2,.2,1))
-				table.insert(nodemap,nodePos)
-			end
-		end
-
-		for i = 1,#nodemap do
-			local thisnode = nodemap[i]
-			local nextnode = nodemap[i+1]
-			if (thisnode and nextnode) then
-				GUI:AddLine(thisnode.x, thisnode.y, nextnode.x, nextnode.y, GUI:ColorConvertFloat4ToU32(.2,1,.2,1), 6)
-			end
-		end
-
-		GUI:End()
-		GUI:PopStyleColor()
-	end
-end
-
 -- MoveToExact path drawing (cyan nodes, yellow lines)
 function ml_navigation_exact.DrawPath(event, ticks)
 	if (not table.valid(ml_navigation_exact.path)) then return end
