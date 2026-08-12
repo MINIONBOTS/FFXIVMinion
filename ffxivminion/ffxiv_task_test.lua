@@ -290,9 +290,10 @@ e_gotomaptest = inheritsFrom( ml_effect )
 function c_gotomaptest:evaluate()
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid ~= mapID) then
-		if (CanAccessMap(mapID)) then
+		local canAccess = CanAccessMap(mapID)
+		if (canAccess == true) then
 			return true
-		else
+		elseif (canAccess == false) then
 			d("Can't access map.")
 		end
 	end

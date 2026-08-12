@@ -4520,7 +4520,9 @@ function CanAccessMap(mapid)
 	if ffxiv_map_nav and ffxiv_map_nav.EnsureNavGraph
 		and not ffxiv_map_nav.EnsureNavGraph()
 	then
-		return false
+		-- SQL discovery is still building the runtime graph. This is pending,
+		-- not evidence that the destination is inaccessible.
+		return nil
 	end
 	local mapid = tonumber(mapid) or 0
 	local srcMap = Player and Player.localmapid or 0

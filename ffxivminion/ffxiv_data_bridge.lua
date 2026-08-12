@@ -139,8 +139,12 @@ ml_global_information._ffxivDataNavTickNormalMs = 35
 ml_global_information._ffxivDataNavLastTick = 0
 ml_global_information._ffxivDataNavRequested = false
 
+--- Request navigation discovery from the game-loop bridge.
+-- @return (boolean) true only after SQL discovery has merged into the graph.
 function FFXIVData_RequestNavDiscovery()
     ml_global_information._ffxivDataNavRequested = true
+    return FFXIVLib and FFXIVLib.API and FFXIVLib.API.Nav
+        and FFXIVLib.API.Nav._discoveryDone == true
 end
 
 function ml_global_information._ffxivDataNavDiscoveryDone()
