@@ -159,7 +159,7 @@ ffxivminion.AutoGrindDefault = [[
 -- Create the main GUI container.
 ffxivminion.GUI = {
 	main = {
-		name = (IsBetaClient ~= nil and IsBetaClient()) and "FFXIVMinion - BETA" or "FFXIVMinion",
+		name = (type(IsBetaClient) == "function" and IsBetaClient() == true) and "FFXIVMinion - BETA" or "FFXIVMinion",
 		open = true,
 		visible = true,
 		x = 0, y = 0, width = 0, height = 0,
