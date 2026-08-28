@@ -1066,7 +1066,6 @@ function ffxivminion.SetMainVars()
 	if (Player and Player.SetSmoothCamRatio and gFlightFollowCamRatio ~= nil) then
 		Player:SetSmoothCamRatio(gFlightFollowCamRatio)
 	end
-	gUseAutoFollowPath = ffxivminion.GetSetting("gUseAutoFollowPath", false)
 	gAvoidHP = ffxivminion.GetSetting("gAvoidHP", 100)
 	gRestHP = ffxivminion.GetSetting("gRestHP", 70)
 	gRestMP = ffxivminion.GetSetting("gRestMP", 0)
@@ -1243,7 +1242,6 @@ function ffxivminion.SetModeOptions(mode)
 			gFlightFollowCamRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamRatio, 0.150)
 			gFlightFollowCamPitch = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitch, -0.300)
 			gFlightFollowCamPitchDownRatio = IsNull(Settings.FFXIVMINION.gFlightFollowCamPitchDownRatio, 0.45)
-			gUseAutoFollowPath = Settings.FFXIVMINION.gUseAutoFollowPath
 			if (ml_navigation) then
 				ml_navigation.flightFollowCam = gFlightFollowCam
 				ml_navigation.flightFollowCamRatio = gFlightFollowCamRatio

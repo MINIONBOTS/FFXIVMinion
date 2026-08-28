@@ -604,7 +604,6 @@ end
 -- AutoFollow Dispatch — The Single Movement Mechanism
 ------------------------------------------------------------
 ml_navigation.canPath = false
-ml_navigation.useAutoFollowPath = true
 ml_navigation.autoFollowRefreshMs = 350
 ml_navigation.autoFollowNodeKey = nil
 ml_navigation.autoFollowLastSet = 0

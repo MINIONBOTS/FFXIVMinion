@@ -548,15 +548,6 @@ function ffxiv_task_movetopos:task_complete_execute()
 	else
 		Player:Stop()
 	end
-	if (self.doFacing and gUseAutoFollowPath ~= true) then
-		local heading = ml_task_hub:CurrentTask().pos.h
-		if (self.useExactMovement) then
-			ml_global_information.Await(300)
-			TryFaceHeading(heading)
-		else
-			TaskTryFaceHeading(heading)
-		end
-    end
     self.completed = true
 	ml_debug("[MOVETOPOS]: Task completing.")
 end
