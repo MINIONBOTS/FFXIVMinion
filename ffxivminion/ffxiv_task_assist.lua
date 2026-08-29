@@ -92,8 +92,9 @@ function ffxiv_task_assist:Process()
 		end
 
 		local casted = false
+		local canRunCombatRoutine = gStartCombat or (target and target.incombat) or (not target and Player.incombat)
 		if not gDisableAssistOptions and ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
-			if (gStartCombat or (not gStartCombat and Player.incombat)) then
+			if (canRunCombatRoutine) then
 				
 				if (gAssistFollowTarget) then
 					local pos = target.pos
@@ -155,7 +156,7 @@ function ffxiv_task_assist:Process()
 			end
 		end
 		
-		if (not casted) then
+		if (not casted and canRunCombatRoutine) then
 			SkillMgr.Cast( Player, true )
 		end
 	end
@@ -173,7 +174,14 @@ end
 
 -- New GUI.
 function ffxiv_task_assist:UIInit()
-	gStartCombat = ffxivminion.GetSetting("gStartCombat",true)
+	local startCombatSetting = ffxivminion.GetSetting("gStartCombat",true)
+	if (type(startCombatSetting) == "boolean") then
+		gStartCombat = startCombatSetting
+	else
+		local settingText = string.lower(tostring(startCombatSetting))
+		gStartCombat = (startCombatSetting == 1 or settingText == "1" or settingText == "true")
+		Settings.FFXIVMINION.gStartCombat = gStartCombat
+	end
 	gAssistAvoidAOE = ffxivminion.GetSetting("gAssistAvoidAOE",false)
 	gAssistConfirmDuty = ffxivminion.GetSetting("gAssistConfirmDuty",false)
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
@@ -500,26 +508,31 @@ function ffxiv_assist.GetHealingTarget()
     return nil
 end
 
--- Helper: get first entity from a query, returns nil if empty
-local function firstEntity(query)
+-- Helper: get first eligible entity from a query, returns nil if empty
+local function firstEntity(query, requireInCombat)
 	local el = MEntityList(query)
 	if (table.valid(el)) then
-		local i,e = next(el)
-		if (i and e) then return e end
+		for _,e in pairs(el) do
+			if (not requireInCombat or e.incombat) then
+				return e
+			end
+		end
 	end
 	return nil
 end
 
 -- Helper: from sorted entity list, pick first non-boss; boss as fallback
-local function firstNonBossEntity(query)
+local function firstNonBossEntity(query, requireInCombat)
 	local el = MEntityList(query)
 	if not table.valid(el) then return nil end
 	local bossFallback = nil
 	for _, e in pairs(el) do
-		if not FFXIVLib.API.NPC.IsBoss(e) then
-			return e
-		elseif not bossFallback then
-			bossFallback = e
+		if (not requireInCombat or e.incombat) then
+			if not FFXIVLib.API.NPC.IsBoss(e) then
+				return e
+			elseif not bossFallback then
+				bossFallback = e
+			end
 		end
 	end
 	return bossFallback
@@ -527,10 +540,11 @@ end
 
 -- Helper: pick entity from query; prefers non-boss when gAssistPrioritizeAdds
 local function pickEntity(query)
+	local requireInCombat = not gStartCombat
 	if not gAssistPrioritizeAdds then
-		return firstEntity(query)
+		return firstEntity(query, requireInCombat)
 	end
-	return firstNonBossEntity(query)
+	return firstNonBossEntity(query, requireInCombat)
 end
 
 -- Helper: find attack target using given sort order, with LOS->nearest fallback chain
@@ -581,7 +595,7 @@ function ffxiv_assist.GetAttackTarget()
 
 		if (closest and closest.targetid ~= 0) then
 			local targeted = EntityList:Get(closest.targetid)
-			if (targeted and targeted.attackable and targeted.alive) then
+			if (targeted and targeted.attackable and targeted.alive and (gStartCombat or targeted.incombat)) then
 				target = targeted
 			end
 		end
