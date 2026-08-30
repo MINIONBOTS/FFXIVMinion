@@ -92,7 +92,10 @@ function ffxiv_task_assist:Process()
 		end
 
 		local casted = false
-		local canRunCombatRoutine = gStartCombat or (target and target.incombat) or (not target and Player.incombat)
+		-- Keep out-of-combat self/preparation actions available, but do not pass an
+		-- idle attackable target to ACRs that ignore SkillMgr's preCombat argument.
+		local hasIdleAttackableTarget = target and target.attackable and not target.incombat
+		local canRunCombatRoutine = gStartCombat or not hasIdleAttackableTarget
 		if not gDisableAssistOptions and ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance2d <= 30 or gAssistFollowTarget )) then
 			if (canRunCombatRoutine) then
 				

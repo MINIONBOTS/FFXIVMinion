@@ -855,6 +855,29 @@ function ffxivminion.GetSetting(strSetting, default)
 	return Settings.FFXIVMINION[strSetting]
 end
 
+-- Returns the active ACR profile name. Current ACR builds validate the loaded
+-- profile; the settings-table fallback preserves compatibility with older builds.
+function ffxivminion.GetActiveACRProfile()
+	if (type(ACR) == "table" and type(ACR.GetActiveProfile) == "function") then
+		return ACR.GetActiveProfile()
+	end
+
+	if (gACREnabled ~= true or not Player) then
+		return nil
+	end
+
+	local selectedProfiles = gACRSelectedProfiles
+	if (IsPVPMap(Player.localmapid)) then
+		selectedProfiles = gACRSelectedPVPProfiles
+	end
+
+	if (type(selectedProfiles) == "table") then
+		return selectedProfiles[Player.job]
+	end
+
+	return nil
+end
+
 function SetGearsetInfo(disable)
 	local disable = IsNull(disable, gAutoAssign)
 	local searchList = Player:GetGearSetList()
@@ -1947,9 +1970,7 @@ function ml_global_information.DrawMainFull()
 					if (GUI:IsItemHovered()) then
 						GUI:SetTooltip(GetString("Help, Report and Faqs."))
 					end
-					local acrEnabled = gACREnabled == true
-					local inPvP = IsPVPMap(Player.localmapid)
-					local acrValid = (not inPvP and acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job]) or (inPvP and acrEnabled and table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job])
+					local acrValid = ffxivminion.GetActiveACRProfile() ~= nil
 
 					if (not acrValid) then
 						GUI:AlignFirstTextHeightToWidgets()
@@ -3073,19 +3094,11 @@ invalid name or haven't chosen one.")
 					GUI:Text("Level: ");
 					GUI:SameLine();
 					GUI:Text(tostring(Player.level))
-					local acrEnabled = gACREnabled == true
-					local inPvP = IsPVPMap(Player.localmapid)
-					local pveACRValid = (not inPvP and acrEnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
-					local pvpACRValid = (inPvP and acrEnabled and table.valid(gACRSelectedPVPProfiles) and gACRSelectedPVPProfiles[Player.job])
-					--local acrValid = gACREnabled and (gACRSelectedProfiles[Player.job])
-					if pveACRValid then
+					local activeACRProfile = ffxivminion.GetActiveACRProfile()
+					if activeACRProfile then
 						GUI:Text("ACR Profile: ");
 						GUI:SameLine();
-						GUI:Text((tostring(gACRSelectedProfiles[Player.job])))
-					elseif pvpACRValid then
-						GUI:Text("ACR Profile: ");
-						GUI:SameLine();
-						GUI:Text((tostring(gACRSelectedPVPProfiles[Player.job])))
+						GUI:Text(tostring(activeACRProfile))
 					else
 						GUI:Text("Skill Profile: ");
 						GUI:SameLine();

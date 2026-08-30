@@ -1552,7 +1552,7 @@ function ffxiv_task_craft:Draw()
 				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
 				
 				local uiAlert = IsNull(order["uialert"],nil)
-				local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+				local acrValid = ffxivminion.GetActiveACRProfile() ~= nil
 				if uiAlert == "skip" then
 					local child_color = ffxiv_task_craft._alertColors.skip
 					GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,1)
@@ -2352,7 +2352,7 @@ function ffxiv_craft.Draw( event, ticks )
 								gACREnabledCraft = true
 							end
 						end
-						local acrValid = (gACREnabledCraft and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+						local acrValid = gACREnabledCraft and ffxivminion.GetActiveACRProfile() ~= nil
 						local uiAlert = IsNull(order["uialert"],GetString("skillprofile"))
 						if uiAlert == "skip" then
 							local child_color = ffxiv_task_craft._alertColors.skip
@@ -2492,7 +2492,7 @@ function ffxiv_craft.Draw( event, ticks )
 					end					
 				end
 				if (gCraftOrderAddRecipeID ~= 0) then
-					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local acrValid = ffxivminion.GetActiveACRProfile() ~= nil
 					
 					GUI:Separator()
 				
@@ -2670,7 +2670,7 @@ function ffxiv_craft.Draw( event, ticks )
 					if (In(ffxivminion.gameRegion,2,3)) then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Use Collect"));  
 					end
-					local acrValid = (gACREnabled and table.valid(gACRSelectedProfiles) and gACRSelectedProfiles[Player.job])
+					local acrValid = ffxivminion.GetActiveACRProfile() ~= nil
 					if (not gCraftOrderEditQuick) and not acrValid then
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text(GetString("Skill Profile")); 
 					end  
