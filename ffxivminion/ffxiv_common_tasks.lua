@@ -1738,6 +1738,8 @@ end
 
 function ffxiv_task_avoid:Init()
     Player:MoveToExact(self.pos.x,self.pos.y,self.pos.z)
+	local refreshAvoidance = ml_element:create("AvoidanceUpdate", c_avoid, e_avoid, 100)
+	self:add(refreshAvoidance, self.overwatch_elements)
     self:AddTaskCheckCEs()
 end
 
@@ -1746,19 +1748,23 @@ function ffxiv_task_avoid:task_complete_eval()
 	local topos = self.pos
 	local dist = PDistance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
 	
-	if (self.maxTime > 0) then
-		if TimeSince(self.started) > (self.maxTime * 1000) then
-			return true
-		end
-	else
-		if (dist < 0.5 or (dist < 2 and not Player:IsMoving())) then
-			return true
-		end
+	-- Release the immediate queue as soon as the safe point is reached so the
+	-- parent task can keep scanning. The overwatch above redirects this task
+	-- in place when another overlapping AoE appears while movement is active.
+	if (dist < 0.1 or (dist < 0.25 and not Player:IsMoving())) then
+		return true
+	end
+
+	if (self.maxTime or 0) > 0 and TimeSince(self.started) > (self.maxTime * 1000) then
+		return true
 	end
 	
 	if self.targetid and self.targetid ~= 0 then
 		local target = MGetEntity(self.targetid)
-		if (not target or not target.alive or target.castinginfo.channelingid == 0) then
+		local castingInfo = target and target.castinginfo
+		local castingId = castingInfo and (castingInfo.castingid or 0) or 0
+		local channelingId = castingInfo and (castingInfo.channelingid or 0) or 0
+		if (not target or not target.alive or (castingId == 0 and channelingId == 0)) then
 			return true
 		end
 	end

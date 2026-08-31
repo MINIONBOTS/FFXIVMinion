@@ -40,18 +40,6 @@ function e_ffxivlib_dataready:execute()
     -- The async callbacks will populate the caches in the background.
 end
 
-function ml_global_information._ffxivDataIsOptiFineMode()
-    return rawget(_G, "Optifine") ~= nil
-        or (FFXIVLib
-            and FFXIVLib.IsOptiFineMode
-            and FFXIVLib.IsOptiFineMode())
-end
-
-function ml_global_information._ffxivDataShouldDeferSpeculative()
-    return ml_global_information._ffxivDataIsOptiFineMode()
-        and FFXIV_Common_BotRunning ~= true
-end
-
 ------------------------------------------------------------
 -- Pre-Warm Utilities
 --
@@ -80,7 +68,6 @@ end
 -- @param classJobId (number)
 function FFXIVData_PreWarmActions(classJobId)
     if not FFXIVLib or not classJobId then return nil end
-    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmClassActions(classJobId)
 end
 
@@ -89,7 +76,6 @@ end
 -- @param mapId (number)
 function FFXIVData_PreWarmMap(mapId)
     if not FFXIVLib or not mapId then return nil end
-    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmCurrentMap(mapId)
 end
 
@@ -97,7 +83,6 @@ end
 -- Call after equipping new gear.
 function FFXIVData_PreWarmGear()
     if not FFXIVLib then return nil end
-    if ml_global_information._ffxivDataShouldDeferSpeculative() then return nil end
     FFXIVLib.PreWarm.PreWarmEquippedGear()
 end
 
@@ -196,7 +181,6 @@ end
 --- Drives discovery only after a world-navigation consumer explicitly asks for it.
 function FFXIVData_NavOnUpdate(event, tickcount)
     if not ml_global_information._ffxivDataNavRequested
-        or ml_global_information._ffxivDataIsOptiFineMode()
         or not Player
         or MGetGameState() ~= FFXIV.GAMESTATE.INGAME
         or (ml_global_information.IsYielding and ml_global_information.IsYielding())

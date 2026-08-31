@@ -557,7 +557,6 @@ end
 
 c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
-e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 c_avoid.throttle = 50
 
@@ -588,259 +587,67 @@ function c_avoid:evaluate()
 	
 	-- Collect ALL active avoidances from nearby entities into a list.
 	local avoidList = {}
-	local lastAvoid = c_avoid.lastAvoid
 	
 	local avoidanceAPI = FFXIVLib and FFXIVLib.API and FFXIVLib.API.Avoidance
 	local scanStartedAt = avoidanceAPI and avoidanceAPI._performanceMetricsEnabled and (os.clock() * 1000) or nil
 
-	local function check_entity(e, allowNeutralCaster)
-		if not e then return end
-		local ci = e.castinginfo
-		local castId = ci and (ci.castingid or 0) or 0
-		local chanId = ci and (ci.channelingid or 0) or 0
-		local castTime = ci and (ci.casttime or 0) or 0
-		local chanTime = ci and (ci.channeltime or 0) or 0
-		-- Skip entities not casting/channeling, or instant abilities (< 1.3s)
-		if (castId == 0 and chanId == 0) or castTime < 1.3 then
-			--[[ Clear heading match and tracking if entity is no longer casting -
-			-- prevents stale heading from previous Landslide carrying into the next one.
-			if FFXIVLib._headingMatch and FFXIVLib._headingMatch[e.id] then
-				FFXIVLib._headingMatch[e.id] = nil
-			end
-			if FFXIVLib._headingTrack and FFXIVLib._headingTrack[e.id] then
-				FFXIVLib._headingTrack[e.id] = nil
-			end
-			if FFXIVLib._broadScanDone then
-				FFXIVLib._broadScanDone[e.id .. "_650"] = nil
-				FFXIVLib._broadScanDone[e.id .. "_644"] = nil
-			end]]
-			return
-		end
-		-- Normal scans only dodge hostile casters. The broad scan passes
-		-- allowNeutralCaster for environmental/marker casters that are not
-		-- attackable or aggro but still expose an avoidable cast.
-		if not allowNeutralCaster and not e.attackable and not e.aggro then return end
-		if castId ~= 0 or chanId ~= 0 then
-		end
-		--[[ Pulse diagnostic: when casting Landslide (650), log caster heading vs
-		-- heading-to-each-nearby-entity every tick so we can see which entity
-		-- Titan is actually facing.  pos.h is in the SAME coordinate system
-		-- as atan2(dx, dz) - no + pi offset needed.
-		local activeSpell = castId ~= 0 and castId or chanId
-		if activeSpell == 650 and e.pos then
-			local cH = e.pos.h or 0
-			-- Normalize pos.h to [0, 2*pi) for comparison with atan2 values
-			if cH < 0 then cH = cH + 2 * math.pi end
+	-- Adds a nearby cast to avoidList when the player is inside its danger area.
+	-- Neutral mechanic casters are eligible; friendly and invalid casts are not.
+	local function check_entity(entity)
+		if not entity then return end
 
-			-- Track heading stability: Titan rotates from its previous
-			-- facing to the Landslide target over ~0.5s. The STABLE
-			-- heading (delta < 0.02 for 2+ frames) is the correct one.
-			FFXIVLib._headingTrack = FFXIVLib._headingTrack or {}
-			local track = FFXIVLib._headingTrack[e.id]
-			if not track then
-				track = { prevH = cH, stableCount = 0 }
-				FFXIVLib._headingTrack[e.id] = track
-			end
-			local hDelta = math.abs(cH - track.prevH)
-			if hDelta > math.pi then hDelta = 2 * math.pi - hDelta end
-			track.prevH = cH
-			if hDelta < 0.02 then
-				track.stableCount = track.stableCount + 1
-			else
-				track.stableCount = 0
-			end
+		local castingInfo = entity.castinginfo
+		local castId = castingInfo and (castingInfo.castingid or 0) or 0
+		local channelId = castingInfo and (castingInfo.channelingid or 0) or 0
+		local castTime = castingInfo and (castingInfo.casttime or 0) or 0
+		if (castId == 0 and channelId == 0) or castTime < 1.3 then return end
 
-			local candidates = {}
-			-- Gather all nearby entities that could be targets
-			local nearby = EntityList("alive,onmesh,maxdistance=40")
-			if table.valid(nearby) then
-				for _, ne in pairs(nearby) do
-					if ne.id ~= e.id and ne.pos then
-						local dx = ne.pos.x - e.pos.x
-						local dz = ne.pos.z - e.pos.z
-						local dist = math.sqrt(dx * dx + dz * dz)
-						if dist > 0.5 then
-							local hToEnt = math.atan2(dx, dz)
-							if hToEnt < 0 then hToEnt = hToEnt + 2 * math.pi end
-							local diff = math.abs(hToEnt - cH)
-							if diff > math.pi then diff = 2 * math.pi - diff end
-							candidates[#candidates + 1] = {
-								name = ne.name or "?",
-								id = ne.id,
-								dist = dist,
-								heading = hToEnt,
-								diff = diff,
-								chartype = ne.chartype or 0
-							}
-						end
-					end
-				end
-			end
-			-- Also include Player
-			if Player and Player.pos then
-				local dx = Player.pos.x - e.pos.x
-				local dz = Player.pos.z - e.pos.z
-				local dist = math.sqrt(dx * dx + dz * dz)
-				if dist > 0.5 then
-					local hToEnt = math.atan2(dx, dz)
-					if hToEnt < 0 then hToEnt = hToEnt + 2 * math.pi end
-					local diff = math.abs(hToEnt - cH)
-					if diff > math.pi then diff = 2 * math.pi - diff end
-					candidates[#candidates + 1] = {
-						name = "PLAYER",
-						id = Player.id,
-						dist = dist,
-						heading = hToEnt,
-						diff = diff,
-						chartype = 0
-					}
-				end
-			end
-			-- Sort by heading difference (best match first)
-			table.sort(candidates, function(a, b) return a.diff < b.diff end)
-			-- Log caster heading and top matches
-			local chanTgtId = ci and ci.channeltargetid or 0
-			d("[PULSE] spell=650 casterH="..string.format("%.4f", cH)
-			  .." stable="..tostring(track.stableCount)
-			  .." delta="..string.format("%.4f", hDelta)
-			  .." chanTime="..string.format("%.2f", chanTime)
-			  .." chanTgt="..tostring(chanTgtId))
-			for idx = 1, math.min(#candidates, 6) do
-				local c = candidates[idx]
-				d("[PULSE]  #"..idx.." "..tostring(c.name)
-				  .." id="..tostring(c.id)
-				  .." dist="..string.format("%.1f", c.dist)
-				  .." h="..string.format("%.4f", c.heading)
-				  .." diff="..string.format("%.4f", c.diff)
-				  .." ct="..tostring(c.chartype)
-				  ..(c.diff < 0.15 and " <<< MATCH" or ""))
-			end
-			-- STABILITY LOCK: once pos.h stabilizes (2+ frames with
-			-- delta < 0.02), lock it as the Landslide heading.
-			-- pos.h IS the facing direction (same coords as atan2).
-			FFXIVLib._headingMatch = FFXIVLib._headingMatch or {}
-			local existing = FFXIVLib._headingMatch[e.id]
-			if existing then
-				-- Keep the locked heading alive while the cast continues
-				existing.tick = Now()
-				d("[PULSE] LOCKED heading="..string.format("%.4f", existing.heading)
-				  .." target="..tostring(existing.name).." (stable lock)")
-			elseif track.stableCount >= 2 then
-				-- Heading has stabilized - lock pos.h directly.
-				-- Find best matching entity for diagnostic logging.
-				local matchName = "unknown"
-				local matchId = 0
-				local matchDiff = 999
-				if #candidates > 0 and candidates[1].diff < 0.15 then
-					matchName = candidates[1].name
-					matchId = candidates[1].id
-					matchDiff = candidates[1].diff
-				end
-				FFXIVLib._headingMatch[e.id] = {
-					targetId = matchId,
-					heading = cH,  -- pos.h directly, same as atan2
-					diff = matchDiff,
-					name = matchName,
-					tick = Now()
-				}
-				d("[PULSE] LOCKED NEW heading="..string.format("%.4f", cH)
-				  .." target="..tostring(matchName)
-				  .." diff="..string.format("%.4f", matchDiff)
-				  .." stableFrames="..tostring(track.stableCount))
-			end
-		end]]
+		-- Environmental/marker casters may be neutral, so reject only actors
+		-- known to be friendly. Trust NPCs use chartype 9.
+		local isFriendlyCaster = entity.id == Player.id
+			or entity.friendly
+			or (entity.chartype == 9 and not entity.attackable)
+		if isFriendlyCaster then return end
 
-		-- Broad entity scan: dump ALL entities within 100y when spell 650
-		-- or 644 first detected, to find invisible marker entities that
-		-- may appear at the target position.
-		--[[if (activeSpell == 650 or activeSpell == 644) and e.pos then
-			FFXIVLib._broadScanDone = FFXIVLib._broadScanDone or {}
-			local scanKey = e.id .. "_" .. tostring(activeSpell)
-			if not FFXIVLib._broadScanDone[scanKey] then
-				FFXIVLib._broadScanDone[scanKey] = true
-				d("[SCAN] === ALL ENTITIES r=100 for spell="..tostring(activeSpell)
-				  .." caster="..tostring(e.id).." ("..tostring(e.name)..") ===")
-				-- Use broadest possible filter - no alive/attackable/aggro restriction
-				local allEnts = EntityList("maxdistance=100")
-				local count = 0
-				if table.valid(allEnts) then
-					for _, ent in pairs(allEnts) do
-						count = count + 1
-						local eci = ent.castinginfo
-						local eCastId = eci and (eci.castingid or 0) or 0
-						local eChanId = eci and (eci.channelingid or 0) or 0
-						local eChanTgt = eci and (eci.channeltargetid or 0) or 0
-						local casting = ""
-						if eCastId ~= 0 or eChanId ~= 0 then
-							casting = " CASTING="..tostring(eCastId).."/"..tostring(eChanId)
-							  .." chanTgt="..tostring(eChanTgt)
-						end
-						local epos = ent.pos
-						local posStr = epos and string.format("(%.1f,%.1f,%.1f h=%.4f)",
-							epos.x, epos.y, epos.z, epos.h or 0) or "(no pos)"
-						d("[SCAN]  "..tostring(ent.name or "?")
-						  .." id="..tostring(ent.id)
-						  .." type="..tostring(ent.type or "?")
-						  .." chartype="..tostring(ent.chartype or "?")
-						  .." alive="..tostring(ent.alive)
-						  .." vis="..tostring(ent.visible)
-						  .." atk="..tostring(ent.attackable)
-						  .." aggro="..tostring(ent.aggro)
-						  .." dist="..string.format("%.1f", ent.distance or 0)
-						  .." pos="..posStr
-						  ..casting)
-					end
-				end
-				-- Also log Player
-				if Player and Player.pos then
-					d("[SCAN]  PLAYER id="..tostring(Player.id)
-					  .." pos="..string.format("(%.1f,%.1f,%.1f)", Player.pos.x, Player.pos.y, Player.pos.z))
-				end
-				d("[SCAN] === total="..tostring(count).." entities ===")
-			end
-		end]]
-
-		-- Cache castinginfo so evaluate() doesn't re-read it from the entity.
-		-- The game engine can clear castinginfo between reads (especially for
-		-- completed channels where chanTime == castTime), causing a race.
-		-- Entities are C++ userdata so we can't set properties on them;
-		-- use a module-level table keyed by entity ID instead.
+		-- Preserve this casting snapshot across the engine boundary; the live
+		-- entity can clear castinginfo before GetAvoidanceInfo reads it again.
 		FFXIVLib._ciCache = FFXIVLib._ciCache or {}
-		FFXIVLib._ciCache[e.id] = ci
-		local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(e)
-		if shouldAvoid and spellData then
-			-- Skip if we already dodged this exact spell from this exact caster recently
-			if lastAvoid then
-				for _, prev in ipairs(lastAvoid) do
-					if spellData.id == prev.data.id and e.id == prev.attacker.id and Now() < prev.timer then
-						return
-					end
-				end
-			end
-			if (gArgusDebug) then
-				d("[Avoid] spell="..tostring(spellData.id).." ("..tostring(spellData.name or "?")..")"
-				  .." type="..tostring(spellData.type).." range="..tostring(spellData.range)
-				  .." caster="..tostring(e.id).." ("..tostring(e.name)..")"
-				  .." castTime="..tostring(spellData.castTime))
-			end
-			avoidList[#avoidList + 1] = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e, castinginfo = ci }
+		FFXIVLib._ciCache[entity.id] = castingInfo
+		local shouldAvoid, spellData = FFXIVLib.API.Avoidance.GetAvoidanceInfo(entity)
+		if not shouldAvoid or not spellData then return end
+
+		local now = Now()
+		if gArgusDebug then
+			d("[Avoid] spell=" .. tostring(spellData.id)
+				.. " (" .. tostring(spellData.name or "?") .. ")"
+				.. " type=" .. tostring(spellData.type)
+				.. " range=" .. tostring(spellData.range)
+				.. " caster=" .. tostring(entity.id)
+				.. " (" .. tostring(entity.name) .. ")"
+				.. " castTime=" .. tostring(spellData.castTime))
 		end
+		avoidList[#avoidList + 1] = {
+			timer = now + (spellData.castTime * 1000),
+			data = spellData,
+			attacker = entity,
+			castinginfo = castingInfo,
+		}
 	end
 	
 	-- One broad scan covers hostile combatants plus environmental/neutral casters.
 	-- check_entity() exits before lookup work for entities that are not casting.
 	local el = EntityList("onmesh,maxdistance=40")
 	if (table.valid(el)) then
-		for i,entity in pairs(el) do
-			check_entity(EntityList:Get(entity.id), true)
+		for _, entity in pairs(el) do
+			check_entity(EntityList:Get(entity.id))
 		end
 	end
 	
-	-- Argus is optional. Its public live-AoE API is used only when the user
 	if scanStartedAt and avoidanceAPI and avoidanceAPI._RecordPerformance then
 		avoidanceAPI._RecordPerformance('scan', (os.clock() * 1000) - scanStartedAt)
 	end
 
+	-- Argus is optional. Its public live-AoE API is used only when the user
 	-- already has a working licensed installation; any missing or failing API
 	-- simply leaves this list empty and preserves the normal avoidance path.
 	local argusZones = {}
@@ -853,22 +660,24 @@ function c_avoid:evaluate()
 	end
 
 	if #avoidList > 0 or #argusZones > 0 then
-		-- Store the full list for the execute phase and for lastAvoid tracking
+		-- Store the full cast list for the execute phase.
 		c_avoid.newAvoid = avoidList
 		
 		local newPos, seconds
+		local avoidanceNeeded = #avoidList > 0
 		if #avoidList == 1 and #argusZones == 0 then
 			-- Single AoE: use legacy single-spell path
 			newPos, seconds = FFXIVLib.API.Avoidance.GetAvoidancePos(avoidList[1])
 		else
 			-- Multiple or provider-supplied AoEs: find a position safe from ALL.
-			newPos, seconds = FFXIVLib.API.Avoidance.GetSafePosition(avoidList, nil, nil, argusZones)
+			newPos, seconds, avoidanceNeeded = FFXIVLib.API.Avoidance.GetSafePosition(
+				avoidList, nil, nil, argusZones)
 		end
 		
 		if (table.valid(newPos)) then
 			local ppos = Player.pos
 			local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
-			if (moveDist > 1) then
+			if (moveDist > 0.1) then
 				c_avoid.avoidDetails = { pos = newPos, seconds = seconds}
 				return true
 			else
@@ -877,7 +686,7 @@ function c_avoid:evaluate()
 					c_avoid.nextOutcomeLogAt = Now() + 1000
 				end
 			end
-		else
+		elseif avoidanceNeeded then
 			if gArgusDebug and Now() >= (c_avoid.nextOutcomeLogAt or 0) then
 				d("[Avoidance] Can't dodge, didn't find a valid position.")
 				c_avoid.nextOutcomeLogAt = Now() + 1000
@@ -889,6 +698,7 @@ function c_avoid:evaluate()
 end
 function e_avoid:execute() 	
 	local details = c_avoid.avoidDetails
+	local activeTask = ml_task_hub:CurrentTask()
 	local tid = 0
 	local currentTarget = Player:GetTarget()
 	if (currentTarget) then
@@ -897,15 +707,29 @@ function e_avoid:execute()
 		tid = ml_task_hub:ThisTask().targetid
 	end
 	
-	c_avoid.lastAvoid = c_avoid.newAvoid
+	-- newAvoid is a list; use the first entry's attacker for the task target.
+	local primaryAttacker = c_avoid.newAvoid[1] and c_avoid.newAvoid[1].attacker
+	if activeTask and activeTask.name == "AVOID" then
+		local oldPos = activeTask.pos
+		local destinationChanged = not table.valid(oldPos)
+			or PDistance3D(oldPos.x, oldPos.y, oldPos.z, details.pos.x, details.pos.y, details.pos.z) > 0.1
+		activeTask.pos = details.pos
+		activeTask.targetid = primaryAttacker and primaryAttacker.id or 0
+		activeTask.attackTarget = tid
+		activeTask.maxTime = details.seconds or 0
+		if destinationChanged then
+			activeTask.started = Now()
+			Player:MoveToExact(details.pos.x, details.pos.y, details.pos.z)
+		end
+		return
+	end
+
 	local newTask = ffxiv_task_avoid.Create()
 	newTask.pos = details.pos
-	-- newAvoid is now a list; use the first entry's attacker for the task target
-	local primaryAttacker = c_avoid.newAvoid[1] and c_avoid.newAvoid[1].attacker
 	newTask.targetid = primaryAttacker and primaryAttacker.id or 0
 	newTask.attackTarget = tid
 	newTask.interruptCasting = true
-	newTask.maxTime = details.seconds
+	newTask.maxTime = details.seconds or 0
 	SetThisTaskProperty("preserveSubtasks",true)
 	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	d("Adding avoidance task.")

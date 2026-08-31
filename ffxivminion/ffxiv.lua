@@ -718,22 +718,9 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		end
 
 		if (not Player.incombat) then
-			local optifineLazyUI = FFXIVLib
-				and FFXIVLib.IsOptiFineMode
-				and FFXIVLib.IsOptiFineMode()
-			local refreshFoodOptions
-			if optifineLazyUI then
-				local configuredFood = (gFood and gFood ~= GetString("none"))
-					or (gCraftFood and gCraftFood ~= GetString("none"))
-				refreshFoodOptions = (ffxivminion.GUI.settings.open
-						or (FFXIV_Common_BotRunning and configuredFood))
-					and (ml_global_information.updateFoodTimer == 0
-						or TimeSince(ml_global_information.updateFoodTimer) > 15000)
-			else
-				refreshFoodOptions = (ffxivminion.GUI.settings.open
-						and TimeSince(ml_global_information.updateFoodTimer) > 15000)
-					or ml_global_information.updateFoodTimer == 0
-			end
+			local refreshFoodOptions = (ffxivminion.GUI.settings.open
+					and TimeSince(ml_global_information.updateFoodTimer) > 15000)
+				or ml_global_information.updateFoodTimer == 0
 			if refreshFoodOptions then
 				if ffxivminion.FillFoodOptions(gFoodAvailableOnly) then
 					ml_global_information.updateFoodTimer = tickcount
@@ -1634,11 +1621,6 @@ function ffxivminion.CheckMode()
 end
 
 function ffxivminion.UpdateGlobals()
-	if rawget(_G, "Optifine") ~= nil
-		or (FFXIVLib and FFXIVLib.IsOptiFineMode and FFXIVLib.IsOptiFineMode())
-	then
-		return
-	end
 	if (gBotMode ~= "assistMode") then
 		if (Player) then
 			ml_global_information.Player_Aetherytes = GetAetheryteList()
@@ -2331,16 +2313,6 @@ function ml_global_information.DrawSettings()
 					GUI:PopItemWidth()
 					GUI:SameLine()
 					GUI:Text(GetString("Current Active Food"))
-					-- Optifine may replace the base InGameOnUpdate callback.  Request
-					-- food rows from the UI that consumes them as well, so the list
-					-- remains lazy but cannot get stuck at "none".
-					if (ml_global_information.updateFoodTimer == 0
-						or TimeSince(ml_global_information.updateFoodTimer) > 15000)
-					then
-						if ffxivminion.FillFoodOptions(gFoodAvailableOnly) then
-							ml_global_information.updateFoodTimer = Now()
-						end
-					end
 					GUI:PushItemWidth(200);
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods);
 					GUI:PopItemWidth()
