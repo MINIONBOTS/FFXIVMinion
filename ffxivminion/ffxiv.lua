@@ -15,6 +15,7 @@ ffxivminion.PhaennaMapVersion = 0
 ffxivminion.OizysMapVersion = 0
 ffxivminion.AuxesiaMapVersion = 0
 ffxivminion.DutyCurrentData = {}
+
 ffxivminion.gameRegion = GetGameRegion()
 ffxivminion.maxlevel = 100
 ffxivminion.patchLevel = {
@@ -159,7 +160,7 @@ ffxivminion.AutoGrindDefault = [[
 -- Create the main GUI container.
 ffxivminion.GUI = {
 	main = {
-		name = (type(IsBetaClient) == "function" and IsBetaClient() == true) and "FFXIVMinion - BETA" or "FFXIVMinion",
+		name = "FFXIVMinion",
 		open = true,
 		visible = true,
 		x = 0, y = 0, width = 0, height = 0,
