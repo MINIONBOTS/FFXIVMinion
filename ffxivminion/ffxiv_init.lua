@@ -617,35 +617,75 @@ function ml_global_information.CheckGroupTeleportYesno(txt)
         end
     end
 end
-function PressYesNo(answer)
-    local answer = IsNull(answer, true)
-    if (answer == true) then
-        answer = "Yes"
-    elseif (answer == false) then
-        answer = "No"
+
+-- Returns the answer to use and the reason. A nil answer means wait.
+function ml_global_information.GetYesNoAnswer(answer)
+    local requestedAnswer = IsNull(answer, true)
+    if (requestedAnswer == true) then
+        requestedAnswer = "Yes"
+    elseif (requestedAnswer == false) then
+        requestedAnswer = "No"
     end
 
-    if (IsControlOpen("SelectYesno")) then
-        if (IsControlOpen("_NotificationParty")) and gDeclinePartyInvites then
-            return UseControlAction("SelectYesno", "No")
-        else
-            local txt = GetControlStrings("SelectYesno")
-            if not table.valid(txt) and (gDeclinePartyInvites or gDeclinePartyTeleport) then
-                d("text info invalid ? (SelectYesno), decline party invite " .. tostring(gDeclinePartyInvites) .. '  decline group teleport ' .. tostring(gDeclinePartyTeleport))
-                return false
+    if (not IsControlOpen("SelectYesno")) then
+        return nil, "no_control"
+    end
+
+    local declinePartyInvites = toboolean(gDeclinePartyInvites)
+    local declinePartyTeleport = toboolean(gDeclinePartyTeleport)
+    if (declinePartyInvites and IsControlOpen("_NotificationParty")) then
+        return "No", "party_invite"
+    end
+    if (declinePartyTeleport and IsControlOpen("_NotificationTelepo")) then
+        return "No", "party_teleport"
+    end
+
+    local txt = GetControlStrings("SelectYesno")
+    if (not table.valid(txt) and (declinePartyInvites or declinePartyTeleport)) then
+        return nil, "unreadable"
+    end
+    if (declinePartyInvites or declinePartyTeleport) then
+        local hasDialogText = false
+        for _, line in pairs(txt) do
+            if (ValidString(line)) then
+                hasDialogText = true
+                break
             end
-            if ml_global_information.CheckPartyInviteYesno(txt) and gDeclinePartyInvites then
-                d('decline party invite.')
-                return UseControlAction("SelectYesno", "No")
-            end
-            if ml_global_information.CheckGroupTeleportYesno(txt) and gDeclinePartyTeleport then
-                d('decline group teleport.')
-                return UseControlAction("SelectYesno", "No")
-            end
-            return UseControlAction("SelectYesno", answer)
+        end
+        if (not hasDialogText) then
+            return nil, "unreadable"
         end
     end
-    return false
+    if (declinePartyInvites and not ValidString(FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.JOIN_PARTY))) then
+        return nil, "unreadable"
+    end
+    if (declinePartyTeleport and not ValidString(FFXIVLib.API.Strings.Get(FFXIVLib.API.Strings.ACCEPT_TELEPORT))) then
+        return nil, "unreadable"
+    end
+    if (declinePartyInvites and ml_global_information.CheckPartyInviteYesno(txt)) then
+        return "No", "party_invite"
+    end
+    if (declinePartyTeleport and ml_global_information.CheckGroupTeleportYesno(txt)) then
+        return "No", "party_teleport"
+    end
+
+    return requestedAnswer, "requested"
+end
+
+function PressYesNo(answer)
+    local resolvedAnswer, reason = ml_global_information.GetYesNoAnswer(answer)
+    if (not resolvedAnswer) then
+        if (reason == "unreadable") then
+            d("SelectYesno text missing, waiting.")
+        end
+        return false, nil, reason
+    end
+
+    local handled = UseControlAction("SelectYesno", resolvedAnswer)
+    if (handled and reason ~= "requested") then
+        d("SelectYesno [" .. tostring(reason) .. "] -> [" .. resolvedAnswer .. "]")
+    end
+    return handled, resolvedAnswer, reason
 end
 
 function DrawFateListUI(self)

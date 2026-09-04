@@ -4126,30 +4126,16 @@ function c_recommendequip:evaluate()
 	return false
 end
 function e_recommendequip:execute()
-	if (not IsControlOpen("Character")) then
-		ActionList:Get(10,2):Cast()
-		ml_global_information.Await(1000, 2000, function () return IsControlOpen("Character") end)
-		ml_debug("[RecommendEquip]: Opened character panel.")
+	if (Player:EquipRecommendedGear()) then
+		ml_global_information.lastEquip = Now()
+		e_recommendequip.lastEquip[Player.job] = Player.level
+		-- The native request completes asynchronously, so let the next armoury
+		-- check establish a post-equip baseline instead of sampling too early.
+		e_recommendequip.lastArmouryHash = 0
+		ml_debug("[RecommendEquip]: Queued recommended gear equip.")
 	else
-		if (not IsControlOpen("RecommendEquip")) then
-			UseControlAction("Character","OpenRecommendEquip")
-			ml_global_information.Await(1500, 3000, function () return IsControlOpen("RecommendEquip") end)
-			ml_debug("[RecommendEquip]: Open Recommended Equipment panel.")
-		else
-			if (UseControlAction("RecommendEquip","Equip")) then
-				ml_global_information.yield = { 
-					mintimer = 0,
-					maxtimer = Now() + 1000,
-					followall = function () 
-						ActionList:Get(10,2):Cast()
-						ml_global_information.lastEquip = Now()
-						e_recommendequip.lastEquip = { [Player.job] = Player.level }
-						e_recommendequip.lastArmouryHash = e_recommendequip:GetArmouryFingerprint()
-					end
-				}
-				ml_debug("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
-			end
-		end
+		-- Native setup is already pending or the game module is not ready yet.
+		ml_global_information.Await(500)
 	end
 
 	SetThisTaskProperty("preserveSubtasks",true)
@@ -4536,12 +4522,18 @@ function c_confirmbuy:evaluate()
 	end
 
 	if IsControlOpen("SelectYesno") then
-		UseControlAction("SelectYesno","CheckAccept")
-		UseControlAction("SelectYesno","Yes")
-		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
-		currentTask.failedpurchaseattempts = 0
-		mark_purchase_settled(currentTask, itemid, false)
-		return true
+		local safeAnswer = ml_global_information.GetYesNoAnswer(true)
+		if (safeAnswer == "Yes") then
+			UseControlAction("SelectYesno","CheckAccept")
+		end
+		local handled, actualAnswer = PressYesNo(true)
+		if (handled and actualAnswer == "Yes") then
+			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
+			currentTask.failedpurchaseattempts = 0
+			mark_purchase_settled(currentTask, itemid, false)
+			return true
+		end
+		return false
 	end
 
 	if IsControlOpen("ShopExchangeItemDialog") then
@@ -4576,11 +4568,17 @@ function c_buy:evaluate()
 	end
 
 	if (IsControlOpen("SelectYesno")) then
-		UseControlAction("SelectYesno","CheckAccept")
-		UseControlAction("SelectYesno","Yes")
-		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
-		mark_purchase_settled(currentTask, itemid, false)
-		return true
+		local safeAnswer = ml_global_information.GetYesNoAnswer(true)
+		if (safeAnswer == "Yes") then
+			UseControlAction("SelectYesno","CheckAccept")
+		end
+		local handled, actualAnswer = PressYesNo(true)
+		if (handled and actualAnswer == "Yes") then
+			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
+			mark_purchase_settled(currentTask, itemid, false)
+			return true
+		end
+		return false
 	end
 	
 	if (IsControlOpen("SelectYesnoCount")) then
@@ -4742,9 +4740,9 @@ function c_buy:evaluate()
 				ml_global_information.AwaitSuccess(2000, 
 					function () 
 						if (IsControlOpen("SelectYesno")) then
-							PressYesNo(true)
-							confirmedPurchase = true
-							return true		
+							local handled, actualAnswer = PressYesNo(true)
+							confirmedPurchase = handled and actualAnswer == "Yes"
+							return handled
 						end
 					end
 				)
@@ -4817,7 +4815,7 @@ function c_switchclass:evaluate()
 			ml_global_information.AwaitDo(1000, 3000, 
 				function () return (IsControlOpen("SelectYesno") or (Player.job == class)) end, 
 				function () 
-					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
+					if (IsControlOpen("SelectYesno")) then PressYesNo(true) end
 				end
 			)
 					d("class "..tostring(class))
@@ -4831,7 +4829,7 @@ function c_switchclass:evaluate()
 			ml_global_information.AwaitDo(1000, 3000, 
 				function () return (IsControlOpen("SelectYesno") or (Player.job == class)) end, 
 				function () 
-					if (IsControlOpen("SelectYesno")) then UseControlAction("SelectYesno","Yes") end 
+					if (IsControlOpen("SelectYesno")) then PressYesNo(true) end
 				end
 			)
 					d("class "..tostring(class))
@@ -4851,8 +4849,8 @@ function c_switchclass:evaluate()
 	return false
 end
 function e_switchclass:execute()
-	if (IsControlOpen("SelectYesno") and not IsControlOpen("_NotificationParty")) then
-		UseControlAction("SelectYesno","Yes",0)
+	if (IsControlOpen("SelectYesno")) then
+		PressYesNo(true)
 	end
 	if (e_switchclass.blockOnly) then
 		d("task was blocked")
@@ -5155,7 +5153,7 @@ function c_dointeract:evaluate()
 			function () 
 				ml_global_information.AwaitDo(1000, 3000, 
 					function () return MIsLoading() end, 
-					function () UseControlAction("SelectYesno","Yes") end)
+					function () PressYesNo(true) end)
 			end)
 		return true
 	end
@@ -5901,7 +5899,7 @@ function c_scripexchange_na:evaluate()
 				UseControlAction("SelectYesno","No")
 				scripexchange_finish_capped(task)
 			else
-				UseControlAction("SelectYesno","Yes")
+				PressYesNo(true)
 			end
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return false
@@ -6060,7 +6058,7 @@ c_scripexchange_cnkr.handoverComplete = false
 function c_scripexchange_cnkr:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_scripexchange_cnkr.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes")
+			PressYesNo(true)
 			ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return
 		end
@@ -6192,7 +6190,7 @@ c_exchange.handoverComplete = false
 function c_exchange:evaluate()
 	if (IsControlOpen("SelectYesno") and Player.alive and TimeSince(c_exchange.lastComplete) < 5000) then
 		if (not IsControlOpen("_NotificationParty")) then
-			UseControlAction("SelectYesno","Yes",0,1000)
+			PressYesNo(true)
 			--ml_global_information.Await(2000, function () return not IsControlOpen("SelectYesno") end)
 			return
 		end

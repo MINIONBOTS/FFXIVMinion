@@ -5,7 +5,10 @@ ffxivminion.busyTimer = 0
 ffxivminion.lastTradeDecline = 0
 ffxivminion.lastTradeMessage = 0
 ffxivminion.tradeDeclines = 0
+ffxivminion.tradeClosePending = false
+ffxivminion.tradeBusyPending = false
 ffxivminion.declineTimer = 0
+ffxivminion.socialDeclineCommandSent = false
 ffxivminion.scripExchange = {}
 ffxivminion.lastScripExchangeUpdate = {}
 ffxivminion.AetherCurrentData = {}
@@ -612,6 +615,18 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 		end
 	end
 
+	-- Handle social windows before tasks and navigation.
+	if (FFXIV_Common_BotRunning) then
+		if (ffxivminion.ClearAddons()) then
+			return
+		end
+	else
+		ffxivminion.tradeClosePending = false
+		ffxivminion.tradeBusyPending = false
+		ffxivminion.declineTimer = 0
+		ffxivminion.socialDeclineCommandSent = false
+	end
+
 	if (c_skiptalk:evaluate()) then
 		e_skiptalk:execute()
 	end
@@ -691,14 +706,6 @@ function ml_global_information.InGameOnUpdate(event, tickcount)
 			ffxivminion.UpdateGlobals()
 		end
 
-
-		-- close any social addons that might screw up behavior first
-		if (FFXIV_Common_BotRunning and
-				gBotMode ~= "assistMode" and
-				gBotMode ~= "dutyMode")
-		then
-			ffxivminion.ClearAddons()
-		end
 
 		if (ml_task_hub:CurrentTask() ~= nil) then
 			FFXIV_Core_ActiveTaskName = ml_task_hub:CurrentTask().name
@@ -1767,40 +1774,39 @@ end
 
 -- clear any addons displayed by social actions like trade/party invites
 function ffxivminion.ClearAddons()
-	if (ffxivminion.busyTimer ~= 0 and Now() > ffxivminion.busyTimer) then
+	local now = Now()
+	if (ffxivminion.busyTimer ~= 0 and now > ffxivminion.busyTimer) then
 		SendTextCommand("/busy off")
 		ffxivminion.busyTimer = 0
 	end
 
-	if (ffxivminion.tradeDeclines > 0 and Now() > ffxivminion.lastTradeDecline + 30000) then
-		if (not IsControlOpen("Trade")) then
-			ffxivminion.tradeDeclines = 0
+	local tradeOpen = IsControlOpen("Trade")
+	local tradeClosed = false
+	if (ffxivminion.tradeClosePending and not tradeOpen) then
+		ffxivminion.tradeClosePending = false
+		ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
+		ffxivminion.lastTradeDecline = now
+		if (ffxivminion.tradeBusyPending) then
+			SendTextCommand("/busy on")
+			ffxivminion.busyTimer = now + 60000
 		end
+		ffxivminion.tradeBusyPending = false
+		tradeClosed = true
 	end
 
-	--trade window
-	if (IsControlOpen("Trade") and not Player:IsMoving()) then
+	if (ffxivminion.tradeDeclines > 0 and now > ffxivminion.lastTradeDecline + 30000 and not tradeOpen) then
+		ffxivminion.tradeDeclines = 0
+	end
 
-		if (Now() < ffxivminion.lastTradeDecline + 15000 and gTradeInviteBusy and (ffxivminion.tradeDeclines > 0 or not gTradeInviteMessage)) then
-			d("Trade window active, attempting to close then will go into busy.")
-			UseControlAction("Trade", "Close")
-			ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
-			ffxivminion.lastTradeDecline = Now()
-			ml_global_information.Await(5000,
-					function()
-						return IsControlOpen("Trade")
-					end,
-					function()
-						d("Trade window closed, doing into busy.")
-						SendTextCommand("/busy on")
-						ffxivminion.busyTimer = Now() + 60000
-					end
-			)
-		end
-
-		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0) then
-			if (gTradeInviteMessage and ValidString(gTradeInviteMessages)) then
-				d("Trade window active, attepting to send chat message.")
+	-- Trade can open while moving, close it right away.
+	if (tradeOpen) then
+		if (not ffxivminion.tradeClosePending) then
+			ffxivminion.tradeClosePending = true
+			ffxivminion.tradeBusyPending = toboolean(gTradeInviteBusy)
+			d("Trade window open, closing.")
+			if (toboolean(gTradeInviteMessage) and ValidString(gTradeInviteMessages)
+					and now > ffxivminion.lastTradeMessage + 15000)
+			then
 				local messageTable = {}
 				for message in StringSplit(gTradeInviteMessages, ";") do
 					table.insert(messageTable, message)
@@ -1811,63 +1817,37 @@ function ffxivminion.ClearAddons()
 						thisMessage = "/say " .. thisMessage
 					end
 					SendTextCommand(thisMessage)
-					ffxivminion.lastTradeMessage = Now()
+					ffxivminion.lastTradeMessage = now
 				end
 			end
-			ml_global_information.AwaitThen(math.random(2000, 7000),
-					function()
-						d("Trade window active, now closing window.")
-						UseControlAction("Trade", "Close")
-						ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
-						ffxivminion.lastTradeDecline = Now()
-					end
-			)
-		elseif (ffxivminion.tradeDeclines > 0 and gTradeInviteMessage and not gTradeInviteBusy) then
-			ml_global_information.AwaitThen(math.random(2000, 7000),
-					function()
-						d("Trade window recently closed, not sending chat message.")
-						UseControlAction("Trade", "Close")
-						ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
-						ffxivminion.lastTradeDecline = Now()
-					end
-			)
 		end
-
+		UseControlAction("Trade", "Close")
+		return true
+	end
+	if (tradeClosed) then
 		return true
 	end
 
-	--party invite
-	if (IsControlOpen("_NotificationParty") and toboolean(gDeclinePartyInvites)) then
+	local declinePartyInvite = IsControlOpen("_NotificationParty") and toboolean(gDeclinePartyInvites)
+	local declinePartyTeleport = IsControlOpen("_NotificationTelepo") and toboolean(gDeclinePartyTeleport)
+	if (declinePartyInvite or declinePartyTeleport) then
 		if (IsControlOpen("SelectYesno")) then
 			if (ffxivminion.declineTimer == 0) then
-				ffxivminion.declineTimer = Now() + math.random(3000, 5000)
-			elseif (Now() > ffxivminion.declineTimer) then
-				if (not ffxivminion.inviteDeclined) then
-					UseControlAction("SelectYesno", "No")
-					ffxivminion.inviteDeclined = true
-					ffxivminion.declineTimer = 0
-				end
+				ffxivminion.declineTimer = now + math.random(3000, 5000)
+			elseif (now > ffxivminion.declineTimer) then
+				PressYesNo(true)
+				ffxivminion.declineTimer = 0
 			end
-		else
+		elseif (not ffxivminion.socialDeclineCommandSent) then
 			SendTextCommand("/decline")
+			ffxivminion.socialDeclineCommandSent = true
 		end
+		return true
 	end
 
-	if (IsControlOpen("_NotificationTelepo") and toboolean(gDeclinePartyTeleport)) then
-		if (IsControlOpen("SelectYesno")) then
-			if (ffxivminion.declineTimer == 0) then
-				ffxivminion.declineTimer = Now() + math.random(3000, 5000)
-			elseif (Now() > ffxivminion.declineTimer) then
-				if (not ffxivminion.inviteDeclined) then
-					UseControlAction("SelectYesno", "No")
-					ffxivminion.inviteDeclined = true
-					ffxivminion.declineTimer = 0
-				end
-			end
-		else
-			SendTextCommand("/decline")
-		end
-	end
+	ffxivminion.declineTimer = 0
+	ffxivminion.socialDeclineCommandSent = false
+	return false
 end
 
 function ml_global_information.DrawMainFull()
