@@ -1780,6 +1780,12 @@ function ffxivminion.ClearAddons()
 		ffxivminion.busyTimer = 0
 	end
 
+	-- assist leaves trades to the player, including any pending close from another mode.
+	if (gBotMode == "assistMode") then
+		ffxivminion.tradeClosePending = false
+		ffxivminion.tradeBusyPending = false
+	end
+
 	local tradeOpen = IsControlOpen("Trade")
 	local tradeClosed = false
 	if (ffxivminion.tradeClosePending and not tradeOpen) then
@@ -1799,7 +1805,7 @@ function ffxivminion.ClearAddons()
 	end
 
 	-- Trade can open while moving, close it right away.
-	if (tradeOpen) then
+	if (tradeOpen and gBotMode ~= "assistMode") then
 		if (not ffxivminion.tradeClosePending) then
 			ffxivminion.tradeClosePending = true
 			ffxivminion.tradeBusyPending = toboolean(gTradeInviteBusy)
