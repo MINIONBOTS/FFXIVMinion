@@ -3006,7 +3006,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					for _,aethernet in pairs(aethernets) do
 						local cleanedline = CleanConvoLine(aethernet.string)
 						local cleanedv = CleanConvoLine(self.conversationstring)
-						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == aethernet.string) then
+						if (string.valid(cleanedv) and (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == aethernet.string)) then
 							d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).." for ["..tostring(self.conversationstring).."].")
 							UseControlAction("TelepotTown","Teleport",aethernet.index)
 							self.initiatedPos = Player.pos
@@ -3019,7 +3019,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedline = CleanConvoLine(aethernet.string)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
-							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == aethernet.string) then
+							if (string.valid(cleanedv) and (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == aethernet.string)) then
 								d("Use conversation line ["..tostring(aethernet.index).."] to select ["..tostring(aethernet.string).."] for ["..tostring(cleanedv).."].")
 								UseControlAction("TelepotTown","Teleport",aethernet.index)
 								self.initiatedPos = Player.pos
@@ -3055,7 +3055,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						if (containsAeth and (not resStr or not containsRes)) then
 							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
 							SelectConversationLine(selectindex)
-							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
@@ -3070,7 +3070,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						if (string.contains(cleanedline,cleanedastring)) then
 							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
 							SelectConversationLine(selectindex)
-							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
@@ -3102,11 +3102,11 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					for selectindex,convo in pairs(convoList) do
 						local cleanedline = CleanConvoLine(convo)
 						local cleanedv = CleanConvoLine(self.conversationstring)
-						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo) then
+						if (string.valid(cleanedv) and (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or self.conversationstring == convo)) then
 							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
 							SelectConversationLine(selectindex)
 							self.initiatedPos = Player.pos
-							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
@@ -3115,11 +3115,11 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedline = CleanConvoLine(convo)
 						for k,v in pairs(self.conversationstrings) do
 							local cleanedv = CleanConvoLine(v)
-							if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo) then
+							if (string.valid(cleanedv) and (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,"")) or v == convo)) then
 								d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
 								SelectConversationLine(selectindex)
 								self.initiatedPos = Player.pos
-								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) end)
 								return false
 							end
 						end
@@ -3127,24 +3127,29 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				elseif (self.conversationindex > 0) then
 					SelectConversationIndex(self.conversationindex)
 					self.initiatedPos = Player.pos
-					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+					ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) end)
 					return false
 				end
 			end
 		end
 	end
 	
-	local myTarget = MGetTarget()
 	local ppos = Player.pos
 	
-	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
-		if (MIsLoading()) then
-			-- Use Player.pos if self.initiatedPos is an empty table
-			local initiatedPos = table.valid(self.initiatedPos) and self.initiatedPos or Player.pos
-			d("Triggering wait for full load-in.")
-			ml_global_information.Await(10000, function () return (Player and not Busy() and math.distance3d(initiatedPos,Player.pos) > 10) end)
+	if (self.useAethernet and not self.unlockAethernet) then
+		local initiatedPos = self.initiatedPos
+		
+		if (not table.valid(initiatedPos) or initiatedPos.x == nil
+			or initiatedPos.y == nil or initiatedPos.z == nil) then
+			return false
 		end
-		return true
+		
+		if (MIsLoading() or Busy() or Player.localmapid == 0
+			or IsControlOpen("TelepotTown") or IsControlOpen("SelectString")
+			or IsControlOpen("SelectIconString")) then
+			return false
+		end
+		return (self.startMap ~= Player.localmapid or math.distance3d(initiatedPos,ppos) > 10)
 	elseif (self.unlockAethernet) then
 		local attuned = FFXIVLib.API.Map.GetAetherytes(1)
 		if attuned and attuned[self.contentid] then
