@@ -2157,11 +2157,11 @@ function c_gathernexttask:evaluate()
 		
 		if (not invalid) then
 			local conditions = currentTask.condition
-			if (table.valid(conitions)) then
-				valid = TestConditions(conditions)
-				if (not valid) then
+			if (table.valid(conditions)) then
+				if (not TestConditions(conditions)) then
 					invalid = true
-					gd("Current task ["..tostring(i).."] not valid due to conditions.",3)
+					c_gathernexttask.subsetExpiration = 0
+					gd("Current task ["..tostring(currentTaskIndex).."] not valid due to conditions.",3)
 				end
 			end
 		end
@@ -2284,6 +2284,9 @@ function c_gathernexttask:evaluate()
 	end
 	
 	if (completed) then
+		if (not TestConditions(currentTask.condition)) then
+			c_gathernexttask.subsetExpiration = 0
+		end
 		if (currentTask.oncomplete) then
 			local oncomplete = currentTask.oncomplete
 			if (type(oncomplete) == "function") then
@@ -2442,7 +2445,7 @@ function c_gathernexttask:evaluate()
 				local idlePriority = {}
 				
 				for i,data in pairsByKeys(validTasks) do
-					if (not data.lockout or Now() > data.lockout) then
+					if ((not data.lockout or Now() > data.lockout) and TestConditions(data.condition)) then
 						-- Items with weather requirements go into high priority
 						if (data.type == "idle" or data.idlepriority) then
 							gd("Added task at ["..tostring(i).."] to the idle priority queue.")
@@ -2711,10 +2714,19 @@ function c_gathernexttask:evaluate()
 		end
 	end
 					
+	if (invalid and not TestConditions(currentTask.condition)) then
+		-- A changed selection or missing tool must not leave the old task active
+		-- while the existing bounded retry waits for an eligible replacement.
+		ffxiv_gather.currentTask = {}
+		ffxiv_gather.currentTaskIndex = 0
+		c_gathernexttask.blockOnly = true
+		return true
+	end
 	return false
 end
 function e_gathernexttask:execute()
 	if (c_gathernexttask.blockOnly) then
+		if (Player:IsMoving()) then Player:Stop() end
 		return
 	end
 	if (Player:IsMoving()) then
