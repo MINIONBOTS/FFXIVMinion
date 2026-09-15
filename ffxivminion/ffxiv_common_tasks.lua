@@ -2867,43 +2867,36 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	end
 	
 	if (Player.job ~= class) then
-		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
 		if (Busy() or Player.incombat) then
-			d("[SwitchClass]: Cannot swap right now, invalid state.")
 			return false
 		end
 		
 		SetGearsetInfo()
 		local override = self.override
 		local gsvar = "gGearset"..tostring(class)
-		if (override ~= 0) then
+		if (FFXIVLib.API.Items.GetValidGearsetForClass(class, override) > 0) then
 			local commandString = "/gs change "..tostring(override)
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
-			return true
-		elseif (_G[gsvar] ~= 0) then
+			return false
+		elseif (FFXIVLib.API.Items.GetValidGearsetForClass(class, _G[gsvar]) > 0) then
 			local commandString = "/gs change "..tostring(_G[gsvar])
 			SendTextCommand(commandString)
 			ml_global_information.Await(3000, function () return (Player.job == class) end)
-			return true
+			return false
 		else
 			local canSwitch,bestWeapon = CanSwitchToClass(class)
 			if (canSwitch) then
 				return false
-			else
-				d("Not allowed to switch, no proper weapon found.")
 			end	
 			
-			d("[SwitchClass]: Checking autoequip.")
 			if (c_recommendequip:evaluate()) then
 				e_recommendequip:execute()
-				d("[SwitchClass]: Autoequip had work to do, so don't complete yet.")
 				return false
 			end
 		end
 	end
 	
-	d("[SwitchClass]: Completing task.")
 	return true
 end
 function ffxiv_misc_switchclass:task_complete_execute()

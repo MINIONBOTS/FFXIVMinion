@@ -4904,9 +4904,8 @@ function c_switchclass:evaluate()
 		local gsvar = "gGearset"..tostring(class)
 		local newSet = _G[gsvar]
 		
-		if (override ~= 0) then
+		if (FFXIVLib.API.Items.GetValidGearsetForClass(class, override) > 0) then
 			local commandString = "/gs change "..tostring(override)
-			d("gearset to override ["..tostring(override).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -4915,12 +4914,9 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then PressYesNo(true) end
 				end
 			)
-					d("class "..tostring(class))
-					d("override gearset "..tostring(override))
 			return true
-		elseif (tonumber(newSet) ~= 0) then
+		elseif (FFXIVLib.API.Items.GetValidGearsetForClass(class, newSet) > 0) then
 			local commandString = "/gs change "..tostring(newSet)
-			d("gearset to new set ["..tostring(newSet).."]")
 			SendTextCommand(commandString)
 			e_switchclass.blockOnly = true
 			ml_global_information.AwaitDo(1000, 3000, 
@@ -4929,15 +4925,12 @@ function c_switchclass:evaluate()
 					if (IsControlOpen("SelectYesno")) then PressYesNo(true) end
 				end
 			)
-					d("class "..tostring(class))
-					d("gearset "..tostring(newSet))
 			return true
 		else
 			local canSwitch,bestWeapon = CanSwitchToClass(class)
 			if (canSwitch) then
 				if (bestWeapon) then
 					e_switchclass.weapon = bestWeapon
-					d("best weapon")
 					return true
 				end
 			end	
@@ -4950,15 +4943,12 @@ function e_switchclass:execute()
 		PressYesNo(true)
 	end
 	if (e_switchclass.blockOnly) then
-		d("task was blocked")
 		return false
 	end
 	
 	local job = Player.job
 	local weapon = e_switchclass.weapon
 	if (weapon) then
-	d("has weapon")
-		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
 		gForceAutoEquip = true
 		ml_global_information.AwaitSuccess(1000, 3000, 
@@ -4973,8 +4963,6 @@ function e_switchclass:execute()
 		)
 		ml_global_information.lastEquip = 0
 		e_recommendequip.lastEquip = {}
-	else
-		d("no weapon info")
 	end
 end
 

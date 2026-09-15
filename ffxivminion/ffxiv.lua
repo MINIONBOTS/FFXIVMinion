@@ -884,9 +884,11 @@ function SetGearsetInfo(disable)
 	local newSets = {}
 	if not disable then
 		if table.valid(searchList) then
-			for i = 1, 40, 1 do
-				_G["gGearset" .. tostring(i)] = 0
-				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
+			for _, i in pairs(FFXIV.JOBS) do
+				if type(i) == "number" and i > 0 then
+					_G["gGearset" .. tostring(i)] = 0
+					Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
+				end
 			end
 
 			for i, e in spairs(searchList) do
@@ -895,20 +897,20 @@ function SetGearsetInfo(disable)
 					newSets[e.job] = tonumber(cleanedName)
 					_G["gGearset" .. tostring(e.job)] = i
 					Settings.FFXIVMINION["gGearset" .. tostring(e.job)] = i
-					d("Setting gearset info for class [" .. tostring(e.job) .. "] to [" .. tostring(i) .. "]")
 				else
 					if IsNull(tonumber(cleanedName), 0) > newSets[e.job] then
 						newSets[e.job] = tonumber(cleanedName)
 						_G["gGearset" .. tostring(e.job)] = i
 						Settings.FFXIVMINION["gGearset" .. tostring(e.job)] = i
-						d("Setting gearset info for class [" .. tostring(e.job) .. "] to [" .. tostring(i) .. "]")
 					end
 				end
 			end
 		else
-			for i = 1, 40, 1 do
-				_G["gGearset" .. tostring(i)] = 0
-				Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
+			for _, i in pairs(FFXIV.JOBS) do
+				if type(i) == "number" and i > 0 then
+					_G["gGearset" .. tostring(i)] = 0
+					Settings.FFXIVMINION["gGearset" .. tostring(i)] = 0
+				end
 			end
 		end
 	end
