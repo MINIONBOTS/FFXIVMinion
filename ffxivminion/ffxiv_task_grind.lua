@@ -698,10 +698,6 @@ local function ResolveGrindHuntlogSetting(defaultValue)
 		canonical = fallback
 	end
 
-	if (legacy == false or canonical == false) then
-		canonical = false
-	end
-
 	Settings.FFXIVMINION.gGrindDoHuntlog = canonical
 	Settings.FFXIVMINION.gGrindDoHuntLog = canonical
 	return canonical

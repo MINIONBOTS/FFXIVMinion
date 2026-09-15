@@ -164,11 +164,11 @@ local function IsGrindHuntlogEnabled()
 	local canonical = Settings.FFXIVMINION.gGrindDoHuntlog
 	local legacy = Settings.FFXIVMINION.gGrindDoHuntLog
 
-	if (canonical == false or legacy == false) then
-		return false
+	if (canonical == nil) then
+		canonical = legacy
 	end
 
-	local settingsEnabled = (canonical == true or legacy == true)
+	local settingsEnabled = (canonical == true)
 	if (not settingsEnabled) then
 		return false
 	end
