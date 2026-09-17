@@ -1645,7 +1645,7 @@ function c_fishnexttask:evaluate()
 		local currentTask = ffxiv_fish.currentTask
 		local currentTaskIndex = ffxiv_fish.currentTaskIndex
 		
-		local eTime = GetEorzeaTime()
+		local eTime = MGetEorzeaTime()
 		local eHour = eTime.bell
 		local precedingHour = SubtractHours(eHour,1)
 		local eMinute = eTime.minute

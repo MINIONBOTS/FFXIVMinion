@@ -2485,11 +2485,11 @@ function SkillMgr.GetTankableTarget( range )
 	local closest = nil
 	local closestRange = 100
 	
-	local party = EntityList("myparty,chartype=4")
+	local party = MEntityList("myparty,chartype=4")
 	if (table.valid(party)) then
 		for _,member in pairs(party) do
 			if (member.id ~= Player.id) then
-				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxdistance2d="..tostring(range))
+				local list = MEntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxdistance2d="..tostring(range))
 				if (table.valid(list)) then
 					for _,entity in pairs(list) do
 						if (not closest or entity.distance2d < closestRange) then
@@ -2509,11 +2509,11 @@ function SkillMgr.GetTankedTarget( range )
 	local closest = nil
 	local closestRange = 100
 
-    local party = EntityList("chartype=4,myparty")
+    local party = MEntityList("chartype=4,myparty")
     if ( table.valid(party) ) then
 		for _,tank in pairs(party) do
 			if (IsTank(tank)) then
-				local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxdistance2d="..tostring(range))
+				local list = MEntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxdistance2d="..tostring(range))
 				if (table.valid(list)) then
 					for _,target in pairs(list) do
 						if (not closest or target.distance2d < closestRange) then
@@ -3614,7 +3614,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	elseif ( skill.trg == GetString("Casting Target") ) then
 		local ci = entity.castinginfo
 		if ( ci ) then
-			target = EntityList:Get(ci.channeltargetid)
+			target = MGetEntity(ci.channeltargetid)
 			TID = ci.channeltargetid
 		else
 			return nil
@@ -3884,7 +3884,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 	elseif ( skill.trg == GetString("Casting Target") ) then
 		local ci = entity.castinginfo
 		if ( ci ) then
-			target = EntityList:Get(ci.channeltargetid)
+			target = MGetEntity(ci.channeltargetid)
 			TID = ci.channeltargetid
 		else
 			return nil
@@ -4677,7 +4677,7 @@ function SkillMgr.AddDefaultConditions()
 			return false
 		end
 		
-		local plist = EntityList("myparty")
+		local plist = MEntityList("myparty")
 		local partySize = TableSize(plist)
 		local npcTeam = TableSize(MEntityList("alive,chartype=9,targetable,maxdistance2d=100"))
 		
@@ -4721,7 +4721,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		if (skill.punderattack ) then
-			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=20")
+			local list = MEntityList("nearest,alive,attackable,targetingme,maxdistance=20")
 			if (list) then
 				for i,e in pairs(list) do
 					if (i and e) then
@@ -4733,7 +4733,7 @@ function SkillMgr.AddDefaultConditions()
 		end
 		
 		if (skill.punderattackmelee ) then
-			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=6")
+			local list = MEntityList("nearest,alive,attackable,targetingme,maxdistance=6")
 			if (list) then
 				for i,e in pairs(list) do
 					if (i and e) then
@@ -5037,7 +5037,7 @@ function SkillMgr.AddDefaultConditions()
 		
 		if ( skill.trg == GetString("Player") ) then								
 			if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-				local partymemberlist = EntityList("myparty,type=1")
+				local partymemberlist = MEntityList("myparty,type=1")
 				if ( partymemberlist) then
 				   for i,entity in pairs(partymemberlist) do
 						if ((skill.ptbuff=="" or not HasBuffs(entity,skill.ptbuff)) and
@@ -5159,7 +5159,7 @@ function SkillMgr.AddDefaultConditions()
 		local TID = SkillMgr.CurrentTID
 		
 		if (gBotMode ~= "assistMode") then
-			local target = EntityList:Get(TID)
+			local target = MGetEntity(TID)
 			if (target and target.fateid ~= 0) then
 				
 				SkillMgr.DebugOutput(skill.prio, "Target has a FATE ID of ["..tostring(target.fateid).."].")
@@ -5365,7 +5365,7 @@ function SkillMgr.AddDefaultConditions()
 		
 		local plistAE = nil
 		if (skill.tacount > 0) then
-			plistAE = EntityList("alive,myparty,maxdistance="..tostring(tarange)..",distanceto="..tostring(TID))
+			plistAE = MEntityList("alive,myparty,maxdistance="..tostring(tarange)..",distanceto="..tostring(TID))
 			if (TableSize(plistAE) < tacount) then 
 				return true 
 			end
@@ -6511,12 +6511,7 @@ function SkillMgr.DrawSkillFilters()
 end
 
 function SkillMgr.Draw( event, ticks ) 
-	local gamestate;
-	if (GetGameState and GetGameState()) then
-		gamestate = GetGameState()
-	else
-		gamestate = 3
-	end
+	local gamestate = (GetGameState and GetGameState()) or 3
 	
 	-- Switch according to the gamestate
 	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then

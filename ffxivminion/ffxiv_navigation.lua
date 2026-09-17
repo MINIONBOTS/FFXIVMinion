@@ -4267,13 +4267,14 @@ function ml_navigation.Navigate(event, ticks)
 								else
 									ml_navigation.omc_centeredsince = nil
 								end
-								local movingNow = Player:IsMoving() and speed >= 0.0015
+								local isMoving = Player:IsMoving()
+								local movingNow = isMoving and speed >= 0.0015
 								local waited = ml_navigation.omc_centeredsince and (ticks - ml_navigation.omc_centeredsince) or 0
-								local launchOk = Player:IsMoving() and speed >= 0.0022
+								local launchOk = isMoving and speed >= 0.0022
 								if ( not needCarry ) then
 									launchOk = movingNow or (waited >= 200)
 								elseif ( ml_navigation.omc_atedge ) then
-									launchOk = Player:IsMoving() or (waited >= 200)
+									launchOk = isMoving or (waited >= 200)
 								end
 								if ( runThrough ) then
 									ml_navigation:DispatchAutoFollowNode(to_pos, true)
@@ -4419,7 +4420,10 @@ function ml_navigation.Navigate(event, ticks)
 									d("Setting target for interaction : "..interactnpc.name)
 									Player:SetTarget(interactid)
 									ml_navigation.omc_traveltimer = ticks + 1500
-									ffnav.Await(1500, function () return (Player:GetTarget() and Player:GetTarget().id == interactid) end)
+									ffnav.Await(1500, function ()
+										local currentTarget = Player:GetTarget()
+										return currentTarget and currentTarget.id == interactid
+									end)
 								elseif (target.interactable) then
 									Player:Interact(interactnpc.id)
 									d("Interacting with target : "..interactnpc.name)
@@ -5080,13 +5084,14 @@ function ml_navigation_exact.HandleOMC(ppos, ticks)
 			else
 				self.omc_centeredsince = nil
 			end
-			local movingNow = Player:IsMoving() and speed >= 0.0015
+			local isMoving = Player:IsMoving()
+			local movingNow = isMoving and speed >= 0.0015
 			local waited = self.omc_centeredsince and (ticks - self.omc_centeredsince) or 0
-			local launchOk = Player:IsMoving() and speed >= 0.0022
+			local launchOk = isMoving and speed >= 0.0022
 			if (not needCarry) then
 				launchOk = movingNow or (waited >= 200)
 			elseif (self.omc_atedge) then
-				launchOk = Player:IsMoving() or (waited >= 200)
+				launchOk = isMoving or (waited >= 200)
 			end
 			if (runThrough) then
 				ml_navigation_exact.DispatchAutoFollow(to_pos, ppos, true)

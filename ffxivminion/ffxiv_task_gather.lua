@@ -2103,7 +2103,7 @@ function c_gathernexttask:evaluate()
 	local currentTask = ffxiv_gather.currentTask
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
-	local eTime = GetEorzeaTime()
+	local eTime = MGetEorzeaTime()
 	local eHour = eTime.bell
 	local precedingHour = SubtractHours(eHour,1)
 	local eMinute = eTime.minute

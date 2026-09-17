@@ -431,7 +431,7 @@ function c_resettarget:evaluate()
 	if (table.valid(fate)) then
 		if (subtask and subtask.name == "GRIND_COMBAT" and subtask.targetid and subtask.targetid > 0) then
 			if (Player:GetSyncLevel() ~= 0) then
-				local target = EntityList:Get(subtask.targetid)
+				local target = MGetEntity(subtask.targetid)
 				if (table.valid(target)) then
 					if (target.fateid == fate.id) then
 						local epos = target.pos
@@ -679,7 +679,7 @@ function c_pickupItem:evaluate()
 				end
 			end	
 			
-			local fatenpc = EntityList("targetable,type=3,chartype=5")
+			local fatenpc = MEntityList("targetable,type=3,chartype=5")
 			if (table.valid(fatenpc)) then
 				for _,entity in pairs(fatenpc) do
 					if entity.fateid == fateid then

@@ -509,7 +509,7 @@ function ffxiv_assist.GetHealingTarget()
 
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
-        target = GetBestHealTarget(nil, nil, hpLimit)
+        target = MGetBestHealTarget(nil, nil, hpLimit)
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
         target = GetClosestHealTarget()	
     end
@@ -585,7 +585,7 @@ function ffxiv_assist.GetAttackTarget()
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then 
 		local closest = nil
 		local closestDistance = math.huge
-		local party = EntityList("myparty")
+		local party = MEntityList("myparty")
 		if (table.valid(party)) then
 			for _,member in pairs(party) do
 				if (IsTank(member) and member.id ~= Player.id and
@@ -607,7 +607,7 @@ function ffxiv_assist.GetAttackTarget()
 		end
 
 		if (closest and closest.targetid ~= 0) then
-			local targeted = EntityList:Get(closest.targetid)
+			local targeted = MGetEntity(closest.targetid)
 			if (targeted and targeted.attackable and targeted.alive and (gStartCombat or gBypassStartCombat or targeted.incombat)) then
 				target = targeted
 			end

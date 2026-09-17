@@ -670,7 +670,7 @@ function ffxiv_task_grind:InitExtras()
 end
 
 function ffxiv_task_grind:Process()
-	if (IsLoading()) then
+	if (MIsLoading()) then
 		return false
 	end
 	

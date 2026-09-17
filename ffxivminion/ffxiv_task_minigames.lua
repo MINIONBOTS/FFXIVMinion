@@ -243,7 +243,7 @@ function ffxiv_task_minigames.IsVendorTargetable()
 		end
 	end
 	
-	local vendors = EntityList("shortestpath,contentid="..tostring(vendorID))
+	local vendors = MEntityList("shortestpath,contentid="..tostring(vendorID))
 	if (ValidTable(vendors)) then
 		local i,entity = next(vendors)
 		if (entity and entity.targetable) then
@@ -320,7 +320,7 @@ function c_movegamevendor:evaluate()
 		end
 	end
 	
-	local vendors = EntityList("shortestpath,contentid="..tostring(vendorID))
+	local vendors = MEntityList("shortestpath,contentid="..tostring(vendorID))
 	if (ValidTable(vendors)) then
 		local i,entity = next(vendors)
 		if (entity and entity.targetable and entity.meshpos) then
@@ -472,7 +472,7 @@ function c_interactgamevendor:evaluate()
 		end
 	end
 	
-	local vendors = EntityList("shortestpath,contentid="..tostring(vendorID))
+	local vendors = MEntityList("shortestpath,contentid="..tostring(vendorID))
 	if (ValidTable(vendors)) then
 		local i,entity = next(vendors)
 		if (entity and entity.interactable) then

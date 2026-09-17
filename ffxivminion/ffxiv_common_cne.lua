@@ -224,7 +224,7 @@ function c_killaggrotarget:evaluate()
 	if (gBotMode == "partyMode") then
 		local leader, isEntity = GetPartyLeader()	
 		if (leader and leader.id ~= 0) then
-			local entity = EntityList:Get(leader.id)
+			local entity = MGetEntity(leader.id)
 			if ( entity  and entity.id ~= 0) then
 				if ((entity.incombat and entity.distance2d > 7) or (not entity.incombat and entity.distance2d > 10) or (entity.ismounted) or Player.ismounted) then
 					return false
@@ -285,7 +285,7 @@ function c_assistleader:evaluate()
 			end
 		end
 		
-		local target = EntityList:Get(leadtarget)				
+		local target = MGetEntity(leadtarget)
 		if (table.valid(target) and target.alive) then
 			c_assistleader.targetid = target.id
 			return true
@@ -3475,7 +3475,7 @@ function c_rest:evaluate()
 			return false
 		end
 		
-		local aggrolist = EntityList("alive,aggro")
+		local aggrolist = MEntityList("alive,aggro")
 		if (table.valid(aggrolist)) then
 			--d("Cannot rest, has aggro.")
 			return false
@@ -4297,15 +4297,15 @@ function c_clearaggressive:evaluate()
 					c_clearaggressive.timer = Now() + 5000
 					local aggroChecks = GetAggroDetectionPoints(ppos,epos)
 					if (table.valid(aggroChecks)) then
+						local aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10)..",exclude_contentid="..tostring(id))
 						for k,navPos in pairsByKeys(aggroChecks) do
-							local aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10)..",exclude_contentid="..tostring(id))
 							if (table.valid(aggressives)) then
 								for _,aggressive in pairs(aggressives) do
 									local agpos = aggressive.pos
 									local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 									local tdist = PDistance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
 									if (dist <= 12 and dist < tdist) then
-										c_questclearaggressive.targetid = aggressive.id
+										c_clearaggressive.targetid = aggressive.id
 										--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 										return true
 									end
@@ -4320,19 +4320,19 @@ function c_clearaggressive:evaluate()
 			c_clearaggressive.timer = Now() + 5000
 			local aggroChecks = GetAggroDetectionPoints(ppos,dest)
 			if (table.valid(aggroChecks)) then
+				local aggressives
+				if (gBotMode == "NavTest") then
+					aggressives = EntityList("aggressive,alive,attackable,targeting=0")
+				else
+					aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10))
+				end
 				for k,navPos in pairsByKeys(aggroChecks) do
-					local aggressives = nil
-					if (gBotMode == "NavTest") then
-						local aggressives = EntityList("aggressive,alive,attackable,targeting=0")
-					else
-						local aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10))
-					end
 					if (table.valid(aggressives)) then
 						for _,aggressive in pairs(aggressives) do
 							local agpos = aggressive.pos
 							local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 							if (dist <= 15) then
-								c_questclearaggressive.targetid = aggressive.id
+								c_clearaggressive.targetid = aggressive.id
 								--d("[QPerf] c_clearaggressive: " .. string.format("%.2f", os.clock() * 1000 - _tCA) .. "ms (found aggro)")
 								return true
 							end
@@ -4353,8 +4353,8 @@ function e_clearaggressive:execute()
 	Player:Stop()
 	
 	local newTask = ffxiv_task_grindCombat.Create()
-    newTask.targetid = c_questclearaggressive.targetid
-	Player:SetTarget(c_questclearaggressive.targetid)
+    newTask.targetid = c_clearaggressive.targetid
+	Player:SetTarget(c_clearaggressive.targetid)
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 

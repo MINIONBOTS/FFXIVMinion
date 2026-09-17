@@ -3,8 +3,8 @@ pmemoize.loadedfunctions = {}
 
 function MUsingAutoFace()
 	local memString = "MUsingAutoFace"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local using = UsingAutoFace()
@@ -15,8 +15,8 @@ end
 
 function MPlayerDriving()
 	local memString = "MPlayerDriving"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local driving = PlayerDriving()
@@ -27,7 +27,7 @@ end
 
 function MGetGameState()
 	local memoized = memoize.gamestate
-	if (table.valid(memoized)) then
+	if (memoized ~= nil) then
 		return memoized
 	else
 		memoize.gamestate = GetGameState()
@@ -51,11 +51,12 @@ function MGetControls()
 	else
 		local memoized = memoize.controls
 		local lastcontroltick = IsNull(memoize.lastcontroltick,0)
-		if (table.valid(memoized) and lastcontroltick == Now()) then
+		local now = Now()
+		if (table.isa(memoized) and lastcontroltick == now) then
 			return memoized
 		else
 			memoize.controls = GetControls()
-			memoize.lastcontroltick = Now()
+			memoize.lastcontroltick = now
 			if (table.valid(memoize.controls)) then
 				for id,e in pairs(memoize.controls) do
 					memoize.controls[e.name] = e
@@ -95,23 +96,36 @@ function InitializeMemoize()
 	return true
 end
 
+-- @param key Cache key for this update.
+-- @return value, found; found is true even for cached false/nil results.
 function GetMemoized(key)
-	if (memoize[key] == "nil") then
-		return nil
-	else
-		if (memoize[key]) then
-			return memoize[key]
-		end
+	local value = memoize and memoize[key]
+	if (value == "nil") then
+		return nil, true
 	end
-	return nil
+	return value, value ~= nil
 end
 
+-- @param key Cache key for this update.
+-- @param variant Result to cache, including nil. Use InvalidateMemoized to clear it.
 function SetMemoized(key,variant)
 	InitializeMemoize()
+	if (variant == nil) then
+		variant = "nil"
+	end
 	memoize[key] = variant
 end
 
+-- Refresh one key before the next PreUpdate, after a state-changing action.
+-- @param key Cache key to remove.
+function InvalidateMemoized(key)
+	if (memoize and key ~= nil) then
+		memoize[key] = nil
+	end
+end
+
 function AddMemoizedEntity(id,entity)
+	InitializeMemoize()
 	memoize.entities[id] = entity
 end
 
@@ -119,8 +133,8 @@ function MGetEntity(entityid)
 	entityid = tonumber(entityid) or 0
 	
 	local memString = "MGetEntity;"..tostring(entityid)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local entity = EntityList:Get(entityid)
@@ -131,8 +145,8 @@ end
 
 function MIsMoving()
 	local memString = "MIsMoving"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = Player:IsMoving()
@@ -143,8 +157,8 @@ end
 
 function MGetDirectorIndex()
 	local memString = "DirectorIndex"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local activeDuty = Duty:GetActiveDutyInfo()
@@ -167,8 +181,8 @@ end
 
 function MIsLoading()
 	local memString = "MIsLoading"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = IsLoading()
@@ -179,8 +193,8 @@ end
 
 function MIsLocked()
 	local memString = "MIsLocked"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = IsPositionLocked()
@@ -193,8 +207,8 @@ function MIsCasting(fullcheck)
 	fullcheck = IsNull(fullcheck,false)
 	
 	local memString = "MIsCasting;"..tostring(fullcheck)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = ActionList:IsCasting()
@@ -205,8 +219,8 @@ end
 
 function MGetTarget()
 	local memString = "MGetTarget"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local target = Player:GetTarget()
@@ -218,23 +232,23 @@ end
 function MEntityList(elstring)
 	elstring = elstring or ""
 	local memString = "MEntityList;"..tostring(elstring)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
-		InitializeMemoize()
 		local el = EntityList(elstring)
-		if (table.valid(el)) then
-			SetMemoized(memString,el)
-			return el
+		if (not table.valid(el)) then
+			el = nil
 		end
+		SetMemoized(memString,el)
+		return el
 	end
 end
 
 function MGetParty()
 	local memString = "MGetParty"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local party = GetParty()
@@ -245,25 +259,21 @@ end
 
 function MGetItem(hqid,includehq,requirehq)
 	local memString = "MGetItem;"..tostring(hqid)..";"..tostring(includehq)..";"..tostring(requirehq)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		--local item = GetItem(itemid,includehq,requirehq)
 		local item = GetItem(hqid)
-		if (item) then
-			SetMemoized(memString,item)
-		else
-			SetMemoized(memString,"nil")
-		end	
+		SetMemoized(memString,item)
 		return item
 	end
 end
 
 function MGatherableSlotList()
 	local memString = "MGatherableSlotList"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local list = Player:GetGatherableSlotList()
@@ -274,8 +284,8 @@ end
 
 function MPartyMemberWithBuff(ptbuff, ptnbuff, maxrange)
 	local memString = "MPartyMemberWithBuff;"..tostring(ptbuff).."-"..tostring(ptnbuff).."-"..tostring(maxrange)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = PartyMemberWithBuff(ptbuff, ptnbuff, maxrange)
@@ -286,8 +296,8 @@ end
 
 function MGetBestTankHealTarget( maxrange )
 	local memString = "GetBestTankHealTarget;"..tostring(maxrange)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = GetBestTankHealTarget( maxrange )
@@ -298,8 +308,8 @@ end
 
 function MGetBestPartyHealTarget(npc, maxrange)
 	local memString = "GetBestPartyHealTarget;"..tostring(npc)..";"..tostring(maxrange)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = GetBestPartyHealTarget( npc, maxrange )
@@ -310,8 +320,8 @@ end
 
 function MGetBestHealTarget(npc, maxrange, requiredHP)
 	local memString = "GetBestHealTarget;"..tostring(npc)..";"..tostring(maxrange)..";"..tostring(requiredHP)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = GetBestHealTarget( npc, maxrange, requiredHP )
@@ -322,8 +332,8 @@ end
 
 function MPartySMemberWithBuff(ptbuff, ptnbuff, maxrange)
 	local memString = "MPartySMemberWithBuff;"..tostring(ptbuff).."-"..tostring(ptnbuff).."-"..tostring(maxrange)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
+	local memoized, found = GetMemoized(memString)
+	if (found) then
 		return memoized
 	else
 		local ret = PartySMemberWithBuff(ptbuff, ptnbuff, maxrange)

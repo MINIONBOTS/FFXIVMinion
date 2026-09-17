@@ -364,7 +364,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				local actual = EntityList:Get(nearest.id)
+				local actual = MGetEntity(nearest.id)
 				if (actual) then
 					--d("[GetNearestGrindAttackable]: Returning nearest hunt mob that we can claim quickly.")
 					return actual
@@ -388,7 +388,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (lowest) then
-				local actual = EntityList:Get(lowest.id)
+				local actual = MGetEntity(lowest.id)
 				if (actual) then
 					--d("[GetNearestGrindAttackable]: Returning lowest low-HP aggro mob.")
 					return actual
@@ -404,7 +404,7 @@ function GetNearestGrindAttackable()
 			end
 			
 			if (nearest) then
-				local actual = EntityList:Get(nearest.id)
+				local actual = MGetEntity(nearest.id)
 				if (actual) then
 					--d("[GetNearestGrindAttackable]: Returning nearest aggro mob.")
 					return actual
@@ -429,7 +429,7 @@ function GetNearestGrindAttackable()
 		end
 			
 		if (nearest) then
-			local actual = EntityList:Get(nearest.id)
+			local actual = MGetEntity(nearest.id)
 			if (actual) then
 				--d("[GetNearestGrindAttackable]: Returning nearest grindable mob. ["..tostring(actual.name).."], @ ["..tostring(actual.pos.x)..","..tostring(actual.pos.y)..","..tostring(actual.pos.z).."]")
 				return actual
@@ -513,7 +513,7 @@ function GetNearestFateAttackable()
 								local nearestQuickDistance = 500
 								
 								for i,e in pairs(el) do
-									local entity = EntityList:Get(e.id)
+									local entity = MGetEntity(e.id)
 									if (entity) then
 										local epos = entity.pos
 										local ehp = entity.hp
@@ -800,7 +800,7 @@ function GetBestPartyHealTarget( npc, range, hp, whitelist )
 	if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
-			local leaderentity = EntityList:Get(leader.id)
+			local leaderentity = MGetEntity(leader.id)
 			if (leaderentity and leaderentity.distance <= range and leaderentity.hp.percent <= hp) then
 				return leaderentity
 			end
@@ -992,7 +992,7 @@ function GetBestBaneTarget()
 	
 	--Check the original diseased target, make sure it has all the required buffs, and that they're all 3 or more, blow it up, reset the best dot target.
 	if (SkillMgr.bestAOE ~= 0) then
-		local e = EntityList:Get(SkillMgr.bestAOE)
+		local e = MGetEntity(SkillMgr.bestAOE)
 		if (table.valid(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player.id)) then
 			SkillMgr.bestAOE = 0
 			return e
@@ -1023,7 +1023,7 @@ function GetBestDoTTarget()
 	
 	--Check for the original DoT target, if it exists, and is still missing debuffs, keep using it.
 	if (SkillMgr.bestAOE ~= 0) then
-		local e = EntityList:Get(SkillMgr.bestAOE)
+		local e = MGetEntity(SkillMgr.bestAOE)
 		if (table.valid(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player.id)) then
 			return e
 		end
@@ -1116,7 +1116,7 @@ function GetBestRevive( party, role)
 	if (gBotMode == "partyMode" and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
-			local leaderentity = EntityList:Get(leader.id)
+			local leaderentity = MGetEntity(leader.id)
 			if (leaderentity and leaderentity.distance <= range and not leader.alive and MissingBuffs(leaderentity, "148")) then
 				return leaderentity
 			end
@@ -2562,7 +2562,7 @@ function GetPartyLeader()
 		end
 		
 		if (leader) then
-			local entity = EntityList:Get(leader.id)
+			local entity = MGetEntity(leader.id)
 			if (entity and entity.id ~= 0) then
 				return entity, true
 			end
@@ -4200,7 +4200,7 @@ function TimePassed(t1, t2)
 	return diff
 end
 function GetQuestByID(questID)
-	if not memoize.questList then
+	if memoize.questList == nil then
 		local list = Quest:GetQuestList()
 		memoize.questList = list or false
 	end
@@ -9874,7 +9874,14 @@ function IsInCombat(includepet,includecompanion)
 end
 
 function GetParty()
-	local party = IsNull(MEntityList("myparty,alive,maxdistance2d=100"),{})
+	-- Keep the filtered entity cache separate from the augmented party list.
+	local party = {}
+	local members = MEntityList("myparty,alive,maxdistance2d=100")
+	if (members) then
+		for id,entity in pairs(members) do
+			party[id] = entity
+		end
+	end
 	party[Player.id] = Player
 	
 	local npcTeam = MEntityList("alive,chartype=9,targetable,maxdistance2d=100")

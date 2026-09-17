@@ -298,7 +298,7 @@ end
 
 function ffxiv_music.DrawCall(event, ticks )
 	if (not ffxiv_music.GUI.open) then return end
-	local gamestate = GetGameState()
+	local gamestate = MGetGameState()
 	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 		ffxiv_music.EnsureLibrary()
 		if ( ffxiv_music.GUI.open  ) then 

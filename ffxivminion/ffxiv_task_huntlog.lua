@@ -43,7 +43,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	
 	local el = nil
 	--Try onmesh first.
-	el = EntityList("lowesthealth,alive,onmesh,attackable,aggro,maxdistance=25")
+	el = MEntityList("lowesthealth,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
 		local _, target = next(el)
 		if (table.valid(target)) then
@@ -60,7 +60,7 @@ function c_huntlogkillaggrotarget:evaluate()
 		end
 	end
 	
-	el = EntityList("shortestpath,alive,onmesh,attackable,aggro,maxdistance=25")
+	el = MEntityList("shortestpath,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
 		local _, target = next(el)
 		if (table.valid(target)) then
@@ -77,7 +77,7 @@ function c_huntlogkillaggrotarget:evaluate()
 		end
 	end
 	
-	el = EntityList("nearest,alive,onmesh,attackable,aggro,maxdistance=25")
+	el = MEntityList("nearest,alive,onmesh,attackable,aggro,maxdistance=25")
 	if (table.valid(el)) then
 		local _, target = next(el)
 		if (table.valid(target)) then
@@ -101,7 +101,7 @@ function c_huntlogkillaggrotarget:evaluate()
 	end
 		
 	if (petid) then
-		el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
+		el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
 		if (table.valid(el)) then
 			local _, target = next(el)
 			if (table.valid(target)) then
@@ -114,7 +114,7 @@ function c_huntlogkillaggrotarget:evaluate()
 			end
 		end
 		
-		el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
+		el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
 		if (table.valid(el)) then
 			local _, target = next(el)
 			if (table.valid(target)) then
@@ -358,7 +358,7 @@ function c_huntlogkill:evaluate()
 		local el = nil
 		local maxlevel = FFXIVLib.API.Huntlog.GetMaxMobLevel()
 		
-		el = EntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
+		el = MEntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
 
 		--otherwise check for mobs not incombat so we get credit for kill
 		local petid = nil
@@ -367,19 +367,19 @@ function c_huntlogkill:evaluate()
 		end
 		
 		if (not table.valid(el) and petid ~= nil) then
-			el = EntityList("onmesh,alive,attackable,fateid=0,contentid="..tostring(id)..",targeting="..tostring(petid))
+			el = MEntityList("onmesh,alive,attackable,fateid=0,contentid="..tostring(id)..",targeting="..tostring(petid))
 		end
 		
 		if (not table.valid(el)) then
-			el = EntityList("onmesh,alive,attackable,targeting=0,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("onmesh,alive,attackable,targeting=0,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if (not table.valid(el)) then
-			el = EntityList("onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if (not table.valid(el)) then
-			el = EntityList("onmesh,alive,attackable,aggro")
+			el = MEntityList("onmesh,alive,attackable,aggro")
 		end
 		
 		if (table.valid(el)) then

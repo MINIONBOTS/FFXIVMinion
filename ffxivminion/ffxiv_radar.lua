@@ -61,7 +61,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 	local changed
 	local flags
 	if not(GUI_NewWindow) then
-		local gamestate = GetGameState()
+		local gamestate = MGetGameState()
 		if ( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 			if ( ffxiv_radar.GUI.open  ) then 
 				GUI:SetNextWindowSize(580,340,GUI.SetCond_FirstUseEver) --SetCond_FirstUseEver
@@ -138,9 +138,9 @@ function ffxiv_radar.DrawCall(event, ticks )
 							local Size = GUI:GetContentRegionAvail()
 							GUI:PushItemWidth(Size) ffxiv_radar.CustomName = GUI:InputText("##CustomName", ffxiv_radar.CustomName) GUI:PopItemWidth() GUI:NextColumn()
 							if GUI:Button("Get", 40, 20) then 
-								if Player:GetTarget() ~= nil then
-									local contentid = Player:GetTarget().contentid
-									ffxiv_radar.ContentID = Player:GetTarget().contentid
+								local target = Player:GetTarget()
+								if target ~= nil then
+									ffxiv_radar.ContentID = target.contentid
 								end
 							end
 							GUI:NextColumn()

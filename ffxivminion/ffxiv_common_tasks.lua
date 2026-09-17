@@ -1872,7 +1872,7 @@ function ffxiv_task_rest:task_fail_eval()
 	end
 	
 	if (Player.incombat) then
-		local el = EntityList("alive,attackable,targetingme,maxdistance=25")
+		local el = MEntityList("alive,attackable,targetingme,maxdistance=25")
 		if(table.valid(el)) then
 			return true
 		end
