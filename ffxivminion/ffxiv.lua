@@ -1661,6 +1661,9 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
+	if (ml_navigation and ml_navigation.CancelInstructionMove) then
+		ml_navigation.CancelInstructionMove(true)
+	end
 	if (ml_navigation and ml_navigation.CancelFlightFollowCam) then
 		ml_navigation:CancelFlightFollowCam()
 	end

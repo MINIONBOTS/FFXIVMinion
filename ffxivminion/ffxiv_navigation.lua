@@ -151,7 +151,120 @@ end
 ------------------------------------------------------------
 ml_navigation.receivedInstructions = {}
 ml_navigation.instructionThrottle = 0
+
+-- Cancel only the wait owned by this move; another caller may have replaced it.
+-- @param clearQueue (boolean) Also abandon the remaining route.
+-- @return nil Releases ownership and stops native movement.
+function ml_navigation.CancelInstructionMove(clearQueue)
+	local move = ml_navigation.instructionMove
+	if not move then return end
+	ml_navigation.instructionMove = nil
+	if ml_global_information.yield == move.wait then
+		ml_global_information.yield = {}
+	end
+	if clearQueue then ml_navigation.receivedInstructions = {} end
+	ml_navigation:CancelFlightFollowCam()
+	if Player then Player:StopMovement() end
+	ml_navigation:DisableAutoFollow(true, "InstructionMoveEnd")
+end
+
+-- @return (boolean) Whether instructions still own movement, including handoff.
+-- Invalid or replaced movement is canceled together with its remaining route.
+function ml_navigation.HasInstructionMove()
+	local move = ml_navigation.instructionMove
+	if not move then return false end
+	if not ml_navigation.CanRun() or ml_navigation.debug or MPlayerDriving() or IsCosmolinerActive()
+		or (move.botRunning and ml_task_hub and ml_task_hub.shouldRun == false)
+		or (not move.complete and ml_global_information.yield ~= move.wait) then
+		ml_navigation.CancelInstructionMove(true)
+		return false
+	end
+	if move.complete and not ValidTable(ml_navigation.receivedInstructions)
+		and not ValidTable(ml_global_information.yield) then
+		ml_navigation.CancelInstructionMove(false)
+		return false
+	end
+	return true
+end
+
+-- AwaitDo callbacks are shared; the active move owns the parameters and wait.
+function ml_navigation.UpdateInstructionMove()
+	if not ml_navigation.HasInstructionMove() then return end
+	local move = ml_navigation.instructionMove
+	if Now() >= move.deadline then
+		d("[Navigation] Straight movement timed out; abandoning instruction route.")
+		ml_navigation.CancelInstructionMove(true)
+		return
+	end
+	local myPos = Player.pos
+	move.reached = Distance3DT(move.pos, myPos) <= move.dist3d
+		and Distance2DT(move.pos, myPos) <= move.dist2d
+	if move.reached then return end
+
+	ml_navigation:DispatchAutoFollowNode(move.pos)
+	if move.flight then
+		ml_navigation.SmoothFaceTarget(move.pos.x, move.pos.y, move.pos.z)
+	elseif not Player:IsJumping() and table.valid(move.jumps) then
+		for _, jump in pairs(move.jumps) do
+			if Distance3DT(jump, myPos) <= 2 and Distance2DT(jump, myPos) <= move.jumpDistance then
+				Player:Jump()
+				break
+			end
+		end
+	end
+end
+
+function ml_navigation.InstructionMoveReached()
+	local move = ml_navigation.instructionMove
+	return not move or move.reached
+end
+
+function ml_navigation.InstructionMovementStopped()
+	return not Player:IsMoving()
+end
+
+function ml_navigation.FinishInstructionMove()
+	local move = ml_navigation.instructionMove
+	if not move then return end
+	if not move.reached then
+		ml_navigation.CancelInstructionMove(true)
+	elseif move.continueMove then
+		-- Keep ownership through the next instruction, including Jump/Wait steps.
+		move.complete = true
+		move.wait = nil
+	else
+		ml_navigation.CancelInstructionMove(false)
+		ml_global_information.Await(1000, ml_navigation.InstructionMovementStopped)
+	end
+end
+
+-- Start a mesh-independent move; completion uses distance, never movement speed.
+-- @param pos (table) Destination; dist3d/dist2d are arrival tolerances.
+-- @param dist3d (number) Maximum 3D distance at arrival.
+-- @param dist2d (number) Maximum horizontal distance at arrival.
+-- @param continueMove (boolean) Keep moving during the next instruction handoff.
+-- @param flight (boolean) Update the flight camera instead of ground jump points.
+-- @param jumps (table|nil) Optional jump points; jumpDistance is their 2D tolerance.
+-- @param jumpDistance (number|nil) Horizontal distance at which to jump.
+-- @return nil Movement advances through the global AwaitDo callbacks.
+function ml_navigation.BeginInstructionMove(pos, dist3d, dist2d, continueMove, flight, jumps, jumpDistance)
+	Player:StopExact()
+	ml_navigation.canPath = false
+	local move = {
+		pos = pos, dist3d = dist3d, dist2d = dist2d,
+		continueMove = continueMove, flight = flight, jumps = jumps, jumpDistance = jumpDistance,
+		deadline = Now() + 120000,
+		botRunning = ml_task_hub and ml_task_hub.shouldRun,
+	}
+	ml_navigation.instructionMove = move
+	ml_global_information.AwaitDo(100, 120000, ml_navigation.InstructionMoveReached,
+		ml_navigation.UpdateInstructionMove, ml_navigation.FinishInstructionMove)
+	move.wait = ml_global_information.yield
+	ml_navigation.UpdateInstructionMove()
+end
+
 function ml_navigation.ParseInstructions(data)
+	ml_navigation.CancelInstructionMove(true)
 	d("Received instruction set.")
 	ml_navigation.receivedInstructions = {}
 
@@ -162,6 +275,7 @@ function ml_navigation.ParseInstructions(data)
 			if (itype == "Stop") then
 				table.insert(ml_navigation.receivedInstructions,
 					function ()
+						ml_navigation.CancelInstructionMove(false)
 						if (Player:IsMoving()) then
 							Player:PauseMovement()
 							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
@@ -238,6 +352,7 @@ function ml_navigation.ParseInstructions(data)
 									end
 
 									if (Player:IsMoving()) then
+										ml_navigation.CancelInstructionMove(false)
 										Player:PauseMovement()
 										ml_global_information.Await(1000, function () return not Player:IsMoving() end)
 										return false
@@ -400,35 +515,7 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions,
 						function ()
-							ml_navigation:DispatchAutoFollowNode(pos, true)
-							ml_global_information.AwaitDo(100, 120000,
-								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
-									local myPos = Player.pos
-									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
-								end,
-								function ()
-									if (not Player:IsJumping()) then
-										if (table.valid(jumps)) then
-											local myPos = Player.pos
-											for i,jump in pairs(jumps) do
-												if (Distance3DT(jump,myPos) <= 2 and Distance2DT(jump,myPos) <= 0.55) then
-													Player:Jump()
-													break
-												end
-											end
-										end
-									end
-								end,
-								function ()
-									if (Player:IsMoving()) then
-										Player:PauseMovement()
-										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
-									end
-								end
-							)
+							ml_navigation.BeginInstructionMove(pos, dist3d, dist2d, false, false, jumps, 0.55)
 							return true
 						end
 					)
@@ -450,29 +537,7 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions,
 						function ()
-							ml_navigation:DispatchAutoFollowNode(pos, true)
-							ml_global_information.AwaitDo(100, 120000,
-								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
-									local myPos = Player.pos
-									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
-								end,
-								function ()
-									if (not Player:IsJumping()) then
-										if (table.valid(jumps)) then
-											local myPos = Player.pos
-											for i,jump in pairs(jumps) do
-												if (Distance3DT(jump,myPos) <= 2 and Distance2DT(jump,myPos) <= 0.5) then
-													Player:Jump()
-													break
-												end
-											end
-										end
-									end
-								end
-							)
+							ml_navigation.BeginInstructionMove(pos, dist3d, dist2d, true, false, jumps, 0.5)
 							return true
 						end
 					)
@@ -485,25 +550,7 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions,
 						function ()
-							ml_navigation:DispatchAutoFollowNode(pos, true)
-							ml_global_information.AwaitDo(100, 120000,
-								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
-									local myPos = Player.pos
-									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
-								end,
-								function ()
-									ml_navigation.SmoothFaceTarget(pos.x,pos.y,pos.z)
-								end,
-								function ()
-									if (Player:IsMoving()) then
-										Player:PauseMovement()
-										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
-									end
-								end
-							)
+							ml_navigation.BeginInstructionMove(pos, dist3d, dist2d, false, true)
 							return true
 						end
 					)
@@ -516,19 +563,7 @@ function ml_navigation.ParseInstructions(data)
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions,
 						function ()
-							ml_navigation:DispatchAutoFollowNode(pos, true)
-							ml_global_information.AwaitDo(100, 120000,
-								function ()
-									if (not Player:IsMoving()) then
-										return true
-									end
-									local myPos = Player.pos
-									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
-								end,
-								function ()
-									ml_navigation.SmoothFaceTarget(pos.x,pos.y,pos.z)
-								end
-							)
+							ml_navigation.BeginInstructionMove(pos, dist3d, dist2d, true, true)
 							return true
 						end
 					)
@@ -3864,6 +3899,7 @@ end
 -- Player:Stop / PauseMovement
 ------------------------------------------------------------
 function Player:Stop(resetpath)
+	ml_navigation.CancelInstructionMove(true)
 	ml_navigation:CancelFlightFollowCam()
 
 	-- Drop the run gate before touching native movement/autofollow state. This
@@ -3903,6 +3939,7 @@ function Player:Stop(resetpath)
 end
 
 function Player:PauseMovement(param1, param2, param3, param4, param5)
+	ml_navigation.CancelInstructionMove(true)
 	local param1 = IsNull(param1, 1500)
 	local param2 = IsNull(param2, function () return not Player:IsMoving() end)
 
@@ -3928,6 +3965,9 @@ ml_navigation.lastindexgoal = {}
 ------------------------------------------------------------
 function ml_navigation.Navigate(event, ticks)
 	ml_navigation:InstallAutoFollowHooks()
+
+	-- Instruction routes have no mesh path and own movement while AwaitDo runs.
+	if ml_navigation.HasInstructionMove() then return end
 
 	if (IsCosmolinerActive()) then
 		if (ml_navigation.canPath) then
