@@ -5424,9 +5424,11 @@ function c_dointeract:evaluate()
 		else
 		
 		-- Phase 1: MoveToExact handoff (fires once)
-		-- Skip if entity is already interactable
+		-- Skip if entity is already interactable, unless the profile asked for
+		-- its position: then the spot matters, not just being in range.
 		if (not task.exactMovementStarted and not task.exactMovementDone
-			and not (interactable and table.valid(interactable) and interactable.interactable)) then
+			and (task.profilePosRequired
+				or not (interactable and table.valid(interactable) and interactable.interactable))) then
 			local dist3d = math.distance3d(ppos, task.pos)
 			if (dist3d < 10) then
 				if (ml_navigation.canPath) then
