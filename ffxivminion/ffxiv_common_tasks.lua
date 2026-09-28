@@ -974,6 +974,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	-- Let the parent handle choice dialogs, even if another task opened them.
 	if (not self.killParent
 		and (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString"))) then
+		if (string.valid(self.conversationstring) or table.valid(self.conversationstrings)
+			or (tonumber(self.conversationindex) or 0) > 0) then
+			return false
+		end
 		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=DialogForParent parent="..TaskDebugParentName(self)
 			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
 			.." interactState="..tostring(self.interactState))
@@ -1441,14 +1445,6 @@ local function TeleportShouldSetHomepoint(task)
 		return false
 	end
 
-	-- The home point flag can lag behind the confirmation dialog.
-	if (task.homepointConfirmedAt and TimeSince(task.homepointConfirmedAt) < 6000) then
-		return false
-	end
-	if ((task.homepointAttempts or 0) >= 2) then
-		return false
-	end
-
 	local targetLocation = GetAetheryteLocation(targetID)
 	if (not table.valid(targetLocation)) then
 		return false
@@ -1511,11 +1507,14 @@ function c_sethomepoint:evaluate()
 	e_sethomepoint.aethid = 0
 	e_sethomepoint.aethpos = {}
 	
-	if (not ml_task_hub:CurrentTask().setHomepoint or Player.localmapid ~= ml_task_hub:CurrentTask().mapID) then
+	local task = ml_task_hub:CurrentTask()
+	if (not task.setHomepoint or Player.localmapid ~= task.mapID
+		or (task.homepointAttempts or 0) >= 2
+		or (task.homepointConfirmedAt and TimeSince(task.homepointConfirmedAt) < 6000)) then
 		return false
 	end
 	
-	local shouldSet, aethid, location, reason = TeleportShouldSetHomepoint(ml_task_hub:CurrentTask())
+	local shouldSet, aethid, location, reason = TeleportShouldSetHomepoint(task)
 	if (shouldSet and table.valid(location)) then
 		d("need to set homepoint reason=["..tostring(reason).."] aetheryte=["..tostring(aethid)
 			.."] mapid=["..tostring(ml_task_hub:CurrentTask().mapID).."]")
@@ -1540,6 +1539,9 @@ function e_sethomepoint:execute()
     local teleportTask = ml_task_hub:CurrentTask()
     teleportTask.homepointAttempts = (teleportTask.homepointAttempts or 0) + 1
     teleportTask.homepointInteractAt = Now()
+    teleportTask.homepointSelectedAt = nil
+    teleportTask.homepointConfirmedAt = nil
+    teleportTask.lastActivity = teleportTask.homepointInteractAt
     teleportTask:AddSubTask(newTask)
 end
 
@@ -1559,8 +1561,9 @@ function ffxiv_task_teleport:task_complete_eval()
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(homePointStr)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-						if (not TeleportShouldSetHomepoint(self)) then
-							d("[Teleport] Home point already set, closing aetheryte menu.")
+						if (not TeleportShouldSetHomepoint(self)
+							or (self.homepointConfirmedAt and TimeSince(self.homepointConfirmedAt) < 6000)) then
+							d("[Teleport] Closing aetheryte menu after home point selection.")
 							local menu = IsControlOpen("SelectString") and GetControl("SelectString")
 								or (IsControlOpen("SelectIconString") and GetControl("SelectIconString"))
 							if (menu and menu:IsOpen()) then
@@ -1607,7 +1610,14 @@ function ffxiv_task_teleport:task_complete_eval()
 	
 	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
 		if (TeleportShouldSetHomepoint(self)) then
-			return false
+			-- Wait for the game to confirm the change before allowing another attempt.
+			if (self.homepointConfirmedAt and TimeSince(self.homepointConfirmedAt) < 6000) then
+				self.lastActivity = Now()
+				return false
+			end
+			if ((self.homepointAttempts or 0) < 2) then
+				return false
+			end
 		end
 	end
 
