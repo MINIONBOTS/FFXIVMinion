@@ -31,6 +31,42 @@ FFXIVMinionFate.HighPriority = {
 	},
 }
 
+-- Where to stand while waiting for the next FATE in a chain to spawn, keyed by
+-- the next FATE's id. Chain links come from the Fate sheet; these spots are
+-- bot behaviour and are not in game data.
+FFXIVMinionFate.ChainWaitPositions = {
+	[501] = { x = 278.2, y = 338.7, z = -505.9 }, -- Svara's Flight
+	[502] = { x = 266.5, y = 360.7, z = -624.6 }, -- Svara's Fear
+	[643] = { x = 255.6, y = 25, z = 45.5 }, -- Dark Devices - The Plea
+	[644] = { x = 255.6, y = 25, z = 10 }, -- Dark Devices - The Bait
+	[645] = { x = 255.6, y = 25, z = 10 }, -- Dark Devices - The Switch
+	[646] = { x = 255.6, y = 25, z = 10 }, -- Dark Devices - The End
+	[610] = { x = 338, y = -4, z = -58 },
+	[611] = { x = 280, y = -5, z = 12 },
+	[868] = { x = -214.5, y = 138.5, z = -644.5 },
+	[869] = { x = -214.5, y = 138.5, z = -644.5 },
+	[870] = { x = -214.5, y = 138.5, z = -644.5 },
+	[791] = { x = 391.9, y = 162.4, z = -163.65 },
+	[792] = { x = 412.26, y = 159.88, z = -94.812 },
+	[1112] = { x = -632.5, y = 117.6, z = -251.6 },
+	[1113] = { x = -632.5, y = 117.6, z = -251.6 },
+	[1891] = { x = 74.79, y = 20.65, z = 302.16 },
+	[1892] = { x = 74.80, y = 20.65, z = 302.16 },
+	[1895] = { x = -357.07, y = 21.67, z = -277.82 },
+	[1896] = { x = -326.83, y = 24.12, z = -199.01 },
+	[1869] = { x = -30.66, y = 27.12, z = -651.36 },
+	[1870] = { x = 2.20, y = 20, z = -648.06 },
+	[1914] = { x = -661.11, y = 0.00, z = 626.65 },
+	[1915] = { x = -661.11, y = 0.00, z = 626.65 },
+	[1920] = { x = 712.43, y = 7.80, z = 635.64 },
+	[1921] = { x = 712.43, y = 7.80, z = 635.64 },
+}
+
+-- Returns the curated wait spot for a chain FATE, or nil if none is recorded.
+function FFXIVMinionFate.GetChainWaitPosition(fateId)
+	return FFXIVMinionFate.ChainWaitPositions[tonumber(fateId)]
+end
+
 function FFXIVMinionFate.IsHighPriority(mapId, fateId)
 	local mapData = FFXIVMinionFate.HighPriority[tonumber(mapId)]
 	return mapData and mapData[tonumber(fateId)] or false
@@ -354,6 +390,9 @@ FFXIVMinionFate.ActivationLoaders[1192] = function()
 end
 
 -- NPCs and world objects used by collection FATEs.
+-- id/pos is the turn-in NPC. itemid is the EObj contentid of the pickup in the
+-- world, not the EventItem that lands in the inventory (that comes from the
+-- Fate sheet at runtime).
 
 -- Eastern La Noscea
 FFXIVMinionFate.GatheringLoaders[137] = function()
@@ -471,14 +510,14 @@ end
 -- Il Mheg
 FFXIVMinionFate.GatheringLoaders[816] = function()
 	return {
-		[1492] = { id = 8677, pos = { x = -686, y = 27, z = -9 }, itemid = 2002819 }, -- Twice Upon a Time
+		[1492] = { id = 8677, pos = { x = -686, y = 27, z = -96 }, itemid = 2002819 }, -- Twice Upon a Time
 	}
 end
 
 -- Thavnair
 FFXIVMinionFate.GatheringLoaders[957] = function()
 	return {
-		[1764] = { id = 10790, pos = { x = -31.58, y = 89, z = -538 }, itemid = 2003307 }, -- Full Petal Alchemist: Perilous Pickings
+		[1764] = { id = 10790, pos = { x = -31.58, y = 89, z = -538 }, itemid = 2012476 }, -- Full Petal Alchemist: Perilous Pickings
 	}
 end
 
@@ -529,6 +568,12 @@ function FFXIVMinionFate.GetActivateable(mapId, fateId)
 	return mapData and mapData[fateId] or nil
 end
 
+-- Returns the curated collection record for a FATE, or nil when the FATE is
+-- not a known collection FATE on this map.
+-- record.turninid is the Fate sheet's EventItem and is filled in lazily from
+-- FFXIVLib. It stays nil while that row is still loading, so callers that need
+-- it must treat nil as "not known yet" rather than "nothing to hand in". A row
+-- without a turn-in item resolves to 0.
 function FFXIVMinionFate.GetGatherable(mapId, fateId)
 	mapId = tonumber(mapId)
 	fateId = tonumber(fateId)
@@ -537,11 +582,11 @@ function FFXIVMinionFate.GetGatherable(mapId, fateId)
 	local record = mapData and mapData[fateId] or nil
 	if not record then return nil end
 
-	if not record.turninid then
+	if record.turninid == nil then
 		local fate = FFXIVLib.API.Fate.GetFateById(fateId)
-		if not fate then return nil end
-		record.turninid = tonumber(fate.EventItem)
-		if not record.turninid or record.turninid == 0 then return nil end
+		if fate then
+			record.turninid = tonumber(fate.EventItem) or 0
+		end
 	end
 	return record
 end

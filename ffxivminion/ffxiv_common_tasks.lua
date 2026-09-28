@@ -970,7 +970,20 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				"MOVETOINTERACT dialog control open but GetConversationList returned empty parent="..TaskDebugParentName(self))
 		end
 	end
-	
+
+	-- A choice dialog we have nothing to pick for belongs to the parent (e.g. the
+	-- quest conversationindexes handler). The interact that opened it may have come
+	-- from a previous task instance, so interactAttempts can still be 0 here and the
+	-- Busy guard below would hold this task open forever. killParent tasks keep the
+	-- old rules so a stale dialog cannot complete a step that was never interacted.
+	if (not self.killParent
+		and (IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsControlOpen("CutSceneSelectString"))) then
+		TaskHandoffLog("MOVETOINTERACT complete_eval true reason=DialogForParent parent="..TaskDebugParentName(self)
+			.." attempts="..tostring(IsNull(self.interactAttempts, 0))
+			.." interactState="..tostring(self.interactState))
+		return true
+	end
+
 	-- Dumbed this down to one helper, lots of conditions already, and I fear more to come, diving doesn't follow the usual rules.
 	if ((MIsLoading() or (MIsLocked() and not HasInteractWindows())) and ml_navigation:IsUsingConnection()) then
 		TaskHandoffLogThrottle(self, "mti-locked-connection", 1000,
@@ -1432,6 +1445,16 @@ local function TeleportShouldSetHomepoint(task)
 		return false
 	end
 
+	-- The game updates the home point flag a moment after the Yes/No closes.
+	-- Trust the confirmation for a few seconds rather than walking back to
+	-- the crystal and reopening its menu, and never loop on a failing set.
+	if (task.homepointConfirmedAt and TimeSince(task.homepointConfirmedAt) < 6000) then
+		return false
+	end
+	if ((task.homepointAttempts or 0) >= 2) then
+		return false
+	end
+
 	local targetLocation = GetAetheryteLocation(targetID)
 	if (not table.valid(targetLocation)) then
 		return false
@@ -1520,7 +1543,10 @@ function e_sethomepoint:execute()
     if (gTeleportHack) then
         newTask.useTeleport = true
     end
-    ml_task_hub:CurrentTask():AddSubTask(newTask)
+    local teleportTask = ml_task_hub:CurrentTask()
+    teleportTask.homepointAttempts = (teleportTask.homepointAttempts or 0) + 1
+    teleportTask.homepointInteractAt = Now()
+    teleportTask:AddSubTask(newTask)
 end
 
 function ffxiv_task_teleport:task_complete_eval()
@@ -1539,8 +1565,20 @@ function ffxiv_task_teleport:task_complete_eval()
 					local cleanedline = CleanConvoLine(convo)
 					local cleanedv = CleanConvoLine(homePointStr)
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
+						-- This is the aetheryte menu. If the home point is already
+						-- right, close it instead of leaving it open for the next task.
+						if (not TeleportShouldSetHomepoint(self)) then
+							d("[Teleport] Home point already set, closing aetheryte menu.")
+							local menu = GetControl("SelectString") or GetControl("SelectIconString")
+							if (menu and menu:IsOpen()) then
+								menu:Close()
+							end
+							ml_global_information.Await(1500, function () return not IsControlOpen("SelectString") and not IsControlOpen("SelectIconString") end)
+							return false
+						end
 						d("Use conversation line ["..tostring(convo).."]")
 						SelectConversationLine(selectindex)
+						self.homepointSelectedAt = Now()
 						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
 						return false
 					end
@@ -1553,7 +1591,20 @@ function ffxiv_task_teleport:task_complete_eval()
 	
 	if (IsControlOpen("SelectYesno")) then
 		PressYesNo(true)
-		ml_global_information.Await(1500, function () return GetHomepoint(true) == Player.localmapid end)
+		if (self.homepointSelectedAt and TimeSince(self.homepointSelectedAt) < 5000) then
+			-- Wait for the new aetheryte, not just the map: the old home point
+			-- can sit on the same map, which made this wait end instantly.
+			self.homepointConfirmedAt = Now()
+			local targetID = tonumber(self.aetheryte or 0) or 0
+			ml_global_information.Await(3000, function ()
+				if (FFXIVLib.API.Map.InvalidateAetheryteCache) then
+					FFXIVLib.API.Map.InvalidateAetheryteCache("home point set")
+				end
+				return TeleportAetheryteID(GetHomepointAetheryte(true)) == targetID
+			end)
+		else
+			ml_global_information.Await(1500, function () return GetHomepoint(true) == Player.localmapid end)
+		end
 		return
 	end
 	
@@ -1567,7 +1618,13 @@ function ffxiv_task_teleport:task_complete_eval()
 			return false
 		end
 	end
-	
+
+	-- A crystal interaction we just started may still open its menu. Stay
+	-- around long enough to own (and close) it rather than orphan it.
+	if (self.homepointInteractAt and TimeSince(self.homepointInteractAt) < 3000 and not self.homepointSelectedAt) then
+		return false
+	end
+
 	if (self.setEvac) then
 		AddEvacPoint()
 	end

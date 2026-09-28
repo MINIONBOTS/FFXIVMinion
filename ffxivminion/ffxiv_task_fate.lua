@@ -496,10 +496,11 @@ function c_startfate:evaluate()
 			local npcid = activatable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
+				-- range rejects same-contentid NPCs belonging to other FATEs (e.g. Yak T'el 1895/1896).
 				local closest,closestDistance = nil,IsNull(activatable.range,100)
 				for _,entity in pairs(fatenpc) do
 					local dist = math.distance3d(entity.pos,activatable.pos)
-					if (not closest or dist < closestDistance) then
+					if (dist <= closestDistance) then
 						closest = entity
 						closestDistance = dist
 					end
@@ -589,7 +590,8 @@ function c_turninItem:evaluate()
 	local fate = MGetFateByID(fateid)
 	if (table.valid(fate)) then
 		local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
-		if (gatherable and In(fate.status,2,8)) then
+		-- turninid is nil until the Fate row loads; retry on a later pulse.
+		if (gatherable and gatherable.turninid and gatherable.turninid ~= 0 and In(fate.status,2,8)) then
 			local npcid = gatherable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
@@ -659,7 +661,12 @@ function c_pickupItem:evaluate()
     if (table.valid(fate) and fate.status == 2) then
 	
 		if IsInsideFate() and not Player.incombat then
-				
+			-- Only collection FATEs have pickups; skip the entity scans for everything else.
+			local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
+			if (not gatherable) then
+				return false
+			end
+
 			local nearest,nearestDistance = nil,0
 			local el = MEntityList("alive,attackable,onmesh")
 			local myPos = Player.pos
@@ -683,24 +690,23 @@ function c_pickupItem:evaluate()
 			if (table.valid(fatenpc)) then
 				for _,entity in pairs(fatenpc) do
 					if entity.fateid == fateid then
-						local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
-						if (gatherable) then
-							local pickupitem = MEntityList("nearest,targetable,contentid="..tostring(gatherable.itemid))
-							if (table.valid(pickupitem)) then
-								for _,item in pairs(pickupitem) do
-									local ipos = item.pos
-									local dist3d = Distance3D(ipos.x,ipos.y,ipos.z,myPos.x,myPos.y,myPos.z)
-									if (not nearest or dist3d < nearestDistance) then
-										
-										e_pickupItem.contentid = item.contentid
-										e_pickupItem.itempos = ipos
-										return true
-									end
+						local pickupitem = MEntityList("nearest,targetable,contentid="..tostring(gatherable.itemid))
+						if (table.valid(pickupitem)) then
+							for _,item in pairs(pickupitem) do
+								local ipos = item.pos
+								local dist3d = Distance3D(ipos.x,ipos.y,ipos.z,myPos.x,myPos.y,myPos.z)
+								if (not nearest or dist3d < nearestDistance) then
+
+									e_pickupItem.contentid = item.contentid
+									e_pickupItem.itempos = ipos
+									return true
 								end
 							end
 						end
+						-- One FATE NPC is enough to confirm the pickups are live.
+						break
 					end
-				end	
+				end
 			end
 		end	
 	end
@@ -854,7 +860,13 @@ function c_endfate:evaluate()
     if (table.valid(fate)) then
 		gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fate.id)
 		if (gatherable) then
-			redeemable = (ItemCount(gatherable.turninid) >= 1)
+			local turninid = gatherable.turninid
+			if (turninid == nil) then
+				-- Turn-in item still loading: don't end on completion yet, we may be holding items.
+				redeemable = true
+			else
+				redeemable = (turninid ~= 0 and ItemCount(turninid) >= 1)
+			end
 		end
 	end
 	
@@ -964,6 +976,11 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 			if f.FATEChain == fateid then
 				lastChain = false
 				nextFate = { id = f.id }
+				-- Without a wait spot MoveChainFate stays idle and we wait where we are.
+				local waitPos = FFXIVMinionFate.GetChainWaitPosition(f.id)
+				if waitPos then
+					nextFate.x, nextFate.y, nextFate.z = waitPos.x, waitPos.y, waitPos.z
+				end
 				break
 			end
 		end

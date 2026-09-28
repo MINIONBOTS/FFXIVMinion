@@ -1328,6 +1328,9 @@ e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
 e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- fraction of distToDest; savings must be >= max(100 yalms, ratio * distToDest)
 e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
+-- A same-map teleport is only a shortcut because walking always works, so it must
+-- never eat into gil a low-level character needs for gear, repairs or bait.
+e_teleportsamemap.MIN_GIL_AFTER_TELEPORT = 2000
 
 local function SameMapTeleportShouldSetHomepoint(task)
 	if (not task) then
@@ -1350,8 +1353,17 @@ function c_teleportsamemap:evaluate()
 	e_teleportsamemap.aeth = nil
 	e_teleportsamemap.useReturn = false
 
-	if (Busy() or GilCount() < 200 or InInstance()) then
+	-- Gil is checked on the paid path only; Return is free.
+	if (Busy() or InInstance()) then
 		return false
+	end
+
+	local parentTask = ml_task_hub:CurrentTask()
+	while (parentTask) do
+		if (parentTask.disableTeleport) then
+			return false
+		end
+		parentTask = parentTask:ParentTask()
 	end
 
 	if (ml_task_hub:CurrentTask().noTeleport) then
@@ -1438,6 +1450,11 @@ function c_teleportsamemap:evaluate()
 
 	local best = FFXIVLib.API.Map.GetBestAetheryteForMap(myMapID, destPos, { fromMapId = myMapID })
 	if (not best) then
+		return false
+	end
+
+	local paysWithTicket = task.useAethernetTickets and ItemCount(7569) > 0
+	if (not paysWithTicket and (GilCount() - (tonumber(best.price) or 0)) < e_teleportsamemap.MIN_GIL_AFTER_TELEPORT) then
 		return false
 	end
 
