@@ -496,7 +496,7 @@ function c_startfate:evaluate()
 			local npcid = activatable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
 			if (table.valid(fatenpc)) then
-				-- range rejects same-contentid NPCs belonging to other FATEs (e.g. Yak T'el 1895/1896).
+				-- Shared NPC IDs need a position check (Yak T'el 1895/1896).
 				local closest,closestDistance = nil,IsNull(activatable.range,100)
 				for _,entity in pairs(fatenpc) do
 					local dist = math.distance3d(entity.pos,activatable.pos)
@@ -590,7 +590,6 @@ function c_turninItem:evaluate()
 	local fate = MGetFateByID(fateid)
 	if (table.valid(fate)) then
 		local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
-		-- turninid is nil until the Fate row loads; retry on a later pulse.
 		if (gatherable and gatherable.turninid and gatherable.turninid ~= 0 and In(fate.status,2,8)) then
 			local npcid = gatherable.id
 			local fatenpc = MEntityList("targetable,type=3,chartype=5,contentid="..tostring(npcid))
@@ -661,7 +660,6 @@ function c_pickupItem:evaluate()
     if (table.valid(fate) and fate.status == 2) then
 	
 		if IsInsideFate() and not Player.incombat then
-			-- Only collection FATEs have pickups; skip the entity scans for everything else.
 			local gatherable = ffxiv_task_fate.Gatherable(Player.localmapid, fateid)
 			if (not gatherable) then
 				return false
@@ -703,7 +701,6 @@ function c_pickupItem:evaluate()
 								end
 							end
 						end
-						-- One FATE NPC is enough to confirm the pickups are live.
 						break
 					end
 				end
@@ -862,7 +859,7 @@ function c_endfate:evaluate()
 		if (gatherable) then
 			local turninid = gatherable.turninid
 			if (turninid == nil) then
-				-- Turn-in item still loading: don't end on completion yet, we may be holding items.
+				-- Wait for FATE data before deciding whether to leave with items.
 				redeemable = true
 			else
 				redeemable = (turninid ~= 0 and ItemCount(turninid) >= 1)
@@ -976,7 +973,6 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 			if f.FATEChain == fateid then
 				lastChain = false
 				nextFate = { id = f.id }
-				-- Without a wait spot MoveChainFate stays idle and we wait where we are.
 				local waitPos = FFXIVMinionFate.GetChainWaitPosition(f.id)
 				if waitPos then
 					nextFate.x, nextFate.y, nextFate.z = waitPos.x, waitPos.y, waitPos.z

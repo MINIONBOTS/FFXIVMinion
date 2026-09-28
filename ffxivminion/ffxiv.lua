@@ -855,18 +855,11 @@ function ffxivminion.GetSetting(strSetting, default)
 	return Settings.FFXIVMINION[strSetting]
 end
 
--- Returns the active ACR profile name. Current ACR builds validate the loaded
--- profile; the settings-table fallback preserves compatibility with older builds.
--- Report coordinates are read off screenshots, so print them the same way on
--- every character. Raw float concatenation shows float noise near zero as
--- scientific notation (e.g. -5.96e-08), which looks like a different position
--- to Dev-Monitor's rounded value even though Player.pos is identical.
 function ffxivminion.FormatReportCoord(value)
 	value = tonumber(value)
 	if (not value) then
 		return "?"
 	end
-	-- Round first so tiny negatives print as 0.000 rather than -0.000.
 	value = math.floor(value * 1000 + 0.5) / 1000
 	if (value == 0) then
 		value = 0
@@ -874,6 +867,7 @@ function ffxivminion.FormatReportCoord(value)
 	return string.format("%.3f", value)
 end
 
+-- Use the selected profile setting when older ACR builds cannot report it.
 function ffxivminion.GetActiveACRProfile()
 	if (type(ACR) == "table" and type(ACR.GetActiveProfile) == "function") then
 		return ACR.GetActiveProfile()

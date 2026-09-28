@@ -1328,8 +1328,6 @@ e_teleportsamemap.aeth = nil       -- chosen aetheryte entry
 e_teleportsamemap.useReturn = false -- true => cast Return instead of Teleport
 e_teleportsamemap.ADVANTAGE_RATIO = 0.3 -- fraction of distToDest; savings must be >= max(100 yalms, ratio * distToDest)
 e_teleportsamemap.lastTeleportDest = nil -- guards against teleport loops (one teleport per destination)
--- A same-map teleport is only a shortcut because walking always works, so it must
--- never eat into gil a low-level character needs for gear, repairs or bait.
 e_teleportsamemap.MIN_GIL_AFTER_TELEPORT = 2000
 
 local function SameMapTeleportShouldSetHomepoint(task)
@@ -1353,7 +1351,6 @@ function c_teleportsamemap:evaluate()
 	e_teleportsamemap.aeth = nil
 	e_teleportsamemap.useReturn = false
 
-	-- Gil is checked on the paid path only; Return is free.
 	if (Busy() or InInstance()) then
 		return false
 	end
@@ -5441,8 +5438,7 @@ function c_dointeract:evaluate()
 		else
 		
 		-- Phase 1: MoveToExact handoff (fires once)
-		-- Skip if entity is already interactable, unless the profile asked for
-		-- its position: then the spot matters, not just being in range.
+		-- A profile position must be reached even if the NPC is interactable.
 		if (not task.exactMovementStarted and not task.exactMovementDone
 			and (task.profilePosRequired
 				or not (interactable and table.valid(interactable) and interactable.interactable))) then
