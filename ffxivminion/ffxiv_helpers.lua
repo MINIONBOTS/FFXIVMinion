@@ -4290,6 +4290,10 @@ local _canAccessMapCache = {}
 
 function ClearCanAccessMapCache(reason)
 	_canAccessMapCache = {}
+	if ml_nav_manager then
+		ml_nav_manager.currPath = {}
+		ml_nav_manager._pathCache = {}
+	end
 	_G["gCanAccessMapCacheVersion"] = IsNull(_G["gCanAccessMapCacheVersion"], 0) + 1
 	if (ffxivminion and ffxivminion.GUI and ffxivminion.GUI.help) then
 		ffxivminion.GUI.help.access_cache = {}
@@ -9505,11 +9509,14 @@ function IsEntityReachable(entityid,range)
 	return false
 end
 function GetInteractableEntity(contentids,types)
-	local contentids = IsNull(tostring(contentids),"")
+	local contentids = tostring(IsNull(contentids,""))
 	local types = IsNull(types,{0,2,3,5,6,7})
+	local contentIDList = string.find(contentids,",",1,true) ~= nil
 	
 	local interacts;
-	if (string.valid(contentids)) then
+	if (contentIDList) then
+		interacts = MEntityList("targetable,maxdistance2d=30")
+	elseif (string.valid(contentids)) then
 		interacts = MEntityList("targetable,contentid="..contentids..",maxdistance2d=30")
 	else
 		interacts = MEntityList("targetable,maxdistance2d=15")
@@ -9519,7 +9526,7 @@ function GetInteractableEntity(contentids,types)
 		local validInteracts = {}
 		for i,entity in pairs(interacts) do
 			for _,typeid in pairs(types) do
-				if (typeid == entity.type) then
+				if (typeid == entity.type and (not contentIDList or (entity.contentid and HasContentID(entity,contentids)))) then
 					validInteracts[i] = entity
 				end
 			end

@@ -5345,6 +5345,7 @@ function c_dointeract:evaluate()
 			and not table.contains(expectedInteractTypes, interactable.type)
 		local contentMismatch = interactable and IsNull(task.contentid, 0) ~= 0
 			and tonumber(interactable.contentid) ~= tonumber(task.contentid)
+			and not HasContentID(interactable, tostring(task.contentid))
 		if (interactable and (typeMismatch or contentMismatch)) then
 			-- Loaded, but it is the wrong entity (shared contentid / stale id).
 			-- Drop it so the contentid re-search below can find the right one.
@@ -5372,15 +5373,8 @@ function c_dointeract:evaluate()
 				ml_debug("[DoInteract]: Didn't find any matching entities.",3)
 			end
 			task.lastInteractableSearch = Now()
-		end
-		
-		if (math.distance2d(ppos, task.pos) < 3 and math.distance3d(ppos, task.pos) < 4) then
-			local nearestInteract = nil
-			if (IsNull(task.contentid, 0) ~= 0) then
-				nearestInteract = GetInteractableEntity(task.contentid, expectedInteractTypes)
-			else
-				nearestInteract = GetInteractableEntity()
-			end
+		elseif (math.distance2d(ppos, task.pos) < 3 and math.distance3d(ppos, task.pos) < 4) then
+			local nearestInteract = GetInteractableEntity()
 			if (nearestInteract) then
 				task.interact = nearestInteract.id
 				interactable = nearestInteract
