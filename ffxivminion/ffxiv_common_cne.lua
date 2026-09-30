@@ -885,6 +885,7 @@ c_interactgate = inheritsFrom( ml_cause )
 e_interactgate = inheritsFrom( ml_effect )
 e_interactgate.timer = 0
 e_interactgate.id = 0
+e_interactgate.contentid = 0
 e_interactgate.selector = 0
 e_interactgate.conversationstrings = ""
 function c_interactgate:evaluate()
@@ -893,6 +894,7 @@ function c_interactgate:evaluate()
 	end
 	
 	e_interactgate.id = 0
+	e_interactgate.contentid = 0
 	e_interactgate.selector = 0
 	e_interactgate.conversationstrings = ""
 	
@@ -902,19 +904,27 @@ function c_interactgate:evaluate()
 														Player.localmapid,	
 														ml_task_hub:CurrentTask().destMapID	)
 
-			if (table.valid(pos) and pos.g) then				
-				local interacts = EntityList("targetable,maxdistance=4,contentid="..tostring(pos.g))
+			if (table.valid(pos) and (type(pos.g) == "number" or type(pos.g) == "string") and tostring(pos.g) ~= "") then
+				local contentids = tostring(pos.g)
+				local filter = "targetable,maxdistance=4"
+				if (tonumber(pos.g)) then
+					filter = filter..",contentid="..tostring(pos.g)
+				end
+				local interacts = EntityList(filter)
 				if (table.valid(interacts)) then
-					local i,interactable = next(interacts)
-					if (i and interactable and interactable.interactable) then
-						e_interactgate.id = interactable.id
-						if (pos.i) then
-							e_interactgate.selector = pos.i
+					for i,interactable in pairs(interacts) do
+						if (i and interactable and type(interactable.contentid) == "number" and interactable.contentid > 0
+							and HasContentID(interactable, contentids) and interactable.interactable) then
+							e_interactgate.id = interactable.id
+							e_interactgate.contentid = interactable.contentid
+							if (pos.i) then
+								e_interactgate.selector = pos.i
+							end
+							if (pos.conversationstrings) then
+								e_interactgate.conversationstrings = pos.conversationstrings
+							end
+							return true
 						end
-						if (pos.conversationstrings) then
-							e_interactgate.conversationstrings = pos.conversationstrings
-						end
-						return true
 					end
 				end
 			end
@@ -924,7 +934,7 @@ function c_interactgate:evaluate()
 	return false
 end
 function e_interactgate:execute()
-	if (Now() < e_interactgate.timer) then
+	if (Now() < e_interactgate.timer or MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -967,6 +977,10 @@ function e_interactgate:execute()
 	end
 	
 	local gate = EntityList:Get(e_interactgate.id)
+	if (not gate or gate.contentid ~= e_interactgate.contentid
+		or not gate.targetable or not gate.interactable or gate.distance > 4) then
+		return false
+	end
 	Player:Interact(gate.id)
 	e_interactgate.timer = Now() + 1500
 end
