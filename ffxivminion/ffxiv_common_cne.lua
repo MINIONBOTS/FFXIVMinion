@@ -984,6 +984,50 @@ end
 c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
+
+-- @param pos Selected nav entry. Keep each variant's requirements and menu data.
+-- @return table|nil Co-located NPC entries for this warp, if there are variants.
+function c_transportgate.GetVariants(pos)
+	if not pos.b or not pos._warpId or pos._warpId == 0 or not pos.x or not pos.y or not pos.z then return nil end
+	local map = ffxiv_map_nav.data and ffxiv_map_nav.data[Player.localmapid]
+	local entries = map and map[pos.id]
+	if not entries then return nil end
+	local variants = nil
+	for _, entry in ipairs(entries) do
+		if entry ~= pos and entry.b and entry._warpId == pos._warpId
+			and entry.x and entry.y and entry.z
+			and math.abs(entry.x - pos.x) < 1 and math.abs(entry.y - pos.y) < 1
+			and math.abs(entry.z - pos.z) < 1 then
+			if not variants then variants = {pos} end
+			variants[#variants + 1] = entry
+		end
+	end
+	return variants
+end
+
+-- @param entries NPC variants. @param types Optional interaction entity types.
+-- @return entity, entry Live eligible NPC and its menu data, or nil if unavailable.
+function c_transportgate.GetInteractableVariant(entries, types)
+	local ids, byID = {}, {}
+	for _, entry in ipairs(entries) do
+		if ml_global_information.NavEntryRequirementsMet(entry) then
+			local id = tostring(entry.b)
+			ids[#ids + 1] = id
+			byID[id] = entry
+			if entry.alts then
+				for _, alt in ipairs(entry.alts) do
+					id = tostring(alt)
+					ids[#ids + 1] = id
+					byID[id] = entry
+				end
+			end
+		end
+	end
+	if #ids == 0 then return nil end
+	local entity = GetInteractableEntity(table.concat(ids, ","), types)
+	if entity then return entity, byID[tostring(entity.contentid)] end
+end
+
 function c_transportgate:evaluate()
 	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
@@ -999,6 +1043,7 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (table.valid(pos) and pos.b) then
 						local details = {}
+						details.navVariants = c_transportgate.GetVariants(pos)
 						local cid = tostring(pos.b)
 						if pos.alts then
 							for _, alt in ipairs(pos.alts) do
@@ -1041,6 +1086,7 @@ function e_transportgate:execute()
 	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
 	newTask.pos = gateDetails.pos
 	newTask.contentid = gateDetails.contentid
+	newTask.navVariants = gateDetails.navVariants
 	newTask.conversationIndex = gateDetails.conversationIndex
 	newTask.conversationstrings = gateDetails.conversationstrings
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -5336,6 +5382,9 @@ function c_dointeract:evaluate()
 	if (task.lastInteractableSearch == nil) then
 		task.lastInteractableSearch = 0
 	end
+	if task.navVariant and not ml_global_information.NavEntryRequirementsMet(task.navVariant) then
+		task.interact = 0
+	end
 	if (task.interact ~= 0) then
 		interactable = EntityList:Get(task.interact)
 		-- Drop a cached target whose type no longer matches what the task expects.
@@ -5363,7 +5412,19 @@ function c_dointeract:evaluate()
 		-- never resolve once the object finally streams in.
 	end
 	if (task.interact == 0 and TimeSince(task.lastInteractableSearch) > 500) then
-		if (IsNull(task.contentid,0) ~= 0) then
+		if task.navVariants then
+			-- Resolve after streaming in, so distant tasks do not lock onto an absent variant.
+			local entity, entry = c_transportgate.GetInteractableVariant(task.navVariants, expectedInteractTypes)
+			if entity and entry then
+				task.interact = entity.id
+				task.contentid = tostring(entity.contentid)
+				task.navVariant = entry
+				task.conversationIndex = entry.i or 0
+				task.conversationstrings = entry.conversationstrings or ""
+				interactable = entity
+			end
+			task.lastInteractableSearch = Now()
+		elseif (IsNull(task.contentid,0) ~= 0) then
 			ml_debug("[DoInteract]: Looking for contentid ["..tostring(task.contentid).."]",3)
 			local nearestInteract = GetInteractableEntity(task.contentid, expectedInteractTypes)
 			if (nearestInteract) then

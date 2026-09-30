@@ -9511,13 +9511,10 @@ end
 function GetInteractableEntity(contentids,types)
 	local contentids = tostring(IsNull(contentids,""))
 	local types = IsNull(types,{0,2,3,5,6,7})
-	local contentIDList = string.find(contentids,",",1,true) ~= nil
 	
 	local interacts;
-	if (contentIDList) then
-		interacts = MEntityList("targetable,maxdistance2d=30")
-	elseif (string.valid(contentids)) then
-		interacts = MEntityList("targetable,contentid="..contentids..",maxdistance2d=30")
+	if (string.valid(contentids)) then
+		interacts = MEntityList("targetable,contentid="..contentids:gsub(",", ";")..",maxdistance2d=30")
 	else
 		interacts = MEntityList("targetable,maxdistance2d=15")
 	end
@@ -9526,7 +9523,7 @@ function GetInteractableEntity(contentids,types)
 		local validInteracts = {}
 		for i,entity in pairs(interacts) do
 			for _,typeid in pairs(types) do
-				if (typeid == entity.type and (not contentIDList or (entity.contentid and HasContentID(entity,contentids)))) then
+				if (typeid == entity.type) then
 					validInteracts[i] = entity
 				end
 			end
