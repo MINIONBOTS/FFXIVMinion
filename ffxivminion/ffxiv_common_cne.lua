@@ -906,11 +906,7 @@ function c_interactgate:evaluate()
 
 			if (table.valid(pos) and (type(pos.g) == "number" or type(pos.g) == "string") and tostring(pos.g) ~= "") then
 				local contentids = tostring(pos.g)
-				local filter = "targetable,maxdistance=4"
-				if (tonumber(pos.g)) then
-					filter = filter..",contentid="..tostring(pos.g)
-				end
-				local interacts = EntityList(filter)
+				local interacts = MEntityList("targetable,maxdistance=4,contentid="..contentids:gsub(",", ";"))
 				if (table.valid(interacts)) then
 					for i,interactable in pairs(interacts) do
 						if (i and interactable and type(interactable.contentid) == "number" and interactable.contentid > 0
