@@ -339,6 +339,8 @@ function e_huntlogmovetopos:execute()
 	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
 	newTask.customSearch = customSearch
 	newTask.customSearchCompletes = true
+	newTask.combatSearchCause = c_huntlogkill
+	newTask.huntParams = huntParams
 	
 	currentTask:AddSubTask(newTask)
 end

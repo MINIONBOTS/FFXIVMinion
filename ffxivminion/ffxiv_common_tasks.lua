@@ -178,6 +178,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.obstacleTimer = 0
 	newinst.customSearch = ""
 	newinst.customSearchCompletes = false
+	newinst.combatSearchCause = nil
+	newinst.combatSearchTimer = 0
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.dismountDistance = 10
 	newinst.failTimer = 0
@@ -297,7 +299,17 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local range2d, range3d = ml_navigation.GetMovementThresholds()
 		local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
 		
-		if (dist3d < 40 and self.customSearch ~= "") then
+		local combatSearch = self.combatSearchCause and not self.remainMounted and not IsFlying() and not IsDiving()
+		if (combatSearch and not ml_navigation:IsUsingConnection()) then
+			local now = Now()
+			if (now >= (self.combatSearchTimer or 0)) then
+				self.combatSearchTimer = now + 500
+				if (self.combatSearchCause:evaluate()) then
+					return true
+				end
+			end
+		end
+		if (not combatSearch and dist3d < 40 and self.customSearch ~= "") then
 			local el = EntityList(self.customSearch)
 			if (ValidTable(el)) then
 				local _,entity = next(el)
@@ -538,6 +550,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
+	if (self.exactMovementStarted) then
+		self.exactMovementStarted = false
+		self.exactMovementDone = true
+		ml_navigation:EnablePathing()
+	end
 	TaskHandoffLog("MOVETOPOS complete_execute parent="..TaskDebugParentName(self)
 		.." pos="..TaskDebugPos(self.pos)
 		.." completed="..tostring(self.completed)
@@ -2040,6 +2057,7 @@ function ffxiv_task_grindCombat.Create()
     newinst.name = "GRIND_COMBAT"
 	newinst.targetid = 0
     newinst.noTeleport = false
+	newinst.nomount = false
 	newinst.noFateSync = false
 	newinst.teleportThrottle = 0
 	newinst.targetPos = nil
