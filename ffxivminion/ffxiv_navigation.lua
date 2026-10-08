@@ -3124,6 +3124,15 @@ function ml_navigation:IsGoalClose(ppos,node,lastnode)
 		end
 	end
 
+	if not isLast and node == ml_navigation.path[ml_navigation.pathindex] and node.is_cube == false
+		and (not node.navconnectionid or node.navconnectionid == 0)
+		and not Player.flying.isflying and not Player.diving.isdiving and not Player.diving.isswimming then
+		local directDistance = math.distance3d(ppos, node)
+		if directDistance <= 1.0 then
+			goaldist = math.min(goaldist, directDistance)
+		end
+	end
+
 	-- Floor2Cube connections have a radius in which the player is allowed to traverse
 	local nc
 	local ncsubtype
