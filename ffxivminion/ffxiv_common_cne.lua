@@ -5282,6 +5282,7 @@ local function c_dointeract_fireInteract(task, interactable, source)
 	end
 	Player:Interact(interactable.id)
 	c_dointeract_setState(task, "interactSent", interactable)
+	task.interactSentAt = Now()
 	task.interactAttempts = (task.interactAttempts or 0) + 1
 	return true
 end
@@ -5356,7 +5357,18 @@ function c_dointeract:evaluate()
 			return true
 		end
 		if (task.interactStateNeedsResult) then
-			return true
+			if (TimeSince(IsNull(task.interactSentAt, 0)) < 5000) then
+				return true
+			end
+			-- The game ignored the interact; hand control back to nav and retry.
+			c_dointeract_clearState(task)
+			task.interactActionCommitted = false
+			task.disableFlyingLandingAfterInteract = false
+			task.pathChecked = false
+			if (ml_navigation and ml_navigation.ClearInteractActionHandoff) then
+				ml_navigation:ClearInteractActionHandoff()
+			end
+			return false
 		end
 		task.interactState = "complete"
 		if (not task._interactCompleteLogged) then
@@ -5742,7 +5754,9 @@ function c_dointeract:evaluate()
 	-------------------------------------------------------------------
 	-- THE KEY CHECK: entity is interactable, stop, interact, hold
 	-------------------------------------------------------------------
-	if (not bypassInteractableGate and not interactable.interactable) then
+	local retryTooFar = IsNull(task.interactAttempts, 0) > 0 and not isNetworkCrystalTarget
+		and effectivePlanarAbs > c_dointeract_nudge2d(task, interactable)
+	if (not bypassInteractableGate and (not interactable.interactable or retryTooFar)) then
 		local handoff = ffnav and ffnav.handoff
 		if (IsDiving() and handoff and handoff.kind == "interactAction"
 			and ml_navigation and ml_navigation.ClearInteractActionHandoff) then
