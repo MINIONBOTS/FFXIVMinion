@@ -303,8 +303,10 @@ end
 function GUI_DrawIntMinMax(label,varname,step,stepfast,minval,maxval,onchange)
 	local var = _G[varname]
 	if (var ~= nil) then
-		local returned = GUI_Capture(GUI:InputInt(label,var,step,stepfast),varname, onchange)
-		if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+		-- Clamp the widget value before GUI_Capture, so _G, Settings and onchange never see an out-of-range value.
+		local newVal = GUI:InputInt(label,var,step,stepfast)
+		if (minval ~= nil and newVal < minval) then newVal = minval elseif (maxval ~= nil and newVal > maxval) then newVal = maxval end
+		GUI_Capture(newVal,varname,onchange)
 	else
 		d("[GUI_DrawIntMinMax]: ["..varname.."] is nil.")
 	end
@@ -314,8 +316,11 @@ function GUI_DrawFloatMinMax(label,varname,step,stepfast,precision,minval,maxval
 	local var = _G[varname]
 	if (var ~= nil) then
 		local precision = IsNull(precision,2)
-		local returned = GUI_Capture(GUI:InputFloat(label,var,step,stepfast,precision),varname,onchange)
-		if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
+		-- Clamp the widget value before GUI_Capture, so _G, Settings and onchange never see an out-of-range value.
+		local newVal = GUI:InputFloat(label,var,step,stepfast,precision)
+		if (newVal ~= newVal) then if (var == var) then newVal = var else newVal = minval or 0 end end -- NaN: keep the previous value
+		if (minval ~= nil and newVal < minval) then newVal = minval elseif (maxval ~= nil and newVal > maxval) then newVal = maxval end
+		GUI_Capture(newVal,varname,onchange)
 	else
 		d("[GUI_DrawFloatMinMax]: ["..varname.."] is nil.")
 	end
